@@ -16,9 +16,12 @@ pub fn run() {
     })
     .invoke_handler(tauri::generate_handler![
       compile::compile_latex,
+      compile::prefetch_packages,
       engine::list_tectonic_versions,
       engine::download_tectonic,
-      engine::set_active_engine
+      engine::set_active_engine,
+      engine::tectonic_cache_info,
+      engine::clear_tectonic_cache
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

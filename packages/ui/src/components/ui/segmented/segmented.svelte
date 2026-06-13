@@ -86,11 +86,14 @@
 		}
 	});
 
+	// All sizes share a 2px row padding so the active pill is always
+	// `calc(100% - 4px)` tall. `md` (h-8 row / h-7 btn) matches Button `sm`
+	// exactly, so a Segmented and a Button sit at the same height in a toolbar.
 	const sizing = $derived(
 		size === "xs"
 			? { row: "h-6 p-0.5", btn: "h-5 text-[10px] px-2", gap: "gap-0.5" }
 			: size === "md"
-				? { row: "h-9 p-1", btn: "h-7 text-[12px] px-3", gap: "gap-1" }
+				? { row: "h-8 p-0.5", btn: "h-7 text-[11px] px-3", gap: "gap-0.5" }
 				: { row: "h-7 p-0.5", btn: "h-6 text-[11px] px-2.5", gap: "gap-0.5" },
 	);
 </script>
@@ -118,11 +121,7 @@
 			)}
 			style:left={`${pillLeft}px`}
 			style:width={`${pillWidth}px`}
-			style:height={size === "xs"
-				? "calc(100% - 4px)"
-				: size === "md"
-					? "calc(100% - 8px)"
-					: "calc(100% - 4px)"}
+			style:height="calc(100% - 4px)"
 		></div>
 	{/if}
 

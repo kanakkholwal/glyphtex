@@ -27,6 +27,7 @@
 		autocompletion,
 		completionKeymap,
 	} from "@codemirror/autocomplete";
+	import { search, setSearchQuery, SearchQuery } from "@codemirror/search";
 
 	import { jetbrainsTheme, latexLanguage, type LatexGrammar } from "@glyph/ui/editor";
 
@@ -120,6 +121,7 @@
 				bracketMatching(),
 				closeBrackets(),
 				autocompletion(),
+				search(), // enables match highlighting via setSearchQuery (our own panel)
 				rectangularSelection(),
 				crosshairCursor(),
 				highlightActiveLine(),
@@ -242,6 +244,113 @@
 			effects: EditorView.scrollIntoView(l.from, { y: "center" }),
 		});
 		v.focus();
+	}
+
+	// --- Search / replace (drives the side-panel search) ----------------------
+
+	export type SearchOptions = {
+		query: string;
+		replace?: string;
+		caseSensitive?: boolean;
+		wholeWord?: boolean;
+		regexp?: boolean;
+	};
+	export type SearchMatch = { from: number; to: number; line: number; column: number; text: string };
+
+	function buildRegex(o: SearchOptions): RegExp | null {
+		if (!o.query) return null;
+		let pat = o.regexp ? o.query : o.query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		if (o.wholeWord) pat = `\\b(?:${pat})\\b`;
+		try {
+			return new RegExp(pat, "g" + (o.caseSensitive ? "" : "i"));
+		} catch {
+			return null; // invalid regex — caller shows no results
+		}
+	}
+
+	/** Highlight matches in the editor and return them all for the results list. */
+	export function findAll(o: SearchOptions): SearchMatch[] {
+		const v = view;
+		if (!v) return [];
+		// Drive CodeMirror's own match highlighting.
+		v.dispatch({
+			effects: setSearchQuery.of(
+				new SearchQuery({
+					search: o.query ?? "",
+					replace: o.replace ?? "",
+					caseSensitive: !!o.caseSensitive,
+					regexp: !!o.regexp,
+					wholeWord: !!o.wholeWord,
+				}),
+			),
+		});
+		const re = buildRegex(o);
+		if (!re) return [];
+		const text = v.state.doc.toString();
+		const out: SearchMatch[] = [];
+		let m: RegExpExecArray | null;
+		while ((m = re.exec(text)) && out.length < 5000) {
+			if (m[0] === "") {
+				re.lastIndex++; // guard against zero-width matches
+				continue;
+			}
+			const from = m.index;
+			const line = v.state.doc.lineAt(from);
+			out.push({
+				from,
+				to: from + m[0].length,
+				line: line.number,
+				column: from - line.from + 1,
+				text: line.text,
+			});
+		}
+		return out;
+	}
+
+	/** Select + scroll to a match range (clicking a search result). */
+	export function selectRange(from: number, to: number) {
+		const v = view;
+		if (!v) return;
+		const len = v.state.doc.length;
+		const a = Math.min(from, len);
+		const b = Math.min(to, len);
+		v.dispatch({
+			selection: { anchor: a, head: b },
+			effects: EditorView.scrollIntoView(a, { y: "center" }),
+		});
+		v.focus();
+	}
+
+	/** Replace a single range (replace-current). */
+	export function replaceRange(from: number, to: number, insert: string) {
+		const v = view;
+		if (!v) return;
+		v.dispatch({ changes: { from, to, insert }, selection: { anchor: from + insert.length } });
+	}
+
+	/** Replace every match in one undoable change. Returns the count replaced. */
+	export function replaceAllMatches(o: SearchOptions, replacement: string): number {
+		const v = view;
+		if (!v) return 0;
+		const re = buildRegex(o);
+		if (!re) return 0;
+		const text = v.state.doc.toString();
+		const matches = text.match(re);
+		const count = matches ? matches.length : 0;
+		if (!count) return 0;
+		// In regex mode keep $1/$& expansion; otherwise insert the literal text.
+		const repl = o.regexp ? replacement : replacement.replace(/\$/g, "$$$$");
+		const next = text.replace(re, repl);
+		v.dispatch({
+			changes: { from: 0, to: v.state.doc.length, insert: next },
+			selection: { anchor: 0 },
+		});
+		return count;
+	}
+
+	/** Clear the highlight (closing the search panel). */
+	export function clearSearch() {
+		view?.dispatch({ effects: setSearchQuery.of(new SearchQuery({ search: "" })) });
 	}
 </script>
 

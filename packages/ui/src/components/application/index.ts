@@ -9,4 +9,6 @@ export {
 	default as EngineSettings,
 	type EngineManager,
 	type EngineVersion,
+	type CacheInfo,
+	type PrefetchResult,
 } from "./engine-settings.svelte";

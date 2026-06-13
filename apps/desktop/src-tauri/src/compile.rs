@@ -43,6 +43,48 @@ impl CompileResult {
     }
 }
 
+/// Ensure a fontconfig config exists and return its path (Windows only).
+///
+/// Tectonic's XeTeX engine initializes fontconfig for font lookups; on Windows
+/// there is no default config, which prints "Cannot load default config file"
+/// and can destabilize font handling. We write a minimal config pointing at the
+/// system fonts dir with a writable cache so initialization always succeeds.
+#[cfg(windows)]
+fn ensure_fontconfig(app: &tauri::AppHandle) -> Option<PathBuf> {
+    use tauri::Manager;
+    let base = app.path().app_data_dir().ok()?;
+    std::fs::create_dir_all(&base).ok()?;
+    let cache = base.join("fontconfig-cache");
+    std::fs::create_dir_all(&cache).ok()?;
+    let conf = base.join("fonts.conf");
+    if !conf.exists() {
+        let xml = format!(
+            "<?xml version=\"1.0\"?>\n<!DOCTYPE fontconfig SYSTEM \"fonts.dtd\">\n<fontconfig>\n  <dir>C:/Windows/Fonts</dir>\n  <cachedir>{}</cachedir>\n</fontconfig>\n",
+            cache.to_string_lossy().replace('\\', "/")
+        );
+        std::fs::write(&conf, xml).ok()?;
+    }
+    Some(conf)
+}
+
+#[cfg(not(windows))]
+fn ensure_fontconfig(_app: &tauri::AppHandle) -> Option<PathBuf> {
+    None
+}
+
+/// Pre-download a set of common LaTeX packages into the cache so the first
+/// offline compile works. Best-effort: returns the compile result of a small
+/// document that pulls the packages in.
+#[tauri::command]
+pub async fn prefetch_packages(app: tauri::AppHandle) -> Result<CompileResult, String> {
+    const WARM: &str = r"\documentclass{article}
+\usepackage{amsmath,amssymb,graphicx,geometry,booktabs,enumitem,xcolor,titlesec,fancyhdr,tabularx,microtype,parskip,multicol,listings}
+\usepackage[hidelinks]{hyperref}
+\usepackage[english]{babel}
+\begin{document}Warming the package cache.\end{document}";
+    compile_latex(app, WARM.to_string()).await
+}
+
 /// Read and gunzip `main.synctex.gz` from the output dir, if present.
 fn read_synctex(dir: &std::path::Path) -> Option<String> {
     let path = dir.join("main.synctex.gz");
@@ -104,15 +146,24 @@ pub async fn compile_latex(app: tauri::AppHandle, source: String) -> Result<Comp
     std::fs::write(&tex_path, &source).map_err(|e| e.to_string())?;
 
     let bin = find_tectonic(&app);
-    let output = Command::new(&bin)
-        .arg("--outdir")
+    let mut cmd = Command::new(&bin);
+    cmd.arg("--outdir")
         .arg(dir.path())
         .arg("--keep-logs")
         .arg("--synctex")
         .arg("--chatter")
         .arg("minimal")
-        .arg(&tex_path)
-        .output();
+        .arg(&tex_path);
+    // Deterministic, app-managed package cache (so Settings can show/clear/warm it).
+    if let Some(cache) = crate::engine::cache_dir(&app) {
+        cmd.env("TECTONIC_CACHE_DIR", cache);
+    }
+    // Give fontconfig a real config so XeTeX font lookups don't emit the
+    // "Cannot load default config file" noise (Windows; harmless elsewhere).
+    if let Some(conf) = ensure_fontconfig(&app) {
+        cmd.env("FONTCONFIG_FILE", conf);
+    }
+    let output = cmd.output();
 
     let output = match output {
         Ok(o) => o,
@@ -142,14 +193,28 @@ pub async fn compile_latex(app: tauri::AppHandle, source: String) -> Result<Comp
     if !output.status.success() {
         // Mirror the failure to the dev terminal so it can be read/debugged there.
         eprintln!(
-            "[glyph] LaTeX compilation failed:\n{}",
+            "[glyph] LaTeX compilation failed (exit {:?}):\n{}",
+            output.status.code(),
             if stderr.trim().is_empty() {
                 tex_log.as_str()
             } else {
                 stderr.trim()
             }
         );
-        return Ok(CompileResult::failure("LaTeX compilation failed.", log));
+        // No TeX log written ⇒ the engine itself crashed (rather than a normal
+        // LaTeX error). Most often an OpenType icon font (e.g. fontawesome5) on
+        // the stable engine — the nightly build fixes it.
+        let message = if tex_log.trim().is_empty() {
+            format!(
+                "The LaTeX engine exited unexpectedly (code {:?}) without producing a log — \
+                 a package likely crashed it (often an icon font such as fontawesome5 on the \
+                 stable engine). Try the Nightly engine in Settings → Engine.",
+                output.status.code()
+            )
+        } else {
+            "LaTeX compilation failed.".to_string()
+        };
+        return Ok(CompileResult::failure(message, log));
     }
 
     let pdf_path = dir.path().join("main.pdf");

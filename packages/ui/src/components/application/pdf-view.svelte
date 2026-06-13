@@ -1,86 +1,137 @@
 <script lang="ts">
-	import { onMount, onDestroy, tick } from 'svelte';
-	import { Button } from '@glyph/ui/button';
-	import { IconMinus, IconPlus, IconArrowsMaximize } from '@tabler/icons-svelte';
-	// PDF.js' own text-layer styles (selection + span positioning). Scoped under
-	// .textLayer / .annotationLayer, so it doesn't touch our design tokens.
+	import { onMount, onDestroy } from 'svelte';
+	import { IconChevronUp, IconChevronDown, IconX } from '@tabler/icons-svelte';
+	// PDF.js layer styles (canvas/text/annotation positioning + selection). This is
+	// the *component* stylesheet only — NOT the full pdf.js viewer app, so there is
+	// no browser PDF toolbar/chrome. We re-theme the bits we care about below.
 	import 'pdfjs-dist/web/pdf_viewer.css';
 
 	/**
-	 * PdfView — an in-app PDF renderer built on PDF.js, Overleaf-style:
-	 *   - a <canvas> paints each page (HiDPI-crisp), and
-	 *   - a transparent **text layer** overlays it so text is selectable/copyable.
-	 * No browser PDF chrome; our own fit-to-width scaling + zoom; OS-identical;
-	 * zero native libraries. Double-clicking emits the PDF-space click so the host
-	 * can reverse-search via SyncTeX.
+	 * PdfView — headless PDF preview built on PDF.js' `PDFViewer` component
+	 * (`pdfjs-dist/web/pdf_viewer.mjs`), the same engine Overleaf uses. It renders,
+	 * per page, a canvas + a transparent **text layer** (selectable/searchable) +
+	 * an **annotation layer** (clickable links), all pixel-aligned and virtualized
+	 * (only visible pages paint). No toolbar — every control here is ours.
 	 *
 	 * pdfjs is imported lazily in onMount so it never runs during SSR/prerender.
 	 */
 	let {
 		data,
-		onreverse
+		onreverse,
+		scalePct = $bindable(100),
+		fitMode = $bindable(true),
+		numPages = $bindable(0)
 	}: {
 		data?: Uint8Array;
 		onreverse?: (loc: { page: number; x: number; y: number }) => void;
+		/** Current zoom (%) — bindable so the host toolbar can display it. */
+		scalePct?: number;
+		/** True while fit-to-width is active. */
+		fitMode?: boolean;
+		/** Page count of the rendered document. */
+		numPages?: number;
 	} = $props();
 
 	/* eslint-disable @typescript-eslint/no-explicit-any */
 	let pdfjs: any = null;
+	let viewerMod: any = null;
+	let pdfViewer: any = null;
+	let eventBus: any = null;
+	let linkService: any = null;
+	let findController: any = null;
 	let doc: any = null;
-	let renderToken = 0;
-	let textLayers: any[] = []; // live TextLayer instances (for cancel)
-	let reflowTimer: ReturnType<typeof setTimeout> | undefined;
+	let loadToken = 0;
 	let resizeObserver: ResizeObserver | undefined;
-	// Guards against redundant re-renders (the main source of flicker): only
-	// repaint when the document, fit-width, or zoom actually changed.
-	let lastRenderKey = '';
-
-	let pages = $state<number[]>([]);
-	let canvasEls = $state<HTMLCanvasElement[]>([]);
-	let textEls = $state<HTMLDivElement[]>([]);
-	let pageEls = $state<HTMLDivElement[]>([]);
-	let surfaceEl = $state<HTMLDivElement>();
-
-	let zoom = $state(1); // 1 = fit width; multiplies the fit scale
-	let containerWidth = $state(0);
-	let docVersion = $state(0);
-	let loading = $state(false);
-	let hasRendered = $state(false);
-	let errorMsg = $state<string | undefined>(undefined);
-	let ready = $state(false);
 	let flashEl: HTMLDivElement | null = null;
 	let flashTimer: ReturnType<typeof setTimeout> | undefined;
+	let restoreRatio: number | null = null;
 
-	const SURFACE_PAD = 48; // px-6 on the inner column (24 each side)
+	let containerEl = $state<HTMLDivElement>();
+	let viewerEl = $state<HTMLDivElement>();
 
-	// Per page: viewport used to render + unscaled page height (pt) for sync.
-	const meta = new Map<number, { viewport: any; heightPt: number }>();
+	let ready = $state(false); // engine constructed
+	let hasRendered = $state(false); // first document painted
+	let loading = $state(false);
+	let errorMsg = $state<string | undefined>(undefined);
+
+	// Find-in-PDF state
+	let findOpen = $state(false);
+	let findQuery = $state('');
+	let findCaseSensitive = $state(false);
+	let findCurrent = $state(0);
+	let findTotal = $state(0);
+	let findInputEl = $state<HTMLInputElement>();
 
 	onMount(async () => {
 		pdfjs = await import('pdfjs-dist');
+		viewerMod = await import('pdfjs-dist/web/pdf_viewer.mjs');
 		const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
 		pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
 
-		if (surfaceEl) {
-			containerWidth = surfaceEl.clientWidth;
-			resizeObserver = new ResizeObserver((entries) => {
-				// Round to whole px so sub-pixel jitter never triggers a re-render.
-				const w = Math.round(entries[0].contentRect.width);
-				if (w !== containerWidth) containerWidth = w;
-			});
-			resizeObserver.observe(surfaceEl);
-		}
+		if (!containerEl || !viewerEl) return;
+
+		eventBus = new viewerMod.EventBus();
+		linkService = new viewerMod.PDFLinkService({
+			eventBus,
+			externalLinkTarget: viewerMod.LinkTarget.BLANK,
+			externalLinkRel: 'noopener'
+		});
+		findController = new viewerMod.PDFFindController({ eventBus, linkService });
+		pdfViewer = new viewerMod.PDFViewer({
+			container: containerEl,
+			viewer: viewerEl,
+			eventBus,
+			linkService,
+			findController,
+			annotationMode: pdfjs.AnnotationMode.ENABLE, // clickable links
+			annotationEditorMode: pdfjs.AnnotationEditorType.DISABLE,
+			removePageBorders: true, // we draw page chrome ourselves
+			maxCanvasPixels: 8192 * 8192
+		});
+		linkService.setViewer(pdfViewer);
+
+		eventBus.on('pagesinit', () => {
+			pdfViewer.currentScaleValue = fitMode ? 'page-width' : pdfViewer.currentScale;
+			// Restore scroll position across recompiles (don't jump to top).
+			if (restoreRatio != null && containerEl) {
+				const max = containerEl.scrollHeight - containerEl.clientHeight;
+				containerEl.scrollTop = Math.max(0, restoreRatio * max);
+				restoreRatio = null;
+			}
+			numPages = pdfViewer.pagesCount ?? 0;
+			hasRendered = true;
+			loading = false;
+		});
+		eventBus.on('scalechanging', (e: any) => {
+			if (typeof e?.scale === 'number') scalePct = Math.round(e.scale * 100);
+		});
+		const onMatches = (e: any) => {
+			findCurrent = e?.matchesCount?.current ?? 0;
+			findTotal = e?.matchesCount?.total ?? 0;
+		};
+		eventBus.on('updatefindmatchescount', onMatches);
+		eventBus.on('updatefindcontrolstate', onMatches);
+
+		// Refit on container resize while in a fit mode.
+		resizeObserver = new ResizeObserver(() => {
+			if (pdfViewer && fitMode) pdfViewer.currentScaleValue = 'page-width';
+		});
+		resizeObserver.observe(containerEl);
 
 		ready = true;
 		await loadDoc();
 	});
 
 	onDestroy(() => {
-		renderToken++;
+		loadToken++;
 		resizeObserver?.disconnect();
-		clearTimeout(reflowTimer);
 		clearTimeout(flashTimer);
-		cancelTextLayers();
+		try {
+			pdfViewer?.setDocument(null);
+			linkService?.setDocument(null);
+		} catch {
+			/* ignore */
+		}
 		if (doc) {
 			try {
 				doc.destroy();
@@ -96,37 +147,18 @@
 		if (ready) loadDoc();
 	});
 
-	// Re-render (not reload) when fit width or zoom changes.
-	$effect(() => {
-		void docVersion;
-		void containerWidth;
-		void zoom;
-		if (ready && doc && containerWidth > 0) scheduleRender();
-	});
-
-	function cancelTextLayers() {
-		for (const tl of textLayers) {
-			try {
-				tl?.cancel();
-			} catch {
-				/* ignore */
-			}
-		}
-		textLayers = [];
-	}
-
-	function scheduleRender() {
-		clearTimeout(reflowTimer);
-		reflowTimer = setTimeout(() => renderAll(++renderToken), 60);
-	}
-
 	async function loadDoc() {
-		if (!pdfjs) return;
-		const token = ++renderToken;
+		if (!pdfjs || !pdfViewer) return;
+		const token = ++loadToken;
 		errorMsg = undefined;
 
 		if (!data || data.length === 0) {
-			cancelTextLayers();
+			try {
+				pdfViewer.setDocument(null);
+				linkService.setDocument(null);
+			} catch {
+				/* ignore */
+			}
 			if (doc) {
 				try {
 					doc.destroy();
@@ -135,10 +167,14 @@
 				}
 				doc = null;
 			}
-			pages = [];
 			hasRendered = false;
-			lastRenderKey = '';
 			return;
+		}
+
+		// Preserve scroll position for the upcoming document (live recompiles).
+		if (containerEl && hasRendered) {
+			const max = containerEl.scrollHeight - containerEl.clientHeight;
+			restoreRatio = max > 0 ? containerEl.scrollTop / max : 0;
 		}
 
 		if (!hasRendered) loading = true;
@@ -146,137 +182,52 @@
 			const bytes = data.slice(); // pdfjs detaches the buffer
 			const task = pdfjs.getDocument({ data: bytes });
 			const next = await task.promise;
-			if (token !== renderToken) {
+			if (token !== loadToken) {
 				next.destroy();
 				return;
 			}
-			cancelTextLayers();
-			if (doc) {
+			const prev = doc;
+			doc = next;
+			pdfViewer.setDocument(doc);
+			linkService.setDocument(doc, null);
+			findController?.setDocument(doc);
+			if (findOpen && findQuery) runFind(); // re-apply find across recompiles
+			if (prev) {
 				try {
-					doc.destroy();
+					prev.destroy();
 				} catch {
 					/* ignore */
 				}
 			}
-			doc = next;
-			// Keep existing page elements where possible (same keys ⇒ no remount,
-			// old pixels stay on screen until the new paint lands → no white flash).
-			if (pages.length !== doc.numPages) {
-				pages = Array.from({ length: doc.numPages }, (_, i) => i + 1);
-				await tick();
-			}
-			lastRenderKey = ''; // force a repaint of the new document
-			docVersion++; // triggers the render effect
 		} catch (e) {
-			if (token === renderToken) {
+			if (token === loadToken) {
 				errorMsg = String(e);
 				loading = false;
 			}
 		}
 	}
 
-	async function renderAll(token: number) {
-		if (!doc || containerWidth <= 0) return;
-
-		const available = Math.max(120, containerWidth - SURFACE_PAD);
-		const key = `${docVersion}:${Math.round(available)}:${zoom}`;
-		if (key === lastRenderKey) return; // nothing changed — skip (no flicker)
-
-		const showLoader = !hasRendered;
-		if (showLoader) loading = true;
-		cancelTextLayers();
-		const outputScale = window.devicePixelRatio || 1;
-		meta.clear();
-
-		try {
-			for (let p = 1; p <= doc.numPages; p++) {
-				if (token !== renderToken) return;
-				const canvas = canvasEls[p - 1];
-				const textEl = textEls[p - 1];
-				const pageEl = pageEls[p - 1];
-				if (!canvas || !pageEl) continue;
-
-				const page = await doc.getPage(p);
-				if (token !== renderToken) return;
-
-				const unscaled = page.getViewport({ scale: 1 });
-				const scale = (available / unscaled.width) * zoom;
-				const viewport = page.getViewport({ scale });
-				meta.set(p, { viewport, heightPt: unscaled.height });
-
-				const w = Math.floor(viewport.width);
-				const h = Math.floor(viewport.height);
-				pageEl.style.width = `${w}px`;
-				pageEl.style.height = `${h}px`;
-				pageEl.style.setProperty('--scale-factor', String(scale));
-
-				// Only resize (which clears) the canvas when dimensions truly change;
-				// otherwise we repaint over the old frame with no blank flash.
-				const cw = Math.floor(viewport.width * outputScale);
-				const ch = Math.floor(viewport.height * outputScale);
-				if (canvas.width !== cw) canvas.width = cw;
-				if (canvas.height !== ch) canvas.height = ch;
-				canvas.style.width = `${w}px`;
-				canvas.style.height = `${h}px`;
-
-				const ctx = canvas.getContext('2d');
-				if (!ctx) continue;
-				const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : undefined;
-				await page.render({ canvasContext: ctx, viewport, transform }).promise;
-				if (token !== renderToken) return;
-
-				// Selectable text overlay.
-				if (textEl) {
-					textEl.replaceChildren();
-					const textLayer = new pdfjs.TextLayer({
-						textContentSource: page.streamTextContent(),
-						container: textEl,
-						viewport
-					});
-					textLayers.push(textLayer);
-					await textLayer.render();
-				}
-			}
-			if (token === renderToken) {
-				lastRenderKey = key;
-				hasRendered = true;
-			}
-		} catch (e) {
-			if (token === renderToken) errorMsg = String(e);
-		} finally {
-			if (token === renderToken) loading = false;
-		}
-	}
-
 	function onDblClick(e: MouseEvent) {
-		if (!onreverse) return;
-		const pageEl = (e.target as HTMLElement).closest<HTMLElement>('[data-page]');
+		if (!onreverse || !pdfViewer) return;
+		const pageEl = (e.target as HTMLElement).closest<HTMLElement>('.page');
 		if (!pageEl) return;
-		const p = parseInt(pageEl.dataset.page ?? '', 10);
-		const info = meta.get(p);
-		if (!info) return;
+		const pageNumber = parseInt(pageEl.dataset.pageNumber ?? '', 10);
+		const pageView = pdfViewer.getPageView(pageNumber - 1);
+		const viewport = pageView?.viewport;
+		if (!viewport) return;
 
-		const rect = pageEl.getBoundingClientRect();
-		const vx = ((e.clientX - rect.left) / rect.width) * info.viewport.width;
-		const vy = ((e.clientY - rect.top) / rect.height) * info.viewport.height;
-		const [pdfX, pdfY] = info.viewport.convertToPdfPoint(vx, vy);
-		onreverse({ page: p, x: pdfX, y: info.heightPt - pdfY });
-	}
-
-	function setZoom(z: number) {
-		zoom = Math.min(4, Math.max(0.25, +z.toFixed(2)));
-	}
-
-	// Ctrl/Cmd + wheel = zoom (Overleaf/Prism-style); plain scroll still scrolls.
-	function onWheel(e: WheelEvent) {
-		if (!(e.ctrlKey || e.metaKey)) return;
-		e.preventDefault();
-		setZoom(zoom - e.deltaY * 0.0015);
+		const canvas = pageEl.querySelector('canvas') ?? pageEl;
+		const rect = canvas.getBoundingClientRect();
+		const vx = ((e.clientX - rect.left) / rect.width) * viewport.width;
+		const vy = ((e.clientY - rect.top) / rect.height) * viewport.height;
+		const [pdfX, pdfY] = viewport.convertToPdfPoint(vx, vy);
+		const heightPt = viewport.viewBox[3] - viewport.viewBox[1];
+		onreverse({ page: pageNumber, x: pdfX, y: heightPt - pdfY });
 	}
 
 	/**
 	 * Forward sync: scroll to a PDF region (big-points, `v` from top) and flash a
-	 * highlight over it. Called by the host when the caret moves / on shortcut.
+	 * highlight over it.
 	 */
 	export function revealLocation(loc: {
 		page: number;
@@ -286,14 +237,19 @@
 		height: number;
 		depth: number;
 	}) {
-		const info = meta.get(loc.page);
-		const pageEl = pageEls[loc.page - 1];
-		if (!info || !pageEl || !surfaceEl) return;
-		const s = info.viewport.scale;
+		if (!pdfViewer || !containerEl) return;
+		const pageView = pdfViewer.getPageView(loc.page - 1);
+		const viewport = pageView?.viewport;
+		const pageDiv: HTMLElement | undefined = pageView?.div;
+		if (!viewport || !pageDiv) {
+			pdfViewer.currentPageNumber = loc.page;
+			return;
+		}
+		const s = viewport.scale;
 		const topPx = Math.max(0, (loc.v - loc.height) * s);
 		const hPx = Math.max(12, (loc.height + loc.depth) * s);
 		const leftPx = Math.max(0, loc.h * s);
-		const wPx = loc.width > 0 ? loc.width * s : Math.max(24, pageEl.clientWidth - leftPx);
+		const wPx = loc.width > 0 ? loc.width * s : Math.max(24, pageDiv.clientWidth - leftPx);
 
 		if (flashEl) flashEl.remove();
 		const el = document.createElement('div');
@@ -302,7 +258,7 @@
 		el.style.top = `${topPx}px`;
 		el.style.width = `${wPx}px`;
 		el.style.height = `${hPx}px`;
-		pageEl.appendChild(el);
+		pageDiv.appendChild(el);
 		flashEl = el;
 		clearTimeout(flashTimer);
 		flashTimer = setTimeout(() => {
@@ -310,90 +266,210 @@
 			if (flashEl === el) flashEl = null;
 		}, 1500);
 
-		const top =
-			pageEl.getBoundingClientRect().top -
-			surfaceEl.getBoundingClientRect().top +
-			surfaceEl.scrollTop +
-			topPx -
-			100;
-		surfaceEl.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+		containerEl.scrollTo({ top: Math.max(0, pageDiv.offsetTop + topPx - 100), behavior: 'smooth' });
+	}
+
+	function fit() {
+		fitMode = true;
+		if (pdfViewer) pdfViewer.currentScaleValue = 'page-width';
+	}
+	function zoomTo(scale: number) {
+		if (!pdfViewer) return;
+		fitMode = false;
+		pdfViewer.currentScale = Math.min(4, Math.max(0.25, +scale.toFixed(2)));
+	}
+
+	// Imperative zoom API for the host preview toolbar.
+	export function zoomIn() {
+		zoomTo((pdfViewer?.currentScale ?? 1) + 0.1);
+	}
+	export function zoomOut() {
+		zoomTo((pdfViewer?.currentScale ?? 1) - 0.1);
+	}
+	export function setZoomPct(pct: number) {
+		zoomTo(pct / 100);
+	}
+	export function fitWidth() {
+		fit();
+	}
+	function onWheel(e: WheelEvent) {
+		if (!(e.ctrlKey || e.metaKey) || !pdfViewer) return;
+		e.preventDefault();
+		zoomTo(pdfViewer.currentScale - e.deltaY * 0.002);
+	}
+
+	// --- Find in PDF (PDFFindController) --------------------------------------
+	function runFind(again = false, findPrevious = false) {
+		eventBus?.dispatch('find', {
+			source: null,
+			type: again ? 'again' : '',
+			query: findQuery,
+			caseSensitive: findCaseSensitive,
+			entireWord: false,
+			highlightAll: true,
+			findPrevious,
+			matchDiacritics: false
+		});
+	}
+	function findNext() {
+		if (findQuery) runFind(true, false);
+	}
+	function findPrev() {
+		if (findQuery) runFind(true, true);
+	}
+	function onFindInput() {
+		if (findQuery) runFind(false, false);
+		else {
+			findCurrent = 0;
+			findTotal = 0;
+			eventBus?.dispatch('findbarclose', { source: null });
+		}
+	}
+	function onFindKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			e.shiftKey ? findPrev() : findNext();
+		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			closeFind();
+		}
+	}
+	/** Open the find bar (called from the host preview toolbar). */
+	export function openFind() {
+		findOpen = true;
+		queueMicrotask(() => findInputEl?.select());
+	}
+	function closeFind() {
+		findOpen = false;
+		eventBus?.dispatch('findbarclose', { source: null });
+		containerEl?.focus?.();
+	}
+	function onContainerKeydown(e: KeyboardEvent) {
+		if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
+			e.preventDefault();
+			e.stopPropagation();
+			openFind();
+		}
 	}
 </script>
 
 <div class="relative flex h-full min-h-0 flex-col">
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		bind:this={surfaceEl}
-		class="pdf-surface min-h-0 flex-1 overflow-auto"
-		ondblclick={onDblClick}
-		onwheel={onWheel}
-	>
-		{#if errorMsg}
-			<div class="border-destructive/30 bg-destructive/5 mx-auto my-6 max-w-prose rounded-lg border p-4">
-				<p class="text-destructive text-sm font-medium">Could not display the PDF.</p>
-				<pre
-					class="text-muted-foreground mt-2 overflow-auto font-mono text-[11px] whitespace-pre-wrap">{errorMsg}</pre>
+	<div class="relative min-h-0 flex-1">
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			bind:this={containerEl}
+			class="glyph-pdf-container absolute inset-0 overflow-auto"
+			tabindex="-1"
+			ondblclick={onDblClick}
+			onwheel={onWheel}
+			onkeydown={onContainerKeydown}
+		>
+			<div bind:this={viewerEl} class="pdfViewer"></div>
+		</div>
+
+		{#if findOpen}
+			<div
+				class="border-border bg-card absolute top-3 right-3 z-20 flex items-center gap-1 rounded-md border p-1 shadow-md"
+				role="search"
+			>
+				<input
+					bind:this={findInputEl}
+					bind:value={findQuery}
+					oninput={onFindInput}
+					onkeydown={onFindKeydown}
+					class="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/40 h-7 w-40 rounded border px-2 text-sm outline-none focus-visible:ring-2"
+					placeholder="Find in PDF"
+					aria-label="Find in PDF"
+					spellcheck="false"
+				/>
+				<button
+					class="grid size-6 place-items-center rounded font-mono text-[11px] leading-none transition-colors {findCaseSensitive
+						? 'bg-brand-subtle text-brand'
+						: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+					title="Match case"
+					aria-pressed={findCaseSensitive}
+					onclick={() => {
+						findCaseSensitive = !findCaseSensitive;
+						onFindInput();
+					}}
+				>
+					Aa
+				</button>
+				<span class="text-muted-foreground/70 w-14 text-center text-xs tabular-nums">
+					{findQuery ? `${findCurrent}/${findTotal}` : ''}
+				</span>
+				<button
+					class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+					title="Previous (Shift+Enter)"
+					aria-label="Previous match"
+					onclick={findPrev}
+				>
+					<IconChevronUp size={15} />
+				</button>
+				<button
+					class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+					title="Next (Enter)"
+					aria-label="Next match"
+					onclick={findNext}
+				>
+					<IconChevronDown size={15} />
+				</button>
+				<button
+					class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+					title="Close (Esc)"
+					aria-label="Close find"
+					onclick={closeFind}
+				>
+					<IconX size={15} />
+				</button>
 			</div>
-		{:else}
-			<div class="flex flex-col items-center gap-4 px-6 py-6">
-				{#each pages as p (p)}
-					<div
-						bind:this={pageEls[p - 1]}
-						class="glyph-pdf-page border-border bg-card shadow-craft-sm relative overflow-hidden rounded-sm border"
-						data-page={p}
-						title="Double-click to jump to the matching source line"
-					>
-						<canvas bind:this={canvasEls[p - 1]} class="block"></canvas>
-						<div bind:this={textEls[p - 1]} class="textLayer"></div>
-					</div>
-				{/each}
+		{/if}
+
+		{#if errorMsg}
+			<div
+				class="bg-muted/40 absolute inset-0 overflow-auto p-6"
+			>
+				<div class="border-destructive/30 bg-destructive/5 mx-auto max-w-prose rounded-lg border p-4">
+					<p class="text-destructive text-sm font-medium">Could not display the PDF.</p>
+					<pre
+						class="text-muted-foreground mt-2 overflow-auto font-mono text-[11px] whitespace-pre-wrap">{errorMsg}</pre>
+				</div>
+			</div>
+		{/if}
+
+		{#if loading && !hasRendered}
+			<div
+				class="text-muted-foreground pointer-events-none absolute inset-0 flex items-center justify-center text-xs"
+			>
+				Rendering…
 			</div>
 		{/if}
 	</div>
-
-	<!-- zoom controls (bottom-left so toasts can own the bottom-right corner) -->
-	<div
-		class="border-border bg-card/90 absolute bottom-4 left-4 flex items-center gap-0.5 rounded-md border p-0.5 shadow-sm backdrop-blur"
-	>
-		<Button variant="ghost" size="icon-xs" title="Zoom out" onclick={() => setZoom(zoom - 0.1)}>
-			<IconMinus />
-		</Button>
-		<button
-			class="text-muted-foreground hover:text-foreground w-12 text-center text-xs tabular-nums transition-colors"
-			title="Fit width"
-			onclick={() => setZoom(1)}
-		>
-			{zoom === 1 ? 'Fit' : `${Math.round(zoom * 100)}%`}
-		</button>
-		<Button variant="ghost" size="icon-xs" title="Zoom in" onclick={() => setZoom(zoom + 0.1)}>
-			<IconPlus />
-		</Button>
-		<Button variant="ghost" size="icon-xs" title="Fit width" onclick={() => setZoom(1)}>
-			<IconArrowsMaximize />
-		</Button>
-	</div>
-
-	{#if loading && !hasRendered}
-		<div
-			class="text-muted-foreground pointer-events-none absolute inset-0 flex items-center justify-center text-xs"
-		>
-			Rendering…
-		</div>
-	{/if}
 </div>
 
 <style>
-	/* Reserve the scrollbar gutter so the vertical scrollbar appearing never
-	   changes the content width — kills the ResizeObserver feedback flicker. */
-	.pdf-surface {
+	/* Reserve the scrollbar gutter so it never reflows the fit-width calc. */
+	.glyph-pdf-container {
 		scrollbar-gutter: stable;
+		background: var(--color-muted, transparent);
 	}
-	/* Keep the text overlay exactly on the canvas and let selection show through. */
-	.glyph-pdf-page :global(.textLayer) {
-		position: absolute;
-		inset: 0;
+
+	/* Page chrome — we own it (PDFViewer renders borderless via removePageBorders). */
+	:global(.glyph-pdf-container .pdfViewer .page) {
+		margin: 1.25rem auto;
+		border: 1px solid var(--color-border);
+		border-radius: 3px;
+		background: var(--color-card);
+		box-shadow: 0 1px 3px color-mix(in srgb, var(--color-foreground) 12%, transparent);
+		overflow: clip;
 	}
-	/* Forward-sync flash (source → PDF). Uses the brand token, not a literal. */
+
+	/* Selection tint via our brand token (not a hardcoded colour). */
+	:global(.glyph-pdf-container .textLayer ::selection) {
+		background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+	}
+
+	/* Forward-sync flash (source → PDF). */
 	:global(.glyph-sync-flash) {
 		position: absolute;
 		z-index: 5;

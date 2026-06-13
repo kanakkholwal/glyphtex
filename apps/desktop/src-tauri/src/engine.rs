@@ -40,6 +40,57 @@ fn installed_path(dir: &Path, version: &str) -> PathBuf {
     dir.join(format!("tectonic-{version}{}", bin_ext()))
 }
 
+/// App-managed Tectonic cache dir. Deterministic (unlike Tectonic's default
+/// per-user cache) so we can show its size, clear it, and pre-warm it.
+pub fn cache_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
+    let dir = app.path().app_data_dir().ok()?.join("tectonic-cache");
+    std::fs::create_dir_all(&dir).ok()?;
+    Some(dir)
+}
+
+fn dir_size(path: &Path) -> u64 {
+    let mut total = 0;
+    if let Ok(rd) = std::fs::read_dir(path) {
+        for entry in rd.flatten() {
+            if let Ok(md) = entry.metadata() {
+                total += if md.is_dir() {
+                    dir_size(&entry.path())
+                } else {
+                    md.len()
+                };
+            }
+        }
+    }
+    total
+}
+
+#[derive(Serialize)]
+pub struct CacheInfo {
+    pub path: String,
+    pub bytes: u64,
+}
+
+/// Size + location of the managed Tectonic package cache.
+#[tauri::command]
+pub async fn tectonic_cache_info(app: tauri::AppHandle) -> Result<CacheInfo, String> {
+    let dir = cache_dir(&app).ok_or("no app data directory")?;
+    Ok(CacheInfo {
+        path: dir.to_string_lossy().into_owned(),
+        bytes: dir_size(&dir),
+    })
+}
+
+/// Delete the managed package cache (packages re-download on the next compile).
+#[tauri::command]
+pub async fn clear_tectonic_cache(app: tauri::AppHandle) -> Result<(), String> {
+    let dir = cache_dir(&app).ok_or("no app data directory")?;
+    if dir.exists() {
+        std::fs::remove_dir_all(&dir).map_err(|e| e.to_string())?;
+    }
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 fn active_marker(dir: &Path) -> PathBuf {
     dir.join("active.txt")
 }
@@ -134,8 +185,14 @@ pub async fn list_tectonic_versions(app: tauri::AppHandle) -> Result<Vec<EngineV
 
     let mut out = Vec::new();
     for rel in releases {
-        // The CLI is released under tags like `tectonic@0.16.9`.
-        let Some(version) = rel.tag_name.strip_prefix("tectonic@").map(str::to_string) else {
+        // Stable CLI releases are tagged `tectonic@0.16.9`; the rolling
+        // `continuous` build (newer xetex-layout — fixes the fontawesome5 / icon
+        // font crash) is exposed as the "nightly" version.
+        let version = if rel.tag_name == "continuous" {
+            "nightly".to_string()
+        } else if let Some(v) = rel.tag_name.strip_prefix("tectonic@") {
+            v.to_string()
+        } else {
             continue;
         };
         if !rel.assets.iter().any(|a| asset_matches(&a.name)) {
@@ -148,6 +205,12 @@ pub async fn list_tectonic_versions(app: tauri::AppHandle) -> Result<Vec<EngineV
             tag: rel.tag_name,
         });
     }
+    // Nightly first, then newest stable versions.
+    out.sort_by(|a, b| match (a.version == "nightly", b.version == "nightly") {
+        (true, false) => std::cmp::Ordering::Less,
+        (false, true) => std::cmp::Ordering::Greater,
+        _ => b.version.cmp(&a.version),
+    });
     Ok(out)
 }
 
@@ -156,7 +219,11 @@ pub async fn list_tectonic_versions(app: tauri::AppHandle) -> Result<Vec<EngineV
 pub async fn download_tectonic(app: tauri::AppHandle, version: String) -> Result<String, String> {
     let dir = engines_dir(&app).ok_or("no app data directory")?;
     let releases = fetch_releases().await?;
-    let tag = format!("tectonic@{version}");
+    let tag = if version == "nightly" {
+        "continuous".to_string()
+    } else {
+        format!("tectonic@{version}")
+    };
 
     let rel = releases
         .into_iter()

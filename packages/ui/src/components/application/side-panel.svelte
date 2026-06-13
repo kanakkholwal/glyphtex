@@ -11,9 +11,12 @@
 	import { Switch } from '@glyph/ui/switch';
 	import {
 	  IconChevronRight,
+	  IconChevronUp,
+	  IconChevronDown,
 	  IconGitBranch,
 	  IconMinus,
 	  IconPlus,
+	  IconReplace,
 	  IconSearch
 	} from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
@@ -23,11 +26,20 @@
 	import FileTree, { type TreeNode } from './file-tree.svelte';
 
 	type FileMeta = { id: string; name: string };
+	type SearchOptions = {
+		query: string;
+		replace?: string;
+		caseSensitive?: boolean;
+		wholeWord?: boolean;
+		regexp?: boolean;
+	};
+	type SearchMatch = { from: number; to: number; line: number; column: number; text: string };
 
 	/**
 	 * SidePanel — content for the active rail view. Explorer switches files;
 	 * Settings edits the live preferences (Segmented choices + Mac-style
-	 * switches). Search is a JetBrains-style find field. Git is a placeholder.
+	 * switches). Search is a full find/replace panel wired to the editor. Git is
+	 * a placeholder.
 	 */
 	let {
 		view = 'files',
@@ -37,7 +49,15 @@
 		widthPx = 240,
 		engine,
 		onopen,
-		onnew
+		onnew,
+		searchResults = [],
+		searchActive = 0,
+		onsearch,
+		ongotoresult,
+		onsearchnext,
+		onsearchprev,
+		onreplacecurrent,
+		onreplaceall
 	}: {
 		view?: ActivityView;
 		files?: FileMeta[];
@@ -47,6 +67,14 @@
 		engine?: EngineManager;
 		onopen?: (id: string) => void;
 		onnew?: () => void;
+		searchResults?: SearchMatch[];
+		searchActive?: number;
+		onsearch?: (o: SearchOptions) => void;
+		ongotoresult?: (i: number) => void;
+		onsearchnext?: () => void;
+		onsearchprev?: () => void;
+		onreplacecurrent?: (replace: string) => void;
+		onreplaceall?: (replace: string) => void;
 	} = $props();
 
 	const heading = $derived(
@@ -101,15 +129,69 @@
 		label: EDITOR_FONT_LABELS[id]
 	}));
 
-	// Find-field options (presentational until search is wired).
+	// --- Find / replace (wired to the editor via callbacks) ---
+	let query = $state('');
+	let replace = $state('');
 	let matchCase = $state(false);
 	let wholeWord = $state(false);
 	let useRegex = $state(false);
+	let showReplace = $state(false);
+	let searchInputEl = $state<HTMLInputElement>();
+
+	function emitSearch() {
+		onsearch?.({
+			query,
+			replace,
+			caseSensitive: matchCase,
+			wholeWord,
+			regexp: useRegex
+		});
+	}
 	const findOptions = $derived([
-		{ key: 'case', label: 'Aa', title: 'Match case', on: matchCase, toggle: () => (matchCase = !matchCase) },
-		{ key: 'word', label: 'W', title: 'Whole word', on: wholeWord, toggle: () => (wholeWord = !wholeWord) },
-		{ key: 'regex', label: '.*', title: 'Regular expression', on: useRegex, toggle: () => (useRegex = !useRegex) }
+		{
+			key: 'case',
+			label: 'Aa',
+			title: 'Match case',
+			on: matchCase,
+			toggle: () => {
+				matchCase = !matchCase;
+				emitSearch();
+			}
+		},
+		{
+			key: 'word',
+			label: 'W',
+			title: 'Whole word',
+			on: wholeWord,
+			toggle: () => {
+				wholeWord = !wholeWord;
+				emitSearch();
+			}
+		},
+		{
+			key: 'regex',
+			label: '.*',
+			title: 'Regular expression',
+			on: useRegex,
+			toggle: () => {
+				useRegex = !useRegex;
+				emitSearch();
+			}
+		}
 	]);
+
+	function onSearchKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			if (e.shiftKey) onsearchprev?.();
+			else onsearchnext?.();
+		}
+	}
+
+	// Autofocus the field when the Search view opens (e.g. via Ctrl/Cmd+F).
+	$effect(() => {
+		if (view === 'search') searchInputEl?.focus();
+	});
 </script>
 
 <aside
@@ -155,38 +237,152 @@
 				</div>
 			{/if}
 		{:else if view === 'search'}
-			<div class="px-1 pt-1">
-				<div class="relative">
-					<IconSearch
-						size={15}
-						class="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
-					/>
-					<input
-						class="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/40 w-full rounded-md border py-1.5 pr-2 pl-8 text-sm outline-none transition-[box-shadow,border-color] focus-visible:ring-2"
-						placeholder="Find in document"
-						aria-label="Find in document"
-						spellcheck="false"
-					/>
+			<div class="flex flex-col gap-2 px-1 pt-1">
+				<div class="flex items-start gap-1">
+					<button
+						class="text-muted-foreground hover:bg-muted hover:text-foreground mt-1 grid size-6 shrink-0 place-items-center rounded transition-colors"
+						title={showReplace ? 'Hide replace' : 'Toggle replace'}
+						aria-label="Toggle replace"
+						aria-expanded={showReplace}
+						onclick={() => (showReplace = !showReplace)}
+					>
+						<IconChevronRight
+							size={14}
+							class="transition-transform duration-200 {showReplace ? 'rotate-90' : ''}"
+						/>
+					</button>
+
+					<div class="flex min-w-0 flex-1 flex-col gap-1.5">
+						<!-- Find -->
+						<div class="relative">
+							<IconSearch
+								size={15}
+								class="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
+							/>
+							<input
+								bind:this={searchInputEl}
+								bind:value={query}
+								oninput={emitSearch}
+								onkeydown={onSearchKeydown}
+								class="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/40 w-full rounded-md border py-1.5 pr-2 pl-8 text-sm outline-none transition-[box-shadow,border-color] focus-visible:ring-2"
+								placeholder="Find"
+								aria-label="Find in document"
+								spellcheck="false"
+							/>
+						</div>
+
+						<!-- Toggles + match count + nav -->
+						<div class="flex items-center gap-1">
+							{#each findOptions as opt (opt.key)}
+								<button
+									class="grid size-6 place-items-center rounded font-mono text-[11px] leading-none transition-colors {opt.on
+										? 'bg-brand-subtle text-brand'
+										: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+									title={opt.title}
+									aria-label={opt.title}
+									aria-pressed={opt.on}
+									onclick={opt.toggle}
+								>
+									{opt.label}
+								</button>
+							{/each}
+							<span class="text-muted-foreground/70 ml-auto text-xs tabular-nums">
+								{#if query && searchResults.length}
+									{searchActive + 1}/{searchResults.length}
+								{:else if query}
+									No results
+								{/if}
+							</span>
+							<button
+								class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors disabled:opacity-40"
+								title="Previous match (Shift+Enter)"
+								aria-label="Previous match"
+								disabled={!searchResults.length}
+								onclick={() => onsearchprev?.()}
+							>
+								<IconChevronUp size={15} />
+							</button>
+							<button
+								class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors disabled:opacity-40"
+								title="Next match (Enter)"
+								aria-label="Next match"
+								disabled={!searchResults.length}
+								onclick={() => onsearchnext?.()}
+							>
+								<IconChevronDown size={15} />
+							</button>
+						</div>
+
+						<!-- Replace -->
+						{#if showReplace}
+							<div class="relative">
+								<IconReplace
+									size={15}
+									class="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
+								/>
+								<input
+									bind:value={replace}
+									class="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/40 w-full rounded-md border py-1.5 pr-2 pl-8 text-sm outline-none transition-[box-shadow,border-color] focus-visible:ring-2"
+									placeholder={useRegex ? 'Replace ($1, $&…)' : 'Replace'}
+									aria-label="Replace with"
+									spellcheck="false"
+								/>
+							</div>
+							<div class="flex items-center gap-1.5">
+								<Button
+									variant="outline"
+									size="xs"
+									disabled={!searchResults.length}
+									onclick={() => onreplacecurrent?.(replace)}
+								>
+									Replace
+								</Button>
+								<Button
+									variant="secondary"
+									size="xs"
+									disabled={!searchResults.length}
+									onclick={() => onreplaceall?.(replace)}
+								>
+									Replace all
+								</Button>
+							</div>
+						{/if}
+					</div>
 				</div>
-				<div class="mt-2 flex items-center gap-1">
-					{#each findOptions as opt (opt.key)}
-						<button
-							class="grid size-6 place-items-center rounded font-mono text-[11px] leading-none transition-colors {opt.on
-								? 'bg-brand-subtle text-brand'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							title={opt.title}
-							aria-label={opt.title}
-							aria-pressed={opt.on}
-							onclick={opt.toggle}
-						>
-							{opt.label}
-						</button>
-					{/each}
-					<span class="text-muted-foreground/70 ml-auto text-xs tabular-nums">No results</span>
-				</div>
-				<p class="text-muted-foreground mt-3 text-xs leading-relaxed">
-					Search runs entirely on your device — across your document and its references.
-				</p>
+
+				<!-- Results list -->
+				{#if query && searchResults.length}
+					<ul class="mt-1 flex flex-col">
+						{#each searchResults.slice(0, 500) as m, i (i)}
+							<li>
+								<button
+									class="flex w-full items-baseline gap-2 rounded px-2 py-1 text-left transition-colors {i ===
+									searchActive
+										? 'bg-accent text-accent-foreground'
+										: 'hover:bg-muted text-muted-foreground'}"
+									onclick={() => ongotoresult?.(i)}
+									title={`Line ${m.line}`}
+								>
+									<span class="text-muted-foreground/60 shrink-0 font-mono text-[10px] tabular-nums">
+										{m.line}
+									</span>
+									<span class="truncate font-mono text-xs">{m.text.trim() || ' '}</span>
+								</button>
+							</li>
+						{/each}
+					</ul>
+					{#if searchResults.length > 500}
+						<p class="text-muted-foreground/60 px-2 text-[11px]">
+							Showing first 500 of {searchResults.length}.
+						</p>
+					{/if}
+				{:else}
+					<p class="text-muted-foreground mt-2 px-1 text-xs leading-relaxed">
+						Find &amp; replace in the active document. Use <span class="font-mono">Aa</span> /
+						<span class="font-mono">W</span> / <span class="font-mono">.*</span> for case, whole-word
+						and regex. Enter / Shift+Enter to step through matches.
+					</p>
+				{/if}
 			</div>
 		{:else if view === 'git'}
 			<div

@@ -109,6 +109,10 @@
       "svelte": "./src/components/ui/sidebar/index.ts",
       "default": "./src/components/ui/sidebar/index.ts"
     },
+    "./logo": {
+      "svelte": "./src/components/ui/logo/index.ts",
+      "default": "./src/components/ui/logo/index.ts"
+    },
     "./skeleton": {
       "svelte": "./src/components/ui/skeleton/index.ts",
       "default": "./src/components/ui/skeleton/index.ts"
@@ -198,6 +202,7 @@
     "@codemirror/commands": "^6.10.3",
     "@codemirror/language": "^6.12.3",
     "@codemirror/legacy-modes": "^6.5.3",
+    "@codemirror/search": "6.7.0",
     "@codemirror/state": "^6.6.0",
     "@codemirror/view": "^6.43.1",
     "@fontsource-variable/geist": "^5.2.9",

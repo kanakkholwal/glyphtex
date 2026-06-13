@@ -3,6 +3,7 @@
 	// people who actually write LaTeX: researchers, PhD students, mathematicians.
 	// No engine jargon — value and outcomes. Colour is rationed to the single
 	// emerald signal; motion is the shared "settle into place" curve (Reveal).
+	import { Logo } from '@glyph/ui/logo';
 	import { Reveal } from '@glyph/ui/reveal';
 	import { ThemeToggle } from '@glyph/ui/theme-toggle';
 	import {
@@ -74,13 +75,7 @@
 	<!-- Nav -->
 	<header class="border-hairline bg-canvas/80 sticky top-0 z-40 border-b backdrop-blur-xl">
 		<div class="mx-auto flex h-16 max-w-[1140px] items-center gap-6 px-5 sm:px-6">
-			<a href="/" class="flex items-center gap-2.5" aria-label="Glyph home">
-				<span
-					class="bg-primary text-primary-foreground grid size-7 place-items-center rounded-lg text-[15px] font-bold"
-					aria-hidden="true">G</span
-				>
-				<span class="font-display text-lg tracking-tight">Glyph</span>
-			</a>
+			<Logo href="/" size={28} class="text-lg tracking-tight" />
 			<nav class="text-muted-foreground ml-3 hidden items-center gap-6 text-sm font-medium md:flex">
 				<a class="hover:text-foreground transition-colors" href="#features">Features</a>
 				<a class="hover:text-foreground transition-colors" href="#compare">Compare</a>
@@ -380,10 +375,7 @@ as the sample grows, see <span class="text-brand">\cite</span>&#123;ref&#125;.
 	<!-- Footer -->
 	<footer class="border-hairline border-t">
 		<div class="text-muted-foreground mx-auto flex max-w-[1140px] flex-col items-center justify-between gap-4 px-5 py-10 text-sm sm:flex-row sm:px-6">
-			<div class="flex items-center gap-2.5">
-				<span class="bg-primary text-primary-foreground grid size-6 place-items-center rounded-md text-xs font-bold" aria-hidden="true">G</span>
-				<span class="text-foreground font-display">Glyph</span>
-			</div>
+			<Logo size="md" class="text-foreground" />
 			<p class="font-mono text-xs">local-first typesetting · your documents stay yours</p>
 		</div>
 	</footer>
