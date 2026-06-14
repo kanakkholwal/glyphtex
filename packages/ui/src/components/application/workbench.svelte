@@ -65,7 +65,11 @@ Nothing is uploaded. Nothing leaves this device.
     SelectItem,
     SelectTrigger,
   } from "@glyphx/ui/select";
-  import { COMPILE_DEBOUNCE_MS, settings } from "@glyphx/ui/settings";
+  import {
+    AUTO_SAVE_DELAY_MS,
+    COMPILE_DEBOUNCE_MS,
+    settings,
+  } from "@glyphx/ui/settings";
   import { Toaster, toast } from "@glyphx/ui/sonner";
   import { Spinner } from "@glyphx/ui/spinner";
   import {
@@ -74,6 +78,7 @@ Nothing is uploaded. Nothing leaves this device.
     IconArrowForwardUp,
     IconChevronDown,
     IconCurrentLocation,
+    IconDeviceFloppy,
     IconDownload,
     IconEye,
     IconLayoutColumns,
@@ -82,7 +87,7 @@ Nothing is uploaded. Nothing leaves this device.
     IconPencil,
     IconPlayerPlayFilled,
     IconPlus,
-    IconSearch
+    IconSearch,
   } from "@tabler/icons-svelte";
   import { onDestroy, onMount } from "svelte";
 
@@ -119,6 +124,12 @@ Nothing is uploaded. Nothing leaves this device.
     content: string;
     path?: string;
     loaded?: boolean;
+    /**
+     * Last content written to disk (or the loaded baseline). A file is "dirty"
+     * (unsaved) when its live content differs from `saved`. `undefined` until the
+     * file has been loaded — an unloaded file can't be dirty.
+     */
+    saved?: string;
   };
 
   // Fallback document used when the host doesn't inject a project (e.g. the web
@@ -213,7 +224,9 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
   const seedFiles =
     initialFiles && initialFiles.length ? initialFiles : DEMO_FILES;
 
-  let files = $state<GlyphFile[]>(seedFiles.map((f) => ({ ...f })));
+  let files = $state<GlyphFile[]>(
+    seedFiles.map((f) => ({ ...f, saved: f.content })),
+  );
   let activeId = $state(seedFiles[0]?.id ?? "main");
   let source = $state(seedFiles[0]?.content ?? "");
   let untitledCount = $state(0);
@@ -258,23 +271,80 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
     return n(a) === n(b);
   }
 
-  /** Write the active buffer back to memory (and disk, for project files). */
-  async function flushActive(): Promise<void> {
+  // --- Save / dirty model ---------------------------------------------------
+  // `source` is the live buffer for the active file. `f.content` mirrors it in
+  // memory; `f.saved` is the last copy written to disk. A file is dirty when its
+  // live content differs from `saved`. Auto-save (settings.autoSave) decides
+  // when the buffer is persisted; compilation always uses the *saved* content.
+  // Bumped whenever a save lands, so the auto-compile effect can key off it.
+  let savedTick = $state(0);
+
+  /** The current in-memory content for a file (live buffer if it's active). */
+  function liveContent(f: GlyphFile): string {
+    return f.id === activeId ? source : f.content;
+  }
+  function fileDirty(f: GlyphFile): boolean {
+    if (f.saved === undefined) return false;
+    return liveContent(f) !== f.saved;
+  }
+  // Ids of files with unsaved edits — drives the Explorer's "modified" dots.
+  const dirtyIds = $derived(new Set(files.filter(fileDirty).map((f) => f.id)));
+  const activeDirty = $derived(
+    activeFile ? dirtyIds.has(activeFile.id) : false,
+  );
+
+  /** Mirror the live buffer into the active file's in-memory content (no disk). */
+  function syncBuffer(): void {
     const f = files.find((x) => x.id === activeId);
-    if (!f) return;
-    f.content = source;
+    if (f) f.content = source;
+  }
+
+  /** Write one file's live content to disk (project) and mark it saved. */
+  async function persistFile(f: GlyphFile): Promise<boolean> {
+    const content = liveContent(f);
     if (project && f.path) {
       try {
-        await project.writeFile(f.path, source);
+        await project.writeFile(f.path, content);
       } catch (e) {
-        toast.error(`Could not save ${f.name} — ${e}`);
+        toast.error(`Could not save ${baseName(f.name)} — ${e}`);
+        return false;
       }
+    }
+    f.content = content;
+    f.saved = content;
+    return true;
+  }
+
+  /** Save the active file if dirty. `bumpCompile` re-arms the auto-compile. */
+  async function saveActive(bumpCompile = true): Promise<boolean> {
+    const f = files.find((x) => x.id === activeId);
+    if (!f || !fileDirty(f)) return false;
+    const ok = await persistFile(f);
+    if (ok) {
+      void refreshGitStatus();
+      if (bumpCompile) savedTick += 1;
+    }
+    return ok;
+  }
+
+  /** Save every dirty file (used before export / on demand). */
+  async function saveAll(): Promise<void> {
+    syncBuffer();
+    let any = false;
+    for (const f of files)
+      if (fileDirty(f)) any = (await persistFile(f)) || any;
+    if (any) {
+      void refreshGitStatus();
+      savedTick += 1;
     }
   }
 
   async function openFile(id: string, force = false): Promise<void> {
     if (!force && id === activeId) return;
-    await flushActive();
+    // Commit the outgoing buffer: always to memory; to disk unless auto-save is
+    // off (so a file switch persists under "after delay" / "on focus change").
+    syncBuffer();
+    if (settings.autoSave !== "off") await saveActive();
     activeId = id;
     const f = files.find((x) => x.id === id);
     if (f && project && f.path && !f.loaded) {
@@ -284,13 +354,38 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
         f.content = `% Could not open this file — it may be binary or unreadable.\n% ${e}\n`;
       }
       f.loaded = true;
+      f.saved = f.content;
     }
     source = f?.content ?? "";
   }
 
+  // --- Git working-tree status (for the Explorer "M / U / A" labels) --------
+  // Keyed by file id → git status word ("modified" / "untracked" / …). Refreshed
+  // on load, on save, and after structural changes. Independent of the Source
+  // Control panel (which fetches its own richer view).
+  let gitStatus = $state<Record<string, string>>({});
+  async function refreshGitStatus(): Promise<void> {
+    if (!git || !projectRoot) {
+      gitStatus = {};
+      return;
+    }
+    try {
+      const changes = await git.status(projectRoot);
+      const byPath = new Map(changes.map((c) => [c.path, c.status]));
+      const next: Record<string, string> = {};
+      for (const f of files) {
+        const st = byPath.get(f.name);
+        if (st) next[f.id] = st;
+      }
+      gitStatus = next;
+    } catch {
+      gitStatus = {};
+    }
+  }
+
   // Create a new file, optionally inside `dir` (forward-slash relative path).
   async function newFile(dir = ""): Promise<void> {
-    await flushActive();
+    syncBuffer();
     const relFor = (n: number) =>
       dir ? `${dir}/untitled-${n}.tex` : `untitled-${n}.tex`;
     if (project && projectRoot) {
@@ -311,10 +406,11 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       }
       files = [
         ...files,
-        { id: abs, name: rel, content: "", path: abs, loaded: true },
+        { id: abs, name: rel, content: "", path: abs, loaded: true, saved: "" },
       ];
       activeId = abs;
       source = "";
+      void refreshGitStatus();
       return;
     }
     untitledCount += 1;
@@ -324,7 +420,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       rel = relFor(untitledCount);
     }
     const id = `untitled-${untitledCount}`;
-    files = [...files, { id, name: rel, content: "" }];
+    files = [...files, { id, name: rel, content: "", saved: "" }];
     activeId = id;
     source = "";
   }
@@ -533,7 +629,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
   }
 
   async function moveFile(id: string, targetDir: string): Promise<void> {
-    await flushActive();
+    syncBuffer();
     const f = files.find((x) => x.id === id);
     if (!f) return;
     const leaf = leafOf(f.name);
@@ -564,7 +660,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
     srcPath: string,
     newPath: string,
   ): Promise<void> {
-    await flushActive();
+    syncBuffer();
     if (project && projectRoot) {
       try {
         await project.rename(
@@ -643,7 +739,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
    * file-level name collisions (with an optional "apply to all"), then drop the
    * now-empty source folder. */
   async function mergeFolder(srcPath: string, dstPath: string): Promise<void> {
-    await flushActive();
+    syncBuffer();
     const prefix = `${srcPath}/`;
     const movers = files.filter(
       (f) => f.name === srcPath || f.name.startsWith(prefix),
@@ -931,6 +1027,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       activeId = "";
       if (first) await openFile(first, true);
       else source = "";
+      void refreshGitStatus();
       toast.success(`Opened ${baseName(root)}`);
     } catch (e) {
       toast.error(`Could not open project — ${e}`);
@@ -973,7 +1070,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       toast.info("Open a project folder first to export it.");
       return;
     }
-    await flushActive();
+    await saveAll();
     try {
       const ok = await project.exportZip(
         projectRoot,
@@ -1082,12 +1179,31 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
 
   // Persist back to the host (project store) on any edit, debounced. Disabled
   // when a real folder is open — disk-backed projects save per-file via
-  // `flushActive` instead of round-tripping the whole set.
+  // `saveActive` / `saveAll` instead of round-tripping the whole set.
   $effect(() => {
     void source; // track edits
     void files; // track add/remove/rename
     if (!onpersist || projectRoot) return;
     const t = setTimeout(() => onpersist(snapshotFiles()), 500);
+    return () => clearTimeout(t);
+  });
+
+  // Refresh the Explorer's Git status labels when the file set changes
+  // structurally (add / remove / rename / move). Content edits don't re-fire
+  // this — only an actual save (which calls refreshGitStatus) does.
+  $effect(() => {
+    void files;
+    if (git && projectRoot) void refreshGitStatus();
+  });
+
+  // "After delay" auto-save: re-arm on each keystroke; persist the active file a
+  // beat after typing stops. The other modes save on explicit save / focus loss.
+  $effect(() => {
+    void source; // track edits
+    if (settings.autoSave !== "afterDelay") return;
+    const f = files.find((x) => x.id === activeId);
+    if (!f || !fileDirty(f)) return;
+    const t = setTimeout(() => void saveActive(), AUTO_SAVE_DELAY_MS);
     return () => clearTimeout(t);
   });
 
@@ -1368,8 +1484,9 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       do {
         pendingRecompile = false;
         // Flush the active buffer (to disk for project files) so the engine
-        // sees the latest source before it runs.
-        await flushActive();
+        // sees the latest source before it runs. `false` = don't re-arm the
+        // auto-compile from inside a compile.
+        await saveActive(false);
         const snapshot = source;
         const useProject = projectCompile;
         // Skip redundant auto-recompiles of already-rendered content. Only in
@@ -1429,11 +1546,12 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
     }
   }
 
-  // Debounced auto-compile: re-arm on every edit (and on file switch, since
-  // `source` changes). Disabled when the user turns auto-compile off or no
-  // engine is wired (web build leaves the prop unset when desktop-only).
+  // Debounced auto-compile: re-arm whenever the *saved* content changes (a save
+  // lands → `savedTick` bumps) or the main file changes. With auto-save off,
+  // nothing here fires until you save — so the preview shows the last saved
+  // version. Disabled when auto-compile is off or no engine is wired.
   $effect(() => {
-    void source; // track edits + file switches
+    void savedTick; // re-run after each save
     void mainId; // recompile when the main file changes
     const auto = settings.autoCompile;
     if (!canCompile || !auto) return;
@@ -1741,6 +1859,8 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
         filename={activeFile?.name ?? "document.tex"}
         {pdfBytes}
         {saveFile}
+        onExportZip={project ? exportProject : undefined}
+        canExportZip={Boolean(projectRoot)}
         size="default"
       />
 
@@ -1835,6 +1955,8 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
         ondeletefolder={deleteFolder}
         onnewfilein={(dir) => newFile(dir)}
         onnewfolderin={(dir) => newFolder(dir)}
+        {dirtyIds}
+        {gitStatus}
         ongotoline={(n) => editor?.goToLine(n)}
         onregistershell={project?.registerShellIntegration
           ? registerShell
@@ -1888,8 +2010,22 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                 insert={(t) => editor?.insertText(t)}
               />
 
-              <!-- Right cluster: history, find, sync. -->
+              <!-- Right cluster: save, history, find, sync. -->
               <div class="ml-auto flex shrink-0 items-center gap-1 pl-1">
+                <button
+                  class="hover:bg-muted hover:text-foreground relative grid size-6 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
+                  title={activeDirty ? "Save (⌘/Ctrl+S)" : "Saved"}
+                  aria-label="Save"
+                  disabled={!activeDirty}
+                  onclick={() => void saveActive()}
+                >
+                  <IconDeviceFloppy size={15} />
+                  {#if activeDirty}
+                    <span
+                      class="bg-brand absolute top-0.5 right-0.5 size-1.5 rounded-full"
+                    ></span>
+                  {/if}
+                </button>
                 <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
                 <button
                   class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
@@ -2180,6 +2316,16 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
         </span>
         <span class="text-muted-foreground/50">·</span>
         <span>{settings.autoCompile ? "Auto" : "Manual"}</span>
+        {#if dirtyIds.size > 0}
+          <button
+            class="text-brand inline-flex items-center gap-1 transition-opacity hover:opacity-80"
+            title="Save all unsaved files (⌘/Ctrl+Shift+S)"
+            onclick={() => void saveAll()}
+          >
+            <span class="bg-brand size-1.5 rounded-full"></span>
+            <span class="tabular-nums">{dirtyIds.size} unsaved</span>
+          </button>
+        {/if}
         <span>LaTeX · Tectonic</span>
         <button
           class="hover:text-foreground transition-colors"

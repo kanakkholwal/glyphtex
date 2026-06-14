@@ -35,13 +35,15 @@ export const SHORTCUTS: Shortcut[] = [
 	{ id: "quick-open", label: "Go to file", category: "Files & project", combos: ["Mod+P"] },
 	{ id: "open-folder", label: "Open folder", category: "Files & project", combos: ["Mod+O"] },
 	{ id: "new-file", label: "New file", category: "Files & project", combos: ["Mod+N"] },
+	{ id: "save", label: "Save", category: "Files & project", combos: ["Mod+S"] },
+	{ id: "save-all", label: "Save all", category: "Files & project", combos: ["Mod+Shift+S"] },
 
 	{ id: "undo", label: "Undo", category: "Editing", combos: ["Mod+Z"] },
 	{ id: "redo", label: "Redo", category: "Editing", combos: ["Mod+Shift+Z", "Mod+Y"] },
 
 	{ id: "find", label: "Find & replace in file", category: "Search", combos: ["Mod+F"] },
 
-	{ id: "compile", label: "Compile", category: "Compile & preview", combos: ["Mod+S", "Mod+Enter"] },
+	{ id: "compile", label: "Compile", category: "Compile & preview", combos: ["Mod+Enter"] },
 	{ id: "sync-pdf", label: "Sync editor to PDF", category: "Compile & preview", combos: ["Mod+J"] },
 
 	{ id: "toggle-sidebar", label: "Toggle sidebar", category: "View", combos: ["Mod+B"] },

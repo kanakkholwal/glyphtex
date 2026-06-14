@@ -3,9 +3,11 @@
 	import { Segmented } from '@glyphx/ui/segmented';
 	import { Separator } from '@glyphx/ui/separator';
 	import {
+	  AUTO_SAVE_LABELS,
 	  EDITOR_FONT_LABELS,
 	  settings,
 	  type Appearance,
+	  type AutoSaveMode,
 	  type EditorFont,
 	  type LatexGrammar
 	} from '@glyphx/ui/settings';
@@ -72,6 +74,8 @@
 		engine,
 		git,
 		projectRoot = null,
+		dirtyIds = new Set(),
+		gitStatus = {},
 		onopen,
 		onnew,
 		onnewfolder,
@@ -115,6 +119,10 @@
 		git?: GitProvider;
 		/** Absolute path of the open project folder, for Git operations. */
 		projectRoot?: string | null;
+		/** Ids of files with unsaved edits (shown as "modified" dots in the tree). */
+		dirtyIds?: Set<string>;
+		/** File id → Git working-tree status word ("modified" / "untracked" / …). */
+		gitStatus?: Record<string, string>;
 		onopen?: (id: string) => void;
 		onnew?: () => void;
 		onnewfolder?: () => void;
@@ -324,6 +332,10 @@
 	const fontOpts = (Object.keys(EDITOR_FONT_LABELS) as EditorFont[]).map((id) => ({
 		value: id,
 		label: EDITOR_FONT_LABELS[id]
+	}));
+	const autoSaveOpts = (Object.keys(AUTO_SAVE_LABELS) as AutoSaveMode[]).map((id) => ({
+		value: id,
+		label: AUTO_SAVE_LABELS[id]
 	}));
 
 	// --- Find / replace (wired to the editor via callbacks) ---
@@ -570,6 +582,8 @@
 						nodes={rootNodes}
 						{activeId}
 						{mainId}
+						{dirtyIds}
+						{gitStatus}
 						selectedPath={selectedFolderPath}
 						bind:open={treeOpen}
 						onopen={selectFile}
@@ -901,8 +915,22 @@
 
 				<SettingsField
 					size="sm"
+					label="Auto save"
+					description="When edits are written to disk. The preview always uses the last saved version."
+				>
+					<Segmented
+						options={autoSaveOpts}
+						value={settings.autoSave}
+						onValueChange={(v) => (settings.autoSave = v)}
+						size="sm"
+						aria-label="Auto save"
+					/>
+				</SettingsField>
+
+				<SettingsField
+					size="sm"
 					label="Live compile"
-					description="Recompile as you type"
+					description="Recompile automatically when a file is saved"
 					layout="row"
 				>
 					<Switch

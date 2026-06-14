@@ -4,8 +4,9 @@
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuShortcut,
-    DropdownMenuTrigger
+    DropdownMenuTrigger,
   } from "@glyphx/ui/dropdown-menu";
   import { toast } from "@glyphx/ui/sonner";
   import {
@@ -15,19 +16,24 @@
     IconCopy,
     IconDownload,
     IconFileText,
-    IconFileTypePdf
+    IconFileTypePdf,
+    IconFileZip,
   } from "@tabler/icons-svelte";
   /**
    * ExportMenu — Export / Share. Every export goes through the host-injected
    * `saveFile` (desktop = Tauri's native "Save As") when present, else a plain
-   * browser download. A compiled PDF is saved from its bytes; with no PDF yet,
-   * PDF export falls back to print-to-PDF of the preview.
+   * browser download. A compiled PDF is saved from its bytes; until the document
+   * has been compiled the PDF item stays disabled (it needs real bytes). When a
+   * folder project is open, the whole working directory can be exported as a Zip
+   * (delegated to the host via `onExportZip`).
    */
   let {
     source = "",
     filename = "main.tex",
     pdfBytes,
     saveFile,
+    onExportZip,
+    canExportZip = false,
     size = "sm",
   }: {
     source?: string;
@@ -37,6 +43,10 @@
       bytes: Uint8Array,
       opts: { filename: string; extensions?: string[] },
     ) => Promise<boolean>;
+    /** Host-provided "export the open folder project as a Zip". Desktop only. */
+    onExportZip?: () => void | Promise<void>;
+    /** Whether a folder project is open so the Zip export can run. */
+    canExportZip?: boolean;
     size?: ButtonSize;
   } = $props();
 
@@ -75,14 +85,13 @@
   let copied = $state(false);
 
   function exportPdf() {
-    if (pdfBytes) {
-      saveOrDownload(pdfBytes, `${baseName}.pdf`, ["pdf"]);
+    // The PDF is the compiled artefact — without bytes there's nothing to save.
+    // The menu item is disabled in that state, so this is a belt-and-braces guard.
+    if (!pdfBytes) {
+      toast.info("Compile the document first to export its PDF.");
       return;
     }
-    // No compiled PDF yet — fall back to print-to-PDF of the preview.
-    open = false;
-    toast.message("Opening the print dialog…");
-    requestAnimationFrame(() => window.print());
+    saveOrDownload(pdfBytes, `${baseName}.pdf`, ["pdf"]);
   }
   const exportTex = () =>
     saveOrDownload(new TextEncoder().encode(source), `${baseName}.tex`, [
@@ -92,6 +101,12 @@
     saveOrDownload(new TextEncoder().encode(source), `${baseName}.txt`, [
       "txt",
     ]);
+
+  async function exportZip() {
+    open = false;
+    if (!onExportZip) return;
+    await onExportZip();
+  }
 
   async function copySource() {
     try {
@@ -104,21 +119,46 @@
     }
   }
 
-  type Item = {
-    icon: typeof IconDownload;
-    label: string;
-    hint?: string;
-    run: () => void;
-  };
+  type Item =
+    | { separator: true }
+    | {
+        separator?: false;
+        icon: typeof IconDownload;
+        label: string;
+        hint?: string;
+        disabled?: boolean;
+        run: () => void;
+      };
   const items = $derived<Item[]>([
     {
       icon: IconFileTypePdf,
       label: "Export PDF",
-      hint: pdfBytes ? "Save" : "Print",
+      hint: pdfBytes ? "Save" : "Compile first",
+      disabled: !pdfBytes,
       run: exportPdf,
     },
-    { icon: IconCode, label: "Export .tex", run: exportTex },
+    {
+      icon: IconCode,
+      label: "Export .tex",
+      hint: "Current file",
+      run: exportTex,
+    },
     { icon: IconFileText, label: "Export plain text", run: exportTxt },
+    // Zip the whole working directory — only when a folder project is open
+    // (desktop). The host injects `onExportZip`; web builds never pass it.
+    ...(onExportZip
+      ? [
+          { separator: true } as Item,
+          {
+            icon: IconFileZip,
+            label: "Export as Zip",
+            hint: canExportZip ? "Project" : "Open a folder",
+            disabled: !canExportZip,
+            run: exportZip,
+          } as Item,
+        ]
+      : []),
+    { separator: true } as Item,
     {
       icon: copied ? IconCheck : IconCopy,
       label: copied ? "Copied" : "Copy source",
@@ -146,28 +186,27 @@
 <DropdownMenu>
   <DropdownMenuTrigger>
     {#snippet child({ props })}
-      <Button
-        {...props}
-        size="xs"
-        variant="default_soft"
-		
-      >
-        <IconDownload  />
+      <Button {...props} size="xs" variant="default_soft">
+        <IconDownload />
         Export
         <IconChevronDown />
       </Button>
     {/snippet}
   </DropdownMenuTrigger>
   <DropdownMenuContent align="end" class="w-52">
-   {#each items as item (item.label)}
-      {@const Icon = item.icon}
-	  <DropdownMenuItem onclick={item.run}>
-		<Icon size={16} class="text-muted-foreground" />
-		<span class="flex-1">{item.label}</span>
-		{#if item.hint}
-		  <DropdownMenuShortcut>{item.hint}</DropdownMenuShortcut>
-		{/if}
-	  </DropdownMenuItem>
-	{/each}
+    {#each items as item, i (item.separator ? `sep-${i}` : item.label)}
+      {#if item.separator}
+        <DropdownMenuSeparator />
+      {:else}
+        {@const Icon = item.icon}
+        <DropdownMenuItem disabled={item.disabled} onclick={item.run}>
+          <Icon size={16} class="text-muted-foreground" />
+          <span class="flex-1">{item.label}</span>
+          {#if item.hint}
+            <DropdownMenuShortcut>{item.hint}</DropdownMenuShortcut>
+          {/if}
+        </DropdownMenuItem>
+      {/if}
+    {/each}
   </DropdownMenuContent>
 </DropdownMenu>

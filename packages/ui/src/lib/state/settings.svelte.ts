@@ -19,6 +19,22 @@ export type LatexGrammar = "legacy" | "lezer";
 export type EditorFont = "jetbrains" | "geist";
 /** Source Control changes layout: flat list vs collapsible folder tree. */
 export type GitView = "tree" | "list";
+/**
+ * When edits are written back to disk (VS Code parity):
+ *  - `off`            — only on an explicit save (⌘/Ctrl+S).
+ *  - `afterDelay`     — automatically a short while after you stop typing.
+ *  - `onFocusChange`  — when the editor loses focus (switching files, blurring
+ *                       the window).
+ * Compilation always uses the last *saved* content, so this also controls when
+ * the preview refreshes.
+ */
+export type AutoSaveMode = "off" | "afterDelay" | "onFocusChange";
+
+export const AUTO_SAVE_LABELS: Record<AutoSaveMode, string> = {
+	off: "Off",
+	afterDelay: "After delay",
+	onFocusChange: "On focus change",
+};
 /** Which compile engine to use. `tectonic` = bundled; `system` = local TeX install. */
 export type EngineKind = "tectonic" | "system";
 /** TeX program latexmk drives when {@link EngineKind} is `system`. */
@@ -46,8 +62,10 @@ export interface EditorSettings {
 	font: EditorFont;
 	fontSize: number;
 	lineWrapping: boolean;
-	/** Recompile automatically as you type (debounced). */
+	/** Recompile automatically when the saved content changes (debounced). */
 	autoCompile: boolean;
+	/** When edits are persisted to disk. See {@link AutoSaveMode}. */
+	autoSave: AutoSaveMode;
 	/**
 	 * Allow `\write18` (shell escape) during compilation — required by packages
 	 * that run external tools (e.g. `minted`/Pygments, `gnuplot`). Off by default:
@@ -66,6 +84,7 @@ export const EDITOR_DEFAULTS: EditorSettings = {
 	fontSize: 13,
 	lineWrapping: false,
 	autoCompile: true,
+	autoSave: "afterDelay",
 	shellEscape: false,
 	engineKind: "tectonic",
 	texProgram: "pdflatex",
@@ -73,6 +92,9 @@ export const EDITOR_DEFAULTS: EditorSettings = {
 
 /** Debounce (ms) before an edit triggers an automatic recompile. */
 export const COMPILE_DEBOUNCE_MS = 650;
+
+/** Idle time (ms) before "After delay" auto-save writes the buffer to disk. */
+export const AUTO_SAVE_DELAY_MS = 1000;
 
 export const APPEARANCE_KEY = "glyphx:appearance";
 export const EDITOR_KEY = "glyphx:editor";
@@ -195,6 +217,13 @@ class SettingsStore {
 	}
 	set autoCompile(value: boolean) {
 		this.patchEditor({ autoCompile: value });
+	}
+
+	get autoSave(): AutoSaveMode {
+		return this.#editor.current.autoSave ?? "afterDelay";
+	}
+	set autoSave(value: AutoSaveMode) {
+		this.patchEditor({ autoSave: value });
 	}
 
 	get shellEscape(): boolean {

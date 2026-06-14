@@ -58,6 +58,14 @@
 	import { Button } from '@glyphx/ui/button';
 	import { Textarea } from '@glyphx/ui/textarea';
 	import { settings } from '@glyphx/ui/settings';
+	import {
+		Dialog,
+		DialogContent,
+		DialogHeader,
+		DialogTitle,
+		DialogDescription,
+		DialogFooter
+	} from '@glyphx/ui/dialog';
 	import { slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import {
@@ -77,7 +85,8 @@
 		IconFolderOpen,
 		IconFileText,
 		IconArrowUp,
-		IconArrowDown
+		IconArrowDown,
+		IconAlertTriangle
 	} from '@tabler/icons-svelte';
 
 	/**
@@ -319,6 +328,85 @@
 		}
 	}
 
+	// --- Remote errors: shown in a friendly UI dialog (not inline / not native).
+	let gitError = $state<{ title: string; message: string; details?: string } | undefined>(undefined);
+	let showErrorDetails = $state(false);
+
+	/** Turn a raw gix / system-git error into a plain-language title + message,
+	 *  keeping the original text as collapsible details for the curious. */
+	function describeError(raw: string, op: string): { title: string; message: string; details?: string } {
+		const e = raw.toLowerCase();
+		const details = raw.trim() || undefined;
+		if (/install git/.test(e))
+			return {
+				title: "Git isn’t installed",
+				message: "This action uses the system Git. Install Git, make sure it’s on your PATH, then try again.",
+				details
+			};
+		if (
+			/no such remote|does not appear to be a git repository|no configured (push|fetch)|could not find remote|unknown remote|remote .*not found|find_remote/.test(
+				e
+			)
+		)
+			return {
+				title: "Remote not found",
+				message:
+					"This remote may have been removed or renamed. Add or pick a remote below, then try again.",
+				details
+			};
+		if (/permission to .*denied|\bforbidden\b|not authorized|do(es)?n.?t have (write |push )?(access|permission)|protected branch|read[- ]only|protected_ref/.test(e))
+			return {
+				title: "You don’t have push access",
+				message:
+					"You can’t push to this repository — it isn’t yours to write to. Fork it to your own account, then point the remote at your fork (Remote → edit) and push there.",
+				details
+			};
+		if (/authentication|could not read username|could not read password|\b401\b|\b403\b|invalid username or password|bad credentials|support for password authentication/.test(e))
+			return {
+				title: "Authentication failed",
+				message: "Check your access token and that it has access to this repository.",
+				details
+			};
+		if (/could not resolve host|couldn.?t resolve|network|unreachable|timed out|timeout|failed to connect|connection refused/.test(e))
+			return {
+				title: "Can’t reach the remote",
+				message: "Couldn’t connect. Check your internet connection and the remote URL.",
+				details
+			};
+		if (/non-fast-forward|fast-forward|\brejected\b|diverg|need to pull|tip of your current branch is behind/.test(e))
+			return op === "Pull"
+				? {
+						title: "Can’t fast-forward",
+						message:
+							"Your branch and the remote have moved apart, so this isn’t a simple update. Resolve the divergence before pulling.",
+						details
+					}
+				: {
+						title: "Push rejected",
+						message:
+							"The remote has changes you don’t have yet. Pull the latest changes first, then push again.",
+						details
+					};
+		return { title: `${op} failed`, message: "Something went wrong with this Git operation.", details };
+	}
+
+	/** Run a remote operation; route any failure to the error dialog. */
+	async function runRemote(op: string, fn: () => Promise<unknown>) {
+		if (!git || !root || busy) return;
+		busy = true;
+		remoteMsg = undefined;
+		try {
+			await fn();
+			await refresh();
+		} catch (e) {
+			gitError = describeError(String(e), op);
+			showErrorDetails = false;
+			await refresh(); // reflect any state that did change (e.g. the remote list)
+		} finally {
+			busy = false;
+		}
+	}
+
 	const initRepo = () => run(() => git!.init(root!));
 	const stage = (paths: string[]) => run(() => git!.stage(root!, paths));
 	const unstage = (paths: string[]) => run(() => git!.unstage(root!, paths));
@@ -342,22 +430,35 @@
 		});
 	}
 
-	const doFetch = () =>
-		run(async () => {
-			remoteMsg = undefined;
+	/** Guard: a remote op needs an active remote — surface a clear dialog if not. */
+	function requireRemote(op: string): boolean {
+		if (activeRemote) return true;
+		gitError = {
+			title: 'No remote configured',
+			message: 'Add a remote below before you can ' + op.toLowerCase() + '.'
+		};
+		return false;
+	}
+
+	const doFetch = () => {
+		if (!requireRemote('Fetch')) return;
+		runRemote('Fetch', async () => {
 			await git!.fetch(root!, authedUrl());
 			remoteMsg = 'Fetched.';
 		});
-	const doPull = () =>
-		run(async () => {
-			remoteMsg = undefined;
+	};
+	const doPull = () => {
+		if (!requireRemote('Pull')) return;
+		runRemote('Pull', async () => {
 			remoteMsg = (await git!.pull(root!, authedUrl())) || 'Already up to date.';
 		});
-	const doPush = () =>
-		run(async () => {
-			remoteMsg = undefined;
+	};
+	const doPush = () => {
+		if (!requireRemote('Push')) return;
+		runRemote('Push', async () => {
 			remoteMsg = (await git!.push(root!, authedUrl(), head?.branch ?? undefined)) || 'Pushed.';
 		});
+	};
 
 	// --- Remote management ---------------------------------------------------
 	function startEditRemote(r: GitRemote) {
@@ -370,7 +471,7 @@
 		const name = editName.trim();
 		const url = editUrl.trim();
 		if (!name || !url) return;
-		run(async () => {
+		runRemote('Update remote', async () => {
 			if (url !== r.url) await git!.remoteSetUrl(root!, r.name, url);
 			if (name !== r.name) {
 				await git!.remoteRename(root!, r.name, name);
@@ -380,7 +481,7 @@
 		});
 	}
 	const removeRemote = (r: GitRemote) =>
-		run(async () => {
+		runRemote('Remove remote', async () => {
 			if (!(await askConfirm(`Remove remote “${r.name}”?\n${r.url}`))) return;
 			await git!.remoteRemove(root!, r.name);
 			if (selectedRemote === r.name) selectedRemote = '';
@@ -389,7 +490,7 @@
 		const name = newRemoteName.trim();
 		const url = newRemoteUrl.trim();
 		if (!name || !url) return;
-		run(async () => {
+		runRemote('Add remote', async () => {
 			await git!.remoteAdd(root!, name, url);
 			selectedRemote = name;
 			addingRemote = false;
@@ -792,3 +893,45 @@
 		{/if}
 	</div>
 {/if}
+
+<!-- Remote error dialog (our own UI, not the native one). Plain-language title +
+     message, with the raw error tucked behind "Show details" for the curious. -->
+<Dialog
+	open={!!gitError}
+	onOpenChange={(o) => {
+		if (!o) gitError = undefined;
+	}}
+>
+	<DialogContent class="sm:max-w-md">
+		<DialogHeader>
+			<DialogTitle class="flex items-center gap-2">
+				<span class="text-destructive shrink-0"><IconAlertTriangle size={18} /></span>
+				{gitError?.title}
+			</DialogTitle>
+			<DialogDescription class="leading-relaxed">{gitError?.message}</DialogDescription>
+		</DialogHeader>
+
+		{#if gitError?.details}
+			<div class="text-xs">
+				<button
+					class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+					onclick={() => (showErrorDetails = !showErrorDetails)}
+				>
+					<IconChevronRight
+						size={13}
+						class="transition-transform duration-200 {showErrorDetails ? 'rotate-90' : ''}"
+					/>
+					{showErrorDetails ? 'Hide details' : 'Show details'}
+				</button>
+				{#if showErrorDetails}
+					<pre
+						class="border-border/60 bg-muted/40 text-muted-foreground mt-1.5 max-h-40 overflow-auto rounded border p-2 font-mono text-[11px] leading-snug whitespace-pre-wrap">{gitError.details}</pre>
+				{/if}
+			</div>
+		{/if}
+
+		<DialogFooter>
+			<Button size="sm" onclick={() => (gitError = undefined)}>Dismiss</Button>
+		</DialogFooter>
+	</DialogContent>
+</Dialog>

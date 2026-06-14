@@ -42,6 +42,8 @@
 		activeId = '',
 		mainId = null,
 		selectedPath = null,
+		dirtyIds = new Set(),
+		gitStatus = {},
 		depth = 0,
 		open = $bindable({}),
 		onopen,
@@ -62,6 +64,10 @@
 		mainId?: string | null;
 		/** Path of the currently-selected folder (highlighted like the active file). */
 		selectedPath?: string | null;
+		/** Ids of files with unsaved edits (rendered as a "modified" dot). */
+		dirtyIds?: Set<string>;
+		/** File id → Git status word ("modified" / "untracked" / …) for the M/U/A badge. */
+		gitStatus?: Record<string, string>;
 		depth?: number;
 		open?: Record<string, boolean>;
 		onopen?: (id: string) => void;
@@ -145,6 +151,27 @@
 		if (it.kind === 'file') onmovefile?.(it.id, path);
 		else onmovefolder?.(it.path, path);
 	}
+
+	// --- Change indicators (VS Code parity) — unsaved dot + Git M/U/A badge. ---
+	const STATUS_LABEL: Record<string, string> = {
+		modified: 'M',
+		deleted: 'D',
+		untracked: 'U',
+		added: 'A',
+		renamed: 'R'
+	};
+	const STATUS_CLASS: Record<string, string> = {
+		modified: 'text-warning',
+		deleted: 'text-destructive',
+		untracked: 'text-success',
+		added: 'text-success',
+		renamed: 'text-brand'
+	};
+	// A folder is "changed" when any descendant file is dirty or Git-tracked-dirty.
+	function folderChanged(n: TreeNode): boolean {
+		if (n.type === 'file') return dirtyIds.has(n.id) || !!gitStatus[n.id];
+		return n.children.some(folderChanged);
+	}
 </script>
 
 {#each nodes as node (node.type === 'folder' ? `d:${node.path}` : `f:${node.id}`)}
@@ -206,6 +233,15 @@
 					<span class="truncate">{node.name}</span>
 				</button>
 
+				{#if folderChanged(node) && node.path !== selectedPath}
+					<span
+						class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 transition-opacity group-hover/row:opacity-0"
+						title="Contains changes"
+					>
+						<span class="bg-warning/80 block size-1.5 rounded-full"></span>
+					</span>
+				{/if}
+
 				<DropdownMenu>
 					<DropdownMenuTrigger>
 						{#snippet child({ props })}
@@ -245,6 +281,8 @@
 					{activeId}
 					{mainId}
 					{selectedPath}
+					{dirtyIds}
+					{gitStatus}
 					depth={depth + 1}
 					bind:open
 					{onopen}
@@ -262,6 +300,8 @@
 			</div>
 		{/if}
 	{:else}
+		{@const dirty = dirtyIds.has(node.id)}
+		{@const status = gitStatus[node.id]}
 		<div class="group/row relative flex items-center">
 			{#if renamingId === node.id}
 				<div class="flex w-full items-center gap-1 py-1 pr-2" style:padding-left={indent(depth)}>
@@ -286,10 +326,12 @@
 					class="flex w-full items-center gap-1 rounded py-1 pr-7 text-left transition-colors {node.id ===
 					activeId
 						? 'bg-accent text-accent-foreground'
-						: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						: dirty || status
+							? 'text-foreground hover:bg-muted'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 					style:padding-left={indent(depth)}
 					aria-current={node.id === activeId}
-					title={node.name}
+					title={dirty ? `${node.name} — unsaved` : node.name}
 					draggable="true"
 					ondragstart={(e) => dragStartFile(node, e)}
 					ondragend={endDrag}
@@ -308,6 +350,21 @@
 						</span>
 					{/if}
 				</button>
+
+				{#if dirty || status}
+					<span
+						class="pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center transition-opacity group-hover/row:opacity-0"
+						title={dirty ? 'Unsaved changes' : 'Modified'}
+					>
+						{#if dirty}
+							<span class="bg-brand block size-1.5 rounded-full"></span>
+						{:else}
+							<span class="font-mono text-[10px] leading-none {STATUS_CLASS[status] ?? ''}"
+								>{STATUS_LABEL[status] ?? '?'}</span
+							>
+						{/if}
+					</span>
+				{/if}
 
 				<DropdownMenu>
 					<DropdownMenuTrigger>
