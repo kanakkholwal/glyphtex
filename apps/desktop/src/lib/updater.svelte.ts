@@ -25,10 +25,7 @@ export type UpdaterStatus =
 // Mirror the runtime check used in tauri-theme.ts: these globals are only
 // present inside the Tauri webview, never in a plain browser.
 function isTauriRuntime(): boolean {
-	return (
-		typeof window !== 'undefined' &&
-		('__TAURI_INTERNALS__' in window || 'isTauri' in window)
-	);
+	return typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || 'isTauri' in window);
 }
 
 function createUpdaterStore() {

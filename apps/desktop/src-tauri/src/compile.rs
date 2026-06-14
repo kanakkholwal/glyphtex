@@ -31,6 +31,10 @@ pub struct CompileResult {
     pub message: Option<String>,
     /// Decompressed SyncTeX data (`.synctex.gz` contents) for reverse search.
     pub synctex: Option<String>,
+    /// Plain-language, actionable hint for a recognized *engine* limitation
+    /// (e.g. biber/biblatex version skew, 0-DPI JPEG) — surfaced above the raw
+    /// log so the user gets "switch to System TeX" instead of a cryptic error.
+    pub hint: Option<String>,
 }
 
 impl CompileResult {
@@ -41,6 +45,7 @@ impl CompileResult {
             log: log.into(),
             message: Some(message.into()),
             synctex: None,
+            hint: None,
         }
     }
 }
@@ -262,6 +267,7 @@ fn assemble_result(
             log,
             message: None,
             synctex: read_synctex(outdir, stem),
+            hint: None,
         };
     }
 
@@ -345,6 +351,58 @@ fn run_latexmk(
     })
 }
 
+/// Map known *bundled-engine* (Tectonic) limitations in the compile log to a
+/// plain-language, actionable hint, so the user sees "switch to System TeX"
+/// instead of a cryptic biber / graphics error. Returns `None` when nothing
+/// recognizable matched, or when System TeX was already the engine (the hint
+/// would point at the engine they're already on).
+fn detect_toolchain_hint(log: &str, engine: &str) -> Option<String> {
+    // Every hint here is a limitation of the bundled Tectonic (its pinned
+    // biblatex bundle, its XeTeX graphics driver) that the host's System TeX
+    // install does not have — so there's nothing to suggest if we're on System.
+    if engine == "system" {
+        return None;
+    }
+
+    // biblatex/biber version skew: Tectonic's bundle ships an older biblatex than
+    // a freshly installed biber expects, so the `.bcf` versions disagree and no
+    // `.bbl` is produced — the bibliography silently fails to build.
+    let biber_mismatch = (log.contains("Found biblatex control file version")
+        && log.contains("expected version"))
+        || (log.contains("biber") && log.contains("biblatex") && log.contains("incompatible"))
+        || log.contains("not created by biblatex");
+    if biber_mismatch {
+        return Some(
+            "This document's bibliography uses biblatex + biber, but the bundled \
+             Tectonic engine ships an older biblatex that doesn't match your \
+             system's biber, so the bibliography can't be built. Switch this \
+             project to the System TeX engine in Settings → Engine to use a \
+             matching biblatex and biber."
+                .to_string(),
+        );
+    }
+
+    // JPEGs whose metadata reports 0×0 DPI make XeTeX's graphics driver divide
+    // by zero while computing the natural size.
+    let jpeg_dpi = log.contains("Package graphics Error: Division by 0")
+        || (log.contains("Unable to load picture or PDF file")
+            && (log.contains(".jpg")
+                || log.contains(".JPG")
+                || log.contains(".jpeg")
+                || log.contains(".JPEG")));
+    if jpeg_dpi {
+        return Some(
+            "A JPEG in this document reports 0×0 DPI, which the bundled Tectonic \
+             (XeTeX) engine can't scale (\"Division by 0\"). Re-save the image \
+             with a valid resolution or convert it to PNG/PDF — or switch to the \
+             System TeX engine in Settings → Engine, which tolerates it."
+                .to_string(),
+        );
+    }
+
+    None
+}
+
 /// Dispatch to the engine the frontend selected: bundled Tectonic, or a local
 /// System TeX install via latexmk.
 fn run_engine(
@@ -355,11 +413,14 @@ fn run_engine(
     program: &str,
     shell_escape: bool,
 ) -> CompileResult {
-    if engine == "system" {
+    let mut result = if engine == "system" {
         run_latexmk(main_tex, outdir, program, shell_escape)
     } else {
         run_tectonic(app, main_tex, outdir, shell_escape)
-    }
+    };
+    // Recognize engine-specific failure modes and attach an actionable hint.
+    result.hint = detect_toolchain_hint(&result.log, engine);
+    result
 }
 
 /// What System TeX tooling is available on PATH (for Settings → Engine).
@@ -474,5 +535,31 @@ mod tests {
         // Unknown / empty falls back to pdfLaTeX.
         assert_eq!(latexmk_engine_flag("something-else"), "-pdf");
         assert_eq!(latexmk_engine_flag(""), "-pdf");
+    }
+
+    #[test]
+    fn hint_detects_biber_biblatex_mismatch() {
+        let log = "INFO - This is Biber 2.21\n\
+                   ERROR - Found biblatex control file version 3.8, expected version 3.11.\n\
+                   error: report.tex:207: Package biblatex Error: File 'report.bbl' not created by biblatex.";
+        let hint = detect_toolchain_hint(log, "tectonic").expect("should hint");
+        assert!(hint.contains("System TeX"));
+        assert!(hint.to_lowercase().contains("biblatex"));
+    }
+
+    #[test]
+    fn hint_detects_zero_dpi_jpeg() {
+        let log = "error: chapters/chapter2.tex:64: Unable to load picture or PDF file 'figimages/3DCNN.jpg'\n\
+                   error: chapters/chapter2.tex:64: Package graphics Error: Division by 0.";
+        let hint = detect_toolchain_hint(log, "tectonic").expect("should hint");
+        assert!(hint.contains("System TeX"));
+    }
+
+    #[test]
+    fn hint_is_none_for_clean_log_and_for_system_engine() {
+        assert!(detect_toolchain_hint("This is pdfTeX ... Output written.", "tectonic").is_none());
+        // Same failure on System TeX → no point suggesting System TeX.
+        let biber = "ERROR - Found biblatex control file version 3.8, expected version 3.11.";
+        assert!(detect_toolchain_hint(biber, "system").is_none());
     }
 }

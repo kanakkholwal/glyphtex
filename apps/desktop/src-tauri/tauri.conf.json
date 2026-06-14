@@ -30,9 +30,7 @@
 		"active": true,
 		"targets": "all",
 		"publisher": "Nexonauts",
-		"externalBin": [
-			"binaries/tectonic"
-		],
+		"externalBin": ["binaries/tectonic"],
 		"icon": [
 			"icons/32x32.png",
 			"icons/128x128.png",
@@ -42,18 +40,14 @@
 		],
 		"fileAssociations": [
 			{
-				"ext": [
-					"tex"
-				],
+				"ext": ["tex"],
 				"name": "LaTeX Document",
 				"description": "LaTeX source document",
 				"role": "Editor",
 				"mimeType": "text/x-tex"
 			},
 			{
-				"ext": [
-					"glyphx"
-				],
+				"ext": ["glyphx"],
 				"name": "GlyphX Project",
 				"description": "GlyphX LaTeX project",
 				"role": "Editor",
@@ -78,9 +72,7 @@
 	"plugins": {
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhBMDUyMzE0NDAwMUVGN0QKUldSOTd3RkFGQ01GaXEydXZqMmpTTHYzV1Nnc2E4ei9PZXdUN3BRK1VVRlZHRWNqQW1pWHJVd2sK",
-			"endpoints": [
-				"https://github.com/kanakkholwal/glyphx/releases/latest/download/latest.json"
-			],
+			"endpoints": ["https://github.com/kanakkholwal/glyphx/releases/latest/download/latest.json"],
 			"dialog": false
 		}
 	}

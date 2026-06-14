@@ -188,6 +188,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       log?: string;
       error?: string;
       synctex?: string;
+      hint?: string;
     }>;
     /**
      * Compile a multi-file project on disk (desktop). Given the project root and
@@ -203,6 +204,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       log?: string;
       error?: string;
       synctex?: string;
+      hint?: string;
     }>;
     engine?: EngineManager;
     /** Host-injected Git backend (desktop = gitoxide). Enables Source Control. */
@@ -1467,6 +1469,9 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
   let synctex = $state<SyncTexMap | undefined>(undefined);
   let compileError = $state<string | undefined>(undefined);
   let compileLog = $state("");
+  // Actionable hint for a recognized engine limitation (e.g. biber/biblatex
+  // skew, 0-DPI JPEG) — shown as a banner above the Problems list.
+  let compileHint = $state<string | undefined>(undefined);
 
   // Parsed diagnostics for the Problems panel; recomputed on each compile.
   const problems = $derived(parseLatexLog(compileLog, compileError));
@@ -1601,6 +1606,9 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
               : { error: "No compiler available." };
         lastCompileMs = Math.round(performance.now() - started);
         compileLog = out.log ?? "";
+        compileHint = out.hint;
+        if (compileHint) showProblems = true; // make the hint visible
+
         // Mirror to the devtools console so logs are readable/debuggable.
         if (out.error) {
           console.error(
@@ -1633,6 +1641,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       } while (pendingRecompile);
     } catch (e) {
       compileError = String(e);
+      compileHint = undefined;
       compileStatus = "error";
       showProblems = true;
       console.error("[GlyphX] compile threw:", e);
@@ -2534,6 +2543,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
         <ProblemsPanel
           {problems}
           log={compileLog}
+          hint={compileHint}
           ongoto={(l) => {
             editor?.goToLine(l);
             if (viewMode === "preview") viewMode = "split";

@@ -65,7 +65,9 @@
 <div class="flex max-w-2xl flex-col gap-8">
 	<header>
 		<h2 class="font-display text-xl font-semibold tracking-tight">Editor</h2>
-		<p class="text-muted-foreground mt-1.5 text-sm">Highlighting, typeface, and compile behaviour.</p>
+		<p class="text-muted-foreground mt-1.5 text-sm">
+			Highlighting, typeface, and compile behaviour.
+		</p>
 	</header>
 
 	<section class="flex flex-col gap-2.5">

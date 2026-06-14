@@ -8,9 +8,17 @@ type RawCompileResult = {
 	log: string;
 	message: string | null;
 	synctex: string | null;
+	hint: string | null;
 };
 
-export type CompileOutcome = { pdf?: string; log?: string; error?: string; synctex?: string };
+export type CompileOutcome = {
+	pdf?: string;
+	log?: string;
+	error?: string;
+	synctex?: string;
+	/** Plain-language, actionable hint for a recognized engine limitation. */
+	hint?: string;
+};
 
 function isTauri(): boolean {
 	return typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || 'isTauri' in window);
@@ -33,8 +41,17 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 			texProgram: settings.texProgram
 		});
 		if (res.success && res.pdf_base64)
-			return { pdf: res.pdf_base64, log: res.log, synctex: res.synctex ?? undefined };
-		return { log: res.log, error: res.message ?? 'Compilation failed.' };
+			return {
+				pdf: res.pdf_base64,
+				log: res.log,
+				synctex: res.synctex ?? undefined,
+				hint: res.hint ?? undefined
+			};
+		return {
+			log: res.log,
+			error: res.message ?? 'Compilation failed.',
+			hint: res.hint ?? undefined
+		};
 	} catch (e) {
 		return { error: String(e) };
 	}
@@ -58,8 +75,17 @@ export async function compileProject(root: string, mainRel: string): Promise<Com
 			texProgram: settings.texProgram
 		});
 		if (res.success && res.pdf_base64)
-			return { pdf: res.pdf_base64, log: res.log, synctex: res.synctex ?? undefined };
-		return { log: res.log, error: res.message ?? 'Compilation failed.' };
+			return {
+				pdf: res.pdf_base64,
+				log: res.log,
+				synctex: res.synctex ?? undefined,
+				hint: res.hint ?? undefined
+			};
+		return {
+			log: res.log,
+			error: res.message ?? 'Compilation failed.',
+			hint: res.hint ?? undefined
+		};
 	} catch (e) {
 		return { error: String(e) };
 	}

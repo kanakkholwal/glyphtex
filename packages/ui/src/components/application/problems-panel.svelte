@@ -6,7 +6,8 @@
 		IconInfoCircle,
 		IconX,
 		IconClipboardText,
-		IconClipboardCheck
+		IconClipboardCheck,
+		IconBulb
 	} from '@tabler/icons-svelte';
 
 	/**
@@ -17,11 +18,14 @@
 	let {
 		problems = [],
 		log = '',
+		hint,
 		ongoto,
 		onclose
 	}: {
 		problems?: LatexProblem[];
 		log?: string;
+		/** Actionable hint for a recognized engine limitation; shown as a banner. */
+		hint?: string;
 		ongoto?: (line: number) => void;
 		onclose?: () => void;
 	} = $props();
@@ -100,6 +104,17 @@
 
 	<!-- body -->
 	<div class="min-h-0 flex-1 overflow-auto">
+		{#if hint}
+			<!-- Actionable engine hint (e.g. biber/biblatex skew, 0-DPI JPEG). Shown
+			     above the parsed problems / raw log on every tab. -->
+			<div
+				class="border-primary/30 bg-primary/5 m-2 flex items-start gap-2 rounded-md border p-2.5"
+				role="status"
+			>
+				<IconBulb size={15} class="text-primary mt-0.5 shrink-0" />
+				<p class="text-foreground/90 min-w-0 flex-1 text-xs leading-relaxed">{hint}</p>
+			</div>
+		{/if}
 		{#if tab === 'problems'}
 			{#if problems.length === 0}
 				<p class="text-muted-foreground px-3 py-6 text-center text-xs">No problems reported.</p>

@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { Button } from '@glyphx/ui/button';
 	import { Spinner } from '@glyphx/ui/spinner';
-	import {
-		IconAlertTriangle,
-		IconCircleCheck,
-		IconDownload,
-		IconX
-	} from '@tabler/icons-svelte';
+	import { IconAlertTriangle, IconCircleCheck, IconDownload, IconX } from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { fly } from 'svelte/transition';
 	import { updater } from './updater.svelte';
