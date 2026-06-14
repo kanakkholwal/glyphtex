@@ -813,6 +813,13 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
       toast.error("Can't delete the last file in a project.");
       return;
     }
+    const target = files.find((f) => f.id === id);
+    const ok = await askConfirm(
+      "Delete file",
+      `Delete “${baseName(target?.name ?? "")}”? This cannot be undone.`,
+      "Delete",
+    );
+    if (!ok) return;
     if (project) {
       const t = files.find((f) => f.id === id);
       if (t?.path) {

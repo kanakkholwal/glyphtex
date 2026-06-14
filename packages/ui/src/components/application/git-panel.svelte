@@ -58,6 +58,8 @@
 	import { Button } from '@glyphx/ui/button';
 	import { Textarea } from '@glyphx/ui/textarea';
 	import { settings } from '@glyphx/ui/settings';
+	import { slide } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import {
 		IconGitBranch,
 		IconGitCommit,
@@ -71,8 +73,9 @@
 		IconX,
 		IconCloud,
 		IconChevronRight,
-		IconChevronDown,
 		IconFolder,
+		IconFolderOpen,
+		IconFileText,
 		IconArrowUp,
 		IconArrowDown
 	} from '@tabler/icons-svelte';
@@ -226,25 +229,17 @@
 				node = child;
 			});
 		}
-		return sortNodes(compress(root.children));
-	}
-
-	/** Merge single-child folder chains into one row (VS Code folder compression). */
-	function compress(nodes: TreeNode[]): TreeNode[] {
-		return nodes.map((n) => {
-			let cur = n;
-			while (!cur.isFile && cur.children.length === 1 && !cur.children[0].isFile) {
-				const only = cur.children[0];
-				cur = { ...only, name: `${cur.name}/${only.name}` };
-			}
-			cur.children = compress(cur.children);
-			return cur;
-		});
+		// Nest level-by-level like the Explorer (no folder compression).
+		return sortNodes(root.children);
 	}
 
 	function sortNodes(nodes: TreeNode[]): TreeNode[] {
 		nodes.sort((a, b) =>
-			a.isFile !== b.isFile ? (a.isFile ? 1 : -1) : a.name.localeCompare(b.name)
+			a.isFile !== b.isFile
+				? a.isFile
+					? 1
+					: -1
+				: a.name.localeCompare(b.name, undefined, { numeric: true })
 		);
 		for (const n of nodes) if (!n.isFile) sortNodes(n.children);
 		return nodes;
@@ -256,6 +251,11 @@
 		else next.add(path);
 		collapsed = next;
 	}
+
+	/** Indentation matching the Explorer tree. */
+	const indent = (d: number) => `${d * 12 + 8}px`;
+	/** Last path segment (the file name without its directory). */
+	const leaf = (p: string) => p.split('/').pop() ?? p;
 
 	const stagedTree = $derived(buildTree(staged));
 	const unstagedTree = $derived(buildTree(unstaged));
@@ -418,21 +418,25 @@
 	}
 </script>
 
-{#snippet fileRow(c: GitChange, action: 'stage' | 'unstage', label: string, depth: number)}
+{#snippet fileRow(c: GitChange, action: 'stage' | 'unstage', label: string, depth: number, tree: boolean)}
 	{@const open = openPath === c.path && openStaged === c.staged}
 	<div>
 		<div
-			class="hover:bg-muted/60 group flex items-center gap-1.5 rounded py-0.5 pr-1 text-xs"
-			style:padding-left={`${depth * 12 + 4}px`}
+			class="hover:bg-muted/60 group flex items-center gap-1 rounded py-0.5 pr-1 text-xs"
+			style:padding-left={tree ? indent(depth) : '4px'}
 		>
 			<button
-				class="text-foreground/90 hover:text-foreground min-w-0 flex-1 truncate text-left {open
+				class="text-foreground/90 hover:text-foreground flex min-w-0 flex-1 items-center gap-1 text-left {open
 					? 'font-medium'
 					: ''}"
 				title="Show diff — {c.path}"
 				onclick={() => showDiff(c)}
 			>
-				{label}
+				{#if tree}
+					<span class="w-[13px] shrink-0"></span>
+					<IconFileText size={14} class="text-muted-foreground shrink-0" />
+				{/if}
+				<span class="truncate">{label}</span>
 			</button>
 			{#if action === 'stage'}
 				<Button
@@ -480,24 +484,32 @@
 {#snippet treeView(nodes: TreeNode[], action: 'stage' | 'unstage', depth: number)}
 	{#each nodes as n (n.path)}
 		{#if n.isFile && n.change}
-			{@render fileRow(n.change, action, n.name, depth)}
+			{@render fileRow(n.change, action, n.name, depth, true)}
 		{:else if !n.isFile}
-			{@const isCollapsed = collapsed.has(n.path)}
+			{@const expanded = !collapsed.has(n.path)}
 			<button
-				class="hover:bg-muted/60 text-foreground/80 flex w-full items-center gap-1 rounded py-0.5 pr-1 text-xs"
-				style:padding-left={`${depth * 12 + 4}px`}
+				class="hover:bg-muted hover:text-foreground text-muted-foreground flex w-full items-center gap-1 rounded py-0.5 pr-1 text-left text-xs transition-colors"
+				style:padding-left={indent(depth)}
+				aria-expanded={expanded}
 				onclick={() => toggleFolder(n.path)}
 				title={n.path}
 			>
-				{#if isCollapsed}<IconChevronRight size={12} class="shrink-0" />{:else}<IconChevronDown
-						size={12}
-						class="shrink-0"
+				<IconChevronRight
+					size={13}
+					class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {expanded
+						? 'rotate-90'
+						: ''}"
+				/>
+				{#if expanded}<IconFolderOpen size={14} class="text-muted-foreground shrink-0" />{:else}<IconFolder
+						size={14}
+						class="text-muted-foreground shrink-0"
 					/>{/if}
-				<IconFolder size={12} class="text-muted-foreground shrink-0" />
 				<span class="truncate">{n.name}</span>
 			</button>
-			{#if !isCollapsed}
-				{@render treeView(n.children, action, depth + 1)}
+			{#if expanded}
+				<div transition:slide={{ duration: 200, easing: cubicOut }}>
+					{@render treeView(n.children, action, depth + 1)}
+				</div>
 			{/if}
 		{/if}
 	{/each}
@@ -508,7 +520,7 @@
 		{@render treeView(nodes, action, 0)}
 	{:else}
 		{#each items as c (c.path)}
-			{@render fileRow(c, action, c.path, 0)}
+			{@render fileRow(c, action, leaf(c.path), 0, false)}
 		{/each}
 	{/if}
 {/snippet}

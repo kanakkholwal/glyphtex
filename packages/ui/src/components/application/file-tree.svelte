@@ -41,9 +41,11 @@
 		nodes,
 		activeId = '',
 		mainId = null,
+		selectedPath = null,
 		depth = 0,
 		open = $bindable({}),
 		onopen,
+		onselectfolder,
 		onrename,
 		ondelete,
 		onsetmain,
@@ -58,9 +60,13 @@
 		activeId?: string;
 		/** Id of the project's main (compile-target) file. */
 		mainId?: string | null;
+		/** Path of the currently-selected folder (highlighted like the active file). */
+		selectedPath?: string | null;
 		depth?: number;
 		open?: Record<string, boolean>;
 		onopen?: (id: string) => void;
+		/** A folder row was clicked — report its path so the host can track selection. */
+		onselectfolder?: (path: string) => void;
 		/** Rename a file — receives the new leaf name (folder prefix is preserved upstream). */
 		onrename?: (id: string, name: string) => void;
 		ondelete?: (id: string) => void;
@@ -167,16 +173,22 @@
 					class="flex w-full items-center gap-1 rounded py-1 pr-7 text-left transition-colors {dragOverPath ===
 					node.path
 						? 'bg-brand-subtle ring-brand/40 ring-1 ring-inset'
-						: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						: node.path === selectedPath
+							? 'bg-accent text-accent-foreground'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 					style:padding-left={indent(depth)}
 					aria-expanded={isOpen(node.path)}
+					aria-current={node.path === selectedPath}
 					draggable="true"
 					ondragstart={(e) => dragStartFolder(node, e)}
 					ondragend={endDrag}
 					ondragover={(e) => dragOverFolder(node.path, e)}
 					ondragleave={() => (dragOverPath = null)}
 					ondrop={(e) => dropOnFolder(node.path, e)}
-					onclick={() => toggle(node.path)}
+					onclick={() => {
+						onselectfolder?.(node.path);
+						toggle(node.path);
+					}}
 				>
 					<IconChevronRight
 						size={13}
@@ -232,9 +244,11 @@
 					nodes={node.children}
 					{activeId}
 					{mainId}
+					{selectedPath}
 					depth={depth + 1}
 					bind:open
 					{onopen}
+					{onselectfolder}
 					{onrename}
 					{ondelete}
 					{onsetmain}

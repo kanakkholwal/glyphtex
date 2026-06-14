@@ -29,7 +29,8 @@
 	  IconRefresh,
 	  IconReplace,
 	  IconReplaceFilled,
-	  IconSearchOff
+	  IconSearchOff,
+	  IconTrash
 	} from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { slide } from 'svelte/transition';
@@ -214,6 +215,59 @@
 	let treeOpen = $state<Record<string, boolean>>({});
 	let rootExpanded = $state(true);
 
+	// --- Explorer selection (VS Code style) -----------------------------------
+	// One thing is "selected" at a time: a file or a folder. Clicking sets it.
+	// New-file / New-folder / Delete in the header all act on this selection, so
+	// creating happens *inside* the selected folder (or next to the selected
+	// file), and Delete removes exactly what's highlighted.
+	type Sel = { type: 'file'; id: string } | { type: 'folder'; path: string };
+	let selected = $state<Sel | null>(null);
+
+	// Fall back to the open file when nothing was explicitly clicked, so the
+	// header always has a sensible target.
+	const effectiveSel = $derived<Sel | null>(
+		selected ?? (activeId ? { type: 'file', id: activeId } : null)
+	);
+	const selectedFolderPath = $derived(selected?.type === 'folder' ? selected.path : null);
+
+	// Directory new items land in: the selected folder, the selected file's
+	// parent, or '' (project root).
+	const targetDir = $derived.by(() => {
+		const s = effectiveSel;
+		if (!s) return '';
+		if (s.type === 'folder') return s.path;
+		const name = files.find((f) => f.id === s.id)?.name ?? '';
+		const i = name.lastIndexOf('/');
+		return i === -1 ? '' : name.slice(0, i);
+	});
+
+	function selectFile(id: string) {
+		selected = { type: 'file', id };
+		onopen?.(id);
+	}
+	function selectFolder(path: string) {
+		selected = { type: 'folder', path };
+	}
+	function createFileHere() {
+		const dir = targetDir;
+		if (dir) treeOpen[dir] = true;
+		if (onnewfilein) onnewfilein(dir);
+		else onnew?.();
+	}
+	function createFolderHere() {
+		const dir = targetDir;
+		if (dir) treeOpen[dir] = true;
+		if (onnewfolderin) onnewfolderin(dir);
+		else onnewfolder?.();
+	}
+	function deleteSelected() {
+		const s = effectiveSel;
+		if (!s) return;
+		if (s.type === 'folder') ondeletefolder?.(s.path);
+		else ondeletefile?.(s.id);
+		selected = null;
+	}
+
 	// --- Outline (sectioning) — pure derive from the active file's text. ---
 	const outline = $derived(parseOutline(source));
 	const outlineBase = $derived(baseLevel(outline));
@@ -371,20 +425,35 @@
 			<div class="-mr-1 flex items-center gap-0.5">
 				<button
 					class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
-					title="New file"
+					title={targetDir ? `New file in ${targetDir}` : 'New file'}
 					aria-label="New file"
-					onclick={() => onnew?.()}
+					onclick={createFileHere}
 				>
 					<IconFilePlus size={15} />
 				</button>
-				{#if onnewfolder}
+				{#if onnewfolder || onnewfolderin}
 					<button
 						class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
-						title="New folder"
+						title={targetDir ? `New folder in ${targetDir}` : 'New folder'}
 						aria-label="New folder"
-						onclick={() => onnewfolder?.()}
+						onclick={createFolderHere}
 					>
 						<IconFolderPlus size={15} />
+					</button>
+				{/if}
+				{#if ondeletefile || ondeletefolder}
+					<button
+						class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors disabled:opacity-40"
+						title={effectiveSel
+							? effectiveSel.type === 'folder'
+								? 'Delete selected folder'
+								: 'Delete selected file'
+							: 'Delete'}
+						aria-label="Delete selected"
+						disabled={!effectiveSel}
+						onclick={deleteSelected}
+					>
+						<IconTrash size={15} />
 					</button>
 				{/if}
 				{#if folderPaths.length}
@@ -501,8 +570,10 @@
 						nodes={rootNodes}
 						{activeId}
 						{mainId}
+						selectedPath={selectedFolderPath}
 						bind:open={treeOpen}
-						onopen={(id) => onopen?.(id)}
+						onopen={selectFile}
+						onselectfolder={selectFolder}
 						onrename={(id, name) => onrenamefile?.(id, name)}
 						ondelete={(id) => ondeletefile?.(id)}
 						onsetmain={hasProject ? (id) => onsetmain?.(id) : undefined}
