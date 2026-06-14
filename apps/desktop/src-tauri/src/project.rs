@@ -294,3 +294,30 @@ pub fn export_zip(root: String, out_path: String) -> Result<(), String> {
     zip.finish().map_err(|e| e.to_string())?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_name_keeps_plain_and_strips_illegal() {
+        assert_eq!(sanitize_name("My Project"), "My Project");
+        // Illegal filename characters become '-'.
+        assert_eq!(sanitize_name("a/b:c*?"), "a-b-c--");
+        // Trailing dots / spaces (Windows-hostile) are trimmed.
+        assert_eq!(sanitize_name("  notes..  "), "notes");
+        // Empty / all-whitespace falls back to a default.
+        assert_eq!(sanitize_name("   "), "Untitled project");
+    }
+
+    #[test]
+    fn unique_dir_avoids_collisions() {
+        let dir = tempfile::tempdir().unwrap();
+        let base = dir.path();
+        let first = unique_dir(base, "proj");
+        assert_eq!(first, base.join("proj"));
+        fs::create_dir_all(&first).unwrap();
+        // The name is taken now → next candidate is suffixed.
+        assert_eq!(unique_dir(base, "proj"), base.join("proj (2)"));
+    }
+}

@@ -29,7 +29,9 @@
 	"bundle": {
 		"active": true,
 		"targets": "all",
-		"externalBin": ["binaries/tectonic"],
+		"externalBin": [
+			"binaries/tectonic"
+		],
 		"icon": [
 			"icons/32x32.png",
 			"icons/128x128.png",
@@ -39,20 +41,44 @@
 		],
 		"fileAssociations": [
 			{
-				"ext": ["tex"],
+				"ext": [
+					"tex"
+				],
 				"name": "LaTeX Document",
 				"description": "LaTeX source document",
 				"role": "Editor"
 			},
 			{
-				"ext": ["glyphx"],
+				"ext": [
+					"glyphx"
+				],
 				"name": "GlyphX Project",
 				"description": "GlyphX LaTeX project",
 				"role": "Editor"
 			}
 		],
+		"windows": {
+			"digestAlgorithm": "sha256",
+			"timestampUrl": "http://timestamp.digicert.com"
+		},
+		"macOS": {
+			"minimumSystemVersion": "13.0"
+		},
+		"linux": {
+			"appimage": {}
+		},
+		"createUpdaterArtifacts": true,
 		"android": {
 			"debugApplicationIdSuffix": ".debug"
+		}
+	},
+	"plugins": {
+		"updater": {
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhBMDUyMzE0NDAwMUVGN0QKUldSOTd3RkFGQ01GaXEydXZqMmpTTHYzV1Nnc2E4ei9PZXdUN3BRK1VVRlZHRWNqQW1pWHJVd2sK",
+			"endpoints": [
+				"https://github.com/kanakkholwal/recast/releases/latest/download/latest.json"
+			],
+			"dialog": false
 		}
 	}
 }

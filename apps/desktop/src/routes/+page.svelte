@@ -9,21 +9,19 @@
 
 	/**
 	 * New project — created on disk in the app's own data directory by default
-	 * (no save prompt). Falls back to an in-memory project if that fails.
+	 * (no save prompt). Falls back to an in-memory project if that fails. Returns
+	 * the new id so ProjectsHome can reveal the card, then morph into the editor.
 	 */
-	async function newProject() {
+	async function newProject(): Promise<string | undefined> {
 		try {
 			if (projectHost.createLocalProject) {
 				const root = await projectHost.createLocalProject('Untitled project');
-				const p = projects.remember(root);
-				goto(resolve(`/editor/${p.id}`));
-				return;
+				return projects.remember(root).id;
 			}
 		} catch (e) {
 			await message(String(e), { title: 'Could not create project', kind: 'error' });
 		}
-		const p = projects.create();
-		goto(resolve(`/editor/${p.id}`));
+		return projects.create().id;
 	}
 
 	/** Open a disk-backed project folder: remember it, then route to the editor. */

@@ -30,6 +30,10 @@
 	  IconSettings,
 	  IconTrash
 	} from '@tabler/icons-svelte';
+	import { tick } from 'svelte';
+	import { flip } from 'svelte/animate';
+	import { cubicOut } from 'svelte/easing';
+	import { fade, fly } from 'svelte/transition';
 	import AboutDialog from './about-dialog.svelte';
 
 	/**
@@ -56,7 +60,9 @@
 		/** Drives the About dialog's platform line. */
 		platform?: 'web' | 'desktop';
 		projects?: Project[];
-		oncreate?: () => void;
+		/** Create a project. May return the new id; if so, the home reveals the new
+		 *  card and *then* opens it (a clean morph), instead of navigating instantly. */
+		oncreate?: () => string | void | Promise<string | void>;
 		/** Open an existing project folder from disk (desktop). */
 		onopenfolder?: () => void;
 		/** Import a .zip project (desktop). */
@@ -77,6 +83,28 @@
 	let renaming = $state<string | null>(null);
 	let renameValue = $state('');
 	let aboutOpen = $state(false);
+
+	// Scroll-aware toolbar: borderless + transparent at the top, a translucent
+	// blur + hairline settle in once content scrolls beneath it.
+	let scrollEl = $state<HTMLElement>();
+	let scrolled = $state(false);
+	function onScroll() {
+		scrolled = (scrollEl?.scrollTop ?? 0) > 4;
+	}
+
+	// New project: create → let the freshly-inserted card fly in and settle →
+	// *then* open it, so the card→editor view-transition morphs from a finished
+	// card instead of one that's still mid-entrance. The card lands at index 0
+	// (newest first), so its `in:fly` is ~360ms; we wait a touch longer.
+	const NEW_CARD_REVEAL_MS = 400;
+	async function handleCreate() {
+		const id = await oncreate?.();
+		// A host that returns no id navigates on its own (legacy) — nothing to do.
+		if (typeof id !== 'string') return;
+		await tick(); // flush the inserted card into the DOM so its entrance starts
+		await new Promise((resolve) => setTimeout(resolve, NEW_CARD_REVEAL_MS));
+		onopen?.(id);
+	}
 
 	// Inline clone bar (no custom dialog — a text field + native folder picker).
 	let cloning = $state(false);
@@ -136,12 +164,18 @@
 </script>
 
 <div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
-	<!-- Top bar — brand + global controls only; project actions live with the grid. -->
-	<header
-		class="border-border flex h-14 shrink-0 items-center justify-between gap-3 border-b px-6"
-	>
-		<Logo size={26} viewTransitionName="app-logo" class="text-base tracking-tight" />
-		<div class="flex items-center gap-0.5">
+	<!-- Scroll surface. The toolbar lives *inside* it and floats translucently;
+	     content slides under it and a hairline + blur settle in only once scrolled
+	     — the macOS unified-toolbar feel, no hard web-style border at rest. -->
+	<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 flex-1 overflow-auto">
+		<!-- Toolbar — brand + global controls. -->
+		<header
+			class="ease-craft sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b px-6 transition-[background-color,border-color,box-shadow] duration-300 {scrolled
+				? 'border-border bg-background/75 shadow-craft-sm backdrop-blur-xl'
+				: 'border-transparent bg-transparent'}"
+		>
+			<Logo size={26} viewTransitionName="app-logo" class="text-base tracking-tight" />
+			<div class="flex items-center gap-0.5">
 			<ThemeToggle size="icon-sm" />
 			<Button
 				size="icon-sm"
@@ -163,10 +197,9 @@
 				</Button>
 			{/if}
 		</div>
-	</header>
+		</header>
 
-	<div class="min-h-0 flex-1 overflow-auto">
-		<div class="mx-auto w-full max-w-[1140px] px-6 pt-10 pb-12">
+		<div class="mx-auto w-full max-w-[1140px] px-6 pt-6 pb-12">
 			<!-- Hero: title + the project actions (create / open / import / clone). -->
 			<div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
 				<div>
@@ -213,7 +246,7 @@
 							</DropdownMenuContent>
 						</DropdownMenu>
 					{/if}
-					<Button size="sm" onclick={() => oncreate?.()}>
+					<Button size="sm" onclick={handleCreate}>
 						<IconPlus size={15} /> New project
 					</Button>
 				</div>
@@ -272,7 +305,7 @@
 						<p class="max-w-xs text-xs leading-relaxed">
 							Create your first project — everything stays on this device.
 						</p>
-						<Button size="sm" class="mt-1" onclick={() => oncreate?.()}>
+						<Button size="sm" class="mt-1" onclick={handleCreate}>
 							<IconPlus size={15} /> New project
 						</Button>
 					{:else}
@@ -287,8 +320,9 @@
 				>
 					<!-- New-project card -->
 					<button
-						class="group glyphx-card-in border-border hover:border-ring/50 hover:bg-muted/30 ease-craft flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition-all duration-300 hover:-translate-y-1 active:translate-y-0 active:scale-[0.99] motion-reduce:transform-none"
-						onclick={() => oncreate?.()}
+						class="group border-border hover:border-ring/50 hover:bg-muted/30 ease-craft flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition-all duration-300 hover:-translate-y-1 active:translate-y-0 active:scale-[0.99] motion-reduce:transform-none"
+						in:fly={{ y: 10, duration: 360, easing: cubicOut }}
+						onclick={handleCreate}
 					>
 						<span
 							class="bg-muted text-muted-foreground group-hover:bg-brand-subtle group-hover:text-brand ease-craft grid size-10 place-items-center rounded-full transition-all duration-300 group-hover:scale-110 motion-reduce:transform-none"
@@ -302,9 +336,11 @@
 
 					{#each filtered as p, i (p.id)}
 						<div
-							class="group glyphx-card-in relative"
+							class="group relative"
 							role="listitem"
-							style:animation-delay={`${Math.min(i, 12) * 28}ms`}
+							in:fly={{ y: 10, duration: 360, delay: Math.min(i, 12) * 26, easing: cubicOut }}
+							out:fade={{ duration: 140, easing: cubicOut }}
+							animate:flip={{ duration: 320, easing: cubicOut }}
 						>
 							<!-- Open target: the document/stack. -->
 							<button
@@ -432,26 +468,3 @@
 
 <!-- About GlyphX — brand, version, and links out (GitHub / website). -->
 <AboutDialog bind:open={aboutOpen} {platform} />
-
-<style>
-	/* Cards settle in on load — fade + a short rise, the one shared easing.
-	   Staggered via inline animation-delay; disabled for reduced motion. */
-	@keyframes glyphx-card-in {
-		from {
-			opacity: 0;
-			transform: translateY(10px);
-		}
-		to {
-			opacity: 1;
-			transform: none;
-		}
-	}
-	.glyphx-card-in {
-		animation: glyphx-card-in 0.42s var(--ease-craft) both;
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.glyphx-card-in {
-			animation: none;
-		}
-	}
-</style>

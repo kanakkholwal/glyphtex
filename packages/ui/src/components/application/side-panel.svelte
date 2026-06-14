@@ -19,8 +19,10 @@
 	} from '@glyphx/ui/settings';
 	import { SettingsField } from '@glyphx/ui/settings-field';
 	import { SliderControl } from '@glyphx/ui/slider-control';
+	import { Spinner } from '@glyphx/ui/spinner';
 	import { Switch } from '@glyphx/ui/switch';
 	import {
+	  IconCheck,
 	  IconChevronDown,
 	  IconChevronRight,
 	  IconChevronUp,
@@ -156,8 +158,9 @@
 		onnewfolderin?: (dir: string) => void;
 		/** Jump the editor to a 1-based line (Outline click). */
 		ongotoline?: (line: number) => void;
-		/** Register the OS "Open with GlyphX" folder integration (desktop). */
-		onregistershell?: () => void;
+		/** Register the OS "Open with GlyphX" folder integration (desktop).
+		 *  Resolves `true` on success so the button can confirm inline. */
+		onregistershell?: () => void | Promise<boolean>;
 		searchResults?: SearchMatch[];
 		searchActive?: number;
 		onsearch?: (o: SearchOptions) => void;
@@ -352,6 +355,16 @@
 		value: id,
 		label: AUTO_SAVE_LABELS[id]
 	}));
+
+	// Shell-integration button feedback (idle → busy → done) so clicking "Add"
+	// visibly confirms instead of silently firing a toast.
+	let shellStatus = $state<'idle' | 'busy' | 'done'>('idle');
+	async function addShellIntegration() {
+		if (shellStatus === 'busy' || !onregistershell) return;
+		shellStatus = 'busy';
+		const ok = await onregistershell();
+		shellStatus = ok ? 'done' : 'idle';
+	}
 
 	// --- Find / replace (wired to the editor via callbacks) ---
 	let query = $state('');
@@ -970,12 +983,19 @@
 					<PanelSection title="System">
 						<SettingsField size="sm" label="Shell integration" layout="row">
 							<Button
-								variant="outline"
+								variant={shellStatus === 'done' ? 'success_soft' : 'outline'}
 								size="xs"
+								disabled={shellStatus === 'busy'}
 								title="Add an “Open with GlyphX” entry to the folder right-click menu"
-								onclick={() => onregistershell?.()}
+								onclick={addShellIntegration}
 							>
-								Add to menu
+								{#if shellStatus === 'busy'}
+									<Spinner class="size-3" /> Adding…
+								{:else if shellStatus === 'done'}
+									<IconCheck size={13} /> Added
+								{:else}
+									Add to menu
+								{/if}
 							</Button>
 						</SettingsField>
 					</PanelSection>

@@ -1,14 +1,13 @@
 <script lang="ts">
-	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
-	import { settings } from '@glyphx/ui/settings';
-	import { NavProgress } from '@glyphx/ui/nav-progress';
-	import { initTauriTheme } from '$lib/tauri-theme';
-	import { onMount, tick } from 'svelte';
 	import { goto, onNavigate } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { launch } from '$lib/launch';
 	import { projectHost } from '$lib/project';
+	import { initTauriTheme } from '$lib/tauri-theme';
+	import { NavProgress } from '@glyphx/ui/nav-progress';
+	import { settings } from '@glyphx/ui/settings';
+	import { onMount, tick } from 'svelte';
+	import './layout.css';
 
 	let { children } = $props();
 
@@ -90,9 +89,8 @@
 	});
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head><link rel="icon" href="/favicon.ico" /></svelte:head>
 
-<!-- Top-of-window navigation progress (Linear/Vercel style), in the brand accent. -->
 <NavProgress color="var(--brand)" />
 
 {@render children()}

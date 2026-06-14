@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import { Button } from '@glyphx/ui/button';
-	import { IconFiles, IconSearch, IconGitBranch, IconSettings } from '@tabler/icons-svelte';
+	import { IconFiles, IconGitBranch, IconSearch, IconSettings } from '@tabler/icons-svelte';
 
 	/**
 	 * Rail — the left mode switcher (Explorer / Search / Source Control / Settings).
@@ -39,7 +39,7 @@
 	{#each top as item (item.id)}
 		{@const Icon = item.icon}
 		<Button
-			variant={active === item.id ? 'secondary' : 'ghost'}
+			variant={active === item.id ? 'default_soft' : 'ghost'}
 			size="icon-sm"
 			title={item.label}
 			aria-label={item.label}
@@ -52,7 +52,7 @@
 
 	<div class="mt-auto">
 		<Button
-			variant={active === 'settings' ? 'secondary' : 'ghost'}
+			variant={active === 'settings' ? 'default_soft' : 'ghost'}
 			size="icon-sm"
 			title="Settings"
 			aria-label="Settings"

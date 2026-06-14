@@ -1139,13 +1139,16 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
     }
   }
 
-  /** Register the OS "Open with GlyphX" folder integration (desktop, Windows). */
-  async function registerShell(): Promise<void> {
-    if (!project?.registerShellIntegration) return;
+  /** Register the OS "Open with GlyphX" folder integration (desktop, Windows).
+   *  Resolves `true` on success so the caller can show inline confirmation. */
+  async function registerShell(): Promise<boolean> {
+    if (!project?.registerShellIntegration) return false;
     try {
       toast.success(await project.registerShellIntegration());
+      return true;
     } catch (e) {
       toast.error(`Could not register shell integration — ${e}`);
+      return false;
     }
   }
 

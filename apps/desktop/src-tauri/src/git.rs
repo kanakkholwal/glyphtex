@@ -383,12 +383,40 @@ pub async fn git_commit(root: String, message: String) -> Result<String, String>
     if message.trim().is_empty() {
         return Err("Commit message is empty.".into());
     }
-    let repo = open(&root)?;
+    let mut repo = open(&root)?;
     let index = open_index_mut(&repo);
-    let head_id = repo.head_id().ok();
+    // Detach to an owned id so it doesn't hold a borrow across the config edit below.
+    let head_id = repo.head_id().ok().map(|id| id.detach());
 
     if index.entries().is_empty() && head_id.is_none() {
         return Err("Nothing staged to commit.".into());
+    }
+
+    let merging = merge_in_progress(&repo);
+
+    // Identity: repo config, else a sensible default.
+    let (name, email) = {
+        let snap = repo.config_snapshot();
+        (
+            snap.string("user.name")
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "GlyphX".to_string()),
+            snap.string("user.email")
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "glyphx@localhost".to_string()),
+        )
+    };
+    // gix stamps the reflog with the *configured* committer (not the signature
+    // passed to commit_as), so on a machine with no git identity (e.g. CI) the
+    // commit would fail with "The reflog could not be created or updated". Seed
+    // the in-memory config with our identity so the reflog can be written.
+    {
+        let mut cfg = repo.config_snapshot_mut();
+        cfg.set_value(&gix::config::tree::User::NAME, name.as_str())
+            .map_err(|e| e.to_string())?;
+        cfg.set_value(&gix::config::tree::User::EMAIL, email.as_str())
+            .map_err(|e| e.to_string())?;
+        cfg.commit().map_err(|e| e.to_string())?;
     }
 
     // Build the commit tree from the index entries.
@@ -418,7 +446,6 @@ pub async fn git_commit(root: String, message: String) -> Result<String, String>
 
     // A merge commit is legitimate even if its tree matches HEAD's, so only
     // reject empty commits when we're NOT completing a merge.
-    let merging = merge_in_progress(&repo);
     if !merging {
         if let Ok(head_tree) = repo.head_tree_id() {
             if head_tree.detach() == tree_id {
@@ -427,16 +454,6 @@ pub async fn git_commit(root: String, message: String) -> Result<String, String>
         }
     }
 
-    // Identity: repo config, else a sensible default.
-    let snap = repo.config_snapshot();
-    let name = snap
-        .string("user.name")
-        .map(|s| s.to_string())
-        .unwrap_or_else(|| "GlyphX".to_string());
-    let email = snap
-        .string("user.email")
-        .map(|s| s.to_string())
-        .unwrap_or_else(|| "glyphx@localhost".to_string());
     let sig = gix::actor::Signature {
         name: name.into(),
         email: email.into(),
@@ -446,7 +463,7 @@ pub async fn git_commit(root: String, message: String) -> Result<String, String>
 
     // Parents: HEAD, plus any MERGE_HEAD(s) so resolving + committing finishes
     // the merge with the correct two-parent history.
-    let mut parents: Vec<gix::ObjectId> = head_id.iter().map(|id| id.detach()).collect();
+    let mut parents: Vec<gix::ObjectId> = head_id.into_iter().collect();
     if merging {
         if let Ok(content) = std::fs::read_to_string(repo.git_dir().join("MERGE_HEAD")) {
             for line in content.lines() {
@@ -891,5 +908,74 @@ mod tests {
         std::fs::write(dir.path().join("scratch.tex"), b"temp").unwrap();
         block_on(git_discard(root.clone(), vec!["scratch.tex".into()])).unwrap();
         assert!(!dir.path().join("scratch.tex").exists());
+    }
+
+    /// `git_file_versions` returns the right two sides for staged vs unstaged,
+    /// and flags binary content.
+    #[test]
+    fn file_versions_sides_and_binary() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().to_string_lossy().to_string();
+        block_on(git_init(root.clone())).unwrap();
+
+        std::fs::write(dir.path().join("f.txt"), b"line1\nline2\n").unwrap();
+        block_on(git_stage(root.clone(), vec!["f.txt".into()])).unwrap();
+        block_on(git_commit(root.clone(), "add f".into())).unwrap();
+
+        // Unstaged edit: original = committed, modified = worktree.
+        std::fs::write(dir.path().join("f.txt"), b"line1\nCHANGED\n").unwrap();
+        let v = block_on(git_file_versions(root.clone(), "f.txt".into(), false)).unwrap();
+        assert!(v.original.contains("line2"));
+        assert!(v.modified.contains("CHANGED"));
+        assert!(!v.binary);
+
+        // Stage it: now staged side compares HEAD ↔ index.
+        block_on(git_stage(root.clone(), vec!["f.txt".into()])).unwrap();
+        let s = block_on(git_file_versions(root.clone(), "f.txt".into(), true)).unwrap();
+        assert!(s.original.contains("line2"));
+        assert!(s.modified.contains("CHANGED"));
+
+        // A NUL byte marks the file binary.
+        std::fs::write(dir.path().join("bin.dat"), [0u8, 1, 2, 3]).unwrap();
+        block_on(git_stage(root.clone(), vec!["bin.dat".into()])).unwrap();
+        let b = block_on(git_file_versions(root.clone(), "bin.dat".into(), true)).unwrap();
+        assert!(b.binary);
+    }
+
+    /// Committing while a `MERGE_HEAD` is present produces a two-parent merge
+    /// commit and clears the merge state.
+    #[test]
+    fn merge_commit_has_two_parents_and_clears_state() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().to_string_lossy().to_string();
+        block_on(git_init(root.clone())).unwrap();
+
+        std::fs::write(dir.path().join("a.txt"), b"a").unwrap();
+        block_on(git_stage(root.clone(), vec!["a.txt".into()])).unwrap();
+        block_on(git_commit(root.clone(), "c1".into())).unwrap();
+        let c1 = open(&root).unwrap().head_id().unwrap().detach().to_string();
+
+        std::fs::write(dir.path().join("b.txt"), b"b").unwrap();
+        block_on(git_stage(root.clone(), vec!["b.txt".into()])).unwrap();
+        block_on(git_commit(root.clone(), "c2".into())).unwrap();
+
+        // Simulate a merge in progress: MERGE_HEAD points at c1, with a staged
+        // resolution. git_commit should record both parents and clear the state.
+        let merge_head = open(&root).unwrap().git_dir().join("MERGE_HEAD");
+        std::fs::write(&merge_head, format!("{c1}\n")).unwrap();
+        assert!(merge_in_progress(&open(&root).unwrap()));
+
+        std::fs::write(dir.path().join("c.txt"), b"resolved").unwrap();
+        block_on(git_stage(root.clone(), vec!["c.txt".into()])).unwrap();
+        block_on(git_commit(root.clone(), "merge".into())).unwrap();
+
+        let parents = open(&root)
+            .unwrap()
+            .head_commit()
+            .unwrap()
+            .parent_ids()
+            .count();
+        assert_eq!(parents, 2);
+        assert!(!merge_head.exists());
     }
 }

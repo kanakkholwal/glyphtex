@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Button } from '@glyphx/ui/button';
-	import { Segmented } from '@glyphx/ui/segmented';
-	import { Separator } from '@glyphx/ui/separator';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '@glyphx/ui/select';
+	import { SettingsField } from '@glyphx/ui/settings-field';
+	import { SliderControl } from '@glyphx/ui/slider-control';
+	import { Switch } from '@glyphx/ui/switch';
 	import {
 		AUTO_SAVE_LABELS,
 		EDITOR_FONT_LABELS,
@@ -10,9 +11,6 @@
 		type EditorFont,
 		type LatexGrammar
 	} from '@glyphx/ui/settings';
-	import { SettingsField } from '@glyphx/ui/settings-field';
-	import { Switch } from '@glyphx/ui/switch';
-	import { IconMinus, IconPlus } from '@tabler/icons-svelte';
 
 	const grammarOpts: { value: LatexGrammar; label: string }[] = [
 		{ value: 'legacy', label: 'stex' },
@@ -28,102 +26,111 @@
 	}));
 </script>
 
-<div class="flex max-w-xl flex-col gap-8">
-	<div>
-		<h2 class="text-lg font-medium tracking-tight">Editor</h2>
-		<p class="text-muted-foreground mt-1 text-sm">Highlighting, typeface, and compile behaviour.</p>
+{#snippet selectRow(
+	label: string,
+	description: string,
+	opts: readonly { value: string; label: string }[],
+	current: string,
+	onChange: (v: string) => void
+)}
+	<div class="px-4 py-3.5">
+		<SettingsField {label} {description} layout="row">
+			<Select type="single" value={current} onValueChange={onChange}>
+				<SelectTrigger size="sm" class="min-w-[9rem]" aria-label={label}>
+					{opts.find((o) => o.value === current)?.label ?? current}
+				</SelectTrigger>
+				<SelectContent>
+					{#each opts as o (o.value)}
+						<SelectItem value={o.value}>{o.label}</SelectItem>
+					{/each}
+				</SelectContent>
+			</Select>
+		</SettingsField>
 	</div>
+{/snippet}
 
-	<SettingsField label="LaTeX grammar">
-		<Segmented
-			options={grammarOpts}
-			value={settings.grammar}
-			onValueChange={(v) => (settings.grammar = v)}
-			size="sm"
-			aria-label="LaTeX grammar"
-		/>
-	</SettingsField>
+{#snippet switchRow(
+	label: string,
+	description: string,
+	checked: boolean,
+	onChange: (v: boolean) => void
+)}
+	<div class="px-4 py-3.5">
+		<SettingsField {label} {description} layout="row">
+			<Switch {checked} onCheckedChange={onChange} aria-label={label} />
+		</SettingsField>
+	</div>
+{/snippet}
 
-	<SettingsField label="Editor font">
-		<Segmented
-			options={fontOpts}
-			value={settings.font}
-			onValueChange={(v) => (settings.font = v)}
-			size="sm"
-			aria-label="Editor font"
-		/>
-	</SettingsField>
+<div class="flex max-w-2xl flex-col gap-8">
+	<header>
+		<h2 class="font-display text-xl font-semibold tracking-tight">Editor</h2>
+		<p class="text-muted-foreground mt-1.5 text-sm">Highlighting, typeface, and compile behaviour.</p>
+	</header>
 
-	<SettingsField label="Editor font size" layout="row">
-		<div class="flex items-center gap-1.5">
-			<Button
-				variant="outline"
-				size="icon-xs"
-				aria-label="Decrease font size"
-				disabled={settings.fontSize <= 10}
-				onclick={() => (settings.fontSize = Math.max(10, settings.fontSize - 1))}
-			>
-				<IconMinus size={15} />
-			</Button>
-			<span class="text-foreground w-10 text-center text-sm tabular-nums"
-				>{settings.fontSize}px</span
-			>
-			<Button
-				variant="outline"
-				size="icon-xs"
-				aria-label="Increase font size"
-				disabled={settings.fontSize >= 24}
-				onclick={() => (settings.fontSize = Math.min(24, settings.fontSize + 1))}
-			>
-				<IconPlus size={15} />
-			</Button>
+	<section class="flex flex-col gap-2.5">
+		<h3 class="text-muted-foreground px-1 text-[11px] font-semibold uppercase tracking-[0.12em]">
+			Display
+		</h3>
+		<div class="bg-card border-border divide-border/60 divide-y overflow-hidden rounded-xl border">
+			{@render selectRow(
+				'LaTeX grammar',
+				'The parser that drives syntax highlighting.',
+				grammarOpts,
+				settings.grammar,
+				(v) => (settings.grammar = v as LatexGrammar)
+			)}
+			{@render selectRow(
+				'Editor font',
+				'Monospace typeface for the editing surface.',
+				fontOpts,
+				settings.font,
+				(v) => (settings.font = v as EditorFont)
+			)}
+			<div class="px-4 py-3.5">
+				<SliderControl
+					label="Font size"
+					value={settings.fontSize}
+					min={8}
+					max={80}
+					step={2}
+					unit="px"
+					onchange={(v) => (settings.fontSize = v)}
+				/>
+			</div>
+			{@render switchRow(
+				'Line wrapping',
+				'Wrap long lines instead of scrolling horizontally.',
+				settings.lineWrapping,
+				(v) => (settings.lineWrapping = v)
+			)}
 		</div>
-	</SettingsField>
+	</section>
 
-	<Separator />
-
-	<SettingsField label="Line wrapping" layout="row">
-		<Switch
-			checked={settings.lineWrapping}
-			onCheckedChange={(v) => (settings.lineWrapping = v)}
-			aria-label="Line wrapping"
-		/>
-	</SettingsField>
-
-	<SettingsField
-		label="Auto save"
-		description="When edits are written to disk: off (only on ⌘/Ctrl+S), after a short delay, or when the editor loses focus. The preview always renders the last saved version."
-	>
-		<Segmented
-			options={autoSaveOpts}
-			value={settings.autoSave}
-			onValueChange={(v) => (settings.autoSave = v)}
-			size="sm"
-			aria-label="Auto save"
-		/>
-	</SettingsField>
-
-	<SettingsField
-		label="Live compile"
-		description="Recompile automatically whenever a file is saved. With auto save off, the preview refreshes on save (⌘/Ctrl+S); turn auto save to “After delay” for a live, type-and-see preview."
-		layout="row"
-	>
-		<Switch
-			checked={settings.autoCompile}
-			onCheckedChange={(v) => (settings.autoCompile = v)}
-			aria-label="Live compile"
-		/>
-	</SettingsField>
-
-	<SettingsField
-		label="Shell escape"
-		description="Allow \\write18 so packages like minted / gnuplot can run external tools. Off by default — it lets a document run system commands, so only enable it for documents you trust."
-		layout="row"
-	>
-		<Switch
-			checked={settings.shellEscape}
-			onCheckedChange={(v) => (settings.shellEscape = v)}
-			aria-label="Shell escape"
-		/>
-	</SettingsField>
+	<section class="flex flex-col gap-2.5">
+		<h3 class="text-muted-foreground px-1 text-[11px] font-semibold uppercase tracking-[0.12em]">
+			Compilation
+		</h3>
+		<div class="bg-card border-border divide-border/60 divide-y overflow-hidden rounded-xl border">
+			{@render selectRow(
+				'Auto save',
+				'When edits are written to disk — off (⌘/Ctrl+S only), after a short delay, or on focus change. The preview always renders the last saved version.',
+				autoSaveOpts,
+				settings.autoSave,
+				(v) => (settings.autoSave = v as AutoSaveMode)
+			)}
+			{@render switchRow(
+				'Live compile',
+				'Recompile automatically whenever a file is saved. Pair with “After delay” auto save for a type-and-see preview.',
+				settings.autoCompile,
+				(v) => (settings.autoCompile = v)
+			)}
+			{@render switchRow(
+				'Shell escape',
+				'Allow \\write18 so packages like minted / gnuplot can run external tools. Off by default — only enable it for documents you trust.',
+				settings.shellEscape,
+				(v) => (settings.shellEscape = v)
+			)}
+		</div>
+	</section>
 </div>
