@@ -1,83 +1,55 @@
 // Browser LaTeX compilation via the SwiftLaTeX PdfTeX WASM engine
 // (self-hosted in /static/swiftlatex). The engine runs in a Web Worker and
-// fetches TeX packages on demand from a TeX Live "on-demand" server, so the
-// first use of a package needs network; everything else is in-browser.
+// fetches TeX packages on demand, so the first use of a package needs network;
+// everything else is in-browser.
 //
-// The engine's baked-in default server (texlive2.swiftlatex.com) is offline, so
-// we repoint it. We try, in order:
-//   1. PUBLIC_TEXLIVE_ENDPOINT — your own self-hosted server (a TeXlyre
-//      `texlive-ondemand-server` behind a free Cloudflare Tunnel), then
-//   2. the public TeXlyre server as a fallback when yours is unreachable.
-// The first one that answers at boot is handed to the worker for the session.
+// The engine is pointed at our OWN same-origin endpoint `/texlive/` — a route
+// on our Cloudflare deployment (see routes/texlive/[...path]/+server.ts) that
+// serves a vendored format + proxies and edge-caches the upstream on-demand
+// server. So the third-party server is a cached backend behind our domain, not
+// a hard dependency: once a file is cached at our edge (or in the per-device
+// service-worker cache) it keeps working even if upstream is down.
 
-import { env } from '$env/dynamic/public';
+import { PACKAGE_GROUPS } from './engine-packages';
 
 export type CompileOutcome = { pdf?: string; log?: string; error?: string };
+
+// Whether the user has completed the first-run "Set up the compiler" download.
+// This only gates the UI; the actual downloaded files live in the service
+// worker's persistent `glyphx-texlive` cache. If that's cleared but the flag
+// isn't, compiles simply re-fetch (and re-cache) on demand — no breakage.
+const READY_KEY = 'glyphx:web-engine-ready';
+
+export function engineReady(): boolean {
+	try {
+		return typeof localStorage !== 'undefined' && localStorage.getItem(READY_KEY) === '1';
+	} catch {
+		return false;
+	}
+}
+
+export function markEngineReady(): void {
+	try {
+		localStorage.setItem(READY_KEY, '1');
+	} catch {
+		/* storage unavailable (private mode) — the install still works this session */
+	}
+}
+
+export type InstallProgress = { done: number; total: number; label: string };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 const ENGINE_SRC = '/swiftlatex/PdfTeXEngine.js';
 
-/** Public maintained on-demand server — the always-available fallback. */
-const TEXLIVE_FALLBACK = 'https://texlive.texlyre.org/';
-
-const withSlash = (u: string) => (u.endsWith('/') ? u : `${u}/`);
-
-/** Ordered TeX Live endpoints: self-hosted (if configured) first, then public. */
-const TEXLIVE_ENDPOINTS = [
-	...new Set(
-		[env.PUBLIC_TEXLIVE_ENDPOINT, TEXLIVE_FALLBACK].filter((u): u is string => !!u).map(withSlash)
-	)
-];
-
-let endpointPromise: Promise<string> | null = null;
-
-/** Cheap reachability probe — fetch a small known TeX file with a timeout. */
-async function reachable(endpoint: string, ms = 6000): Promise<boolean> {
-	const ctrl = new AbortController();
-	const timer = setTimeout(() => ctrl.abort(), ms);
-	try {
-		// `pdftex/26/<file>` = kpathsea tex format; article.cls always exists.
-		const res = await fetch(`${endpoint}pdftex/26/article.cls`, {
-			method: 'GET',
-			signal: ctrl.signal,
-			cache: 'no-store'
-		});
-		return res.ok;
-	} catch {
-		return false;
-	} finally {
-		clearTimeout(timer);
-	}
-}
-
 /**
- * Resolve the package server once per session: the first reachable endpoint in
- * priority order. With a single endpoint there's nothing to choose, so we skip
- * the probe; otherwise we fall through to the public server (and let the first
- * real compile surface any remaining error).
+ * Our own same-origin TeX endpoint. The engine fetches `<endpoint>pdftex/<n>/<file>`;
+ * `routes/texlive/[...path]/+server.ts` serves it from a vendored copy, our edge
+ * cache, then the upstream on-demand server (which it caches). Same-origin means
+ * the per-device service worker also caches it persistently.
  */
-function resolveEndpoint(): Promise<string> {
-	if (!endpointPromise) {
-		endpointPromise = (async () => {
-			if (TEXLIVE_ENDPOINTS.length <= 1) return TEXLIVE_ENDPOINTS[0] ?? TEXLIVE_FALLBACK;
-			for (const ep of TEXLIVE_ENDPOINTS) {
-				if (await reachable(ep)) return ep;
-			}
-			return TEXLIVE_ENDPOINTS[TEXLIVE_ENDPOINTS.length - 1];
-		})();
-	}
-	return endpointPromise;
-}
-
-/**
- * Which package server the engine settled on this session, for a status hint.
- * `self` is true when it's your configured `PUBLIC_TEXLIVE_ENDPOINT` rather than
- * the public fallback. Resolves after the first `getEngine()` / `warmEngine()`.
- */
-export async function texliveStatus(): Promise<{ endpoint: string; self: boolean }> {
-	const endpoint = await resolveEndpoint();
-	return { endpoint, self: endpoint !== TEXLIVE_FALLBACK };
+function texliveEndpoint(): string {
+	return typeof location !== 'undefined' ? new URL('/texlive/', location.origin).href : '/texlive/';
 }
 
 let enginePromise: Promise<any> | null = null;
@@ -112,11 +84,10 @@ function getEngine(): Promise<any> {
 			const PdfTeXEngine = await loadEngineClass();
 			const engine = new PdfTeXEngine();
 			await engine.loadEngine();
-			// Repoint the package/format server at the first reachable endpoint.
+			// Point the package/format server at our same-origin edge route.
 			// Posted straight to the worker — the wrapper's setTexliveEndpoint()
 			// detaches the worker reference (upstream bug), so we bypass it.
-			const endpoint = await resolveEndpoint();
-			engine.latexWorker?.postMessage({ cmd: 'settexliveurl', url: endpoint });
+			engine.latexWorker?.postMessage({ cmd: 'settexliveurl', url: texliveEndpoint() });
 			return engine;
 		})().catch((e) => {
 			enginePromise = null; // allow retry after a failed boot
@@ -137,6 +108,65 @@ export function warmEngine(): void {
 	void getEngine().catch(() => {
 		/* a real compile will report the failure */
 	});
+}
+
+/** Compile a tiny throwaway doc to pull the format + `preamble`'s packages into
+ *  the service-worker cache. Returns whether a PDF came out — used to tell a
+ *  real failure (engine/server unreachable → no PDF) from a clean warm-up. */
+async function warmCompile(engine: any, preamble: string): Promise<boolean> {
+	const src = `\\documentclass{article}\n${preamble}\n\\begin{document}.\\end{document}`;
+	engine.writeMemFSFile('main.tex', src);
+	engine.setEngineMainFile('main.tex');
+	const result = await engine.compileLaTeX();
+	return !!result?.pdf && new Uint8Array(result.pdf).byteLength > 0;
+}
+
+/**
+ * First-run install: boot the engine, then warm the TeX format and the selected
+ * common-package groups so they're cached (persistently, by the service worker)
+ * before the user's first real compile. `groupIds` are `PACKAGE_GROUPS` ids;
+ * pass `[]` to fetch just the engine + format. Reports coarse per-step progress.
+ * Throws if the engine can't boot or the package server is unreachable, so the
+ * dialog can surface the error and offer a retry.
+ */
+export async function installEngine(
+	groupIds: string[],
+	onProgress?: (p: InstallProgress) => void
+): Promise<void> {
+	if (typeof window === 'undefined') throw new Error('Install runs in the browser.');
+
+	const groups = PACKAGE_GROUPS.filter((g) => groupIds.includes(g.id));
+	// Steps: boot engine + warm format + one per selected group.
+	const total = groups.length + 2;
+	let done = 0;
+	const tick = (label: string) => onProgress?.({ done: ++done, total, label });
+
+	onProgress?.({ done, total, label: 'Starting the LaTeX engine…' });
+	const engine = await getEngine();
+	tick('LaTeX engine ready');
+
+	// Format step is the hard gate: a missing PDF here means the engine or the
+	// package server is unreachable, so don't claim "installed".
+	onProgress?.({ done, total, label: 'Downloading TeX format & core files…' });
+	const formatOk = await warmCompile(engine, '');
+	if (!formatOk) {
+		throw new Error("Couldn't reach the TeX package server to download the format file.");
+	}
+	tick('TeX format & core files');
+
+	// Package groups are best-effort: an individual package that won't warm
+	// shouldn't block the whole install — it'll be fetched on first real use.
+	for (const g of groups) {
+		onProgress?.({ done, total, label: `Downloading ${g.label} packages…` });
+		try {
+			await warmCompile(engine, g.packages.map((p) => `\\usepackage{${p}}`).join('\n'));
+		} catch {
+			/* keep going — the package streams + caches on demand later */
+		}
+		tick(`${g.label} packages`);
+	}
+
+	markEngineReady();
 }
 
 function bytesToBase64(bytes: Uint8Array): string {

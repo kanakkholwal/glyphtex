@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import FloatingGlyphs from '$lib/FloatingGlyphs.svelte';
 	import SiteFooter from '$lib/SiteFooter.svelte';
@@ -25,6 +26,7 @@
 		IconPlayerPlay,
 		IconShare,
 		IconSparkles,
+		IconStar,
 		IconWifiOff
 	} from '@tabler/icons-svelte';
 
@@ -32,6 +34,25 @@
 	// exists; if it's missing, `onerror` flips this and the coded split-preview
 	// fallback renders instead. Drop a screenshot at that path to go live.
 	let heroImgOk = $state(true);
+
+	const repo = 'https://github.com/kanakkholwal/glyphx';
+	// Live GitHub star count for honest social proof — falls back to just
+	// "Star on GitHub" if the API is unreachable / rate-limited (no invented numbers).
+	let stars = $state<number | null>(null);
+	function formatStars(n: number): string {
+		return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(n);
+	}
+	onMount(async () => {
+		try {
+			const r = await fetch('https://api.github.com/repos/kanakkholwal/glyphx');
+			if (r.ok) {
+				const d = await r.json();
+				if (typeof d.stargazers_count === 'number') stars = d.stargazers_count;
+			}
+		} catch {
+			/* offline or rate-limited — render the link without a count */
+		}
+	});
 
 	// Feature sections — autosend pattern: an eyebrow + editorial headline, a
 	// left list of capabilities, and a framed product mount on the right.
@@ -326,17 +347,17 @@
 
 		<div class="relative mx-auto max-w-[1140px] px-5 sm:px-6">
 			<div class="flex flex-col items-center pt-24 text-center sm:pt-32">
-				<Reveal variant="up">
-					<h1 class="font-serif mx-auto max-w-4xl text-[2.9rem] leading-[1.02] sm:text-[4.6rem]">
-						The LaTeX editor<br class="hidden sm:block" /> Overleaf
-						<em>should have been</em>.
-					</h1>
-				</Reveal>
-				<Reveal variant="up" delay={250} class="flex flex-col items-center">
-					<p class="text-muted-foreground mt-7 max-w-[40rem] text-lg leading-relaxed">
-						Write papers, proofs, and theses in real LaTeX. The desktop app runs the editor, the
-						compiler, your files, and Git on your own computer. Sync and AI connect through accounts
-						you already own. Nothing has to pass through our servers.
+				<!-- Hero is rendered visible by default (no Reveal gate): it's the LCP
+				     element, so it must paint immediately for Core Web Vitals and for
+				     no-JS / slow-JS visitors. Scroll-reveal starts below the fold. -->
+				<h1 class="font-serif mx-auto max-w-4xl text-[2.9rem] leading-[1.02] sm:text-[4.6rem]">
+					The LaTeX editor<br class="hidden sm:block" /> Overleaf
+					<em>should have been</em>.
+				</h1>
+				<div class="flex flex-col items-center">
+					<p class="text-muted-foreground mt-7 max-w-[38rem] text-lg leading-relaxed">
+						Write papers, proofs, and theses in real LaTeX — the editor, the compiler, your files,
+						and Git all run on your own computer.
 					</p>
 					<div class="mt-9 flex flex-wrap items-center justify-center gap-3">
 						<a
@@ -354,14 +375,24 @@
 							<IconArrowRight class="size-4 transition-transform group-hover:translate-x-0.5" />
 						</a>
 					</div>
-					<p class="text-muted-foreground/80 mt-4 font-mono text-[11px] tracking-wider uppercase">
-						free · no account · all on your machine
-					</p>
-				</Reveal>
+					<a
+						href={repo}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-muted-foreground hover:text-foreground mt-5 inline-flex items-center gap-1.5 font-mono text-xs transition-colors"
+					>
+						<IconStar class="text-brand size-3.5" />
+						Star on GitHub
+						{#if stars !== null}
+							<span class="text-foreground font-semibold tabular-nums">· {formatStars(stars)}</span>
+						{/if}
+					</a>
+				</div>
 			</div>
 
-			<!-- Framed product mount: real screenshot if present, else a coded split -->
-			<Reveal variant="morph" delay={140} class="relative mt-14 sm:mt-16">
+			<!-- Framed product mount: the LCP image — rendered immediately (no Reveal
+			     gate) so it paints fast. -->
+			<div class="relative mt-14 sm:mt-16">
 				<!-- soft brand glow lifting the mount off the canvas -->
 				<div
 					class="pointer-events-none absolute -inset-x-8 -top-4 bottom-[-14%] -z-10 rounded-[2.5rem] opacity-70 blur-3xl"
@@ -417,7 +448,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 <span class="text-brand">\end</span>&#123;document&#125;</pre>
 						<div class="bg-canvas/50 p-7 sm:p-9">
 							<div
-								class="text-muted-foreground/60 mb-4 font-mono text-[11px] tracking-widest uppercase"
+								class="text-muted-foreground mb-4 font-mono text-[11px] tracking-widest uppercase"
 							>
 								Live preview
 							</div>
@@ -427,7 +458,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 								We observe that the estimator θ̂ is consistent, with α scaling as β²:
 							</p>
 							<div class="text-foreground my-4 text-center text-2xl italic">E = mc²</div>
-							<p class="text-muted-foreground/70 text-sm">See [1].</p>
+							<p class="text-muted-foreground text-sm">See [1].</p>
 						</div>
 					</div>
 					{/if}
@@ -438,10 +469,10 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 							<span class="bg-brand size-1.5 rounded-full"></span> compiled
 						</span>
 						<span>on your device</span>
-						<span class="text-muted-foreground/50 ml-auto tabular-nums">offline · Ln 14</span>
+						<span class="text-muted-foreground ml-auto tabular-nums">offline · Ln 14</span>
 					</div>
 				</div>
-			</Reveal>
+			</div>
 		</div>
 	</section>
 
@@ -536,7 +567,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 									>
 										{m.from}
 									</span>
-									<span class="text-muted-foreground/45 ml-auto shrink-0 text-[11px]">{m.time}</span>
+									<span class="text-muted-foreground ml-auto shrink-0 text-[11px]">{m.time}</span>
 								</div>
 								<p class="text-foreground mt-1 text-[15px] leading-snug font-semibold">{m.subject}</p>
 								<p class="text-muted-foreground mt-0.5 text-[13px] leading-snug">{m.preview}</p>
@@ -563,7 +594,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 								>
 									GlyphX
 								</span>
-								<span class="text-muted-foreground/45 ml-auto shrink-0 text-[11px]">now</span>
+								<span class="text-muted-foreground ml-auto shrink-0 text-[11px]">now</span>
 							</div>
 							<p class="text-foreground mt-1 text-[15px] leading-snug font-semibold">All clear.</p>
 							<p class="text-muted-foreground mt-0.5 text-[13px] leading-snug">
@@ -626,9 +657,9 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 										</li>
 									{/each}
 								</ul>
-								<!-- framed product mount on a dark backdrop -->
+								<!-- framed product mount on a dark backdrop, bled to the bottom edge -->
 								<div
-									class="bg-primary relative grid place-items-center overflow-hidden p-7 sm:p-10"
+									class="bg-primary relative flex min-h-[360px] items-end overflow-hidden p-6 pb-0 sm:min-h-[440px] sm:p-10 sm:pb-0"
 								>
 									<div
 										class="pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -636,56 +667,62 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 										aria-hidden="true"
 									></div>
 									<div
-										class="pointer-events-none absolute -inset-6 opacity-40 blur-3xl"
-										style="background: radial-gradient(50% 50% at 50% 40%, var(--brand-subtle), transparent 75%);"
+										class="pointer-events-none absolute -inset-10 opacity-45 blur-3xl"
+										style="background: radial-gradient(55% 55% at 50% 35%, var(--brand-subtle), transparent 75%);"
 										aria-hidden="true"
 									></div>
 									<div
-										class="border-hairline bg-card shadow-craft-floating relative w-full max-w-md overflow-hidden rounded-xl border"
+										class="border-hairline bg-card shadow-craft-floating relative w-full overflow-hidden rounded-t-2xl border border-b-0"
 									>
-										<div class="border-hairline flex items-center gap-1.5 border-b px-3 py-2.5">
-											<span class="bg-muted-foreground/30 size-2 rounded-full"></span>
-											<span class="bg-muted-foreground/30 size-2 rounded-full"></span>
-											<span class="bg-muted-foreground/30 size-2 rounded-full"></span>
+										<div class="border-hairline flex items-center gap-1.5 border-b px-4 py-3">
+											<span class="bg-muted-foreground/40 size-2.5 rounded-full"></span>
+											<span class="bg-muted-foreground/40 size-2.5 rounded-full"></span>
+											<span class="bg-muted-foreground/40 size-2.5 rounded-full"></span>
+											<span class="text-muted-foreground ml-2 font-mono text-[11px]">
+												{sec.mount === 'editor' ? 'main.tex' : 'Source Control'}
+											</span>
 										</div>
 										{#if sec.mount === 'editor'}
 											<pre
-												class="text-muted-foreground overflow-hidden p-4 font-mono text-[11.5px] leading-[1.75]"><span
+												class="text-muted-foreground overflow-hidden px-5 py-4 font-mono text-[13px] leading-[1.85]"><span
 													class="text-brand">\documentclass</span>&#123;article&#125;
 <span class="text-brand">\usepackage</span>&#123;amsmath&#125;
 
+<span class="text-brand">\title</span>&#123;On Local-First Typesetting&#125;
+<span class="text-brand">\begin</span>&#123;document&#125;
+<span class="text-brand">\maketitle</span>
+
 <span class="text-brand">\begin</span>&#123;equation&#125;
   E = m c^2
-<span class="text-brand">\end</span>&#123;equation&#125;</pre>
+<span class="text-brand">\end</span>&#123;equation&#125;
+<span class="text-brand">\end</span>&#123;document&#125;</pre>
 											<div
-												class="border-hairline flex items-center gap-2 border-t px-4 py-2.5 font-mono text-[11px]"
+												class="border-hairline flex items-center gap-2 border-t px-5 py-3 font-mono text-[12px]"
 											>
 												<span class="text-brand flex items-center gap-1.5">
-													<IconCheck class="size-3.5" /> compiled in 0.41s
+													<IconCheck class="size-4" /> compiled in 0.41s
 												</span>
-												<span class="text-muted-foreground/60 ml-auto">offline</span>
+												<span class="text-muted-foreground ml-auto">offline · on your device</span>
 											</div>
 										{:else}
-											<div class="flex flex-col gap-2 p-4 font-mono text-[11.5px]">
+											<div class="flex flex-col gap-2.5 px-5 py-4 font-mono text-[13px]">
 												<div class="text-muted-foreground flex items-center gap-2">
-													<IconGitBranch class="text-brand size-3.5" /> main · 2 changes
+													<IconGitBranch class="text-brand size-4" /> main · 2 changes
 												</div>
 												<div class="text-muted-foreground flex items-center gap-2">
-													<span class="text-warning">M</span> chapter3.tex
+													<span class="text-warning w-4">M</span> chapter3.tex
 												</div>
 												<div class="text-muted-foreground flex items-center gap-2">
-													<span class="text-success">A</span> figures/plot.pdf
+													<span class="text-success w-4">A</span> figures/plot.pdf
 												</div>
 											</div>
-											<div class="border-hairline flex items-center border-t px-4 py-2.5">
+											<div class="border-hairline flex items-center gap-3 border-t px-5 py-3">
 												<span
-													class="bg-brand text-brand-foreground rounded-md px-3 py-1 font-mono text-[11px] font-semibold"
+													class="bg-brand text-brand-foreground rounded-md px-3 py-1.5 font-mono text-[12px] font-semibold"
 												>
 													Commit
 												</span>
-												<span class="text-muted-foreground/60 ml-auto font-mono text-[11px]">
-													your remote
-												</span>
+												<span class="text-muted-foreground font-mono text-[12px]">your remote</span>
 											</div>
 										{/if}
 									</div>
@@ -706,9 +743,9 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	</div>
 
 	<!-- ============================================================
-	     "Works with" grid (autosend integrations pattern)
+	     "Works with" grid (autosend integrations pattern) — tonal band
 	     ============================================================ -->
-	<section class="border-hairline border-t">
+	<section class="bg-surface-soft">
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
 			<Reveal variant="up">
 				<div
@@ -738,7 +775,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 										{it.label}
 									</div>
 									<div
-										class="text-muted-foreground/70 mt-1 font-mono text-[10px] tracking-wide uppercase"
+										class="text-muted-foreground mt-1 text-[11px]"
 									>
 										{it.note}
 									</div>
@@ -754,7 +791,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	<!-- ============================================================
 	     Where your data goes: local core vs. your accounts
 	     ============================================================ -->
-	<section class="border-hairline border-t">
+	<section>
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
 			<Reveal variant="up" class="max-w-2xl">
 				<span
@@ -826,7 +863,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 									<div class="flex items-center gap-2">
 										<h3 class="text-sm font-semibold">{m.title}</h3>
 										<span
-											class="border-hairline text-muted-foreground rounded-full border px-2 py-0.5 font-mono text-[9px] font-semibold tracking-wider uppercase"
+											class="border-hairline text-muted-foreground rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider uppercase"
 											>{m.tag}</span
 										>
 									</div>
@@ -856,7 +893,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	<!-- ============================================================
 	     Comparison
 	     ============================================================ -->
-	<section id="compare" class="border-hairline border-t">
+	<section id="compare" class="bg-surface-soft">
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
 			<Reveal variant="up">
 				<span
@@ -915,7 +952,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 						{/each}
 					</div>
 				</div>
-				<p class="text-muted-foreground/70 mt-3 font-mono text-[11px]">
+				<p class="text-muted-foreground mt-3 font-mono text-[11px]">
 					Overleaf paid tiers lift some of these limits. The point is that GlyphX does not put them
 					there to begin with.
 				</p>
@@ -926,7 +963,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	<!-- ============================================================
 	     How it works
 	     ============================================================ -->
-	<section class="border-hairline border-t">
+	<section>
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
 			<Reveal variant="up">
 				<span
@@ -954,9 +991,9 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	</section>
 
 	<!-- ============================================================
-	     Roadmap note (honest about what is not built yet)
+	     Roadmap note (honest about what is not built yet) — tonal band
 	     ============================================================ -->
-	<section class="border-hairline border-t">
+	<section class="bg-surface-soft">
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
 			<Reveal
 				variant="up"
@@ -983,7 +1020,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 							>
 								<Icon class="size-3.5" />
 								{r.label}
-								<span class="text-muted-foreground/50">· planned</span>
+								<span class="text-muted-foreground">· planned</span>
 							</span>
 						{/each}
 					</div>
@@ -995,7 +1032,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	<!-- ============================================================
 	     FAQ
 	     ============================================================ -->
-	<section id="faq" class="border-hairline border-t">
+	<section id="faq">
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
 			<div class="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
 				<Reveal variant="up">
@@ -1044,8 +1081,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 						Keep your research <em>on your own machine</em>.
 					</h2>
 					<p class="text-primary-foreground/65 mt-4 max-w-md text-base leading-relaxed">
-						Start in the browser for free, or get the desktop app and work fully offline. No
-						account, no upload, no waiting on a server.
+						Start in the browser, or get the desktop app and work fully offline.
 					</p>
 					<div class="mt-9 flex flex-wrap justify-center gap-3">
 						<a

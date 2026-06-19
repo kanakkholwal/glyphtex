@@ -1931,7 +1931,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
 	     view toggles + export + compile (right). Theme & settings live in the
 	     Settings panel, not here. -->
   <header
-    class="border-border bg-card flex h-11 shrink-0 items-center gap-2 border-b px-2.5"
+    class="border-border bg-card flex h-12 shrink-0 items-center gap-2.5 border-b px-3"
   >
     <!-- Left: logo + application menu -->
     <div class="flex shrink-0 items-center gap-1.5">
@@ -2026,12 +2026,12 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
               onclick={() => runCompile(true)}
             >
               Compile once
-              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+              <DropdownMenuShortcut>{shortcutLabel("compile")}</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onclick={() => syncToPdf()}>
               Sync to PDF
-              <DropdownMenuShortcut>⌘J</DropdownMenuShortcut>
+              <DropdownMenuShortcut>{shortcutLabel("sync-pdf")}</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -2153,7 +2153,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                 </span>
                 <div class="ml-auto flex shrink-0 items-center gap-1 pl-1">
                   <button
-                    class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors {settings.diffView ===
+                    class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors {settings.diffView ===
                     'side'
                       ? 'bg-muted text-foreground'
                       : ''}"
@@ -2165,7 +2165,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                     <IconLayoutColumns size={15} />
                   </button>
                   <button
-                    class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors {settings.diffView ===
+                    class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors {settings.diffView ===
                     'inline'
                       ? 'bg-muted text-foreground'
                       : ''}"
@@ -2178,7 +2178,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                   </button>
                   <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
                   <button
-                    class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+                    class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
                     title="Refresh diff"
                     aria-label="Refresh diff"
                     onclick={refreshDiff}
@@ -2186,7 +2186,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                     <IconRefresh size={15} />
                   </button>
                   <button
-                    class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+                    class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
                     title="Close diff"
                     aria-label="Close diff"
                     onclick={closeDiff}
@@ -2235,7 +2235,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
               <!-- Right cluster: save, history, find. -->
               <div class="ml-auto flex shrink-0 items-center gap-1 pl-1">
                 <button
-                  class="hover:bg-muted hover:text-foreground relative grid size-6 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
+                  class="hover:bg-muted hover:text-foreground relative grid size-7 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
                   title={activeDirty ? "Save (⌘/Ctrl+S)" : "Saved"}
                   aria-label="Save"
                   disabled={!activeDirty}
@@ -2250,7 +2250,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                 </button>
                 <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
                 <button
-                  class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
+                  class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
                   title="Undo (⌘/Ctrl+Z)"
                   aria-label="Undo"
                   disabled={!canUndo}
@@ -2259,7 +2259,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                   <IconArrowBackUp size={15} />
                 </button>
                 <button
-                  class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
+                  class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
                   title="Redo (⌘/Ctrl+Shift+Z)"
                   aria-label="Redo"
                   disabled={!canRedo}
@@ -2269,7 +2269,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                 </button>
                 <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
                 <button
-                  class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors {showFind
+                  class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors {showFind
                     ? 'bg-muted text-foreground'
                     : ''}"
                   title="Find / replace (⌘/Ctrl+F)"
@@ -2369,7 +2369,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
               class="text-muted-foreground border-border flex h-9 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
             >
               <button
-                class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+                class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
                 title="Sync to PDF (⌘/Ctrl+J)"
                 aria-label="Sync to PDF"
                 onclick={syncToPdf}
@@ -2401,7 +2401,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                 <!-- Find + page count + zoom + download -->
                 <div class="ml-auto flex items-center gap-1">
                   <button
-                    class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+                    class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
                     title="Find in PDF (Ctrl/Cmd+F)"
                     aria-label="Find in PDF"
                     onclick={() => pdfView?.openFind()}
@@ -2414,7 +2414,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                   </span>
                   <span class="bg-border mx-1 h-4 w-px"></span>
                   <button
-                    class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+                    class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
                     title="Zoom out"
                     aria-label="Zoom out"
                     onclick={() => pdfView?.zoomOut()}
@@ -2449,7 +2449,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <button
-                    class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+                    class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
                     title="Zoom in"
                     aria-label="Zoom in"
                     onclick={() => pdfView?.zoomIn()}
@@ -2458,7 +2458,7 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
                   </button>
                   <span class="bg-border mx-1 h-4 w-px"></span>
                   <button
-                    class="hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+                    class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
                     title="Download PDF"
                     aria-label="Download PDF"
                     onclick={downloadPdf}

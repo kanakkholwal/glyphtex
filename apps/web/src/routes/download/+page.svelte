@@ -223,24 +223,22 @@
 		<FloatingGlyphs />
 		<div class="relative mx-auto max-w-[1140px] px-5 sm:px-6">
 			<div class="flex flex-col items-center pt-24 pb-16 text-center sm:pt-32 sm:pb-24">
-				<Reveal variant="up" class="flex flex-col items-center">
+				<!-- Hero rendered visible by default (no Reveal gate) — it's the LCP
+				     element, same as the home hero. -->
+				<div class="flex flex-col items-center">
 					<span
 						class="text-muted-foreground mb-5 font-mono text-[11px] font-semibold tracking-[0.2em] uppercase"
 					>
 						Desktop app
 					</span>
-					<h1
-						class="font-display max-w-3xl text-[2.4rem] leading-[1.05] tracking-[-0.035em] sm:text-6xl"
-					>
+					<h1 class="font-serif max-w-3xl text-[2.6rem] leading-[1.02] sm:text-6xl">
 						Download GlyphX.
 					</h1>
-					<p class="text-muted-foreground mt-6 max-w-[36rem] text-lg leading-relaxed">
-						The desktop app brings the engine onto your machine, so you write and compile LaTeX with
-						no connection at all. It is also where the built-in Git client lives, and where sync and
-						your own AI key will connect through accounts you already own. It updates itself, so you
-						stay on the latest build. Pick your platform below.
+					<p class="text-muted-foreground mt-6 max-w-[37rem] text-lg leading-relaxed">
+						The desktop app puts the LaTeX engine on your machine — write and compile fully offline,
+						with the built-in Git client alongside. It updates itself; pick your platform below.
 					</p>
-				</Reveal>
+				</div>
 			</div>
 		</div>
 	</section>
@@ -250,7 +248,7 @@
 		<!-- Release banner -->
 		<div class="mb-5 flex items-center justify-between gap-3 font-mono text-xs">
 			{#if status === 'loading'}
-				<span class="text-muted-foreground/70 flex items-center gap-2">
+				<span class="text-muted-foreground flex items-center gap-2">
 					<span class="bg-brand size-1.5 animate-pulse rounded-full"></span>
 					Checking the latest release&hellip;
 				</span>
@@ -261,10 +259,10 @@
 					>
 						GlyphX {version}
 					</span>
-					{#if releasedOn}<span class="text-muted-foreground/70">released {releasedOn}</span>{/if}
+					{#if releasedOn}<span class="text-muted-foreground">released {releasedOn}</span>{/if}
 				</span>
 			{:else}
-				<span class="text-muted-foreground/70">Latest build info was unavailable.</span>
+				<span class="text-muted-foreground">Latest build info was unavailable.</span>
 			{/if}
 			<a
 				href={releases}
@@ -399,7 +397,7 @@
 							One short Terminal step on first launch. Requires macOS 10.15 or later.
 						</p>
 					</div>
-					<span class="text-muted-foreground/70 ml-auto hidden font-mono text-xs sm:block">
+					<span class="text-muted-foreground ml-auto hidden font-mono text-xs sm:block">
 						{macSteps.length} steps
 					</span>
 					<IconArrowRight
@@ -465,7 +463,7 @@
 						{/each}
 					</ol>
 
-					<p class="text-muted-foreground/70 mt-6 text-xs leading-relaxed">
+					<p class="text-muted-foreground mt-6 text-xs leading-relaxed">
 						Prefer not to use Terminal? You can also right-click GlyphX in Applications, choose
 						Open, and confirm once in the dialog that appears.
 					</p>
@@ -474,17 +472,18 @@
 		</Reveal>
 	</section>
 
-	<!-- What's inside + verify -->
-	<section class="mx-auto max-w-[1140px] px-5 py-16 sm:px-6 sm:py-24">
-		<div class="grid gap-12 lg:grid-cols-2">
+	<!-- What's inside + verify — tonal band -->
+	<section class="bg-surface-soft mt-8">
+		<div class="mx-auto max-w-[1140px] px-5 py-16 sm:px-6 sm:py-24">
+			<div class="grid gap-12 lg:grid-cols-2">
 			<Reveal variant="up">
 				<span
 					class="text-muted-foreground inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.18em] uppercase"
 				>
 					What is in the download
 				</span>
-				<h2 class="font-display mt-5 text-2xl tracking-tight sm:text-3xl">
-					One app. Nothing else to set up.
+				<h2 class="font-serif mt-5 text-2xl sm:text-3xl">
+					One app. <em>Nothing else to set up.</em>
 				</h2>
 				<ul class="mt-6 flex flex-col gap-3">
 					{#each included as line (line)}
@@ -529,6 +528,7 @@
 					</div>
 				</div>
 			</Reveal>
+			</div>
 		</div>
 	</section>
 
@@ -539,7 +539,7 @@
 				class="bg-primary text-primary-foreground relative overflow-hidden rounded-3xl px-8 py-14 text-center sm:px-16 sm:py-16"
 			>
 				<div class="relative mx-auto flex max-w-xl flex-col items-center">
-					<h2 class="font-display text-2xl tracking-tight sm:text-4xl">Builds are on the way.</h2>
+					<h2 class="font-serif text-2xl sm:text-4xl">Builds are on the way.</h2>
 					<p class="text-primary-foreground/65 mt-4 max-w-md text-base leading-relaxed">
 						Desktop releases are published on GitHub. Watch the repository to hear about the first
 						one, or start writing in the browser today.

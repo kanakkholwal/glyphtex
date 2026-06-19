@@ -10,7 +10,8 @@
  *
  * Combos are written platform-neutral with the token `Mod` (⌘ on macOS, Ctrl
  * everywhere else); `Shift` / `Alt` and a final key follow. A shortcut may list
- * more than one combo (e.g. Compile is Mod+S *or* Mod+Enter).
+ * more than one combo (e.g. Redo is Mod+Shift+Z *or* Mod+Y). Save is Mod+S and
+ * Compile is Mod+Enter — kept distinct so ⌘S never triggers a build.
  */
 
 export type ShortcutCategory =

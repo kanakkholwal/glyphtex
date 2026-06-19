@@ -166,25 +166,26 @@
    Dark — deep graphite night (graphite, not navy — DESIGN.md)
    --------------------------------------------------------------------------- */
 .dark {
-	/* Warm graphite night — warm stone-black floor, warm graphite cards and
-	   elevated surface. Graphite, not navy; warm, not cool. */
-	--background: #0c0b0a;
-	--foreground: #ece9e6;
-	--card: #1a1816;
-	--card-foreground: #ece9e6;
-	--surface: #232020;
-	--popover: #1a1816;
-	--popover-foreground: #ece9e6;
+	/* Warm editorial night — a lifted warm-charcoal floor (NOT cold black) with
+	   cream ink, so dark mode reads as the same warm paper, dimmed — the sibling
+	   of the stone light mode, not an inverted flip. Warm, never sepia/muddy. */
+	--background: #1b1713;
+	--foreground: #ede7dd;
+	--card: #231e18;
+	--card-foreground: #ede7dd;
+	--surface: #2b251e;
+	--popover: #231e18;
+	--popover-foreground: #ede7dd;
 
-	--primary: #f5f3f0;
-	--primary-foreground: #0c0b0a;
+	--primary: #ede7dd;
+	--primary-foreground: #1b1713;
 
-	--secondary: #211e1c;
-	--secondary-foreground: #ece9e6;
-	--muted: #1c1a18;
-	--muted-foreground: #a8a29b;
-	--accent: #292523;
-	--accent-foreground: #ece9e6;
+	--secondary: #272118;
+	--secondary-foreground: #ede7dd;
+	--muted: #241f18;
+	--muted-foreground: #a99f90;
+	--accent: #312b23;
+	--accent-foreground: #ede7dd;
 
 	--destructive: #f87171;
 	--destructive-foreground: #1a0e0c;
@@ -195,18 +196,18 @@
 	--info: #1f9cf0;
 	--info-foreground: #04121f;
 
-	--border: rgb(245 240 235 / 0.09);
-	--input: rgb(245 240 235 / 0.13);
+	--border: rgb(237 231 221 / 0.1);
+	--input: rgb(237 231 221 / 0.14);
 	--ring: #1f9cf0;
 
 	/* Sidebar one quiet warm step off the floor. */
-	--sidebar: #0e0d0b;
-	--sidebar-foreground: #cdc8c2;
-	--sidebar-primary: #f5f3f0;
-	--sidebar-primary-foreground: #0c0b0a;
-	--sidebar-accent: #292523;
-	--sidebar-accent-foreground: #ece9e6;
-	--sidebar-border: rgb(245 240 235 / 0.07);
+	--sidebar: #171410;
+	--sidebar-foreground: #cabfae;
+	--sidebar-primary: #ede7dd;
+	--sidebar-primary-foreground: #1b1713;
+	--sidebar-accent: #312b23;
+	--sidebar-accent-foreground: #ede7dd;
+	--sidebar-border: rgb(237 231 221 / 0.08);
 	--sidebar-ring: #1f9cf0;
 
 	--chart-1: #1f9cf0;
@@ -216,23 +217,23 @@
 	--chart-5: #38b6ff;
 
 	--brand: #1f9cf0;
-	--brand-foreground: #0a0a0c;
+	--brand-foreground: #161109;
 	--brand-hover: #38b6ff;
-	--brand-subtle: rgb(31 156 240 / 0.12);
+	--brand-subtle: rgb(31 156 240 / 0.14);
 
-	--canvas: #0c0b0a;
-	--surface-soft: #16140f;
-	--surface-card: #1a1816;
-	--surface-strong: #292523;
-	--surface-1: #1a1816;
-	--surface-2: #232020;
-	--inverse-canvas: #f5f3f0;
-	--ink: #ece9e6;
-	--ink-body: #cdc8c2;
-	--ink-muted: #a8a29b;
-	--hairline: rgb(245 240 235 / 0.1);
-	--hairline-soft: rgb(245 240 235 / 0.06);
-	--border-subtle: rgb(245 240 235 / 0.06);
+	--canvas: #1b1713;
+	--surface-soft: #231e18;
+	--surface-card: #231e18;
+	--surface-strong: #312b23;
+	--surface-1: #231e18;
+	--surface-2: #2b251e;
+	--inverse-canvas: #ede7dd;
+	--ink: #ede7dd;
+	--ink-body: #cabfae;
+	--ink-muted: #a99f90;
+	--hairline: rgb(237 231 221 / 0.1);
+	--hairline-soft: rgb(237 231 221 / 0.06);
+	--border-subtle: rgb(237 231 221 / 0.06);
 }
 
 /* ---------------------------------------------------------------------------
