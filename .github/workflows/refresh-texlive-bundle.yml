@@ -1,0 +1,106 @@
+name: Refresh TeX base bundle
+
+# Regenerates the web compiler's vendored TeX base bundle
+# (apps/web/static/texmirror/) by driving a real compile and snapshotting exactly
+# the files it fetches — see scripts/dev/capture-texlive-base.mjs. The bundle lets
+# common documents compile fully from our own Cloudflare origin, independent of
+# any third-party TeX server (the long tail still falls back + edge-caches).
+#
+# It opens a PR with the refreshed bundle rather than pushing to main: the files
+# are large binaries (the format alone is ~10 MB) and should be reviewed/merged
+# deliberately (ideally with Git LFS). Requires the repo setting
+# "Allow GitHub Actions to create and approve pull requests" (Settings → Actions).
+
+on:
+  # Manual refresh.
+  workflow_dispatch:
+  # Engine bump — the format + base files are pinned to the engine, so refresh
+  # whenever the vendored engine or the capture script changes.
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/static/swiftlatex/swiftlatexpdftex.js'
+      - 'apps/web/static/swiftlatex/swiftlatexpdftex.wasm'
+      - 'apps/web/static/swiftlatex/PdfTeXEngine.js'
+      - 'scripts/dev/capture-texlive-base.mjs'
+      - '.github/workflows/refresh-texlive-bundle.yml'
+  # Safety net: catch upstream package drift even without an engine bump.
+  schedule:
+    - cron: '0 5 * * 1' # Mondays 05:00 UTC
+
+concurrency:
+  group: refresh-texlive-bundle
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+  PNPM_VERSION: '10.23.0'
+
+jobs:
+  capture:
+    name: Capture + open PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install workspace dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      # Playwright is only needed to drive the capture, so install it for this
+      # job rather than committing it as a project dependency (which would force
+      # it on every dev install and need a lockfile bump).
+      - name: Install Playwright + Chromium
+        run: |
+          pnpm add -w -D playwright
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Capture the base bundle
+        env:
+          # Prefer your own upstream if configured as a repo variable; otherwise
+          # the route falls back to the public server.
+          PUBLIC_TEXLIVE_ENDPOINT: ${{ vars.PUBLIC_TEXLIVE_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          # Start the web dev server (runs the /texlive route) in the background.
+          pnpm --filter @glyphx/web dev -- --port 5173 --strictPort > /tmp/web-dev.log 2>&1 &
+          DEV_PID=$!
+          # Wait for it to answer (vite needs a few seconds to boot).
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:5173 >/dev/null && break
+            sleep 2
+          done
+          CAPTURE_BASE_URL=http://localhost:5173 node scripts/dev/capture-texlive-base.mjs
+          kill "$DEV_PID" 2>/dev/null || true
+
+      - name: Open PR with the refreshed bundle
+        uses: peter-evans/create-pull-request@v6
+        with:
+          add-paths: apps/web/static/texmirror
+          branch: chore/texlive-bundle-refresh
+          delete-branch: true
+          commit-message: 'chore(web): refresh vendored TeX base bundle'
+          title: 'chore(web): refresh vendored TeX base bundle'
+          body: |
+            Regenerated `apps/web/static/texmirror/` via
+            `scripts/dev/capture-texlive-base.mjs` (snapshots exactly the TeX files
+            a real compile fetched).
+
+            These are large binaries (the format dump is ~10 MB) — consider
+            tracking `static/texmirror/` with **Git LFS** before merging.
+          labels: dependencies

@@ -1,8 +1,12 @@
-// Vendor the SwiftLaTeX pdfTeX format dump into our own static assets, so the
+// Vendor the SwiftLaTeX pdfTeX format dump into our base-bundle mirror, so the
 // `/texlive` edge route (apps/web/src/routes/texlive/[...path]/+server.ts) can
 // serve it from our origin with no upstream dependency. The format (~10 MB) is
 // the single biggest, version-pinned file the engine needs; vendoring it lets a
 // cold start survive an upstream outage.
+//
+// This is the quick, browser-free subset. For the FULL base bundle (format +
+// base classes + fonts + common packages, captured from a real compile) use
+// `scripts/dev/capture-texlive-base.mjs`. Both write into the same mirror dir.
 //
 // Run it when an upstream is reachable, then commit the result (or run it as a
 // CI prebuild step). Pin the upstream / file int to the engine version you ship.
@@ -20,15 +24,15 @@ const UPSTREAM = (process.env.TEXLIVE_UPSTREAM || 'https://texlive.texlyre.org/'
 	'/'
 );
 
-// Files to vendor. Keep these paths in sync with the VENDORED map in the
-// `/texlive` route. The format int (`10`) is pinned to the bundled engine.
+// Files to vendor. The format int (`10`) is pinned to the bundled engine.
 const FILES = ['pdftex/10/swiftlatexpdftex.fmt'];
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const STATIC_DIR = join(repoRoot, 'apps/web/static/swiftlatex');
+// The route serves `static/texmirror/<path>` for an incoming `/texlive/<path>`.
+const MIRROR_DIR = join(repoRoot, 'apps/web/static/texmirror');
 
-// Map an on-demand path to where the route expects the vendored copy.
-const destFor = (path) => join(STATIC_DIR, path.split('/').pop());
+// Preserve the full on-demand path under the mirror dir.
+const destFor = (path) => join(MIRROR_DIR, ...path.split('/'));
 
 let failed = 0;
 for (const path of FILES) {

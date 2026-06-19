@@ -5,15 +5,54 @@ WASM engine. The engine itself is self-hosted (`apps/web/static/swiftlatex/`),
 but it fetches the format file + every package **on demand** from a TeX Live
 "on-demand" server.
 
-The original SwiftLaTeX servers are offline, so the app uses an ordered list:
+## How requests flow (you rarely need to think about the upstream)
+
+The engine never talks to a third party directly. It fetches everything from our
+**own same-origin route**, `/texlive/...`
+(`apps/web/src/routes/texlive/[...path]/+server.ts`), which resolves each file:
+
+1. a **vendored copy** in `static/swiftlatex/` (e.g. the format dump — run
+   `node scripts/dev/fetch-texlive-base.mjs` to vendor it), then
+2. our **Cloudflare edge cache** (immutable per path — fills itself on first use),
+   then
+3. an **upstream** on-demand server, whose response we cache at our edge.
+
+So the upstream is a *cached backend behind our domain*, not a hard dependency:
+once a file is cached at our edge (or in the per-device service-worker cache) it
+keeps serving even if the upstream is down. The browser only ever sees our origin.
+
+The upstream list (used only by the route, server-side) is, in order:
 
 1. **`PUBLIC_TEXLIVE_ENDPOINT`** — your own server (this guide), tried first.
 2. **`https://texlive.texlyre.org/`** — public maintained fallback (third-party,
    slower, no uptime guarantee).
 
-The first endpoint that responds at engine boot is used for the session. So
-hosting your own makes web compile fast and self-reliant, while the public
-server keeps things working if yours is ever down.
+For **full** independence from any third party, host your own (below) and set
+`PUBLIC_TEXLIVE_ENDPOINT`; our edge then just caches it.
+
+## Vendoring a base bundle (the hybrid's "works offline / no upstream" half)
+
+The edge route serves any file present under `apps/web/static/texmirror/<path>`
+straight from our own assets — no upstream involved. Two scripts populate it:
+
+- **`scripts/dev/fetch-texlive-base.mjs`** — quick, browser-free. Vendors the
+  ~10 MB format dump. `node scripts/dev/fetch-texlive-base.mjs`
+- **`scripts/dev/capture-texlive-base.mjs`** — the full base bundle. It drives a
+  real compile (the first-run install, which compiles the format + every package
+  group) and snapshots **exactly** the files that compile fetched, so the bundle
+  is minimal and correct. Needs the web dev server running + Playwright:
+
+  ```sh
+  pnpm --filter @glyphx/web dev            # in one terminal
+  pnpm add -D playwright && pnpm exec playwright install chromium
+  node scripts/dev/capture-texlive-base.mjs
+  ```
+
+Commit `static/texmirror/` afterwards (consider **Git LFS** — the format is large).
+With the bundle in place, common documents compile fully from our own origin even
+if every upstream is down; uncommon packages still fall back to your dedicated
+server / the public one, and get edge-cached. That's the hybrid: **base bundle in
+our Worker + your dedicated server for the long tail.**
 
 ## Why self-host
 

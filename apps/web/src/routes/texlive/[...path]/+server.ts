@@ -30,14 +30,11 @@ function upstreams(): string[] {
 	];
 }
 
-// Critical files served straight from our static assets — never an upstream.
-// The format dump is the big, version-pinned blocker; vendor it with
-// `node scripts/dev/fetch-texlive-base.mjs` so cold starts survive an upstream
-// outage. Missing vendored file → falls through to the edge/upstream path.
-const VENDORED: Record<string, string> = {
-	'pdftex/10/swiftlatexpdftex.fmt': '/swiftlatex/swiftlatexpdftex.fmt'
-};
-
+// Our vendored base bundle lives under `static/texmirror/<path>` (the format dump
+// + the base/common files captured by scripts/dev/capture-texlive-base.mjs). Any
+// file present there is served straight from our own origin — never an upstream —
+// so common compiles work fully offline / independent of the third party. A
+// missing file falls through to the edge cache, then the upstreams below.
 const BASE_HEADERS = {
 	'access-control-allow-origin': '*',
 	// Files are immutable per path (a package's content is fixed for a TL snapshot).
@@ -50,16 +47,18 @@ const contentType = (res: Response) =>
 export const GET: RequestHandler = async ({ params, fetch, request, platform }) => {
 	const path = params.path; // e.g. "pdftex/10/swiftlatexpdftex.fmt"
 
-	// 1. Vendored, same-origin copy — guaranteed, independent of any upstream.
-	const vendored = VENDORED[path];
-	if (vendored) {
-		const res = await fetch(vendored);
-		if (res.ok) {
-			return new Response(res.body, {
-				status: 200,
-				headers: { ...BASE_HEADERS, 'content-type': contentType(res) }
-			});
-		}
+	// 1. Vendored base bundle in our own static assets — guaranteed, independent
+	//    of any upstream. Use the ASSETS binding on Cloudflare; fall back to a
+	//    same-origin fetch in local dev (where the binding isn't present).
+	const mirrorUrl = new URL(`/texmirror/${path}`, request.url).toString();
+	const assets = (platform as { env?: { ASSETS?: { fetch: typeof fetch } } } | undefined)?.env
+		?.ASSETS;
+	const res = await (assets ? assets.fetch(mirrorUrl) : fetch(mirrorUrl));
+	if (res.ok) {
+		return new Response(res.body, {
+			status: 200,
+			headers: { ...BASE_HEADERS, 'content-type': contentType(res) }
+		});
 	}
 
 	// 2. Our Cloudflare edge cache (absent in local dev → skipped).

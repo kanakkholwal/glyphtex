@@ -25,8 +25,11 @@ const TEXLIVE_CACHE = 'glyphx-texlive';
 
 // App shell + static assets to precache on install (includes /swiftlatex/* —
 // the engine WASM + JS, so the engine itself is available offline after the
-// first visit).
-const PRECACHE = [...build, ...files];
+// first visit). The vendored TeX base bundle under /texmirror/* is deliberately
+// excluded — it's the `/texlive` route's server-side source (served to the
+// client as /texlive/* and cached there), so precaching it would force a large
+// download on every first visit for users who may never compile.
+const PRECACHE = [...build, ...files].filter((p) => !p.startsWith('/texmirror/'));
 
 /**
  * Whether a request targets the TeX Live on-demand server. The engine fetches
