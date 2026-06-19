@@ -33,22 +33,33 @@ For **full** independence from any third party, host your own (below) and set
 ## Vendoring a base bundle (the hybrid's "works offline / no upstream" half)
 
 The edge route serves any file present under `apps/web/static/texmirror/<path>`
-straight from our own assets — no upstream involved. Two scripts populate it:
+straight from our own assets — no upstream involved.
 
-- **`scripts/dev/fetch-texlive-base.mjs`** — quick, browser-free. Vendors the
-  ~10 MB format dump. `node scripts/dev/fetch-texlive-base.mjs`
-- **`scripts/dev/capture-texlive-base.mjs`** — the full base bundle. It drives a
-  real compile (the first-run install, which compiles the format + every package
-  group) and snapshots **exactly** the files that compile fetched, so the bundle
-  is minimal and correct. Needs the web dev server running + Playwright:
+### Recommended: self-populating mirror (no extra tooling)
 
-  ```sh
-  pnpm --filter @glyphx/web dev            # in one terminal
-  pnpm add -D playwright && pnpm exec playwright install chromium
-  node scripts/dev/capture-texlive-base.mjs
-  ```
+The `/texlive` route already proxies every file the engine requests, so in dev it
+can persist them to the bundle itself — no browser automation, no Chromium
+download, no `sudo apt`. Just compile in your own browser with the flag on:
 
-Commit `static/texmirror/` afterwards (consider **Git LFS** — the format is large).
+```sh
+MIRROR_WRITE=1 pnpm --filter @glyphx/web dev
+# then open /editor, run the install (or compile a representative document).
+# Every fetched file is written to apps/web/static/texmirror/ as it streams.
+```
+
+Compile a doc that exercises the packages you care about (math, figures, tables,
+links) so their files are captured. Commit `static/texmirror/` afterwards
+(consider **Git LFS** — the format dump is ~10 MB).
+
+For the format dump alone, browser-free:
+`node scripts/dev/fetch-texlive-base.mjs`.
+
+### Optional: headless capture (`scripts/dev/capture-texlive-base.mjs`)
+
+A Playwright driver that runs the install compile headlessly — only if you want
+to fully automate the refresh (e.g. in CI). It needs Playwright + a browser, so
+the self-populating route above is the lighter/safer default.
+
 With the bundle in place, common documents compile fully from our own origin even
 if every upstream is down; uncommon packages still fall back to your dedicated
 server / the public one, and get edge-cached. That's the hybrid: **base bundle in

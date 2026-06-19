@@ -62,13 +62,13 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --no-frozen-lockfile
 
-      # Playwright is only needed to drive the capture, so install it for this
-      # job rather than committing it as a project dependency (which would force
-      # it on every dev install and need a lockfile bump).
-      - name: Install Playwright + Chromium
-        run: |
-          pnpm add -w -D playwright
-          pnpm exec playwright install --with-deps chromium
+      # Only puppeteer-core (a small npm package, no bundled browser) — it drives
+      # the compile using the runner's PREINSTALLED Google Chrome. No browser
+      # download, no `sudo apt` system libs. Installed for this job rather than
+      # committed (which would need a lockfile bump that breaks deploy-web's
+      # frozen install).
+      - name: Install puppeteer-core
+        run: pnpm add -w -D puppeteer-core
 
       - name: Capture the base bundle
         env:
@@ -77,15 +77,20 @@ jobs:
           PUBLIC_TEXLIVE_ENDPOINT: ${{ vars.PUBLIC_TEXLIVE_ENDPOINT }}
         run: |
           set -euo pipefail
-          # Start the web dev server (runs the /texlive route) in the background.
-          pnpm --filter @glyphx/web dev -- --port 5173 --strictPort > /tmp/web-dev.log 2>&1 &
+          # The /texlive route writes proxied files to static/texmirror/ only when
+          # the dev server runs with MIRROR_WRITE=1.
+          MIRROR_WRITE=1 pnpm --filter @glyphx/web dev -- --port 5173 --strictPort \
+            > /tmp/web-dev.log 2>&1 &
           DEV_PID=$!
           # Wait for it to answer (vite needs a few seconds to boot).
           for i in $(seq 1 60); do
             curl -sf http://localhost:5173 >/dev/null && break
             sleep 2
           done
-          CAPTURE_BASE_URL=http://localhost:5173 node scripts/dev/capture-texlive-base.mjs
+          # Resolve the runner's Chrome (ubuntu images ship google-chrome).
+          CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable || echo /usr/bin/google-chrome)"
+          CAPTURE_BASE_URL=http://localhost:5173 CHROME_PATH="$CHROME_PATH" \
+            node scripts/dev/capture-texlive-base.mjs
           kill "$DEV_PID" 2>/dev/null || true
 
       - name: Open PR with the refreshed bundle

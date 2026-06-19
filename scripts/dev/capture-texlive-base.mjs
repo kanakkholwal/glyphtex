@@ -1,102 +1,126 @@
-// Capture the TeX Live BASE BUNDLE by recording exactly which files a real
-// compile fetches, and vendoring them under `apps/web/static/texmirror/`. The
-// `/texlive` route then serves these from our own origin — so common compiles
-// work fully independent of any third-party server (the hybrid's "base bundle"
-// half; your dedicated upstream covers the long tail).
+// Headless capture of the TeX Live base bundle — the automated counterpart to
+// the manual "MIRROR_WRITE=1 dev + compile in your browser" flow.
 //
-// It drives the app's first-run install (which compiles the format + every
-// package group), and snapshots every `/pdftex/...` response. Re-run it when you
-// bump the engine or want a wider bundle; then commit `static/texmirror/`
-// (consider Git LFS — the format alone is ~10 MB).
+// It just *drives a compile*: it opens the editor in a headless browser and runs
+// the first-run install (which compiles the format + every package group). The
+// actual writing is done by the `/texlive` route, which persists every proxied
+// file to apps/web/static/texmirror/ when the dev server runs with MIRROR_WRITE=1.
+// So this script needs no Playwright and downloads no browser — it uses the
+// machine's already-installed Chrome via puppeteer-core.
 //
 // Prereqs:
 //   1. A reachable upstream (texlyre or your PUBLIC_TEXLIVE_ENDPOINT).
-//   2. The web dev server running:  pnpm --filter @glyphx/web dev
-//   3. Playwright:  pnpm add -D playwright && pnpm exec playwright install chromium
+//   2. The dev server running WITH the write flag:
+//        MIRROR_WRITE=1 pnpm --filter @glyphx/web dev
+//   3. puppeteer-core + a Chrome/Chromium on PATH (CI runners ship Chrome):
+//        pnpm add -D puppeteer-core
 //
 // Usage:
-//   CAPTURE_BASE_URL=http://localhost:5173 node scripts/dev/capture-texlive-base.mjs
+//   CAPTURE_BASE_URL=http://localhost:5173 \
+//   CHROME_PATH=/usr/bin/google-chrome \
+//   node scripts/dev/capture-texlive-base.mjs
 
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const BASE_URL = (process.env.CAPTURE_BASE_URL || 'http://localhost:5173').replace(/\/$/, '');
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MIRROR_DIR = join(repoRoot, 'apps/web/static/texmirror');
 
-let chromium;
-try {
-	({ chromium } = await import('playwright'));
-} catch {
-	process.stderr.write(
-		'Playwright is not installed. Run:\n' +
-			'  pnpm add -D playwright && pnpm exec playwright install chromium\n'
-	);
+// The machine's Chrome — never downloaded. CI runners ship Google Chrome.
+const executablePath = [
+	process.env.CHROME_PATH,
+	'/usr/bin/google-chrome',
+	'/usr/bin/google-chrome-stable',
+	'/usr/bin/chromium-browser',
+	'/usr/bin/chromium',
+	'C:/Program Files/Google/Chrome/Application/chrome.exe',
+	'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
+].find((p) => p && existsSync(p));
+
+if (!executablePath) {
+	process.stderr.write('No Chrome/Chromium found — set CHROME_PATH to its executable.\n');
 	process.exit(1);
 }
 
-const saved = new Map(); // mirror-relative path -> byte length
-const pending = [];
+let puppeteer;
+try {
+	puppeteer = (await import('puppeteer-core')).default;
+} catch {
+	process.stderr.write('puppeteer-core is not installed. Run:  pnpm add -D puppeteer-core\n');
+	process.exit(1);
+}
 
-const browser = await chromium.launch();
-const page = await browser.newPage();
-
-page.on('response', (resp) => {
-	pending.push(
-		(async () => {
-			try {
-				const url = new URL(resp.url());
-				if (!url.pathname.includes('/pdftex/') || resp.status() !== 200) return;
-				// `/texlive/pdftex/10/foo` -> `pdftex/10/foo`
-				const rel = url.pathname.replace(/^\/texlive\//, '').replace(/^\//, '');
-				if (saved.has(rel)) return;
-				const buf = await resp.body();
-				if (!buf?.length) return;
-				saved.set(rel, buf.length);
-				const dest = join(MIRROR_DIR, ...rel.split('/'));
-				mkdirSync(dirname(dest), { recursive: true });
-				writeFileSync(dest, buf);
-				process.stdout.write(`  + ${rel} (${(buf.length / 1024).toFixed(0)} KB)\n`);
-			} catch {
-				/* skip an individual file we couldn't read */
-			}
-		})()
-	);
+const browser = await puppeteer.launch({
+	executablePath,
+	headless: true,
+	args: ['--no-sandbox', '--disable-setuid-sandbox']
 });
 
-process.stdout.write(`Opening ${BASE_URL}/editor …\n`);
-await page.goto(`${BASE_URL}/editor`, { waitUntil: 'domcontentloaded' });
-
-// Drive the first-run install dialog: it compiles the format + each package
-// group, which is exactly the base bundle we want to capture.
-const installBtn = page.getByRole('button', { name: /download & install/i });
-await installBtn.waitFor({ state: 'visible', timeout: 30_000 });
-process.stdout.write('Running install (this pulls the format + packages — can take a few minutes)…\n');
-await installBtn.click();
-
-// Wait until the engine reports ready (install completed). The format is ~10 MB
-// and proxied from upstream in dev, so allow a generous timeout.
 try {
+	const page = await browser.newPage();
+	page.on('console', (m) => {
+		if (m.type() === 'error') process.stderr.write(`  [page] ${m.text()}\n`);
+	});
+
+	process.stdout.write(`Opening ${BASE_URL}/editor …\n`);
+	await page.goto(`${BASE_URL}/editor`, { waitUntil: 'domcontentloaded' });
+
+	// Click the install dialog's "Download & install" (located by visible text,
+	// so it survives markup changes better than a brittle selector).
+	const clickInstall = () =>
+		page.evaluate(() => {
+			const btn = [...document.querySelectorAll('button')].find((b) =>
+				/download & install/i.test(b.textContent || '')
+			);
+			if (!btn) return false;
+			btn.click();
+			return true;
+		});
+
+	await page.waitForFunction(
+		() =>
+			[...document.querySelectorAll('button')].some((b) =>
+				/download & install/i.test(b.textContent || '')
+			),
+		{ timeout: 30_000 }
+	);
+	if (!(await clickInstall())) throw new Error('Install button not found.');
+	process.stdout.write('Running install (pulls format + packages — can take a few minutes)…\n');
+
+	// Wait until the engine reports ready (install finished). The route writes
+	// each fetched file to the mirror as it streams.
 	await page.waitForFunction(() => localStorage.getItem('glyphx:web-engine-ready') === '1', {
 		timeout: 8 * 60_000
 	});
-} catch {
-	process.stderr.write(
-		'Install did not finish in time — is an upstream reachable? Capturing what we got.\n'
-	);
+	// Let trailing writes flush.
+	await new Promise((r) => setTimeout(r, 2_000));
+} finally {
+	await browser.close();
 }
 
-// Let any trailing responses land, then flush all writes.
-await page.waitForTimeout(2_000);
-await Promise.all(pending);
-await browser.close();
+// Report what the route wrote.
+let count = 0;
+let bytes = 0;
+const walk = (dir) => {
+	for (const name of existsSync(dir) ? readdirSync(dir) : []) {
+		const p = join(dir, name);
+		const s = statSync(p);
+		if (s.isDirectory()) walk(p);
+		else {
+			count += 1;
+			bytes += s.size;
+		}
+	}
+};
+walk(MIRROR_DIR);
 
-const totalKB = [...saved.values()].reduce((a, b) => a + b, 0) / 1024;
 process.stdout.write(
-	`\nCaptured ${saved.size} file(s), ${(totalKB / 1024).toFixed(1)} MB → ${MIRROR_DIR}\n` +
-		'Commit static/texmirror/ (consider Git LFS for the format). Anything not in the\n' +
-		'bundle still falls back to your upstream / texlyre and is cached at the edge.\n'
+	`\nMirror now holds ${count} file(s), ${(bytes / 1e6).toFixed(1)} MB → ${MIRROR_DIR}\n` +
+		'Commit static/texmirror/ (Git LFS recommended for the ~10 MB format).\n'
 );
-
-if (saved.size === 0) process.exit(1);
+if (count === 0) {
+	process.stderr.write('No files captured — did the dev server run with MIRROR_WRITE=1?\n');
+	process.exit(1);
+}
