@@ -22,10 +22,15 @@
    ============================================================================ */
 
 /* Self-hosted variable fonts — bundled, so they work fully offline.
-   Geist (UI + display) + Geist Mono (the technical voice). JetBrains Mono is
-   retained for the CodeMirror editor surface only. */
+   Geist (UI + body workhorse) + Geist Mono (the technical voice). Fraunces is
+   the editorial serif display voice — reserved for marketing headline moments
+   (`.font-serif`), never the app chrome. JetBrains Mono is retained for the
+   CodeMirror editor surface only. The Fraunces `full` axes (opsz + SOFT + wght)
+   give it its warm, rounded, magazine-like character. */
 @import '@fontsource-variable/geist/index.css';
 @import '@fontsource-variable/geist-mono/index.css';
+@import '@fontsource-variable/fraunces/full.css';
+@import '@fontsource-variable/fraunces/full-italic.css';
 @import '@fontsource-variable/jetbrains-mono/index.css';
 
 @import 'tailwindcss';
@@ -44,27 +49,27 @@
    --------------------------------------------------------------------------- */
 :root {
 	
-	/* Surfaces: near-white paper floor, pure-white cards, an elevated surface,
-	   near-black ink. */
-	--background: #fafbfc;
-	--foreground: #18181b;
+	/* Surfaces: warm stone paper floor, pure-white cards, an elevated surface,
+	   warm charcoal ink (editorial register — autosend stone, not cool zinc). */
+	--background: #fafaf9;
+	--foreground: #292524;
 	--card: #ffffff;
-	--card-foreground: #18181b;
-	--surface: #f8fafc;
+	--card-foreground: #292524;
+	--surface: #f7f6f4;
 	--popover: #ffffff;
-	--popover-foreground: #18181b;
+	--popover-foreground: #292524;
 
-	/* Primary = ink (graphite). The monochrome emphasis voice (NOT the brand). */
-	--primary: #0a0a0c;
-	--primary-foreground: #fafafa;
+	/* Primary = ink (warm stone-black). The monochrome emphasis voice (NOT the brand). */
+	--primary: #1c1917;
+	--primary-foreground: #fafaf9;
 
-	/* Neutral ladder — quiet graphite/zinc greys; accent is a warm hover surface. */
-	--secondary: #f4f4f5;
-	--secondary-foreground: #18181b;
-	--muted: #f4f4f5;
-	--muted-foreground: #6b6b75;
-	--accent: #ece9e2; /* shadcn hover/surface neutral — deliberately NOT brand */
-	--accent-foreground: #18181b;
+	/* Neutral ladder — warm stone greys; accent is the stone hover/border surface. */
+	--secondary: #f0eeec;
+	--secondary-foreground: #292524;
+	--muted: #f0eeec;
+	--muted-foreground: #79716b;
+	--accent: #e7e5e4; /* warm stone hover/surface neutral — deliberately NOT brand */
+	--accent-foreground: #292524;
 
 	/* Status — error / warning / success stay distinct from the brand blue. */
 	--destructive: #ef4444;
@@ -76,19 +81,19 @@
 	--info: #007acc;
 	--info-foreground: #ffffff;
 
-	/* Lines & focus — translucent ink hairlines; the focus ring is brand blue. */
-	--border: rgb(9 9 11 / 0.08);
-	--input: rgb(9 9 11 / 0.12);
+	/* Lines & focus — warm translucent ink hairlines; the focus ring is brand blue. */
+	--border: rgb(41 37 36 / 0.1);
+	--input: rgb(41 37 36 / 0.14);
 	--ring: #007acc;
 
-	/* Sidebar (one quiet step off the canvas). */
-	--sidebar: #f4f4f5;
-	--sidebar-foreground: #3f3f46;
-	--sidebar-primary: #0a0a0c;
-	--sidebar-primary-foreground: #fafafa;
-	--sidebar-accent: #ece9e2;
-	--sidebar-accent-foreground: #18181b;
-	--sidebar-border: rgb(9 9 11 / 0.08);
+	/* Sidebar (one quiet warm step off the canvas). */
+	--sidebar: #f5f4f2;
+	--sidebar-foreground: #44403c;
+	--sidebar-primary: #1c1917;
+	--sidebar-primary-foreground: #fafaf9;
+	--sidebar-accent: #e7e5e4;
+	--sidebar-accent-foreground: #292524;
+	--sidebar-border: rgb(41 37 36 / 0.08);
 	--sidebar-ring: #007acc;
 
 	/* Charts — brand blue + a graphite ramp. */
@@ -107,22 +112,24 @@
 	   Never use gradients in general application UI (see DESIGN.md). */
 	--brand-gradient: linear-gradient(135deg, #1f9cf0 0%, #007acc 55%, #1177bb 100%);
 
-	/* Marketing surface mirrors (landing layer). */
-	--canvas: #fafbfc;
-	--surface-soft: #f4f4f5;
+	/* Marketing surface mirrors (landing layer) — warm stone, autosend editorial.
+	   Hairlines here are SOLID warm lines (#E7E5E4), so the landing reads as a
+	   crisp structural grid rather than scattered translucent hairlines. */
+	--canvas: #fafaf9;
+	--surface-soft: #f0eeec;
 	--surface-card: #ffffff;
-	--surface-strong: #e8e8ea;
+	--surface-strong: #e7e5e4;
 	/* Surface-lift scale (trace-mvp): canvas → surface-1 → surface-2 (lift, not
 	   opacity). `inverse-canvas` is the polarity-flipped CTA surface. */
-	--surface-1: #f4f4f5;
-	--surface-2: #e8e8ea;
-	--inverse-canvas: #0a0a0c;
-	--ink: #0a0a0c;
-	--ink-body: #3f3f46;
-	--ink-muted: #6b6b75;
-	--hairline: rgb(9 9 11 / 0.08);
-	--hairline-soft: rgb(9 9 11 / 0.05);
-	--border-subtle: rgb(9 9 11 / 0.05);
+	--surface-1: #f5f4f2;
+	--surface-2: #e7e5e4;
+	--inverse-canvas: #1c1917;
+	--ink: #1c1917;
+	--ink-body: #44403c;
+	--ink-muted: #79716b;
+	--hairline: #e7e5e4;
+	--hairline-soft: #efedeb;
+	--border-subtle: #efedeb;
 
 	/* Base radius — crisp, not pill. Component scale derives from this. */
 	--radius: 0.625rem;
@@ -159,25 +166,25 @@
    Dark — deep graphite night (graphite, not navy — DESIGN.md)
    --------------------------------------------------------------------------- */
 .dark {
-	/* Graphite night — graphite-950 floor, graphite-900 cards, graphite-800
-	   elevated surface. Graphite, not navy. */
-	--background: #0a0a0c;
-	--foreground: #ebebeb;
-	--card: #141418;
-	--card-foreground: #ebebeb;
-	--surface: #1c1c22;
-	--popover: #16161a;
-	--popover-foreground: #ebebeb;
+	/* Warm graphite night — warm stone-black floor, warm graphite cards and
+	   elevated surface. Graphite, not navy; warm, not cool. */
+	--background: #0c0b0a;
+	--foreground: #ece9e6;
+	--card: #1a1816;
+	--card-foreground: #ece9e6;
+	--surface: #232020;
+	--popover: #1a1816;
+	--popover-foreground: #ece9e6;
 
-	--primary: #f4f4f5;
-	--primary-foreground: #0a0a0c;
+	--primary: #f5f3f0;
+	--primary-foreground: #0c0b0a;
 
-	--secondary: #1a1a1f;
-	--secondary-foreground: #ebebeb;
-	--muted: #16161a;
-	--muted-foreground: #9a9aa3;
-	--accent: #1f1f25;
-	--accent-foreground: #ebebeb;
+	--secondary: #211e1c;
+	--secondary-foreground: #ece9e6;
+	--muted: #1c1a18;
+	--muted-foreground: #a8a29b;
+	--accent: #292523;
+	--accent-foreground: #ece9e6;
 
 	--destructive: #f87171;
 	--destructive-foreground: #1a0e0c;
@@ -188,18 +195,18 @@
 	--info: #1f9cf0;
 	--info-foreground: #04121f;
 
-	--border: rgb(255 255 255 / 0.08);
-	--input: rgb(255 255 255 / 0.12);
+	--border: rgb(245 240 235 / 0.09);
+	--input: rgb(245 240 235 / 0.13);
 	--ring: #1f9cf0;
 
-	/* Sidebar one quiet step off the floor. */
-	--sidebar: #0c0c0f;
-	--sidebar-foreground: #c8c8cf;
-	--sidebar-primary: #f4f4f5;
-	--sidebar-primary-foreground: #0a0a0c;
-	--sidebar-accent: #1f1f25;
-	--sidebar-accent-foreground: #ebebeb;
-	--sidebar-border: rgb(255 255 255 / 0.07);
+	/* Sidebar one quiet warm step off the floor. */
+	--sidebar: #0e0d0b;
+	--sidebar-foreground: #cdc8c2;
+	--sidebar-primary: #f5f3f0;
+	--sidebar-primary-foreground: #0c0b0a;
+	--sidebar-accent: #292523;
+	--sidebar-accent-foreground: #ece9e6;
+	--sidebar-border: rgb(245 240 235 / 0.07);
 	--sidebar-ring: #1f9cf0;
 
 	--chart-1: #1f9cf0;
@@ -213,19 +220,19 @@
 	--brand-hover: #38b6ff;
 	--brand-subtle: rgb(31 156 240 / 0.12);
 
-	--canvas: #0a0a0c;
-	--surface-soft: #131316;
-	--surface-card: #16161a;
-	--surface-strong: #1f1f25;
-	--surface-1: #141418;
-	--surface-2: #1c1c22;
-	--inverse-canvas: #f4f4f5;
-	--ink: #ebebeb;
-	--ink-body: #c8c8cf;
-	--ink-muted: #9a9aa3;
-	--hairline: rgb(255 255 255 / 0.08);
-	--hairline-soft: rgb(255 255 255 / 0.05);
-	--border-subtle: rgb(255 255 255 / 0.05);
+	--canvas: #0c0b0a;
+	--surface-soft: #16140f;
+	--surface-card: #1a1816;
+	--surface-strong: #292523;
+	--surface-1: #1a1816;
+	--surface-2: #232020;
+	--inverse-canvas: #f5f3f0;
+	--ink: #ece9e6;
+	--ink-body: #cdc8c2;
+	--ink-muted: #a8a29b;
+	--hairline: rgb(245 240 235 / 0.1);
+	--hairline-soft: rgb(245 240 235 / 0.06);
+	--border-subtle: rgb(245 240 235 / 0.06);
 }
 
 /* ---------------------------------------------------------------------------
@@ -319,6 +326,11 @@
 	--font-display:
 		'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 		Roboto, sans-serif;
+	/* Editorial serif — warm, magazine-like display voice for marketing headline
+	   moments only (the autosend "Cooper Lt BT" register). Never app chrome. */
+	--font-serif:
+		'Fraunces Variable', 'Fraunces', 'Cooper Lt BT', Georgia, 'Times New Roman',
+		serif;
 	/* The technical voice — labels, code, metrics. */
 	--font-mono:
 		'Geist Mono Variable', 'Geist Mono', 'JetBrains Mono Variable',
@@ -385,6 +397,27 @@
 		font-family: var(--font-display);
 		font-weight: 600;
 		letter-spacing: -0.025em;
+	}
+
+	/* Editorial serif headlines (marketing) — Fraunces with the SOFT axis dialled
+	   up for warmth and a generous optical size. Light weight reads magazine-like,
+	   not corporate. Pair `italic` on emphasis words for the autosend hero look. */
+	.font-serif {
+		font-family: var(--font-serif);
+		font-weight: 400;
+		font-variation-settings:
+			'opsz' 144,
+			'SOFT' 40,
+			'WONK' 0;
+		letter-spacing: -0.01em;
+	}
+	.font-serif :global(em),
+	.font-serif em {
+		font-style: italic;
+		font-variation-settings:
+			'opsz' 144,
+			'SOFT' 50,
+			'WONK' 1;
 	}
 
 	/* Tabular numerals everywhere numbers carry meaning (metrics, line/col). */
