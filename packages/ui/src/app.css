@@ -3,14 +3,14 @@
    Single source of truth for tokens, consumed by every app via
    `@import '@glyphx/ui/app.css'`.
 
-   Identity: "editorial monochrome with a single rationed GlyphX blue."
-   Light is clean near-white paper (#FAFBFC); dark is a deep graphite night
-   (#0A0A0C) on graphite-900 cards — graphite, NOT navy (see DESIGN.md). Quiet
-   graphite/zinc greys carry the neutral ladder and muted text; ink (#0A0A0C)
-   is the primary voice; ONE rationed GlyphX blue accent (--brand #007ACC /
-   #1F9CF0) marks active / selected / focused / linked / branded. Target ~90%
-   neutral surfaces, ~10% brand. Restraint is the premium signal — colour is the
-   exception, never the rule.
+   Identity: "neutral monochrome with a single rationed GlyphX blue."
+   Both modes share ONE neutral greyscale: light is clean near-white (#FAFAFA)
+   on white cards; dark is a neutral near-black (#121212) on #191919 cards.
+   Neutral zinc greys carry the ladder + muted text; ink is the primary voice;
+   ONE rationed GlyphX blue accent (--brand #007ACC / #1F9CF0) marks active /
+   selected / focused / linked / branded. All colours are authored in oklch
+   (perceptually uniform, wide-gamut-ready). Target ~90% neutral surfaces, ~10%
+   brand. Restraint is the premium signal — colour is the exception, never the rule.
 
    Token registers:
    - Semantic tokens (--background, --primary, --muted, --border, …) drive the
@@ -49,87 +49,86 @@
    --------------------------------------------------------------------------- */
 :root {
 	
-	/* Surfaces: warm stone paper floor, pure-white cards, an elevated surface,
-	   warm charcoal ink (editorial register — autosend stone, not cool zinc). */
-	--background: #fafaf9;
-	--foreground: #292524;
-	--card: #ffffff;
-	--card-foreground: #292524;
-	--surface: #f7f6f4;
-	--popover: #ffffff;
-	--popover-foreground: #292524;
+	/* Surfaces: clean neutral near-white, pure-white cards, an elevated neutral
+	   surface, near-black neutral ink — one system with the neutral dark. */
+	--background: oklch(0.9851 0 0);
+	--foreground: oklch(0.2103 0.0059 285.89);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.2103 0.0059 285.89);
+	--surface: oklch(0.9674 0.0013 286.38);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.2103 0.0059 285.89);
 
-	/* Primary = ink (warm stone-black). The monochrome emphasis voice (NOT the brand). */
-	--primary: #1c1917;
-	--primary-foreground: #fafaf9;
+	/* Primary = ink (near-black neutral). The monochrome emphasis voice (NOT the brand). */
+	--primary: oklch(0.2103 0.0059 285.89);
+	--primary-foreground: oklch(0.9851 0 0);
 
-	/* Neutral ladder — warm stone greys; accent is the stone hover/border surface. */
-	--secondary: #f0eeec;
-	--secondary-foreground: #292524;
-	--muted: #f0eeec;
-	--muted-foreground: #79716b;
-	--accent: #e7e5e4; /* warm stone hover/surface neutral — deliberately NOT brand */
-	--accent-foreground: #292524;
+	/* Neutral ladder — clean zinc greys; accent is the neutral hover/surface. */
+	--secondary: oklch(0.9674 0.0013 286.38);
+	--secondary-foreground: oklch(0.2103 0.0059 285.89);
+	--muted: oklch(0.9674 0.0013 286.38);
+	--muted-foreground: oklch(0.5517 0.0138 285.94);
+	--accent: oklch(0.9674 0.0013 286.38); /* neutral hover/surface — deliberately NOT brand */
+	--accent-foreground: oklch(0.2103 0.0059 285.89);
 
 	/* Status — error / warning / success stay distinct from the brand blue. */
-	--destructive: #ef4444;
-	--destructive-foreground: #ffffff;
-	--success: #10b981;
-	--success-foreground: #ffffff;
-	--warning: #f59e0b;
-	--warning-foreground: #ffffff;
-	--info: #007acc;
-	--info-foreground: #ffffff;
+	--destructive: oklch(0.6368 0.2078 25.33);
+	--destructive-foreground: oklch(1 0 0);
+	--success: oklch(0.6959 0.1491 162.48);
+	--success-foreground: oklch(1 0 0);
+	--warning: oklch(0.7686 0.1647 70.08);
+	--warning-foreground: oklch(1 0 0);
+	--info: oklch(0.567 0.1546 248.52);
+	--info-foreground: oklch(1 0 0);
 
-	/* Lines & focus — warm translucent ink hairlines; the focus ring is brand blue. */
-	--border: rgb(41 37 36 / 0.1);
-	--input: rgb(41 37 36 / 0.14);
-	--ring: #007acc;
+	/* Lines & focus — neutral hairlines; the focus ring is brand blue. */
+	--border: oklch(0.9197 0.004 286.32);
+	--input: oklch(0.9197 0.004 286.32);
+	--ring: oklch(0.567 0.1546 248.52);
 
-	/* Sidebar (one quiet warm step off the canvas). */
-	--sidebar: #f5f4f2;
-	--sidebar-foreground: #44403c;
-	--sidebar-primary: #1c1917;
-	--sidebar-primary-foreground: #fafaf9;
-	--sidebar-accent: #e7e5e4;
-	--sidebar-accent-foreground: #292524;
-	--sidebar-border: rgb(41 37 36 / 0.08);
-	--sidebar-ring: #007acc;
+	/* Sidebar (one quiet neutral step off the canvas). */
+	--sidebar: oklch(0.9674 0.0013 286.38);
+	--sidebar-foreground: oklch(0.3703 0.0119 285.81);
+	--sidebar-primary: oklch(0.2103 0.0059 285.89);
+	--sidebar-primary-foreground: oklch(0.9851 0 0);
+	--sidebar-accent: oklch(0.9674 0.0013 286.38);
+	--sidebar-accent-foreground: oklch(0.2103 0.0059 285.89);
+	--sidebar-border: oklch(0.9197 0.004 286.32);
+	--sidebar-ring: oklch(0.567 0.1546 248.52);
 
-	/* Charts — brand blue + a graphite ramp. */
-	--chart-1: #007acc;
-	--chart-2: #18181b;
-	--chart-3: #6b6b75;
-	--chart-4: #9a9aa3;
-	--chart-5: #1f9cf0;
+	/* Charts — brand blue + a neutral ramp. */
+	--chart-1: oklch(0.567 0.1546 248.52);
+	--chart-2: oklch(0.2103 0.0059 285.89);
+	--chart-3: oklch(0.5517 0.0138 285.94);
+	--chart-4: oklch(0.7118 0.0129 286.07);
+	--chart-5: oklch(0.6696 0.1602 245.24);
 
 	/* ---- The single brand accent — GlyphX blue, used sparingly. ---- */
-	--brand: #007acc;
-	--brand-foreground: #ffffff;
-	--brand-hover: #1177bb;
-	--brand-subtle: rgb(0 122 204 / 0.08);
+	--brand: oklch(0.567 0.1546 248.52);
+	--brand-foreground: oklch(1 0 0);
+	--brand-hover: oklch(0.551 0.1351 245.69);
+	--brand-subtle: oklch(0.567 0.1546 248.52 / 0.08);
 	/* Official brand gradient — logo / app icon / hero illustrations ONLY.
 	   Never use gradients in general application UI (see DESIGN.md). */
 	--brand-gradient: linear-gradient(135deg, #1f9cf0 0%, #007acc 55%, #1177bb 100%);
 
-	/* Marketing surface mirrors (landing layer) — warm stone, autosend editorial.
-	   Hairlines here are SOLID warm lines (#E7E5E4), so the landing reads as a
-	   crisp structural grid rather than scattered translucent hairlines. */
-	--canvas: #fafaf9;
-	--surface-soft: #f0eeec;
-	--surface-card: #ffffff;
-	--surface-strong: #e7e5e4;
+	/* Marketing surface mirrors (landing layer) — neutral; hairlines are SOLID
+	   neutral lines so the landing reads as a crisp structural grid. */
+	--canvas: oklch(0.9851 0 0);
+	--surface-soft: oklch(0.9674 0.0013 286.38);
+	--surface-card: oklch(1 0 0);
+	--surface-strong: oklch(0.9197 0.004 286.32);
 	/* Surface-lift scale (trace-mvp): canvas → surface-1 → surface-2 (lift, not
 	   opacity). `inverse-canvas` is the polarity-flipped CTA surface. */
-	--surface-1: #f5f4f2;
-	--surface-2: #e7e5e4;
-	--inverse-canvas: #1c1917;
-	--ink: #1c1917;
-	--ink-body: #44403c;
-	--ink-muted: #79716b;
-	--hairline: #e7e5e4;
-	--hairline-soft: #efedeb;
-	--border-subtle: #efedeb;
+	--surface-1: oklch(0.9674 0.0013 286.38);
+	--surface-2: oklch(0.9349 0.004 286.32);
+	--inverse-canvas: oklch(0.2103 0.0059 285.89);
+	--ink: oklch(0.2103 0.0059 285.89);
+	--ink-body: oklch(0.3703 0.0119 285.81);
+	--ink-muted: oklch(0.5517 0.0138 285.94);
+	--hairline: oklch(0.9197 0.004 286.32);
+	--hairline-soft: oklch(0.9527 0.0027 286.35);
+	--border-subtle: oklch(0.9527 0.0027 286.35);
 
 	/* Base radius — crisp, not pill. Component scale derives from this. */
 	--radius: 0.625rem;
@@ -163,77 +162,78 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Dark — deep graphite night (graphite, not navy — DESIGN.md)
+   Dark — neutral near-black (clean greys; brand blue is the only hue)
    --------------------------------------------------------------------------- */
 .dark {
-	/* Warm editorial night — a lifted warm-charcoal floor (NOT cold black) with
-	   cream ink, so dark mode reads as the same warm paper, dimmed — the sibling
-	   of the stone light mode, not an inverted flip. Warm, never sepia/muddy. */
-	--background: #1b1713;
-	--foreground: #ede7dd;
-	--card: #231e18;
-	--card-foreground: #ede7dd;
-	--surface: #2b251e;
-	--popover: #231e18;
-	--popover-foreground: #ede7dd;
+	/* Neutral night — a clean near-black neutral palette (adopted from the
+	   college-ecosystem dark tokens): pure greys, cool muted text. GlyphX blue
+	   and the semantic status colours stay as the only hues. */
+	--background: oklch(0.1822 0 0);
+	--foreground: oklch(0.9401 0 0);
+	--card: oklch(0.2134 0 0);
+	--card-foreground: oklch(0.9401 0 0);
+	--surface: oklch(0.235 0 0);
+	--popover: oklch(0.2134 0 0);
+	--popover-foreground: oklch(0.9401 0 0);
 
-	--primary: #ede7dd;
-	--primary-foreground: #1b1713;
+	/* Primary = ink emphasis (near-white). The brand stays blue, in --brand. */
+	--primary: oklch(0.9461 0 0);
+	--primary-foreground: oklch(0.1822 0 0);
 
-	--secondary: #272118;
-	--secondary-foreground: #ede7dd;
-	--muted: #241f18;
-	--muted-foreground: #a99f90;
-	--accent: #312b23;
-	--accent-foreground: #ede7dd;
+	--secondary: oklch(0.2739 0.0055 286.03);
+	--secondary-foreground: oklch(0.9851 0 0);
+	--muted: oklch(0.2393 0 0);
+	--muted-foreground: oklch(0.7137 0.0192 261.32);
+	--accent: oklch(0.2739 0.0055 286.03);
+	--accent-foreground: oklch(0.9401 0 0);
 
-	--destructive: #f87171;
-	--destructive-foreground: #1a0e0c;
-	--success: #34d399;
-	--success-foreground: #07140c;
-	--warning: #fbbf24;
-	--warning-foreground: #1b1607;
-	--info: #1f9cf0;
-	--info-foreground: #04121f;
+	--destructive: oklch(0.7106 0.1661 22.22);
+	--destructive-foreground: oklch(0.1799 0.0212 29.75);
+	--success: oklch(0.7729 0.1535 163.22);
+	--success-foreground: oklch(0.1759 0.0253 156.26);
+	--warning: oklch(0.8369 0.1644 84.43);
+	--warning-foreground: oklch(0.2018 0.0279 91.71);
+	--info: oklch(0.6696 0.1602 245.24);
+	--info-foreground: oklch(0.1767 0.0343 246.52);
 
-	--border: rgb(237 231 221 / 0.1);
-	--input: rgb(237 231 221 / 0.14);
-	--ring: #1f9cf0;
+	--border: oklch(0.2603 0 0);
+	--input: oklch(1 0 0 / 0.15);
+	--ring: oklch(0.6696 0.1602 245.24);
 
-	/* Sidebar one quiet warm step off the floor. */
-	--sidebar: #171410;
-	--sidebar-foreground: #cabfae;
-	--sidebar-primary: #ede7dd;
-	--sidebar-primary-foreground: #1b1713;
-	--sidebar-accent: #312b23;
-	--sidebar-accent-foreground: #ede7dd;
-	--sidebar-border: rgb(237 231 221 / 0.08);
-	--sidebar-ring: #1f9cf0;
+	/* Sidebar one quiet step off the floor. */
+	--sidebar: oklch(0.2002 0 0);
+	--sidebar-foreground: oklch(0.8328 0 0);
+	--sidebar-primary: oklch(0.9461 0 0);
+	--sidebar-primary-foreground: oklch(0.1822 0 0);
+	--sidebar-accent: oklch(0.2739 0.0055 286.03);
+	--sidebar-accent-foreground: oklch(0.9401 0 0);
+	--sidebar-border: oklch(0.2603 0 0);
+	--sidebar-ring: oklch(0.6696 0.1602 245.24);
 
-	--chart-1: #1f9cf0;
-	--chart-2: #ebebeb;
-	--chart-3: #9a9aa3;
-	--chart-4: #5d5d68;
-	--chart-5: #38b6ff;
+	--chart-1: oklch(0.6696 0.1602 245.24);
+	--chart-2: oklch(0.9401 0 0);
+	--chart-3: oklch(0.7137 0.0192 261.32);
+	--chart-4: oklch(0.4823 0.0175 285.73);
+	--chart-5: oklch(0.741 0.1499 239.59);
 
-	--brand: #1f9cf0;
-	--brand-foreground: #161109;
-	--brand-hover: #38b6ff;
-	--brand-subtle: rgb(31 156 240 / 0.14);
+	--brand: oklch(0.6696 0.1602 245.24);
+	--brand-foreground: oklch(0.1457 0.0043 285.86);
+	--brand-hover: oklch(0.741 0.1499 239.59);
+	--brand-subtle: oklch(0.6696 0.1602 245.24 / 0.14);
 
-	--canvas: #1b1713;
-	--surface-soft: #231e18;
-	--surface-card: #231e18;
-	--surface-strong: #312b23;
-	--surface-1: #231e18;
-	--surface-2: #2b251e;
-	--inverse-canvas: #ede7dd;
-	--ink: #ede7dd;
-	--ink-body: #cabfae;
-	--ink-muted: #a99f90;
-	--hairline: rgb(237 231 221 / 0.1);
-	--hairline-soft: rgb(237 231 221 / 0.06);
-	--border-subtle: rgb(237 231 221 / 0.06);
+	--canvas: oklch(0.1822 0 0);
+	--surface-soft: oklch(0.2134 0 0);
+	--surface-card: oklch(0.2134 0 0);
+	--surface-strong: oklch(0.2739 0.0055 286.03);
+	--surface-1: oklch(0.2134 0 0);
+	--surface-2: oklch(0.235 0 0);
+	--inverse-canvas: oklch(0.9461 0 0);
+	--ink: oklch(0.9401 0 0);
+	--ink-body: oklch(0.8328 0 0);
+	--ink-muted: oklch(0.7137 0.0192 261.32);
+	--hairline: oklch(0.2603 0 0);
+	--hairline-soft: oklch(0.2393 0 0);
+	--border-subtle: oklch(0.2393 0 0);
 }
 
 /* ---------------------------------------------------------------------------

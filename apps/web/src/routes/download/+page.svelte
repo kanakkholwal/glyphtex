@@ -11,6 +11,7 @@
 		IconBrandGithub,
 		IconBrandWindows,
 		IconCheck,
+		IconChevronDown,
 		IconCopy,
 		IconDownload,
 		IconInfoCircle,
@@ -249,8 +250,14 @@
 	<SiteHeader />
 
 	<!-- Hero -->
-	<section class="relative">
+	<section class="relative overflow-hidden">
 		<FloatingGlyphs />
+		<!-- soft brand glow behind the headline (matches the home hero) -->
+		<div
+			class="pointer-events-none absolute top-[-14%] left-1/2 -z-0 h-[420px] w-[760px] max-w-[92vw] -translate-x-1/2 rounded-full opacity-60 blur-[130px]"
+			style="background: radial-gradient(closest-side, var(--brand-subtle), transparent);"
+			aria-hidden="true"
+		></div>
 		<div class="relative mx-auto max-w-[1140px] px-5 sm:px-6">
 			<div class="flex flex-col items-center pt-24 pb-16 text-center sm:pt-32 sm:pb-24">
 				<!-- Hero rendered visible by default (no Reveal gate) — it's the LCP
@@ -430,9 +437,11 @@
 					<span class="text-muted-foreground ml-auto hidden font-mono text-xs sm:block">
 						{macSteps.length} steps
 					</span>
-					<IconArrowRight
-						class="chev text-muted-foreground size-4 shrink-0 rotate-90 transition-transform"
-					/>
+					<span
+						class="border-hairline text-muted-foreground chev grid size-7 shrink-0 place-items-center rounded-lg border transition-transform duration-300"
+					>
+						<IconChevronDown class="size-4" />
+					</span>
 				</summary>
 
 				<div class="border-hairline border-t px-6 py-6">
@@ -503,23 +512,30 @@
 	</section>
 
 	<!-- What's inside + verify — tonal band -->
-	<section class="bg-surface-soft mt-8">
+	<section class="bg-surface-soft relative mt-8 overflow-hidden">
+		<div
+			class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-56"
+			style="background: linear-gradient(to bottom, var(--canvas), transparent);"
+			aria-hidden="true"
+		></div>
 		<div class="mx-auto max-w-[1140px] px-5 py-16 sm:px-6 sm:py-24">
 			<div class="grid gap-12 lg:grid-cols-2">
 				<Reveal variant="up">
-					<span
-						class="text-muted-foreground inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.18em] uppercase"
-					>
+					<span class="text-brand font-mono text-[11px] font-semibold tracking-[0.2em] uppercase">
 						What is in the download
 					</span>
-					<h2 class="font-serif mt-5 text-2xl sm:text-3xl">
+					<h2 class="font-serif mt-4 text-3xl sm:text-4xl sm:leading-[1.08]">
 						One app. <em>Nothing else to set up.</em>
 					</h2>
-					<ul class="mt-6 flex flex-col gap-3">
+					<ul class="mt-7 flex flex-col gap-3.5">
 						{#each included as line (line)}
-							<li class="text-muted-foreground flex items-start gap-3 text-sm leading-relaxed">
-								<IconCheck class="text-brand mt-0.5 size-4 shrink-0" />
-								<span>{line}</span>
+							<li class="flex items-start gap-3">
+								<span
+									class="bg-brand-subtle text-brand mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg"
+								>
+									<IconCheck class="size-4" />
+								</span>
+								<span class="text-muted-foreground pt-1 text-sm leading-relaxed">{line}</span>
 							</li>
 						{/each}
 					</ul>

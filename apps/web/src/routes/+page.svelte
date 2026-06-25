@@ -13,6 +13,7 @@
 		IconBolt,
 		IconBrandDropbox,
 		IconCheck,
+		IconChevronDown,
 		IconCloud,
 		IconCpu,
 		IconDownload,
@@ -25,7 +26,6 @@
 		IconMinus,
 		IconPlayerPlay,
 		IconShare,
-		IconSparkles,
 		IconStar,
 		IconWifiOff
 	} from '@tabler/icons-svelte';
@@ -128,83 +128,23 @@
 		{ icon: IconFolder, label: 'Overleaf projects', note: 'Drop the folder' }
 	];
 
-	// Recurring Overleaf frustrations, paraphrased from what people actually hit.
-	// Reframed as a "Junk" folder: the cloud's interruptions as unwanted mail you
-	// can't unsubscribe from. `tone` colors the severity; `tag` is the label.
-	type Tone = 'red' | 'amber' | 'muted';
-	type Junk = {
-		from: string;
-		subject: string;
-		preview: string;
-		tone: Tone;
-		icon: typeof IconLock;
-		tag: string;
-		time: string;
-	};
-	const junk: Junk[] = [
-		{
-			from: 'Overleaf Billing',
-			subject: 'Compile timed out.',
-			preview:
-				'On the free plan a long chapter can stop building right when you need the PDF most.',
-			tone: 'red',
-			icon: IconAlertTriangle,
-			tag: 'free tier',
-			time: 'just now'
-		},
-		{
-			from: 'Overleaf Premium',
-			subject: 'Upgrade to keep working.',
-			preview: 'More collaborators, Git, and Dropbox sync all sit behind the paid tier.',
-			tone: 'amber',
-			icon: IconLock,
-			tag: 'paywall',
-			time: '4 min'
-		},
-		{
-			from: 'Overleaf Premium',
-			subject: 'Where did my history go?',
-			preview:
-				'Full version history is a premium feature, so a free account only sees so far back.',
-			tone: 'amber',
-			icon: IconLock,
-			tag: 'paywall',
-			time: '1 hr'
-		},
-		{
-			from: 'The server',
-			subject: 'Why is the editor lagging?',
-			preview: 'Long documents get sluggish because every keystroke round trips through a server.',
-			tone: 'red',
-			icon: IconAlertTriangle,
-			tag: 'round trip',
-			time: '3 hr'
-		},
-		{
-			from: 'Their servers',
-			subject: 'Is my draft actually private?',
-			preview: 'Your unpublished work lives on infrastructure you do not own or control.',
-			tone: 'amber',
-			icon: IconAlertTriangle,
-			tag: 'privacy',
-			time: 'yesterday'
-		},
-		{
-			from: 'No connection',
-			subject: 'I have no signal.',
-			preview: 'No connection means no editor, even if all you wanted was to fix one line.',
-			tone: 'muted',
-			icon: IconWifiOff,
-			tag: 'offline',
-			time: 'yesterday'
-		}
+	// Recurring Overleaf frustrations, paraphrased from what people actually hit,
+	// rendered as a console log of "cloud errors" that GlyphX clears to zero —
+	// the same shape as the editor's own Problems panel.
+	type LogLevel = 'ERROR' | 'WARN';
+	type LogLine = { time: string; level: LogLevel; msg: string };
+	const cloudLog: LogLine[] = [
+		{ time: '14:02', level: 'ERROR', msg: 'compile timed out — free-tier limit reached' },
+		{ time: '14:03', level: 'WARN', msg: 'upgrade required to keep working' },
+		{ time: '14:04', level: 'WARN', msg: 'version history locked behind a paid plan' },
+		{ time: '14:06', level: 'ERROR', msg: 'editor lagging — every keystroke round-trips a server' },
+		{ time: '14:07', level: 'WARN', msg: 'draft stored on infrastructure you do not control' },
+		{ time: '14:09', level: 'ERROR', msg: 'no connection — the cloud editor is unavailable' }
 	];
-
-	// Tone -> avatar tint for the junk rows.
-	const toneClass: Record<Tone, string> = {
-		red: 'bg-destructive/10 text-destructive',
-		amber: 'bg-warning/10 text-warning',
-		muted: 'bg-muted text-muted-foreground'
+	// Log level → semantic status color (status tokens, not the brand accent).
+	const logLevelClass: Record<LogLevel, string> = {
+		ERROR: 'text-destructive',
+		WARN: 'text-warning'
 	};
 
 	// What stays local vs. what you reach through your own accounts.
@@ -322,6 +262,35 @@
 			q: 'Does it really work offline?',
 			a: 'On the desktop, yes. The editor and the engine both run on your machine, so a flaky connection or no connection at all does not stop you. The browser editor needs to be online the first time it fetches a package.'
 		}
+	];
+
+	// The "trifecta" — three pillars that orbit the one thing GlyphX is built on:
+	// your own machine. Rendered as a concentric diagram on desktop, stacked on
+	// mobile. Each maps to a deeper feature section below.
+	const pillars: { icon: typeof IconFileText; title: string; body: string }[] = [
+		{
+			icon: IconBolt,
+			title: 'Write & compile',
+			body: 'Real LaTeX with the engine running locally — no shared queue, no timeout.'
+		},
+		{
+			icon: IconGitBranch,
+			title: 'Version & privacy',
+			body: 'Built-in Git and drafts that never leave your disk unless you share them.'
+		},
+		{
+			icon: IconWifiOff,
+			title: 'Offline, always',
+			body: 'Editor and engine both run on your computer, online or not.'
+		}
+	];
+
+	// Absolute placement for the three trifecta nodes (top, bottom-left,
+	// bottom-right), index-aligned to `pillars`.
+	const pillarNodePos = [
+		'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2',
+		'bottom-[8%] left-[6%] -translate-x-1/4 translate-y-1/4',
+		'bottom-[8%] right-[6%] translate-x-1/4 translate-y-1/4'
 	];
 </script>
 
@@ -479,34 +448,46 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 		</div>
 	</section>
 
-	<!-- Trust strip -->
+	<!-- Logo / tech strip — the honest "works with" cloud (real LaTeX tooling, not
+	     invented customer logos), with the trust signals beneath it. -->
 	<Reveal as="section" variant="up" class="mt-16 sm:mt-20">
-		<div class="border-hairline mx-auto max-w-[1140px] border-y px-5 sm:px-6">
-			<div
-				class="text-muted-foreground grid grid-cols-2 gap-y-4 py-6 font-mono text-xs sm:grid-cols-4"
+		<div class="border-hairline mx-auto max-w-[1140px] border-y px-5 py-10 sm:px-6 sm:py-12">
+			<p
+				class="text-muted-foreground text-center font-mono text-[11px] font-semibold tracking-[0.2em] uppercase"
 			>
-				<span class="flex items-center gap-2"
-					><span class="bg-brand size-1.5 rounded-full"></span> Nothing uploaded</span
-				>
-				<span class="flex items-center gap-2"
-					><span class="bg-brand size-1.5 rounded-full"></span> Compiles locally</span
-				>
-				<span class="flex items-center gap-2"
-					><span class="bg-brand size-1.5 rounded-full"></span> No account</span
-				>
-				<span class="flex items-center gap-2"
-					><span class="bg-brand size-1.5 rounded-full"></span> Free and open source</span
-				>
+				Works with the LaTeX you already use
+			</p>
+			<div class="mt-7 flex flex-wrap items-center justify-center gap-x-10 gap-y-5">
+				{#each integrations as it (it.label)}
+					{@const Icon = it.icon}
+					<span
+						class="text-muted-foreground/90 inline-flex items-center gap-2 text-sm font-semibold tracking-tight"
+					>
+						<Icon class="size-[18px]" />
+						{it.label}
+					</span>
+				{/each}
+			</div>
+			<div
+				class="text-muted-foreground mt-9 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 font-mono text-xs"
+			>
+				{#each ['Nothing uploaded', 'Compiles locally', 'No account', 'Free and open source'] as t (t)}
+					<span class="flex items-center gap-2">
+						<span class="bg-brand size-1.5 rounded-full"></span>
+						{t}
+					</span>
+				{/each}
 			</div>
 		</div>
 	</Reveal>
 
 	<!-- ============================================================
-	     The problem
+	     The problem — a console of "cloud errors" that clears to zero,
+	     echoing the editor's own Problems panel.
 	     ============================================================ -->
 	<section class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
-		<div class="grid items-start gap-12 lg:grid-cols-[0.85fr_1.15fr]">
-			<Reveal variant="up" class="lg:sticky lg:top-28">
+		<div class="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+			<Reveal variant="up">
 				<span
 					class="text-muted-foreground font-mono text-[11px] font-semibold tracking-[0.2em] uppercase"
 				>
@@ -527,88 +508,77 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 				</p>
 			</Reveal>
 
-			<!-- iOS-style notification stack: each cloud interruption drops in and
-			     stacks, frosted over a soft wallpaper, with a staggered settle -->
-			<div class="relative">
-				<!-- soft "wallpaper" so the frosted cards have something to blur over -->
+			<!-- A log viewer: the cloud's recurring "errors", cleared by GlyphX to a
+			     single all-clear line — the same shape as the editor's Problems panel. -->
+			<Reveal variant="up" delay={80} class="relative">
 				<div
-					class="pointer-events-none absolute -inset-4 -z-10 overflow-hidden rounded-[2.25rem]"
+					class="pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] opacity-70 blur-3xl"
+					style="background: radial-gradient(60% 60% at 50% 30%, var(--brand-subtle), transparent 75%);"
 					aria-hidden="true"
+				></div>
+				<div
+					class="border-hairline bg-card shadow-craft-floating overflow-hidden rounded-2xl border"
 				>
-					<div
-						class="absolute inset-0"
-						style="background: radial-gradient(120% 85% at 50% 0%, var(--surface-soft), transparent 72%);"
-					></div>
-					<div
-						class="absolute -top-10 left-1/5 size-64 rounded-full opacity-70 blur-3xl"
-						style="background: radial-gradient(closest-side, var(--brand-subtle), transparent);"
-					></div>
-					<div
-						class="absolute right-2 -bottom-10 size-56 rounded-full opacity-60 blur-3xl"
-						style="background: radial-gradient(closest-side, var(--surface-2), transparent);"
-					></div>
-				</div>
-
-				<div class="flex flex-col gap-2.5">
-					{#each junk as m, i (m.subject)}
-						{@const Icon = m.icon}
-						<Reveal
-							as="div"
-							variant="down"
-							delay={i * 95}
-							class="border-hairline bg-card/70 shadow-craft-lg flex items-start gap-3 rounded-[1.4rem] border px-4 py-3.5 backdrop-blur-xl"
-						>
-							<span
-								class="grid size-9 shrink-0 place-items-center rounded-[0.6rem] {toneClass[m.tone]}"
-							>
-								<Icon class="size-[18px]" />
-							</span>
-							<div class="min-w-0 flex-1">
-								<div class="flex items-center gap-2">
-									<span
-										class="text-muted-foreground font-mono text-[10px] font-semibold tracking-[0.14em] uppercase"
-									>
-										{m.from}
-									</span>
-									<span class="text-muted-foreground ml-auto shrink-0 text-[11px]">{m.time}</span>
-								</div>
-								<p class="text-foreground mt-1 text-[15px] leading-snug font-semibold">
-									{m.subject}
-								</p>
-								<p class="text-muted-foreground mt-0.5 text-[13px] leading-snug">{m.preview}</p>
-							</div>
-						</Reveal>
-					{/each}
-
-					<!-- the one notification you actually want — GlyphX -->
-					<Reveal
-						as="div"
-						variant="down"
-						delay={junk.length * 95}
-						class="border-brand/20 bg-brand-subtle shadow-craft-lg flex items-start gap-3 rounded-[1.4rem] border px-4 py-3.5 backdrop-blur-xl"
-					>
+					<!-- window chrome -->
+					<div class="border-hairline flex items-center gap-2 border-b px-4 py-3">
+						<span class="bg-muted-foreground/30 size-2.5 rounded-full"></span>
+						<span class="bg-muted-foreground/30 size-2.5 rounded-full"></span>
+						<span class="bg-muted-foreground/30 size-2.5 rounded-full"></span>
+						<span class="text-muted-foreground ml-3 font-mono text-xs">cloud.log</span>
 						<span
-							class="bg-brand text-brand-foreground grid size-9 shrink-0 place-items-center rounded-[0.6rem]"
+							class="text-destructive border-destructive/30 bg-destructive/10 ml-auto inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider uppercase"
 						>
-							<IconCheck class="size-[18px]" />
+							<IconAlertTriangle class="size-3" />
+							{cloudLog.length} problems
 						</span>
-						<div class="min-w-0 flex-1">
-							<div class="flex items-center gap-2">
-								<span
-									class="text-brand font-mono text-[10px] font-semibold tracking-[0.14em] uppercase"
+					</div>
+
+					<!-- log body -->
+					<div
+						class="bg-canvas/40 px-4 py-3 font-mono text-[12.5px] leading-relaxed sm:px-5 sm:py-4"
+					>
+						{#each cloudLog as line, i (line.msg)}
+							<Reveal
+								as="div"
+								variant="up"
+								delay={i * 70}
+								class="flex items-baseline gap-2.5 py-1.5 sm:gap-3"
+							>
+								<span class="text-muted-foreground/60 shrink-0 tabular-nums">{line.time}</span>
+								<span class="{logLevelClass[line.level]} w-11 shrink-0 font-semibold"
+									>{line.level}</span
 								>
-									GlyphX
-								</span>
-								<span class="text-muted-foreground ml-auto shrink-0 text-[11px]">now</span>
-							</div>
-							<p class="text-foreground mt-1 text-[15px] leading-snug font-semibold">All clear.</p>
-							<p class="text-muted-foreground mt-0.5 text-[13px] leading-snug">
-								No cloud, so nothing to time out, upsell, or unsubscribe from.
-							</p>
+								<span class="text-foreground/75 min-w-0">{line.msg}</span>
+							</Reveal>
+						{/each}
+
+						<!-- the line where the noise stops -->
+						<div class="border-hairline mt-2 border-t pt-3">
+							<Reveal
+								as="div"
+								variant="up"
+								delay={cloudLog.length * 70}
+								class="flex items-baseline gap-2.5 py-0.5 sm:gap-3"
+							>
+								<span class="bg-brand size-1.5 shrink-0 translate-y-[-1px] rounded-full"></span>
+								<span class="text-brand shrink-0 font-semibold">glyphx&nbsp;▸</span>
+								<span class="text-foreground/90">0 problems · compiled on your device</span>
+							</Reveal>
 						</div>
-					</Reveal>
+					</div>
+
+					<!-- status bar -->
+					<div
+						class="border-hairline text-muted-foreground flex h-9 items-center gap-4 border-t px-4 font-mono text-[11px]"
+					>
+						<span class="text-brand flex items-center gap-1.5">
+							<span class="bg-brand size-1.5 rounded-full"></span> no cloud
+						</span>
+						<span class="hidden sm:inline">nothing to time out, upsell, or unsubscribe from</span>
+						<span class="ml-auto tabular-nums">offline</span>
+					</div>
 				</div>
-			</div>
+			</Reveal>
 		</div>
 	</section>
 
@@ -616,8 +586,34 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	     Feature sections: an eyebrow + editorial headline, a left
 	     capability list, and a framed product mount on a dark backdrop.
 	     ============================================================ -->
+	<!-- ============================================================
+	     The complete suite — intro framing for the two product modules
+	     ============================================================ -->
+	<section class="border-hairline relative overflow-hidden border-t">
+		<div
+			class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64"
+			style="background: linear-gradient(to bottom, var(--surface-soft), transparent);"
+			aria-hidden="true"
+		></div>
+		<div class="mx-auto max-w-[1140px] px-5 pt-20 pb-4 text-center sm:px-6 sm:pt-28">
+			<Reveal variant="up" class="mx-auto max-w-2xl">
+				<span class="text-brand font-mono text-[11px] font-semibold tracking-[0.2em] uppercase">
+					One app, the whole pipeline
+				</span>
+				<h2 class="font-serif mt-4 text-3xl sm:text-[2.7rem] sm:leading-[1.06]">
+					Everything to write, compile, and version — <em>in one place</em>.
+				</h2>
+				<p class="text-muted-foreground mt-4 text-lg leading-relaxed">
+					No stitched-together tools, no separate TeX install, no server in the loop. The editor,
+					the engine, and the version control all live in the same window.
+				</p>
+			</Reveal>
+		</div>
+	</section>
+
 	<div id="features">
-		{#each featureSections as sec (sec.eyebrow)}
+		{#each featureSections as sec, si (sec.eyebrow)}
+			{@const flip = si % 2 === 1}
 			<section class="border-hairline border-t">
 				<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
 					<Reveal variant="up">
@@ -633,9 +629,13 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 									{@html sec.headline}
 								</h2>
 							</div>
-							<!-- body: capability list + framed mount -->
+							<!-- body: capability list + framed mount (sides alternate per module) -->
 							<div class="border-hairline grid border-t lg:grid-cols-2">
-								<ul class="border-hairline border-b lg:border-r lg:border-b-0">
+								<ul
+									class="border-hairline border-b lg:border-b-0 {flip
+										? 'lg:order-last lg:border-l'
+										: 'lg:border-r'}"
+								>
 									{#each sec.items as it, ii (it.title)}
 										{@const Icon = it.icon}
 										<li
@@ -663,7 +663,9 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 								</ul>
 								<!-- framed product mount on a dark backdrop, bled to the bottom edge -->
 								<div
-									class="bg-primary relative flex min-h-[360px] items-end overflow-hidden p-6 pb-0 sm:min-h-[440px] sm:p-10 sm:pb-0"
+									class="bg-primary relative flex min-h-[360px] items-end overflow-hidden p-6 pb-0 sm:min-h-[440px] sm:p-10 sm:pb-0 {flip
+										? 'lg:order-first'
+										: ''}"
 								>
 									<div
 										class="pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -749,46 +751,144 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	</div>
 
 	<!-- ============================================================
-	     "Works with" grid (autosend integrations pattern) — tonal band
+	     The trifecta — three pillars orbiting your machine. Concentric
+	     diagram on desktop; a clean stack on mobile.
 	     ============================================================ -->
-	<section class="bg-surface-soft">
+	<section class="border-hairline relative overflow-hidden border-t">
+		<div
+			class="pointer-events-none absolute top-[6%] left-1/2 -z-10 h-[520px] w-[820px] max-w-[92vw] -translate-x-1/2 rounded-full opacity-50 blur-[130px]"
+			style="background: radial-gradient(closest-side, var(--brand-subtle), transparent);"
+			aria-hidden="true"
+		></div>
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
-			<Reveal variant="up">
-				<div
-					class="border-hairline grid overflow-hidden rounded-2xl border lg:grid-cols-[0.85fr_1.15fr]"
+			<Reveal variant="up" class="mx-auto max-w-2xl text-center">
+				<span
+					class="text-muted-foreground font-mono text-[11px] font-semibold tracking-[0.2em] uppercase"
 				>
+					The trifecta
+				</span>
+				<h2 class="font-serif mt-4 text-3xl sm:text-[2.7rem] sm:leading-[1.06]">
+					Three things that make GlyphX <em>yours</em>.
+				</h2>
+				<p class="text-muted-foreground mt-4 text-lg leading-relaxed">
+					Everything orbits one decision: the work happens on your computer, not on someone else's
+					server.
+				</p>
+			</Reveal>
+
+			<!-- Desktop: concentric diagram with three orbiting nodes. -->
+			<Reveal variant="up" delay={80} class="relative mt-16 hidden sm:block">
+				<div class="relative mx-auto aspect-square w-full max-w-[560px]">
+					<!-- rings -->
+					<div class="border-hairline absolute inset-0 rounded-full border"></div>
+					<div class="border-hairline-soft absolute inset-[15%] rounded-full border"></div>
+					<div class="border-hairline-soft absolute inset-[30%] rounded-full border"></div>
+
+					<!-- center: your machine -->
 					<div
-						class="border-hairline flex flex-col justify-between gap-10 border-b p-8 sm:p-10 lg:border-r lg:border-b-0"
+						class="absolute top-1/2 left-1/2 flex size-[30%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-1.5 text-center"
 					>
 						<span
-							class="text-brand font-mono text-[11px] font-semibold tracking-[0.18em] uppercase"
+							class="border-hairline bg-card text-brand shadow-craft-md grid size-12 place-items-center rounded-2xl border"
 						>
-							Works with real LaTeX
+							<IconCpu class="size-6" />
 						</span>
-						<h2 class="font-serif text-3xl sm:text-4xl sm:leading-[1.08]">
-							The LaTeX you <em>already use</em>.
-						</h2>
+						<span
+							class="text-foreground font-mono text-[11px] font-semibold tracking-[0.14em] uppercase"
+						>
+							Your machine
+						</span>
 					</div>
-					<div class="bg-hairline grid gap-px sm:grid-cols-3">
-						{#each integrations as it (it.label)}
-							{@const Icon = it.icon}
-							<div class="bg-card flex flex-col gap-3 p-6">
-								<Icon class="text-foreground size-5" />
-								<div>
-									<div
-										class="text-foreground font-mono text-xs font-semibold tracking-wider uppercase"
-									>
-										{it.label}
-									</div>
-									<div class="text-muted-foreground mt-1 text-[11px]">
-										{it.note}
-									</div>
-								</div>
+
+					<!-- three nodes: top, bottom-left, bottom-right (positions: pillarNodePos) -->
+					{#each pillars as p, i (p.title)}
+						{@const Icon = p.icon}
+						<div class="absolute w-56 max-w-[44%] {pillarNodePos[i]}">
+							<div
+								class="border-hairline bg-card shadow-craft-lg flex flex-col gap-2 rounded-2xl border p-4"
+							>
+								<span
+									class="border-hairline bg-canvas text-brand grid size-9 place-items-center rounded-lg border"
+								>
+									<Icon class="size-[18px]" />
+								</span>
+								<h3
+									class="text-foreground font-mono text-xs font-semibold tracking-wider uppercase"
+								>
+									{p.title}
+								</h3>
+								<p class="text-muted-foreground text-[13px] leading-snug">{p.body}</p>
 							</div>
-						{/each}
-					</div>
+						</div>
+					{/each}
 				</div>
 			</Reveal>
+
+			<!-- Mobile: stacked pillar cards. -->
+			<div class="mt-12 grid gap-4 sm:hidden">
+				{#each pillars as p (p.title)}
+					{@const Icon = p.icon}
+					<Reveal as="article" variant="up" class="border-hairline bg-card rounded-2xl border p-6">
+						<span
+							class="border-hairline bg-canvas text-brand mb-4 grid size-10 place-items-center rounded-lg border"
+						>
+							<Icon class="size-5" />
+						</span>
+						<h3 class="text-foreground font-mono text-xs font-semibold tracking-wider uppercase">
+							{p.title}
+						</h3>
+						<p class="text-muted-foreground mt-2 text-sm leading-relaxed">{p.body}</p>
+					</Reveal>
+				{/each}
+			</div>
+		</div>
+	</section>
+
+	<!-- ============================================================
+	     The ecosystem — standard LaTeX tooling, as a card grid
+	     ============================================================ -->
+	<section class="bg-surface-soft relative overflow-hidden">
+		<div
+			class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-56"
+			style="background: linear-gradient(to bottom, var(--canvas), transparent);"
+			aria-hidden="true"
+		></div>
+		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
+			<Reveal variant="up" class="mx-auto max-w-2xl text-center">
+				<span class="text-brand font-mono text-[11px] font-semibold tracking-[0.2em] uppercase">
+					The ecosystem
+				</span>
+				<h2 class="font-serif mt-4 text-3xl sm:text-[2.7rem] sm:leading-[1.06]">
+					The LaTeX you <em>already use</em>.
+				</h2>
+				<p class="text-muted-foreground mt-4 text-lg leading-relaxed">
+					GlyphX speaks standard LaTeX and plugs into the tools around it — no proprietary format,
+					no lock-in. Bring a project as-is and keep your engine, your bibliography, and your
+					remote.
+				</p>
+			</Reveal>
+
+			<div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{#each integrations as it, i (it.label)}
+					{@const Icon = it.icon}
+					<Reveal
+						as="article"
+						variant="up"
+						delay={i * 60}
+						class="group border-hairline bg-card hover:border-brand/40 flex items-start gap-4 rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1"
+					>
+						<span
+							class="border-hairline bg-canvas text-foreground group-hover:text-brand grid size-11 shrink-0 place-items-center rounded-xl border transition-colors"
+						>
+							<Icon class="size-5" />
+						</span>
+						<div class="min-w-0">
+							<div class="text-foreground text-sm font-semibold tracking-tight">{it.label}</div>
+							<div class="text-muted-foreground mt-1 text-[13px] leading-snug">{it.note}</div>
+						</div>
+					</Reveal>
+				{/each}
+			</div>
 		</div>
 	</section>
 
@@ -813,82 +913,88 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 				</p>
 			</Reveal>
 
-			<div class="mt-12 grid gap-4 lg:grid-cols-2">
-				<!-- Stays local -->
-				<Reveal variant="up" class="border-hairline bg-card flex flex-col rounded-2xl border p-7">
-					<div class="mb-6 flex items-center gap-2">
-						<span class="bg-brand size-1.5 rounded-full"></span>
-						<span
-							class="text-foreground font-mono text-[11px] font-semibold tracking-[0.16em] uppercase"
-							>On your machine</span
+			<!-- A single boundary card: the local core on the left, the optional reach
+			     to your own accounts on the right, with the privacy promise as a footer. -->
+			<Reveal variant="up" delay={60} class="mt-12">
+				<div class="border-hairline bg-card overflow-hidden rounded-2xl border">
+					<div class="grid lg:grid-cols-2">
+						<!-- On your machine (brand-accented core) -->
+						<div
+							class="border-hairline relative overflow-hidden border-b p-8 sm:p-10 lg:border-r lg:border-b-0"
 						>
-					</div>
-					<div class="flex flex-col gap-5">
-						{#each local as m (m.title)}
-							{@const Icon = m.icon}
-							<div class="flex items-start gap-3">
+							<div
+								class="pointer-events-none absolute -top-16 -left-16 size-56 rounded-full opacity-70 blur-3xl"
+								style="background: radial-gradient(closest-side, var(--brand-subtle), transparent);"
+								aria-hidden="true"
+							></div>
+							<div class="relative mb-7 flex items-center gap-2">
+								<span class="bg-brand size-1.5 rounded-full"></span>
 								<span
-									class="border-hairline bg-canvas text-brand grid size-9 shrink-0 place-items-center rounded-lg border"
+									class="text-foreground font-mono text-[11px] font-semibold tracking-[0.16em] uppercase"
+									>On your machine</span
 								>
-									<Icon class="size-[18px]" />
-								</span>
-								<div>
-									<h3 class="text-sm font-semibold">{m.title}</h3>
-									<p class="text-muted-foreground mt-0.5 text-sm leading-relaxed">{m.body}</p>
-								</div>
 							</div>
-						{/each}
-					</div>
-				</Reveal>
-
-				<!-- Through your accounts -->
-				<Reveal
-					variant="up"
-					delay={90}
-					class="border-hairline bg-card/60 flex flex-col rounded-2xl border p-7"
-				>
-					<div class="mb-6 flex items-center gap-2">
-						<span class="bg-muted-foreground/40 size-1.5 rounded-full"></span>
-						<span
-							class="text-muted-foreground font-mono text-[11px] font-semibold tracking-[0.16em] uppercase"
-							>Through your accounts</span
-						>
-					</div>
-					<div class="flex flex-col gap-5">
-						{#each connected as m (m.title)}
-							{@const Icon = m.icon}
-							<div class="flex items-start gap-3">
-								<span
-									class="border-hairline bg-canvas text-muted-foreground grid size-9 shrink-0 place-items-center rounded-lg border"
-								>
-									<Icon class="size-[18px]" />
-								</span>
-								<div class="flex-1">
-									<div class="flex items-center gap-2">
-										<h3 class="text-sm font-semibold">{m.title}</h3>
+							<div class="relative flex flex-col gap-5">
+								{#each local as m (m.title)}
+									{@const Icon = m.icon}
+									<div class="flex items-start gap-3">
 										<span
-											class="border-hairline text-muted-foreground rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider uppercase"
-											>{m.tag}</span
+											class="border-hairline bg-canvas text-brand grid size-9 shrink-0 place-items-center rounded-lg border"
 										>
+											<Icon class="size-[18px]" />
+										</span>
+										<div>
+											<h3 class="text-sm font-semibold">{m.title}</h3>
+											<p class="text-muted-foreground mt-0.5 text-sm leading-relaxed">{m.body}</p>
+										</div>
 									</div>
-									<p class="text-muted-foreground mt-0.5 text-sm leading-relaxed">{m.body}</p>
-								</div>
+								{/each}
 							</div>
-						{/each}
-					</div>
-				</Reveal>
-			</div>
+						</div>
 
-			<Reveal variant="up" delay={120}>
-				<div
-					class="border-hairline bg-brand-subtle mt-4 flex items-start gap-3 rounded-2xl border p-6"
-				>
-					<IconLock class="text-brand mt-0.5 size-5 shrink-0" />
-					<p class="text-foreground/90 text-base leading-relaxed">
-						We only ever hold what you choose to share, tied to your personal account. Click share
-						and a project goes out under your name. Never click it, and your work never leaves your
-						machine.
-					</p>
+						<!-- Through your accounts (quieter, opt-in) -->
+						<div class="bg-surface-soft/50 p-8 sm:p-10">
+							<div class="mb-7 flex items-center gap-2">
+								<span class="bg-muted-foreground/40 size-1.5 rounded-full"></span>
+								<span
+									class="text-muted-foreground font-mono text-[11px] font-semibold tracking-[0.16em] uppercase"
+									>Through your accounts</span
+								>
+							</div>
+							<div class="flex flex-col gap-5">
+								{#each connected as m (m.title)}
+									{@const Icon = m.icon}
+									<div class="flex items-start gap-3">
+										<span
+											class="border-hairline bg-canvas text-muted-foreground grid size-9 shrink-0 place-items-center rounded-lg border"
+										>
+											<Icon class="size-[18px]" />
+										</span>
+										<div class="flex-1">
+											<div class="flex items-center gap-2">
+												<h3 class="text-sm font-semibold">{m.title}</h3>
+												<span
+													class="border-hairline text-muted-foreground rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider uppercase"
+													>{m.tag}</span
+												>
+											</div>
+											<p class="text-muted-foreground mt-0.5 text-sm leading-relaxed">{m.body}</p>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</div>
+					</div>
+
+					<!-- the promise, as a footer strip -->
+					<div class="border-hairline bg-brand-subtle flex items-start gap-3 border-t p-6">
+						<IconLock class="text-brand mt-0.5 size-5 shrink-0" />
+						<p class="text-foreground/90 text-[15px] leading-relaxed">
+							We only ever hold what you choose to share, tied to your personal account. Click share
+							and a project goes out under your name. Never click it, and your work never leaves
+							your machine.
+						</p>
+					</div>
 				</div>
 			</Reveal>
 		</div>
@@ -899,30 +1005,30 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	     ============================================================ -->
 	<section id="compare" class="bg-surface-soft">
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
-			<Reveal variant="up">
-				<span
-					class="text-muted-foreground inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.18em] uppercase"
-				>
+			<Reveal variant="up" class="mx-auto max-w-2xl text-center">
+				<span class="text-brand font-mono text-[11px] font-semibold tracking-[0.2em] uppercase">
 					Compare
 				</span>
-				<h2 class="font-serif mt-5 max-w-2xl text-3xl sm:text-4xl">
+				<h2 class="font-serif mt-4 text-3xl sm:text-[2.7rem] sm:leading-[1.06]">
 					Private like your laptop. <em>Easy like the cloud was supposed to be.</em>
 				</h2>
 			</Reveal>
 
-			<Reveal variant="up" delay={80} class="mt-10">
-				<div class="border-hairline overflow-x-auto rounded-2xl border">
+			<Reveal variant="up" delay={80} class="mt-12">
+				<div class="border-hairline bg-card overflow-x-auto rounded-2xl border">
 					<div class="grid min-w-[640px] grid-cols-[1.8fr_1fr_1fr_1fr] text-sm">
 						<div
-							class="text-muted-foreground bg-card px-5 py-4 font-mono text-[11px] tracking-widest uppercase"
+							class="text-muted-foreground px-5 py-5 font-mono text-[11px] tracking-widest uppercase"
 						>
 							&nbsp;
 						</div>
-						<div class="bg-card text-foreground px-3 py-4 text-center font-semibold">GlyphX</div>
-						<div class="bg-card text-muted-foreground px-3 py-4 text-center font-medium">
-							Overleaf free
+						<div
+							class="bg-brand text-brand-foreground flex items-center justify-center gap-1.5 rounded-t-xl px-3 py-5 text-center font-semibold"
+						>
+							<IconStar class="size-3.5" /> GlyphX
 						</div>
-						<div class="bg-card text-muted-foreground px-3 py-4 text-center font-medium">
+						<div class="text-muted-foreground px-3 py-5 text-center font-medium">Overleaf free</div>
+						<div class="text-muted-foreground px-3 py-5 text-center font-medium">
 							Desktop&nbsp;TeX
 						</div>
 
@@ -969,25 +1075,37 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	     ============================================================ -->
 	<section>
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
-			<Reveal variant="up">
-				<span
-					class="text-muted-foreground inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.18em] uppercase"
-				>
+			<Reveal variant="up" class="mx-auto max-w-2xl text-center">
+				<span class="text-brand font-mono text-[11px] font-semibold tracking-[0.2em] uppercase">
 					How it works
 				</span>
-				<h2 class="font-serif mt-5 max-w-2xl text-3xl sm:text-4xl">
+				<h2 class="font-serif mt-4 text-3xl sm:text-[2.7rem] sm:leading-[1.06]">
 					Three steps, <em>none of which involve a login</em>.
 				</h2>
 			</Reveal>
 
-			<div
-				class="bg-hairline border-hairline mt-12 grid gap-px overflow-hidden rounded-2xl border sm:grid-cols-3"
-			>
+			<!-- Numbered timeline: circles connected by a dashed rail (desktop). -->
+			<div class="relative mt-16 grid gap-10 sm:grid-cols-3 sm:gap-8">
+				<div
+					class="border-hairline absolute top-6 right-[16%] left-[16%] -z-10 hidden border-t border-dashed sm:block"
+					aria-hidden="true"
+				></div>
 				{#each steps as s, i (s.n)}
-					<Reveal as="article" variant="up" delay={i * 80} class="bg-card flex flex-col p-7">
-						<span class="text-brand font-mono text-sm font-semibold">{s.n}</span>
-						<h3 class="mt-4 text-base font-semibold">{s.title}</h3>
-						<p class="text-muted-foreground mt-2 text-sm leading-relaxed">{s.body}</p>
+					<Reveal
+						as="article"
+						variant="up"
+						delay={i * 90}
+						class="flex flex-col items-center text-center sm:items-start sm:text-left"
+					>
+						<span
+							class="border-hairline bg-card text-brand shadow-craft-sm grid size-12 place-items-center rounded-full border font-mono text-sm font-semibold"
+						>
+							{s.n}
+						</span>
+						<h3 class="text-foreground mt-5 text-base font-semibold">{s.title}</h3>
+						<p class="text-muted-foreground mt-2 max-w-xs text-sm leading-relaxed sm:max-w-none">
+							{s.body}
+						</p>
 					</Reveal>
 				{/each}
 			</div>
@@ -995,41 +1113,93 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	</section>
 
 	<!-- ============================================================
-	     Roadmap note (honest about what is not built yet) — tonal band
+	     Roadmap — what's in the app today vs. what's next (honest board)
 	     ============================================================ -->
-	<section class="bg-surface-soft">
+	<section class="bg-surface-soft relative overflow-hidden">
+		<div
+			class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-56"
+			style="background: linear-gradient(to bottom, var(--canvas), transparent);"
+			aria-hidden="true"
+		></div>
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
-			<Reveal
-				variant="up"
-				class="border-hairline bg-card flex flex-col gap-4 rounded-2xl border p-8 sm:flex-row sm:items-start sm:gap-6 sm:p-10"
-			>
-				<span
-					class="border-hairline bg-canvas text-foreground grid size-11 shrink-0 place-items-center rounded-xl border"
-				>
-					<IconSparkles class="size-5" />
+			<Reveal variant="up" class="mx-auto max-w-2xl text-center">
+				<span class="text-brand font-mono text-[11px] font-semibold tracking-[0.2em] uppercase">
+					Roadmap
 				</span>
-				<div class="max-w-2xl">
-					<h2 class="font-display text-2xl tracking-tight sm:text-3xl">Still to come.</h2>
-					<p class="text-muted-foreground mt-3 text-base leading-relaxed">
-						A bring-your-own AI key, Dropbox and Google Drive sync, and project sharing are the next
-						things we are building. They are not in the app yet, and we would rather say so than
-						pretend otherwise. The rule behind all of them stays the same: your providers, your
-						keys, your data.
-					</p>
-					<div class="mt-5 flex flex-wrap gap-2">
-						{#each [{ icon: IconKey, label: 'Your AI key' }, { icon: IconBrandDropbox, label: 'Cloud sync' }, { icon: IconShare, label: 'Sharing' }] as r (r.label)}
+				<h2 class="font-serif mt-4 text-3xl sm:text-[2.7rem] sm:leading-[1.06]">
+					Built in the open, <em>honest about what's next</em>.
+				</h2>
+				<p class="text-muted-foreground mt-4 text-lg leading-relaxed">
+					The core is here and working. A few things are still on the bench — and we would rather
+					say so than pretend. The rule behind all of them stays the same: your providers, your
+					keys, your data.
+				</p>
+			</Reveal>
+
+			<div class="mt-12 grid gap-4 lg:grid-cols-2">
+				<!-- In the app today -->
+				<Reveal
+					variant="up"
+					class="border-hairline bg-card flex flex-col rounded-2xl border p-7 sm:p-8"
+				>
+					<div class="mb-6 flex items-center gap-2">
+						<span class="bg-brand size-1.5 rounded-full"></span>
+						<span
+							class="text-foreground font-mono text-[11px] font-semibold tracking-[0.16em] uppercase"
+							>In the app today</span
+						>
+					</div>
+					<div class="flex flex-col gap-4">
+						{#each [{ icon: IconFileText, label: 'Editor with live preview' }, { icon: IconBolt, label: 'Bundled LaTeX engine (Tectonic)' }, { icon: IconGitBranch, label: 'Built-in Git client' }, { icon: IconWifiOff, label: 'Fully offline on desktop' }] as r (r.label)}
 							{@const Icon = r.icon}
-							<span
-								class="border-hairline text-muted-foreground inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11px] font-medium"
-							>
-								<Icon class="size-3.5" />
-								{r.label}
-								<span class="text-muted-foreground">· planned</span>
-							</span>
+							<div class="flex items-center gap-3">
+								<span
+									class="bg-brand-subtle text-brand grid size-8 shrink-0 place-items-center rounded-lg"
+								>
+									<Icon class="size-4" />
+								</span>
+								<span class="text-foreground text-sm font-medium">{r.label}</span>
+								<IconCheck class="text-brand ml-auto size-4 shrink-0" />
+							</div>
 						{/each}
 					</div>
-				</div>
-			</Reveal>
+				</Reveal>
+
+				<!-- Building next -->
+				<Reveal
+					variant="up"
+					delay={90}
+					class="border-hairline bg-card/60 flex flex-col rounded-2xl border p-7 sm:p-8"
+				>
+					<div class="mb-6 flex items-center gap-2">
+						<span class="bg-muted-foreground/40 size-1.5 rounded-full"></span>
+						<span
+							class="text-muted-foreground font-mono text-[11px] font-semibold tracking-[0.16em] uppercase"
+							>Building next</span
+						>
+					</div>
+					<div class="flex flex-col gap-4">
+						{#each [{ icon: IconKey, label: 'Bring-your-own AI key' }, { icon: IconBrandDropbox, label: 'Dropbox & Google Drive sync' }, { icon: IconShare, label: 'Project sharing' }] as r (r.label)}
+							{@const Icon = r.icon}
+							<div class="flex items-center gap-3">
+								<span
+									class="border-hairline bg-canvas text-muted-foreground grid size-8 shrink-0 place-items-center rounded-lg border"
+								>
+									<Icon class="size-4" />
+								</span>
+								<span class="text-foreground text-sm font-medium">{r.label}</span>
+								<span
+									class="border-hairline text-muted-foreground ml-auto shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider uppercase"
+									>planned</span
+								>
+							</div>
+						{/each}
+						<p class="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+							Not in the app yet — your providers, your keys, your data when they land.
+						</p>
+					</div>
+				</Reveal>
+			</div>
 		</div>
 	</section>
 
@@ -1038,31 +1208,36 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 	     ============================================================ -->
 	<section id="faq">
 		<div class="mx-auto max-w-[1140px] px-5 py-20 sm:px-6 sm:py-28">
-			<div class="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
-				<Reveal variant="up">
-					<span
-						class="text-muted-foreground inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.18em] uppercase"
-					>
-						FAQ
-					</span>
-					<h2 class="font-serif mt-5 max-w-sm text-3xl sm:text-4xl">
-						The questions people ask first.
-					</h2>
-				</Reveal>
+			<Reveal variant="up" class="mx-auto max-w-2xl text-center">
+				<span class="text-brand font-mono text-[11px] font-semibold tracking-[0.2em] uppercase">
+					FAQ
+				</span>
+				<h2 class="font-serif mt-4 text-3xl sm:text-[2.7rem] sm:leading-[1.06]">
+					The questions people ask first.
+				</h2>
+			</Reveal>
 
-				<div class="flex flex-col">
-					{#each faqs as f, i (f.q)}
-						<Reveal
-							as="div"
-							variant="up"
-							delay={i * 40}
-							class="border-hairline border-t py-6 first:border-t-0 first:pt-0"
+			<!-- Accordion — native <details>, so it works without JS and in SSR. -->
+			<div class="mx-auto mt-12 flex max-w-3xl flex-col gap-3">
+				{#each faqs as f, i (f.q)}
+					<Reveal as="div" variant="up" delay={i * 35}>
+						<details
+							class="group border-hairline bg-card hover:border-brand/30 rounded-2xl border px-5 py-4 transition-colors open:shadow-craft-sm sm:px-6 sm:py-5 [&[open]_.faq-chev]:rotate-180"
 						>
-							<h3 class="text-foreground text-base font-semibold">{f.q}</h3>
-							<p class="text-muted-foreground mt-2 text-sm leading-relaxed">{f.a}</p>
-						</Reveal>
-					{/each}
-				</div>
+							<summary
+								class="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden"
+							>
+								<h3 class="text-foreground text-[15px] font-semibold sm:text-base">{f.q}</h3>
+								<span
+									class="border-hairline text-muted-foreground group-hover:text-brand faq-chev grid size-7 shrink-0 place-items-center rounded-lg border transition-transform duration-300"
+								>
+									<IconChevronDown class="size-4" />
+								</span>
+							</summary>
+							<p class="text-muted-foreground mt-3 text-sm leading-relaxed">{f.a}</p>
+						</details>
+					</Reveal>
+				{/each}
 			</div>
 		</div>
 	</section>
