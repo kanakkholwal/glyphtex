@@ -7,7 +7,9 @@ import type {
 	SystemTexInfo
 } from '@glyphx/ui/application';
 
-type RawCompileResult = { success: boolean; message: string | null };
+/** Shape returned by the Rust `prefetch_packages` command (its own struct — not
+ *  the compile result; see compile.ts for that contract). */
+type RawPrefetchResult = { success: boolean; message: string | null };
 
 /**
  * Desktop engine manager — lists, downloads, and activates Tectonic versions
@@ -24,7 +26,7 @@ export const engineManager: EngineManager = {
 	cacheInfo: () => invoke<CacheInfo>('tectonic_cache_info'),
 	clearCache: () => invoke<void>('clear_tectonic_cache'),
 	prefetch: async (): Promise<PrefetchResult> => {
-		const r = await invoke<RawCompileResult>('prefetch_packages');
+		const r = await invoke<RawPrefetchResult>('prefetch_packages');
 		return { success: r.success, message: r.message ?? undefined };
 	}
 };

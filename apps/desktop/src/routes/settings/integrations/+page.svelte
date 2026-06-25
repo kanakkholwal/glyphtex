@@ -20,7 +20,9 @@
 			toast.success(msg ?? 'Added “Open with GlyphX” to the folder menu.');
 		} catch (e) {
 			addStatus = 'idle';
-			toast.error(`Could not register shell integration — ${e}`);
+			// Plain language for the toast; raw cause to the console (§5).
+			console.error('[integrations] register shell integration failed', e);
+			toast.error('Could not add “Open with GlyphX” to the folder menu.');
 		}
 	}
 </script>

@@ -1,7 +1,10 @@
 import { invoke } from '@tauri-apps/api/core';
 import { settings } from '@glyphx/ui/settings';
+import { isTauriRuntime } from '$lib/runtime';
 
-/** Shape returned by the Rust `compile_latex` command. */
+/** Shape returned by the Rust `compile_latex` / `compile_project` commands.
+ *  Mirrors `CompileResult` in src-tauri/src/compile.rs field-for-field (snake_case;
+ *  returned struct fields are NOT auto-renamed by Tauri — keep these in lockstep). */
 type RawCompileResult = {
 	success: boolean;
 	pdf_base64: string | null;
@@ -20,17 +23,13 @@ export type CompileOutcome = {
 	hint?: string;
 };
 
-function isTauri(): boolean {
-	return typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || 'isTauri' in window);
-}
-
 /**
  * Compile LaTeX → PDF via the Tectonic engine in the Rust backend. Returns the
  * PDF as a base64 string on success, or an error message. Outside Tauri (e.g.
  * the desktop dev server in a browser) it reports that compilation is desktop-only.
  */
 export async function compileLatex(source: string): Promise<CompileOutcome> {
-	if (!isTauri()) {
+	if (!isTauriRuntime()) {
 		return { error: 'Compilation runs in the GlyphX desktop app.' };
 	}
 	try {
@@ -53,7 +52,9 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 			hint: res.hint ?? undefined
 		};
 	} catch (e) {
-		return { error: String(e) };
+		// An exception here is an IPC/backend failure, not a normal compile error
+		// (those return success=false). Plain message; raw detail in the log (§5).
+		return { error: 'Could not run the compiler.', log: String(e) };
 	}
 }
 
@@ -63,7 +64,7 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
  * `mainRel` is the main file's path relative to `root`.
  */
 export async function compileProject(root: string, mainRel: string): Promise<CompileOutcome> {
-	if (!isTauri()) {
+	if (!isTauriRuntime()) {
 		return { error: 'Compilation runs in the GlyphX desktop app.' };
 	}
 	try {
@@ -87,6 +88,7 @@ export async function compileProject(root: string, mainRel: string): Promise<Com
 			hint: res.hint ?? undefined
 		};
 	} catch (e) {
-		return { error: String(e) };
+		// IPC/backend failure (see compileLatex) — plain message, raw in the log (§5).
+		return { error: 'Could not run the compiler.', log: String(e) };
 	}
 }

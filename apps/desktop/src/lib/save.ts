@@ -1,9 +1,6 @@
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeFile } from '@tauri-apps/plugin-fs';
-
-function isTauri(): boolean {
-	return typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || 'isTauri' in window);
-}
+import { isTauriRuntime } from '$lib/runtime';
 
 /**
  * Save bytes to disk via Tauri's native "Save As" dialog (`plugin-dialog`) and
@@ -19,7 +16,7 @@ export async function saveFile(
 ): Promise<boolean> {
 	const extensions = opts.extensions ?? ['pdf'];
 
-	if (!isTauri()) {
+	if (!isTauriRuntime()) {
 		const blob = new Blob([bytes as BlobPart]);
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');

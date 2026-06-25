@@ -106,10 +106,12 @@
 			try {
 				await projectHost.remove(p.root);
 			} catch (e) {
-				await message(`Could not delete the project folder.\n${e}`, {
-					title: 'Delete failed',
-					kind: 'error'
-				});
+				// Plain language for the dialog; raw cause to the console (§5).
+				console.error('[projects] delete folder failed', e);
+				await message(
+					'Could not delete the project folder. It may be open in another program, or it may have already been removed.',
+					{ title: 'Delete failed', kind: 'error' }
+				);
 				return; // keep the entry so the user can retry
 			}
 		}

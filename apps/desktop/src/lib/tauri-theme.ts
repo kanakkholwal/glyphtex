@@ -1,4 +1,5 @@
 import { settings } from '@glyphx/ui/settings';
+import { isTauriRuntime } from '$lib/runtime';
 
 /**
  * Feed the native OS theme from Tauri into the settings store, overriding the
@@ -7,10 +8,7 @@ import { settings } from '@glyphx/ui/settings';
  * Returns a cleanup function that detaches the listener.
  */
 export async function initTauriTheme(): Promise<() => void> {
-	if (typeof window === 'undefined') return () => {};
-
-	const isTauri = '__TAURI_INTERNALS__' in window || 'isTauri' in window;
-	if (!isTauri) return () => {};
+	if (!isTauriRuntime()) return () => {};
 
 	const { getCurrentWindow } = await import('@tauri-apps/api/window');
 	const win = getCurrentWindow();

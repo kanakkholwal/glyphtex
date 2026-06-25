@@ -50,6 +50,30 @@ impl CompileResult {
     }
 }
 
+/// Everything a compile needs from the app environment, resolved up front from
+/// the `AppHandle` in the command layer. Holding it in a plain struct keeps the
+/// actual compile (`run_engine` and below) `AppHandle`-free — so the engine
+/// dispatch and result assembly are unit-testable and run cleanly inside
+/// `spawn_blocking` (AGENTS.md §4 — thin commands, logic in testable functions).
+struct EngineEnv {
+    /// Resolved Tectonic binary (env override → managed → sidecar → PATH).
+    tectonic_bin: PathBuf,
+    /// App-managed Tectonic package cache, if available.
+    cache_dir: Option<PathBuf>,
+    /// fontconfig config file to point XeTeX at (Windows; `None` elsewhere).
+    fontconfig: Option<PathBuf>,
+}
+
+impl EngineEnv {
+    fn resolve(app: &tauri::AppHandle) -> Self {
+        Self {
+            tectonic_bin: find_tectonic(app),
+            cache_dir: crate::engine::cache_dir(app),
+            fontconfig: ensure_fontconfig(app),
+        }
+    }
+}
+
 /// Ensure a fontconfig config exists and return its path (Windows only).
 ///
 /// Tectonic's XeTeX engine initializes fontconfig for font lookups; on Windows
@@ -151,7 +175,7 @@ pub fn find_tectonic(app: &tauri::AppHandle) -> PathBuf {
 /// as long as `main_tex` lives in the project folder. The PDF / log / synctex
 /// are named after the main file's stem (e.g. `report.tex` → `report.pdf`).
 fn run_tectonic(
-    app: &tauri::AppHandle,
+    env: &EngineEnv,
     main_tex: &std::path::Path,
     outdir: &std::path::Path,
     shell_escape: bool,
@@ -161,8 +185,8 @@ fn run_tectonic(
         .map(|s| s.to_string_lossy().into_owned())
         .unwrap_or_else(|| "main".to_string());
 
-    let bin = find_tectonic(app);
-    let mut cmd = Command::new(&bin);
+    let bin = &env.tectonic_bin;
+    let mut cmd = Command::new(bin);
     cmd.no_window();
     cmd.arg("--outdir")
         .arg(outdir)
@@ -185,12 +209,12 @@ fn run_tectonic(
     }
     cmd.arg(main_tex);
     // Deterministic, app-managed package cache (so Settings can show/clear/warm it).
-    if let Some(cache) = crate::engine::cache_dir(app) {
+    if let Some(cache) = &env.cache_dir {
         cmd.env("TECTONIC_CACHE_DIR", cache);
     }
     // Give fontconfig a real config so XeTeX font lookups don't emit the
     // "Cannot load default config file" noise (Windows; harmless elsewhere).
-    if let Some(conf) = ensure_fontconfig(app) {
+    if let Some(conf) = &env.fontconfig {
         cmd.env("FONTCONFIG_FILE", conf);
     }
 
@@ -406,7 +430,7 @@ fn detect_toolchain_hint(log: &str, engine: &str) -> Option<String> {
 /// Dispatch to the engine the frontend selected: bundled Tectonic, or a local
 /// System TeX install via latexmk.
 fn run_engine(
-    app: &tauri::AppHandle,
+    env: &EngineEnv,
     main_tex: &std::path::Path,
     outdir: &std::path::Path,
     engine: &str,
@@ -416,7 +440,7 @@ fn run_engine(
     let mut result = if engine == "system" {
         run_latexmk(main_tex, outdir, program, shell_escape)
     } else {
-        run_tectonic(app, main_tex, outdir, shell_escape)
+        run_tectonic(env, main_tex, outdir, shell_escape)
     };
     // Recognize engine-specific failure modes and attach an actionable hint.
     result.hint = detect_toolchain_hint(&result.log, engine);
@@ -449,16 +473,27 @@ fn probe_bin(name: &str) -> Option<String> {
 }
 
 /// Detect a local TeX installation so the UI can offer / gate System TeX.
+/// Runs four `--version` probes (process spawns) on a blocking thread.
 #[tauri::command]
 pub async fn detect_system_tex() -> SystemTexInfo {
-    let version = probe_bin("latexmk");
-    SystemTexInfo {
-        latexmk: version.is_some(),
-        pdflatex: probe_bin("pdflatex").is_some(),
-        xelatex: probe_bin("xelatex").is_some(),
-        lualatex: probe_bin("lualatex").is_some(),
-        version,
-    }
+    tauri::async_runtime::spawn_blocking(|| {
+        let version = probe_bin("latexmk");
+        SystemTexInfo {
+            latexmk: version.is_some(),
+            pdflatex: probe_bin("pdflatex").is_some(),
+            xelatex: probe_bin("xelatex").is_some(),
+            lualatex: probe_bin("lualatex").is_some(),
+            version,
+        }
+    })
+    .await
+    .unwrap_or(SystemTexInfo {
+        latexmk: false,
+        pdflatex: false,
+        xelatex: false,
+        lualatex: false,
+        version: None,
+    })
 }
 
 /// Compile a standalone LaTeX `source` string into a PDF (no project on disk).
@@ -471,17 +506,27 @@ pub async fn compile_latex(
     engine: Option<String>,
     tex_program: Option<String>,
 ) -> Result<CompileResult, String> {
-    let dir = tempfile::tempdir().map_err(|e| e.to_string())?;
-    let tex_path = dir.path().join("main.tex");
-    std::fs::write(&tex_path, &source).map_err(|e| e.to_string())?;
-    Ok(run_engine(
-        &app,
-        &tex_path,
-        dir.path(),
-        engine.as_deref().unwrap_or("tectonic"),
-        tex_program.as_deref().unwrap_or("pdflatex"),
-        shell_escape.unwrap_or(false),
-    ))
+    // Resolve env from the AppHandle here, then run the (long, blocking) compile
+    // off the event loop so it can't freeze the WKWebView or starve the runtime.
+    let env = EngineEnv::resolve(&app);
+    let engine = engine.unwrap_or_else(|| "tectonic".to_string());
+    let program = tex_program.unwrap_or_else(|| "pdflatex".to_string());
+    let shell_escape = shell_escape.unwrap_or(false);
+    tauri::async_runtime::spawn_blocking(move || -> Result<CompileResult, String> {
+        let dir = tempfile::tempdir().map_err(|e| e.to_string())?;
+        let tex_path = dir.path().join("main.tex");
+        std::fs::write(&tex_path, &source).map_err(|e| e.to_string())?;
+        Ok(run_engine(
+            &env,
+            &tex_path,
+            dir.path(),
+            &engine,
+            &program,
+            shell_escape,
+        ))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 /// Compile a multi-file project on disk. `root` is the project folder and `main`
@@ -497,30 +542,38 @@ pub async fn compile_project(
     engine: Option<String>,
     tex_program: Option<String>,
 ) -> Result<CompileResult, String> {
-    let root = PathBuf::from(&root);
-    let main_path = {
-        let p = PathBuf::from(&main);
-        if p.is_absolute() {
-            p
-        } else {
-            root.join(&main)
+    let env = EngineEnv::resolve(&app);
+    let engine = engine.unwrap_or_else(|| "tectonic".to_string());
+    let program = tex_program.unwrap_or_else(|| "pdflatex".to_string());
+    let shell_escape = shell_escape.unwrap_or(false);
+    tauri::async_runtime::spawn_blocking(move || -> Result<CompileResult, String> {
+        let root = PathBuf::from(&root);
+        let main_path = {
+            let p = PathBuf::from(&main);
+            if p.is_absolute() {
+                p
+            } else {
+                root.join(&main)
+            }
+        };
+        if !main_path.exists() {
+            return Ok(CompileResult::failure(
+                format!("Main file not found: {}", main_path.display()),
+                String::new(),
+            ));
         }
-    };
-    if !main_path.exists() {
-        return Ok(CompileResult::failure(
-            format!("Main file not found: {}", main_path.display()),
-            String::new(),
-        ));
-    }
-    let out = tempfile::tempdir().map_err(|e| e.to_string())?;
-    Ok(run_engine(
-        &app,
-        &main_path,
-        out.path(),
-        engine.as_deref().unwrap_or("tectonic"),
-        tex_program.as_deref().unwrap_or("pdflatex"),
-        shell_escape.unwrap_or(false),
-    ))
+        let out = tempfile::tempdir().map_err(|e| e.to_string())?;
+        Ok(run_engine(
+            &env,
+            &main_path,
+            out.path(),
+            &engine,
+            &program,
+            shell_escape,
+        ))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[cfg(test)]
@@ -553,6 +606,28 @@ mod tests {
                    error: chapters/chapter2.tex:64: Package graphics Error: Division by 0.";
         let hint = detect_toolchain_hint(log, "tectonic").expect("should hint");
         assert!(hint.contains("System TeX"));
+    }
+
+    #[test]
+    fn run_tectonic_reports_missing_binary() {
+        // The compile path is now AppHandle-free: we can drive it with a hand-built
+        // EngineEnv. A bogus binary must surface a plain "Could not run Tectonic"
+        // failure (rather than panic), proving the seam is unit-testable.
+        let env = EngineEnv {
+            tectonic_bin: PathBuf::from("glyphx-no-such-tectonic-binary"),
+            cache_dir: None,
+            fontconfig: None,
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let tex = dir.path().join("main.tex");
+        std::fs::write(
+            &tex,
+            r"\documentclass{article}\begin{document}x\end{document}",
+        )
+        .unwrap();
+        let result = run_tectonic(&env, &tex, dir.path(), false);
+        assert!(!result.success);
+        assert!(result.message.unwrap().contains("Could not run Tectonic"));
     }
 
     #[test]

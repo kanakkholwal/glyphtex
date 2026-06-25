@@ -75,17 +75,47 @@
 		return null;
 	}
 
+	// GitHub Releases API — only the fields we use, validated at the boundary. The
+	// response is untrusted and feeds a clickable download href, so each asset is
+	// parsed/narrowed (and its URL constrained to https) before use (AGENTS.md rule #4).
+	type RawAsset = { name: string; browser_download_url: string; size: number };
+	type RawRelease = { tag_name: string; published_at: string; assets: RawAsset[] };
+
+	function parseRelease(data: unknown): RawRelease {
+		if (!data || typeof data !== 'object') throw new Error('Malformed release response.');
+		const o = data as Record<string, unknown>;
+		const assets: RawAsset[] = Array.isArray(o.assets)
+			? o.assets.flatMap((raw): RawAsset[] => {
+					if (!raw || typeof raw !== 'object') return [];
+					const a = raw as Record<string, unknown>;
+					const name = a.name;
+					const url = a.browser_download_url;
+					// Reject anything that isn't a named asset on an https GitHub URL.
+					if (typeof name !== 'string' || typeof url !== 'string') return [];
+					if (!url.startsWith('https://')) return [];
+					return [
+						{ name, browser_download_url: url, size: typeof a.size === 'number' ? a.size : 0 }
+					];
+				})
+			: [];
+		return {
+			tag_name: typeof o.tag_name === 'string' ? o.tag_name : '',
+			published_at: typeof o.published_at === 'string' ? o.published_at : '',
+			assets
+		};
+	}
+
 	async function loadLatestRelease() {
 		try {
 			const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/releases/latest`, {
 				headers: { Accept: 'application/vnd.github+json' }
 			});
 			if (!res.ok) throw new Error(`GitHub API ${res.status}`);
-			const data = await res.json();
-			version = data.tag_name ?? '';
-			publishedAt = data.published_at ?? '';
+			const release = parseRelease(await res.json());
+			version = release.tag_name;
+			publishedAt = release.published_at;
 			const grouped: Grouped = { mac: [], windows: [], linux: [] };
-			for (const a of data.assets ?? []) {
+			for (const a of release.assets) {
 				const c = classify(a.name);
 				if (!c) continue;
 				grouped[c.os].push({
@@ -476,58 +506,58 @@
 	<section class="bg-surface-soft mt-8">
 		<div class="mx-auto max-w-[1140px] px-5 py-16 sm:px-6 sm:py-24">
 			<div class="grid gap-12 lg:grid-cols-2">
-			<Reveal variant="up">
-				<span
-					class="text-muted-foreground inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.18em] uppercase"
-				>
-					What is in the download
-				</span>
-				<h2 class="font-serif mt-5 text-2xl sm:text-3xl">
-					One app. <em>Nothing else to set up.</em>
-				</h2>
-				<ul class="mt-6 flex flex-col gap-3">
-					{#each included as line (line)}
-						<li class="text-muted-foreground flex items-start gap-3 text-sm leading-relaxed">
-							<IconCheck class="text-brand mt-0.5 size-4 shrink-0" />
-							<span>{line}</span>
-						</li>
-					{/each}
-				</ul>
-			</Reveal>
-
-			<Reveal variant="up" delay={80}>
-				<div class="border-hairline bg-card flex h-full flex-col rounded-2xl border p-7">
+				<Reveal variant="up">
 					<span
-						class="border-hairline bg-canvas text-foreground mb-5 grid size-10 place-items-center rounded-lg border"
+						class="text-muted-foreground inline-flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.18em] uppercase"
 					>
-						<IconShieldCheck class="size-5" />
+						What is in the download
 					</span>
-					<h3 class="text-base font-semibold">Verifying your download</h3>
-					<p class="text-muted-foreground mt-2 text-sm leading-relaxed">
-						Every release on GitHub lists the build artifacts next to their checksums. Compare the
-						hash of the file you downloaded against the one in the release notes before you run it.
-						The full source is in the same repository if you would rather build it yourself.
-					</p>
-					<div class="mt-6 flex flex-wrap gap-3">
-						<a
-							href={releases}
-							target="_blank"
-							rel="noreferrer"
-							class="border-hairline bg-canvas text-foreground hover:bg-muted inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-colors"
+					<h2 class="font-serif mt-5 text-2xl sm:text-3xl">
+						One app. <em>Nothing else to set up.</em>
+					</h2>
+					<ul class="mt-6 flex flex-col gap-3">
+						{#each included as line (line)}
+							<li class="text-muted-foreground flex items-start gap-3 text-sm leading-relaxed">
+								<IconCheck class="text-brand mt-0.5 size-4 shrink-0" />
+								<span>{line}</span>
+							</li>
+						{/each}
+					</ul>
+				</Reveal>
+
+				<Reveal variant="up" delay={80}>
+					<div class="border-hairline bg-card flex h-full flex-col rounded-2xl border p-7">
+						<span
+							class="border-hairline bg-canvas text-foreground mb-5 grid size-10 place-items-center rounded-lg border"
 						>
-							<IconDownload class="size-4" /> All releases
-						</a>
-						<a
-							href={repo}
-							target="_blank"
-							rel="noreferrer"
-							class="border-hairline bg-canvas text-foreground hover:bg-muted inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-colors"
-						>
-							<IconBrandGithub class="size-4" /> Source code
-						</a>
+							<IconShieldCheck class="size-5" />
+						</span>
+						<h3 class="text-base font-semibold">Verifying your download</h3>
+						<p class="text-muted-foreground mt-2 text-sm leading-relaxed">
+							Every release on GitHub lists the build artifacts next to their checksums. Compare the
+							hash of the file you downloaded against the one in the release notes before you run
+							it. The full source is in the same repository if you would rather build it yourself.
+						</p>
+						<div class="mt-6 flex flex-wrap gap-3">
+							<a
+								href={releases}
+								target="_blank"
+								rel="noreferrer"
+								class="border-hairline bg-canvas text-foreground hover:bg-muted inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-colors"
+							>
+								<IconDownload class="size-4" /> All releases
+							</a>
+							<a
+								href={repo}
+								target="_blank"
+								rel="noreferrer"
+								class="border-hairline bg-canvas text-foreground hover:bg-muted inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-colors"
+							>
+								<IconBrandGithub class="size-4" /> Source code
+							</a>
+						</div>
 					</div>
-				</div>
-			</Reveal>
+				</Reveal>
 			</div>
 		</div>
 	</section>

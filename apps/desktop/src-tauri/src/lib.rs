@@ -1,5 +1,6 @@
 mod compile;
 mod engine;
+mod fsx;
 mod git;
 mod project;
 mod shell_integration;

@@ -1,4 +1,5 @@
 import type { Update } from '@tauri-apps/plugin-updater';
+import { isTauriRuntime } from '$lib/runtime';
 
 /**
  * Auto-updater store (desktop only).
@@ -21,12 +22,6 @@ export type UpdaterStatus =
 	| 'downloading'
 	| 'ready'
 	| 'error';
-
-// Mirror the runtime check used in tauri-theme.ts: these globals are only
-// present inside the Tauri webview, never in a plain browser.
-function isTauriRuntime(): boolean {
-	return typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || 'isTauri' in window);
-}
 
 function createUpdaterStore() {
 	let status = $state<UpdaterStatus>('idle');

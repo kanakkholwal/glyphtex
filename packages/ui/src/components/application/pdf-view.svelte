@@ -33,6 +33,10 @@
 		numPages?: number;
 	} = $props();
 
+	// pdf.js' viewer entry points (`pdfjs-dist/web/pdf_viewer.mjs`) ship no
+	// first-class types at this import path, so the dynamically-imported module
+	// and engine handles are an untyped external boundary (AGENTS.md rule #7 —
+	// justified scoped exception). Event payloads *are* narrowed where consumed.
 	/* eslint-disable @typescript-eslint/no-explicit-any */
 	let pdfjs: any = null;
 	let viewerMod: any = null;
@@ -103,10 +107,10 @@
 			hasRendered = true;
 			loading = false;
 		});
-		eventBus.on('scalechanging', (e: any) => {
+		eventBus.on('scalechanging', (e: { scale?: number }) => {
 			if (typeof e?.scale === 'number') scalePct = Math.round(e.scale * 100);
 		});
-		const onMatches = (e: any) => {
+		const onMatches = (e: { matchesCount?: { current?: number; total?: number } }) => {
 			findCurrent = e?.matchesCount?.current ?? 0;
 			findTotal = e?.matchesCount?.total ?? 0;
 		};

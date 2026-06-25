@@ -19,14 +19,16 @@ fn open(root: &str) -> Result<gix::Repository, String> {
     gix::open(root).map_err(|e| e.to_string())
 }
 
-/// Run a system `git` subcommand in `root`. Used for operations gitoxide can't
-/// do yet (push) or where its worktree apply is immature (pull --ff-only).
-fn run_git<I, S>(root: &str, args: I) -> Result<String, String>
+/// Spawn a system `git` subcommand in `root` and return the raw `Output`. This is
+/// the single choke point for shelling out to git — the one place that explains a
+/// missing Git install — so callers that need stdout/stderr/status (e.g. the sync
+/// merge-conflict check) don't open-code their own spawn (AGENTS.md §3).
+fn run_git_raw<I, S>(root: &str, args: I) -> Result<std::process::Output, String>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<std::ffi::OsStr>,
 {
-    let out = Command::new("git")
+    Command::new("git")
         .arg("-C")
         .arg(root)
         .args(args)
@@ -34,7 +36,18 @@ where
         .output()
         .map_err(|e| {
             format!("Could not run git — Git needs to be installed to sync with a remote. ({e})")
-        })?;
+        })
+}
+
+/// Run a system `git` subcommand in `root`, returning trimmed stdout on success.
+/// Used for operations gitoxide can't do yet (push) or where its worktree apply
+/// is immature (pull --ff-only).
+fn run_git<I, S>(root: &str, args: I) -> Result<String, String>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<std::ffi::OsStr>,
+{
+    let out = run_git_raw(root, args)?;
     if out.status.success() {
         Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
     } else {
@@ -50,19 +63,28 @@ where
 /// Whether a usable system `git` is on PATH. The remote half of the client
 /// (push / pull / sync / remote management / ahead-behind) shells out to `git`,
 /// so the UI calls this up front to show a friendly "Git isn't installed" state
-/// instead of letting each action fail with a raw spawn error.
+/// instead of letting each action fail with a raw spawn error. `async` because it
+/// spawns a process (the macOS rule, §4).
 #[tauri::command]
-pub fn git_available() -> bool {
-    Command::new("git")
-        .arg("--version")
-        .no_window()
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
+pub async fn git_available() -> bool {
+    tauri::async_runtime::spawn_blocking(|| {
+        Command::new("git")
+            .arg("--version")
+            .no_window()
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    })
+    .await
+    .unwrap_or(false)
 }
 
 /// Open the repo's index for mutation, or an empty in-memory one (pointing at the
 /// repo's index path) when none exists yet — so the first `git add` works.
+///
+/// The fallback also covers a missing index file (the common unborn-repo case). A
+/// genuinely corrupt index would likewise start empty here; the subsequent
+/// stage/commit rewrites it, so we don't propagate that as a hard error.
 fn open_index_mut(repo: &gix::Repository) -> gix::index::File {
     repo.open_index().unwrap_or_else(|_| {
         gix::index::File::from_state(
@@ -313,6 +335,9 @@ pub async fn git_stage(root: String, paths: Vec<String>) -> Result<(), String> {
 #[tauri::command]
 pub async fn git_unstage(root: String, paths: Vec<String>) -> Result<(), String> {
     let repo = open(&root)?;
+    // `None` here means an unborn HEAD (no commits yet) — the expected case where
+    // unstaging just drops the index entry below. (A genuinely broken HEAD would
+    // also surface as a later op failing loudly, not as silent data loss.)
     let head_tree = repo.head_tree().ok();
     let mut index = open_index_mut(&repo);
 
@@ -357,6 +382,7 @@ pub async fn git_discard(root: String, paths: Vec<String>) -> Result<(), String>
         .ok_or("No working tree in a bare repository.")?
         .to_owned();
     let index = open_index_mut(&repo);
+    // `None` = unborn HEAD (no commits): discard then falls back to the index blob.
     let head_tree = repo.head_tree().ok();
 
     for rel in &paths {
@@ -812,15 +838,9 @@ pub async fn git_sync(
             pull_args.push(b);
         }
     }
-    let pull = Command::new("git")
-        .arg("-C")
-        .arg(&root)
-        .args(&pull_args)
-        .no_window()
-        .output()
-        .map_err(|e| {
-            format!("Could not run git — Git needs to be installed to sync with a remote. ({e})")
-        })?;
+    // Use the shared spawn helper (not an open-coded Command) but keep the raw
+    // Output — we need stdout *and* stderr to tell a merge conflict from a failure.
+    let pull = run_git_raw(&root, &pull_args)?;
     if !pull.status.success() {
         // Conflict text goes to stdout; other failures to stderr — check both.
         let combined = format!(

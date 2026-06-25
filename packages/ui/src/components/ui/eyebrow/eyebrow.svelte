@@ -20,15 +20,13 @@
 </script>
 
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import type { Component, Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn, type WithElementRef } from "@glyphx/ui/utils";
 
 	type Props = WithElementRef<HTMLAttributes<HTMLSpanElement>> & {
-		// Permissive on purpose — accepts both @lucide/svelte (Svelte 5 functional) and
-		// legacy lucide-svelte (class) icon components without forcing a specific shape.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		icon?: any;
+		/** Leading icon — a @tabler/icons-svelte component (rendered at `size-3`). */
+		icon?: Component;
 		variant?: EyebrowVariant;
 		children: Snippet;
 	};

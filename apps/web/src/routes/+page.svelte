@@ -46,7 +46,8 @@
 		try {
 			const r = await fetch('https://api.github.com/repos/kanakkholwal/glyphx');
 			if (r.ok) {
-				const d = await r.json();
+				// Untrusted response — narrow the one field we read (AGENTS.md rule #4).
+				const d = (await r.json()) as { stargazers_count?: unknown };
 				if (typeof d.stargazers_count === 'number') stars = d.stargazers_count;
 			}
 		} catch {
@@ -144,7 +145,8 @@
 		{
 			from: 'Overleaf Billing',
 			subject: 'Compile timed out.',
-			preview: 'On the free plan a long chapter can stop building right when you need the PDF most.',
+			preview:
+				'On the free plan a long chapter can stop building right when you need the PDF most.',
 			tone: 'red',
 			icon: IconAlertTriangle,
 			tag: 'free tier',
@@ -162,7 +164,8 @@
 		{
 			from: 'Overleaf Premium',
 			subject: 'Where did my history go?',
-			preview: 'Full version history is a premium feature, so a free account only sees so far back.',
+			preview:
+				'Full version history is a premium feature, so a free account only sees so far back.',
 			tone: 'amber',
 			icon: IconLock,
 			tag: 'paywall',
@@ -421,10 +424,10 @@
 						/>
 					{:else}
 						<div class="grid grid-cols-1 lg:grid-cols-2">
-						<pre
-							class="text-muted-foreground border-hairline overflow-hidden border-b p-5 font-mono text-[12px] leading-[1.85] sm:p-6 lg:border-r lg:border-b-0"><span
-								class="text-brand">\documentclass</span
-							>&#123;article&#125;
+							<pre
+								class="text-muted-foreground border-hairline overflow-hidden border-b p-5 font-mono text-[12px] leading-[1.85] sm:p-6 lg:border-r lg:border-b-0"><span
+									class="text-brand">\documentclass</span
+								>&#123;article&#125;
 <span class="text-brand">\usepackage</span>&#123;amsmath&#125;
 
 <span class="text-brand">\title</span>&#123;On Local-First Typesetting&#125;
@@ -435,32 +438,32 @@
 
 We observe that the estimator <span class="text-foreground">$\hat&#123;\theta&#125;$</span>
 is consistent, with <span class="text-foreground">$\alpha$</span> scaling as <span
-								class="text-foreground">$\beta^2$</span
-							>:
+									class="text-foreground">$\beta^2$</span
+								>:
 
 <span class="text-brand">\begin</span>&#123;equation&#125;
   E = m c^2
 <span class="text-brand">\end</span>&#123;equation&#125;
 
 See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
-								class="text-brand inline-block h-[1em] w-[2px] translate-y-[2px] align-middle [animation:blink_1.05s_steps(1)_infinite]"
-							></span>
+									class="text-brand inline-block h-[1em] w-[2px] translate-y-[2px] align-middle [animation:blink_1.05s_steps(1)_infinite]"
+								></span>
 <span class="text-brand">\end</span>&#123;document&#125;</pre>
-						<div class="bg-canvas/50 p-7 sm:p-9">
-							<div
-								class="text-muted-foreground mb-4 font-mono text-[11px] tracking-widest uppercase"
-							>
-								Live preview
+							<div class="bg-canvas/50 p-7 sm:p-9">
+								<div
+									class="text-muted-foreground mb-4 font-mono text-[11px] tracking-widest uppercase"
+								>
+									Live preview
+								</div>
+								<h3 class="font-display mb-1 text-2xl">On Local-First Typesetting</h3>
+								<p class="text-muted-foreground mb-5 text-sm">A. Researcher</p>
+								<p class="text-muted-foreground leading-relaxed">
+									We observe that the estimator θ̂ is consistent, with α scaling as β²:
+								</p>
+								<div class="text-foreground my-4 text-center text-2xl italic">E = mc²</div>
+								<p class="text-muted-foreground text-sm">See [1].</p>
 							</div>
-							<h3 class="font-display mb-1 text-2xl">On Local-First Typesetting</h3>
-							<p class="text-muted-foreground mb-5 text-sm">A. Researcher</p>
-							<p class="text-muted-foreground leading-relaxed">
-								We observe that the estimator θ̂ is consistent, with α scaling as β²:
-							</p>
-							<div class="text-foreground my-4 text-center text-2xl italic">E = mc²</div>
-							<p class="text-muted-foreground text-sm">See [1].</p>
 						</div>
-					</div>
 					{/if}
 					<div
 						class="border-hairline text-muted-foreground flex h-9 items-center gap-4 border-t px-4 font-mono text-[11px]"
@@ -569,7 +572,9 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 									</span>
 									<span class="text-muted-foreground ml-auto shrink-0 text-[11px]">{m.time}</span>
 								</div>
-								<p class="text-foreground mt-1 text-[15px] leading-snug font-semibold">{m.subject}</p>
+								<p class="text-foreground mt-1 text-[15px] leading-snug font-semibold">
+									{m.subject}
+								</p>
 								<p class="text-muted-foreground mt-0.5 text-[13px] leading-snug">{m.preview}</p>
 							</div>
 						</Reveal>
@@ -637,8 +642,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 											class="border-hairline relative flex gap-4 border-b p-6 last:border-b-0 sm:p-7"
 										>
 											{#if ii === 0}
-												<span
-													class="bg-brand absolute top-6 bottom-6 left-0 w-[3px] rounded-r-full"
+												<span class="bg-brand absolute top-6 bottom-6 left-0 w-[3px] rounded-r-full"
 												></span>
 											{/if}
 											<span
@@ -685,7 +689,8 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 										{#if sec.mount === 'editor'}
 											<pre
 												class="text-muted-foreground overflow-hidden px-5 py-4 font-mono text-[13px] leading-[1.85]"><span
-													class="text-brand">\documentclass</span>&#123;article&#125;
+													class="text-brand">\documentclass</span
+												>&#123;article&#125;
 <span class="text-brand">\usepackage</span>&#123;amsmath&#125;
 
 <span class="text-brand">\title</span>&#123;On Local-First Typesetting&#125;
@@ -733,7 +738,8 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 								href={sec.href}
 								class="border-hairline text-brand hover:bg-muted/40 flex items-center justify-center gap-2 border-t p-5 font-mono text-xs font-semibold tracking-wider uppercase transition-colors"
 							>
-								{sec.cta} <IconArrowRight class="size-4" />
+								{sec.cta}
+								<IconArrowRight class="size-4" />
 							</a>
 						</div>
 					</Reveal>
@@ -774,9 +780,7 @@ See <span class="text-brand">\cite</span>&#123;einstein1905&#125;.<span
 									>
 										{it.label}
 									</div>
-									<div
-										class="text-muted-foreground mt-1 text-[11px]"
-									>
+									<div class="text-muted-foreground mt-1 text-[11px]">
 										{it.note}
 									</div>
 								</div>

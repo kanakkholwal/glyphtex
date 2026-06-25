@@ -38,9 +38,28 @@ export function markEngineReady(): void {
 
 export type InstallProgress = { done: number; total: number; label: string };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const ENGINE_SRC = '/swiftlatex/PdfTeXEngine.js';
+
+/**
+ * The slice of the self-hosted SwiftLaTeX pdfTeX engine we actually call. Upstream
+ * ships no types, so this is our narrowed contract at the boundary (AGENTS.md rule
+ * #7 — parse/narrow untrusted shapes, no blanket `any`).
+ */
+interface PdfTeXEngine {
+	loadEngine(): Promise<void>;
+	writeMemFSFile(name: string, content: string): void;
+	setEngineMainFile(name: string): void;
+	compileLaTeX(): Promise<{ pdf?: ArrayBuffer; log?: string }>;
+	/** The underlying Web Worker; we post `settexliveurl` straight to it. */
+	latexWorker?: { postMessage(message: unknown): void };
+}
+type PdfTeXEngineClass = new () => PdfTeXEngine;
+
+/** Globals the classic engine script attaches to `window` once loaded. */
+interface EngineWindow {
+	exports?: { PdfTeXEngine?: PdfTeXEngineClass };
+	__PdfTeXEngineClass?: PdfTeXEngineClass;
+}
 
 /**
  * Our own same-origin TeX endpoint. The engine fetches `<endpoint>pdftex/<n>/<file>`;
@@ -52,11 +71,11 @@ function texliveEndpoint(): string {
 	return typeof location !== 'undefined' ? new URL('/texlive/', location.origin).href : '/texlive/';
 }
 
-let enginePromise: Promise<any> | null = null;
+let enginePromise: Promise<PdfTeXEngine> | null = null;
 
 /** Load PdfTeXEngine.js as a classic script; it exposes `window.exports.PdfTeXEngine`. */
-function loadEngineClass(): Promise<any> {
-	const w = window as any;
+function loadEngineClass(): Promise<PdfTeXEngineClass> {
+	const w = window as unknown as EngineWindow;
 	if (w.__PdfTeXEngineClass) return Promise.resolve(w.__PdfTeXEngineClass);
 
 	return new Promise((resolve, reject) => {
@@ -64,7 +83,7 @@ function loadEngineClass(): Promise<any> {
 		script.src = ENGINE_SRC;
 		script.async = true;
 		script.onload = () => {
-			const cls = (window as any).exports?.PdfTeXEngine;
+			const cls = (window as unknown as EngineWindow).exports?.PdfTeXEngine;
 			if (cls) {
 				w.__PdfTeXEngineClass = cls;
 				resolve(cls);
@@ -78,7 +97,7 @@ function loadEngineClass(): Promise<any> {
 }
 
 /** Lazily create + boot a single engine instance (one compile at a time). */
-function getEngine(): Promise<any> {
+function getEngine(): Promise<PdfTeXEngine> {
 	if (!enginePromise) {
 		enginePromise = (async () => {
 			const PdfTeXEngine = await loadEngineClass();
@@ -113,7 +132,7 @@ export function warmEngine(): void {
 /** Compile a tiny throwaway doc to pull the format + `preamble`'s packages into
  *  the service-worker cache. Returns whether a PDF came out — used to tell a
  *  real failure (engine/server unreachable → no PDF) from a clean warm-up. */
-async function warmCompile(engine: any, preamble: string): Promise<boolean> {
+async function warmCompile(engine: PdfTeXEngine, preamble: string): Promise<boolean> {
 	const src = `\\documentclass{article}\n${preamble}\n\\begin{document}.\\end{document}`;
 	engine.writeMemFSFile('main.tex', src);
 	engine.setEngineMainFile('main.tex');
@@ -183,7 +202,7 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 		return { error: 'Compilation runs in the browser.' };
 	}
 
-	let engine: any;
+	let engine: PdfTeXEngine;
 	try {
 		engine = await getEngine();
 	} catch {
@@ -212,6 +231,10 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 			error: 'LaTeX compilation failed — no PDF was produced. See the Problems panel.'
 		};
 	} catch (e) {
-		return { error: String(e) };
+		// Plain-language message for the user; raw detail lives in the log (AGENTS.md rule #5).
+		return {
+			error: 'The LaTeX engine crashed while compiling. Reload the page and try again.',
+			log: String(e)
+		};
 	}
 }

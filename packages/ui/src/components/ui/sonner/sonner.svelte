@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { mode } from "mode-watcher";
+	import { settings } from "@glyphx/ui/settings";
 	import {
-		AlertOctagon,
-		AlertTriangle,
-		CheckCircle2,
-		Info,
-		Loader2,
-		X,
-	} from "@lucide/svelte";
+		IconAlertOctagon,
+		IconAlertTriangle,
+		IconCircleCheck,
+		IconInfoCircle,
+		IconLoader2,
+		IconX,
+	} from "@tabler/icons-svelte";
 	import {
 		Toaster as Sonner,
 		type ToasterProps as SonnerProps,
@@ -29,13 +29,14 @@
   the bottom, so toasts naturally pile on top of any persistent corner
   notification without forcing a layout coordination layer.
 
-  Icons are Lucide only (the rest of the app is Lucide-only by design
-  rule). Sonner renders our snippet inside its `[data-icon]` element, so
+  Icons are @tabler/icons-svelte (the app's icon set; AGENTS.md rule #9).
+  Sonner renders our snippet inside its `[data-icon]` element, so
   `classes.icon` styles the *badge* and the snippet just supplies the
-  glyph that sits inside it.
+  glyph that sits inside it. Theme is read from the settings store — the
+  single owner of the theme fact (no `mode-watcher`; AGENTS.md §3).
 -->
 <Sonner
-	theme={mode.current}
+	theme={settings.resolved}
 	position="bottom-right"
 	offset={16}
 	mobileOffset={16}
@@ -76,7 +77,7 @@
 	toastOptions={{
 		classes: {
 			toast:
-				"!w-[320px] !rounded-xl !border !border-border !bg-card !shadow-lg !ring-1 !ring-black/5 !p-3 !gap-3",
+				"!w-[320px] !rounded-xl !border !border-border !bg-card !shadow-lg !ring-1 !ring-foreground/5 !p-3 !gap-3",
 			content: "!gap-0.5",
 			title:
 				"!text-[12.5px] !font-semibold !leading-tight !text-foreground !tracking-tight",
@@ -100,21 +101,21 @@
 	{...restProps}
 >
 	{#snippet loadingIcon()}
-		<Loader2 class="size-4 animate-spin" />
+		<IconLoader2 class="size-4 animate-spin" />
 	{/snippet}
 	{#snippet successIcon()}
-		<CheckCircle2 class="size-4" />
+		<IconCircleCheck class="size-4" />
 	{/snippet}
 	{#snippet errorIcon()}
-		<AlertOctagon class="size-4" />
+		<IconAlertOctagon class="size-4" />
 	{/snippet}
 	{#snippet infoIcon()}
-		<Info class="size-4" />
+		<IconInfoCircle class="size-4" />
 	{/snippet}
 	{#snippet warningIcon()}
-		<AlertTriangle class="size-4" />
+		<IconAlertTriangle class="size-4" />
 	{/snippet}
 	{#snippet closeIcon()}
-		<X class="size-3" />
+		<IconX class="size-3" />
 	{/snippet}
 </Sonner>

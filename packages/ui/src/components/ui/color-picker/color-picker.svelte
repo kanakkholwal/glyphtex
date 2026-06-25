@@ -145,7 +145,12 @@
 
 <script lang="ts">
 	import { cn } from "@glyphx/ui/utils";
-	import { Pipette } from "@lucide/svelte";
+	import { IconColorPicker } from "@tabler/icons-svelte";
+
+	/** Chromium-only `EyeDropper` constructor — narrowed off `window` at the boundary. */
+	interface EyeDropperCtor {
+		new (): { open(): Promise<{ sRGBHex: string }> };
+	}
 
 	let {
 		value = "#3b82f6",
@@ -163,7 +168,10 @@
 	let alpha = $state(1);
 	let hexInput = $state("");
 
-	// Re-sync internal HSL whenever `value` changes externally.
+	// Internal HSL is a deliberate *editing buffer*, not a derived view of `value`:
+	// it diverges from the prop mid-drag (the parent only hears committed colors via
+	// `oncommit`), so it can't be `$derived` (AGENTS.md §3/§5). This effect reconciles
+	// the buffer only when `value` changes from *outside* the picker.
 	$effect(() => {
 		const parsed = parseColor(value);
 		if (!parsed) return;
@@ -239,8 +247,7 @@
 	async function pickWithEyedropper() {
 		// `EyeDropper` is a Chromium-only API; gated above so we don't surface
 		// the button on browsers/webviews that lack it.
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const Picker: any = (window as any).EyeDropper;
+		const Picker = (window as { EyeDropper?: EyeDropperCtor }).EyeDropper;
 		if (!Picker) return;
 		try {
 			const result = await new Picker().open();
@@ -274,6 +281,14 @@
 		</div>
 	{/if}
 
+	<!--
+	  The literal colors below (#000/#fff gradient corners, #cbd5e1 alpha checker,
+	  the marker's white border + black ring) are NOT theme surfaces — they are the
+	  saturation/value color-math and fixed contrast over an *arbitrary* user color,
+	  so they intentionally stay constant across light/dark (mapping them to
+	  semantic tokens would make the marker invisible in dark mode). AGENTS.md rule
+	  #9 covers themed surfaces; these are picker-intrinsic, like the swatch data.
+	-->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="relative h-32 w-full cursor-crosshair rounded-md border border-border"
@@ -339,7 +354,7 @@
 				title="Pick from screen"
 				aria-label="Eyedropper"
 			>
-				<Pipette size={12} />
+				<IconColorPicker class="size-3" />
 			</button>
 		{/if}
 	</div>

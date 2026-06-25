@@ -29,7 +29,7 @@
 </script>
 
 <script lang="ts">
-	import { ChevronDown } from "@lucide/svelte";
+	import { IconChevronDown } from "@tabler/icons-svelte";
 	import { Spring } from "svelte/motion";
 	import { slide } from "svelte/transition";
 	import { cubicOut } from "svelte/easing";
@@ -100,7 +100,7 @@
 						aria-hidden="true"
 						style:transform={`rotate(${chevronRotation.current}deg)`}
 					>
-						<ChevronDown class="size-3" />
+						<IconChevronDown class="size-3" />
 					</span>
 					{#if title}
 						<span

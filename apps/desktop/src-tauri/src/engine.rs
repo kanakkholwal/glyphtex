@@ -280,7 +280,9 @@ pub async fn download_tectonic(app: tauri::AppHandle, version: String) -> Result
 
     let target = installed_path(&dir, &version);
     extract_binary(&bytes, &asset.name, &target)?;
-    std::fs::write(active_marker(&dir), &version).map_err(|e| e.to_string())?;
+    // Atomic: a torn write of the marker would silently change which engine compiles.
+    crate::fsx::atomic_write(&active_marker(&dir), version.as_bytes())
+        .map_err(|e| e.to_string())?;
 
     Ok(target.to_string_lossy().into_owned())
 }
@@ -292,7 +294,7 @@ pub async fn set_active_engine(app: tauri::AppHandle, version: String) -> Result
     if !installed_path(&dir, &version).exists() {
         return Err("that version is not installed".into());
     }
-    std::fs::write(active_marker(&dir), &version).map_err(|e| e.to_string())
+    crate::fsx::atomic_write(&active_marker(&dir), version.as_bytes()).map_err(|e| e.to_string())
 }
 
 /// Uninstall a downloaded engine binary to reclaim disk space. If it was the
@@ -307,7 +309,10 @@ pub async fn remove_tectonic(app: tauri::AppHandle, version: String) -> Result<(
     }
     if read_active(&dir).as_deref() == Some(version.as_str()) {
         match installed_versions(&dir).into_iter().find(|v| v != &version) {
-            Some(next) => std::fs::write(active_marker(&dir), next).map_err(|e| e.to_string())?,
+            Some(next) => crate::fsx::atomic_write(&active_marker(&dir), next.as_bytes())
+                .map_err(|e| e.to_string())?,
+            // best-effort: clearing the marker just lets the compiler fall back to
+            // a bundled / PATH `tectonic`; a leftover marker is corrected on next set.
             None => {
                 let _ = std::fs::remove_file(active_marker(&dir));
             }
@@ -325,7 +330,8 @@ fn extract_binary(bytes: &[u8], asset_name: &str, target: &Path) -> Result<(), S
             if name.ends_with("tectonic.exe") || name.ends_with("tectonic") {
                 let mut buf = Vec::new();
                 std::io::copy(&mut entry, &mut buf).map_err(|e| e.to_string())?;
-                std::fs::write(target, &buf).map_err(|e| e.to_string())?;
+                // Atomic: a torn write would leave a corrupt, executable engine binary.
+                crate::fsx::atomic_write(target, &buf).map_err(|e| e.to_string())?;
                 return set_executable(target);
             }
         }
@@ -339,7 +345,8 @@ fn extract_binary(bytes: &[u8], asset_name: &str, target: &Path) -> Result<(), S
             if path.file_name().map(|n| n == "tectonic").unwrap_or(false) {
                 let mut buf = Vec::new();
                 std::io::copy(&mut entry, &mut buf).map_err(|e| e.to_string())?;
-                std::fs::write(target, &buf).map_err(|e| e.to_string())?;
+                // Atomic: a torn write would leave a corrupt, executable engine binary.
+                crate::fsx::atomic_write(target, &buf).map_err(|e| e.to_string())?;
                 return set_executable(target);
             }
         }
