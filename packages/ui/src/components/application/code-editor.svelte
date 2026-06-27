@@ -1,460 +1,162 @@
+<script lang="ts" module>
+  // Public find/replace types kept importable from this component.
+  export type { SearchOptions, SearchMatch } from "./code-editor/types";
+</script>
+
 <script lang="ts">
-	import { untrack } from "svelte";
-	import {
-		EditorView,
-		keymap,
-		lineNumbers,
-		highlightActiveLine,
-		highlightActiveLineGutter,
-		highlightSpecialChars,
-		drawSelection,
-		dropCursor,
-		rectangularSelection,
-		crosshairCursor,
-	} from "@codemirror/view";
-	import { EditorState, Compartment, Transaction } from "@codemirror/state";
-	import {
-		history,
-		historyKeymap,
-		defaultKeymap,
-		indentWithTab,
-		undo as cmUndo,
-		redo as cmRedo,
-		undoDepth,
-		redoDepth,
-	} from "@codemirror/commands";
-	import {
-		indentOnInput,
-		indentUnit,
-		bracketMatching,
-		foldGutter,
-		foldKeymap,
-	} from "@codemirror/language";
-	import {
-		closeBrackets,
-		closeBracketsKeymap,
-		autocompletion,
-		completionKeymap,
-	} from "@codemirror/autocomplete";
-	import { search, setSearchQuery, SearchQuery } from "@codemirror/search";
+  import { untrack } from "svelte";
 
-	import { jetbrainsTheme, latexLanguage, type LatexGrammar } from "@glyphx/ui/editor";
-	import { applyCase } from "./case-preserve";
+  import type { LatexGrammar } from "@glyphx/ui/editor";
 
-	/**
-	 * CodeEditor — the shared CodeMirror 6 surface (web + desktop).
-	 *
-	 * Dumb on purpose: theme / grammar / font come in as props; EditorShell
-	 * (or any host) wires them to the settings store. Reconfiguration runs
-	 * through Compartments so toggling the theme or swapping the LaTeX parser
-	 * never re-mounts the view or loses cursor/scroll/history.
-	 */
-	let {
-		value = $bindable(""),
-		docKey = "",
-		canUndo = $bindable(false),
-		canRedo = $bindable(false),
-		theme = "light" as "light" | "dark",
-		grammar = "legacy" as LatexGrammar,
-		language = "latex" as "latex" | "markdown" | "plain",
-		fontSize = 13,
-		fontFamily = "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace",
-		lineWrapping = false,
-		readonly = false,
-		class: className = "",
-		oncursor,
-	}: {
-		value?: string;
-		/** Identity of the open document. Changing it resets the undo history so
-		 *  undo/redo can never reach into another file's edits. */
-		docKey?: string;
-		/** Bindable: whether there is anything to undo / redo (drives toolbar state). */
-		canUndo?: boolean;
-		canRedo?: boolean;
-		theme?: "light" | "dark";
-		grammar?: LatexGrammar;
-		/** Highlighting mode. `latex` uses the LaTeX parser; `markdown`/`plain`
-		 *  drive non-TeX files (READMEs, code) so they aren't mis-highlighted. */
-		language?: "latex" | "markdown" | "plain";
-		fontSize?: number;
-		fontFamily?: string;
-		lineWrapping?: boolean;
-		readonly?: boolean;
-		class?: string;
-		/** Fires with the 1-based caret position whenever the selection moves. */
-		oncursor?: (pos: { line: number; column: number }) => void;
-	} = $props();
+  import {
+    CodeEditorController,
+    type EditorLanguage,
+  } from "./code-editor/controller.svelte";
 
-	let host = $state<HTMLDivElement>();
-	let view = $state<EditorView>();
-	// Last document the undo history belongs to (non-reactive, view-local).
-	let lastDocKey: string | null = null;
+  /**
+   * CodeEditor — the shared CodeMirror 6 surface (web + desktop).
+   *
+   * Dumb on purpose: theme / grammar / font come in as props. This component is
+   * a thin shell — all editor state + behaviour live in
+   * {@link CodeEditorController}; here we only bind props/effects to it and
+   * re-export its imperative API via `bind:this`.
+   */
+  let {
+    value = $bindable(""),
+    docKey = "",
+    canUndo = $bindable(false),
+    canRedo = $bindable(false),
+    theme = "light" as "light" | "dark",
+    grammar = "legacy" as LatexGrammar,
+    language = "latex" as EditorLanguage,
+    fontSize = 13,
+    fontFamily = "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace",
+    lineWrapping = false,
+    readonly = false,
+    class: className = "",
+    oncursor,
+  }: {
+    value?: string;
+    /** Identity of the open document. Changing it resets the undo history so
+     *  undo/redo can never reach into another file's edits. */
+    docKey?: string;
+    /** Bindable: whether there is anything to undo / redo (drives toolbar state). */
+    canUndo?: boolean;
+    canRedo?: boolean;
+    theme?: "light" | "dark";
+    grammar?: LatexGrammar;
+    /** Highlighting mode. `latex` uses the LaTeX parser; `markdown`/`plain`
+     *  drive non-TeX files (READMEs, code) so they aren't mis-highlighted. */
+    language?: EditorLanguage;
+    fontSize?: number;
+    fontFamily?: string;
+    lineWrapping?: boolean;
+    readonly?: boolean;
+    class?: string;
+    /** Fires with the 1-based caret position whenever the selection moves. */
+    oncursor?: (pos: { line: number; column: number }) => void;
+  } = $props();
 
-	// The active highlighting extension for the current language/grammar. Only
-	// LaTeX gets a real parser; markdown / plain (READMEs, code) stay unhighlighted
-	// so we don't pull in a grammar package per language.
-	function langExtension(lang: "latex" | "markdown" | "plain", g: LatexGrammar) {
-		return lang === "latex" ? latexLanguage(g) : [];
-	}
+  let host = $state<HTMLDivElement>();
 
-	const themeC = new Compartment();
-	const langC = new Compartment();
-	const fontC = new Compartment();
-	const wrapC = new Compartment();
-	const roC = new Compartment();
-	const historyC = new Compartment();
+  // `oncursor` is captured once (it's stable); the rest are setter closures.
+  // svelte-ignore state_referenced_locally
+  const ctrl = new CodeEditorController({
+    setValue: (v) => (value = v),
+    setCanUndo: (b) => (canUndo = b),
+    setCanRedo: (b) => (canRedo = b),
+    oncursor,
+  });
 
-	// Font size + family live in a compartment so Settings can change them live.
-	// Default is JetBrains Mono (per product spec); the host may pass another.
-	const fontExtension = (size: number, family: string) =>
-		EditorView.theme({
-			"&": { fontSize: `${size}px` },
-			".cm-scroller": { fontFamily: family },
-			".cm-gutters": { fontFamily: family },
-		});
+  // Mount once. Initial prop values are read untracked so this effect does not
+  // re-run (and re-create the view) when they change — the effects below handle
+  // live reconfiguration.
+  $effect(() => {
+    const parent = host;
+    if (!parent) return;
+    const init = untrack(() => ({
+      value,
+      theme,
+      grammar,
+      language,
+      fontSize,
+      fontFamily,
+      lineWrapping,
+      readonly,
+    }));
+    return ctrl.mount(parent, init);
+  });
 
-	const baseTheme = EditorView.theme({
-		"&": { height: "100%", backgroundColor: "transparent" },
-		"&.cm-focused": { outline: "none" },
-		".cm-scroller": { lineHeight: "1.6", overflow: "auto" },
-		".cm-content": { padding: "12px 0" },
-		".cm-lineNumbers .cm-gutterElement": { padding: "0 12px 0 8px" },
-	});
+  // Live reconfiguration — each tracks `view` + exactly one prop set.
+  $effect(() => {
+    void ctrl.view;
+    ctrl.reconfigureTheme(theme);
+  });
+  $effect(() => {
+    void ctrl.view;
+    ctrl.reconfigureLang(language, grammar);
+  });
+  $effect(() => {
+    void ctrl.view;
+    ctrl.reconfigureFont(fontSize, fontFamily);
+  });
+  $effect(() => {
+    void ctrl.view;
+    ctrl.reconfigureWrap(lineWrapping);
+  });
+  $effect(() => {
+    void ctrl.view;
+    ctrl.reconfigureReadonly(readonly);
+  });
+  $effect(() => {
+    void ctrl.view;
+    ctrl.resetHistoryIfDocChanged(docKey);
+  });
+  $effect(() => {
+    void ctrl.view;
+    ctrl.syncExternalValue(value);
+  });
 
-	// Mount once. Initial prop values are read untracked so this effect does
-	// not re-run (and re-create the view) when they change — the dedicated
-	// effects below handle live reconfiguration.
-	$effect(() => {
-		const parent = host;
-		if (!parent) return;
-
-		const init = untrack(() => ({
-			value,
-			theme,
-			grammar,
-			language,
-			fontSize,
-			fontFamily,
-			lineWrapping,
-			readonly,
-		}));
-
-		const state = EditorState.create({
-			doc: init.value,
-			extensions: [
-				lineNumbers(),
-				highlightActiveLineGutter(),
-				highlightSpecialChars(),
-				historyC.of(history()),
-				foldGutter(),
-				drawSelection(),
-				dropCursor(),
-				EditorState.allowMultipleSelections.of(true),
-				indentOnInput(),
-				indentUnit.of("  "),
-				bracketMatching(),
-				closeBrackets(),
-				autocompletion(),
-				search(), // enables match highlighting via setSearchQuery (our own panel)
-				rectangularSelection(),
-				crosshairCursor(),
-				highlightActiveLine(),
-				keymap.of([
-					...closeBracketsKeymap,
-					...defaultKeymap,
-					...historyKeymap,
-					...foldKeymap,
-					...completionKeymap,
-					indentWithTab,
-				]),
-				baseTheme,
-				langC.of(langExtension(init.language, init.grammar)),
-				themeC.of(jetbrainsTheme(init.theme)),
-				fontC.of(fontExtension(init.fontSize, init.fontFamily)),
-				wrapC.of(init.lineWrapping ? EditorView.lineWrapping : []),
-				roC.of(EditorState.readOnly.of(init.readonly)),
-				EditorView.updateListener.of((u) => {
-					if (u.docChanged) value = u.state.doc.toString();
-					if ((u.docChanged || u.selectionSet) && oncursor) {
-						const head = u.state.selection.main.head;
-						const line = u.state.doc.lineAt(head);
-						oncursor({ line: line.number, column: head - line.from + 1 });
-					}
-					// Keep the host's undo/redo affordances in sync with the history stack.
-					canUndo = undoDepth(u.state) > 0;
-					canRedo = redoDepth(u.state) > 0;
-				}),
-			],
-		});
-
-		const v = new EditorView({ state, parent });
-		view = v;
-		return () => {
-			v.destroy();
-			if (view === v) view = undefined;
-		};
-	});
-
-	// Live reconfiguration — each tracks exactly one prop.
-	$effect(() => {
-		const v = view;
-		const mode = theme;
-		if (v) v.dispatch({ effects: themeC.reconfigure(jetbrainsTheme(mode)) });
-	});
-	$effect(() => {
-		const v = view;
-		const g = grammar;
-		const lang = language;
-		if (v) v.dispatch({ effects: langC.reconfigure(langExtension(lang, g)) });
-	});
-	$effect(() => {
-		const v = view;
-		const size = fontSize;
-		const family = fontFamily;
-		if (v) v.dispatch({ effects: fontC.reconfigure(fontExtension(size, family)) });
-	});
-	$effect(() => {
-		const v = view;
-		const wrap = lineWrapping;
-		if (v) v.dispatch({ effects: wrapC.reconfigure(wrap ? EditorView.lineWrapping : []) });
-	});
-	$effect(() => {
-		const v = view;
-		const ro = readonly;
-		if (v) v.dispatch({ effects: roC.reconfigure(EditorState.readOnly.of(ro)) });
-	});
-
-	// Switching documents resets the undo history so undo/redo can never reach
-	// into another file's edits (a single view is reused across files). Two-step
-	// reconfigure: dropping the history field clears its state, re-adding starts
-	// a fresh stack.
-	$effect(() => {
-		const v = view;
-		const key = docKey;
-		if (!v || key === lastDocKey) return;
-		lastDocKey = key;
-		v.dispatch({ effects: historyC.reconfigure([]) });
-		v.dispatch({ effects: historyC.reconfigure(history()) });
-	});
-
-	// External value → editor (e.g. open a different file). Guarded so typing
-	// (which writes `value` via the update listener) doesn't loop.
-	$effect(() => {
-		const v = view;
-		const next = value;
-		if (!v) return;
-		if (next !== v.state.doc.toString()) {
-			// External replacements (opening / switching files) are never undoable:
-			// undo must only walk back edits made *inside* the current file.
-			v.dispatch({
-				changes: { from: 0, to: v.state.doc.length, insert: next },
-				annotations: Transaction.addToHistory.of(false),
-			});
-		}
-	});
-
-	// --- Imperative API (accessed via bind:this from a toolbar, etc.) --------
-
-	/** Wrap the current selection (or insert at the caret) with delimiters. */
-	export function wrapSelection(before: string, after: string = before) {
-		const v = view;
-		if (!v) return;
-		const range = v.state.selection.main;
-		const selected = v.state.sliceDoc(range.from, range.to);
-		v.dispatch({
-			changes: { from: range.from, to: range.to, insert: `${before}${selected}${after}` },
-			selection: {
-				anchor: range.from + before.length,
-				head: range.from + before.length + selected.length,
-			},
-			scrollIntoView: true,
-		});
-		v.focus();
-	}
-
-	/** Replace the current selection with `text` (snippets, environments). */
-	export function insertText(text: string) {
-		const v = view;
-		if (!v) return;
-		const range = v.state.selection.main;
-		v.dispatch({
-			changes: { from: range.from, to: range.to, insert: text },
-			selection: { anchor: range.from + text.length },
-			scrollIntoView: true,
-		});
-		v.focus();
-	}
-
-	export function focusEditor() {
-		view?.focus();
-	}
-
-	/** The currently selected text (empty string if the selection is collapsed). */
-	export function selectedText(): string {
-		const v = view;
-		if (!v) return "";
-		const r = v.state.selection.main;
-		return v.state.sliceDoc(r.from, r.to);
-	}
-
-	/** Undo / redo the last edit (wired to the Edit menu + native shortcuts). */
-	export function undo() {
-		const v = view;
-		if (v) {
-			cmUndo(v);
-			v.focus();
-		}
-	}
-	export function redo() {
-		const v = view;
-		if (v) {
-			cmRedo(v);
-			v.focus();
-		}
-	}
-
-	/** Scroll to and place the caret on a 1-based line (SyncTeX reverse search). */
-	export function goToLine(line: number) {
-		const v = view;
-		if (!v) return;
-		const n = Math.max(1, Math.min(line, v.state.doc.lines));
-		const l = v.state.doc.line(n);
-		v.dispatch({
-			selection: { anchor: l.from },
-			effects: EditorView.scrollIntoView(l.from, { y: "center" }),
-		});
-		v.focus();
-	}
-
-	// --- Search / replace (drives the side-panel search) ----------------------
-
-	export type SearchOptions = {
-		query: string;
-		replace?: string;
-		caseSensitive?: boolean;
-		wholeWord?: boolean;
-		regexp?: boolean;
-		/** Recase each replacement to match the case of the text it replaces. */
-		preserveCase?: boolean;
-	};
-	export type SearchMatch = { from: number; to: number; line: number; column: number; text: string };
-
-	function buildRegex(o: SearchOptions): RegExp | null {
-		if (!o.query) return null;
-		let pat = o.regexp ? o.query : o.query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-		if (o.wholeWord) pat = `\\b(?:${pat})\\b`;
-		try {
-			return new RegExp(pat, "g" + (o.caseSensitive ? "" : "i"));
-		} catch {
-			return null; // invalid regex — caller shows no results
-		}
-	}
-
-	/** Highlight matches in the editor and return them all for the results list. */
-	export function findAll(o: SearchOptions): SearchMatch[] {
-		const v = view;
-		if (!v) return [];
-		// Drive CodeMirror's own match highlighting.
-		v.dispatch({
-			effects: setSearchQuery.of(
-				new SearchQuery({
-					search: o.query ?? "",
-					replace: o.replace ?? "",
-					caseSensitive: !!o.caseSensitive,
-					regexp: !!o.regexp,
-					wholeWord: !!o.wholeWord,
-				}),
-			),
-		});
-		const re = buildRegex(o);
-		if (!re) return [];
-		const text = v.state.doc.toString();
-		const out: SearchMatch[] = [];
-		let m: RegExpExecArray | null;
-		while ((m = re.exec(text)) && out.length < 5000) {
-			if (m[0] === "") {
-				re.lastIndex++; // guard against zero-width matches
-				continue;
-			}
-			const from = m.index;
-			const line = v.state.doc.lineAt(from);
-			out.push({
-				from,
-				to: from + m[0].length,
-				line: line.number,
-				column: from - line.from + 1,
-				text: line.text,
-			});
-		}
-		return out;
-	}
-
-	/** Select + scroll to a match range (clicking a search result). */
-	export function selectRange(from: number, to: number) {
-		const v = view;
-		if (!v) return;
-		const len = v.state.doc.length;
-		const a = Math.min(from, len);
-		const b = Math.min(to, len);
-		v.dispatch({
-			selection: { anchor: a, head: b },
-			effects: EditorView.scrollIntoView(a, { y: "center" }),
-		});
-		v.focus();
-	}
-
-	/** Replace a single range (replace-current). */
-	export function replaceRange(from: number, to: number, insert: string) {
-		const v = view;
-		if (!v) return;
-		v.dispatch({ changes: { from, to, insert }, selection: { anchor: from + insert.length } });
-	}
-
-	/** Expand `$&` / `$1`… in a replacement string against a regex match. */
-	function expandReplacement(replacement: string, match: string, groups: (string | undefined)[]): string {
-		return replacement.replace(/\$(\$|&|\d{1,2})/g, (_, token: string) => {
-			if (token === "$") return "$";
-			if (token === "&") return match;
-			return groups[parseInt(token, 10) - 1] ?? "";
-		});
-	}
-
-	/** Replace every match in one undoable change. Returns the count replaced. */
-	export function replaceAllMatches(o: SearchOptions, replacement: string): number {
-		const v = view;
-		if (!v) return 0;
-		const re = buildRegex(o);
-		if (!re) return 0;
-		const text = v.state.doc.toString();
-		const matches = text.match(re);
-		const count = matches ? matches.length : 0;
-		if (!count) return 0;
-
-		let next: string;
-		if (o.preserveCase) {
-			// A function replacer so each hit can be recased to match its own text.
-			next = text.replace(re, (m: string, ...args: unknown[]) => {
-				const groups = args.slice(0, -2) as (string | undefined)[];
-				const expanded = o.regexp ? expandReplacement(replacement, m, groups) : replacement;
-				return applyCase(m, expanded);
-			});
-		} else {
-			// In regex mode keep $1/$& expansion; otherwise insert the literal text.
-			const repl = o.regexp ? replacement : replacement.replace(/\$/g, "$$$$");
-			next = text.replace(re, repl);
-		}
-
-		v.dispatch({
-			changes: { from: 0, to: v.state.doc.length, insert: next },
-			selection: { anchor: 0 },
-		});
-		return count;
-	}
-
-	/** Clear the highlight (closing the search panel). */
-	export function clearSearch() {
-		view?.dispatch({ effects: setSearchQuery.of(new SearchQuery({ search: "" })) });
-	}
+  // --- Imperative API (accessed via bind:this from a toolbar, etc.) ---------
+  export function wrapSelection(before: string, after?: string) {
+    ctrl.wrapSelection(before, after);
+  }
+  export function insertText(text: string) {
+    ctrl.insertText(text);
+  }
+  export function focusEditor() {
+    ctrl.focusEditor();
+  }
+  export function selectedText(): string {
+    return ctrl.selectedText();
+  }
+  export function undo() {
+    ctrl.undo();
+  }
+  export function redo() {
+    ctrl.redo();
+  }
+  export function goToLine(line: number) {
+    ctrl.goToLine(line);
+  }
+  export function findAll(o: import("./code-editor/types").SearchOptions) {
+    return ctrl.findAll(o);
+  }
+  export function selectRange(from: number, to: number) {
+    ctrl.selectRange(from, to);
+  }
+  export function replaceRange(from: number, to: number, insert: string) {
+    ctrl.replaceRange(from, to, insert);
+  }
+  export function replaceAllMatches(
+    o: import("./code-editor/types").SearchOptions,
+    replacement: string,
+  ): number {
+    return ctrl.replaceAllMatches(o, replacement);
+  }
+  export function clearSearch() {
+    ctrl.clearSearch();
+  }
 </script>
 
 <div bind:this={host} class="h-full min-h-0 {className}"></div>

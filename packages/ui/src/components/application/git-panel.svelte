@@ -1,1068 +1,240 @@
 <script lang="ts" module>
-	export type GitChange = { path: string; status: string; staged: boolean };
-	export type GitCommitEntry = { hash: string; summary: string; author: string; time: number };
-	export type GitHeadInfo = {
-		branch: string | null;
-		unborn: boolean;
-		/** Upstream tracking branch (e.g. `origin/main`), if configured. */
-		upstream?: string | null;
-		/** Commits ahead of the remote (undefined / null when not applicable). */
-		ahead?: number | null;
-		/** Commits behind the remote. */
-		behind?: number | null;
-		/** True while a merge is in progress (working tree may have conflicts). */
-		merging?: boolean;
-	};
-
-	/** Host-injected Git backend (desktop = Tauri / gitoxide). */
-	export type GitProvider = {
-		/** Whether a usable system `git` is installed — gates the remote half (push/pull/sync). */
-		available?: () => Promise<boolean>;
-		isRepo: (root: string) => Promise<boolean>;
-		init: (root: string) => Promise<void>;
-		head: (root: string) => Promise<GitHeadInfo>;
-		status: (root: string) => Promise<GitChange[]>;
-		/** Stage paths into the index (`git add`). */
-		stage: (root: string, paths: string[]) => Promise<void>;
-		/** Unstage paths (`git reset <path>`). */
-		unstage: (root: string, paths: string[]) => Promise<void>;
-		/** Discard working-tree changes (`git restore`); deletes untracked files. */
-		discard: (root: string, paths: string[]) => Promise<void>;
-		/** Unified diff for a path; `staged` = HEAD↔index vs index↔worktree. */
-		diff: (root: string, path: string, staged: boolean) => Promise<string>;
-		/** Both sides of a change as full text, for the side-by-side / inline diff editor. */
-		fileVersions: (
-			root: string,
-			path: string,
-			staged: boolean
-		) => Promise<{ original: string; modified: string; binary: boolean }>;
-		/** Commit the staged index; returns the short hash. */
-		commit: (root: string, message: string) => Promise<string>;
-		log: (root: string, limit?: number) => Promise<GitCommitEntry[]>;
-		/** Clone `url` into `dest`; returns the working-tree path. */
-		clone: (url: string, dest: string) => Promise<string>;
-		/** Configured remotes (name + fetch URL). */
-		remotes: (root: string) => Promise<GitRemote[]>;
-		/** Add a remote (`git remote add`). */
-		remoteAdd: (root: string, name: string, url: string) => Promise<void>;
-		/** Change a remote's URL (`git remote set-url`). */
-		remoteSetUrl: (root: string, name: string, url: string) => Promise<void>;
-		/** Rename a remote (`git remote rename`). */
-		remoteRename: (root: string, from: string, to: string) => Promise<void>;
-		/** Remove a remote (`git remote remove`). */
-		remoteRemove: (root: string, name: string) => Promise<void>;
-		/** Fetch tracking refs (optionally from an authenticated `url`). */
-		fetch: (root: string, url?: string) => Promise<void>;
-		/** Fast-forward pull (system git); `url` carries token auth. */
-		pull: (root: string, url?: string) => Promise<string>;
-		/** Push current branch (system git); `url` carries token auth, `remote` names the tracking ref to refresh. */
-		push: (root: string, url?: string, branch?: string, remote?: string) => Promise<string>;
-		/** Sync = pull (merge) then push; reports merge conflicts instead of throwing. */
-		sync: (
-			root: string,
-			url?: string,
-			branch?: string,
-			remote?: string
-		) => Promise<{ conflicts: boolean; message: string }>;
-		/** Native confirmation dialog (desktop wires Tauri's); falls back to window.confirm. */
-		confirm?: (message: string, title?: string) => Promise<boolean>;
-	};
-
-	export type GitRemote = { name: string; url: string };
+  // Public Source Control types kept stable for `@glyphx/ui/application` consumers.
+  export type {
+    GitChange,
+    GitCommitEntry,
+    GitHeadInfo,
+    GitProvider,
+    GitRemote,
+  } from "./git-panel/types";
 </script>
 
 <script lang="ts">
-	import { Button } from '@glyphx/ui/button';
-	import { Textarea } from '@glyphx/ui/textarea';
-	import { settings } from '@glyphx/ui/settings';
-	import {
-		Dialog,
-		DialogContent,
-		DialogHeader,
-		DialogTitle,
-		DialogDescription,
-		DialogFooter
-	} from '@glyphx/ui/dialog';
-	import { slide } from 'svelte/transition';
-	import { cubicOut } from 'svelte/easing';
-	import {
-		IconGitBranch,
-		IconGitCommit,
-		IconRefresh,
-		IconPlus,
-		IconMinus,
-		IconArrowBackUp,
-		IconPencil,
-		IconTrash,
-		IconCheck,
-		IconX,
-		IconCloud,
-		IconChevronRight,
-		IconFolder,
-		IconFolderOpen,
-		IconFileText,
-		IconArrowUp,
-		IconArrowDown,
-		IconAlertTriangle
-	} from '@tabler/icons-svelte';
+  import { Button } from "@glyphx/ui/button";
+  import {
+    IconAlertTriangle,
+    IconArrowDown,
+    IconArrowUp,
+    IconGitBranch,
+  } from "@tabler/icons-svelte";
+  import { cubicOut } from "svelte/easing";
+  import { slide } from "svelte/transition";
 
-	/**
-	 * Source Control — local version control for the open project folder. Stage /
-	 * unstage / discard working-tree changes against the real Git index, commit the
-	 * staged set, browse history, and manage remotes (add / edit / switch / remove,
-	 * fetch / pull / push).
-	 */
-	let {
-		git,
-		root,
-		refreshKey = 0,
-		onstatechange,
-		onopendiff,
-		activeDiffPath = null
-	}: {
-		git?: GitProvider;
-		root?: string | null;
-		/** Bump from the parent (side-panel header refresh button) to force a re-fetch. */
-		refreshKey?: number;
-		/** Reports panel state up so the side-panel header can show/disable actions. */
-		onstatechange?: (s: { isRepo: boolean; loading: boolean }) => void;
-		/** Open a file's diff in the editor pane (host wires this to the diff view). */
-		onopendiff?: (path: string, staged: boolean) => void;
-		/** Path currently shown in the editor's diff view, to highlight its row. */
-		activeDiffPath?: string | null;
-	} = $props();
+  import ChangeTree from "./git-panel/change-tree.svelte";
+  import CommitBox from "./git-panel/commit-box.svelte";
+  import ErrorDialog from "./git-panel/error-dialog.svelte";
+  import HistorySection from "./git-panel/history-section.svelte";
+  import RemotesSection from "./git-panel/remotes-section.svelte";
+  import SectionHeader from "./git-panel/section-header.svelte";
+  import { GitPanelStore } from "./git-panel/store.svelte";
+  import type { GitProvider } from "./git-panel/types";
 
-	let isRepo = $state(false);
-	let head = $state<GitHeadInfo | undefined>(undefined);
-	let changes = $state<GitChange[]>([]);
-	let commits = $state<GitCommitEntry[]>([]);
-	let message = $state('');
+  /**
+   * Source Control — local version control for the open project folder. Stage /
+   * unstage / discard working-tree changes against the real Git index, commit the
+   * staged set, browse history, and manage remotes (add / edit / switch / remove,
+   * fetch / pull / push). State + behaviour live in {@link GitPanelStore}; the
+   * markup is split across `./git-panel/*`.
+   */
+  let {
+    git,
+    root,
+    refreshKey = 0,
+    onstatechange,
+    onopendiff,
+    activeDiffPath = null,
+  }: {
+    git?: GitProvider;
+    root?: string | null;
+    /** Bump from the parent (side-panel header refresh button) to force a re-fetch. */
+    refreshKey?: number;
+    /** Reports panel state up so the side-panel header can show/disable actions. */
+    onstatechange?: (s: { isRepo: boolean; loading: boolean }) => void;
+    /** Open a file's diff in the editor pane (host wires this to the diff view). */
+    onopendiff?: (path: string, staged: boolean) => void;
+    /** Path currently shown in the editor's diff view, to highlight its row. */
+    activeDiffPath?: string | null;
+  } = $props();
 
-	let loading = $state(false);
-	let busy = $state(false);
-	let error = $state<string | undefined>(undefined);
+  // The store captures the initial (stable) host injections — `git` / `onopendiff`
+  // don't change after mount; `root` is read live via the getter.
+  // svelte-ignore state_referenced_locally
+  const store = new GitPanelStore({
+    git,
+    getRoot: () => root,
+    onopendiff,
+  });
 
-	// Clicking a changed file opens its diff in the editor pane (VS Code-style).
-	function showDiff(c: GitChange) {
-		onopendiff?.(c.path, c.staged);
-	}
-
-	// Remotes
-	let remotes = $state<GitRemote[]>([]);
-	let token = $state('');
-	let showToken = $state(false);
-	let remoteMsg = $state<string | undefined>(undefined);
-	// The remote half (push/pull/sync/remote edits) shells out to the system git.
-	// Detect it up front so those actions explain themselves instead of failing.
-	let gitMissing = $state(false);
-	// Which remote fetch/pull/push act on; falls back to origin / first.
-	let selectedRemote = $state('');
-	const activeRemote = $derived(
-		remotes.find((r) => r.name === selectedRemote) ??
-			remotes.find((r) => r.name === 'origin') ??
-			remotes[0]
-	);
-	const hasRemote = $derived(remotes.length > 0);
-
-	// Inline remote editing / adding (no custom dialog — native confirm for removal).
-	let editingRemote = $state<string | null>(null);
-	let editName = $state('');
-	let editUrl = $state('');
-	let addingRemote = $state(false);
-	let newRemoteName = $state('origin');
-	let newRemoteUrl = $state('');
-
-	/** The active remote's URL with the access token injected for HTTPS auth. */
-	function authedUrl(): string | undefined {
-		const base = activeRemote?.url;
-		if (!base) return undefined;
-		const t = token.trim();
-		if (!t) return base;
-		try {
-			const u = new URL(base);
-			u.username = 'x-access-token';
-			u.password = t;
-			return u.toString();
-		} catch {
-			return base;
-		}
-	}
-
-	/** Native OS confirm (desktop) with a window.confirm fallback (web). */
-	async function askConfirm(msg: string): Promise<boolean> {
-		if (git?.confirm) return git.confirm(msg, 'GlyphX');
-		return typeof window !== 'undefined' ? window.confirm(msg) : true;
-	}
-
-	const inputCls =
-		'border-border bg-background focus:ring-brand/40 w-full rounded border px-2 py-1 text-xs outline-none focus:ring-2';
-
-	const staged = $derived(changes.filter((c) => c.staged));
-	const unstaged = $derived(changes.filter((c) => !c.staged));
-
-	// --- Changes view: flat list vs folder tree (VS Code-style) -------------
-	// View mode is persisted in settings and toggled from the side-panel header.
-	let collapsed = $state(new Set<string>());
-
-	// Collapsible top-level sections (like the Explorer's Files / Outline).
-	type SectionKey = 'staged' | 'changes' | 'remotes' | 'history';
-	let sections = $state<Record<SectionKey, boolean>>({
-		staged: true,
-		changes: true,
-		remotes: true,
-		history: true
-	});
-
-	type TreeNode = {
-		/** Display segment — a folder may be a compressed chain like `src/lib`. */
-		name: string;
-		/** Folder path (for collapse) or full file path. */
-		path: string;
-		isFile: boolean;
-		change?: GitChange;
-		children: TreeNode[];
-	};
-
-	function buildTree(items: GitChange[]): TreeNode[] {
-		const root: TreeNode = { name: '', path: '', isFile: false, children: [] };
-		for (const c of items) {
-			const parts = c.path.split('/');
-			let node = root;
-			let acc = '';
-			parts.forEach((part, i) => {
-				acc = acc ? `${acc}/${part}` : part;
-				const isFile = i === parts.length - 1;
-				let child = node.children.find((n) => n.name === part && n.isFile === isFile);
-				if (!child) {
-					child = {
-						name: part,
-						path: isFile ? c.path : acc,
-						isFile,
-						change: isFile ? c : undefined,
-						children: []
-					};
-					node.children.push(child);
-				}
-				node = child;
-			});
-		}
-		// Nest level-by-level like the Explorer (no folder compression).
-		return sortNodes(root.children);
-	}
-
-	function sortNodes(nodes: TreeNode[]): TreeNode[] {
-		nodes.sort((a, b) =>
-			a.isFile !== b.isFile
-				? a.isFile
-					? 1
-					: -1
-				: a.name.localeCompare(b.name, undefined, { numeric: true })
-		);
-		for (const n of nodes) if (!n.isFile) sortNodes(n.children);
-		return nodes;
-	}
-
-	function toggleFolder(path: string) {
-		const next = new Set(collapsed);
-		if (next.has(path)) next.delete(path);
-		else next.add(path);
-		collapsed = next;
-	}
-
-	/** Indentation matching the Explorer tree. */
-	const indent = (d: number) => `${d * 12 + 8}px`;
-	/** Last path segment (the file name without its directory). */
-	const leaf = (p: string) => p.split('/').pop() ?? p;
-
-	const stagedTree = $derived(buildTree(staged));
-	const unstagedTree = $derived(buildTree(unstaged));
-	// Unresolved merge conflicts block committing until they're resolved + staged.
-	const hasConflicts = $derived(changes.some((c) => c.status === 'conflicted'));
-	const canCommit = $derived(
-		isRepo &&
-			!busy &&
-			!hasConflicts &&
-			staged.length > 0 &&
-			// During a merge an empty message is fine (we fill a default).
-			(message.trim().length > 0 || !!head?.merging)
-	);
-
-	// Smart primary action (VS Code-style): commit while there are changes;
-	// once the tree is clean, become Push / Pull / Sync if local & remote differ.
-	const hasChanges = $derived(staged.length > 0 || unstaged.length > 0);
-	type SyncAction = 'push' | 'pull' | 'sync' | 'none';
-	const syncAction = $derived<SyncAction>(
-		head?.ahead && head?.behind ? 'sync' : head?.ahead ? 'push' : head?.behind ? 'pull' : 'none'
-	);
-
-	async function refresh() {
-		if (!git || !root) return;
-		loading = true;
-		error = undefined;
-		try {
-			isRepo = await git.isRepo(root);
-			if (!isRepo) {
-				changes = [];
-				commits = [];
-				head = undefined;
-				return;
-			}
-			[head, changes, commits] = await Promise.all([
-				git.head(root),
-				git.status(root),
-				git.log(root, 30)
-			]);
-			try {
-				remotes = await git.remotes(root);
-			} catch {
-				remotes = [];
-			}
-		} catch (e) {
-			error = String(e);
-		} finally {
-			loading = false;
-		}
-	}
-
-	// Reload whenever the open folder changes, or the header refresh is clicked.
-	$effect(() => {
-		void root;
-		void refreshKey;
-		refresh();
-	});
-
-	// Surface state to the side-panel header (which owns the action icons).
-	$effect(() => {
-		onstatechange?.({ isRepo, loading });
-	});
-
-	// Detect the system git once per provider. Hosts that don't expose `available`
-	// (e.g. a web build) are never treated as "missing".
-	$effect(() => {
-		void git;
-		if (!git?.available) {
-			gitMissing = false;
-			return;
-		}
-		git
-			.available()
-			.then((ok) => (gitMissing = !ok))
-			.catch(() => (gitMissing = false));
-	});
-
-	async function run(fn: () => Promise<unknown>) {
-		if (!git || !root || busy) return;
-		busy = true;
-		error = undefined;
-		try {
-			await fn();
-			await refresh();
-		} catch (e) {
-			error = String(e);
-		} finally {
-			busy = false;
-		}
-	}
-
-	// --- Remote errors: shown in a friendly UI dialog (not inline / not native).
-	let gitError = $state<{ title: string; message: string; details?: string } | undefined>(undefined);
-	let showErrorDetails = $state(false);
-
-	/** Turn a raw gix / system-git error into a plain-language title + message,
-	 *  keeping the original text as collapsible details for the curious. */
-	function describeError(raw: string, op: string): { title: string; message: string; details?: string } {
-		const e = raw.toLowerCase();
-		const details = raw.trim() || undefined;
-		if (/install git/.test(e))
-			return {
-				title: "Git isn’t installed",
-				message: "Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphX and try again.",
-				details
-			};
-		if (
-			/no such remote|does not appear to be a git repository|no configured (push|fetch)|could not find remote|unknown remote|remote .*not found|find_remote/.test(
-				e
-			)
-		)
-			return {
-				title: "Remote not found",
-				message:
-					"This remote may have been removed or renamed. Add or pick a remote below, then try again.",
-				details
-			};
-		if (/permission to .*denied|\bforbidden\b|not authorized|do(es)?n.?t have (write |push )?(access|permission)|protected branch|read[- ]only|protected_ref/.test(e))
-			return {
-				title: "You don’t have push access",
-				message:
-					"You can’t push to this repository — it isn’t yours to write to. Fork it to your own account, then point the remote at your fork (Remote → edit) and push there.",
-				details
-			};
-		if (/authentication|could not read username|could not read password|\b401\b|\b403\b|invalid username or password|bad credentials|support for password authentication/.test(e))
-			return {
-				title: "Authentication failed",
-				message: "Check your access token and that it has access to this repository.",
-				details
-			};
-		if (/could not resolve host|couldn.?t resolve|network|unreachable|timed out|timeout|failed to connect|connection refused/.test(e))
-			return {
-				title: "Can’t reach the remote",
-				message: "Couldn’t connect. Check your internet connection and the remote URL.",
-				details
-			};
-		if (/non-fast-forward|fast-forward|\brejected\b|diverg|need to pull|tip of your current branch is behind/.test(e))
-			return op === "Pull"
-				? {
-						title: "Can’t fast-forward",
-						message:
-							"Your branch and the remote have moved apart, so this isn’t a simple update. Resolve the divergence before pulling.",
-						details
-					}
-				: {
-						title: "Push rejected",
-						message:
-							"The remote has changes you don’t have yet. Pull the latest changes first, then push again.",
-						details
-					};
-		return { title: `${op} failed`, message: "Something went wrong with this Git operation.", details };
-	}
-
-	/** Run a remote operation; route any failure to the error dialog. */
-	async function runRemote(op: string, fn: () => Promise<unknown>) {
-		if (!git || !root || busy) return;
-		// Up-front, plain-language gate: skip the doomed attempt when git is absent.
-		if (gitMissing) {
-			gitError = {
-				title: 'Git isn’t installed',
-				message:
-					'Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphX and try again.'
-			};
-			return;
-		}
-		busy = true;
-		remoteMsg = undefined;
-		try {
-			await fn();
-			await refresh();
-		} catch (e) {
-			gitError = describeError(String(e), op);
-			showErrorDetails = false;
-			await refresh(); // reflect any state that did change (e.g. the remote list)
-		} finally {
-			busy = false;
-		}
-	}
-
-	const initRepo = () => run(() => git!.init(root!));
-	const stage = (paths: string[]) => run(() => git!.stage(root!, paths));
-	const unstage = (paths: string[]) => run(() => git!.unstage(root!, paths));
-
-	/** Revert working-tree changes after a native confirmation. */
-	const discard = (paths: string[]) =>
-		run(async () => {
-			const msg =
-				paths.length === 1
-					? `Discard changes in ${paths[0]}?\n\nThis cannot be undone.`
-					: `Discard changes in ${paths.length} files?\n\nThis cannot be undone.`;
-			if (!(await askConfirm(msg))) return;
-			await git!.discard(root!, paths);
-		});
-
-	function commit() {
-		if (!canCommit) return;
-		run(async () => {
-			const msg =
-				message.trim() || (head?.merging ? `Merge ${head?.upstream ?? 'remote branch'}` : '');
-			await git!.commit(root!, msg);
-			message = '';
-		});
-	}
-
-	/** Guard: a remote op needs an active remote — surface a clear dialog if not. */
-	function requireRemote(op: string): boolean {
-		if (activeRemote) return true;
-		gitError = {
-			title: 'No remote configured',
-			message: 'Add a remote below before you can ' + op.toLowerCase() + '.'
-		};
-		return false;
-	}
-
-	const doFetch = () => {
-		if (!requireRemote('Fetch')) return;
-		runRemote('Fetch', async () => {
-			await git!.fetch(root!, authedUrl());
-			remoteMsg = 'Fetched.';
-		});
-	};
-	const doPull = () => {
-		if (!requireRemote('Pull')) return;
-		runRemote('Pull', async () => {
-			remoteMsg = (await git!.pull(root!, authedUrl())) || 'Already up to date.';
-		});
-	};
-	const doPush = () => {
-		if (!requireRemote('Push')) return;
-		runRemote('Push', async () => {
-			remoteMsg =
-				(await git!.push(root!, authedUrl(), head?.branch ?? undefined, activeRemote?.name)) ||
-				'Pushed.';
-		});
-	};
-	/** Pull (merge) then push — VS Code's "Sync Changes". Surfaces conflicts. */
-	const doSync = () => {
-		if (!requireRemote('Sync')) return;
-		runRemote('Sync', async () => {
-			const r = await git!.sync(root!, authedUrl(), head?.branch ?? undefined, activeRemote?.name);
-			if (r.conflicts) {
-				gitError = { title: 'Merge conflicts', message: r.message };
-			} else {
-				remoteMsg = r.message || 'Synced with remote.';
-			}
-		});
-	};
-	/** Run whatever the smart primary button currently represents. */
-	function runPrimarySync() {
-		if (syncAction === 'push') doPush();
-		else if (syncAction === 'pull') doPull();
-		else if (syncAction === 'sync') doSync();
-	}
-
-	// --- Remote management ---------------------------------------------------
-	function startEditRemote(r: GitRemote) {
-		editingRemote = r.name;
-		editName = r.name;
-		editUrl = r.url;
-		addingRemote = false;
-	}
-	function saveRemote(r: GitRemote) {
-		const name = editName.trim();
-		const url = editUrl.trim();
-		if (!name || !url) return;
-		runRemote('Update remote', async () => {
-			if (url !== r.url) await git!.remoteSetUrl(root!, r.name, url);
-			if (name !== r.name) {
-				await git!.remoteRename(root!, r.name, name);
-				if (selectedRemote === r.name) selectedRemote = name;
-			}
-			editingRemote = null;
-		});
-	}
-	const removeRemote = (r: GitRemote) =>
-		runRemote('Remove remote', async () => {
-			if (!(await askConfirm(`Remove remote “${r.name}”?\n${r.url}`))) return;
-			await git!.remoteRemove(root!, r.name);
-			if (selectedRemote === r.name) selectedRemote = '';
-		});
-	function addRemote() {
-		const name = newRemoteName.trim();
-		const url = newRemoteUrl.trim();
-		if (!name || !url) return;
-		runRemote('Add remote', async () => {
-			await git!.remoteAdd(root!, name, url);
-			selectedRemote = name;
-			addingRemote = false;
-			newRemoteName = 'origin';
-			newRemoteUrl = '';
-		});
-	}
-
-	const STATUS_LABEL: Record<string, string> = {
-		modified: 'M',
-		deleted: 'D',
-		untracked: 'U',
-		added: 'A',
-		renamed: 'R',
-		conflicted: '!'
-	};
-	const STATUS_CLASS: Record<string, string> = {
-		modified: 'text-warning',
-		deleted: 'text-destructive',
-		untracked: 'text-success',
-		added: 'text-success',
-		renamed: 'text-brand',
-		conflicted: 'text-destructive'
-	};
-
-	function when(secs: number): string {
-		return new Date(secs * 1000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-	}
+  // Reload whenever the open folder changes, or the header refresh is clicked.
+  $effect(() => {
+    void root;
+    void refreshKey;
+    store.refresh();
+  });
+  // Surface state to the side-panel header (which owns the action icons).
+  $effect(() => {
+    onstatechange?.({ isRepo: store.isRepo, loading: store.loading });
+  });
+  // Detect the system git once per provider.
+  $effect(() => store.detectGitAvailable());
 </script>
 
-{#snippet fileRow(c: GitChange, action: 'stage' | 'unstage', label: string, depth: number, tree: boolean)}
-	{@const open = activeDiffPath === c.path}
-	<div
-		class="hover:bg-muted/60 group flex items-center gap-1 rounded py-0.5 pr-1 text-xs {open
-			? 'bg-accent/60'
-			: ''}"
-		style:padding-left={tree ? indent(depth) : '4px'}
-	>
-		<button
-			class="text-foreground/90 hover:text-foreground flex min-w-0 flex-1 items-center gap-1 text-left {open
-				? 'font-medium'
-				: ''}"
-			title="Open diff — {c.path}"
-			onclick={() => showDiff(c)}
-		>
-			{#if tree}
-				<span class="w-[13px] shrink-0"></span>
-				<IconFileText size={14} class="text-muted-foreground shrink-0" />
-			{/if}
-			<span class="truncate">{label}</span>
-		</button>
-		{#if action === 'stage'}
-			<Button
-				variant="ghost"
-				size="icon-xs"
-				class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
-				title="Discard changes"
-				aria-label="Discard changes"
-				disabled={busy}
-				onclick={() => discard([c.path])}
-			>
-				<IconArrowBackUp size={13} />
-			</Button>
-		{/if}
-		<Button
-			variant="ghost"
-			size="icon-xs"
-			class="opacity-0 group-hover:opacity-100"
-			title={action === 'stage' ? 'Stage' : 'Unstage'}
-			aria-label={action === 'stage' ? 'Stage' : 'Unstage'}
-			disabled={busy}
-			onclick={() => (action === 'stage' ? stage([c.path]) : unstage([c.path]))}
-		>
-			{#if action === 'stage'}<IconPlus size={13} />{:else}<IconMinus size={13} />{/if}
-		</Button>
-		<span class="shrink-0 font-mono text-[10px] {STATUS_CLASS[c.status] ?? ''}">
-			{STATUS_LABEL[c.status] ?? '?'}
-		</span>
-	</div>
-{/snippet}
-
-{#snippet treeView(nodes: TreeNode[], action: 'stage' | 'unstage', depth: number)}
-	{#each nodes as n (n.path)}
-		{#if n.isFile && n.change}
-			{@render fileRow(n.change, action, n.name, depth, true)}
-		{:else if !n.isFile}
-			{@const expanded = !collapsed.has(n.path)}
-			<button
-				class="hover:bg-muted hover:text-foreground text-muted-foreground flex w-full items-center gap-1 rounded py-0.5 pr-1 text-left text-xs transition-colors"
-				style:padding-left={indent(depth)}
-				aria-expanded={expanded}
-				onclick={() => toggleFolder(n.path)}
-				title={n.path}
-			>
-				<IconChevronRight
-					size={13}
-					class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {expanded
-						? 'rotate-90'
-						: ''}"
-				/>
-				{#if expanded}<IconFolderOpen size={14} class="text-muted-foreground shrink-0" />{:else}<IconFolder
-						size={14}
-						class="text-muted-foreground shrink-0"
-					/>{/if}
-				<span class="truncate">{n.name}</span>
-			</button>
-			{#if expanded}
-				<div transition:slide={{ duration: 200, easing: cubicOut }}>
-					{@render treeView(n.children, action, depth + 1)}
-				</div>
-			{/if}
-		{/if}
-	{/each}
-{/snippet}
-
-{#snippet changeSection(items: GitChange[], nodes: TreeNode[], action: 'stage' | 'unstage')}
-	{#if settings.gitView === 'tree'}
-		{@render treeView(nodes, action, 0)}
-	{:else}
-		{#each items as c (c.path)}
-			{@render fileRow(c, action, leaf(c.path), 0, false)}
-		{/each}
-	{/if}
-{/snippet}
-
-<!-- Collapsible section header (chevron + uppercase title), like the Explorer's
-     Files / Outline headers. Action buttons sit beside it as siblings. -->
-{#snippet secHead(title: string, key: SectionKey, count: number | null)}
-	<button
-		class="text-muted-foreground hover:text-foreground flex min-w-0 flex-1 items-center gap-1 rounded text-[10px] font-semibold tracking-wide uppercase transition-colors"
-		aria-expanded={sections[key]}
-		onclick={() => (sections[key] = !sections[key])}
-	>
-		<IconChevronRight
-			size={12}
-			class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {sections[
-				key
-			]
-				? 'rotate-90'
-				: ''}"
-		/>
-		<span class="truncate">{title}{count != null ? ` (${count})` : ''}</span>
-	</button>
-{/snippet}
-
 {#if !root}
-	<div class="text-muted-foreground flex flex-col items-center gap-2 px-2 py-8 text-center text-xs">
-		<IconGitBranch size={22} />
-		<p>Open a folder to use source control.</p>
-	</div>
-{:else if !isRepo}
-	<div class="text-muted-foreground flex flex-col items-center gap-2 px-2 py-8 text-center text-xs">
-		<IconGitBranch size={22} />
-		<p>This folder isn't a Git repository yet.</p>
-		<Button variant="outline" size="sm" class="mt-1" disabled={busy} onclick={initRepo}>
-			{busy ? 'Initializing…' : 'Initialize repository'}
-		</Button>
-	</div>
+  <div
+    class="text-muted-foreground flex flex-col items-center gap-2 px-2 py-8 text-center text-xs"
+  >
+    <IconGitBranch size={22} />
+    <p>Open a folder to use source control.</p>
+  </div>
+{:else if !store.isRepo}
+  <div
+    class="text-muted-foreground flex flex-col items-center gap-2 px-2 py-8 text-center text-xs"
+  >
+    <IconGitBranch size={22} />
+    <p>This folder isn't a Git repository yet.</p>
+    <Button
+      variant="outline"
+      size="sm"
+      class="mt-1"
+      disabled={store.busy}
+      onclick={() => store.initRepo()}
+    >
+      {store.busy ? "Initializing…" : "Initialize repository"}
+    </Button>
+  </div>
 {:else}
-	<div class="flex flex-col gap-2 px-1">
-		<!-- Branch + ahead/behind (panel chrome — refresh / view toggle live in the
-		     side-panel header, next to the "Source Control" heading). -->
-		<div class="flex items-center gap-1.5 px-0.5">
-			<IconGitBranch size={13} class="text-muted-foreground shrink-0" />
-			<span class="text-foreground min-w-0 flex-1 truncate text-xs font-medium">
-				{head?.branch ?? 'HEAD'}{head?.unborn ? ' (no commits yet)' : ''}
-			</span>
-			{#if head?.behind || head?.ahead}
-				<span
-					class="text-muted-foreground/80 flex shrink-0 items-center gap-0.5 text-[10px]"
-					title={`${head?.ahead ?? 0} ahead, ${head?.behind ?? 0} behind ${head?.upstream ?? 'upstream'}`}
-				>
-					{#if head?.behind}<IconArrowDown size={11} />{head.behind}{/if}
-					{#if head?.ahead}<IconArrowUp size={11} />{head.ahead}{/if}
-				</span>
-			{/if}
-		</div>
+  <div class="flex flex-col gap-2 px-1">
+    <!-- Branch + ahead/behind (panel chrome — refresh / view toggle live in the
+         side-panel header, next to the "Source Control" heading). -->
+    <div class="flex items-center gap-1.5 px-0.5">
+      <IconGitBranch size={13} class="text-muted-foreground shrink-0" />
+      <span class="text-foreground min-w-0 flex-1 truncate text-xs font-medium">
+        {store.head?.branch ?? "HEAD"}{store.head?.unborn
+          ? " (no commits yet)"
+          : ""}
+      </span>
+      {#if store.head?.behind || store.head?.ahead}
+        <span
+          class="text-muted-foreground/80 flex shrink-0 items-center gap-0.5 text-[10px]"
+          title={`${store.head?.ahead ?? 0} ahead, ${store.head?.behind ?? 0} behind ${store.head?.upstream ?? "upstream"}`}
+        >
+          {#if store.head?.behind}<IconArrowDown size={11} />{store.head
+              .behind}{/if}
+          {#if store.head?.ahead}<IconArrowUp size={11} />{store.head.ahead}{/if}
+        </span>
+      {/if}
+    </div>
 
-		<!-- Merge-in-progress banner -->
-		{#if head?.merging}
-			<div
-				class="border-warning/40 bg-warning/10 text-warning flex items-start gap-1.5 rounded border px-2 py-1.5 text-[11px] leading-snug"
-			>
-				<IconAlertTriangle size={13} class="mt-px shrink-0" />
-				<span>
-					{hasConflicts
-						? 'Merge has conflicts — resolve the marked files, stage them, then commit to finish.'
-						: 'Merge in progress — commit to finish it.'}
-				</span>
-			</div>
-		{/if}
+    <!-- Merge-in-progress banner -->
+    {#if store.head?.merging}
+      <div
+        class="border-warning/40 bg-warning/10 text-warning flex items-start gap-1.5 rounded border px-2 py-1.5 text-[11px] leading-snug"
+      >
+        <IconAlertTriangle size={13} class="mt-px shrink-0" />
+        <span>
+          {store.hasConflicts
+            ? "Merge has conflicts — resolve the marked files, stage them, then commit to finish."
+            : "Merge in progress — commit to finish it."}
+        </span>
+      </div>
+    {/if}
 
-		<!-- Commit box (shown while there are changes / a merge is underway); once
-		     the tree is clean the primary button becomes Push / Pull / Sync. -->
-		{#if hasChanges || head?.merging}
-			<Textarea
-				bind:value={message}
-				placeholder={head?.merging ? 'Merge commit message (optional)' : 'Commit message'}
-				rows={2}
-				class="resize-none text-xs"
-			/>
-			<Button size="sm" disabled={!canCommit} onclick={commit}>
-				<IconGitCommit size={14} />
-				{#if busy}
-					Committing…
-				{:else if head?.merging}
-					Commit Merge
-				{:else}
-					Commit{staged.length ? ` ${staged.length}` : ''}
-				{/if}
-			</Button>
-		{:else if syncAction === 'push'}
-			<Button size="sm" disabled={busy} onclick={runPrimarySync}>
-				<IconArrowUp size={14} />
-				{busy ? 'Pushing…' : `Push${head?.ahead ? ` ${head.ahead}` : ''}`}
-			</Button>
-		{:else if syncAction === 'pull'}
-			<Button size="sm" disabled={busy} onclick={runPrimarySync}>
-				<IconArrowDown size={14} />
-				{busy ? 'Pulling…' : `Pull${head?.behind ? ` ${head.behind}` : ''}`}
-			</Button>
-		{:else if syncAction === 'sync'}
-			<Button size="sm" disabled={busy} onclick={runPrimarySync}>
-				<IconRefresh size={14} />
-				{busy ? 'Syncing…' : 'Sync Changes'}
-			</Button>
-		{:else}
-			<p class="text-muted-foreground/70 px-0.5 py-1 text-center text-[11px]">
-				{head?.unborn ? 'No commits yet.' : 'Nothing to commit — working tree clean.'}
-			</p>
-		{/if}
+    <CommitBox {store} />
 
-		{#if error}
-			<p class="text-destructive px-0.5 text-[11px] leading-snug">{error}</p>
-		{/if}
+    {#if store.error}
+      <p class="text-destructive px-0.5 text-[11px] leading-snug">{store.error}</p>
+    {/if}
 
-		<!-- Staged -->
-		{#if staged.length}
-			<div class="border-border/60 mt-1 border-t pt-1.5">
-				<div class="flex items-center gap-0.5 px-0.5">
-					{@render secHead('Staged Changes', 'staged', staged.length)}
-					<Button
-						variant="ghost"
-						size="xs"
-						disabled={busy}
-						onclick={() => unstage(staged.map((c) => c.path))}
-					>
-						Unstage all
-					</Button>
-				</div>
-				{#if sections.staged}
-					<div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-0.5">
-						{@render changeSection(staged, stagedTree, 'unstage')}
-					</div>
-				{/if}
-			</div>
-		{/if}
+    <!-- Staged -->
+    {#if store.staged.length}
+      <div class="border-border/60 mt-1 border-t pt-1.5">
+        <div class="flex items-center gap-0.5 px-0.5">
+          <SectionHeader
+            {store}
+            title="Staged Changes"
+            sectionKey="staged"
+            count={store.staged.length}
+          />
+          <Button
+            variant="ghost"
+            size="xs"
+            disabled={store.busy}
+            onclick={() => store.unstage(store.staged.map((c) => c.path))}
+          >
+            Unstage all
+          </Button>
+        </div>
+        {#if store.sections.staged}
+          <div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-0.5">
+            <ChangeTree
+              {store}
+              items={store.staged}
+              nodes={store.stagedTree}
+              action="unstage"
+              {activeDiffPath}
+            />
+          </div>
+        {/if}
+      </div>
+    {/if}
 
-		<!-- Changes (unstaged) -->
-		<div class="border-border/60 mt-1 border-t pt-1.5">
-			<div class="flex items-center gap-0.5 px-0.5">
-				{@render secHead('Changes', 'changes', unstaged.length || null)}
-				{#if unstaged.length}
-					<Button
-						variant="ghost"
-						size="xs"
-						class="text-muted-foreground hover:text-destructive"
-						title="Discard all changes"
-						disabled={busy}
-						onclick={() => discard(unstaged.map((c) => c.path))}
-					>
-						Discard all
-					</Button>
-					<Button
-						variant="ghost"
-						size="xs"
-						disabled={busy}
-						onclick={() => stage(unstaged.map((c) => c.path))}
-					>
-						Stage all
-					</Button>
-				{/if}
-			</div>
-			{#if sections.changes}
-				<div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-0.5">
-					{#if !unstaged.length}
-						<p class="text-muted-foreground/70 px-0.5 py-1 text-[11px]">
-							{loading ? 'Checking…' : staged.length ? 'Nothing else to stage.' : 'No changes.'}
-						</p>
-					{:else}
-						{@render changeSection(unstaged, unstagedTree, 'stage')}
-					{/if}
-				</div>
-			{/if}
-		</div>
+    <!-- Changes (unstaged) -->
+    <div class="border-border/60 mt-1 border-t pt-1.5">
+      <div class="flex items-center gap-0.5 px-0.5">
+        <SectionHeader
+          {store}
+          title="Changes"
+          sectionKey="changes"
+          count={store.unstaged.length || null}
+        />
+        {#if store.unstaged.length}
+          <Button
+            variant="ghost"
+            size="xs"
+            class="text-muted-foreground hover:text-destructive"
+            title="Discard all changes"
+            disabled={store.busy}
+            onclick={() => store.discard(store.unstaged.map((c) => c.path))}
+          >
+            Discard all
+          </Button>
+          <Button
+            variant="ghost"
+            size="xs"
+            disabled={store.busy}
+            onclick={() => store.stage(store.unstaged.map((c) => c.path))}
+          >
+            Stage all
+          </Button>
+        {/if}
+      </div>
+      {#if store.sections.changes}
+        <div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-0.5">
+          {#if !store.unstaged.length}
+            <p class="text-muted-foreground/70 px-0.5 py-1 text-[11px]">
+              {store.loading
+                ? "Checking…"
+                : store.staged.length
+                  ? "Nothing else to stage."
+                  : "No changes."}
+            </p>
+          {:else}
+            <ChangeTree
+              {store}
+              items={store.unstaged}
+              nodes={store.unstagedTree}
+              action="stage"
+              {activeDiffPath}
+            />
+          {/if}
+        </div>
+      {/if}
+    </div>
 
-		<!-- Remotes -->
-		<div class="border-border/60 mt-1 border-t pt-1.5">
-			<div class="flex items-center gap-0.5 px-0.5">
-				{@render secHead('Remotes', 'remotes', remotes.length || null)}
-				<Button
-					variant="ghost"
-					size="xs"
-					title="Add a remote"
-					disabled={busy}
-					onclick={() => {
-						sections.remotes = true;
-						addingRemote = !addingRemote;
-						editingRemote = null;
-					}}
-				>
-					<IconPlus size={12} /> Add
-				</Button>
-			</div>
+    <RemotesSection {store} />
 
-			{#if sections.remotes}
-				<div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-1 flex flex-col gap-1.5">
-					<!-- Add-remote form -->
-			{#if addingRemote}
-				<div class="border-border/60 flex flex-col gap-1 rounded border p-1.5">
-					<input bind:value={newRemoteName} placeholder="Name (e.g. origin)" class={inputCls} />
-					<input
-						bind:value={newRemoteUrl}
-						placeholder="https://github.com/owner/repo.git"
-						class={inputCls}
-					/>
-					<div class="flex gap-1.5">
-						<Button
-							size="xs"
-							disabled={busy || !newRemoteName.trim() || !newRemoteUrl.trim()}
-							onclick={addRemote}
-						>
-							Add remote
-						</Button>
-						<Button variant="ghost" size="xs" onclick={() => (addingRemote = false)}>Cancel</Button>
-					</div>
-				</div>
-			{/if}
-
-			<!-- Remote list (radio = active when several) -->
-			{#each remotes as r (r.name)}
-				{#if editingRemote === r.name}
-					<div class="border-border/60 flex flex-col gap-1 rounded border p-1.5">
-						<input bind:value={editName} placeholder="Name" class={inputCls} />
-						<input bind:value={editUrl} placeholder="URL" class={inputCls} />
-						<div class="flex gap-1.5">
-							<Button
-								size="xs"
-								disabled={busy || !editName.trim() || !editUrl.trim()}
-								onclick={() => saveRemote(r)}
-							>
-								<IconCheck size={12} /> Save
-							</Button>
-							<Button variant="ghost" size="xs" onclick={() => (editingRemote = null)}>
-								<IconX size={12} /> Cancel
-							</Button>
-						</div>
-					</div>
-				{:else}
-					<div
-						class="hover:bg-muted/60 group flex items-center gap-1.5 rounded px-1 py-0.5 text-xs"
-					>
-						{#if remotes.length > 1}
-							<input
-								type="radio"
-								name="active-remote"
-								class="accent-brand shrink-0"
-								checked={activeRemote?.name === r.name}
-								title="Use this remote for fetch / pull / push"
-								onchange={() => (selectedRemote = r.name)}
-							/>
-						{:else}
-							<IconCloud size={12} class="text-muted-foreground shrink-0" />
-						{/if}
-						<div class="min-w-0 flex-1">
-							<p class="text-foreground/90 truncate font-medium">{r.name}</p>
-							<p class="text-muted-foreground/70 truncate text-[10px]" title={r.url}>{r.url}</p>
-						</div>
-						<Button
-							variant="ghost"
-							size="icon-xs"
-							class="opacity-0 group-hover:opacity-100"
-							title="Edit remote"
-							aria-label="Edit remote"
-							disabled={busy}
-							onclick={() => startEditRemote(r)}
-						>
-							<IconPencil size={12} />
-						</Button>
-						<Button
-							variant="ghost"
-							size="icon-xs"
-							class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
-							title="Remove remote"
-							aria-label="Remove remote"
-							disabled={busy}
-							onclick={() => removeRemote(r)}
-						>
-							<IconTrash size={12} />
-						</Button>
-					</div>
-				{/if}
-			{/each}
-
-			{#if hasRemote}
-				<div class="flex items-center gap-1 px-0.5">
-					{#if activeRemote}
-						<span class="text-muted-foreground/70 text-[10px]">
-							Using <span class="text-foreground/80 font-medium">{activeRemote.name}</span>
-						</span>
-					{/if}
-					<button
-						class="text-muted-foreground hover:text-foreground ml-auto text-[10px]"
-						onclick={() => (showToken = !showToken)}
-					>
-						{showToken ? 'Hide token' : 'Token'}
-					</button>
-				</div>
-				{#if showToken}
-					<input
-						type="password"
-						bind:value={token}
-						placeholder="Access token (for private repos)"
-						class={inputCls}
-					/>
-				{/if}
-				<div class="flex gap-1.5">
-					<Button variant="outline" size="xs" disabled={busy} onclick={doFetch}>Fetch</Button>
-					<Button variant="outline" size="xs" disabled={busy} onclick={doPull}>Pull</Button>
-					<Button variant="outline" size="xs" disabled={busy} onclick={doPush}>Push</Button>
-				</div>
-				{#if remoteMsg}
-					<p class="text-muted-foreground/80 px-0.5 text-[11px] leading-snug break-words">
-						{remoteMsg}
-					</p>
-				{/if}
-				{:else if !addingRemote}
-						<p class="text-muted-foreground/70 px-0.5 text-[11px]">
-							No remotes. Add one to push or pull.
-						</p>
-					{/if}
-				</div>
-			{/if}
-		</div>
-
-		<!-- History -->
-		{#if commits.length}
-			<div class="border-border/60 mt-1 border-t pt-1.5">
-				<div class="flex items-center gap-0.5 px-0.5">
-					{@render secHead('History', 'history', null)}
-				</div>
-				{#if sections.history}
-					<div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-0.5 flex flex-col gap-0.5">
-						{#each commits as c (c.hash)}
-							<div class="flex items-baseline gap-1.5 px-0.5 py-0.5 text-xs" title={c.author}>
-								<span class="text-muted-foreground/70 shrink-0 font-mono text-[10px]">{c.hash}</span>
-								<span class="text-foreground/85 truncate">{c.summary}</span>
-								<span class="text-muted-foreground/50 ml-auto shrink-0 text-[10px]">{when(c.time)}</span>
-							</div>
-						{/each}
-					</div>
-				{/if}
-			</div>
-		{/if}
-	</div>
+    <HistorySection {store} />
+  </div>
 {/if}
 
-<!-- Remote error dialog (our own UI, not the native one). Plain-language title +
-     message, with the raw error tucked behind "Show details" for the curious. -->
-<Dialog
-	open={!!gitError}
-	onOpenChange={(o) => {
-		if (!o) gitError = undefined;
-	}}
->
-	<DialogContent class="sm:max-w-md">
-		<DialogHeader>
-			<DialogTitle class="flex items-center gap-2">
-				<span class="text-destructive shrink-0"><IconAlertTriangle size={18} /></span>
-				{gitError?.title}
-			</DialogTitle>
-			<DialogDescription class="leading-relaxed">{gitError?.message}</DialogDescription>
-		</DialogHeader>
-
-		{#if gitError?.details}
-			<div class="text-xs">
-				<button
-					class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-					onclick={() => (showErrorDetails = !showErrorDetails)}
-				>
-					<IconChevronRight
-						size={13}
-						class="transition-transform duration-200 {showErrorDetails ? 'rotate-90' : ''}"
-					/>
-					{showErrorDetails ? 'Hide details' : 'Show details'}
-				</button>
-				{#if showErrorDetails}
-					<pre
-						class="border-border/60 bg-muted/40 text-muted-foreground mt-1.5 max-h-40 overflow-auto rounded border p-2 font-mono text-[11px] leading-snug whitespace-pre-wrap">{gitError.details}</pre>
-				{/if}
-			</div>
-		{/if}
-
-		<DialogFooter>
-			<Button size="sm" onclick={() => (gitError = undefined)}>Dismiss</Button>
-		</DialogFooter>
-	</DialogContent>
-</Dialog>
+<ErrorDialog {store} />
