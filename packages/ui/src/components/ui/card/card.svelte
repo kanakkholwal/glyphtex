@@ -7,17 +7,27 @@
 		class: className,
 		children,
 		size = "default",
+		tone = "default",
 		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & { size?: "default" | "sm" } = $props();
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
+		size?: "default" | "sm";
+		tone?: "default" | "soft" | "editorial";
+	} = $props();
 </script>
 
 <div
 	bind:this={ref}
 	data-slot="card"
 	data-size={size}
+	data-tone={tone}
 	class={cn(
-		"bg-card text-card-foreground border-border/40 shadow-sm transition-all duration-200",
-		"rounded-3xl p-6 md:p-8",
+		"text-card-foreground transition-all duration-200",
+		tone === "default" && "bg-card border-border/40 shadow-sm",
+		tone === "soft" && "bg-surface-soft/65 border-hairline shadow-craft-sm",
+		tone === "editorial" &&
+			"bg-card border-hairline shadow-craft-lg",
+		size === "default" && "rounded-3xl p-6 md:p-8",
+		size === "sm" && "rounded-[1.4rem] p-4 md:p-5",
 		"group/card flex flex-col gap-4 overflow-hidden",
 		className
 	)}

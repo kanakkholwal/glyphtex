@@ -1,453 +1,696 @@
 <script lang="ts">
-    import { resolve } from '$app/paths';
-    import FloatingGlyphs from '$lib/FloatingGlyphs.svelte';
-    import SiteFooter from '$lib/SiteFooter.svelte';
-    import SiteHeader from '$lib/SiteHeader.svelte';
-    import { trackEvent } from '$lib/analytics';
-    import { Reveal } from '@glyphx/ui/reveal';
-    import {
-    	IconAlertTriangle,
-    	IconArrowRight,
-    	IconBolt,
-    	IconCheck,
-    	IconChevronDown,
-    	IconCloud,
-    	IconCpu,
-    	IconDownload,
-    	IconFileText,
-    	IconFolder,
-    	IconGitBranch,
-    	IconKey,
-    	IconLayoutColumns,
-    	IconLock,
-    	IconMinus,
-    	IconPlayerPlay,
-    	IconShare,
-    	IconStar,
-    	IconWifiOff
-    } from '@tabler/icons-svelte';
-    import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
+	import SiteFooter from '$lib/SiteFooter.svelte';
+	import SiteHeader from '$lib/SiteHeader.svelte';
+	import { trackEvent } from '$lib/analytics';
+	import { Button } from '@glyphx/ui/button';
+	import { Card } from '@glyphx/ui/card';
+	import { Reveal } from '@glyphx/ui/reveal';
+	import {
+		IconArrowLeft,
+		IconArrowRight,
+		IconBolt,
+		IconBrandGithub,
+		IconCheck,
+		IconChevronDown,
+		IconCloudOff,
+		IconColumns,
+		IconDeviceFloppy,
+		IconFileImport,
+		IconFileZip,
+		IconFolderCode,
+		IconGitBranch,
+		IconLock,
+		IconPlayerPlay,
+		IconQuote,
+		IconWriting
+	} from '@tabler/icons-svelte';
 
-    let heroImgOk = $state(true);
-    const repo = 'https://github.com/kanakkholwal/glyphx';
-    let stars = $state<number | null>(null);
+	let heroImgOk = $state(true);
+	let deckScroller = $state<HTMLDivElement | null>(null);
 
-    function formatStars(n: number): string {
-        return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(n);
-    }
+	function scrollDeck(direction: -1 | 1) {
+		deckScroller?.scrollBy({ left: direction * 340, behavior: 'smooth' });
+	}
 
-    onMount(async () => {
-        try {
-            const r = await fetch('https://api.github.com/repos/kanakkholwal/glyphx');
-            if (r.ok) {
-                const d = (await r.json()) as { stargazers_count?: unknown };
-                if (typeof d.stargazers_count === 'number') stars = d.stargazers_count;
-            }
-        } catch {}
-    });
+	const repo = 'https://github.com/kanakkholwal/glyphx';
 
-    type FeatureItem = { icon: typeof IconFileText; title: string; body: string };
-    type FeatureSection = {
-        eyebrow: string;
-        headline: string;
-        items: FeatureItem[];
-        mount: 'editor' | 'git';
-        cta: string;
-        href: string;
-    };
+	type ImportSource = {
+		icon: typeof IconBolt;
+		label: string;
+	};
 
-    const featureSections: FeatureSection[] = [
-        {
-            eyebrow: 'Write & Compile',
-            headline: 'Real LaTeX, compiled on <span class="text-foreground">your own machine</span>.',
-            items: [
-                {
-                    icon: IconFileText,
-                    title: 'Real LaTeX',
-                    body: 'Full math, figures, BibTeX, and the packages a journal template or thesis class needs. What you write is standard .tex.'
-                },
-                {
-                    icon: IconBolt,
-                    title: 'Local engine',
-                    body: 'The compiler runs on your computer. No shared queue, no server, and no timeout the night before a deadline.'
-                },
-                {
-                    icon: IconLayoutColumns,
-                    title: 'Source & page',
-                    body: 'Write on the left, watch it render on the right. Double-click the PDF to jump to the line that made it.'
-                }
-            ],
-            mount: 'editor',
-            cta: 'Try it in the browser',
-            href: resolve('/editor')
-        },
-        {
-            eyebrow: 'Version & Privacy',
-            headline: 'Your history and your drafts, <span class="text-foreground">yours alone</span>.',
-            items: [
-                {
-                    icon: IconGitBranch,
-                    title: 'Git built in',
-                    body: 'Stage and commit, read a side-by-side diff, browse history, clone, and push or pull with your own remote.'
-                },
-                {
-                    icon: IconLock,
-                    title: 'Private by default',
-                    body: 'Unpublished results, grant drafts, a thesis under embargo — none of it is uploaded, indexed, or fed to a model.'
-                },
-                {
-                    icon: IconWifiOff,
-                    title: 'Offline always',
-                    body: 'The editor and the engine both run on your machine, so a flaky connection never stops you mid-sentence.'
-                }
-            ],
-            mount: 'git',
-            cta: 'See the full comparison',
-            href: '#compare'
-        }
-    ];
+	type StartCard = {
+		eyebrow: string;
+		title: string;
+		subtitle: string;
+		cta: string;
+		href: string;
+		items: string[];
+		highlight?: boolean;
+	};
 
-    const integrations = [
-        { icon: IconBolt, label: 'Tectonic', note: 'Bundled engine' },
-        { icon: IconCpu, label: 'TeX Live', note: 'System engine' },
-        { icon: IconCpu, label: 'MiKTeX', note: 'System engine' },
-        { icon: IconFileText, label: 'BibTeX & Biber', note: 'Bibliographies' },
-        { icon: IconGitBranch, label: 'Git', note: 'Your remote' },
-        { icon: IconFolder, label: 'Overleaf projects', note: 'Drop the folder' }
-    ];
+	type FeatureDeckCard = {
+		icon: typeof IconBolt;
+		title: string;
+		runsLabel: string;
+		runsValue: string;
+		replaces: string[];
+		body: string;
+	};
 
-    type LogLevel = 'ERROR' | 'WARN';
-    type LogLine = { time: string; level: LogLevel; msg: string };
-    const cloudLog: LogLine[] = [
-        { time: '14:02', level: 'ERROR', msg: 'compile timed out — free-tier limit reached' },
-        { time: '14:03', level: 'WARN', msg: 'upgrade required to keep working' },
-        { time: '14:04', level: 'WARN', msg: 'version history locked behind a paid plan' },
-        { time: '14:06', level: 'ERROR', msg: 'editor lagging — keystroke round-trips a server' },
-        { time: '14:07', level: 'WARN', msg: 'draft stored on infrastructure you do not control' },
-        { time: '14:09', level: 'ERROR', msg: 'no connection — the cloud editor is unavailable' }
-    ];
+	type WorkflowStep = {
+		step: string;
+		title: string;
+		body: string;
+		accent: string;
+		bullets: string[];
+	};
 
-    const logLevelClass: Record<LogLevel, string> = {
-        ERROR: 'text-destructive font-medium',
-        WARN: 'text-warning font-medium'
-    };
+	type CompareRow = {
+		label: string;
+		glyph: boolean | string;
+		overleaf: boolean | string;
+		desktop: boolean | string;
+	};
 
-    const local = [
-        { icon: IconCpu, title: 'The compiler', body: 'The LaTeX engine runs on your computer. Nothing is queued on our servers.' },
-        { icon: IconFolder, title: 'Your files', body: 'Projects are folders on your disk. Opening one reads a directory, saving writes a file.' },
-        { icon: IconGitBranch, title: 'Your history', body: 'Commits live in your own Git repository, on your machine and on the remote you pick.' }
-    ];
+	const importSources: ImportSource[] = [
+		{ icon: IconFileImport, label: 'Overleaf export' },
+		{ icon: IconGitBranch, label: 'Git repository' },
+		{ icon: IconFolderCode, label: 'Plain .tex folder' },
+		{ icon: IconFileZip, label: '.zip archive' }
+	];
 
-    const connected = [
-        { icon: IconKey, title: 'Your AI key', body: 'Connect a key from a provider you trust. Requests go straight to them.', tag: 'Planned' },
-        { icon: IconCloud, title: 'Your cloud storage', body: 'Sync through Dropbox or Google Drive, on the account you already pay for.', tag: 'Planned' },
-        { icon: IconShare, title: 'Sharing', body: 'Hand a project to a collaborator, stored only while shared and only under your name.', tag: 'Planned' }
-    ];
+	const featureDeck: FeatureDeckCard[] = [
+		{
+			icon: IconBolt,
+			title: 'Local compile',
+			runsLabel: 'Engine:',
+			runsValue: 'Tectonic + System TeX',
+			replaces: ["Overleaf's cloud queue"],
+			body: 'Compile where your files live. Tectonic ships in the desktop app and the web build compiles in-browser — no server round-trip and no shared queue between you and your PDF.'
+		},
+		{
+			icon: IconColumns,
+			title: 'Live preview',
+			runsLabel: 'View:',
+			runsValue: 'Editor + PDF, side by side',
+			replaces: ['The manual refresh loop'],
+			body: 'Source and rendered output share one surface. Errors surface next to the line that caused them, and the preview stays live as you type instead of waiting on a rebuild.'
+		},
+		{
+			icon: IconGitBranch,
+			title: 'Version history',
+			runsLabel: 'Built in:',
+			runsValue: 'Full Git UI',
+			replaces: ['A separate Git client'],
+			body: 'Diffs, commits, branches, and remotes without leaving the editor. The history lives in your own repository — not behind a paid history tier or a proprietary sync log.'
+		},
+		{
+			icon: IconCloudOff,
+			title: 'Offline & private',
+			runsLabel: 'Network:',
+			runsValue: 'Optional, never required',
+			replaces: ['Always-on sync'],
+			body: 'Nothing uploads by default. Write on a plane, keep drafts on your own disk, and push to a remote only when you choose to. Your source of truth stays on your machine.'
+		}
+	];
 
-    type Cell = boolean | string;
-    type Row = { label: string; glyph: Cell; overleaf: Cell; desktop: Cell };
-    const comparison: Row[] = [
-        { label: 'Real LaTeX, journal-ready output', glyph: true, overleaf: true, desktop: true },
-        { label: 'Runs fully offline', glyph: true, overleaf: false, desktop: true },
-        { label: 'Nothing uploaded to a server', glyph: true, overleaf: false, desktop: true },
-        { label: 'No compile timeout', glyph: true, overleaf: 'Free limit', desktop: true },
-        { label: 'Git built in', glyph: true, overleaf: 'Paid', desktop: 'BYO' },
-        { label: 'Version history without paying', glyph: 'Built in', overleaf: 'Paid', desktop: 'Your VCS' },
-        { label: 'AI help with your own key', glyph: 'Planned', overleaf: 'Paid', desktop: false },
-        { label: 'Free, no account required', glyph: true, overleaf: 'Limited', desktop: true }
-    ];
+	const startCards: StartCard[] = [
+		{
+			eyebrow: 'Desktop',
+			title: 'Download directly',
+			subtitle: 'Bundled local compile and the full private workflow',
+			cta: 'Download GlyphX',
+			href: resolve('/download'),
+			items: [
+				'Bundled Tectonic engine',
+				'Git, diff, and history in the app',
+				'Projects stay as normal folders on disk',
+				'Fast offline writing and preview'
+			]
+		},
+		{
+			eyebrow: 'Browser',
+			title: 'Start instantly',
+			subtitle: 'The same interface, with in-browser compile for quick access',
+			cta: 'Open browser editor',
+			href: resolve('/editor'),
+			items: [
+				'No install to test the workflow',
+				'Shared UI with the desktop app',
+				'Good for quick edits and demos',
+				'Move to native when you want the deepest setup'
+			],
+			highlight: true
+		}
+	];
 
-    const faqs = [
-        { q: 'Is this real LaTeX or a watered-down version?', a: 'Real LaTeX. Full math, environments, figures, and BibTeX, with the packages a journal template or thesis class needs. What you write is standard .tex that any LaTeX setup can read.' },
-        { q: 'Do I have to install a TeX distribution?', a: 'No. The desktop app ships with the engine built in, and the browser editor compiles in the page. There is no multi-gigabyte download and no package manager to fight.' },
-        { q: 'Where do my files live?', a: 'On your disk. A project is a normal folder of .tex and .bib files. Nothing is copied to a server, so backups, syncing, and Git are entirely your call.' },
-        { q: 'Can I bring my Overleaf projects over?', a: 'Yes. Overleaf projects are plain LaTeX underneath. Download the project folder, drop it into GlyphX, and keep writing.' },
-        { q: 'Does it use AI, and where would my data go?', a: 'AI help is on the roadmap and will be opt in with your own key. We are not in the path, and there is no shared model trained on your writing.' }
-    ];
+	const workflowSteps: WorkflowStep[] = [
+		{
+			step: 'Step 1',
+			title: 'Open the project you already have',
+			body: 'GlyphX treats a paper as a normal folder, not a cloud artifact. Bring in an Overleaf export, a thesis repo, or a fresh blank project.',
+			accent: 'signal-cyan',
+			bullets: ['Plain files on disk', 'No account required', 'Import without reshaping']
+		},
+		{
+			step: 'Step 2',
+			title: 'Compile locally while you write',
+			body: 'The editor and engine share one view. Errors surface next to the work, previews stay live, and there is no network round-trip for every compile.',
+			accent: 'signal-blue',
+			bullets: ['Bundled engine on desktop', 'In-browser compile on web', 'Fast feedback loops']
+		},
+		{
+			step: 'Step 3',
+			title: 'Keep history under your control',
+			body: 'Diffs, commits, and remotes remain yours. GlyphX helps with the workflow, but the repository still belongs to you and the tools you already trust.',
+			accent: 'signal-lime',
+			bullets: ['Built-in Git UI', 'No locked history tiers', 'Works with your remote']
+		}
+	];
+
+	const compareRows: CompareRow[] = [
+		{ label: 'Runs fully offline', glyph: true, overleaf: false, desktop: true },
+		{ label: 'Nothing uploaded by default', glyph: true, overleaf: false, desktop: true },
+		{ label: 'Real LaTeX project folders', glyph: true, overleaf: true, desktop: true },
+		{ label: 'Built-in preview and editor in one app', glyph: true, overleaf: true, desktop: false },
+		{ label: 'Git workflows without extra tooling', glyph: true, overleaf: 'Paid', desktop: 'External app' },
+		{ label: 'No compile queue or shared server timeout', glyph: true, overleaf: 'Cloud limit', desktop: true }
+	];
+
+	const faqs = [
+		{
+			q: 'Is GlyphX just a prettier shell around LaTeX?',
+			a: 'No. The goal is to keep standard LaTeX while fixing the workflow around it: local compile, integrated preview, built-in Git, and a shared desktop and web interface.'
+		},
+		{
+			q: 'Do I need a TeX distribution installed first?',
+			a: 'Not for the core path. The desktop app can use the bundled engine, and the web app compiles in the browser. If you prefer a system installation, GlyphX can use that too.'
+		},
+		{
+			q: 'Where are my projects stored?',
+			a: 'On your machine as normal files and folders. That is the default architecture, not an export option.'
+		},
+		{
+			q: 'Can I move projects in from Overleaf or an existing repo?',
+			a: 'Yes. GlyphX works with ordinary LaTeX project folders, so importing an existing codebase is the normal flow.'
+		},
+		{
+			q: 'Why keep both web and desktop?',
+			a: 'The web build gives you instant access and in-browser compile. The desktop app gives you the deepest local workflow. Both share the same UI so the product feels coherent instead of split.'
+		}
+	];
+
+	const comparisonValueClass = {
+		primary: 'text-brand',
+		muted: 'text-ink-muted'
+	} as const;
 </script>
 
 <svelte:head>
-    <title>GlyphX: The modern local-first LaTeX editor</title>
-    <meta name="description" content="GlyphX is a local-first LaTeX editor for researchers. Write in real LaTeX, compile locally, and keep drafts private." />
+	<title>GlyphX | Local-first LaTeX, redesigned around how writing actually works</title>
+	<meta
+		name="description"
+		content="GlyphX is a local-first LaTeX editor with side-by-side preview, local compile, and built-in Git. Keep your drafts private and your workflow fast."
+	/>
 </svelte:head>
 
-<div class="bg-background text-foreground min-h-screen selection:bg-brand/20 font-sans antialiased">
-    <SiteHeader />
+<div class="min-h-screen bg-canvas font-sans text-ink antialiased selection:bg-brand-subtle">
+	<SiteHeader />
 
-    <section class="relative overflow-hidden pb-20 pt-32 sm:pt-40">
-        <FloatingGlyphs />
-        
-        <div class="pointer-events-none absolute left-1/2 top-0 -z-10 h-[600px] w-[1000px] -translate-x-1/2 -translate-y-1/4 opacity-30 blur-[120px]" style="background: radial-gradient(circle, var(--brand) 0%, transparent 70%);" aria-hidden="true"></div>
+	<main>
+		<section class="landing-shell landing-hero border-b border-hairline">
+			<div class="landing-hero__wash"></div>
+			<div class="mx-auto max-w-7xl px-6 pb-18 pt-18 sm:pb-24 sm:pt-24">
+				<Reveal variant="up" class="relative mx-auto flex max-w-5xl flex-col items-center text-center">
+					<a
+						href={repo}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="landing-trust-mark transition-colors hover:bg-surface-soft"
+					>
+						<IconBrandGithub class="size-4" />
+						Open source · runs on your machine
+					</a>
 
-        <div class="relative mx-auto max-w-6xl px-6">
-            <div class="flex flex-col items-center text-center">
-                
-                <a href={repo} target="_blank" rel="noopener noreferrer" class="group mb-8 inline-flex items-center gap-2 rounded-full border border-border/40 bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-md transition-colors hover:bg-muted/50 hover:text-foreground">
-                    <IconStar class="size-3.5 text-brand" />
-                    Star on GitHub
-                    {#if stars !== null}
-                        <span class="ml-1 flex items-center gap-1 border-l border-border/40 pl-2 text-foreground">
-                            {formatStars(stars)}
-                        </span>
-                    {/if}
-                    <IconArrowRight class="size-3 transition-transform group-hover:translate-x-0.5" />
-                </a>
+					<h1 class="mt-16 max-w-4xl text-balance text-[2.15rem] font-medium leading-[1.04] tracking-[-0.045em] text-ink sm:text-[3rem] lg:text-[3.5rem]">
+						Turn scattered LaTeX workflows into
+					</h1>
+					<div class="landing-hero-word mt-4">GLYPHX</div>
 
-                <h1 class="mx-auto max-w-4xl text-balance text-4xl font-semibold tracking-tighter sm:text-6xl md:text-7xl">
-                    The LaTeX editor Overleaf <br class="hidden sm:block" />
-                    <span class="text-muted-foreground">should have been.</span>
-                </h1>
-                
-                <p class="mx-auto mt-6 max-w-2xl text-balance text-lg tracking-tight text-muted-foreground sm:text-xl">
-                    Write papers, proofs, and theses in real LaTeX. The editor, compiler, and Git run blazingly fast on your own machine.
-                </p>
-                
-                <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                    <a href={resolve('/download')} onclick={() => trackEvent('cta_download_click', { location: 'hero' })} class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground px-8 text-sm font-medium text-background transition-transform hover:scale-[0.98] sm:w-auto">
-                        <IconDownload class="size-4" /> Download App
-                    </a>
-                    <a href={resolve('/editor')} class="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border/50 bg-background px-8 text-sm font-medium transition-colors hover:bg-muted/50 sm:w-auto">
-                        <IconPlayerPlay class="size-4 text-brand" /> Open Browser Editor
-                    </a>
-                </div>
-            </div>
+					<p class="mt-10 max-w-[34rem] text-balance text-[1.05rem] leading-[1.55] text-ink-body sm:text-[1.2rem]">
+						A local-first editor that keeps writing, preview, compile, and version history in one
+						calm workspace instead of spread across a browser tab, sync loop, and side tools.
+					</p>
 
-            <div class="relative mx-auto mt-20 max-w-5xl">
-                <div class="rounded-xl border border-border/40 bg-card/50 p-2 shadow-2xl backdrop-blur-xl">
-                    <div class="overflow-hidden rounded-lg border border-border/20 bg-background">
-                        <div class="flex h-10 items-center gap-2 border-b border-border/40 bg-muted/20 px-4">
-                            <div class="flex gap-1.5">
-                                <div class="size-2.5 rounded-full bg-muted-foreground/30"></div>
-                                <div class="size-2.5 rounded-full bg-muted-foreground/30"></div>
-                                <div class="size-2.5 rounded-full bg-muted-foreground/30"></div>
-                            </div>
-                            <span class="ml-4 font-mono text-xs text-muted-foreground">thesis.tex</span>
-                        </div>
-                        {#if heroImgOk}
-                            <img src="/hero-editor.png" alt="GlyphX Live Preview" class="block w-full" onerror={() => (heroImgOk = false)} />
-                        {:else}
-                            <div class="grid grid-cols-1 md:grid-cols-2">
-                                <div class="border-b border-border/40 p-6 md:border-b-0 md:border-r">
-                                    <pre class="font-mono text-[13px] leading-relaxed text-muted-foreground">
-<span class="text-brand">\documentclass</span>&#123;article&#125;
-<span class="text-brand">\usepackage</span>&#123;amsmath&#125;
+					<div class="mt-11 flex flex-col items-center gap-4 sm:flex-row">
+						<Button
+							href={resolve('/download')}
+							variant="default"
+							size="pill"
+							onclick={() => trackEvent('cta_download_click', { location: 'hero_redesign_v3' })}
+						>
+							Download desktop app
+						</Button>
+						<Button href={resolve('/editor')} variant="landing_ghost" size="pill">
+							<IconPlayerPlay class="size-4 text-brand" />
+							Open browser editor
+						</Button>
+					</div>
 
-<span class="text-brand">\title</span>&#123;On Local-First Typesetting&#125;
-<span class="text-brand">\author</span>&#123;A. Researcher&#125;
+					<div class="mt-16 flex items-center gap-4 text-sm leading-6 text-ink-body">
+						<span>Built for private writing you can rely on</span>
+						<div class="landing-trust-mark">
+							<IconLock class="size-4" />
+							Local-first
+						</div>
+					</div>
 
-<span class="text-brand">\begin</span>&#123;document&#125;
-<span class="text-brand">\maketitle</span>
+					<div aria-hidden="true" class="landing-hero-glyph landing-hero-glyph--left"></div>
+					<div aria-hidden="true" class="landing-hero-glyph landing-hero-glyph--right"></div>
+				</Reveal>
+			</div>
+		</section>
 
-We observe that the estimator <span class="text-foreground">$\hat&#123;\theta&#125;$</span>
-is consistent...
-<span class="text-brand">\end</span>&#123;document&#125;</pre>
-                                </div>
-                                <div class="bg-muted/10 p-8">
-                                    <h3 class="mb-2 text-2xl font-semibold tracking-tight">On Local-First Typesetting</h3>
-                                    <p class="mb-6 text-sm text-muted-foreground">A. Researcher</p>
-                                    <p class="leading-relaxed text-foreground/80">
-                                        We observe that the estimator θ̂ is consistent...
-                                    </p>
-                                </div>
-                            </div>
-                        {/if}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+		<section class="landing-shell border-b border-hairline bg-surface-card">
+			<div class="border-b border-hairline">
+				<div class="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-7 lg:flex-row lg:items-center lg:justify-center">
+					<p class="text-center text-[0.96rem] leading-[1.3] text-ink">
+						Bring the projects
+						<br />
+						you already have
+					</p>
+					<div class="landing-tool-strip flex-wrap">
+						{#each importSources as source}
+							<span class="landing-import-item">
+								<source.icon class="size-4" />
+								{source.label}
+							</span>
+						{/each}
+						<span class="text-sm font-medium tracking-[-0.01em] text-ink-muted">no reformatting</span>
+					</div>
+				</div>
+			</div>
 
-    <section class="border-y border-border/40 bg-muted/10 py-12">
-        <div class="mx-auto max-w-5xl px-6">
-            <p class="text-center font-mono text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-                Works with your existing workflow
-            </p>
-            <div class="mt-8 flex flex-wrap justify-center gap-x-12 gap-y-6">
-                {#each integrations as it}
-                    <div class="flex items-center gap-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                        <it.icon class="size-4 text-brand" /> {it.label}
-                    </div>
-                {/each}
-            </div>
-        </div>
-    </section>
+			<div class="mx-auto max-w-7xl px-6 py-16 sm:py-20">
+				<Reveal variant="up">
+					<div class="flex items-end justify-between gap-6 px-4">
+						<h2 class="landing-section-title max-w-3xl">
+							One workspace for the whole
+							<em>writing loop</em>
+						</h2>
+						<div class="hidden items-center gap-3 lg:flex">
+							<button
+								type="button"
+								class="landing-arrow-button"
+								aria-label="Scroll cards left"
+								onclick={() => scrollDeck(-1)}
+							>
+								<IconArrowLeft class="size-5" />
+							</button>
+							<button
+								type="button"
+								class="landing-arrow-button"
+								aria-label="Scroll cards right"
+								onclick={() => scrollDeck(1)}
+							>
+								<IconArrowRight class="size-5" />
+							</button>
+						</div>
+					</div>
+				</Reveal>
 
-    <section class="py-24 sm:py-32">
-        <div class="mx-auto max-w-6xl px-6">
-            <div class="grid items-center gap-16 lg:grid-cols-2">
-                <Reveal variant="up">
-                    <h2 class="text-3xl font-semibold tracking-tighter sm:text-4xl">
-                        Escape the cloud errors.
-                    </h2>
-                    <p class="mt-4 text-lg tracking-tight text-muted-foreground">
-                        Overleaf made LaTeX accessible, but cloud limits slow you down. Timeouts, sync lags, and locked histories aren't LaTeX problems—they are server problems. 
-                    </p>
-                </Reveal>
+				<div bind:this={deckScroller} class="mt-10 overflow-x-auto no-scrollbar mx-4">
+					<div class="landing-feature-deck">
+						{#each featureDeck as card, index}
+							<Reveal variant="up" delay={index * 60}>
+								<Card tone="editorial" class="landing-feature-card">
+									<div class="landing-feature-card__badge">
+										<card.icon class="size-5 text-ink" />
+									</div>
+									<h3 class="text-[1.18rem] font-medium leading-[1.15] tracking-[-0.035em] text-ink">
+										{card.title}
+									</h3>
+									<div class="space-y-4 text-[0.97rem] text-ink-body">
+										<div class="grid grid-cols-[4.6rem_1fr] gap-2">
+											<span class="text-ink-muted">{card.runsLabel}</span>
+											<span>{card.runsValue}</span>
+										</div>
+										<div class="grid grid-cols-[4.6rem_1fr] gap-2">
+											<span class="text-ink-muted">Replaces:</span>
+											<div class="flex flex-wrap items-center gap-2">
+												{#each card.replaces as item}
+													<span class="rounded-full border border-hairline bg-surface-soft px-2.5 py-1 text-[0.82rem] text-ink-body">
+														{item}
+													</span>
+												{/each}
+											</div>
+										</div>
+									</div>
+									<p class="mt-auto text-[0.98rem] leading-[1.75] text-ink-muted">
+										{card.body}
+									</p>
+								</Card>
+							</Reveal>
+						{/each}
+					</div>
+				</div>
+			</div>
+		</section>
 
-                <Reveal variant="up" delay={80}>
-                    <div class="rounded-xl border border-border/40 bg-card shadow-sm">
-                        <div class="flex items-center justify-between border-b border-border/40 px-4 py-3">
-                            <span class="font-mono text-xs text-muted-foreground">cloud.log</span>
-                            <span class="inline-flex items-center gap-1.5 rounded bg-destructive/10 px-2 py-0.5 font-mono text-[10px] font-medium text-destructive">
-                                <IconAlertTriangle class="size-3" /> {cloudLog.length} Issues
-                            </span>
-                        </div>
-                        <div class="p-4 font-mono text-[12px] leading-relaxed">
-                            {#each cloudLog as line, i}
-                                <Reveal as="div" variant="up" delay={i * 50} class="flex gap-3 py-1">
-                                    <span class="text-muted-foreground/50">{line.time}</span>
-                                    <span class="{logLevelClass[line.level]} w-10">{line.level}</span>
-                                    <span class="text-foreground/80">{line.msg}</span>
-                                </Reveal>
-                            {/each}
-                            <div class="mt-3 border-t border-border/40 pt-3">
-                                <Reveal as="div" variant="up" delay={cloudLog.length * 50} class="flex gap-3">
-                                    <span class="text-brand">glyphx ▸</span>
-                                    <span class="text-foreground">0 problems · local compile active</span>
-                                </Reveal>
-                            </div>
-                        </div>
-                    </div>
-                </Reveal>
-            </div>
-        </div>
-    </section>
+		<section class="landing-shell border-b border-hairline">
+			<div class="mx-auto max-w-7xl px-6 py-18 sm:py-24">
+				<div class="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+					<Reveal variant="up">
+						<p class="landing-section-label">Inside the workspace</p>
+						<h2 class="landing-section-title mt-4 max-w-xl">
+							The editor you'll actually <em>write in</em>
+						</h2>
+						<p class="mt-6 max-w-xl text-lg leading-8 text-ink-body">
+							Source on the left, live PDF on the right, and everything — compile, errors, and
+							history — a keystroke away. No jumping between a browser tab, a sync loop, and a
+							pile of side tools just to see your paper.
+						</p>
+						<div class="mt-8 grid max-w-xl gap-3 sm:grid-cols-3">
+							<Card tone="soft" size="sm" class="landing-mini-stat">
+								<span class="landing-mini-stat__value">Private</span>
+								<span class="landing-mini-stat__label">Drafts stay on your machine by default</span>
+							</Card>
+							<Card tone="soft" size="sm" class="landing-mini-stat">
+								<span class="landing-mini-stat__value">Real</span>
+								<span class="landing-mini-stat__label">Standard .tex projects, not a custom format</span>
+							</Card>
+							<Card tone="soft" size="sm" class="landing-mini-stat">
+								<span class="landing-mini-stat__value">Shared</span>
+								<span class="landing-mini-stat__label">One UI across desktop and web</span>
+							</Card>
+						</div>
+					</Reveal>
 
-    <section id="features" class="flex flex-col gap-24 py-24 sm:py-32">
-        {#each featureSections as sec, si}
-            {@const flip = si % 2 === 1}
-            <div class="mx-auto max-w-6xl px-6">
-                <Reveal variant="up" class="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-                    <div class={flip ? 'lg:order-last' : ''}>
-                        <span class="font-mono text-[11px] font-medium uppercase tracking-widest text-brand">
-                            {sec.eyebrow}
-                        </span>
-                        <h2 class="mt-3 text-3xl font-semibold tracking-tighter sm:text-4xl">
-                            {@html sec.headline}
-                        </h2>
-                        
-                        <div class="mt-8 flex flex-col gap-6">
-                            {#each sec.items as it}
-                                <div class="flex gap-4">
-                                    <div class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted/50">
-                                        <it.icon class="size-4 text-brand" />
-                                    </div>
-                                    <div>
-                                        <h3 class="text-sm font-semibold">{it.title}</h3>
-                                        <p class="mt-1 text-sm text-muted-foreground">{it.body}</p>
-                                    </div>
-                                </div>
-                            {/each}
-                        </div>
-                        
-                        <a href={sec.href} class="group mt-10 inline-flex items-center gap-2 text-sm font-medium text-brand">
-                            {sec.cta} <IconArrowRight class="size-4 transition-transform group-hover:translate-x-1" />
-                        </a>
-                    </div>
-                    
-                    <div class="relative w-full rounded-xl border border-border/40 bg-muted/20 p-2 shadow-sm">
-                        <div class="h-64 rounded-lg bg-card/80 p-4 font-mono text-sm text-muted-foreground ring-1 ring-border/20 backdrop-blur-sm sm:h-80">
-                            {#if sec.mount === 'editor'}
-                                <span class="text-brand">\documentclass</span>&#123;article&#125;<br/><br/>
-                                <span class="text-brand">\begin</span>&#123;document&#125;<br/>
-                                Local-first execution is superior.<br/>
-                                <span class="text-brand">\end</span>&#123;document&#125;
-                            {:else}
-                                <div class="flex items-center gap-2"><IconGitBranch class="size-4 text-brand"/> main</div>
-                                <div class="mt-4 flex flex-col gap-2">
-                                    <div class="flex items-center gap-2"><span class="text-warning">M</span> thesis.tex</div>
-                                    <div class="flex items-center gap-2"><span class="text-success">A</span> fig1.pdf</div>
-                                </div>
-                            {/if}
-                        </div>
-                    </div>
-                </Reveal>
-            </div>
-        {/each}
-    </section>
+					<Reveal variant="scale" delay={100}>
+						<div class="landing-editor-stage">
+							<div class="landing-browser">
+								<div class="landing-browser__bar">
+									<div class="landing-browser__traffic">
+										<span></span>
+										<span></span>
+										<span></span>
+									</div>
+									<div class="landing-browser__title">glyphx / thesis.tex</div>
+								</div>
 
-    <section id="compare" class="border-t border-border/40 bg-muted/5 py-24 sm:py-32">
-        <div class="mx-auto max-w-5xl px-6">
-            <Reveal variant="up" class="text-center">
-                <h2 class="text-3xl font-semibold tracking-tighter sm:text-4xl">
-                    Private like your laptop. Easy like the cloud.
-                </h2>
-            </Reveal>
+								<div class="landing-browser__body">
+									{#if heroImgOk}
+										<img
+											src="/hero-editor.png"
+											alt="GlyphX editor preview"
+											class="block w-full"
+											onerror={() => (heroImgOk = false)}
+										/>
+									{:else}
+										<div class="grid h-full gap-px bg-hairline md:grid-cols-[0.9fr_1.1fr]">
+											<div class="bg-surface-card p-6 font-mono text-[13px] leading-7 text-ink-muted">
+												<div class="text-signal-blue">\documentclass&#123;article&#125;</div>
+												<div class="text-signal-cyan">\usepackage&#123;amsmath,graphicx&#125;</div>
+												<div class="mt-5 text-ink">\begin&#123;document&#125;</div>
+												<div class="mt-3">
+													The local-first editor keeps the paper, preview, and history in one place.
+												</div>
+												<div class="mt-3 text-signal-lime">\end&#123;document&#125;</div>
+											</div>
+											<div class="bg-canvas p-8">
+												<div class="mx-auto max-w-md rounded-[1.5rem] border border-hairline bg-surface-card px-8 py-10 shadow-craft-lg">
+													<p class="text-center font-serif text-3xl italic text-ink">
+														Local-first typesetting
+													</p>
+													<p class="mt-8 text-sm leading-7 text-ink-body">
+														Write once in standard LaTeX. Keep the source on your disk. Compile fast,
+														review visually, and stay in control of project history.
+													</p>
+													<div class="mt-8 space-y-2 text-sm text-ink-muted">
+														<div class="flex items-center gap-2">
+															<IconCheck class="size-4 text-signal-cyan" />
+															Side-by-side preview
+														</div>
+														<div class="flex items-center gap-2">
+															<IconCheck class="size-4 text-signal-blue" />
+															Local compile
+														</div>
+														<div class="flex items-center gap-2">
+															<IconCheck class="size-4 text-signal-lime" />
+															Private project folders
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									{/if}
+								</div>
+							</div>
+						</div>
+					</Reveal>
+				</div>
+			</div>
+		</section>
 
-            <Reveal variant="up" delay={80} class="mt-16 overflow-x-auto">
-                <div class="min-w-[640px] rounded-xl border border-border/40 bg-background text-sm shadow-sm">
-                    <div class="grid grid-cols-[2fr_1fr_1fr_1fr] border-b border-border/40 bg-muted/30 p-4 font-medium text-muted-foreground">
-                        <div>Feature</div>
-                        <div class="flex items-center gap-2 text-foreground"><IconStar class="size-4 text-brand"/> GlyphX</div>
-                        <div>Overleaf Free</div>
-                        <div>Desktop TeX</div>
-                    </div>
-                    {#each comparison as row}
-                        <div class="grid grid-cols-[2fr_1fr_1fr_1fr] items-center border-b border-border/40 p-4 last:border-0">
-                            <div class="font-medium text-foreground/90">{row.label}</div>
-                            <div class="font-medium">
-                                {#if row.glyph === true} <IconCheck class="size-4 text-brand" />
-                                {:else} <span class="text-brand">{row.glyph}</span> {/if}
-                            </div>
-                            <div class="text-muted-foreground">
-                                {#if row.overleaf === true} <IconCheck class="size-4" />
-                                {:else if row.overleaf} {row.overleaf}
-                                {:else} <IconMinus class="size-4 opacity-50" /> {/if}
-                            </div>
-                            <div class="text-muted-foreground">
-                                {#if row.desktop === true} <IconCheck class="size-4" />
-                                {:else if row.desktop} {row.desktop}
-                                {:else} <IconMinus class="size-4 opacity-50" /> {/if}
-                            </div>
-                        </div>
-                    {/each}
-                </div>
-            </Reveal>
-        </div>
-    </section>
+		<section id="features" class="landing-shell border-b border-hairline">
+			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+				<Reveal variant="up" class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+					<div class="max-w-3xl">
+						<p class="landing-section-label">How you start</p>
+						<h2 class="landing-section-title mt-4 max-w-3xl">
+							Two entry points, one shared <em>GlyphX</em>
+						</h2>
+					</div>
+					<p class="max-w-xl text-base leading-7 text-ink-body sm:text-lg">
+						Same interface, same projects, same shortcuts on both. Start in the browser in
+						seconds, or install the desktop app for the bundled engine and the full offline
+						workflow.
+					</p>
+				</Reveal>
 
-    <section id="faq" class="py-24 sm:py-32">
-        <div class="mx-auto max-w-3xl px-6">
-            <Reveal variant="up" class="text-center">
-                <h2 class="text-3xl font-semibold tracking-tighter">Frequently Asked Questions</h2>
-            </Reveal>
+				<div class="mt-14 grid gap-5 lg:grid-cols-2">
+					{#each startCards as card, index}
+						<Reveal variant="up" delay={index * 60}>
+							<Card
+								tone={card.highlight ? 'soft' : 'editorial'}
+								class={`landing-start-card ${card.highlight ? 'landing-start-card--highlight' : ''}`}
+							>
+								<div class="landing-start-card__top">
+									<p class="text-[2rem] font-medium tracking-[-0.04em] text-ink">{card.eyebrow}</p>
+									<div>
+										<h3 class="mt-6 text-balance text-[2.35rem] font-medium leading-none tracking-[-0.05em] text-ink sm:text-[3rem]">
+											{card.title}
+										</h3>
+										<p class="mt-3 text-lg leading-7 text-ink-muted">{card.subtitle}</p>
+									</div>
+								</div>
 
-            <div class="mt-12 flex flex-col gap-px bg-border/40">
-                {#each faqs as f, i}
-                    <Reveal variant="up" delay={i * 40} class="group bg-background p-6 open:bg-muted/10">
-                        <summary class="flex cursor-pointer items-center justify-between font-medium [&::-webkit-details-marker]:hidden">
-                            {f.q}
-                            <IconChevronDown class="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
-                        </summary>
-                        <p class="mt-4 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
-                    </Reveal>
-                {/each}
-            </div>
-        </div>
-    </section>
+								<Button href={card.href} variant={card.highlight ? 'default' : 'landing_soft'} size="pill" class="mt-1 w-full">
+									{card.cta}
+								</Button>
 
-    <section class="py-24 sm:py-32">
-        <div class="mx-auto max-w-4xl px-6">
-            <Reveal variant="scale">
-                <div class="relative flex flex-col items-center overflow-hidden rounded-2xl bg-foreground px-6 py-20 text-center text-background">
-                    <h2 class="text-3xl font-semibold tracking-tighter sm:text-5xl">
-                        Keep your research on your machine.
-                    </h2>
-                    <p class="mt-4 text-lg text-background/70">
-                        Start instantly in the browser or download the native app for fully offline execution.
-                    </p>
-                    <div class="mt-10 flex flex-col gap-4 sm:flex-row">
-                        <a href={resolve('/download')} class="inline-flex h-11 items-center justify-center rounded-md bg-background px-8 text-sm font-medium text-foreground transition-transform hover:scale-[0.98]">
-                            Download GlyphX
-                        </a>
-                        <a href={resolve('/editor')} class="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-background/20 px-8 text-sm font-medium text-background transition-colors hover:bg-background/10">
-                            Open Editor <IconArrowRight class="size-4" />
-                        </a>
-                    </div>
-                </div>
-            </Reveal>
-        </div>
-    </section>
+								<div class="landing-start-card__divider"></div>
 
-    <SiteFooter />
+								<div>
+									<p class="text-lg font-medium tracking-[-0.02em] text-ink">
+										{card.highlight
+											? 'Best when you want instant access:'
+											: 'Best when you want the full local setup:'}
+									</p>
+									<ul class="mt-5 space-y-4">
+										{#each card.items as item}
+											<li class="flex items-start gap-3 text-lg leading-7 text-ink-body">
+												<IconCheck class="mt-1 size-4 shrink-0 text-ink" />
+												<span>{item}</span>
+											</li>
+										{/each}
+									</ul>
+								</div>
+							</Card>
+						</Reveal>
+					{/each}
+				</div>
+			</div>
+		</section>
+
+		<section id="workflow" class="border-b border-hairline bg-surface-soft/35">
+			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+				<Reveal variant="up" class="mx-auto max-w-4xl text-center">
+					<p class="landing-section-label justify-center">How it works</p>
+					<h2 class="landing-section-title mt-4">
+						From scattered tools to one
+						<em>private writing cockpit</em>
+					</h2>
+				</Reveal>
+
+				<div class="mt-16 grid gap-5 lg:grid-cols-3">
+					{#each workflowSteps as step, index}
+						<Reveal variant="up" delay={index * 70}>
+							<article class="landing-workflow-card">
+								<div class="landing-workflow-card__visual">
+									<div class={`landing-workflow-card__core ${step.accent}`}></div>
+									<div class="landing-workflow-card__ring landing-workflow-card__ring--top"></div>
+									<div class="landing-workflow-card__ring landing-workflow-card__ring--bottom"></div>
+									<div class={`landing-workflow-card__node landing-workflow-card__node--left ${step.accent}`}></div>
+									<div class={`landing-workflow-card__node landing-workflow-card__node--right ${step.accent}`}></div>
+								</div>
+								<p class="text-sm font-medium uppercase tracking-[0.22em] text-ink-muted">{step.step}</p>
+								<h3 class="mt-4 text-2xl font-medium tracking-[-0.03em] text-ink">{step.title}</h3>
+								<p class="mt-4 text-base leading-7 text-ink-body">{step.body}</p>
+								<ul class="mt-6 space-y-2">
+									{#each step.bullets as bullet}
+										<li class="flex items-center gap-2 text-sm text-ink-muted">
+											<IconCheck class="size-4 text-brand" />
+											{bullet}
+										</li>
+									{/each}
+								</ul>
+							</article>
+						</Reveal>
+					{/each}
+				</div>
+			</div>
+		</section>
+
+		<section id="compare" class="landing-shell border-b border-hairline">
+			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+				<div class="grid gap-8 lg:grid-cols-[0.92fr_1.08fr]">
+					<Reveal variant="up">
+						<div class="landing-contrast-panel">
+							<div class="landing-contrast-panel__header">
+								<IconQuote class="size-4 text-brand" />
+								Typical cloud-LaTeX friction
+							</div>
+
+							<div class="space-y-4 p-6 text-sm leading-7 text-ink-body">
+								<div class="landing-contrast-line">
+									<IconCloudOff class="size-4 text-destructive" />
+									Compile depends on a remote session and network health.
+								</div>
+								<div class="landing-contrast-line">
+									<IconWriting class="size-4 text-warning" />
+									Writing, preview, file management, and Git live in separate tools.
+								</div>
+								<div class="landing-contrast-line">
+									<IconDeviceFloppy class="size-4 text-destructive" />
+									Your default source of truth is someone else's infrastructure.
+								</div>
+							</div>
+
+							<div class="border-t border-hairline px-6 py-5">
+								<p class="text-sm font-medium text-ink">GlyphX approach</p>
+								<p class="mt-2 text-sm leading-7 text-ink-muted">
+									Keep the project local, compile where the files live, and make the interface
+									feel more like a focused writing instrument than a browser utility.
+								</p>
+							</div>
+						</div>
+					</Reveal>
+
+					<Reveal variant="up" delay={80}>
+						<div class="overflow-hidden rounded-[2rem] border border-hairline bg-surface-card shadow-craft-lg">
+							<div class="grid grid-cols-[1.7fr_1fr_1fr_1fr] border-b border-hairline bg-surface-soft px-6 py-4 text-sm font-medium text-ink-muted">
+								<div>Capability</div>
+								<div class="text-ink">GlyphX</div>
+								<div>Overleaf</div>
+								<div>Classic desktop</div>
+							</div>
+
+							{#each compareRows as row}
+								<div class="grid grid-cols-[1.7fr_1fr_1fr_1fr] items-center border-b border-hairline px-6 py-4 text-sm last:border-b-0">
+									<div class="pr-6 text-ink">{row.label}</div>
+
+									<div class={comparisonValueClass.primary}>
+										{#if row.glyph === true}
+											<IconCheck class="size-4" />
+										{:else}
+											{row.glyph}
+										{/if}
+									</div>
+
+									<div class={comparisonValueClass.muted}>
+										{#if row.overleaf === true}
+											<IconCheck class="size-4 text-ink" />
+										{:else if row.overleaf === false}
+											-
+										{:else}
+											{row.overleaf}
+										{/if}
+									</div>
+
+									<div class={comparisonValueClass.muted}>
+										{#if row.desktop === true}
+											<IconCheck class="size-4 text-ink" />
+										{:else if row.desktop === false}
+											-
+										{:else}
+											{row.desktop}
+										{/if}
+									</div>
+								</div>
+							{/each}
+						</div>
+					</Reveal>
+				</div>
+			</div>
+		</section>
+
+		<section id="faq" class="border-b border-hairline bg-surface-soft/25">
+			<div class="mx-auto max-w-4xl px-6 py-20 sm:py-28">
+				<Reveal variant="up" class="text-center">
+					<p class="landing-section-label justify-center">FAQ</p>
+					<h2 class="landing-section-title mt-4">
+						Questions worth asking before trusting a LaTeX tool
+					</h2>
+				</Reveal>
+
+				<div class="mt-14 flex flex-col gap-px overflow-hidden rounded-[2rem] border border-hairline bg-hairline">
+					{#each faqs as item, index}
+						<Reveal variant="up" delay={index * 45} class="bg-surface-card p-6 sm:p-8">
+							<details class="group">
+								<summary class="flex cursor-pointer items-center justify-between gap-6 font-medium text-ink [&::-webkit-details-marker]:hidden">
+									<span class="text-lg tracking-[-0.02em]">{item.q}</span>
+									<IconChevronDown class="size-4 shrink-0 text-ink-muted transition-transform group-open:rotate-180" />
+								</summary>
+								<p class="mt-5 max-w-3xl text-base leading-7 text-ink-body">{item.a}</p>
+							</details>
+						</Reveal>
+					{/each}
+				</div>
+			</div>
+		</section>
+
+		<section class="landing-shell">
+			<div class="mx-auto max-w-6xl px-6 py-20 sm:py-28">
+				<Reveal variant="scale">
+					<div class="landing-cta-panel">
+						<div class="landing-cta-panel__glyph landing-cta-panel__glyph--left"></div>
+						<div class="landing-cta-panel__glyph landing-cta-panel__glyph--right"></div>
+
+						<p class="landing-section-label justify-center">Ready when you are</p>
+						<h2 class="landing-section-title mt-4 max-w-4xl">
+							Keep your writing <em>local, fast, and yours</em>
+						</h2>
+						<p class="mt-6 max-w-2xl text-lg leading-8 text-ink-body">
+							Open a project in the browser right now, or download the desktop app for bundled
+							compile and offline Git. No account, no upload, no lock-in.
+						</p>
+						<div class="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+							<Button href={resolve('/download')} variant="landing_soft" size="pill">
+								Download GlyphX
+								<IconArrowRight class="size-4" />
+							</Button>
+							<Button href={resolve('/editor')} variant="landing_ghost" size="pill">
+								Open editor
+							</Button>
+						</div>
+					</div>
+				</Reveal>
+			</div>
+		</section>
+	</main>
+
+	<SiteFooter />
 </div>

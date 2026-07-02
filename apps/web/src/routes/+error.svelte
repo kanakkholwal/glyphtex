@@ -64,7 +64,7 @@
 			</Button>
 			<Button size="sm" class="flex-1" onclick={() => goto(resolve('/'))}>
 				<IconHome size={14} />
-				Projects
+				Home
 			</Button>
 		</div>
 

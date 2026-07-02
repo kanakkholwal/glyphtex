@@ -137,7 +137,12 @@ async function warmCompile(engine: PdfTeXEngine, preamble: string): Promise<bool
 	engine.writeMemFSFile('main.tex', src);
 	engine.setEngineMainFile('main.tex');
 	const result = await engine.compileLaTeX();
-	return !!result?.pdf && new Uint8Array(result.pdf).byteLength > 0;
+	const ok = !!result?.pdf && new Uint8Array(result.pdf).byteLength > 0;
+	// Surface the engine's own log when the warm-up produced no PDF, so a format/
+	// engine mismatch ("Fatal format file error") or a missing file is visible
+	// instead of a bare "status code 1".
+	if (!ok && result?.log) console.error('[GlyphX] warm-compile log:\n' + result.log);
+	return ok;
 }
 
 /**

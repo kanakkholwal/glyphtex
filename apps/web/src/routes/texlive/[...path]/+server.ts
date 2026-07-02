@@ -1,19 +1,44 @@
 // Same-origin TeX Live endpoint. The in-browser engine fetches
 // `/texlive/pdftex/<n>/<file>`; this route resolves each file in order:
 //   1. a vendored copy in our own static assets (no third party at all),
-//   2. our Cloudflare edge cache (immutable per path — fills itself on first use),
-//   3. an upstream on-demand server (our own PUBLIC_TEXLIVE_ENDPOINT first, then
-//      the public one), whose response we cache at our edge.
+//   2. our Cloudflare edge cache (fast, per-colo, evictable),
+//   3. our durable R2 mirror (account-owned, free egress; survives edge
+//      eviction and deploys, and self-populates from real traffic),
+//   4. an upstream, in order — our own curated CDN bundle (PUBLIC_TEXMIRROR_CDN,
+//      e.g. jsDelivr over a GitHub repo / npm package), then our own on-demand
+//      server (PUBLIC_TEXLIVE_ENDPOINT), then the public TeXlyre server — each
+//      buffered and written back to R2 + the edge cache.
 //
-// Net effect: the engine only ever talks to OUR domain. The third-party server
-// is a cached backend behind our edge, not a hard dependency — once a file is
-// cached (here, or in the per-device service-worker cache) it keeps working even
-// if every upstream is down. Point PUBLIC_TEXLIVE_ENDPOINT at your own
-// `texlive-ondemand-server` for full independence; we still edge-cache it.
+// Net effect: the engine only ever talks to OUR domain, and every file an
+// upstream serves is captured into R2 forever — so the third-party server is hit
+// at most once per file and the mirror grows itself with no capture tooling.
+// Card-free option: publish your captured bundle to jsDelivr (a GitHub repo or
+// npm package) and set PUBLIC_TEXMIRROR_CDN — see docs/self-host-texlive.md.
 
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/public';
 import { dev } from '$app/environment';
+
+// Minimal structural shape of the Cloudflare bindings we use (avoids depending
+// on @cloudflare/workers-types here; payloads are narrowed where consumed).
+type R2ObjectBody = {
+	body: ReadableStream;
+	httpMetadata?: { contentType?: string };
+};
+type Platform = {
+	env?: {
+		ASSETS?: { fetch: (input: string) => Promise<Response> };
+		TEXLIVE?: {
+			get: (key: string) => Promise<R2ObjectBody | null>;
+			put: (
+				key: string,
+				value: Uint8Array,
+				opts?: { httpMetadata?: { contentType?: string } }
+			) => Promise<unknown>;
+		};
+	};
+	context?: { waitUntil?: (p: Promise<unknown>) => void };
+};
 
 // Dev-only: persist proxied files to the on-disk base bundle as you compile, so
 // the mirror builds itself with no browser-automation tooling — just run the dev
@@ -39,11 +64,19 @@ const PUBLIC_UPSTREAM = 'https://texlive.texlyre.org/';
 
 const withSlash = (u: string) => (u.endsWith('/') ? u : `${u}/`);
 
-/** Upstreams to proxy from, in order: your own server first, then the public one. */
+/**
+ * Upstreams to proxy from, in order:
+ *   1. `PUBLIC_TEXMIRROR_CDN` — our own curated bundle on a CDN (jsDelivr over a
+ *      GitHub repo / npm package). Durable, card-free, global; 404s fast on a
+ *      file it doesn't have and falls through to the next.
+ *   2. `PUBLIC_TEXLIVE_ENDPOINT` — our own on-demand server, if running.
+ *   3. the public TeXlyre server — last resort.
+ * Every hit is buffered and written back to R2 + the edge cache (below).
+ */
 function upstreams(): string[] {
 	return [
 		...new Set(
-			[env.PUBLIC_TEXLIVE_ENDPOINT, PUBLIC_UPSTREAM]
+			[env.PUBLIC_TEXMIRROR_CDN, env.PUBLIC_TEXLIVE_ENDPOINT, PUBLIC_UPSTREAM]
 				.filter((u): u is string => !!u)
 				.map(withSlash)
 		)
@@ -54,7 +87,7 @@ function upstreams(): string[] {
 // own origin, never an upstream, so common compiles work fully offline /
 // independent of the third party. Populate it with no extra tooling by running
 // the dev server with MIRROR_WRITE=1 and compiling (see writeMirror below). A
-// missing file falls through to the edge cache, then the upstreams below.
+// missing file falls through to the edge cache, then R2, then the upstreams.
 const BASE_HEADERS = {
 	'access-control-allow-origin': '*',
 	// Files are immutable per path (a package's content is fixed for a TL snapshot).
@@ -66,13 +99,17 @@ const contentType = (res: Response) =>
 
 export const GET: RequestHandler = async ({ params, fetch, request, platform }) => {
 	const path = params.path; // e.g. "pdftex/10/swiftlatexpdftex.fmt"
+	const plat = platform as Platform | undefined;
+	const ctx = plat?.context;
+	const r2 = plat?.env?.TEXLIVE;
+	// Schedule background work without blocking the response (await in dev).
+	const persist = (p: Promise<unknown>) => (ctx?.waitUntil ? ctx.waitUntil(p) : p);
 
 	// 1. Vendored base bundle in our own static assets — guaranteed, independent
 	//    of any upstream. Use the ASSETS binding on Cloudflare; fall back to a
 	//    same-origin fetch in local dev (where the binding isn't present).
 	const mirrorUrl = new URL(`/texmirror/${path}`, request.url).toString();
-	const assets = (platform as { env?: { ASSETS?: { fetch: typeof fetch } } } | undefined)?.env
-		?.ASSETS;
+	const assets = plat?.env?.ASSETS;
 	const res = await (assets ? assets.fetch(mirrorUrl) : fetch(mirrorUrl));
 	if (res.ok) {
 		return new Response(res.body, {
@@ -89,39 +126,52 @@ export const GET: RequestHandler = async ({ params, fetch, request, platform }) 
 		if (hit) return hit;
 	}
 
-	// 3. Upstreams in order; first hit wins and is cached at our edge.
-	for (const base of upstreams()) {
-		let res: Response;
+	// 3. Durable R2 mirror — account-owned, free egress, survives edge eviction +
+	//    deploys. Warm the fast edge cache on a hit.
+	if (r2) {
 		try {
-			res = await fetch(base + path);
+			const obj = await r2.get(path);
+			if (obj) {
+				const headers = {
+					...BASE_HEADERS,
+					'content-type': obj.httpMetadata?.contentType ?? 'application/octet-stream'
+				};
+				// Warm the fast edge cache from the durable copy (tee so we can do both).
+				if (edge) {
+					const [toCache, toReturn] = obj.body.tee();
+					persist(edge.put(cacheKey, new Response(toCache, { status: 200, headers })));
+					return new Response(toReturn, { status: 200, headers });
+				}
+				return new Response(obj.body, { status: 200, headers });
+			}
+		} catch {
+			/* R2 unavailable → fall through to upstream */
+		}
+	}
+
+	// 4. Upstreams in order; first hit wins. Buffer it once, then write back to R2
+	//    (durable) + the edge cache so the mirror self-populates and the upstream
+	//    is never asked for this file again.
+	for (const base of upstreams()) {
+		let upstream: Response;
+		try {
+			upstream = await fetch(base + path);
 		} catch {
 			continue; // try the next upstream
 		}
-		if (!res.ok) continue;
+		if (!upstream.ok) continue;
 
-		// In dev with MIRROR_WRITE=1, buffer + persist to the on-disk bundle. In
-		// production this is a no-op, so we stream through without buffering.
-		if (dev && typeof process !== 'undefined' && process.env?.MIRROR_WRITE === '1') {
-			const bytes = new Uint8Array(await res.arrayBuffer());
-			await writeMirror(path, bytes);
-			return new Response(bytes, {
-				status: 200,
-				headers: { ...BASE_HEADERS, 'content-type': contentType(res) }
-			});
-		}
+		const ct = contentType(upstream);
+		const bytes = new Uint8Array(await upstream.arrayBuffer());
+		const headers = { ...BASE_HEADERS, 'content-type': ct };
 
-		const out = new Response(res.body, {
-			status: 200,
-			headers: { ...BASE_HEADERS, 'content-type': contentType(res) }
-		});
-		if (edge) {
-			const put = edge.put(cacheKey, out.clone());
-			const ctx = (platform as { context?: { waitUntil?: (p: Promise<unknown>) => void } } | undefined)
-				?.context;
-			if (ctx?.waitUntil) ctx.waitUntil(put);
-			else await put;
-		}
-		return out;
+		// Dev: also persist to the on-disk base bundle (no-op in production build).
+		if (dev) await writeMirror(path, bytes);
+
+		if (edge) persist(edge.put(cacheKey, new Response(bytes, { status: 200, headers })));
+		if (r2) persist(Promise.resolve(r2.put(path, bytes, { httpMetadata: { contentType: ct } })).catch(() => {}));
+
+		return new Response(bytes, { status: 200, headers });
 	}
 
 	return new Response(`TeX file not available upstream: ${path}`, {

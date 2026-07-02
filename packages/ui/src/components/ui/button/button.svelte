@@ -28,6 +28,10 @@
 				default: "bg-primary text-primary-foreground border-transparent shadow-craft-sm hover:bg-primary/95",
 				default_soft:
 					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
+				landing_soft:
+					"bg-surface-2 text-foreground border-transparent rounded-full shadow-craft-sm hover:bg-surface-strong",
+				landing_ghost:
+					"bg-card/70 text-foreground border-border/70 rounded-full shadow-craft-sm hover:bg-surface-soft",
 				secondary:
 					"border-secondary bg-secondary text-secondary-foreground border-border/30 shadow-craft-sm hover:bg-muted/50",
 				outline:
@@ -53,6 +57,7 @@
 			size: {
 				default: "h-10 rounded-xl px-5 py-2.5 text-sm",
 				lg: "h-12 rounded-2xl px-8 text-base font-semibold",
+				pill: "h-12 rounded-full px-8 text-sm font-medium",
 				sm: "h-9 rounded-lg px-3 text-xs",
 				xs: "h-7 rounded-md px-2 text-[11px] gap-1.5 [&_svg:not([class*='size-'])]:size-3",
 				icon: "size-10 rounded-xl",
