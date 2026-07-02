@@ -554,12 +554,15 @@
 		pointer-events: none;
 	}
 
+	/* Rules sit at the 80rem content-column edge (not 1.25rem inside it), so the
+	   inner container padding becomes a real gutter between the line and content
+	   instead of the ~4px sliver it was before. */
 	.landing-shell::before {
-		left: max(1.25rem, calc((100vw - 80rem) / 2 + 1.25rem));
+		left: max(1.25rem, calc((100vw - 80rem) / 2));
 	}
 
 	.landing-shell::after {
-		right: max(1.25rem, calc((100vw - 80rem) / 2 + 1.25rem));
+		right: max(1.25rem, calc((100vw - 80rem) / 2));
 	}
 
 	.landing-grid {
@@ -604,33 +607,70 @@
 			'WONK' 1;
 	}
 
-	/* Tokenized dot-cluster the hero corners render (replaces the hotlinked
-	   Framer decoration). Pure CSS in signal colours → offline + dark-mode aware. */
-	.landing-hero-glyph {
+	/* Decorative dot-pattern SVGs (vendored in static/decor). Used in the hero
+	   corners and mirrored on the CTA panel edges — the same signature motif. */
+	.landing-corner-image {
+		position: absolute;
+		bottom: -0.5rem;
+		width: 14.5rem;
+		height: auto;
+		opacity: 0.96;
+		pointer-events: none;
+	}
+	.dark .landing-corner-image {
+		filter: saturate(0.5);
+	}
+
+	.landing-corner-image--left {
+		left: 1rem;
+	}
+
+	.landing-corner-image--right {
+		right: 1rem;
+	}
+
+	/* Tall vertical dot-column, mirrored on the right (Nex "PLAYBOOKS" CTA). */
+	.landing-cta-pattern {
 		position: absolute;
 		top: 50%;
-		width: 9rem;
-		height: 9rem;
+		width: clamp(4rem, 5vw, 6rem);
+		height: auto;
 		transform: translateY(-50%);
-		opacity: 0.7;
+		opacity: 0.95;
 		pointer-events: none;
-		background-image:
-			radial-gradient(circle, var(--signal-cyan) 0 0.4rem, transparent 0.44rem),
-			radial-gradient(circle, var(--signal-blue) 0 0.28rem, transparent 0.32rem),
-			radial-gradient(circle, var(--signal-cyan) 0 0.26rem, transparent 0.3rem);
-		background-size: 2.5rem 2.5rem, 2.5rem 2.5rem, 1.25rem 1.25rem;
-		background-position: center, 0.6rem 0.6rem, 1.85rem 1.85rem;
-		-webkit-mask-image: radial-gradient(circle at center, #000 26%, transparent 72%);
-		mask-image: radial-gradient(circle at center, #000 26%, transparent 72%);
 	}
 
-	.landing-hero-glyph--left {
-		left: 1.5rem;
+	.landing-cta-pattern--left {
+		left: 2rem;
 	}
 
-	.landing-hero-glyph--right {
-		right: 1.5rem;
+	.landing-cta-pattern--right {
+		right: 2rem;
 		transform: translateY(-50%) scaleX(-1);
+	}
+
+	/* Footer dot-grid texture — fades in toward the bottom edge (Nex footer). */
+	.landing-footer {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.landing-footer-dots {
+		position: absolute;
+		inset-inline: 0;
+		bottom: 0;
+		height: 8rem;
+		background-image: radial-gradient(
+			circle,
+			color-mix(in oklab, var(--ink) 20%, transparent) 0 1.5px,
+			transparent 2px
+		);
+		background-size: 1.4rem 1.4rem;
+		background-position: center bottom;
+		opacity: 0.55;
+		pointer-events: none;
+		-webkit-mask-image: linear-gradient(to bottom, transparent, #000 90%);
+		mask-image: linear-gradient(to bottom, transparent, #000 90%);
 	}
 
 	/* Import-source pills for the "bring your existing project" band. */
@@ -1061,79 +1101,6 @@
 		overflow: hidden;
 	}
 
-	.landing-workflow-card__core {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 5rem;
-		height: 5rem;
-		border-radius: 1.8rem;
-		transform: translate(-50%, -50%);
-		opacity: 0.95;
-	}
-
-	.landing-workflow-card__core.signal-cyan {
-		background: color-mix(in oklab, var(--signal-cyan) 78%, white 22%);
-	}
-
-	.landing-workflow-card__core.signal-blue {
-		background: color-mix(in oklab, var(--signal-blue) 82%, white 18%);
-	}
-
-	.landing-workflow-card__core.signal-lime {
-		background: color-mix(in oklab, var(--signal-lime) 82%, white 18%);
-	}
-
-	.landing-workflow-card__ring {
-		position: absolute;
-		left: 50%;
-		width: 8rem;
-		height: 8rem;
-		border: 1.5px solid color-mix(in oklab, var(--ink) 62%, transparent);
-		border-radius: 999px;
-		transform: translateX(-50%);
-	}
-
-	.landing-workflow-card__ring--top {
-		top: -2rem;
-	}
-
-	.landing-workflow-card__ring--bottom {
-		bottom: -2rem;
-	}
-
-	.landing-workflow-card__node {
-		position: absolute;
-		top: 50%;
-		width: 1.35rem;
-		height: 1.35rem;
-		border-radius: 999px;
-		transform: translateY(-50%);
-	}
-
-	.landing-workflow-card__node--left {
-		left: 22%;
-	}
-
-	.landing-workflow-card__node--right {
-		right: 22%;
-	}
-
-	.landing-workflow-card__node.signal-cyan {
-		background: var(--signal-cyan);
-		box-shadow: 0 0 0 0.55rem var(--signal-cyan-soft);
-	}
-
-	.landing-workflow-card__node.signal-blue {
-		background: var(--signal-blue);
-		box-shadow: 0 0 0 0.55rem var(--signal-blue-soft);
-	}
-
-	.landing-workflow-card__node.signal-lime {
-		background: var(--signal-lime);
-		box-shadow: 0 0 0 0.55rem var(--signal-lime-soft);
-	}
-
 	.landing-contrast-panel__header {
 		display: flex;
 		align-items: center;
@@ -1161,70 +1128,25 @@
 		padding: 4rem 1.5rem;
 		border: 1px solid var(--hairline);
 		border-radius: 2.2rem;
+		/* Faint vertical pinstripe field that fades out through the centre so the
+		   copy stays clean — the Nex CTA texture, driven by --hairline. */
 		background:
-			radial-gradient(circle at 18% 28%, color-mix(in oklab, var(--signal-cyan-soft) 90%, transparent), transparent 20%),
-			radial-gradient(circle at 82% 32%, color-mix(in oklab, var(--signal-blue-soft) 90%, transparent), transparent 22%),
-			radial-gradient(circle at 72% 70%, color-mix(in oklab, var(--signal-lime-soft) 92%, transparent), transparent 20%),
-			linear-gradient(to bottom, color-mix(in oklab, var(--surface-card) 96%, transparent), color-mix(in oklab, var(--surface-soft) 88%, transparent));
+			radial-gradient(ellipse 58% 64% at 50% 50%, var(--surface-card) 42%, transparent 100%),
+			repeating-linear-gradient(
+				to right,
+				transparent 0,
+				transparent 1.35rem,
+				color-mix(in oklab, var(--hairline) 42%, transparent) 1.35rem,
+				color-mix(in oklab, var(--hairline) 42%, transparent) calc(1.35rem + 1px)
+			),
+			var(--surface-card);
 		text-align: center;
 	}
 
-	.landing-cta-panel__glyph {
-		position: absolute;
-		top: 50%;
-		width: 11rem;
-		height: 11rem;
-		transform: translateY(-50%);
-		opacity: 0.75;
-		pointer-events: none;
-		background-image:
-			radial-gradient(circle, var(--signal-cyan) 0 0.48rem, transparent 0.52rem),
-			radial-gradient(circle, var(--signal-blue) 0 0.52rem, transparent 0.58rem),
-			radial-gradient(circle, var(--signal-cyan) 0 0.34rem, transparent 0.4rem),
-			radial-gradient(circle, var(--signal-blue) 0 0.34rem, transparent 0.4rem);
-		background-size: 3rem 3rem, 3rem 3rem, 1.5rem 1.5rem, 1.5rem 1.5rem;
-		background-position: center, center, 0.75rem 0.75rem, 2.25rem 2.25rem;
-	}
-
-	.landing-cta-panel__glyph::before,
-	.landing-cta-panel__glyph::after {
-		content: '';
-		position: absolute;
-		inset: 2.85rem;
-		border-radius: 1.4rem;
-	}
-
-	.landing-cta-panel__glyph::before {
-		background: color-mix(in oklab, var(--signal-cyan) 86%, white 14%);
-	}
-
-	.landing-cta-panel__glyph::after {
-		inset: 4.45rem 0.8rem;
-		background: color-mix(in oklab, var(--signal-blue) 90%, white 10%);
-	}
-
-	.landing-cta-panel__glyph--left {
-		left: -2.5rem;
-	}
-
-	.landing-cta-panel__glyph--right {
-		right: -2.5rem;
-		transform: translateY(-50%) scaleX(-1);
-	}
 }
 
 @media (max-width: 767px) {
 	@layer components {
-		.landing-hero-support {
-			font-size: 0.92rem;
-		}
-
-		.landing-hero-support__badge {
-			width: 1.8rem;
-			height: 1.8rem;
-			font-size: 1rem;
-		}
-
 		.landing-hero-assurance {
 			flex-direction: column;
 			gap: 0.85rem;
@@ -1239,7 +1161,7 @@
 			display: none;
 		}
 
-		.landing-hero-glyph {
+		.landing-corner-image {
 			display: none;
 		}
 
@@ -1251,9 +1173,13 @@
 		.landing-browser__body {
 			min-height: 18rem;
 		}
+	}
+}
 
-		.landing-cta-panel__glyph {
-			display: none;
-		}
+/* The CTA edge columns need a wide panel to sit beside the copy; hide them on
+   anything narrower than desktop. */
+@media (max-width: 1023px) {
+	.landing-cta-pattern {
+		display: none;
 	}
 }

@@ -3,6 +3,7 @@
 	import FloatingGlyphs from '$lib/FloatingGlyphs.svelte';
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
+	import { Button } from '@glyphx/ui/button';
 	import { Reveal } from '@glyphx/ui/reveal';
 	import {
 		IconArrowRight,
@@ -27,6 +28,7 @@
 	const repoName = 'glyphx';
 	const repo = `https://github.com/${owner}/${repoName}`;
 	const releases = `${repo}/releases`;
+	const patternTall = '/decor/pattern-tall.svg';
 
 	type OS = 'mac' | 'windows' | 'linux' | null;
 	let detected = $state<OS>(null);
@@ -246,370 +248,391 @@
 	/>
 </svelte:head>
 
-<div class="bg-canvas text-foreground min-h-dvh">
+<div class="min-h-screen bg-canvas font-sans text-ink antialiased selection:bg-brand-subtle">
 	<SiteHeader />
 
-	<!-- Hero -->
-	<section class="relative overflow-hidden">
-		<FloatingGlyphs />
-		<!-- soft brand glow behind the headline (matches the home hero) -->
-		<div
-			class="pointer-events-none absolute top-[-14%] left-1/2 -z-0 h-[420px] w-[760px] max-w-[92vw] -translate-x-1/2 rounded-full opacity-60 blur-[130px]"
-			style="background: radial-gradient(closest-side, var(--brand-subtle), transparent);"
-			aria-hidden="true"
-		></div>
-		<div class="relative mx-auto max-w-[1140px] px-5 sm:px-6">
-			<div class="flex flex-col items-center pt-24 pb-16 text-center sm:pt-32 sm:pb-24">
-				<!-- Hero rendered visible by default (no Reveal gate) — it's the LCP
-				     element, same as the home hero. -->
-				<div class="flex flex-col items-center">
-					<span
-						class="text-muted-foreground mb-5 font-mono text-[11px] font-semibold tracking-[0.2em] uppercase"
-					>
-						Desktop app
-					</span>
-					<h1 class="font-serif max-w-3xl text-[2.6rem] leading-[1.02] sm:text-6xl">
-						Download GlyphX.
+	<main>
+		<!-- Hero -->
+		<section class="landing-shell landing-hero border-b border-hairline">
+			<div class="landing-hero__wash"></div>
+			<FloatingGlyphs />
+			<div class="relative mx-auto max-w-7xl px-6 lg:px-10">
+				<div class="flex flex-col items-center pb-16 pt-24 text-center sm:pb-24 sm:pt-32">
+					<!-- Hero rendered visible by default (no Reveal gate) — it's the LCP element. -->
+					<p class="landing-section-label mb-6 justify-center">Desktop app</p>
+					<h1 class="landing-section-title max-w-3xl">
+						Download <em>GlyphX</em>
 					</h1>
-					<p class="text-muted-foreground mt-6 max-w-[37rem] text-lg leading-relaxed">
+					<p class="mt-6 max-w-[37rem] text-lg leading-relaxed text-ink-body">
 						The desktop app puts the LaTeX engine on your machine — write and compile fully offline,
 						with the built-in Git client alongside. It updates itself; pick your platform below.
 					</p>
 				</div>
 			</div>
-		</div>
-	</section>
+		</section>
 
-	<!-- Platform cards -->
-	<section class="mx-auto max-w-[1140px] px-5 pb-8 sm:px-6">
-		<!-- Release banner -->
-		<div class="mb-5 flex items-center justify-between gap-3 font-mono text-xs">
-			{#if status === 'loading'}
-				<span class="text-muted-foreground flex items-center gap-2">
-					<span class="bg-brand size-1.5 animate-pulse rounded-full"></span>
-					Checking the latest release&hellip;
-				</span>
-			{:else if status === 'ready'}
-				<span class="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
-					<span
-						class="text-brand border-brand/30 bg-brand-subtle rounded-full border px-2 py-0.5 font-semibold"
-					>
-						GlyphX {version}
-					</span>
-					{#if releasedOn}<span class="text-muted-foreground">released {releasedOn}</span>{/if}
-				</span>
-			{:else}
-				<span class="text-muted-foreground">Latest build info was unavailable.</span>
-			{/if}
-			<a
-				href={releases}
-				target="_blank"
-				rel="noreferrer"
-				class="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
-			>
-				All releases &rarr;
-			</a>
-		</div>
-
-		<div class="grid gap-4 sm:grid-cols-3">
-			{#each platforms as p, i (p.id)}
-				{@const Icon = p.icon}
-				{@const isMine = detected === p.id}
-				{@const items = assets[p.id]}
+		<!-- Platform cards -->
+		<section class="landing-shell border-b border-hairline">
+			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-10">
 				<Reveal
-					as="article"
 					variant="up"
-					delay={i * 70}
-					class={'group bg-card relative flex flex-col rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 ' +
-						(isMine ? 'border-brand/50 ring-brand/20 ring-2' : 'border-hairline')}
+					class="mb-12 flex flex-col gap-5 md:flex-row md:items-end md:justify-between"
 				>
-					{#if isMine}
-						<span
-							class="text-brand bg-brand-subtle absolute top-4 right-4 rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider uppercase"
-							>Your platform</span
-						>
-					{/if}
-					<span
-						class="border-hairline bg-canvas text-foreground group-hover:text-brand mb-5 grid size-12 place-items-center rounded-xl border transition-colors"
-					>
-						<Icon class="size-6" />
-					</span>
-					<h2 class="text-lg font-semibold">{p.name}</h2>
-					<p class="text-muted-foreground mt-1 text-sm">{p.detail}</p>
+					<div class="max-w-2xl">
+						<p class="landing-section-label">Pick your platform</p>
+						<h2 class="landing-section-title mt-4">
+							One download, <em>everything included</em>
+						</h2>
+					</div>
+					<p class="max-w-md text-base leading-7 text-ink-body sm:text-lg">
+						Native builds for macOS, Windows, and Linux — each ships the LaTeX engine, the editor,
+						and the Git client in a single app. No separate TeX install, no account.
+					</p>
+				</Reveal>
 
-					<div class="mt-6 flex flex-1 flex-col justify-end gap-2">
-						{#if status === 'loading'}
-							<div class="bg-muted h-11 w-full animate-pulse rounded-lg"></div>
-						{:else if status === 'ready' && items.length > 0}
-							{#each items as a, j (a.name)}
-								<a
-									href={a.url}
-									rel="noreferrer"
-									title={a.name}
-									onclick={() => trackDownload(p.id, a.name)}
-									class={'inline-flex h-11 items-center justify-between gap-2 rounded-lg px-4 text-sm font-semibold transition-all active:scale-[0.98] ' +
-										(j === 0
-											? 'bg-primary text-primary-foreground hover:opacity-90'
-											: 'border-hairline bg-canvas text-foreground hover:bg-muted border')}
-								>
-									<span class="flex items-center gap-2">
-										<IconDownload class="size-4" />
-										{a.kind}
-									</span>
-									{#if a.size}<span class="text-[11px] font-normal opacity-70"
-											>{humanSize(a.size)}</span
-										>{/if}
-								</a>
-							{/each}
-						{:else}
-							<a
-								href={releases}
-								target="_blank"
-								rel="noreferrer"
-								onclick={() => trackDownload(p.id, 'releases_page')}
-								class="border-hairline bg-canvas text-foreground hover:bg-muted inline-flex h-11 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-colors"
+				<!-- Release banner -->
+				<div class="mb-5 flex items-center justify-between gap-3 font-mono text-xs">
+					{#if status === 'loading'}
+						<span class="flex items-center gap-2 text-ink-muted">
+							<span class="size-1.5 animate-pulse rounded-full bg-brand"></span>
+							Checking the latest release&hellip;
+						</span>
+					{:else if status === 'ready'}
+						<span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-muted">
+							<span
+								class="rounded-full border border-brand/30 bg-brand-subtle px-2 py-0.5 font-semibold text-brand"
 							>
-								<IconBrandGithub class="size-4" />
-								{status === 'empty' ? 'Not in this release yet' : 'Find it on GitHub'}
-							</a>
-						{/if}
+								GlyphX {version}
+							</span>
+							{#if releasedOn}<span class="text-ink-muted">released {releasedOn}</span>{/if}
+						</span>
+					{:else}
+						<span class="text-ink-muted">Latest build info was unavailable.</span>
+					{/if}
+					<a
+						href={releases}
+						target="_blank"
+						rel="noreferrer"
+						class="shrink-0 text-ink-muted transition-colors hover:text-ink"
+					>
+						All releases &rarr;
+					</a>
+				</div>
+
+				<div class="grid gap-4 sm:grid-cols-3">
+					{#each platforms as p, i (p.id)}
+						{@const Icon = p.icon}
+						{@const isMine = detected === p.id}
+						{@const items = assets[p.id]}
+						<Reveal
+							as="article"
+							variant="up"
+							delay={i * 70}
+							class={'group relative flex flex-col rounded-3xl border bg-surface-card p-7 shadow-craft-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-craft-lg ' +
+								(isMine ? 'border-brand/50 ring-2 ring-brand/20' : 'border-hairline')}
+						>
+							{#if isMine}
+								<span
+									class="absolute right-4 top-4 rounded-full bg-brand-subtle px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-brand"
+									>Your platform</span
+								>
+							{/if}
+							<span
+								class="mb-5 grid size-12 place-items-center rounded-xl border border-hairline bg-canvas text-ink transition-colors group-hover:text-brand"
+							>
+								<Icon class="size-6" />
+							</span>
+							<h2 class="text-lg font-semibold text-ink">{p.name}</h2>
+							<p class="mt-1 text-sm text-ink-muted">{p.detail}</p>
+
+							<div class="mt-6 flex flex-1 flex-col justify-end gap-2">
+								{#if status === 'loading'}
+									<div class="h-11 w-full animate-pulse rounded-lg bg-surface-soft"></div>
+								{:else if status === 'ready' && items.length > 0}
+									{#each items as a, j (a.name)}
+										<a
+											href={a.url}
+											rel="noreferrer"
+											title={a.name}
+											onclick={() => trackDownload(p.id, a.name)}
+											class={'inline-flex h-11 items-center justify-between gap-2 rounded-lg px-4 text-sm font-semibold transition-all active:scale-[0.98] ' +
+												(j === 0
+													? 'bg-primary text-primary-foreground hover:opacity-90'
+													: 'border border-hairline bg-canvas text-ink hover:bg-surface-soft')}
+										>
+											<span class="flex items-center gap-2">
+												<IconDownload class="size-4" />
+												{a.kind}
+											</span>
+											{#if a.size}<span class="text-[11px] font-normal opacity-70"
+													>{humanSize(a.size)}</span
+												>{/if}
+										</a>
+									{/each}
+								{:else}
+									<a
+										href={releases}
+										target="_blank"
+										rel="noreferrer"
+										onclick={() => trackDownload(p.id, 'releases_page')}
+										class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-hairline bg-canvas px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-soft"
+									>
+										<IconBrandGithub class="size-4" />
+										{status === 'empty' ? 'Not in this release yet' : 'Find it on GitHub'}
+									</a>
+								{/if}
+							</div>
+						</Reveal>
+					{/each}
+				</div>
+
+				<Reveal variant="up" delay={120}>
+					<div
+						class="mt-4 flex flex-col items-start justify-between gap-4 rounded-3xl border border-hairline bg-surface-card/60 p-6 shadow-craft-sm sm:flex-row sm:items-center"
+					>
+						<div class="flex items-start gap-3">
+							<span
+								class="grid size-10 shrink-0 place-items-center rounded-lg border border-hairline bg-canvas text-ink"
+							>
+								<IconWorld class="size-5" />
+							</span>
+							<div>
+								<h3 class="text-sm font-semibold text-ink">Just want a quick look first?</h3>
+								<p class="mt-0.5 text-sm text-ink-muted">
+									Try the browser editor. It runs the same LaTeX in the page. The desktop app is where
+									offline compiling and the built-in Git client come together.
+								</p>
+							</div>
+						</div>
+						<a
+							href={resolve('/editor')}
+							class="group inline-flex h-11 shrink-0 items-center gap-2 rounded-lg border border-hairline bg-surface-card px-5 text-sm font-semibold text-ink transition-colors hover:bg-surface-soft"
+						>
+							<IconPlayerPlay class="size-4" /> Try in browser
+							<IconArrowRight class="size-4 transition-transform group-hover:translate-x-0.5" />
+						</a>
 					</div>
 				</Reveal>
-			{/each}
-		</div>
-
-		<Reveal variant="up" delay={120}>
-			<div
-				class="border-hairline bg-card/60 mt-4 flex flex-col items-start justify-between gap-4 rounded-2xl border p-6 sm:flex-row sm:items-center"
-			>
-				<div class="flex items-start gap-3">
-					<span
-						class="border-hairline bg-canvas text-foreground grid size-10 shrink-0 place-items-center rounded-lg border"
-					>
-						<IconWorld class="size-5" />
-					</span>
-					<div>
-						<h3 class="text-sm font-semibold">Just want a quick look first?</h3>
-						<p class="text-muted-foreground mt-0.5 text-sm">
-							Try the browser editor. It runs the same LaTeX in the page. The desktop app is where
-							offline compiling and the built-in Git client come together.
-						</p>
-					</div>
-				</div>
-				<a
-					href={resolve('/editor')}
-					class="border-hairline bg-card text-foreground hover:bg-muted group inline-flex h-11 shrink-0 items-center gap-2 rounded-lg border px-5 text-sm font-semibold transition-colors"
-				>
-					<IconPlayerPlay class="size-4" /> Try in browser
-					<IconArrowRight class="size-4 transition-transform group-hover:translate-x-0.5" />
-				</a>
 			</div>
-		</Reveal>
-	</section>
+		</section>
 
-	<!-- macOS install guide (the build is not notarized yet) -->
-	<section class="mx-auto max-w-[1140px] px-5 pb-8 sm:px-6">
-		<Reveal variant="up">
-			<details
-				bind:open={macOpen}
-				class="border-hairline bg-card group/disc overflow-hidden rounded-2xl border [&[open]_.chev]:rotate-180"
-			>
-				<summary
-					class="hover:bg-muted/40 flex cursor-pointer list-none items-center gap-4 px-6 py-5 transition-colors [&::-webkit-details-marker]:hidden"
-				>
-					<span
-						class="border-hairline bg-canvas text-foreground grid size-11 shrink-0 place-items-center rounded-xl border"
-					>
-						<IconBrandApple class="size-6" />
-					</span>
-					<div class="min-w-0">
-						<div class="flex flex-wrap items-center gap-2">
-							<h2 class="text-lg font-semibold">Installing on macOS</h2>
-							<span
-								class="border-warning/30 bg-warning/10 text-warning rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider uppercase"
-								>Not notarized yet</span
-							>
-						</div>
-						<p class="text-muted-foreground mt-0.5 text-sm">
-							One short Terminal step on first launch. Requires macOS 10.15 or later.
-						</p>
-					</div>
-					<span class="text-muted-foreground ml-auto hidden font-mono text-xs sm:block">
-						{macSteps.length} steps
-					</span>
-					<span
-						class="border-hairline text-muted-foreground chev grid size-7 shrink-0 place-items-center rounded-lg border transition-transform duration-300"
-					>
-						<IconChevronDown class="size-4" />
-					</span>
-				</summary>
-
-				<div class="border-hairline border-t px-6 py-6">
-					<div
-						class="border-hairline bg-canvas/60 mb-6 flex items-start gap-3 rounded-xl border p-4"
-					>
-						<IconInfoCircle class="text-muted-foreground mt-0.5 size-4 shrink-0" />
-						<p class="text-muted-foreground text-sm leading-relaxed">
-							Apple charges for the developer ID that removes this warning, and we have not added it
-							yet. The app is the same build you can read on GitHub. Until it is notarized, macOS
-							needs one command to trust it. {#if showHomebrew}Homebrew (step 1) does this for you.{/if}
-						</p>
-					</div>
-
-					<ol class="flex flex-col gap-5">
-						{#each macSteps as step, i (step.title)}
-							<li class="flex gap-4">
-								<span
-									class="bg-primary text-primary-foreground grid size-7 shrink-0 place-items-center rounded-full font-mono text-xs font-semibold"
-									>{i + 1}</span
-								>
-								<div class="min-w-0 flex-1">
-									<h3 class="text-sm font-semibold">{step.title}</h3>
-									<p class="text-muted-foreground mt-1 text-sm leading-relaxed">{step.body}</p>
-
-									{#if step.code}
-										<div
-											class="border-hairline bg-canvas mt-3 flex items-center gap-3 rounded-lg border py-2.5 pr-2 pl-3"
-										>
-											<IconTerminal2 class="text-muted-foreground/70 size-4 shrink-0" />
-											<code
-												class="text-foreground min-w-0 flex-1 overflow-x-auto font-mono text-xs whitespace-pre"
-												>{step.code}</code
-											>
-											<button
-												type="button"
-												onclick={() => copyCmd(step.code!)}
-												class="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-mono text-[11px] font-medium transition-colors"
-												aria-label="Copy command"
-											>
-												{#if copied === step.code}
-													<IconCheck class="text-brand size-3.5" /> Copied
-												{:else}
-													<IconCopy class="size-3.5" /> Copy
-												{/if}
-											</button>
-										</div>
-									{/if}
-
-									{#if step.done}
-										<p class="text-brand mt-2 flex items-center gap-1.5 text-xs font-medium">
-											<IconCheck class="size-3.5 shrink-0" />
-											{step.done}
-										</p>
-									{/if}
-								</div>
-							</li>
-						{/each}
-					</ol>
-
-					<p class="text-muted-foreground mt-6 text-xs leading-relaxed">
-						Prefer not to use Terminal? You can also right-click GlyphX in Applications, choose
-						Open, and confirm once in the dialog that appears.
-					</p>
-				</div>
-			</details>
-		</Reveal>
-	</section>
-
-	<!-- What's inside + verify — tonal band -->
-	<section class="bg-surface-soft relative mt-8 overflow-hidden">
-		<div
-			class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-56"
-			style="background: linear-gradient(to bottom, var(--canvas), transparent);"
-			aria-hidden="true"
-		></div>
-		<div class="mx-auto max-w-[1140px] px-5 py-16 sm:px-6 sm:py-24">
-			<div class="grid gap-12 lg:grid-cols-2">
-				<Reveal variant="up">
-					<span class="text-brand font-mono text-[11px] font-semibold tracking-[0.2em] uppercase">
-						What is in the download
-					</span>
-					<h2 class="font-serif mt-4 text-3xl sm:text-4xl sm:leading-[1.08]">
-						One app. <em>Nothing else to set up.</em>
+		<!-- macOS install guide (the build is not notarized yet) -->
+		<section class="landing-shell border-b border-hairline">
+			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-10">
+				<Reveal variant="up" class="mb-12 max-w-3xl">
+					<p class="landing-section-label">macOS · one-time step</p>
+					<h2 class="landing-section-title mt-4">
+						Clearing the <em>Gatekeeper</em> warning
 					</h2>
-					<ul class="mt-7 flex flex-col gap-3.5">
-						{#each included as line (line)}
-							<li class="flex items-start gap-3">
-								<span
-									class="bg-brand-subtle text-brand mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg"
-								>
-									<IconCheck class="size-4" />
-								</span>
-								<span class="text-muted-foreground pt-1 text-sm leading-relaxed">{line}</span>
-							</li>
-						{/each}
-					</ul>
+					<p class="mt-5 text-lg leading-8 text-ink-body">
+						The build isn't Apple-notarized yet, so the first launch needs one short Terminal
+						command. Here's the whole process, start to finish.
+					</p>
 				</Reveal>
 
 				<Reveal variant="up" delay={80}>
-					<div class="border-hairline bg-card flex h-full flex-col rounded-2xl border p-7">
-						<span
-							class="border-hairline bg-canvas text-foreground mb-5 grid size-10 place-items-center rounded-lg border"
+					<details
+						bind:open={macOpen}
+						class="group/disc overflow-hidden rounded-3xl border border-hairline bg-surface-card shadow-craft-sm [&[open]_.chev]:rotate-180"
+					>
+						<summary
+							class="flex cursor-pointer list-none items-center gap-4 px-6 py-5 transition-colors hover:bg-surface-soft/50 [&::-webkit-details-marker]:hidden"
 						>
-							<IconShieldCheck class="size-5" />
-						</span>
-						<h3 class="text-base font-semibold">Verifying your download</h3>
-						<p class="text-muted-foreground mt-2 text-sm leading-relaxed">
-							Every release on GitHub lists the build artifacts next to their checksums. Compare the
-							hash of the file you downloaded against the one in the release notes before you run
-							it. The full source is in the same repository if you would rather build it yourself.
+							<span
+								class="grid size-11 shrink-0 place-items-center rounded-xl border border-hairline bg-canvas text-ink"
+							>
+								<IconBrandApple class="size-6" />
+							</span>
+							<div class="min-w-0">
+								<div class="flex flex-wrap items-center gap-2">
+									<h2 class="text-lg font-semibold text-ink">Installing on macOS</h2>
+									<span
+										class="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-warning"
+										>Not notarized yet</span
+									>
+								</div>
+								<p class="mt-0.5 text-sm text-ink-muted">
+									One short Terminal step on first launch. Requires macOS 10.15 or later.
+								</p>
+							</div>
+							<span class="ml-auto hidden font-mono text-xs text-ink-muted sm:block">
+								{macSteps.length} steps
+							</span>
+							<span
+								class="chev grid size-7 shrink-0 place-items-center rounded-lg border border-hairline text-ink-muted transition-transform duration-300"
+							>
+								<IconChevronDown class="size-4" />
+							</span>
+						</summary>
+
+						<div class="border-t border-hairline px-6 py-6">
+							<div
+								class="mb-6 flex items-start gap-3 rounded-xl border border-hairline bg-canvas/60 p-4"
+							>
+								<IconInfoCircle class="mt-0.5 size-4 shrink-0 text-ink-muted" />
+								<p class="text-sm leading-relaxed text-ink-muted">
+									Apple charges for the developer ID that removes this warning, and we have not added
+									it yet. The app is the same build you can read on GitHub. Until it is notarized,
+									macOS needs one command to trust it. {#if showHomebrew}Homebrew (step 1) does this
+										for you.{/if}
+								</p>
+							</div>
+
+							<ol class="flex flex-col gap-5">
+								{#each macSteps as step, i (step.title)}
+									<li class="flex gap-4">
+										<span
+											class="grid size-7 shrink-0 place-items-center rounded-full bg-primary font-mono text-xs font-semibold text-primary-foreground"
+											>{i + 1}</span
+										>
+										<div class="min-w-0 flex-1">
+											<h3 class="text-sm font-semibold text-ink">{step.title}</h3>
+											<p class="mt-1 text-sm leading-relaxed text-ink-muted">{step.body}</p>
+
+											{#if step.code}
+												<div
+													class="mt-3 flex items-center gap-3 rounded-lg border border-hairline bg-canvas py-2.5 pl-3 pr-2"
+												>
+													<IconTerminal2 class="size-4 shrink-0 text-ink-muted/70" />
+													<code
+														class="min-w-0 flex-1 overflow-x-auto whitespace-pre font-mono text-xs text-ink"
+														>{step.code}</code
+													>
+													<button
+														type="button"
+														onclick={() => copyCmd(step.code!)}
+														class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-mono text-[11px] font-medium text-ink-muted transition-colors hover:bg-surface-soft hover:text-ink"
+														aria-label="Copy command"
+													>
+														{#if copied === step.code}
+															<IconCheck class="size-3.5 text-brand" /> Copied
+														{:else}
+															<IconCopy class="size-3.5" /> Copy
+														{/if}
+													</button>
+												</div>
+											{/if}
+
+											{#if step.done}
+												<p class="mt-2 flex items-center gap-1.5 text-xs font-medium text-brand">
+													<IconCheck class="size-3.5 shrink-0" />
+													{step.done}
+												</p>
+											{/if}
+										</div>
+									</li>
+								{/each}
+							</ol>
+
+							<p class="mt-6 text-xs leading-relaxed text-ink-muted">
+								Prefer not to use Terminal? You can also right-click GlyphX in Applications, choose
+								Open, and confirm once in the dialog that appears.
+							</p>
+						</div>
+					</details>
+				</Reveal>
+			</div>
+		</section>
+
+		<!-- What's inside + verify -->
+		<section class="landing-shell border-b border-hairline bg-surface-soft/40">
+			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-10">
+				<div class="grid gap-12 lg:grid-cols-2">
+					<Reveal variant="up">
+						<p class="landing-section-label">What is in the download</p>
+						<h2 class="landing-section-title mt-4">
+							One app. <em>Nothing else to set up.</em>
+						</h2>
+						<ul class="mt-7 flex flex-col gap-3.5">
+							{#each included as line (line)}
+								<li class="flex items-start gap-3">
+									<span
+										class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-brand-subtle text-brand"
+									>
+										<IconCheck class="size-4" />
+									</span>
+									<span class="pt-1 text-sm leading-relaxed text-ink-body">{line}</span>
+								</li>
+							{/each}
+						</ul>
+					</Reveal>
+
+					<Reveal variant="up" delay={80}>
+						<div
+							class="flex h-full flex-col rounded-3xl border border-hairline bg-surface-card p-7 shadow-craft-sm"
+						>
+							<span
+								class="mb-5 grid size-10 place-items-center rounded-lg border border-hairline bg-canvas text-ink"
+							>
+								<IconShieldCheck class="size-5" />
+							</span>
+							<h3 class="text-base font-semibold text-ink">Verifying your download</h3>
+							<p class="mt-2 text-sm leading-relaxed text-ink-muted">
+								Every release on GitHub lists the build artifacts next to their checksums. Compare the
+								hash of the file you downloaded against the one in the release notes before you run
+								it. The full source is in the same repository if you would rather build it yourself.
+							</p>
+							<div class="mt-6 flex flex-wrap gap-3">
+								<a
+									href={releases}
+									target="_blank"
+									rel="noreferrer"
+									class="inline-flex h-10 items-center gap-2 rounded-lg border border-hairline bg-canvas px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-soft"
+								>
+									<IconDownload class="size-4" /> All releases
+								</a>
+								<a
+									href={repo}
+									target="_blank"
+									rel="noreferrer"
+									class="inline-flex h-10 items-center gap-2 rounded-lg border border-hairline bg-canvas px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-soft"
+								>
+									<IconBrandGithub class="size-4" /> Source code
+								</a>
+							</div>
+						</div>
+					</Reveal>
+				</div>
+			</div>
+		</section>
+
+		<!-- CTA -->
+		<section class="landing-shell">
+			<div class="mx-auto max-w-6xl px-6 py-20 sm:py-28 lg:px-10">
+				<Reveal variant="scale">
+					<div class="landing-cta-panel">
+						<img
+							src={patternTall}
+							alt=""
+							aria-hidden="true"
+							class="landing-cta-pattern landing-cta-pattern--left"
+						/>
+						<img
+							src={patternTall}
+							alt=""
+							aria-hidden="true"
+							class="landing-cta-pattern landing-cta-pattern--right"
+						/>
+
+						<p class="landing-section-label justify-center">Ready when you are</p>
+						<h2 class="landing-section-title mt-4 max-w-3xl">Builds are <em>on the way</em></h2>
+						<p class="mt-6 max-w-md text-lg leading-8 text-ink-body">
+							Desktop releases are published on GitHub. Watch the repository to hear about the first
+							one, or start writing in the browser today.
 						</p>
-						<div class="mt-6 flex flex-wrap gap-3">
-							<a
-								href={releases}
-								target="_blank"
-								rel="noreferrer"
-								class="border-hairline bg-canvas text-foreground hover:bg-muted inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-colors"
-							>
-								<IconDownload class="size-4" /> All releases
-							</a>
-							<a
-								href={repo}
-								target="_blank"
-								rel="noreferrer"
-								class="border-hairline bg-canvas text-foreground hover:bg-muted inline-flex h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold transition-colors"
-							>
-								<IconBrandGithub class="size-4" /> Source code
-							</a>
+						<div class="mt-10 flex flex-wrap justify-center gap-4">
+							<Button href={repo} target="_blank" rel="noreferrer" variant="landing_soft" size="pill">
+								<IconBrandGithub class="size-4" /> Watch on GitHub
+							</Button>
+							<Button href={resolve('/editor')} variant="landing_ghost" size="pill">
+								Open the editor <IconArrowRight class="size-4" />
+							</Button>
 						</div>
 					</div>
 				</Reveal>
 			</div>
-		</div>
-	</section>
-
-	<!-- CTA -->
-	<section class="mx-auto max-w-[1140px] px-5 pb-20 sm:px-6 sm:pb-24">
-		<Reveal variant="scale">
-			<div
-				class="bg-primary text-primary-foreground relative overflow-hidden rounded-3xl px-8 py-14 text-center sm:px-16 sm:py-16"
-			>
-				<div class="relative mx-auto flex max-w-xl flex-col items-center">
-					<h2 class="font-serif text-2xl sm:text-4xl">Builds are on the way.</h2>
-					<p class="text-primary-foreground/65 mt-4 max-w-md text-base leading-relaxed">
-						Desktop releases are published on GitHub. Watch the repository to hear about the first
-						one, or start writing in the browser today.
-					</p>
-					<div class="mt-8 flex flex-wrap justify-center gap-3">
-						<a
-							href={repo}
-							target="_blank"
-							rel="noreferrer"
-							class="bg-card text-foreground inline-flex h-12 items-center gap-2 rounded-lg px-6 text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98]"
-						>
-							<IconBrandGithub class="size-4" /> Watch on GitHub
-						</a>
-						<a
-							href={resolve('/editor')}
-							class="border-primary-foreground/25 text-primary-foreground hover:bg-primary-foreground/10 inline-flex h-12 items-center gap-2 rounded-lg border px-6 text-sm font-semibold transition-colors"
-						>
-							Open the editor <IconArrowRight class="size-4" />
-						</a>
-					</div>
-				</div>
-			</div>
-		</Reveal>
-	</section>
+		</section>
+	</main>
 
 	<SiteFooter />
 </div>

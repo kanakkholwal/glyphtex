@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { Button } from '@glyphx/ui/button';
 	import { Logo } from '@glyphx/ui/logo';
 	import { ThemeToggle } from '@glyphx/ui/theme-toggle';
 	import { IconArrowUpRight, IconMenu2, IconX } from '@tabler/icons-svelte';
@@ -46,12 +47,13 @@
 		<div class="flex items-center gap-3">
 			<ThemeToggle />
 
-			<a
+			<Button
+				
 				href={resolve('/download')}
-				class="hidden text-sm font-medium tracking-[-0.01em] text-ink transition-opacity hover:opacity-70 sm:inline-flex"
+				class="hidden sm:inline-flex"
 			>
 				Download desktop app
-			</a>
+			</Button>
 
 			<button
 				type="button"

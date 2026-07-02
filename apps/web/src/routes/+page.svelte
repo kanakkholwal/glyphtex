@@ -17,13 +17,16 @@
 		IconColumns,
 		IconDeviceFloppy,
 		IconFileImport,
+		IconFileText,
 		IconFileZip,
 		IconFolderCode,
+		IconFolderOpen,
 		IconGitBranch,
 		IconLock,
 		IconPlayerPlay,
 		IconQuote,
-		IconWriting
+		IconWriting,
+		IconX
 	} from '@tabler/icons-svelte';
 
 	let heroImgOk = $state(true);
@@ -34,6 +37,11 @@
 	}
 
 	const repo = 'https://github.com/kanakkholwal/glyphx';
+
+	// Decorative dot-pattern SVGs (vendored locally so they render offline).
+	const patternLeft = '/decor/pattern-left.svg';
+	const patternRight = '/decor/pattern-right.svg';
+	const patternTall = '/decor/pattern-tall.svg';
 
 	type ImportSource = {
 		icon: typeof IconBolt;
@@ -201,11 +209,6 @@
 			a: 'The web build gives you instant access and in-browser compile. The desktop app gives you the deepest local workflow. Both share the same UI so the product feels coherent instead of split.'
 		}
 	];
-
-	const comparisonValueClass = {
-		primary: 'text-brand',
-		muted: 'text-ink-muted'
-	} as const;
 </script>
 
 <svelte:head>
@@ -222,7 +225,7 @@
 	<main>
 		<section class="landing-shell landing-hero border-b border-hairline">
 			<div class="landing-hero__wash"></div>
-			<div class="mx-auto max-w-7xl px-6 pb-18 pt-18 sm:pb-24 sm:pt-24">
+			<div class="mx-auto max-w-7xl px-6 lg:px-10 pb-18 pt-18 sm:pb-24 sm:pt-24">
 				<Reveal variant="up" class="relative mx-auto flex max-w-5xl flex-col items-center text-center">
 					<a
 						href={repo}
@@ -267,15 +270,15 @@
 						</div>
 					</div>
 
-					<div aria-hidden="true" class="landing-hero-glyph landing-hero-glyph--left"></div>
-					<div aria-hidden="true" class="landing-hero-glyph landing-hero-glyph--right"></div>
+					<img src={patternLeft} alt="" aria-hidden="true" class="landing-corner-image landing-corner-image--left" />
+					<img src={patternRight} alt="" aria-hidden="true" class="landing-corner-image landing-corner-image--right" />
 				</Reveal>
 			</div>
 		</section>
 
 		<section class="landing-shell border-b border-hairline bg-surface-card">
 			<div class="border-b border-hairline">
-				<div class="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-7 lg:flex-row lg:items-center lg:justify-center">
+				<div class="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-7 lg:flex-row lg:items-center lg:justify-center lg:px-10">
 					<p class="text-center text-[0.96rem] leading-[1.3] text-ink">
 						Bring the projects
 						<br />
@@ -293,7 +296,7 @@
 				</div>
 			</div>
 
-			<div class="mx-auto max-w-7xl px-6 py-16 sm:py-20">
+			<div class="mx-auto max-w-7xl px-6 lg:px-10 py-16 sm:py-20">
 				<Reveal variant="up">
 					<div class="flex items-end justify-between gap-6 px-4">
 						<h2 class="landing-section-title max-w-3xl">
@@ -360,7 +363,7 @@
 		</section>
 
 		<section class="landing-shell border-b border-hairline">
-			<div class="mx-auto max-w-7xl px-6 py-18 sm:py-24">
+			<div class="mx-auto max-w-7xl px-6 lg:px-10 py-18 sm:py-24">
 				<div class="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
 					<Reveal variant="up">
 						<p class="landing-section-label">Inside the workspace</p>
@@ -455,7 +458,7 @@
 		</section>
 
 		<section id="features" class="landing-shell border-b border-hairline">
-			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+			<div class="mx-auto max-w-7xl px-6 lg:px-10 py-20 sm:py-28">
 				<Reveal variant="up" class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
 					<div class="max-w-3xl">
 						<p class="landing-section-label">How you start</p>
@@ -515,8 +518,8 @@
 			</div>
 		</section>
 
-		<section id="workflow" class="border-b border-hairline bg-surface-soft/35">
-			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+		<section id="workflow" class="landing-shell border-b border-hairline bg-surface-soft/35">
+			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-10">
 				<Reveal variant="up" class="mx-auto max-w-4xl text-center">
 					<p class="landing-section-label justify-center">How it works</p>
 					<h2 class="landing-section-title mt-4">
@@ -530,11 +533,69 @@
 						<Reveal variant="up" delay={index * 70}>
 							<article class="landing-workflow-card">
 								<div class="landing-workflow-card__visual">
-									<div class={`landing-workflow-card__core ${step.accent}`}></div>
-									<div class="landing-workflow-card__ring landing-workflow-card__ring--top"></div>
-									<div class="landing-workflow-card__ring landing-workflow-card__ring--bottom"></div>
-									<div class={`landing-workflow-card__node landing-workflow-card__node--left ${step.accent}`}></div>
-									<div class={`landing-workflow-card__node landing-workflow-card__node--right ${step.accent}`}></div>
+									{#if index === 0}
+										<!-- Step 1 — a real project is just a folder of files -->
+										<div class="absolute inset-0 flex flex-col gap-2 p-5 font-mono text-[0.75rem] leading-none">
+											<div class="flex items-center gap-2 text-ink">
+												<IconFolderOpen class="size-4 text-signal-cyan" />
+												thesis/
+											</div>
+											<div class="ml-3.5 flex items-center gap-2 rounded-md bg-signal-cyan-soft px-2 py-1.5 text-ink">
+												<IconFileText class="size-3.5 text-signal-cyan" />
+												main.tex
+											</div>
+											<div class="ml-3.5 flex items-center gap-2 px-2 py-1 text-ink-body">
+												<IconFileText class="size-3.5 text-ink-muted" />
+												references.bib
+											</div>
+											<div class="ml-3.5 flex items-center gap-2 px-2 py-1 text-ink-body">
+												<IconFolderCode class="size-3.5 text-ink-muted" />
+												chapters/
+											</div>
+											<div class="ml-8 flex items-center gap-2 px-2 text-ink-muted">
+												<IconFileText class="size-3.5" />
+												intro.tex
+											</div>
+										</div>
+									{:else if index === 1}
+										<!-- Step 2 — source and preview share one surface -->
+										<div class="absolute inset-0 grid grid-cols-2 gap-px bg-hairline">
+											<div class="bg-surface-card p-3.5 font-mono text-[0.62rem] leading-[1.7]">
+												<div class="text-signal-blue">\section&#123;Intro&#125;</div>
+												<div class="text-ink-body">A local-first</div>
+												<div class="text-ink-body">workflow.</div>
+												<div class="mt-1 text-signal-blue">\begin&#123;equation&#125;</div>
+												<div class="text-ink">E = mc^2</div>
+												<div class="text-signal-blue">\end&#123;equation&#125;</div>
+											</div>
+											<div class="bg-canvas p-3">
+												<div class="flex h-full flex-col gap-1.5 rounded-lg border border-hairline bg-surface-card p-3">
+													<div class="h-2 w-1/2 rounded bg-ink/70"></div>
+													<div class="mt-1 h-1.5 w-full rounded bg-ink/15"></div>
+													<div class="h-1.5 w-11/12 rounded bg-ink/15"></div>
+													<div class="my-1.5 h-6 w-2/3 self-center rounded bg-signal-blue/20"></div>
+													<div class="h-1.5 w-full rounded bg-ink/15"></div>
+													<div class="h-1.5 w-4/5 rounded bg-ink/15"></div>
+												</div>
+											</div>
+										</div>
+									{:else}
+										<!-- Step 3 — history stays in your own repo -->
+										<div class="absolute inset-0 flex flex-col justify-center p-6">
+											<div class="relative flex flex-col gap-4">
+												<span class="absolute bottom-2 left-[0.4rem] top-2 w-px bg-hairline"></span>
+												{#each [['Final revisions', 'c7d8e9f'], ['Fix bibliography', 'e4f5a6b'], ['Draft chapter 3', 'a1b2c3d']] as [msg, hash] (hash)}
+													<div class="relative flex items-center gap-3">
+														<span class="z-10 size-[0.85rem] rounded-full border-2 border-surface-card bg-signal-lime"></span>
+														<div>
+															<div class="text-[0.76rem] leading-tight text-ink">{msg}</div>
+															<div class="font-mono text-[0.64rem] text-ink-muted">{hash}</div>
+														</div>
+													</div>
+												{/each}
+											</div>
+										</div>
+									{/if}
 								</div>
 								<p class="text-sm font-medium uppercase tracking-[0.22em] text-ink-muted">{step.step}</p>
 								<h3 class="mt-4 text-2xl font-medium tracking-[-0.03em] text-ink">{step.title}</h3>
@@ -555,10 +616,17 @@
 		</section>
 
 		<section id="compare" class="landing-shell border-b border-hairline">
-			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+			<div class="mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-10">
+				<Reveal variant="up" class="mx-auto mb-14 max-w-3xl text-center">
+					<p class="landing-section-label justify-center">The honest comparison</p>
+					<h2 class="landing-section-title mt-4">
+						Your files, your machine, <em>your call</em>
+					</h2>
+				</Reveal>
+
 				<div class="grid gap-8 lg:grid-cols-[0.92fr_1.08fr]">
 					<Reveal variant="up">
-						<div class="landing-contrast-panel">
+						<div class="landing-contrast-panel flex flex-col">
 							<div class="landing-contrast-panel__header">
 								<IconQuote class="size-4 text-brand" />
 								Typical cloud-LaTeX friction
@@ -566,67 +634,77 @@
 
 							<div class="space-y-4 p-6 text-sm leading-7 text-ink-body">
 								<div class="landing-contrast-line">
-									<IconCloudOff class="size-4 text-destructive" />
+									<IconCloudOff class="mt-0.5 size-4 shrink-0 text-destructive" />
 									Compile depends on a remote session and network health.
 								</div>
 								<div class="landing-contrast-line">
-									<IconWriting class="size-4 text-warning" />
+									<IconWriting class="mt-0.5 size-4 shrink-0 text-warning" />
 									Writing, preview, file management, and Git live in separate tools.
 								</div>
 								<div class="landing-contrast-line">
-									<IconDeviceFloppy class="size-4 text-destructive" />
+									<IconDeviceFloppy class="mt-0.5 size-4 shrink-0 text-destructive" />
 									Your default source of truth is someone else's infrastructure.
 								</div>
 							</div>
 
-							<div class="border-t border-hairline px-6 py-5">
-								<p class="text-sm font-medium text-ink">GlyphX approach</p>
-								<p class="mt-2 text-sm leading-7 text-ink-muted">
-									Keep the project local, compile where the files live, and make the interface
-									feel more like a focused writing instrument than a browser utility.
-								</p>
+							<div class="mt-auto flex items-start gap-3 border-t border-hairline bg-brand-subtle/30 px-6 py-5">
+								<span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-brand-subtle">
+									<IconCheck class="size-3.5 text-brand" />
+								</span>
+								<div>
+									<p class="text-sm font-medium text-ink">The GlyphX approach</p>
+									<p class="mt-1 text-sm leading-7 text-ink-muted">
+										Keep the project local, compile where the files live, and make the interface
+										feel more like a focused writing instrument than a browser utility.
+									</p>
+								</div>
 							</div>
 						</div>
 					</Reveal>
 
 					<Reveal variant="up" delay={80}>
 						<div class="overflow-hidden rounded-[2rem] border border-hairline bg-surface-card shadow-craft-lg">
-							<div class="grid grid-cols-[1.7fr_1fr_1fr_1fr] border-b border-hairline bg-surface-soft px-6 py-4 text-sm font-medium text-ink-muted">
-								<div>Capability</div>
-								<div class="text-ink">GlyphX</div>
-								<div>Overleaf</div>
-								<div>Classic desktop</div>
+							<div class="grid grid-cols-[1.7fr_1fr_1fr_1fr] border-b border-hairline bg-surface-soft px-6 py-4 text-sm font-medium">
+								<div class="text-ink-muted">Capability</div>
+								<div class="flex items-center justify-center gap-1.5 font-semibold text-brand">
+									<span class="size-1.5 rounded-full bg-brand"></span>
+									GlyphX
+								</div>
+								<div class="text-center text-ink-muted">Overleaf</div>
+								<div class="text-center text-ink-muted">Classic desktop</div>
 							</div>
 
 							{#each compareRows as row}
-								<div class="grid grid-cols-[1.7fr_1fr_1fr_1fr] items-center border-b border-hairline px-6 py-4 text-sm last:border-b-0">
+								<div class="grid grid-cols-[1.7fr_1fr_1fr_1fr] items-center border-b border-hairline px-6 py-4 text-sm transition-colors last:border-b-0 hover:bg-surface-soft/40">
 									<div class="pr-6 text-ink">{row.label}</div>
 
-									<div class={comparisonValueClass.primary}>
+									<div class="flex justify-center">
 										{#if row.glyph === true}
-											<IconCheck class="size-4" />
+											<span class="grid size-6 place-items-center rounded-full bg-brand-subtle">
+												<IconCheck class="size-3.5 text-brand" />
+											</span>
 										{:else}
-											{row.glyph}
+											<span class="text-xs font-medium text-brand">{row.glyph}</span>
 										{/if}
 									</div>
 
-									<div class={comparisonValueClass.muted}>
+									<div class="flex justify-center text-center">
 										{#if row.overleaf === true}
-											<IconCheck class="size-4 text-ink" />
+											<IconCheck class="size-4 text-ink-muted" />
 										{:else if row.overleaf === false}
-											-
+											<IconX class="size-4 text-ink-muted/50" />
 										{:else}
-											{row.overleaf}
+											<span class="text-xs text-ink-muted">{row.overleaf}</span>
 										{/if}
 									</div>
 
-									<div class={comparisonValueClass.muted}>
+									<div class="flex justify-center text-center">
 										{#if row.desktop === true}
-											<IconCheck class="size-4 text-ink" />
+											<IconCheck class="size-4 text-ink-muted" />
 										{:else if row.desktop === false}
-											-
+											<IconX class="size-4 text-ink-muted/50" />
 										{:else}
-											{row.desktop}
+											<span class="text-xs text-ink-muted">{row.desktop}</span>
 										{/if}
 									</div>
 								</div>
@@ -637,8 +715,8 @@
 			</div>
 		</section>
 
-		<section id="faq" class="border-b border-hairline bg-surface-soft/25">
-			<div class="mx-auto max-w-4xl px-6 py-20 sm:py-28">
+		<section id="faq" class="landing-shell border-b border-hairline bg-surface-soft/25">
+			<div class="mx-auto max-w-4xl px-6 py-20 sm:py-28 lg:px-10">
 				<Reveal variant="up" class="text-center">
 					<p class="landing-section-label justify-center">FAQ</p>
 					<h2 class="landing-section-title mt-4">
@@ -663,11 +741,11 @@
 		</section>
 
 		<section class="landing-shell">
-			<div class="mx-auto max-w-6xl px-6 py-20 sm:py-28">
+			<div class="mx-auto max-w-6xl px-6 py-20 sm:py-28 lg:px-10">
 				<Reveal variant="scale">
 					<div class="landing-cta-panel">
-						<div class="landing-cta-panel__glyph landing-cta-panel__glyph--left"></div>
-						<div class="landing-cta-panel__glyph landing-cta-panel__glyph--right"></div>
+						<img src={patternTall} alt="" aria-hidden="true" class="landing-cta-pattern landing-cta-pattern--left" />
+						<img src={patternTall} alt="" aria-hidden="true" class="landing-cta-pattern landing-cta-pattern--right" />
 
 						<p class="landing-section-label justify-center">Ready when you are</p>
 						<h2 class="landing-section-title mt-4 max-w-4xl">
