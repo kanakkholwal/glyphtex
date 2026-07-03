@@ -28,6 +28,10 @@
 				default: "bg-primary text-primary-foreground border-transparent shadow-craft-sm hover:bg-primary/95",
 				default_soft:
 					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
+				/* brand_soft — the sky-blue accent as a tint. For active / selected
+				   states (the accent-as-selection signal), never as a loud fill. */
+				brand_soft:
+					"border-transparent bg-brand/10 text-brand hover:bg-brand/16 dark:bg-brand/16 dark:hover:bg-brand/24",
 				landing_soft:
 					"bg-surface-2 text-foreground border-transparent rounded-full shadow-craft-sm hover:bg-surface-strong",
 				landing_ghost:
@@ -68,6 +72,8 @@
 				icon: "size-10 rounded-xl",
 				"icon-sm": "size-9 rounded-lg",
 				"icon-xs": "size-7 rounded-md [&_svg:not([class*='size-'])]:size-3",
+				/* icon-2xs — the dense 24px icon button for panel headers / toolbars. */
+				"icon-2xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-4",
 				"icon-lg": "size-12 rounded-2xl",
 				raw: "",
 			},

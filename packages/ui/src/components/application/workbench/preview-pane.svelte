@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Button } from "@glyphx/ui/button";
   import { Logo } from "@glyphx/ui/logo";
   import { settings } from "@glyphx/ui/settings";
   import { Spinner } from "@glyphx/ui/spinner";
@@ -38,14 +39,15 @@
   <div
     class="text-muted-foreground border-border flex h-9 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
   >
-    <button
-      class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
+    <Button
+      variant="ghost"
+      size="icon-2xs"
       title="Sync to PDF (⌘/Ctrl+J)"
       aria-label="Sync to PDF"
       onclick={() => compile.syncToPdf()}
     >
-      <IconCurrentLocation size={15} />
-    </button>
+      <IconCurrentLocation />
+    </Button>
     <!-- Status + recompile -->
     <span
       class="inline-flex min-w-0 items-center gap-1.5 truncate pl-1 {compile.compileStatus ===
@@ -70,14 +72,15 @@
     {#if compile.pdfBytes}
       <!-- Find + page count + zoom + download -->
       <div class="ml-auto flex items-center gap-1">
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
+        <Button
+          variant="ghost"
+          size="icon-2xs"
           title="Find in PDF (Ctrl/Cmd+F)"
           aria-label="Find in PDF"
           onclick={() => compile.pdfView?.openFind()}
         >
-          <IconSearch size={14} />
-        </button>
+          <IconSearch />
+        </Button>
         <span class="bg-border mx-1 h-4 w-px"></span>
         <span class="text-muted-foreground/70 tabular-nums">
           {compile.pdfNumPages || 1} page{(compile.pdfNumPages || 1) === 1
@@ -85,25 +88,28 @@
             : "s"}
         </span>
         <span class="bg-border mx-1 h-4 w-px"></span>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
+        <Button
+          variant="ghost"
+          size="icon-2xs"
           title="Zoom out"
           aria-label="Zoom out"
           onclick={() => compile.pdfView?.zoomOut()}
         >
-          <IconMinus size={14} />
-        </button>
+          <IconMinus />
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger>
             {#snippet child({ props })}
-              <button
+              <Button
                 {...props}
-                class="hover:bg-muted hover:text-foreground flex h-6 items-center gap-1 rounded px-1.5 tabular-nums transition-colors"
+                variant="ghost"
+                size="xs"
+                class="px-1.5 tabular-nums"
                 title="Zoom level"
               >
                 {compile.pdfFitMode ? "Fit" : `${compile.pdfScalePct}%`}
                 <IconChevronDown size={12} class="opacity-60" />
-              </button>
+              </Button>
             {/snippet}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-36">
@@ -118,23 +124,25 @@
             {/each}
           </DropdownMenuContent>
         </DropdownMenu>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
+        <Button
+          variant="ghost"
+          size="icon-2xs"
           title="Zoom in"
           aria-label="Zoom in"
           onclick={() => compile.pdfView?.zoomIn()}
         >
-          <IconPlus size={14} />
-        </button>
+          <IconPlus />
+        </Button>
         <span class="bg-border mx-1 h-4 w-px"></span>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
+        <Button
+          variant="ghost"
+          size="icon-2xs"
           title="Download PDF"
           aria-label="Download PDF"
           onclick={() => compile.downloadPdf()}
         >
-          <IconDownload size={14} />
-        </button>
+          <IconDownload />
+        </Button>
       </div>
     {/if}
   </div>

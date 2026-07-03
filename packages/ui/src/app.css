@@ -22,11 +22,11 @@
    ============================================================================ */
 
 /* Self-hosted variable fonts — bundled, so they work fully offline.
-   Geist (UI + body workhorse) + Geist Mono (the technical voice). Fraunces is
-   the editorial serif display voice — reserved for marketing headline moments
-   (`.font-serif`), never the app chrome. JetBrains Mono is retained for the
-   CodeMirror editor surface only. The Fraunces `full` axes (opsz + SOFT + wght)
-   give it its warm, rounded, magazine-like character. */
+   Inter (UI + body voice, with the bespoke OpenType character variants) + Geist
+   (the geometric display face — our GT-Walsheim substitute for headline moments).
+   Geist Mono / JetBrains Mono are the technical voices (labels, code, the editor).
+   Fraunces is the editorial serif, kept only for the marketing serif accent. */
+@import '@fontsource-variable/inter/index.css';
 @import '@fontsource-variable/geist/index.css';
 @import '@fontsource-variable/geist-mono/index.css';
 @import '@fontsource-variable/fraunces/full.css';
@@ -78,13 +78,13 @@
 	--success-foreground: oklch(1 0 0);
 	--warning: oklch(0.7686 0.1647 70.08);
 	--warning-foreground: oklch(1 0 0);
-	--info: oklch(0.567 0.1546 248.52);
+	--info: oklch(0.62 0.185 246);
 	--info-foreground: oklch(1 0 0);
 
 	/* Lines & focus — neutral hairlines; the focus ring is brand blue. */
 	--border: oklch(0.9197 0.004 286.32);
 	--input: oklch(0.9197 0.004 286.32);
-	--ring: oklch(0.567 0.1546 248.52);
+	--ring: oklch(0.62 0.185 246);
 
 	/* Sidebar (one quiet neutral step off the canvas). */
 	--sidebar: oklch(0.9674 0.0013 286.38);
@@ -94,23 +94,24 @@
 	--sidebar-accent: oklch(0.9674 0.0013 286.38);
 	--sidebar-accent-foreground: oklch(0.2103 0.0059 285.89);
 	--sidebar-border: oklch(0.9197 0.004 286.32);
-	--sidebar-ring: oklch(0.567 0.1546 248.52);
+	--sidebar-ring: oklch(0.62 0.185 246);
 
 	/* Charts — brand blue + a neutral ramp. */
-	--chart-1: oklch(0.567 0.1546 248.52);
+	--chart-1: oklch(0.62 0.185 246);
 	--chart-2: oklch(0.2103 0.0059 285.89);
 	--chart-3: oklch(0.5517 0.0138 285.94);
 	--chart-4: oklch(0.7118 0.0129 286.07);
-	--chart-5: oklch(0.6696 0.1602 245.24);
+	--chart-5: oklch(0.72 0.165 246);
 
-	/* ---- The single brand accent — GlyphX blue, used sparingly. ---- */
-	--brand: oklch(0.567 0.1546 248.52);
+	/* ---- The single chromatic accent — sky-blue (Framer accent, ~#0099FF). The
+	   one signal colour: links, focus rings, selection, active/branded. ---- */
+	--brand: oklch(0.62 0.185 246);
 	--brand-foreground: oklch(1 0 0);
-	--brand-hover: oklch(0.551 0.1351 245.69);
-	--brand-subtle: oklch(0.567 0.1546 248.52 / 0.08);
+	--brand-hover: oklch(0.565 0.175 246);
+	--brand-subtle: oklch(0.62 0.185 246 / 0.09);
 	/* Official brand gradient — logo / app icon / hero illustrations ONLY.
 	   Never use gradients in general application UI (see DESIGN.md). */
-	--brand-gradient: linear-gradient(135deg, #1f9cf0 0%, #007acc 55%, #1177bb 100%);
+	--brand-gradient: linear-gradient(135deg, #33aaff 0%, #0099ff 55%, #007acc 100%);
 
 	/* Marketing accents — reserved for editorial/illustrative landing moments.
 	   Still tokenized here so the website's visual direction stays centrally
@@ -178,23 +179,23 @@
 	/* Neutral night — a clean near-black neutral palette (adopted from the
 	   college-ecosystem dark tokens): pure greys, cool muted text. GlyphX blue
 	   and the semantic status colours stay as the only hues. */
-	--background: oklch(0.1822 0 0);
+	--background: oklch(0.176 0.008 58);
 	--foreground: oklch(0.9401 0 0);
-	--card: oklch(0.2134 0 0);
+	--card: oklch(0.211 0.008 58);
 	--card-foreground: oklch(0.9401 0 0);
-	--surface: oklch(0.235 0 0);
-	--popover: oklch(0.2134 0 0);
+	--surface: oklch(0.234 0.008 58);
+	--popover: oklch(0.211 0.008 58);
 	--popover-foreground: oklch(0.9401 0 0);
 
 	/* Primary = ink emphasis (near-white). The brand stays blue, in --brand. */
 	--primary: oklch(0.9461 0 0);
-	--primary-foreground: oklch(0.1822 0 0);
+	--primary-foreground: oklch(0.176 0.008 58);
 
-	--secondary: oklch(0.2739 0.0055 286.03);
+	--secondary: oklch(0.272 0.008 58);
 	--secondary-foreground: oklch(0.9851 0 0);
-	--muted: oklch(0.2393 0 0);
+	--muted: oklch(0.238 0.008 58);
 	--muted-foreground: oklch(0.7137 0.0192 261.32);
-	--accent: oklch(0.2739 0.0055 286.03);
+	--accent: oklch(0.272 0.008 58);
 	--accent-foreground: oklch(0.9401 0 0);
 
 	--destructive: oklch(0.7106 0.1661 22.22);
@@ -203,33 +204,33 @@
 	--success-foreground: oklch(0.1759 0.0253 156.26);
 	--warning: oklch(0.8369 0.1644 84.43);
 	--warning-foreground: oklch(0.2018 0.0279 91.71);
-	--info: oklch(0.6696 0.1602 245.24);
+	--info: oklch(0.72 0.165 246);
 	--info-foreground: oklch(0.1767 0.0343 246.52);
 
-	--border: oklch(0.2603 0 0);
+	--border: oklch(0.258 0.008 58);
 	--input: oklch(1 0 0 / 0.15);
-	--ring: oklch(0.6696 0.1602 245.24);
+	--ring: oklch(0.72 0.165 246);
 
 	/* Sidebar one quiet step off the floor. */
-	--sidebar: oklch(0.2002 0 0);
+	--sidebar: oklch(0.197 0.008 58);
 	--sidebar-foreground: oklch(0.8328 0 0);
 	--sidebar-primary: oklch(0.9461 0 0);
-	--sidebar-primary-foreground: oklch(0.1822 0 0);
-	--sidebar-accent: oklch(0.2739 0.0055 286.03);
+	--sidebar-primary-foreground: oklch(0.176 0.008 58);
+	--sidebar-accent: oklch(0.272 0.008 58);
 	--sidebar-accent-foreground: oklch(0.9401 0 0);
-	--sidebar-border: oklch(0.2603 0 0);
-	--sidebar-ring: oklch(0.6696 0.1602 245.24);
+	--sidebar-border: oklch(0.258 0.008 58);
+	--sidebar-ring: oklch(0.72 0.165 246);
 
-	--chart-1: oklch(0.6696 0.1602 245.24);
+	--chart-1: oklch(0.72 0.165 246);
 	--chart-2: oklch(0.9401 0 0);
 	--chart-3: oklch(0.7137 0.0192 261.32);
 	--chart-4: oklch(0.4823 0.0175 285.73);
 	--chart-5: oklch(0.741 0.1499 239.59);
 
-	--brand: oklch(0.6696 0.1602 245.24);
+	--brand: oklch(0.72 0.165 246);
 	--brand-foreground: oklch(0.1457 0.0043 285.86);
-	--brand-hover: oklch(0.741 0.1499 239.59);
-	--brand-subtle: oklch(0.6696 0.1602 245.24 / 0.14);
+	--brand-hover: oklch(0.78 0.15 245);
+	--brand-subtle: oklch(0.72 0.165 246 / 0.16);
 	--signal-cyan: oklch(0.7888 0.1188 207.62);
 	--signal-cyan-soft: oklch(0.7888 0.1188 207.62 / 0.16);
 	--signal-blue: oklch(0.7176 0.1626 254.31);
@@ -237,19 +238,19 @@
 	--signal-lime: oklch(0.8046 0.1208 117.27);
 	--signal-lime-soft: oklch(0.8046 0.1208 117.27 / 0.18);
 
-	--canvas: oklch(0.1822 0 0);
-	--surface-soft: oklch(0.2134 0 0);
-	--surface-card: oklch(0.2134 0 0);
-	--surface-strong: oklch(0.2739 0.0055 286.03);
-	--surface-1: oklch(0.2134 0 0);
-	--surface-2: oklch(0.235 0 0);
+	--canvas: oklch(0.176 0.008 58);
+	--surface-soft: oklch(0.211 0.008 58);
+	--surface-card: oklch(0.211 0.008 58);
+	--surface-strong: oklch(0.272 0.008 58);
+	--surface-1: oklch(0.211 0.008 58);
+	--surface-2: oklch(0.234 0.008 58);
 	--inverse-canvas: oklch(0.9461 0 0);
 	--ink: oklch(0.9401 0 0);
 	--ink-body: oklch(0.8328 0 0);
 	--ink-muted: oklch(0.7137 0.0192 261.32);
-	--hairline: oklch(0.2603 0 0);
-	--hairline-soft: oklch(0.2393 0 0);
-	--border-subtle: oklch(0.2393 0 0);
+	--hairline: oklch(0.258 0.008 58);
+	--hairline-soft: oklch(0.238 0.008 58);
+	--border-subtle: oklch(0.238 0.008 58);
 }
 
 /* ---------------------------------------------------------------------------
@@ -343,8 +344,10 @@
    Static design tokens (typography, materiality). Not theme-dependent.
    --------------------------------------------------------------------------- */
 @theme {
+	/* Inter is the UI + body voice (its OpenType character variants are enabled on
+	   <body>). Geist is the geometric display face — our GT-Walsheim substitute. */
 	--font-sans:
-		'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+		'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
 		Roboto, sans-serif;
 	--font-display:
 		'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI',
@@ -411,6 +414,10 @@
 		background-color: var(--background);
 		color: var(--foreground);
 		font-family: var(--font-sans);
+		/* Inter's bespoke voice — the OpenType character variants DESIGN.md calls out
+		   (alt 1/g/i-l/0, stylistic sets, discretionary ligatures). */
+		font-feature-settings:
+			'cv01', 'cv05', 'cv09', 'cv11', 'ss03', 'ss07', 'dlig';
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 	}

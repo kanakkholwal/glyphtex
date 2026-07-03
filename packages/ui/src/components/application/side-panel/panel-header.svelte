@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Button } from "@glyphx/ui/button";
   import { settings } from "@glyphx/ui/settings";
   import {
     IconFilePlus,
@@ -43,8 +44,6 @@
     onopenfolder?: () => void;
   } = $props();
 
-  const btn =
-    "hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors";
 </script>
 
 <div
@@ -53,29 +52,30 @@
   <span>{store.heading}</span>
   {#if view === "files"}
     <div class="-mr-1 flex items-center gap-0.5">
-      <button
-        class={btn}
+      <Button
+        variant="ghost"
+        size="icon-2xs"
         title={store.targetDir ? `New file in ${store.targetDir}` : "New file"}
         aria-label="New file"
         onclick={() => store.createFileHere()}
       >
-        <IconFilePlus size={15} />
-      </button>
+        <IconFilePlus />
+      </Button>
       {#if hasNewFolder}
-        <button
-          class={btn}
-          title={store.targetDir
-            ? `New folder in ${store.targetDir}`
-            : "New folder"}
+        <Button
+          variant="ghost"
+          size="icon-2xs"
+          title={store.targetDir ? `New folder in ${store.targetDir}` : "New folder"}
           aria-label="New folder"
           onclick={() => store.createFolderHere()}
         >
-          <IconFolderPlus size={15} />
-        </button>
+          <IconFolderPlus />
+        </Button>
       {/if}
       {#if hasDelete}
-        <button
-          class="{btn} disabled:opacity-40"
+        <Button
+          variant="ghost"
+          size="icon-2xs"
           title={store.effectiveSel
             ? store.effectiveSel.type === "folder"
               ? "Delete selected folder"
@@ -85,99 +85,98 @@
           disabled={!store.effectiveSel}
           onclick={() => store.deleteSelected()}
         >
-          <IconTrash size={15} />
-        </button>
+          <IconTrash />
+        </Button>
       {/if}
       {#if store.folderPaths.length}
-        <button
-          class={btn}
-          title={store.anyFolderOpen
-            ? "Collapse all folders"
-            : "Expand all folders"}
-          aria-label={store.anyFolderOpen
-            ? "Collapse all folders"
-            : "Expand all folders"}
+        <Button
+          variant="ghost"
+          size="icon-2xs"
+          title={store.anyFolderOpen ? "Collapse all folders" : "Expand all folders"}
+          aria-label={store.anyFolderOpen ? "Collapse all folders" : "Expand all folders"}
           onclick={() => store.toggleCollapseAll()}
         >
-          <IconFold size={15} />
-        </button>
+          <IconFold />
+        </Button>
       {/if}
       {#if onreveal}
         <!-- A project is open: reveal it in the OS file manager. -->
-        <button
-          class={btn}
+        <Button
+          variant="ghost"
+          size="icon-2xs"
           title="Reveal in file explorer"
           aria-label="Reveal in file explorer"
           onclick={() => onreveal?.()}
         >
-          <IconFolderShare size={15} />
-        </button>
+          <IconFolderShare />
+        </Button>
       {:else if hasProject}
-        <button
-          class={btn}
+        <Button
+          variant="ghost"
+          size="icon-2xs"
           title="Open folder (⌘/Ctrl+O)"
           aria-label="Open folder"
           onclick={() => onopenfolder?.()}
         >
-          <IconFolderOpen size={15} />
-        </button>
+          <IconFolderOpen />
+        </Button>
       {/if}
     </div>
   {:else if view === "search"}
     <div class="-mr-1 flex items-center gap-0.5">
-      <button
-        class="{btn} disabled:opacity-40"
+      <Button
+        variant="ghost"
+        size="icon-2xs"
         title="Refresh results"
         aria-label="Refresh results"
         disabled={!store.query}
         onclick={() => store.refreshResults()}
       >
-        <IconRefresh size={15} />
-      </button>
-      <button
-        class="{btn} disabled:opacity-40"
+        <IconRefresh />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-2xs"
         title="Clear search"
         aria-label="Clear search"
         disabled={!store.query}
         onclick={() => store.clearSearchView()}
       >
-        <IconSearchOff size={15} />
-      </button>
-      <button
-        class="{btn} disabled:opacity-40"
+        <IconSearchOff />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-2xs"
         title={store.resultsCollapsed ? "Expand results" : "Collapse results"}
-        aria-label={store.resultsCollapsed
-          ? "Expand results"
-          : "Collapse results"}
+        aria-label={store.resultsCollapsed ? "Expand results" : "Collapse results"}
         aria-pressed={store.resultsCollapsed}
         disabled={!searchResultCount}
         onclick={() => (store.resultsCollapsed = !store.resultsCollapsed)}
       >
-        <IconFold size={15} />
-      </button>
+        <IconFold />
+      </Button>
     </div>
   {:else if view === "git" && gitReady && store.gitState.isRepo}
     <div class="-mr-1 flex items-center gap-0.5">
-      <button
-        class={btn}
+      <Button
+        variant="ghost"
+        size="icon-2xs"
         title={settings.gitView === "tree" ? "View as list" : "View as tree"}
         aria-label={settings.gitView === "tree" ? "View as list" : "View as tree"}
-        onclick={() =>
-          (settings.gitView = settings.gitView === "tree" ? "list" : "tree")}
+        onclick={() => (settings.gitView = settings.gitView === "tree" ? "list" : "tree")}
       >
-        {#if settings.gitView === "tree"}<IconList size={15} />{:else}<IconFolders
-            size={15}
-          />{/if}
-      </button>
-      <button
-        class="{btn} disabled:opacity-40"
+        {#if settings.gitView === "tree"}<IconList />{:else}<IconFolders />{/if}
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-2xs"
         title="Refresh"
         aria-label="Refresh"
         disabled={store.gitState.loading}
         onclick={() => (store.gitRefreshKey += 1)}
       >
-        <IconRefresh size={15} />
-      </button>
+        <IconRefresh />
+      </Button>
     </div>
   {/if}
 </div>

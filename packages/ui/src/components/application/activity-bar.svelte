@@ -39,7 +39,7 @@
 	{#each top as item (item.id)}
 		{@const Icon = item.icon}
 		<Button
-			variant={active === item.id ? 'default_soft' : 'ghost'}
+			variant={active === item.id ? 'brand_soft' : 'ghost'}
 			size="icon-sm"
 			title={item.label}
 			aria-label={item.label}
@@ -52,7 +52,7 @@
 
 	<div class="mt-auto">
 		<Button
-			variant={active === 'settings' ? 'default_soft' : 'ghost'}
+			variant={active === 'settings' ? 'brand_soft' : 'ghost'}
 			size="icon-sm"
 			title="Settings"
 			aria-label="Settings"

@@ -105,15 +105,18 @@
       {saveFile}
       onExportZip={files.project ? () => files.exportProject() : undefined}
       canExportZip={Boolean(files.projectRoot)}
-      size="default"
+      size="xs"
     />
 
     <!-- Compile split-button: run + a ▾ menu for live-compile / sync. -->
-    <ButtonGroup>
+    <ButtonGroup
+      class="[&>[data-slot]:first-child]:!rounded-l-full [&>[data-slot]:last-child]:!rounded-r-full"
+    >
       <Button
         onclick={() => compile.runCompile(true)}
         disabled={compile.compiling}
         size="xs"
+        class="pl-3"
       >
         {#if compile.compiling}
           <IconLoader2 class="animate-spin" />

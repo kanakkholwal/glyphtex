@@ -1,240 +1,289 @@
-## Identity
+## Overview
 
-GlyphX is a local-first, privacy-first **LaTeX** editor for researchers,
-students, engineers, mathematicians, and technical writers.
+Framer's marketing canvas is a near-pure black artboard. The dominant surface is `{colors.canvas}` — almost pure black with a faint warmth — and on top of it sits oversized white display type set in **GT Walsheim Medium** with letter-spacing pulled to extreme negative values (-5.5px on the 110px display, -4.25px on the 85px hero). The page reads like a poster: one assertive statement per band, generous breathing room above and below.
 
-The visual language is **warm editorial minimal**: a warm stone-paper canvas, a
-soft serif display voice for headline moments, a precise technical-mono register
-for labels and metrics, and a single rationed **GlyphX blue** accent derived
-from the brand mark.
+The single accent is `{colors.accent-blue}` — used scarcely, mostly for hyperlinks, selection halos, and a subtle blue-tinted shadow ring on focused inputs. The brand chrome itself is monochrome: white pill buttons, charcoal cards, gray secondary text. What makes Framer distinctive is the rhythm break — every few sections the page drops in a **vibrant gradient atmosphere card**: a magenta-violet spotlight, a sunset-orange wash, a coral-pink panel. These aren't section backgrounds; they're individual cards arranged in a card grid, each one a small living poster that shows what Framer can produce.
 
-The system pairs three voices:
+Body type is **Inter Variable**, with Framer leaning hard into Inter's character variants (`cv01`, `cv05`, `cv09`, `cv11`, `ss03`, `ss07`, `dlig`) — the result is a body voice that feels custom-tuned, with single-storey "a", straight-leg "l", and tabular figures. There's no light mode on the marketing site; the brand IS dark.
 
-* **Fraunces** (editorial serif) — large display headlines on the marketing
-  surface. Warm, magazine-like, with *italic* emphasis on the words that carry
-  the idea. Reserved for headline moments; never app chrome.
-* **Geist** (sans) — the workhorse. Body copy, sub-heads, every interface label
-  that isn't a code-register token. The app chrome is Geist, top to bottom.
-* **Geist Mono** — the technical register. Uppercase, lightly tracked: nav
-  items, section eyebrows (`#01 — COMPILE`), file names, metrics, engine badges,
-  diagnostics, status indicators.
+**Key Characteristics:**
+- Black-canvas marketing system: `{colors.canvas}` is the surface for hero, body, pricing, FAQ, and footer alike — no light interludes.
+- Massive negative letter-spacing on display sizes (-5.5px / -4.25px / -3.1px) creates a poster-grade headline cadence.
+- White pill (`{components.button-primary}`) is the only primary CTA shape across the site; secondary actions live as charcoal pills (`{components.button-secondary}`) or text links.
+- Oversized **gradient spotlight cards** (violet, magenta, orange, coral) act as showcase tiles inside the dark grid; they are individual cards, not section backgrounds.
+- Inter Variable with bespoke OpenType character variants (`cv01/05/09/11`, `ss03/ss07`, `dlig`) used everywhere body type appears — the typographic voice is unmistakable.
+- Border radius scale runs from 4px utility chips up to 100px pills and full circles, with 15–20px the default for cards and 30px for atmospheric gradient cards.
+- A single chromatic accent `{colors.accent-blue}` reserved for hyperlinks, focus, and selection — never decorative.
 
-Directionally, GlyphX sits between the disciplined product end (Linear, Vercel,
-Raycast, VS Code) and the warm editorial end of modern SaaS (autosend, Resend,
-Stripe's prose pages) — calm, premium, and confident rather than loud.
+## Colors
 
-The product should feel:
+> Source pages: framer.com (home), /ai/, /startups/, /marketplace/templates/nudge/, /gallery/a16z-speedrun-×-tonik, /pricing.
 
-* Technical
-* Precise
-* Warm
-* Quiet
-* Trustworthy
+### Brand & Accent
+- **Pure White** ({colors.primary}): The brand primary surface. Every primary CTA pill, every display headline, every body line on canvas.
+- **Sky Blue** ({colors.accent-blue}): The single chromatic accent. Hyperlinks, focused-input rings, and a few selection states. Never used for backgrounds or as a brand fill.
 
-The editor is the product. The chrome should disappear. The marketing surface
-is where personality lives.
+### Surface
+- **Canvas** ({colors.canvas}): Default page background — near-black with a faint warmth. Footer, pricing, hero, and FAQ all sit on it.
+- **Surface 1** ({colors.surface-1}): One step above canvas — pricing cards, secondary buttons, mockup tiles.
+- **Surface 2** ({colors.surface-2}): Two steps above — featured pricing card, hero pill backdrop, selected pricing tab.
+- **Hairline** ({colors.hairline}): 1px borders on input groups, comparison-table dividers.
+- **Hairline Soft** ({colors.hairline-soft}): Subtler dividers — between FAQ rows and footer column rules.
+- **Inverse Canvas** ({colors.inverse-canvas}): Pure white — used as the surface of light-on-dark pill CTAs and a small set of light-mode template thumbnails embedded in the showcase grid.
 
----
+### Text
+- **Ink** ({colors.ink}): All headline and emphasized body type — pure white.
+- **Ink Muted** ({colors.ink-muted}): Secondary type — gray (#999999) used for meta info, footer columns, comparison-row labels, deselected pricing tabs. Hierarchy on the dark canvas is carried by ink → ink-muted contrast, not by weight changes.
 
-## Principles
+### Semantic
+- **Success Green** ({colors.semantic-success}): Pricing comparison-table checkmarks. Glyph fill, not surface.
 
-### 1. Document first
+### Brand Gradient (signature)
+- **Gradient Magenta** ({colors.gradient-magenta}): Spotlight card variant.
+- **Gradient Violet** ({colors.gradient-violet}): Spotlight card variant — most common.
+- **Gradient Orange** ({colors.gradient-orange}): Spotlight card variant — sunset wash.
+- **Gradient Coral** ({colors.gradient-coral}): Spotlight card variant — coral/pink.
 
-The document is always the focal point. Whitespace is preferable to decoration.
-Every UI decision should make writing easier, not louder.
+These four sit as oversized atmospheric tiles inside otherwise monochrome card grids — a dark canvas with one or two glowing spotlight cards is a recurring page signature.
 
-### 2. Warm neutrals first, brand second
+## Typography
 
-Design every screen in warm monochrome first. Introduce blue only where meaning
-exists.
+### Font Family
 
-Target roughly:
+- **GT Walsheim Framer Medium** / **GT Walsheim Medium** — Framer's display typeface. Geometric, slightly humanist, very confident at large sizes with extreme negative tracking. Fallbacks: `GT Walsheim Medium Placeholder` system font.
+- **Inter Variable** — System body typeface. Used with extensive OpenType character variants: `cv01` (alternate "1"), `cv05` (alternate "g"), `cv09` (alternate "i" / "l"), `cv11` (alternate "0"), `ss03` / `ss07` stylistic sets, `dlig` discretionary ligatures, and `tnum` for numerics in tabular contexts. The result is a body voice that feels bespoke without commissioning a custom face.
+- **Inter** — Used selectively for `{typography.headline}` (the 22px / 20px tier). The non-variable cut catches small tracking targets that the variable file rounds.
 
-* 90% warm neutral surfaces
-* 10% brand color
+### Hierarchy
 
-The blue should feel intentional, not decorative.
+| Token | Size | Weight | Line Height | Letter Spacing | Use |
+|---|---|---|---|---|---|
+| `{typography.display-xxl}` | 110px | 500 | 0.85 | -5.5px | Largest hero headline (home, AI page) |
+| `{typography.display-xl}` | 85px | 500 | 0.95 | -4.25px | Section opener headlines |
+| `{typography.display-lg}` | 62px | 500 | 1.00 | -3.1px | Sub-section openers |
+| `{typography.display-md}` | 32px | 500 | 1.13 | -1.0px | Card titles, smaller display |
+| `{typography.headline}` | 22px | 700 | 1.20 | -0.8px | Pricing tier headlines, FAQ category titles |
+| `{typography.subhead}` | 24px | 400 | 1.30 | -0.01px | Lead body next to display headlines |
+| `{typography.body-lg}` | 18px | 400 | 1.30 | -0.18px | Hero subhead, lead paragraphs |
+| `{typography.body}` | 15px | 400 | 1.30 | -0.15px | Default body, card descriptions |
+| `{typography.body-sm}` | 14px | 500 | 1.40 | -0.14px | Pricing comparison rows, dense data |
+| `{typography.caption}` | 13px | 500 | 1.20 | -0.13px | Eyebrows, footer columns, meta |
+| `{typography.micro}` | 12px | 400 | 1.20 | -0.12px | Disclaimer, footnote |
+| `{typography.button}` | 14px | 500 | 1.0 | -0.14px | Pill buttons |
 
-### 3. Brand color is reserved
+### Principles
 
-GlyphX blue communicates:
+- **Letter-spacing scales with size, hard.** Display-xxl pulls -5.5px (5% of size); body sticks to about -1% (-0.15px on 15px). The result: posters at the top, comfortable reading at body.
+- **OpenType character variants are the brand voice.** Switching off `cv11`, `ss03`, etc. visibly changes the body voice — the brand depends on them.
+- **Weight stays in a narrow band.** Display sits at 500, body at 400, body-sm/caption at 500. Hierarchy is carried by size + tracking, not by 700/900 ramps.
+- **Tight line-heights everywhere.** Even body runs at 1.30 — Framer's editorial tone is denser than typical SaaS marketing.
 
-* Active
-* Selected
-* Focused
-* Linked
-* Branded
+### Note on Font Substitutes
 
-Avoid flooding screens with blue. On the marketing surface, blue is the
-**primary CTA** and the eyebrow accent — nothing else competes with it. The
-logo should be the most saturated object in the product.
+If implementing without GT Walsheim Medium, suitable open-source substitutes include **Mona Sans**, **Geist**, or **Inter** at weight 600–700 with manually tightened tracking. Mona Sans's hairline weights at 100–300 are particularly close to Framer's cleaner section openers. Inter Variable is open-source — keep it as-is and preserve the documented OpenType variants.
 
-### 4. Type creates hierarchy
+## Layout
 
-Hierarchy comes from:
+### Spacing System
 
-* Voice (serif display vs. sans body vs. mono label)
-* Size
-* Weight
-* Spacing
+- **Base unit**: 5px (Framer uses non-standard 5/10/15/20/30 increments rather than the more common 4/8/16/24).
+- **Tokens (front matter)**: `{spacing.hair}` 1px · `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.md}` 15px · `{spacing.lg}` 20px · `{spacing.xl}` 30px · `{spacing.xxl}` 40px · `{spacing.section}` 96px.
+- Card interior padding: `{spacing.lg}` 20px on pricing cards; `{spacing.xl}` 30px on gradient spotlight cards.
+- Pill button padding: 10px vertical · 15px horizontal — `{components.button-primary}`.
+- Section padding (vertical): roughly `{spacing.section}` 96px on home; tighter (~64px) on pricing comparison.
 
-Not color. Typography carries most of the visual structure. The editorial serif
-does the emotional work; the mono labels do the structural work.
+### Grid & Container
 
-### 5. Depth is flat, structure is drawn
+- Max content width sits around the 1199px breakpoint, with side gutters that scale toward `{spacing.xl}` on desktop.
+- Card grids on the home gallery use 2-up at desktop, collapsing to 1-up below 810px.
+- Pricing tier grid is 4-up across the documented breakpoints; comparison table beneath it uses fixed-width left column with horizontally scrolling tier columns at narrow widths.
 
-This system is intentionally flat. Depth comes from **contrast, spacing, and a
-crisp warm grid-line** (`--hairline`, a solid stone line) — not from drop
-shadows. Cards and controls separate from the canvas with borders, tonal fills,
-and placement.
+### Whitespace Philosophy
 
-Two exceptions earn elevation:
+The dark canvas IS the whitespace. Where lighter brands lean on white air to separate sections, Framer leans on long stretches of black with a single oversized statement floating in the middle. Sections separate by mode change: a band of charcoal cards, then a band of black with a gradient spotlight, then back to charcoal — like cuts in a dark film.
 
-* **Framed product mounts** — a browser/device frame on a photographic or dark
-  backdrop, with a soft layered shadow and a faint brand glow. This is the
-  modern "image" treatment; it is the one place imagery is allowed to lift.
-* **Floating UI** — menus, popovers, the command palette.
+## Elevation & Depth
 
-Everything else stays on the grid.
+| Level | Treatment | Use |
+|---|---|---|
+| 0 (flat) | No shadow, no border | Default for canvas-mounted display type, FAQ rows, footer |
+| 1 (charcoal) | `{colors.surface-1}` lift on canvas | Pricing cards, mockup tiles, secondary buttons |
+| 2 (light-edge) | `rgba(255,255,255,0.10)` 0.5px top edge + `rgba(0,0,0,0.25)` 0px 10px 30px drop | Floating product cards, modal cards |
+| 3 (selected) | `rgba(0,153,255,0.15)` 0px 0px 0px 1px ring | Focused inputs, selected option |
 
-### 6. Motion settles, never performs
+Four shadow signatures recur across the homepage: a 1px subtle drop, a translucent blue ring, a thick near-black 2px outline (used as the active-element marker on sub-nav), and the layered light-edge + drop-shadow used for floating cards.
 
-One shared easing:
+### Decorative Depth
 
-```css
-cubic-bezier(.625,.05,0,1)
-```
+- **Gradient spotlight cards** are the dominant depth device — color saturation against black canvas substitutes for shadow-driven elevation.
+- **Layered product mockups** (browser frames containing live Framer-built sites) sit inside `{colors.surface-1}` cards with the level-2 light-edge treatment.
+- **Subtle blue ring (focus / selected)** is the only chromatic depth signal — used to mark the active state of input groups and pricing tier toggles without changing the underlying surface.
 
-Elements fade, rise, blur, and settle. Never bounce. Never feel playful. GlyphX
-is a precision tool.
+## Shapes
 
----
+### Border Radius Scale
 
-## Typography scale
+Framer's extracted radius set is unusually granular (1px, 4px, 5px, 6px, 8px, 10px, 12px, 15px, 20px, 30px, 40px, 100px). The named scale below picks the levels the marketing surface actually consumes.
 
-| Token             | Voice       | Use                                            |
-| ----------------- | ----------- | ---------------------------------------------- |
-| `headline-display`| Fraunces    | Hero H1. ~clamp(2.6rem, 6vw, 4.5rem), light.   |
-| `headline-lg`     | Fraunces    | Major section H2. ~2.4–3rem, light.            |
-| `headline-md`     | Geist       | Card / sub-section heads. ~1.5–1.75rem, 600.   |
-| `headline-sm`     | Geist       | Small heads. ~1.25rem, 600.                    |
-| `body-lg`         | Geist       | Lead paragraphs. 1.0625–1.125rem.              |
-| `body-md`         | Geist       | Default body. 0.875–1rem.                      |
-| `label`           | Geist Mono  | Eyebrows / nav / chips. UPPERCASE, `0.16em`.   |
+| Token | Value | Use |
+|---|---|---|
+| `{rounded.xs}` | 4px | Small chip / utility radius |
+| `{rounded.sm}` | 6px | Inline tag, badge |
+| `{rounded.md}` | 10px | Form input, list item |
+| `{rounded.lg}` | 15px | Template card thumbnails |
+| `{rounded.xl}` | 20px | Pricing cards, mockup tiles |
+| `{rounded.xxl}` | 30px | Gradient spotlight cards, oversized panels |
+| `{rounded.pill}` | 100px | All primary text CTAs |
+| `{rounded.full}` | 9999px | Circular icon buttons, avatar circles |
 
-The editorial serif (`.font-serif`) is **light weight** (400) with the SOFT
-optical axis dialled up for warmth. Emphasis words use real *italics* — that
-contrast (upright roman + slanted italic on one line) is the autosend signature.
-Keep mono tracking subtle: crisp utility, not a coded aesthetic.
+### Photography & Illustration Geometry
 
----
+- Embedded site mockups (browser-chromed previews of Framer-built sites) sit in `{rounded.xl}` 20px tiles with `{spacing.md}` 15px interior padding.
+- Gradient spotlight cards use `{rounded.xxl}` 30px corners — softer than the 20px content cards by design, to make them feel like atmospheric panels rather than tighter UI.
+- Icon glyphs and sub-nav glyphs render in `{rounded.full}` circles at 32–40px sizes.
 
-## Colour tokens
+## Components
 
-Semantic tokens drive the component library and editor chrome. Neutrals are
-**warm stone**; blue is the single brand accent.
+### Buttons
 
-| Token                | Light                   | Dark                       | Role                  |
-| -------------------- | ----------------------- | -------------------------- | --------------------- |
-| `--background`       | `#FAFAF9`               | `#0C0B0A`                  | Warm paper floor      |
-| `--canvas`           | `#FAFAF9`               | `#0C0B0A`                  | Root surface          |
-| `--card`             | `#FFFFFF`               | `#1A1816`                  | Raised surface        |
-| `--surface`          | `#F7F6F4`               | `#232020`                  | Elevated surface      |
-| `--foreground`       | `#292524`               | `#ECE9E6`                  | Primary text (ink)    |
-| `--muted-foreground` | `#79716B`               | `#A8A29B`                  | Secondary text        |
-| `--primary`          | `#1C1917`               | `#F5F3F0`                  | Ink emphasis          |
-| `--accent`           | `#E7E5E4`               | `#292523`                  | Stone hover surface   |
-| `--border` (chrome)  | `rgb(41 37 36 / .10)`   | `rgb(245 240 235 / .09)`   | Warm translucent line |
-| `--hairline` (mktg)  | `#E7E5E4`               | `rgb(245 240 235 / .10)`   | Solid structural line |
-| `--brand`            | `#007ACC`               | `#1F9CF0`                  | GlyphX blue           |
-| `--brand-hover`      | `#1177BB`               | `#38B6FF`                  | Interactive hover     |
-| `--brand-subtle`     | `rgb(0 122 204 / .08)`  | `rgb(31 156 240 / .12)`    | Soft brand wash       |
-| `--success`          | `#10B981`               | `#34D399`                  | Success state         |
-| `--warning`          | `#F59E0B`               | `#FBBF24`                  | Warning state         |
-| `--destructive`      | `#EF4444`               | `#F87171`                  | Error state           |
+**`button-primary`** — White pill on dark canvas. The primary CTA across home, pricing, AI, and gallery pages.
+- Background `{colors.primary}`, text `{colors.on-primary}`, type `{typography.button}`, padding 10px 15px, rounded `{rounded.pill}`.
+- Pressed state lives in `button-primary-pressed` (the live site uses a transform-scale shrink rather than a darkened fill).
 
-Two border tokens, two jobs:
+**`button-secondary`** — Charcoal pill. Used for secondary navigation actions ("Sign in", "Talk to sales") and as the visual counterpart to the primary pill.
+- Background `{colors.surface-1}`, text `{colors.ink}`, type `{typography.button}`, padding 10px 15px, rounded `{rounded.pill}`.
 
-* `--border` — the app's warm **translucent** hairline; adapts to the surface
-  beneath it. Used in the desktop editor chrome.
-* `--hairline` — the marketing layer's **solid warm stone line** (`#E7E5E4`).
-  Draws the crisp structural grid (stat rows, feature cells, footer columns)
-  that defines the editorial look.
+**`button-translucent`** — Translucent / lifted secondary used on top of busy backgrounds (gallery hero, gradient cards).
+- Background `{colors.surface-2}`, text `{colors.ink}`, type `{typography.button}`, rounded `{rounded.xxl}`, padding 8px 14px.
 
----
+**`button-icon-circular`** — 40px circle for inline icon actions (carousel arrows, social links).
+- Background `{colors.surface-1}`, text `{colors.ink}`, rounded `{rounded.full}`, size 40px.
 
-## Brand colour
+### Pricing Tabs
 
-### Blue 400 — `#1F9CF0`
-Gradient highlight / dark-mode brand.
+**`pricing-tab-default`** + **`pricing-tab-selected`** — The pill-toggle that switches between Basic / Pro / Business / Enterprise on `/pricing`.
+- Default: `{colors.canvas}` background, `{colors.ink-muted}` text, rounded `{rounded.pill}`.
+- Selected: `{colors.surface-2}` background, `{colors.ink}` text — selected = lift, not color. Surface depth communicates "active" without needing a chromatic fill.
 
-### Blue 500 — `#007ACC`
-Primary brand colour. The marketing CTA and the eyebrow accent.
+### Inputs & Forms
 
-### Blue 600 — `#1177BB`
-Gradient depth and hover state.
+**`text-input`** + **`text-input-focused`** — Form fields on `/pricing` (seat-count, currency switcher) and the in-product preview surfaces.
+- Background `{colors.surface-1}`, text `{colors.ink}`, type `{typography.body}`, rounded `{rounded.md}`, padding 10px 14px.
+- Focused state retains the same surface; the focus ring is the level-3 blue-tinted shadow `rgba(0,153,255,0.15)` 0 0 0 1px.
 
-### Stone ink — `#1C1917` / `#292524`
-Warm primary text and the inverse (dark CTA) surface.
+### Cards & Containers
 
-The brand gradient (`linear-gradient(135deg, #1F9CF0, #007ACC 55%, #1177BB)`) is
-for the **logo, app icon, marketing hero glow, and framed-mount backdrops** only.
-Never use gradients in general application UI.
+**`pricing-card`** — Each tier on `/pricing`.
+- Background `{colors.surface-1}`, text `{colors.ink}`, type `{typography.body}`, rounded `{rounded.xl}`, padding 24px.
 
----
+**`pricing-card-featured`** — The Pro tier (visually emphasized).
+- Background `{colors.surface-2}`, otherwise identical structure. The lift is one surface step up — no chromatic outline.
 
-## Buttons
+**`template-card`** — Thumbnail tile in the home "Built with Framer" gallery and `/marketplace`.
+- Background `{colors.surface-1}`, text `{colors.ink}`, type `{typography.body-sm}`, rounded `{rounded.lg}`, padding 12px.
 
-Compact, confident, mono-labelled where they read as utility.
+**`product-mockup-tile`** — Larger tile that frames a live product UI mock (Framer canvas, Workshop video, AI translate panel).
+- Background `{colors.surface-1}`, text `{colors.ink}`, type `{typography.body-sm}`, rounded `{rounded.xl}`, padding 16px.
 
-* **Primary** — `--brand` fill, white text, `rounded-lg` (12px), `h-9`–`h-12`.
-  The single most saturated interactive object on a page. Reserve for the main
-  conversion action.
-* **Secondary** — white surface, solid warm border, ink text. Lower-emphasis
-  actions ("Book a demo", "Try it in the browser").
-* **Ghost / tertiary** — text-only, no container; behaves like a link.
+### Gradient Spotlight Cards (signature)
 
-Hover deepens fill or lifts to the stone `--accent`; never bounces.
+The defining decorative surface of Framer's marketing — oversized atmospheric tiles dropped into otherwise monochrome card grids. Variants:
 
----
+**`gradient-spotlight-card`** — violet ground (most common).
+- Background `{colors.gradient-violet}`, text `{colors.ink}`, type `{typography.subhead}`, rounded `{rounded.xl}`, padding 32px. (The on-site card often pushes to `{rounded.xxl}` 30px when it spans a wider tile.)
 
-## Imagery — the modern "mount"
+**`gradient-spotlight-card-magenta`** — magenta-pink ground.
+- Background `{colors.gradient-magenta}`, otherwise identical.
 
-The one place GlyphX is allowed to look rich:
+**`gradient-spotlight-card-orange`** — sunset-orange wash.
+- Background `{colors.gradient-orange}`, otherwise identical.
 
-* **Framed product mounts** — real product screenshots inside a browser/device
-  frame (the three-dot chrome), `rounded-2xl`, sitting on a photographic or dark
-  backdrop. A soft layered shadow + a faint `--brand-subtle` glow lifts them off
-  the canvas.
-* **Illustration motif** — a single recurring editorial illustration (in the
-  autosend reference, a pixel-art landscape) can anchor the hero and feature
-  backdrops. Used sparingly, it gives the brand a memorable, human texture.
-* **Coded mockups** — supporting visuals (compile bar, git status, split
-  preview) stay hand-coded so they track the real UI, but are framed and warmed
-  to match the real mounts.
+(Coral pink follows the same shape with `{colors.gradient-coral}`.)
 
-Imagery is mounted and framed — never a raw bleeding screenshot, never a
-gradient blob.
+### Comparison & FAQ
 
----
+**`feature-row`** + **`comparison-row`** — Single rows inside the pricing comparison table.
+- `feature-row`: `{colors.canvas}` background, `{colors.ink}` text. Header rows.
+- `comparison-row`: `{colors.canvas}` background, `{colors.ink-muted}` text. Data rows with `{typography.body-sm}` and 1px `{colors.hairline-soft}` underlines.
 
-## Dark mode philosophy
+**`faq-row`** — Each accordion line in the pricing-page FAQ.
+- Background `{colors.canvas}`, text `{colors.ink}`, type `{typography.body}`, rounded `{rounded.md}`, padding 24px.
 
-Dark mode is **warm graphite**, not navy and not cool. Paper-and-ink in light
-mode; warm-graphite-and-ink in dark mode. Blue appears only in active states,
-links, selections, focus indicators, and brand surfaces. The application itself
-stays neutral.
+### Navigation
 
----
+**`top-nav`** — Sticky bar on `{colors.canvas}` with the Framer wordmark left, primary nav links centered, and a `button-secondary` ("Sign in") + `button-primary` ("Get started for free") pair right.
+- Background `{colors.canvas}`, text `{colors.ink}`, type `{typography.body-sm}`, height 56px.
+- Mobile: collapses primary links into a hamburger; the two pill CTAs collapse into a single primary pill on the bar.
+
+### Footer
+
+**`footer`** — Dense link grid on `{colors.canvas}` with the Framer wordmark left and 5–6 columns of caption-sized links.
+- Background `{colors.canvas}`, text `{colors.ink-muted}`, type `{typography.caption}`, padding 64px 32px.
 
 ## Do's and Don'ts
 
-* **Do** keep pages spacious and centered with generous vertical rhythm.
-* **Do** use Fraunces only for headline moments; keep UI copy in Geist / Geist Mono.
-* **Do** reserve blue for the primary action and the eyebrow accent.
-* **Do** rely on the warm grid-line and whitespace for depth, not shadows.
-* **Do** frame imagery in mounts with a soft shadow + faint brand glow.
-* **Don't** introduce heavy gradients, dramatic shadows, or glossy effects in UI.
-* **Don't** use bright colours beyond the blue accent and the semantic states.
-* **Don't** crowd the layout with dense sidebars or scattered hairlines —
-  borders should read as one structural grid, not noise.
+### Do
+
+- Reserve `{colors.primary}` (white) and `{colors.canvas}` (near-black) as the system's two anchor surfaces. Every band of the page chooses one or the other.
+- Push display-size letter-spacing aggressively negative — `{typography.display-xxl}` at -5.5px is the brand signature, not a stylistic accident.
+- Use `{colors.accent-blue}` only for hyperlinks, focus rings, and selected indicators. Never as a background or button fill.
+- Drop one or two `gradient-spotlight-card` variants into a card grid; they are the brand's atmosphere device. Don't overdo it — three or more in the same viewport reads as a moodboard, not a system.
+- Compose every CTA as a pill (`{rounded.pill}`); secondary actions live as charcoal pills, never as bordered ghost buttons.
+- Keep body type Inter Variable with character variants `cv01`, `cv05`, `cv09`, `cv11`, `ss03`, `ss07` enabled — the brand voice depends on them.
+- Use surface lift (canvas → surface-1 → surface-2) to mark hierarchy on dark, not opacity changes on white type.
+
+### Don't
+
+- Don't ship a light-mode marketing page. Framer's identity is dark.
+- Don't introduce mid-tone gray text outside `{colors.ink-muted}`. The hierarchy is binary: `ink` or `ink-muted`.
+- Don't use `{colors.accent-blue}` as a brand fill (e.g., a blue CTA pill). The blue is a signal color, not a surface.
+- Don't square off CTAs. Pill (`{rounded.pill}`) or full circle is the brand vocabulary.
+- Don't reduce the negative letter-spacing on display sizes "for accessibility". The compression is intrinsic to the brand voice; reduce the SIZE if needed, but keep the percentage.
+- Don't apply gradient backgrounds to whole sections. Gradients are CARDS, not section grounds.
+- Don't combine more than one chromatic accent. The palette is monochrome plus one blue plus the gradient family — not "blue, green, and red".
+
+## Responsive Behavior
+
+### Breakpoints
+
+| Name | Width | Key Changes |
+|---|---|---|
+| Desktop | 1199px | Default desktop layout |
+| Tablet | 810px | Card grids collapse 4-up → 2-up; nav becomes hamburger |
+| Mobile-Lg | 809px | Pricing comparison table becomes per-tier accordion |
+| Mobile-XS | 98px | Smallest documented breakpoint — single-column everything |
+
+### Touch Targets
+
+- Pill buttons (`button-primary`, `button-secondary`) maintain a minimum 44px tap height across all viewports — combine `{typography.button}` 14px line-height with the documented 10px vertical padding.
+- Circular icon buttons (`button-icon-circular`) are 40px on desktop and grow to 44px on touch viewports.
+- Pricing-tab pills hold ≥40px tap height; below 810px they may collapse into a horizontal-scroll row instead of stacking.
+
+### Collapsing Strategy
+
+- **Nav**: horizontal nav with a centered link group + right-anchored pill pair collapses to a hamburger overlay below 810px. The `button-primary` stays visible on the bar.
+- **Card grids**: the gallery and template-card grids go 2-up on desktop → 1-up on mobile. Gradient spotlight cards retain `{rounded.xxl}` corners at every viewport — they don't bleed.
+- **Pricing comparison table**: collapses into per-tier accordions below 810px to avoid horizontal scroll.
+- **Display type**: `{typography.display-xxl}` 110px scales down toward `{typography.display-lg}` 62px on tablet and `{typography.display-md}` 32px on mobile, preserving the percentage-negative letter-spacing.
+
+### Image Behavior
+
+- Embedded product mockups (browser frames containing live Framer-built sites) maintain their aspect ratio and never crop.
+- Gradient spotlight cards keep their gradient orientations across breakpoints — the gradient direction is part of the brand spec.
+
+## Iteration Guide
+
+1. Focus on ONE component at a time and reference it by its `components:` token name (e.g., `{components.button-primary}`, `{components.gradient-spotlight-card}`).
+2. When introducing a new section on the dark canvas, decide first which surface lift it lives on — `{colors.canvas}` for hero/FAQ, `{colors.surface-1}` for cards, `{colors.surface-2}` for featured cards. The depth choice is the most consequential decision.
+3. Default body to `{typography.body}` with all the documented OpenType variants; reach for `{typography.subhead}` only inside spotlight cards.
+4. Run `npx @google/design.md lint DESIGN.md` after edits — `broken-ref`, `contrast-ratio`, and `orphaned-tokens` warnings flag issues automatically.
+5. Add new variants as separate component entries (`-pressed`, `-featured`, `-selected`) — do not bury them in prose.
+6. Treat `{colors.accent-blue}` as a single-shot signal color: hyperlinks, focus, and selection — that's it. If you find yourself reaching for a second blue, the brand is drifting.
+7. Gradient spotlight cards are scarce by design. One or two per long page is the spec; three is a moodboard.
+
+## Known Gaps
+
+- The exact gradient stops for the spotlight cards are derived from screenshot pixels rather than from CSS variables — the production gradients are likely defined as `linear-gradient` strings on individual elements rather than as design tokens. Treat the documented `{colors.gradient-*}` hex values as base anchors, not as exact gradient specs.
+- Form-field validation / error styling is not visible on the inspected pages because no error states render in the static screenshots.
+- Dark mode is the only mode — no light-mode adaptation is documented because the marketing site does not ship one.
+- The marketplace template detail page returned sparser CSS variable data than the other pages; surface tokens for that page were inferred from the matching home / gallery treatment rather than extracted directly.

@@ -180,7 +180,7 @@
 <DropdownMenu>
   <DropdownMenuTrigger>
     {#snippet child({ props })}
-      <Button {...props} size="xs" variant="default_soft">
+      <Button {...props} size="xs" variant="default_soft" class="rounded-full px-3">
         <IconDownload />
         Export
         <IconChevronDown />
