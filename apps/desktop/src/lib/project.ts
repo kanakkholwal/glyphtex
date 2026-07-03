@@ -64,5 +64,7 @@ export const projectHost: ProjectHost = {
 
 	takeLaunchPath: () => invoke<string | null>('take_launch_path'),
 	onOpenPath: (cb) => listen<string>('glyphx://open-path', (e) => cb(e.payload)),
-	registerShellIntegration: () => invoke<string>('register_shell_integration')
+	registerShellIntegration: () => invoke<string>('register_shell_integration'),
+	unregisterShellIntegration: () => invoke<string>('unregister_shell_integration'),
+	shellIntegrationRegistered: () => invoke<boolean>('shell_integration_registered')
 };

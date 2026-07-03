@@ -304,7 +304,7 @@
 				/>
 				<input
 					bind:value={query}
-					class="bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/30 ease-craft h-11 w-full rounded-xl border py-2 pr-3 pl-10 text-sm outline-none transition-[box-shadow,border-color] duration-200 focus-visible:ring-2"
+					class="bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/30 shadow-craft-sm ease-craft h-11 w-full rounded-2xl border py-2 pr-3 pl-10 text-sm outline-none transition-[box-shadow,border-color] duration-200 focus-visible:ring-2"
 					placeholder="Search projects"
 					spellcheck="false"
 					aria-label="Search projects"

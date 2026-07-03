@@ -33,11 +33,16 @@
 				landing_ghost:
 					"bg-card/70 text-foreground border-border/70 rounded-full shadow-craft-sm hover:bg-surface-soft",
 				secondary:
-					"border-secondary bg-secondary text-secondary-foreground border-border/30 shadow-craft-sm hover:bg-muted/50",
+					"border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/70 dark:bg-secondary/60 dark:hover:bg-secondary/80",
 				outline:
-					"border-border bg-background shadow-craft-sm hover:border-border hover:bg-muted hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+					"border-border bg-transparent hover:bg-muted hover:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+				/* soft — a quiet neutral fill (no border, no shadow). The default for
+				   secondary actions in dense/settings surfaces; flatter than `secondary`,
+				   more present than `ghost`. */
+				soft:
+					"border-transparent bg-muted text-foreground hover:bg-muted/70 dark:bg-muted/60 dark:hover:bg-muted/80",
 				ghost:
-					"border-transparent hover:bg-muted/40 hover:text-accent-foreground dark:hover:bg-accent/50",
+					"border-transparent hover:bg-muted/60 hover:text-foreground dark:hover:bg-accent/50",
 				link: "text-primary underline-offset-4 hover:underline hover:scale-100",
 				destructive:
 					"bg-destructive text-destructive-foreground shadow-craft-sm hover:bg-destructive/90 focus-visible:ring-destructive/20",

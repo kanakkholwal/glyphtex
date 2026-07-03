@@ -77,3 +77,71 @@ fn register_windows_folder_menu() -> Result<String, String> {
         Err(format!("reg import failed (exit {:?})", status.code()))
     }
 }
+
+/// Whether the "Open with GlyphX" folder entry is currently registered.
+/// Always `false` off Windows (nothing is registered there).
+#[tauri::command]
+pub fn shell_integration_registered() -> Result<bool, String> {
+    #[cfg(windows)]
+    {
+        query_windows_folder_menu()
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(false)
+    }
+}
+
+#[cfg(windows)]
+fn query_windows_folder_menu() -> Result<bool, String> {
+    use std::process::Command;
+
+    use crate::subprocess::CommandExt as _;
+
+    // `reg query` exits 0 when the key exists, non-zero when it doesn't. Output
+    // is captured (and dropped) so nothing flashes to a console.
+    let out = Command::new("reg")
+        .arg("query")
+        .arg("HKCU\\Software\\Classes\\Directory\\shell\\GlyphXOpen")
+        .no_window()
+        .output()
+        .map_err(|e| e.to_string())?;
+    Ok(out.status.success())
+}
+
+/// Remove the "Open with GlyphX" folder entry (Windows). Idempotent — removing
+/// an entry that isn't there still succeeds. No-op off Windows.
+#[tauri::command]
+pub fn unregister_shell_integration() -> Result<String, String> {
+    #[cfg(windows)]
+    {
+        unregister_windows_folder_menu()
+    }
+    #[cfg(not(windows))]
+    {
+        Ok("Nothing to remove on this platform.".to_string())
+    }
+}
+
+#[cfg(windows)]
+fn unregister_windows_folder_menu() -> Result<String, String> {
+    use std::process::Command;
+
+    use crate::subprocess::CommandExt as _;
+
+    // Deleting each parent key also drops its `\command` subkey. `/f` skips the
+    // confirmation prompt; a "key not found" result is fine (already removed).
+    for key in [
+        "HKCU\\Software\\Classes\\Directory\\shell\\GlyphXOpen",
+        "HKCU\\Software\\Classes\\Directory\\Background\\shell\\GlyphXOpen",
+    ] {
+        Command::new("reg")
+            .arg("delete")
+            .arg(key)
+            .arg("/f")
+            .no_window()
+            .output()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok("Removed \"Open with GlyphX\" from the folder right-click menu.".to_string())
+}

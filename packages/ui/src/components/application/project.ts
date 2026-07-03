@@ -60,4 +60,8 @@ export type ProjectHost = {
 	onOpenPath?: (cb: (path: string) => void) => Promise<() => void>;
 	/** Best-effort: register the "Open with GlyphX" folder context menu (Windows). */
 	registerShellIntegration?: () => Promise<string>;
+	/** Remove the "Open with GlyphX" folder context menu (Windows). */
+	unregisterShellIntegration?: () => Promise<string>;
+	/** Whether the "Open with GlyphX" folder context menu is currently registered. */
+	shellIntegrationRegistered?: () => Promise<boolean>;
 };

@@ -38,13 +38,16 @@
 <script lang="ts">
 	import { Button } from '@glyphx/ui/button';
 	import { Segmented } from '@glyphx/ui/segmented';
+	import { SettingsSection } from '@glyphx/ui/settings-section';
 	import {
 		settings,
 		TEX_PROGRAM_LABELS,
 		type EngineKind,
 		type TexProgram
 	} from '@glyphx/ui/settings';
+	import { Spinner } from '@glyphx/ui/spinner';
 	import { toast } from '@glyphx/ui/sonner';
+	import { IconRefresh } from '@tabler/icons-svelte';
 
 	/**
 	 * EngineSettings — pick the compile engine (bundled Tectonic or a local
@@ -225,169 +228,189 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3">
+<div class="flex flex-col gap-6">
 	<!-- Which engine compiles: bundled Tectonic, or a local System TeX install. -->
-	<div class="flex flex-col gap-1.5">
-		<Segmented
-			options={kindOpts}
-			value={settings.engineKind}
-			onValueChange={(v) => (settings.engineKind = v as EngineKind)}
-			size="sm"
-			aria-label="Compile engine"
-		/>
-		<p class="text-muted-foreground text-[11px] leading-relaxed">
-			{#if settings.engineKind === 'system'}
-				Your local TeX install, via latexmk.
-			{:else}
-				Bundled LaTeX — no setup, packages fetched on demand.
-			{/if}
-		</p>
-	</div>
+	<SettingsSection label="Compile engine">
+		<div class="flex flex-col gap-3 p-5">
+			<Segmented
+				options={kindOpts}
+				value={settings.engineKind}
+				onValueChange={(v) => (settings.engineKind = v as EngineKind)}
+				size="md"
+				aria-label="Compile engine"
+			/>
+			<p class="text-muted-foreground text-xs leading-relaxed">
+				{#if settings.engineKind === 'system'}
+					Your local TeX install, driven through latexmk.
+				{:else}
+					Bundled LaTeX — no setup, packages fetched on demand.
+				{/if}
+			</p>
+		</div>
+	</SettingsSection>
 
 	{#if settings.engineKind === 'system'}
 		<!-- System TeX: detection + program picker. -->
-		<div class="flex flex-col gap-2" use:onVisible={autoDetect}>
-			{#if detecting}
-				<p class="text-muted-foreground text-xs">Looking for a TeX installation…</p>
-			{:else if systemReady}
-				<div class="flex items-center gap-2">
-					<span class="text-success text-[10px] font-semibold tracking-wide uppercase">Detected</span>
-					{#if sysInfo?.version}
-						<span class="text-muted-foreground/80 truncate text-xs">{sysInfo.version}</span>
-					{/if}
-				</div>
-				{#if programOpts.length}
-					<div class="flex flex-col gap-1">
-						<span class="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-							TeX program
+		<SettingsSection label="System TeX">
+			<div class="flex flex-col gap-3 p-5" use:onVisible={autoDetect}>
+				{#if detecting}
+					<p class="text-muted-foreground text-sm">Looking for a TeX installation…</p>
+				{:else if systemReady}
+					<div class="flex items-center gap-2">
+						<span
+							class="bg-success/10 text-success inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+						>
+							Detected
 						</span>
-						<Segmented
-							options={programOpts}
-							value={settings.texProgram}
-							onValueChange={(v) => (settings.texProgram = v as TexProgram)}
-							size="sm"
-							aria-label="TeX program"
-						/>
+						{#if sysInfo?.version}
+							<span class="text-muted-foreground truncate text-xs">{sysInfo.version}</span>
+						{/if}
+					</div>
+					{#if programOpts.length}
+						<div class="flex flex-col gap-1.5">
+							<span class="text-muted-foreground text-xs font-medium">TeX program</span>
+							<Segmented
+								options={programOpts}
+								value={settings.texProgram}
+								onValueChange={(v) => (settings.texProgram = v as TexProgram)}
+								size="md"
+								aria-label="TeX program"
+							/>
+						</div>
+					{/if}
+				{:else}
+					<div
+						class="border-border text-muted-foreground rounded-xl border border-dashed px-4 py-3.5 text-sm leading-relaxed"
+					>
+						No TeX installation found on your PATH. Install
+						<span class="text-foreground">TeX Live</span> or
+						<span class="text-foreground">MiKTeX</span> (both free, cross-platform), then re-check.
+						<div class="mt-2.5">
+							<Button variant="soft" size="xs" onclick={detectSystem}>Re-check</Button>
+						</div>
 					</div>
 				{/if}
-			{:else}
-				<div class="border-border text-muted-foreground rounded-md border border-dashed px-3 py-2.5 text-xs leading-relaxed">
-					No TeX installation found on your PATH. Install <span class="text-foreground">TeX Live</span>
-					or <span class="text-foreground">MiKTeX</span> (both free, cross-platform), then re-check.
-					<Button variant="outline" size="xs" class="mt-2 self-start" onclick={detectSystem}>
-						Re-check
-					</Button>
-				</div>
-			{/if}
-		</div>
+			</div>
+		</SettingsSection>
 	{:else}
-	<div class="flex items-center justify-between" use:onVisible={autoCheck}>
-		<span class="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-			{engine.label} engine
-		</span>
-		<Button variant="ghost" size="xs" onclick={refresh} disabled={loading}>
-			{loading ? 'Checking…' : 'Refresh'}
-		</Button>
-	</div>
-
-	{#if error}
-		<p class="text-destructive text-xs">{error}</p>
-	{/if}
-
-	{#if loading}
-		<p class="text-muted-foreground text-xs">Checking available versions…</p>
-	{/if}
-
-	{#if versions.length}
-		<div class="flex flex-col gap-1">
-			{#each shown as v (v.version)}
-				{@const nightly = v.version === 'nightly'}
-				<div class="border-border flex items-center gap-2 rounded-md border px-2 py-1.5">
-					<span
-						class="text-foreground shrink-0 text-[13px] {nightly ? 'capitalize' : 'tabular-nums'}"
-						title={nightly
-							? 'Newer xetex-layout — fixes the fontawesome5 / icon-font crash'
-							: undefined}
-					>
-						{v.version}
-					</span>
-					{#if v.active}
-						<span class="text-success shrink-0 text-[10px] font-semibold tracking-wide uppercase">
-							Active
-						</span>
-					{:else if v.installed}
-						<span
-							class="text-muted-foreground/60 shrink-0 text-[10px] font-medium tracking-wide uppercase"
-						>
-							Installed
-						</span>
+		<!-- Tectonic versions, pulled live from GitHub releases. -->
+		<SettingsSection label={`${engine.label} versions`}>
+			{#snippet action()}
+				<Button variant="soft" size="xs" onclick={refresh} disabled={loading}>
+					{#if loading}
+						<Spinner class="size-3.5" /> Checking…
+					{:else}
+						<IconRefresh size={15} /> Refresh
 					{/if}
-					<div class="ml-auto flex shrink-0 items-center gap-1">
-						{#if !v.installed}
-							<Button
-								variant="outline"
-								size="xs"
-								onclick={() => download(v.version)}
-								disabled={busy === v.version}
-							>
-								{busy === v.version ? 'Downloading…' : 'Download'}
-							</Button>
-						{:else}
-							{#if !v.active}
-								<Button variant="secondary" size="xs" onclick={() => use(v.version)}>Use</Button>
-							{/if}
-							{#if engine.remove}
-								<Button
-									variant="ghost"
-									size="xs"
-									class="text-muted-foreground hover:text-destructive"
-									onclick={() => remove(v.version)}
-									disabled={busy === v.version}
-									title="Uninstall this version"
+				</Button>
+			{/snippet}
+
+			<div use:onVisible={autoCheck}>
+				{#if error}
+					<p class="text-destructive px-5 py-4 text-sm">{error}</p>
+				{:else if loading && !versions.length}
+					<p class="text-muted-foreground px-5 py-4 text-sm">Checking available versions…</p>
+				{:else if !versions.length}
+					<p class="text-muted-foreground px-5 py-4 text-sm">No versions to show yet.</p>
+				{:else}
+					<div class="divide-border/60 divide-y">
+						{#each shown as v (v.version)}
+							{@const nightly = v.version === 'nightly'}
+							<div class="flex items-center gap-3 px-5 py-3.5">
+								<span
+									class="text-foreground shrink-0 text-sm {nightly ? 'capitalize' : 'tabular-nums'}"
+									title={nightly
+										? 'Newer xetex-layout — fixes the fontawesome5 / icon-font crash'
+										: undefined}
 								>
-									{busy === v.version ? 'Removing…' : 'Remove'}
-								</Button>
-							{/if}
+									{v.version}
+								</span>
+								{#if v.active}
+									<span
+										class="bg-brand-subtle text-brand inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+									>
+										Active
+									</span>
+								{:else if v.installed}
+									<span
+										class="text-muted-foreground/70 shrink-0 text-[10px] font-medium uppercase tracking-wide"
+									>
+										Installed
+									</span>
+								{/if}
+								<div class="ml-auto flex shrink-0 items-center gap-1.5">
+									{#if !v.installed}
+										<Button
+											variant="soft"
+											size="xs"
+											onclick={() => download(v.version)}
+											disabled={busy === v.version}
+										>
+											{busy === v.version ? 'Downloading…' : 'Download'}
+										</Button>
+									{:else}
+										{#if !v.active}
+											<Button variant="soft" size="xs" onclick={() => use(v.version)}>Use</Button>
+										{/if}
+										{#if engine.remove}
+											<Button
+												variant="ghost"
+												size="xs"
+												class="text-muted-foreground hover:text-destructive"
+												onclick={() => remove(v.version)}
+												disabled={busy === v.version}
+												title="Uninstall this version"
+											>
+												{busy === v.version ? 'Removing…' : 'Remove'}
+											</Button>
+										{/if}
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+					{#if versions.length > PREVIEW}
+						<div class="border-border/60 border-t px-5 py-3">
+							<Button
+								variant="ghost"
+								size="xs"
+								class="text-muted-foreground"
+								onclick={() => (showAll = !showAll)}
+							>
+								{showAll ? 'Show fewer' : `Show all ${versions.length} versions`}
+							</Button>
+						</div>
+					{/if}
+				{/if}
+			</div>
+		</SettingsSection>
+
+		<!-- On-disk package cache. -->
+		{#if engine.cacheInfo}
+			<SettingsSection label="Package cache">
+				{#snippet action()}
+					{#if cache}
+						<span class="text-muted-foreground text-xs tabular-nums">{fmtBytes(cache.bytes)}</span>
+					{/if}
+				{/snippet}
+				<div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+					<p class="text-muted-foreground text-sm">
+						Cache common packages for faster, fully offline compiles.
+					</p>
+					<div class="flex items-center gap-2">
+						{#if engine.prefetch}
+							<Button variant="soft" size="xs" onclick={prefetch} disabled={prefetching}>
+								{prefetching ? 'Caching…' : 'Prefetch common'}
+							</Button>
+						{/if}
+						{#if engine.clearCache}
+							<Button variant="ghost" size="xs" onclick={clearCache} disabled={clearing}>
+								{clearing ? 'Clearing…' : 'Clear cache'}
+							</Button>
 						{/if}
 					</div>
 				</div>
-			{/each}
-			{#if versions.length > PREVIEW}
-				<Button
-					variant="ghost"
-					size="xs"
-					class="text-muted-foreground self-start"
-					onclick={() => (showAll = !showAll)}
-				>
-					{showAll ? 'Show fewer' : `Show all ${versions.length} versions`}
-				</Button>
-			{/if}
-		</div>
-	{/if}
-
-	{#if engine.cacheInfo}
-		<div class="border-border/60 mt-1 flex flex-col gap-1.5 border-t pt-2">
-			<div class="flex items-center justify-between">
-				<span class="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-					Package cache
-				</span>
-				{#if cache}
-					<span class="text-muted-foreground/70 text-xs tabular-nums">{fmtBytes(cache.bytes)}</span>
-				{/if}
-			</div>
-			<div class="flex gap-1.5">
-				{#if engine.prefetch}
-					<Button variant="outline" size="xs" onclick={prefetch} disabled={prefetching}>
-						{prefetching ? 'Caching…' : 'Prefetch common'}
-					</Button>
-				{/if}
-				{#if engine.clearCache}
-					<Button variant="ghost" size="xs" onclick={clearCache} disabled={clearing}>
-						{clearing ? 'Clearing…' : 'Clear cache'}
-					</Button>
-				{/if}
-			</div>
-		</div>
-	{/if}
+			</SettingsSection>
+		{/if}
 	{/if}
 </div>

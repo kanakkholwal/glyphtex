@@ -37,8 +37,7 @@
 					GlyphX
 				</h2>
 				<p class="text-muted-foreground text-sm leading-relaxed text-balance">
-					A local-first LaTeX editor. Your documents compile on your own machine and
-					never leave this device unless you choose to share them.
+					A local-first LaTeX editor
 				</p>
 			</div>
 

@@ -3,6 +3,7 @@
 	import { Badge } from '@glyphx/ui/badge';
 	import { Button } from '@glyphx/ui/button';
 	import { Logo } from '@glyphx/ui/logo';
+	import { SettingsSection } from '@glyphx/ui/settings-section';
 	import { Spinner } from '@glyphx/ui/spinner';
 	import { onMount } from 'svelte';
 
@@ -38,13 +39,13 @@
 	});
 </script>
 
-<div class="flex max-w-2xl flex-col gap-8">
+<div class="flex flex-col gap-8">
 	<header>
-		<h2 class="font-display text-xl font-semibold tracking-tight">About</h2>
+		<h2 class="font-display text-2xl font-semibold tracking-tight">About</h2>
 		<p class="text-muted-foreground mt-1.5 text-sm">What GlyphX is, and what it promises.</p>
 	</header>
 
-	<section class="bg-card border-border flex flex-col gap-5 rounded-xl border p-5">
+	<SettingsSection class="flex flex-col gap-5 p-5">
 		<div class="flex items-center gap-4">
 			<Logo text={false} badge size={48} />
 			<div class="flex flex-col gap-1">
@@ -71,8 +72,8 @@
 				</p>
 			</div>
 			<Button
-				variant="outline"
-				size="sm"
+				variant="soft"
+				size="xs"
 				class="shrink-0"
 				disabled={updater.status === 'checking' || updater.status === 'downloading'}
 				onclick={() => updater.checkNow()}
@@ -97,5 +98,5 @@
 				<code class="bg-muted rounded px-1 py-0.5 text-[12px]">\input</code> or include.
 			</p>
 		</div>
-	</section>
+	</SettingsSection>
 </div>
