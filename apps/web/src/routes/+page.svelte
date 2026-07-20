@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { Button } from '@glyphx/ui/button';
+	import { Logo } from '@glyphx/ui/logo';
 	import { Reveal } from '@glyphx/ui/reveal';
 	import { SectionHeader } from '@glyphx/ui/section-header';
 	import { trackEvent } from '$lib/analytics';
@@ -12,14 +13,16 @@
 	import {
 		IconAlertTriangle,
 		IconArrowRight,
+		IconBolt,
+		IconLayout,
 		IconArrowUp,
 		IconBook2,
 		IconBrandGithub,
 		IconBrowser,
 		IconCheck,
 		IconChevronDown,
-		IconCircleDot,
 		IconClock,
+		IconMinus,
 		IconCloudOff,
 		IconDeviceDesktop,
 		IconDownload,
@@ -29,10 +32,10 @@
 		IconHistory,
 		IconLock,
 		IconPlayerPlay,
+		IconPlus,
 		IconSchool,
 		IconSearch,
 		IconShield,
-		IconSparkles,
 		IconStack3,
 		IconUsersGroup,
 		IconWifiOff,
@@ -40,7 +43,7 @@
 		IconX
 	} from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
-	import { fly } from 'svelte/transition';
+	import { fly, slide } from 'svelte/transition';
 
 	const repo = 'https://github.com/kanakkholwal/glyphx';
 
@@ -233,15 +236,27 @@
 		}
 	];
 
-	// GlyphX solutions in the same order as `painPoints` so the eye can
-	// follow each row to its answer.
+	// GlyphX solutions. Consolidated to four answers (the pain points on
+	// the left are still six, since the friction list is the point; the
+	// solution card just needs to land the main beats). Plain wording:
+	// researchers care that the file compiles, not which engine compiles
+	// it. No tech jargon, no em dashes.
 	const solutions: string[] = [
-		'Tectonic compiles on your machine — no shared queue, no timeout.',
-		'GPLv3, free for individuals and institutions — no per-seat fees.',
-		'Your drafts stay on your own disk until you choose to share.',
-		'Full Git history with every commit, branch, and remote.',
-		'Native desktop app, or a browser tab for quick edits.',
-		'Unlimited local compiles — no session, no queue, no rate limit.'
+		'Compile on your machine, instantly. No queue, no limits.',
+		'Free for everyone, forever. No subscriptions, no per-seat fees.',
+		'Your drafts stay on your own disk. Every revision is tracked.',
+		'A real desktop app, or a browser tab for quick edits.'
+	];
+
+	// Dummy avatar set. The hue rotates so each circle reads as a
+	// distinct person without photos or a network call. Used in the
+	// solution card's "used at research labs" footer.
+	type AvatarPerson = { name: string; hue: number; sat: number };
+	const avatarPeople: AvatarPerson[] = [
+		{ name: 'AK', hue: 215, sat: 55 },
+		{ name: 'SR', hue: 145, sat: 45 },
+		{ name: 'MJ', hue: 30, sat: 60 },
+		{ name: 'LP', hue: 280, sat: 45 }
 	];
 
 	// Workflow steps. Three beats, matching the trace-mvp rhythm.
@@ -324,6 +339,65 @@
 		description: string;
 	};
 
+	// How-it-works section data. Three showcase cards that fan out above
+	// the step grid (compile / preview / history), then three step cards
+	// below. Plain wording, no engine names, no jargon.
+	type ShowcaseTile = {
+		label: string;
+		icon: typeof IconBolt;
+		bg: string;
+		color: string;
+		rotate: number;
+		offset: number;
+	};
+
+	const showcaseTiles: ShowcaseTile[] = [
+		{
+			label: 'Compile',
+			icon: IconBolt,
+			bg: 'bg-amber-500/10',
+			color: 'text-amber-500',
+			rotate: -12,
+			offset: -130
+		},
+		{
+			label: 'Live preview',
+			icon: IconLayout,
+			bg: 'bg-brand/15',
+			color: 'text-brand',
+			rotate: 0,
+			offset: 0
+		},
+		{
+			label: 'History',
+			icon: IconGitBranch,
+			bg: 'bg-violet-500/10',
+			color: 'text-violet-500',
+			rotate: 10,
+			offset: 130
+		}
+	];
+
+	type HowStep = { step: string; title: string; body: string };
+
+	const howSteps: HowStep[] = [
+		{
+			step: '01',
+			title: 'Open your project.',
+			body: 'Drag a .tex folder in. Overleaf export, Git repo, or a fresh blank document. Nothing reshapes your source.'
+		},
+		{
+			step: '02',
+			title: 'Write and compile locally.',
+			body: 'The PDF updates as you type. Errors land next to the line that caused them. No queue, no waiting.'
+		},
+		{
+			step: '03',
+			title: 'Track in Git, share when ready.',
+			body: 'Every revision is committed. Push to GitHub, GitLab, or your university server when the draft is done.'
+		}
+	];
+
 	const editorFeatures: EditorFeature[] = [
 		{
 			icon: IconBrandGithub,
@@ -361,7 +435,10 @@
 		}
 	];
 
-	// Built for academics. Three beats, one card each, no marketing fluff.
+	// Built for academics. Three personas (PhD student, professor, research
+	// group) plus the supporting tile data for the fanned showcase row
+	// above the cards. Same layout as the How-it-works section: fan of
+	// dummy-avatar tiles, heading, three hover-border cards.
 	type AudienceCard = {
 		icon: typeof IconBook2;
 		title: string;
@@ -384,6 +461,23 @@
 			title: 'Research groups',
 			body: 'A shared repo, individual commits, and one source of truth for the manuscript. No shared Google Doc with a half-written equation.'
 		}
+	];
+
+	// Fanned audience tiles that sit above the cards. Each tile is a
+	// large dummy avatar (inline SVG silhouette) with a role label and
+	// a per-persona hue so the row reads as three distinct people.
+	type AudienceTile = {
+		role: string;
+		hue: number;
+		sat: number;
+		offset: number;
+		rotate: number;
+	};
+
+	const audienceTiles: AudienceTile[] = [
+		{ role: 'PhD student', hue: 215, sat: 55, offset: -130, rotate: -10 },
+		{ role: 'Professor', hue: 280, sat: 45, offset: 0, rotate: 0 },
+		{ role: 'Research group', hue: 145, sat: 45, offset: 130, rotate: 10 }
 	];
 
 	// Two-card pricing teaser: free for individuals, free for institutions.
@@ -691,15 +785,23 @@
 					align="center"
 				/>
 
-				<div class="mt-14 grid gap-10 lg:grid-cols-[1.1fr_auto_1fr] lg:items-stretch lg:gap-6">
+				<div class="mt-14 grid gap-10 lg:grid-cols-[1.1fr_auto_1fr] lg:items-center lg:gap-20">
 					<!--
 					  Left column: pain points. Each row is a concrete cloud-LaTeX
 					  friction with a category icon, a count badge, and a stagger
 					  delay so the cards land one by one. The colours are picked
 					  per category (amber/orange/rose/...) to read as a
 					  multi-issue feedback board.
+
+					  A vertical mask fades the bottom of the stack into the
+					  background so the list never ends with a hard edge against
+					  the next section. Purely visual; the cards remain fully
+					  clickable.
 					-->
-					<div class="flex flex-col gap-2.5">
+					<div
+						class="flex flex-col gap-2.5"
+						style="mask-image: linear-gradient(to bottom, black 0%, black 78%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 0%, black 78%, transparent 100%);"
+					>
 						{#each painPoints as point, i (point.id)}
 							<Reveal variant="left" delay={i * 70}>
 								<article
@@ -730,21 +832,21 @@
 					</div>
 
 					<!--
-					  Center connector. A hairline column with a sparkle anchor
-					  in the middle. Hidden on mobile (the cards already
-					  stack vertically). The ping ring around the sparkle
-					  draws the eye across the seam.
+					  Center connector. A hairline column with the GlyphX logo
+					  as the anchor. Hidden on mobile (the cards already
+					  stack vertically). The ping ring around the logo draws
+					  the eye across the seam.
 					-->
-					<div class="hidden lg:flex w-12 flex-col items-center self-stretch" aria-hidden="true">
+					<div class="hidden lg:flex w-14 flex-col items-center self-stretch" aria-hidden="true">
 						<div
 							class="h-full w-px flex-1 bg-gradient-to-b from-transparent via-hairline/70 to-transparent"
 						></div>
 						<div class="relative my-2">
-							<span class="absolute inset-0 -m-2 animate-ping rounded-full bg-brand/25"></span>
+							<span class="absolute inset-0 -m-3 animate-ping rounded-2xl bg-brand/25"></span>
 							<span
-								class="relative grid size-14 place-items-center rounded-full bg-brand text-canvas shadow-craft-lg"
+								class="relative grid size-16 place-items-center rounded-2xl bg-canvas shadow-craft-lg ring-1 ring-hairline"
 							>
-								<IconSparkles class="size-7" stroke-width={1.5} />
+								<Logo size="md" text={false} badge={false} tone="gradient" />
 							</span>
 						</div>
 						<div
@@ -753,43 +855,43 @@
 					</div>
 
 					<!--
-					  Right column: the solution card. One card, brand border,
-					  status badge, six fixes (in the same order as the pain
-					  points so the eye can follow each row across). Animates in
-					  with a 420ms delay so it lands after the pain points.
+					  Right column: the solution card. Compact, neutral chrome
+					  (no brand fill, no thick border) so the eye reads the pain
+					  points first and the solutions as a quiet answer. Four
+					  consolidated fixes, neutral check glyphs, dummy avatars at
+					  the footer. Animates in with a 420ms delay.
+
+					  Wording stays plain: researchers care that the file
+					  compiles, not which engine compiles it. No engine name,
+					  no licence acronym, no jargon.
 					-->
 					<Reveal variant="right" delay={420}>
 						<article
-							class="landing-glass-card relative flex h-full flex-col gap-6 rounded-2xl border-2 border-brand/30 p-7 shadow-craft-lg"
+							class="landing-glass-card relative flex flex-col gap-4 rounded-2xl border border-hairline/70 p-6 shadow-craft-sm"
 						>
 							<header class="flex items-center gap-2">
 								<span
-									class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-success"
+									class="inline-flex items-center gap-1.5 rounded-full bg-foreground/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/70"
 								>
-									<IconCircleDot class="size-3 animate-pulse" />
+									<span class="size-1.5 rounded-full bg-success"></span>
 									All in place
 								</span>
-								<span class="text-xs font-medium text-foreground/40">v0.1 · GPLv3</span>
 							</header>
 
-							<div>
-								<h3 class="text-2xl font-semibold leading-[1.15] tracking-tight text-foreground">
-									Fixes that ship with GlyphX
-								</h3>
-								<p class="mt-2 text-sm leading-relaxed text-foreground/65">
-									Every pain point on the left, solved without a server, a seat license, or a
-									per-month fee.
-								</p>
-							</div>
+							<h3 class="text-xl font-semibold leading-[1.2] tracking-tight text-foreground">
+								Fixes that ship with GlyphX
+							</h3>
 
-							<ul class="flex flex-col gap-2.5 border-t border-hairline/60 pt-5">
+							<ul class="flex flex-col gap-2 pt-1">
 								{#each solutions as solution, i (i)}
 									<Reveal variant="right" delay={500 + i * 50}>
-										<li class="flex items-start gap-3 text-sm leading-relaxed text-foreground/85">
+										<li
+											class="flex items-start gap-2.5 text-[13.5px] leading-relaxed text-foreground/85"
+										>
 											<span
-												class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-brand/12 text-brand"
+												class="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-foreground/10 text-foreground/70"
 											>
-												<IconCheck class="size-3" stroke-width={2.5} />
+												<IconCheck class="size-2.5" stroke-width={3} />
 											</span>
 											<span>{solution}</span>
 										</li>
@@ -798,29 +900,36 @@
 							</ul>
 
 							<!--
-							  Footer: a stacked avatar row with initials (no
-							  external network calls) plus a quiet line about
-							  where GlyphX is used. The gradient is computed inline
-							  so the avatars look distinct without real photos.
+							  Footer: dummy avatar stack + a single quiet label.
+							  Each avatar is an inline SVG (head + shoulders silhouette
+							  on a coloured background) so it reads as a real person
+							  without pulling photos or hitting a third-party API. The
+							  hue rotates per slot so the row reads as four distinct
+							  people.
 							-->
-							<footer class="mt-auto flex items-center gap-3 border-t border-hairline/60 pt-5">
+							<footer class="mt-auto flex items-center gap-2.5 border-t border-hairline/60 pt-4">
 								<div class="flex -space-x-1.5">
-									{#each [0, 1, 2, 3] as i (i)}
+									{#each avatarPeople as person, i (i)}
 										<span
-											class="grid size-7 place-items-center rounded-full border-2 border-card text-[10px] font-bold text-canvas"
-											style="background: linear-gradient(135deg, hsl({(i + 1) *
-												73} 60% 60%), hsl({(i + 1) * 73 + 50} 50% 50%));"
+											class="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-card"
+											style="background-color: hsl({person.hue} {person.sat}% 58%);"
+											aria-label={person.name}
 										>
-											{String.fromCharCode(65 + i)}
+											<svg viewBox="0 0 40 40" class="size-full" aria-hidden="true">
+												<circle cx="20" cy="15" r="5.5" fill="rgba(255,255,255,0.95)" />
+												<path
+													d="M 5 40 C 5 28 12 23 20 23 C 28 23 35 28 35 40 Z"
+													fill="rgba(255,255,255,0.95)"
+												/>
+											</svg>
 										</span>
 									{/each}
 								</div>
-								<div>
-									<p class="text-xs font-medium text-foreground/85">
-										Free for individuals and labs
-									</p>
-									<p class="text-[11px] text-foreground/50">Open source · No telemetry</p>
-								</div>
+								<p class="text-[12px] text-foreground/65">
+									<span class="font-medium text-foreground/85">Used at research labs</span>
+									<br class="sm:hidden" />
+									<span class="text-foreground/55"> Open source · No telemetry</span>
+								</p>
 							</footer>
 						</article>
 					</Reveal>
@@ -958,40 +1067,121 @@
 		</Section>
 
 		<!--
-		  Inside the editor tour. Six features, simple card grid (no rail).
-		  Reads as a tools checklist rather than a curated showcase.
+		  How it works. Inspired by the React reference: three fanned
+		  showcase tiles above (compile / live preview / history) that
+		  enter with a staggered slide, then three step cards below with
+		  an animated border that draws in on hover. Replaces the older
+		  "Inside the editor" tour section so the workflow reads as one
+		  focused beat instead of three.
 		-->
-		<Section spacing="tight" bordered>
-			<Container>
-				<SectionHeader
-					eyebrow="Inside the editor"
-					title="The tools an academic writer actually reaches for."
-					description="No exotic flags, no plugin zoo. The features below cover the workflow of writing a thesis, paper, or set of lecture notes from draft to submission."
-					align="center"
-				/>
+		<Section id="how" spacing="tight" bordered>
+			<Container size="wide">
+				<!--
+				  Row 1: three fanned tiles. Static positioning + inline
+				  rotate transforms (not framer-motion). Each tile enters
+				  with a staggered fly from the bottom; the rotations stay
+				  applied during + after the animation because they live in
+				  a static `style` attribute.
+				-->
+				<div class="relative mx-auto flex h-64 items-center justify-center" aria-hidden="true">
+					{#each showcaseTiles as tile, i (tile.label)}
+						<div
+							in:fly={{
+								y: 30,
+								x: (i - 1) * 40,
+								duration: 700,
+								delay: 80 + i * 120,
+								easing: cubicOut
+							}}
+							class="landing-glass-card absolute flex h-48 w-48 flex-col items-center justify-center gap-3 rounded-3xl shadow-craft-md"
+							style="transform: translateX({tile.offset}px) rotate({tile.rotate}deg);"
+						>
+							<span class="grid size-12 place-items-center rounded-2xl {tile.bg} {tile.color}">
+								<tile.icon class="size-6" stroke-width={1.5} />
+							</span>
+							<span class="text-sm font-semibold tracking-tight text-foreground">
+								{tile.label}
+							</span>
+						</div>
+					{/each}
+				</div>
 
-				<div class="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{#each editorFeatures as feature, i (feature.title)}
-						{@const Icon = feature.icon}
-						<Reveal variant="up" delay={i * 60}>
-							<article
-								class="landing-glass-card group flex h-full flex-col gap-4 rounded-2xl p-6 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-craft-lg motion-reduce:transition-none"
+				<!-- Row 2: centered heading. -->
+				<div class="mt-12 text-center">
+					<Reveal variant="up" delay={420}>
+						<span
+							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
+						>
+							<span class="size-1.5 rounded-full bg-brand"></span>
+							How it works
+						</span>
+					</Reveal>
+					<Reveal variant="up" delay={470}>
+						<h2
+							class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
+						>
+							Three steps. No queue. No ceremony.
+						</h2>
+					</Reveal>
+					<Reveal variant="up" delay={520}>
+						<p
+							class="landing-text-pretty mt-4 max-w-xl mx-auto text-base leading-relaxed text-foreground/70 sm:text-lg"
+						>
+							Open your project, write locally, track every revision. Same LaTeX, just yours.
+						</p>
+					</Reveal>
+				</div>
+
+				<!--
+				  Row 3: three step cards. The animated border is an SVG
+				  rect with `pathLength="1"` so the dashoffset transition
+				  works regardless of the card's actual perimeter. The badge
+				  swaps from neutral to brand on hover, matching the border
+				  reveal.
+				-->
+				<div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
+					{#each howSteps as item, i (item.step)}
+						<div
+							in:fly={{
+								y: 20,
+								duration: 600,
+								delay: 600 + i * 80,
+								easing: cubicOut
+							}}
+							class="how-step group relative flex min-h-64 flex-col gap-5 rounded-3xl border border-hairline bg-surface-card p-8 transition-colors hover:bg-surface-soft motion-reduce:transition-none"
+						>
+							<svg
+								class="how-step-border-svg pointer-events-none absolute inset-0 size-full overflow-visible"
+								aria-hidden="true"
 							>
-								<span
-									class="landing-glass-chip grid size-10 place-items-center rounded-xl text-foreground/75 transition-colors group-hover:text-foreground"
+								<rect
+									x="1"
+									y="1"
+									width="calc(100% - 2px)"
+									height="calc(100% - 2px)"
+									rx="24"
+									fill="none"
+									stroke="var(--brand)"
+									stroke-width="2"
+									pathLength="1"
+									class="how-step-border"
+								/>
+							</svg>
+
+							<div class="relative z-10">
+								<div
+									class="how-step-badge grid size-10 place-items-center rounded-full bg-foreground/5 text-[13px] font-semibold tracking-tight text-foreground/70 transition-colors duration-300"
 								>
-									<Icon class="size-5" />
-								</span>
-								<div>
-									<div class="text-[15px] font-semibold tracking-tight text-foreground">
-										{feature.title}
-									</div>
-									<div class="mt-2 text-[14px] leading-relaxed text-muted-foreground">
-										{feature.description}
-									</div>
+									{item.step}
 								</div>
-							</article>
-						</Reveal>
+								<h3 class="mt-6 text-xl font-bold leading-tight tracking-tight text-foreground">
+									{item.title}
+								</h3>
+								<p class="mt-3 text-sm leading-relaxed text-foreground/70">
+									{item.body}
+								</p>
+							</div>
+						</div>
 					{/each}
 				</div>
 			</Container>
@@ -1106,37 +1296,125 @@
 		</Section>
 
 		<!--
-		  Built for academics. Three beats covering PhD students, professors,
-		  and research groups. Same placement as the trace-mvp "Built for
-		  builders" grid.
+		  Built for academics. Same three-row layout as How-it-works:
+		  fanned persona tiles at the top (dummy-avatar silhouettes, no
+		  third-party API), heading, three hover-border cards below.
+		  Reuses the `.how-step` + `.how-step-border` + `.how-step-badge`
+		  styles already in the page <style> block.
 		-->
 		<Section id="audience" bordered>
-			<Container>
-				<SectionHeader
-					eyebrow="Built for academics"
-					title="Opinionated where it matters, out of your way everywhere else."
-					description="The workflow GlyphX is opinionated about is the one researchers already live in: a folder of .tex files, a bibliography, and a long revision history."
-					align="center"
-				/>
+			<Container size="wide">
+				<!--
+				  Row 1: three fanned persona tiles. Static positioning +
+				  inline rotate transforms. Each tile enters with a staggered
+				  fly, the rotations stay applied via the static style attr.
+				-->
+				<div class="relative mx-auto flex h-64 items-center justify-center" aria-hidden="true">
+					{#each audienceTiles as tile, i (tile.role)}
+						<div
+							in:fly={{
+								y: 30,
+								x: (i - 1) * 40,
+								duration: 700,
+								delay: 80 + i * 120,
+								easing: cubicOut
+							}}
+							class="landing-glass-card absolute flex h-48 w-48 flex-col items-center justify-center gap-3 rounded-3xl shadow-craft-md"
+							style="transform: translateX({tile.offset}px) rotate({tile.rotate}deg);"
+						>
+							<span
+								class="grid size-16 place-items-center overflow-hidden rounded-full ring-2 ring-card"
+								style="background-color: hsl({tile.hue} {tile.sat}% 58%);"
+							>
+								<svg viewBox="0 0 40 40" class="size-full" aria-hidden="true">
+									<circle cx="20" cy="15" r="5.5" fill="rgba(255,255,255,0.95)" />
+									<path
+										d="M 5 40 C 5 28 12 23 20 23 C 28 23 35 28 35 40 Z"
+										fill="rgba(255,255,255,0.95)"
+									/>
+								</svg>
+							</span>
+							<span class="text-sm font-semibold tracking-tight text-foreground">
+								{tile.role}
+							</span>
+						</div>
+					{/each}
+				</div>
 
-				<div class="mt-16 grid grid-cols-1 gap-4 md:grid-cols-3">
+				<!-- Row 2: centered heading. -->
+				<div class="mt-12 text-center">
+					<Reveal variant="up" delay={420}>
+						<span
+							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
+						>
+							<span class="size-1.5 rounded-full bg-brand"></span>
+							Built for academics
+						</span>
+					</Reveal>
+					<Reveal variant="up" delay={470}>
+						<h2
+							class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
+						>
+							Opinionated where it matters, out of your way everywhere else.
+						</h2>
+					</Reveal>
+					<Reveal variant="up" delay={520}>
+						<p
+							class="landing-text-pretty mt-4 max-w-xl mx-auto text-base leading-relaxed text-foreground/70 sm:text-lg"
+						>
+							The workflow GlyphX is opinionated about is the one researchers already live in: a
+							folder of .tex files, a bibliography, and a long revision history.
+						</p>
+					</Reveal>
+				</div>
+
+				<!--
+				  Row 3: three persona cards. Same hover-border + badge-fill
+				  animation as the How-it-works cards, reusing `.how-step` +
+				  `.how-step-border` + `.how-step-badge` classes.
+				-->
+				<div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
 					{#each audienceCards as card, i (card.title)}
 						{@const Icon = card.icon}
-						<Reveal variant="up" delay={i * 70}>
-							<article
-								class="landing-glass-card group flex h-full flex-col rounded-2xl p-7 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-craft-lg motion-reduce:transition-none"
+						<div
+							in:fly={{
+								y: 20,
+								duration: 600,
+								delay: 600 + i * 80,
+								easing: cubicOut
+							}}
+							class="how-step group relative flex min-h-64 flex-col gap-5 rounded-3xl border border-hairline bg-surface-card p-8 transition-colors hover:bg-surface-soft motion-reduce:transition-none"
+						>
+							<svg
+								class="how-step-border-svg pointer-events-none absolute inset-0 size-full overflow-visible"
+								aria-hidden="true"
 							>
-								<span
-									class="landing-glass-chip grid size-11 place-items-center rounded-xl text-foreground/70 transition-colors group-hover:text-foreground"
+								<rect
+									x="1"
+									y="1"
+									width="calc(100% - 2px)"
+									height="calc(100% - 2px)"
+									rx="24"
+									fill="none"
+									stroke="var(--brand)"
+									stroke-width="2"
+									pathLength="1"
+									class="how-step-border"
+								/>
+							</svg>
+
+							<div class="relative z-10">
+								<div
+									class="how-step-badge grid size-10 place-items-center rounded-full bg-foreground/5 text-foreground/70 transition-colors duration-300"
 								>
-									<Icon class="size-5" />
-								</span>
-								<h3 class="mt-6 text-lg font-semibold tracking-tight text-foreground">
+									<Icon class="size-5" stroke-width={1.75} />
+								</div>
+								<h3 class="mt-6 text-xl font-bold leading-tight tracking-tight text-foreground">
 									{card.title}
 								</h3>
-								<p class="mt-2 text-sm leading-relaxed text-muted-foreground">{card.body}</p>
-							</article>
-						</Reveal>
+								<p class="mt-3 text-sm leading-relaxed text-foreground/70">{card.body}</p>
+							</div>
+						</div>
 					{/each}
 				</div>
 			</Container>
@@ -1226,8 +1504,16 @@
 							{#each faqs as faq, i (faq.q)}
 								{@const open = openFaq === i}
 								<li>
+									<!--
+									  Accordion card ported from the trace-mvp reference:
+									  Plus/Minus icons swap with state, open state fills
+									  the card with a subtle bg, body slides open via
+									  `svelte/transition` `slide` (reduced motion gets 0ms).
+									-->
 									<div
-										class="overflow-hidden rounded-2xl border border-hairline/60 bg-background/50 transition-colors hover:border-hairline"
+										class="overflow-hidden rounded-2xl border transition-colors duration-200 {open
+											? 'border-hairline bg-foreground/3'
+											: 'border-hairline/60 bg-background/50 hover:border-hairline'}"
 									>
 										<button
 											type="button"
@@ -1236,11 +1522,13 @@
 											aria-controls={`faq-panel-${i}`}
 											class="group flex w-full items-start gap-3.5 px-5 py-4 text-left"
 										>
-											<IconChevronDown
-												class="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform {open
-													? 'rotate-180'
-													: ''}"
-											/>
+											<span aria-hidden="true" class="mt-0.5 shrink-0 text-muted-foreground">
+												{#if open}
+													<IconMinus class="size-4" />
+												{:else}
+													<IconPlus class="size-4" />
+												{/if}
+											</span>
 											<span
 												class="flex-1 text-[15px] font-semibold tracking-tight text-foreground sm:text-base"
 											>
@@ -1248,7 +1536,11 @@
 											</span>
 										</button>
 										{#if open}
-											<div id={`faq-panel-${i}`} class="overflow-hidden">
+											<div
+												id={`faq-panel-${i}`}
+												transition:slide={{ duration: reducedMotion ? 0 : 220, easing: cubicOut }}
+												class="overflow-hidden"
+											>
 												<p class="pb-5 pl-12 pr-5 text-sm leading-relaxed text-muted-foreground">
 													{faq.a}
 												</p>
@@ -1380,6 +1672,31 @@
 		animation: typewriter-blink 1s step-end infinite;
 	}
 
+	/*
+	 * How-it-works step cards. The animated border uses an SVG rect with
+	 * `pathLength="1"` so the dashoffset transition works regardless of
+	 * the card's actual perimeter. The badge fills from neutral to brand
+	 * on the same hover so the card reads as one beat.
+	 */
+	.how-step-border {
+		stroke-dasharray: 1;
+		stroke-dashoffset: 1;
+		opacity: 0;
+		transition:
+			stroke-dashoffset 0.7s ease-out,
+			opacity 0.25s ease-out;
+	}
+
+	.how-step:hover .how-step-border {
+		stroke-dashoffset: 0;
+		opacity: 1;
+	}
+
+	.how-step:hover .how-step-badge {
+		background-color: var(--brand);
+		color: var(--canvas);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.marquee-track {
 			animation: none;
@@ -1388,6 +1705,12 @@
 		.typewriter-cursor {
 			animation: none;
 			opacity: 0.4;
+		}
+
+		.how-step-border {
+			transition: none;
+			stroke-dashoffset: 0;
+			opacity: 0.6;
 		}
 	}
 </style>
