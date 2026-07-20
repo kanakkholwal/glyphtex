@@ -43,12 +43,12 @@
 		onclose?: () => void;
 	} = $props();
 
-	let query = $state(initial?.query ?? '');
-	let replace = $state(initial?.replace ?? '');
-	let matchCase = $state(initial?.caseSensitive ?? false);
-	let wholeWord = $state(initial?.wholeWord ?? false);
-	let useRegex = $state(initial?.regexp ?? false);
-	let preserveCase = $state(initial?.preserveCase ?? false);
+	let query = $derived(initial?.query ?? '');
+	let replace = $derived(initial?.replace ?? '');
+	let matchCase = $derived(initial?.caseSensitive ?? false);
+	let wholeWord = $derived(initial?.wholeWord ?? false);
+	let useRegex = $derived(initial?.regexp ?? false);
+	let preserveCase = $derived(initial?.preserveCase ?? false);
 	let showReplace = $state(false);
 	let findInputEl = $state<HTMLInputElement>();
 

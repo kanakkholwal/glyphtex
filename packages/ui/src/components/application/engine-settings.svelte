@@ -38,15 +38,15 @@
 <script lang="ts">
 	import { Button } from '@glyphx/ui/button';
 	import { Segmented } from '@glyphx/ui/segmented';
-	import { SettingsSection } from '@glyphx/ui/settings-section';
 	import {
-		settings,
-		TEX_PROGRAM_LABELS,
-		type EngineKind,
-		type TexProgram
+	  settings,
+	  TEX_PROGRAM_LABELS,
+	  type EngineKind,
+	  type TexProgram
 	} from '@glyphx/ui/settings';
-	import { Spinner } from '@glyphx/ui/spinner';
+	import { SettingsSection } from '@glyphx/ui/settings-section';
 	import { toast } from '@glyphx/ui/sonner';
+	import { Spinner } from '@glyphx/ui/spinner';
 	import { IconRefresh } from '@tabler/icons-svelte';
 
 	/**
@@ -286,7 +286,7 @@
 						<span class="text-foreground">TeX Live</span> or
 						<span class="text-foreground">MiKTeX</span> (both free, cross-platform), then re-check.
 						<div class="mt-2.5">
-							<Button variant="soft" size="xs" onclick={detectSystem}>Re-check</Button>
+							<Button variant="default_soft" size="xs" onclick={detectSystem}>Re-check</Button>
 						</div>
 					</div>
 				{/if}
@@ -296,7 +296,7 @@
 		<!-- Tectonic versions, pulled live from GitHub releases. -->
 		<SettingsSection label={`${engine.label} versions`}>
 			{#snippet action()}
-				<Button variant="soft" size="xs" onclick={refresh} disabled={loading}>
+				<Button variant="default_soft" size="xs" onclick={refresh} disabled={loading}>
 					{#if loading}
 						<Spinner class="size-3.5" /> Checking…
 					{:else}
@@ -341,7 +341,7 @@
 								<div class="ml-auto flex shrink-0 items-center gap-1.5">
 									{#if !v.installed}
 										<Button
-											variant="soft"
+											variant="default_soft"
 											size="xs"
 											onclick={() => download(v.version)}
 											disabled={busy === v.version}
@@ -350,7 +350,7 @@
 										</Button>
 									{:else}
 										{#if !v.active}
-											<Button variant="soft" size="xs" onclick={() => use(v.version)}>Use</Button>
+											<Button variant="default_soft" size="xs" onclick={() => use(v.version)}>Use</Button>
 										{/if}
 										{#if engine.remove}
 											<Button
@@ -399,7 +399,7 @@
 					</p>
 					<div class="flex items-center gap-2">
 						{#if engine.prefetch}
-							<Button variant="soft" size="xs" onclick={prefetch} disabled={prefetching}>
+							<Button variant="default_soft" size="xs" onclick={prefetch} disabled={prefetching}>
 								{prefetching ? 'Caching…' : 'Prefetch common'}
 							</Button>
 						{/if}

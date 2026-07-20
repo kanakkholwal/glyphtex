@@ -20,8 +20,8 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '@glyphx/ui/utils';
 	import { Label } from '@glyphx/ui/label';
+	import { cn } from '@glyphx/ui/utils';
 
 	let {
 		label,
@@ -33,10 +33,10 @@
 		children
 	}: SettingsFieldProps = $props();
 
-	const labelCls = size === 'sm' ? 'text-[13px]' : 'text-sm';
-	const descCls = size === 'sm' ? 'text-muted-foreground text-[11px]' : 'text-muted-foreground text-xs';
-	const stackGap = size === 'sm' ? 'gap-1.5' : 'gap-2';
-	const rowGap = size === 'sm' ? 'gap-2' : 'gap-3';
+	const labelCls = $derived( size === 'sm' ? 'text-[13px]' : 'text-sm');
+	const descCls = $derived(size === 'sm' ? 'text-muted-foreground text-[11px]' : 'text-muted-foreground text-xs');
+	const stackGap = $derived(size === 'sm' ? 'gap-1.5' : 'gap-2');
+	const rowGap = $derived(size === 'sm' ? 'gap-2' : 'gap-3');
 </script>
 
 {#if layout === 'row'}

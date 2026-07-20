@@ -166,7 +166,7 @@
     <PanelSection title="System">
       <SettingsField size="sm" label="Shell integration" layout="row">
         <Button
-          variant={store.shellStatus === "done" ? "success_soft" : "soft"}
+          variant={store.shellStatus === "done" ? "success_soft" : "default_soft"}
           size="xs"
           disabled={store.shellStatus === "busy"}
           title="Add an “Open with GlyphX” entry to the folder right-click menu"
