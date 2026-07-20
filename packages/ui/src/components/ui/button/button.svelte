@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import { cn, type WithElementRef } from "@glyphx/ui/utils";
+  import { cn, type WithElementRef } from "@glyphx/ui/utils";
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
 	import { tv, type VariantProps } from "tailwind-variants";
 
@@ -16,10 +16,11 @@
 	export const buttonVariants = tv({
 		base: [
 			"group/button inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap cursor-pointer user-select-none",
-			"rounded-md border border-border/40 bg-clip-padding font-medium outline-none transition-all duration-200 ease-craft select-none",
+			"rounded-sm border border-border/40 bg-clip-padding font-medium outline-none transition-all duration-200 select-none",
 			"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
 			"aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-3",
 			"dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+			"active:scale-[0.99] hover:scale-[1.01]",
 			"disabled:pointer-events-none disabled:opacity-50",
 			"[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 		].join(" "),
@@ -28,25 +29,12 @@
 				default: "bg-primary text-primary-foreground border-transparent shadow-craft-sm hover:bg-primary/95",
 				default_soft:
 					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
-				/* brand_soft — the sky-blue accent as a tint. For active / selected
-				   states (the accent-as-selection signal), never as a loud fill. */
-				brand_soft:
-					"border-transparent bg-brand/10 text-brand hover:bg-brand/16 dark:bg-brand/16 dark:hover:bg-brand/24",
-				landing_soft:
-					"bg-surface-2 text-foreground border-transparent rounded-full shadow-craft-sm hover:bg-surface-strong",
-				landing_ghost:
-					"bg-card/70 text-foreground border-border/70 rounded-full shadow-craft-sm hover:bg-surface-soft",
 				secondary:
-					"border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/70 dark:bg-secondary/60 dark:hover:bg-secondary/80",
+					"border-secondary bg-secondary text-secondary-foreground border-border/30 shadow-craft-sm hover:bg-muted/50",
 				outline:
-					"border-border bg-transparent hover:bg-muted hover:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-				/* soft — a quiet neutral fill (no border, no shadow). The default for
-				   secondary actions in dense/settings surfaces; flatter than `secondary`,
-				   more present than `ghost`. */
-				soft:
-					"border-transparent bg-muted text-foreground hover:bg-muted/70 dark:bg-muted/60 dark:hover:bg-muted/80",
+					"border-border bg-card text-foreground",
 				ghost:
-					"border-transparent hover:bg-muted/60 hover:text-foreground dark:hover:bg-accent/50",
+					"border-transparent hover:bg-muted/40 hover:text-accent-foreground dark:hover:bg-accent/50",
 				link: "text-primary underline-offset-4 hover:underline hover:scale-100",
 				destructive:
 					"bg-destructive text-destructive-foreground shadow-craft-sm hover:bg-destructive/90 focus-visible:ring-destructive/20",
@@ -62,19 +50,20 @@
 				info_soft:
 					"bg-info/10 text-info border-info/10 hover:bg-info/15",
 				raw: "border-0 p-0 h-auto w-auto hover:scale-100 active:scale-100",
+				dark: "bg-foreground text-background shadow-craft-sm hover:bg-foreground/90",
+				light: "bg-white text-black shadow-craft-sm dark:bg-black dark:text-white",
 			},
 			size: {
-				default: "h-10 rounded-xl px-5 py-2.5 text-sm",
-				lg: "h-12 rounded-2xl px-8 text-base font-semibold",
-				pill: "h-12 rounded-full px-8 text-sm font-medium",
-				sm: "h-9 rounded-lg px-3 text-xs",
-				xs: "h-7 rounded-md px-2 text-[11px] gap-1.5 [&_svg:not([class*='size-'])]:size-3",
-				icon: "size-10 rounded-xl",
-				"icon-sm": "size-9 rounded-lg",
-				"icon-xs": "size-7 rounded-md [&_svg:not([class*='size-'])]:size-3",
-				/* icon-2xs — the dense 24px icon button for panel headers / toolbars. */
-				"icon-2xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-4",
-				"icon-lg": "size-12 rounded-2xl",
+				default: "h-9 rounded-lg px-5 py-2.5 text-sm font-medium gap-2 [&_svg:not([class*='size-'])]:size-4",
+				xl: "h-12.5 rounded-xl active:rounded-3xl py-3.5 px-7 text-lg font-medium gap-2.5 [&_svg:not([class*='size-'])]:size-6",
+				lg: "h-11 rounded-xl active:rounded-2xl px-8 text-base font-semibold gap-2 [&_svg:not([class*='size-'])]:size-5",
+				sm: "h-8 rounded-md px-3 text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+				xs: "h-6 rounded-md px-2 text-[11px] gap-1.5 [&_svg:not([class*='size-'])]:size-3",
+				icon: "size-9 rounded-lg",
+				"icon-sm": "size-8 rounded-md [&_svg:not([class*='size-'])]:size-4",
+				"icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
+				"icon-lg": "size-11 rounded-xl [&_svg:not([class*='size-'])]:size-5",
+				"icon-xl": "size-14 rounded-2xl [&_svg:not([class*='size-'])]:size-6",
 				raw: "",
 			},
 		},

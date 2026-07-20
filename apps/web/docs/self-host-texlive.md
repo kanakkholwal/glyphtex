@@ -17,7 +17,7 @@ The engine never talks to a third party directly. It fetches everything from our
    then
 3. an **upstream** on-demand server, whose response we cache at our edge.
 
-So the upstream is a *cached backend behind our domain*, not a hard dependency:
+So the upstream is a _cached backend behind our domain_, not a hard dependency:
 once a file is cached at our edge (or in the per-device service-worker cache) it
 keeps serving even if the upstream is down. The browser only ever sees our origin.
 

@@ -26,15 +26,15 @@
    (the geometric display face — our GT-Walsheim substitute for headline moments).
    Geist Mono / JetBrains Mono are the technical voices (labels, code, the editor).
    Fraunces is the editorial serif, kept only for the marketing serif accent. */
-@import '@fontsource-variable/inter/index.css';
-@import '@fontsource-variable/geist/index.css';
-@import '@fontsource-variable/geist-mono/index.css';
-@import '@fontsource-variable/fraunces/full.css';
-@import '@fontsource-variable/fraunces/full-italic.css';
-@import '@fontsource-variable/jetbrains-mono/index.css';
+@import "@fontsource-variable/inter/index.css";
+@import "@fontsource-variable/geist/index.css";
+@import "@fontsource-variable/geist-mono/index.css";
+@import "@fontsource-variable/fraunces/full.css";
+@import "@fontsource-variable/fraunces/full-italic.css";
+@import "@fontsource-variable/jetbrains-mono/index.css";
 
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 @plugin '@tailwindcss/typography';
 
 /* Dark mode is class-driven (mode-watcher toggles `.dark` on <html>). */
@@ -48,209 +48,215 @@
    Light — clean near-white neutrals (the default register)
    --------------------------------------------------------------------------- */
 :root {
-	
-	/* Surfaces: clean neutral near-white, pure-white cards, an elevated neutral
+  /* Surfaces: clean neutral near-white, pure-white cards, an elevated neutral
 	   surface, near-black neutral ink — one system with the neutral dark. */
-	--background: oklch(0.9851 0 0);
-	--foreground: oklch(0.2103 0.0059 285.89);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.2103 0.0059 285.89);
-	--surface: oklch(0.9674 0.0013 286.38);
-	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.2103 0.0059 285.89);
+  --background: oklch(0.9851 0 0);
+  --foreground: oklch(0.2103 0.0059 285.89);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2103 0.0059 285.89);
+  --surface: oklch(0.9674 0.0013 286.38);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2103 0.0059 285.89);
 
-	/* Primary = ink (near-black neutral). The monochrome emphasis voice (NOT the brand). */
-	--primary: oklch(0.2103 0.0059 285.89);
-	--primary-foreground: oklch(0.9851 0 0);
+  /* Primary = ink (near-black neutral). The monochrome emphasis voice (NOT the brand). */
+  --primary: oklch(0.2103 0.0059 285.89);
+  --primary-foreground: oklch(0.9851 0 0);
 
-	/* Neutral ladder — clean zinc greys; accent is the neutral hover/surface. */
-	--secondary: oklch(0.9674 0.0013 286.38);
-	--secondary-foreground: oklch(0.2103 0.0059 285.89);
-	--muted: oklch(0.9674 0.0013 286.38);
-	--muted-foreground: oklch(0.5517 0.0138 285.94);
-	--accent: oklch(0.9674 0.0013 286.38); /* neutral hover/surface — deliberately NOT brand */
-	--accent-foreground: oklch(0.2103 0.0059 285.89);
+  /* Neutral ladder — clean zinc greys; accent is the neutral hover/surface. */
+  --secondary: oklch(0.9674 0.0013 286.38);
+  --secondary-foreground: oklch(0.2103 0.0059 285.89);
+  --muted: oklch(0.9674 0.0013 286.38);
+  --muted-foreground: oklch(0.5517 0.0138 285.94);
+  --accent: oklch(
+    0.9674 0.0013 286.38
+  ); /* neutral hover/surface — deliberately NOT brand */
+  --accent-foreground: oklch(0.2103 0.0059 285.89);
 
-	/* Status — error / warning / success stay distinct from the brand blue. */
-	--destructive: oklch(0.6368 0.2078 25.33);
-	--destructive-foreground: oklch(1 0 0);
-	--success: oklch(0.6959 0.1491 162.48);
-	--success-foreground: oklch(1 0 0);
-	--warning: oklch(0.7686 0.1647 70.08);
-	--warning-foreground: oklch(1 0 0);
-	--info: oklch(0.62 0.185 246);
-	--info-foreground: oklch(1 0 0);
+  /* Status — error / warning / success stay distinct from the brand blue. */
+  --destructive: oklch(0.6368 0.2078 25.33);
+  --destructive-foreground: oklch(1 0 0);
+  --success: oklch(0.6959 0.1491 162.48);
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.7686 0.1647 70.08);
+  --warning-foreground: oklch(1 0 0);
+  --info: oklch(0.62 0.185 246);
+  --info-foreground: oklch(1 0 0);
 
-	/* Lines & focus — neutral hairlines; the focus ring is brand blue. */
-	--border: oklch(0.9197 0.004 286.32);
-	--input: oklch(0.9197 0.004 286.32);
-	--ring: oklch(0.62 0.185 246);
+  /* Lines & focus — neutral hairlines; the focus ring is brand blue. */
+  --border: oklch(0.9197 0.004 286.32);
+  --input: oklch(0.9197 0.004 286.32);
+  --ring: oklch(0.62 0.185 246);
 
-	/* Sidebar (one quiet neutral step off the canvas). */
-	--sidebar: oklch(0.9674 0.0013 286.38);
-	--sidebar-foreground: oklch(0.3703 0.0119 285.81);
-	--sidebar-primary: oklch(0.2103 0.0059 285.89);
-	--sidebar-primary-foreground: oklch(0.9851 0 0);
-	--sidebar-accent: oklch(0.9674 0.0013 286.38);
-	--sidebar-accent-foreground: oklch(0.2103 0.0059 285.89);
-	--sidebar-border: oklch(0.9197 0.004 286.32);
-	--sidebar-ring: oklch(0.62 0.185 246);
+  /* Sidebar (one quiet neutral step off the canvas). */
+  --sidebar: oklch(0.9674 0.0013 286.38);
+  --sidebar-foreground: oklch(0.3703 0.0119 285.81);
+  --sidebar-primary: oklch(0.2103 0.0059 285.89);
+  --sidebar-primary-foreground: oklch(0.9851 0 0);
+  --sidebar-accent: oklch(0.9674 0.0013 286.38);
+  --sidebar-accent-foreground: oklch(0.2103 0.0059 285.89);
+  --sidebar-border: oklch(0.9197 0.004 286.32);
+  --sidebar-ring: oklch(0.62 0.185 246);
 
-	/* Charts — brand blue + a neutral ramp. */
-	--chart-1: oklch(0.62 0.185 246);
-	--chart-2: oklch(0.2103 0.0059 285.89);
-	--chart-3: oklch(0.5517 0.0138 285.94);
-	--chart-4: oklch(0.7118 0.0129 286.07);
-	--chart-5: oklch(0.72 0.165 246);
+  /* Charts — brand blue + a neutral ramp. */
+  --chart-1: oklch(0.62 0.185 246);
+  --chart-2: oklch(0.2103 0.0059 285.89);
+  --chart-3: oklch(0.5517 0.0138 285.94);
+  --chart-4: oklch(0.7118 0.0129 286.07);
+  --chart-5: oklch(0.72 0.165 246);
 
-	/* ---- The single chromatic accent — sky-blue (Framer accent, ~#0099FF). The
+  /* ---- The single chromatic accent — sky-blue (Framer accent, ~#0099FF). The
 	   one signal colour: links, focus rings, selection, active/branded. ---- */
-	--brand: oklch(0.62 0.185 246);
-	--brand-foreground: oklch(1 0 0);
-	--brand-hover: oklch(0.565 0.175 246);
-	--brand-subtle: oklch(0.62 0.185 246 / 0.09);
-	/* Official brand gradient — logo / app icon / hero illustrations ONLY.
+  --brand: oklch(0.62 0.185 246);
+  --brand-foreground: oklch(1 0 0);
+  --brand-hover: oklch(0.565 0.175 246);
+  --brand-subtle: oklch(0.62 0.185 246 / 0.09);
+  /* Official brand gradient — logo / app icon / hero illustrations ONLY.
 	   Never use gradients in general application UI (see DESIGN.md). */
-	--brand-gradient: linear-gradient(135deg, #33aaff 0%, #0099ff 55%, #007acc 100%);
+  --brand-gradient: linear-gradient(
+    135deg,
+    #33aaff 0%,
+    #0099ff 55%,
+    #007acc 100%
+  );
 
-	/* Marketing accents — reserved for editorial/illustrative landing moments.
+  /* Marketing accents — reserved for editorial/illustrative landing moments.
 	   Still tokenized here so the website's visual direction stays centrally
 	   controllable from one stylesheet. */
-	--signal-cyan: oklch(0.7832 0.1259 208.88);
-	--signal-cyan-soft: oklch(0.7832 0.1259 208.88 / 0.14);
-	--signal-blue: oklch(0.6274 0.1918 259.39);
-	--signal-blue-soft: oklch(0.6274 0.1918 259.39 / 0.14);
-	--signal-lime: oklch(0.7016 0.1215 111.84);
-	--signal-lime-soft: oklch(0.7016 0.1215 111.84 / 0.16);
+  --signal-cyan: oklch(0.7832 0.1259 208.88);
+  --signal-cyan-soft: oklch(0.7832 0.1259 208.88 / 0.14);
+  --signal-blue: oklch(0.6274 0.1918 259.39);
+  --signal-blue-soft: oklch(0.6274 0.1918 259.39 / 0.14);
+  --signal-lime: oklch(0.7016 0.1215 111.84);
+  --signal-lime-soft: oklch(0.7016 0.1215 111.84 / 0.16);
 
-	/* Marketing surface mirrors (landing layer) — neutral; hairlines are SOLID
+  /* Marketing surface mirrors (landing layer) — neutral; hairlines are SOLID
 	   neutral lines so the landing reads as a crisp structural grid. */
-	--canvas: oklch(0.9851 0 0);
-	--surface-soft: oklch(0.9674 0.0013 286.38);
-	--surface-card: oklch(1 0 0);
-	--surface-strong: oklch(0.9197 0.004 286.32);
-	/* Surface-lift scale (trace-mvp): canvas → surface-1 → surface-2 (lift, not
+  --canvas: oklch(0.9851 0 0);
+  --surface-soft: oklch(0.9674 0.0013 286.38);
+  --surface-card: oklch(1 0 0);
+  --surface-strong: oklch(0.9197 0.004 286.32);
+  /* Surface-lift scale (trace-mvp): canvas → surface-1 → surface-2 (lift, not
 	   opacity). `inverse-canvas` is the polarity-flipped CTA surface. */
-	--surface-1: oklch(0.9674 0.0013 286.38);
-	--surface-2: oklch(0.9349 0.004 286.32);
-	--inverse-canvas: oklch(0.2103 0.0059 285.89);
-	--ink: oklch(0.2103 0.0059 285.89);
-	--ink-body: oklch(0.3703 0.0119 285.81);
-	--ink-muted: oklch(0.5517 0.0138 285.94);
-	--hairline: oklch(0.9197 0.004 286.32);
-	--hairline-soft: oklch(0.9527 0.0027 286.35);
-	--border-subtle: oklch(0.9527 0.0027 286.35);
+  --surface-1: oklch(0.9674 0.0013 286.38);
+  --surface-2: oklch(0.9349 0.004 286.32);
+  --inverse-canvas: oklch(0.2103 0.0059 285.89);
+  --ink: oklch(0.2103 0.0059 285.89);
+  --ink-body: oklch(0.3703 0.0119 285.81);
+  --ink-muted: oklch(0.5517 0.0138 285.94);
+  --hairline: oklch(0.9197 0.004 286.32);
+  --hairline-soft: oklch(0.9527 0.0027 286.35);
+  --border-subtle: oklch(0.9527 0.0027 286.35);
 
-	/* Base radius — crisp, not pill. Component scale derives from this. */
-	--radius: 0.625rem;
+  /* Base radius — crisp, not pill. Component scale derives from this. */
+  --radius: 0.625rem;
 
-	/* Spacing scale (adopted from trace-mvp). Raw vars, NOT in @theme — kept out
+  /* Spacing scale (adopted from trace-mvp). Raw vars, NOT in @theme — kept out
 	   of Tailwind's --spacing-* namespace so they don't clobber max-w-*, text-*,
 	   etc. Use as: padding: var(--space-lg). */
-	--space-hair: 1px;
-	--space-xxs: 0.25rem;
-	--space-xs: 0.5rem;
-	--space-sm: 0.75rem;
-	--space-md: 0.9375rem;
-	--space-lg: 1.25rem;
-	--space-xl: 1.875rem;
-	--space-xxl: 2.5rem;
-	--space-section: 6rem;
+  --space-hair: 1px;
+  --space-xxs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 0.9375rem;
+  --space-lg: 1.25rem;
+  --space-xl: 1.875rem;
+  --space-xxl: 2.5rem;
+  --space-section: 6rem;
 
-	/* Display letter-spacing scale (adopted from trace-mvp). Raw vars — applied
+  /* Display letter-spacing scale (adopted from trace-mvp). Raw vars — applied
 	   via inline style / component classes, NOT in @theme (would override the
 	   tracking-* utilities). */
-	--tracking-display-xxl: -5.5px;
-	--tracking-display-xl: -4.25px;
-	--tracking-display-lg: -3.1px;
-	--tracking-display-md: -1px;
-	--tracking-headline: -0.8px;
-	--tracking-body-lg: -0.18px;
-	--tracking-body: -0.15px;
-	--tracking-body-sm: -0.14px;
-	--tracking-caption: -0.13px;
-	--tracking-micro: -0.12px;
+  --tracking-display-xxl: -5.5px;
+  --tracking-display-xl: -4.25px;
+  --tracking-display-lg: -3.1px;
+  --tracking-display-md: -1px;
+  --tracking-headline: -0.8px;
+  --tracking-body-lg: -0.18px;
+  --tracking-body: -0.15px;
+  --tracking-body-sm: -0.14px;
+  --tracking-caption: -0.13px;
+  --tracking-micro: -0.12px;
 }
 
 /* ---------------------------------------------------------------------------
    Dark — neutral near-black (clean greys; brand blue is the only hue)
    --------------------------------------------------------------------------- */
 .dark {
-	/* Neutral night — a clean near-black neutral palette (adopted from the
+  /* Neutral night — a clean near-black neutral palette (adopted from the
 	   college-ecosystem dark tokens): pure greys, cool muted text. GlyphX blue
 	   and the semantic status colours stay as the only hues. */
-	--background: oklch(0.176 0.008 58);
-	--foreground: oklch(0.9401 0 0);
-	--card: oklch(0.211 0.008 58);
-	--card-foreground: oklch(0.9401 0 0);
-	--surface: oklch(0.234 0.008 58);
-	--popover: oklch(0.211 0.008 58);
-	--popover-foreground: oklch(0.9401 0 0);
+  --background: oklch(0.176 0.008 58);
+  --foreground: oklch(0.9401 0 0);
+  --card: oklch(0.211 0.008 58);
+  --card-foreground: oklch(0.9401 0 0);
+  --surface: oklch(0.234 0.008 58);
+  --popover: oklch(0.211 0.008 58);
+  --popover-foreground: oklch(0.9401 0 0);
 
-	/* Primary = ink emphasis (near-white). The brand stays blue, in --brand. */
-	--primary: oklch(0.9461 0 0);
-	--primary-foreground: oklch(0.176 0.008 58);
+  /* Primary = ink emphasis (near-white). The brand stays blue, in --brand. */
+  --primary: oklch(0.9461 0 0);
+  --primary-foreground: oklch(0.176 0.008 58);
 
-	--secondary: oklch(0.272 0.008 58);
-	--secondary-foreground: oklch(0.9851 0 0);
-	--muted: oklch(0.238 0.008 58);
-	--muted-foreground: oklch(0.7137 0.0192 261.32);
-	--accent: oklch(0.272 0.008 58);
-	--accent-foreground: oklch(0.9401 0 0);
+  --secondary: oklch(0.272 0.008 58);
+  --secondary-foreground: oklch(0.9851 0 0);
+  --muted: oklch(0.238 0.008 58);
+  --muted-foreground: oklch(0.7137 0.0192 261.32);
+  --accent: oklch(0.272 0.008 58);
+  --accent-foreground: oklch(0.9401 0 0);
 
-	--destructive: oklch(0.7106 0.1661 22.22);
-	--destructive-foreground: oklch(0.1799 0.0212 29.75);
-	--success: oklch(0.7729 0.1535 163.22);
-	--success-foreground: oklch(0.1759 0.0253 156.26);
-	--warning: oklch(0.8369 0.1644 84.43);
-	--warning-foreground: oklch(0.2018 0.0279 91.71);
-	--info: oklch(0.72 0.165 246);
-	--info-foreground: oklch(0.1767 0.0343 246.52);
+  --destructive: oklch(0.7106 0.1661 22.22);
+  --destructive-foreground: oklch(0.1799 0.0212 29.75);
+  --success: oklch(0.7729 0.1535 163.22);
+  --success-foreground: oklch(0.1759 0.0253 156.26);
+  --warning: oklch(0.8369 0.1644 84.43);
+  --warning-foreground: oklch(0.2018 0.0279 91.71);
+  --info: oklch(0.72 0.165 246);
+  --info-foreground: oklch(0.1767 0.0343 246.52);
 
-	--border: oklch(0.258 0.008 58);
-	--input: oklch(1 0 0 / 0.15);
-	--ring: oklch(0.72 0.165 246);
+  --border: oklch(0.258 0.008 58);
+  --input: oklch(1 0 0 / 0.15);
+  --ring: oklch(0.72 0.165 246);
 
-	/* Sidebar one quiet step off the floor. */
-	--sidebar: oklch(0.197 0.008 58);
-	--sidebar-foreground: oklch(0.8328 0 0);
-	--sidebar-primary: oklch(0.9461 0 0);
-	--sidebar-primary-foreground: oklch(0.176 0.008 58);
-	--sidebar-accent: oklch(0.272 0.008 58);
-	--sidebar-accent-foreground: oklch(0.9401 0 0);
-	--sidebar-border: oklch(0.258 0.008 58);
-	--sidebar-ring: oklch(0.72 0.165 246);
+  /* Sidebar one quiet step off the floor. */
+  --sidebar: oklch(0.197 0.008 58);
+  --sidebar-foreground: oklch(0.8328 0 0);
+  --sidebar-primary: oklch(0.9461 0 0);
+  --sidebar-primary-foreground: oklch(0.176 0.008 58);
+  --sidebar-accent: oklch(0.272 0.008 58);
+  --sidebar-accent-foreground: oklch(0.9401 0 0);
+  --sidebar-border: oklch(0.258 0.008 58);
+  --sidebar-ring: oklch(0.72 0.165 246);
 
-	--chart-1: oklch(0.72 0.165 246);
-	--chart-2: oklch(0.9401 0 0);
-	--chart-3: oklch(0.7137 0.0192 261.32);
-	--chart-4: oklch(0.4823 0.0175 285.73);
-	--chart-5: oklch(0.741 0.1499 239.59);
+  --chart-1: oklch(0.72 0.165 246);
+  --chart-2: oklch(0.9401 0 0);
+  --chart-3: oklch(0.7137 0.0192 261.32);
+  --chart-4: oklch(0.4823 0.0175 285.73);
+  --chart-5: oklch(0.741 0.1499 239.59);
 
-	--brand: oklch(0.72 0.165 246);
-	--brand-foreground: oklch(0.1457 0.0043 285.86);
-	--brand-hover: oklch(0.78 0.15 245);
-	--brand-subtle: oklch(0.72 0.165 246 / 0.16);
-	--signal-cyan: oklch(0.7888 0.1188 207.62);
-	--signal-cyan-soft: oklch(0.7888 0.1188 207.62 / 0.16);
-	--signal-blue: oklch(0.7176 0.1626 254.31);
-	--signal-blue-soft: oklch(0.7176 0.1626 254.31 / 0.16);
-	--signal-lime: oklch(0.8046 0.1208 117.27);
-	--signal-lime-soft: oklch(0.8046 0.1208 117.27 / 0.18);
+  --brand: oklch(0.72 0.165 246);
+  --brand-foreground: oklch(0.1457 0.0043 285.86);
+  --brand-hover: oklch(0.78 0.15 245);
+  --brand-subtle: oklch(0.72 0.165 246 / 0.16);
+  --signal-cyan: oklch(0.7888 0.1188 207.62);
+  --signal-cyan-soft: oklch(0.7888 0.1188 207.62 / 0.16);
+  --signal-blue: oklch(0.7176 0.1626 254.31);
+  --signal-blue-soft: oklch(0.7176 0.1626 254.31 / 0.16);
+  --signal-lime: oklch(0.8046 0.1208 117.27);
+  --signal-lime-soft: oklch(0.8046 0.1208 117.27 / 0.18);
 
-	--canvas: oklch(0.176 0.008 58);
-	--surface-soft: oklch(0.211 0.008 58);
-	--surface-card: oklch(0.211 0.008 58);
-	--surface-strong: oklch(0.272 0.008 58);
-	--surface-1: oklch(0.211 0.008 58);
-	--surface-2: oklch(0.234 0.008 58);
-	--inverse-canvas: oklch(0.9461 0 0);
-	--ink: oklch(0.9401 0 0);
-	--ink-body: oklch(0.8328 0 0);
-	--ink-muted: oklch(0.7137 0.0192 261.32);
-	--hairline: oklch(0.258 0.008 58);
-	--hairline-soft: oklch(0.238 0.008 58);
-	--border-subtle: oklch(0.238 0.008 58);
+  --canvas: oklch(0.176 0.008 58);
+  --surface-soft: oklch(0.211 0.008 58);
+  --surface-card: oklch(0.211 0.008 58);
+  --surface-strong: oklch(0.272 0.008 58);
+  --surface-1: oklch(0.211 0.008 58);
+  --surface-2: oklch(0.234 0.008 58);
+  --inverse-canvas: oklch(0.9461 0 0);
+  --ink: oklch(0.9401 0 0);
+  --ink-body: oklch(0.8328 0 0);
+  --ink-muted: oklch(0.7137 0.0192 261.32);
+  --hairline: oklch(0.258 0.008 58);
+  --hairline-soft: oklch(0.238 0.008 58);
+  --border-subtle: oklch(0.238 0.008 58);
 }
 
 /* ---------------------------------------------------------------------------
@@ -258,218 +264,226 @@
    `inline` keeps the var reference live so .dark overrides flow through.
    --------------------------------------------------------------------------- */
 @theme inline {
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
-	--color-card: var(--card);
-	--color-card-foreground: var(--card-foreground);
-	--color-surface: var(--surface);
-	--color-popover: var(--popover);
-	--color-popover-foreground: var(--popover-foreground);
-	--color-primary: var(--primary);
-	--color-primary-foreground: var(--primary-foreground);
-	--color-secondary: var(--secondary);
-	--color-secondary-foreground: var(--secondary-foreground);
-	--color-muted: var(--muted);
-	--color-muted-foreground: var(--muted-foreground);
-	--color-accent: var(--accent);
-	--color-accent-foreground: var(--accent-foreground);
-	--color-destructive: var(--destructive);
-	--color-destructive-foreground: var(--destructive-foreground);
-	--color-success: var(--success);
-	--color-success-foreground: var(--success-foreground);
-	--color-warning: var(--warning);
-	--color-warning-foreground: var(--warning-foreground);
-	--color-info: var(--info);
-	--color-info-foreground: var(--info-foreground);
-	--color-border: var(--border);
-	--color-input: var(--input);
-	--color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-surface: var(--surface);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-	--color-sidebar: var(--sidebar);
-	--color-sidebar-foreground: var(--sidebar-foreground);
-	--color-sidebar-primary: var(--sidebar-primary);
-	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-	--color-sidebar-accent: var(--sidebar-accent);
-	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-	--color-sidebar-border: var(--sidebar-border);
-	--color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 
-	--color-chart-1: var(--chart-1);
-	--color-chart-2: var(--chart-2);
-	--color-chart-3: var(--chart-3);
-	--color-chart-4: var(--chart-4);
-	--color-chart-5: var(--chart-5);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
-	/* The single brand accent + marketing surface mirrors. */
-	--color-brand: var(--brand);
-	--color-brand-foreground: var(--brand-foreground);
-	--color-brand-hover: var(--brand-hover);
-	--color-brand-subtle: var(--brand-subtle);
-	--color-signal-cyan: var(--signal-cyan);
-	--color-signal-cyan-soft: var(--signal-cyan-soft);
-	--color-signal-blue: var(--signal-blue);
-	--color-signal-blue-soft: var(--signal-blue-soft);
-	--color-signal-lime: var(--signal-lime);
-	--color-signal-lime-soft: var(--signal-lime-soft);
-	--color-canvas: var(--canvas);
-	--color-surface-soft: var(--surface-soft);
-	--color-surface-card: var(--surface-card);
-	--color-surface-strong: var(--surface-strong);
-	--color-surface-1: var(--surface-1);
-	--color-surface-2: var(--surface-2);
-	--color-inverse-canvas: var(--inverse-canvas);
-	--color-ink: var(--ink);
-	--color-ink-body: var(--ink-body);
-	--color-ink-muted: var(--ink-muted);
-	--color-hairline: var(--hairline);
-	--color-hairline-soft: var(--hairline-soft);
-	--color-border-subtle: var(--border-subtle);
+  /* The single brand accent + marketing surface mirrors. */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-signal-cyan: var(--signal-cyan);
+  --color-signal-cyan-soft: var(--signal-cyan-soft);
+  --color-signal-blue: var(--signal-blue);
+  --color-signal-blue-soft: var(--signal-blue-soft);
+  --color-signal-lime: var(--signal-lime);
+  --color-signal-lime-soft: var(--signal-lime-soft);
+  --color-canvas: var(--canvas);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-card: var(--surface-card);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-inverse-canvas: var(--inverse-canvas);
+  --color-ink: var(--ink);
+  --color-ink-body: var(--ink-body);
+  --color-ink-muted: var(--ink-muted);
+  --color-hairline: var(--hairline);
+  --color-hairline-soft: var(--hairline-soft);
+  --color-border-subtle: var(--border-subtle);
 
-	/* Radius scale derived from --radius (extended to match trace-mvp). */
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
-	--radius-2xl: calc(var(--radius) * 1.8);
-	--radius-3xl: calc(var(--radius) * 2.2);
-	--radius-4xl: calc(var(--radius) * 2.6);
-	--radius-spotlight: 1.875rem;
-	--radius-pill: 100px;
+  /* Radius scale derived from --radius (extended to match trace-mvp). */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-spotlight: 1.875rem;
+  --radius-pill: 100px;
 
-	/* Shared motion easing — the "settle into place" curve used by Reveal. */
-	--ease-craft: cubic-bezier(0.625, 0.05, 0, 1);
+  /* Shared motion easing — the "settle into place" curve used by Reveal. */
+  --ease-craft: cubic-bezier(0.625, 0.05, 0, 1);
 }
 
 /* ---------------------------------------------------------------------------
    Static design tokens (typography, materiality). Not theme-dependent.
    --------------------------------------------------------------------------- */
 @theme {
-	/* Inter is the UI + body voice (its OpenType character variants are enabled on
+  /* Inter is the UI + body voice (its OpenType character variants are enabled on
 	   <body>). Geist is the geometric display face — our GT-Walsheim substitute. */
-	--font-sans:
-		'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-		Roboto, sans-serif;
-	--font-display:
-		'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-		Roboto, sans-serif;
-	/* Editorial serif — warm, magazine-like display voice for marketing headline
+  --font-sans:
+    "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --font-display:
+    "Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  /* Editorial serif — warm, magazine-like display voice for marketing headline
 	   moments only (the autosend "Cooper Lt BT" register). Never app chrome. */
-	--font-serif:
-		'Fraunces Variable', 'Fraunces', 'Cooper Lt BT', Georgia, 'Times New Roman',
-		serif;
-	/* The technical voice — labels, code, metrics. */
-	--font-mono:
-		'Geist Mono Variable', 'Geist Mono', 'JetBrains Mono Variable',
-		ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --font-serif:
+    "Fraunces Variable", "Fraunces", "Cooper Lt BT", Georgia, "Times New Roman",
+    serif;
+  /* The technical voice — labels, code, metrics. */
+  --font-mono:
+    "Geist Mono Variable", "Geist Mono", "JetBrains Mono Variable",
+    ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
 
-	/* craft-* shadows — neutral graphite, low-alpha. Depth from light, never heavy. */
-	--shadow-craft-sm: 0 1px 2px 0 rgb(9 9 11 / 0.06), 0 1px 1px -1px rgb(9 9 11 / 0.05);
-	--shadow-craft-lg: 0 12px 32px -10px rgb(9 9 11 / 0.12), 0 4px 12px -6px rgb(9 9 11 / 0.07);
-	--shadow-craft-floating: 0 22px 54px -16px rgb(9 9 11 / 0.20), 0 8px 18px -10px rgb(9 9 11 / 0.10);
-	--shadow-craft-inset: inset 0 1px 2px 0 rgb(9 9 11 / 0.06);
-	--shadow-craft-md: 0 4px 8px -2px rgb(9 9 11 / 0.06), 0 2px 4px -2px rgb(9 9 11 / 0.04);
-	--shadow-craft-xl: 0 20px 40px -8px rgb(9 9 11 / 0.10), 0 8px 16px -8px rgb(9 9 11 / 0.06);
+  /* craft-* shadows — neutral graphite, low-alpha. Depth from light, never heavy. */
+  --shadow-craft-sm:
+    0 1px 2px 0 rgb(9 9 11 / 0.06), 0 1px 1px -1px rgb(9 9 11 / 0.05);
+  --shadow-craft-lg:
+    0 12px 32px -10px rgb(9 9 11 / 0.12), 0 4px 12px -6px rgb(9 9 11 / 0.07);
+  --shadow-craft-floating:
+    0 22px 54px -16px rgb(9 9 11 / 0.2), 0 8px 18px -10px rgb(9 9 11 / 0.1);
+  --shadow-craft-inset: inset 0 1px 2px 0 rgb(9 9 11 / 0.06);
+  --shadow-craft-md:
+    0 4px 8px -2px rgb(9 9 11 / 0.06), 0 2px 4px -2px rgb(9 9 11 / 0.04);
+  --shadow-craft-xl:
+    0 20px 40px -8px rgb(9 9 11 / 0.1), 0 8px 16px -8px rgb(9 9 11 / 0.06);
 
-	/* Elevation set (adopted from trace-mvp): base drops + a light-edge floating
+  /* Elevation set (adopted from trace-mvp): base drops + a light-edge floating
 	   shadow + a focus ring. Monochrome — colours stay ours (ring derives from
 	   --ring rather than trace's blue). */
-	--shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.10), 0 2px 4px -1px rgb(0 0 0 / 0.06);
-	--shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.10), 0 10px 10px -5px rgb(0 0 0 / 0.04);
-	--shadow-floating: inset 0 0.5px 0 rgb(255 255 255 / 0.10), 0 10px 30px rgb(0 0 0 / 0.25);
-	--shadow-focus-ring:
-		0 0 0 1px color-mix(in oklab, var(--ring) 45%, transparent),
-		0 0 0 4px color-mix(in oklab, var(--ring) 15%, transparent);
+  --shadow-md:
+    0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  --shadow-xl:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+  --shadow-floating:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.1), 0 10px 30px rgb(0 0 0 / 0.25);
+  --shadow-focus-ring:
+    0 0 0 1px color-mix(in oklab, var(--ring) 45%, transparent),
+    0 0 0 4px color-mix(in oklab, var(--ring) 15%, transparent);
 }
 
 /* ---------------------------------------------------------------------------
    Base layer
    --------------------------------------------------------------------------- */
 @layer base {
-	* {
-		border-color: var(--border);
-		outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
-	}
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  }
 
-	/* Interactive elements get a pointer cursor by default (browsers leave
+  /* Interactive elements get a pointer cursor by default (browsers leave
 	   <button> as an arrow). Disabled controls fall back to the default. */
-	button:not(:disabled):not([disabled]),
-	[role='button']:not([aria-disabled='true']),
-	summary,
-	label:has(> input[type='checkbox']:not(:disabled)),
-	label:has(> input[type='radio']:not(:disabled)) {
-		cursor: pointer;
-	}
-	:disabled,
-	[disabled],
-	[aria-disabled='true'] {
-		cursor: default;
-	}
+  button:not(:disabled):not([disabled]),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label:has(> input[type="checkbox"]:not(:disabled)),
+  label:has(> input[type="radio"]:not(:disabled)) {
+    cursor: pointer;
+  }
+  :disabled,
+  [disabled],
+  [aria-disabled="true"] {
+    cursor: default;
+  }
 
-	html {
-		-webkit-text-size-adjust: 100%;
-		text-rendering: optimizeLegibility;
-	}
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
 
-	body {
-		background-color: var(--background);
-		color: var(--foreground);
-		font-family: var(--font-sans);
-		/* Inter's bespoke voice — the OpenType character variants DESIGN.md calls out
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    /* Inter's bespoke voice — the OpenType character variants DESIGN.md calls out
 		   (alt 1/g/i-l/0, stylistic sets, discretionary ligatures). */
-		font-feature-settings:
-			'cv01', 'cv05', 'cv09', 'cv11', 'ss03', 'ss07', 'dlig';
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
-	}
+    font-feature-settings:
+      "cv01", "cv05", "cv09", "cv11", "ss03", "ss07", "dlig";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-	/* Display headings — Geist, semibold, tight tracking. */
-	.font-display {
-		font-family: var(--font-display);
-		font-weight: 600;
-		letter-spacing: -0.025em;
-	}
+  /* Display headings — Geist, semibold, tight tracking. */
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
 
-	/* Editorial serif headlines (marketing) — Fraunces with the SOFT axis dialled
+  /* Editorial serif headlines (marketing) — Fraunces with the SOFT axis dialled
 	   up for warmth and a generous optical size. Light weight reads magazine-like,
 	   not corporate. Pair `italic` on emphasis words for the autosend hero look. */
-	.font-serif {
-		font-family: var(--font-serif);
-		font-weight: 400;
-		font-variation-settings:
-			'opsz' 144,
-			'SOFT' 40,
-			'WONK' 0;
-		letter-spacing: -0.01em;
-	}
-	.font-serif :global(em),
-	.font-serif em {
-		font-style: italic;
-		font-variation-settings:
-			'opsz' 144,
-			'SOFT' 50,
-			'WONK' 1;
-	}
+  .font-serif {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-variation-settings:
+      "opsz" 144,
+      "SOFT" 40,
+      "WONK" 0;
+    letter-spacing: -0.01em;
+  }
+  .font-serif :global(em),
+  .font-serif em {
+    font-style: italic;
+    font-variation-settings:
+      "opsz" 144,
+      "SOFT" 50,
+      "WONK" 1;
+  }
 
-	/* Tabular numerals everywhere numbers carry meaning (metrics, line/col). */
-	.tabular-nums {
-		font-variant-numeric: tabular-nums;
-	}
+  /* Tabular numerals everywhere numbers carry meaning (metrics, line/col). */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
 
-	/* Selection — a quiet neutral ink tint (keyfold-style, monochrome). */
-	::selection {
-		background-color: color-mix(in oklab, var(--foreground) 14%, transparent);
-	}
+  /* Selection — a quiet neutral ink tint (keyfold-style, monochrome). */
+  ::selection {
+    background-color: color-mix(in oklab, var(--foreground) 14%, transparent);
+  }
 }
 
 /* Unlayered (wins over Tailwind utilities): menu / option / tab items hard-code
    `cursor-default` in their base components, but they're clickable — give them a
    pointer. Disabled items keep the default. */
-[role='menuitem']:not([data-disabled]):not([aria-disabled='true']),
-[role='menuitemcheckbox']:not([data-disabled]):not([aria-disabled='true']),
-[role='menuitemradio']:not([data-disabled]):not([aria-disabled='true']),
-[role='option']:not([data-disabled]):not([aria-disabled='true']),
-[role='tab']:not([data-disabled]):not([aria-disabled='true']) {
-	cursor: pointer;
+[role="menuitem"]:not([data-disabled]):not([aria-disabled="true"]),
+[role="menuitemcheckbox"]:not([data-disabled]):not([aria-disabled="true"]),
+[role="menuitemradio"]:not([data-disabled]):not([aria-disabled="true"]),
+[role="option"]:not([data-disabled]):not([aria-disabled="true"]),
+[role="tab"]:not([data-disabled]):not([aria-disabled="true"]) {
+  cursor: pointer;
 }
 
 /* --- Scrollbars (slim, monochrome) ------------------------------------------
@@ -477,50 +491,51 @@
    transparent track that brightens on hover/active. Firefox uses the standard
    props; WebKit/Chromium (the Tauri WebView) gets the styled pseudo-elements. */
 * {
-	scrollbar-width: thin;
-	scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent)
+    transparent;
 }
 
 ::-webkit-scrollbar {
-	width: 11px;
-	height: 11px;
+  width: 11px;
+  height: 11px;
 }
 ::-webkit-scrollbar-track {
-	background: transparent;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-	background: color-mix(in oklab, var(--foreground) 16%, transparent);
-	/* The transparent border + padding-box clip makes the pill look slim with
+  background: color-mix(in oklab, var(--foreground) 16%, transparent);
+  /* The transparent border + padding-box clip makes the pill look slim with
 	   breathing room from the track edge. */
-	border: 3px solid transparent;
-	border-radius: 9999px;
-	background-clip: padding-box;
-	transition: background-color 0.15s ease;
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background-clip: padding-box;
+  transition: background-color 0.15s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
-	background: color-mix(in oklab, var(--foreground) 28%, transparent);
-	background-clip: padding-box;
+  background: color-mix(in oklab, var(--foreground) 28%, transparent);
+  background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:active {
-	background: color-mix(in oklab, var(--foreground) 40%, transparent);
-	background-clip: padding-box;
+  background: color-mix(in oklab, var(--foreground) 40%, transparent);
+  background-clip: padding-box;
 }
 ::-webkit-scrollbar-corner {
-	background: transparent;
+  background: transparent;
 }
 
 /* Reserve the scrollbar gutter so content doesn't reflow when it appears. */
 .scrollbar-gutter-stable {
-	scrollbar-gutter: stable;
+  scrollbar-gutter: stable;
 }
 
 /* Fully hide the scrollbar (used by the command list, etc.). */
 .no-scrollbar {
-	-ms-overflow-style: none;
-	scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .no-scrollbar::-webkit-scrollbar {
-	display: none;
+  display: none;
 }
 
 /* ---------------------------------------------------------------------------
@@ -529,664 +544,863 @@
    so changing the look means editing this stylesheet, not hunting markup.
    --------------------------------------------------------------------------- */
 @layer components {
-	.landing-site-header {
-		position: relative;
-		z-index: 20;
-		background: var(--canvas);
-	}
+  .landing-site-header {
+    position: relative;
+    z-index: 20;
+    background: var(--canvas);
+  }
 
-	.landing-site-header__nav {
-		margin-left: 0.5rem;
-	}
+  .landing-site-header__nav {
+    margin-left: 0.5rem;
+  }
 
-	.landing-shell {
-		position: relative;
-		overflow: clip;
-	}
+  .landing-shell {
+    position: relative;
+    overflow: clip;
+  }
 
-	.landing-shell::before,
-	.landing-shell::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		width: 1px;
-		background: linear-gradient(
-			to bottom,
-			transparent 0%,
-			color-mix(in oklab, var(--hairline) 92%, transparent) 8%,
-			color-mix(in oklab, var(--hairline) 92%, transparent) 92%,
-			transparent 100%
-		);
-		pointer-events: none;
-	}
+  .landing-shell::before,
+  .landing-shell::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      color-mix(in oklab, var(--hairline) 92%, transparent) 8%,
+      color-mix(in oklab, var(--hairline) 92%, transparent) 92%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
 
-	/* Rules sit at the 80rem content-column edge (not 1.25rem inside it), so the
+  /* Rules sit at the 80rem content-column edge (not 1.25rem inside it), so the
 	   inner container padding becomes a real gutter between the line and content
 	   instead of the ~4px sliver it was before. */
-	.landing-shell::before {
-		left: max(1.25rem, calc((100vw - 80rem) / 2));
-	}
+  .landing-shell::before {
+    left: max(1.25rem, calc((100vw - 80rem) / 2));
+  }
 
-	.landing-shell::after {
-		right: max(1.25rem, calc((100vw - 80rem) / 2));
-	}
+  .landing-shell::after {
+    right: max(1.25rem, calc((100vw - 80rem) / 2));
+  }
 
-	.landing-grid {
-		display: grid;
-	}
+  .landing-grid {
+    display: grid;
+  }
 
-	.landing-hero {
-		background:
-			linear-gradient(to bottom, color-mix(in oklab, var(--surface-card) 96%, transparent), color-mix(in oklab, var(--surface-soft) 75%, transparent) 70%, var(--surface-card));
-	}
+  .landing-hero {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--surface-card) 96%, transparent),
+      color-mix(in oklab, var(--surface-soft) 75%, transparent) 70%,
+      var(--surface-card)
+    );
+  }
 
-	.landing-hero__wash {
-		position: absolute;
-		inset: 0;
-		background:
-			radial-gradient(circle at 50% 26%, color-mix(in oklab, var(--signal-cyan-soft) 95%, transparent), transparent 33%),
-			radial-gradient(circle at 48% 58%, color-mix(in oklab, var(--signal-blue-soft) 38%, transparent), transparent 38%);
-		pointer-events: none;
-	}
+  .landing-hero__wash {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        circle at 50% 26%,
+        color-mix(in oklab, var(--signal-cyan-soft) 95%, transparent),
+        transparent 33%
+      ),
+      radial-gradient(
+        circle at 48% 58%,
+        color-mix(in oklab, var(--signal-blue-soft) 38%, transparent),
+        transparent 38%
+      );
+    pointer-events: none;
+  }
 
-	/* Section heading ladder — ONE display treatment for every marketing H2 so
+  /* Section heading ladder — ONE display treatment for every marketing H2 so
 	   sizes stay consistent instead of per-section arbitrary values. Emphasis
 	   words use the Fraunces serif via <em> (mirrors the hero's serif accent). */
-	.landing-section-title {
-		font-family: var(--font-display);
-		font-weight: 600;
-		font-size: clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);
-		line-height: 1.02;
-		letter-spacing: -0.045em;
-		color: var(--ink);
-		text-wrap: balance;
-	}
+  .landing-section-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.25rem, 1.4rem + 3.4vw, 3.75rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
 
-	.landing-section-title em {
-		font-family: var(--font-serif);
-		font-style: italic;
-		font-weight: 400;
-		letter-spacing: -0.02em;
-		font-variation-settings:
-			'opsz' 144,
-			'SOFT' 50,
-			'WONK' 1;
-	}
+  .landing-section-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    font-variation-settings:
+      "opsz" 144,
+      "SOFT" 50,
+      "WONK" 1;
+  }
 
-	/* Decorative dot-pattern SVGs (vendored in static/decor). Used in the hero
+  /* Decorative dot-pattern SVGs (vendored in static/decor). Used in the hero
 	   corners and mirrored on the CTA panel edges — the same signature motif. */
-	.landing-corner-image {
-		position: absolute;
-		bottom: -0.5rem;
-		width: 14.5rem;
-		height: auto;
-		opacity: 0.96;
-		pointer-events: none;
-	}
-	.dark .landing-corner-image {
-		filter: saturate(0.5);
-	}
-
-	.landing-corner-image--left {
-		left: 1rem;
-	}
-
-	.landing-corner-image--right {
-		right: 1rem;
-	}
-
-	/* Tall vertical dot-column, mirrored on the right (Nex "PLAYBOOKS" CTA). */
-	.landing-cta-pattern {
-		position: absolute;
-		top: 50%;
-		width: clamp(4rem, 5vw, 6rem);
-		height: auto;
-		transform: translateY(-50%);
-		opacity: 0.95;
-		pointer-events: none;
-	}
-
-	.landing-cta-pattern--left {
-		left: 2rem;
-	}
-
-	.landing-cta-pattern--right {
-		right: 2rem;
-		transform: translateY(-50%) scaleX(-1);
-	}
-
-	/* Footer dot-grid texture — fades in toward the bottom edge (Nex footer). */
-	.landing-footer {
-		position: relative;
-		overflow: hidden;
-	}
-
-	.landing-footer-dots {
-		position: absolute;
-		inset-inline: 0;
-		bottom: 0;
-		height: 8rem;
-		background-image: radial-gradient(
-			circle,
-			color-mix(in oklab, var(--ink) 20%, transparent) 0 1.5px,
-			transparent 2px
-		);
-		background-size: 1.4rem 1.4rem;
-		background-position: center bottom;
-		opacity: 0.55;
-		pointer-events: none;
-		-webkit-mask-image: linear-gradient(to bottom, transparent, #000 90%);
-		mask-image: linear-gradient(to bottom, transparent, #000 90%);
-	}
-
-	/* Import-source pills for the "bring your existing project" band. */
-	.landing-import-item {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.9rem;
-		border: 1px solid var(--hairline);
-		border-radius: 999px;
-		background: var(--surface-card);
-		font-size: 0.85rem;
-		font-weight: 500;
-		letter-spacing: -0.01em;
-		color: var(--ink-body);
-		box-shadow: var(--shadow-craft-sm);
-	}
-
-	.landing-import-item svg {
-		color: var(--ink-muted);
-	}
-
-	.landing-chip,
-	.landing-section-label {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		letter-spacing: 0.22em;
-		text-transform: uppercase;
-		color: var(--ink-muted);
-	}
-
-	.landing-chip {
-		padding: 0.625rem 0.9rem;
-		border: 1px solid var(--hairline);
-		border-radius: 999px;
-		background:
-			linear-gradient(to bottom, color-mix(in oklab, var(--surface-card) 85%, transparent), color-mix(in oklab, var(--surface-soft) 88%, transparent));
-		box-shadow: var(--shadow-craft-sm);
-	}
-
-	.landing-button {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.625rem;
-		min-height: 3.25rem;
-		padding-inline: 1.4rem;
-		border-radius: 999px;
-		font-size: 0.95rem;
-		font-weight: 600;
-		letter-spacing: -0.01em;
-		transition:
-			transform 160ms ease,
-			background-color 160ms ease,
-			border-color 160ms ease,
-			color 160ms ease;
-	}
-
-	.landing-button:hover {
-		transform: translateY(-1px);
-	}
-
-	.landing-button-primary {
-		background: var(--ink);
-		color: var(--canvas);
-	}
-
-	.landing-button-soft {
-		background: color-mix(in oklab, var(--surface-2) 92%, white 8%);
-		color: var(--ink);
-		box-shadow: var(--shadow-craft-sm);
-	}
-
-	.landing-button-secondary {
-		border: 1px solid var(--hairline);
-		background: var(--surface-card);
-		color: var(--ink);
-		box-shadow: var(--shadow-craft-sm);
-	}
-
-	.landing-button-ghost {
-		border: 1px solid var(--hairline);
-		background: color-mix(in oklab, var(--surface-card) 72%, transparent);
-		color: var(--ink);
-	}
-
-	.landing-hero-word {
-		font-family: var(--font-serif);
-		font-size: clamp(5rem, 10.2vw, 7.7rem);
-		font-weight: 700;
-		font-style: normal;
-		line-height: 0.9;
-		letter-spacing: -0.06em;
-		color: var(--ink);
-		font-variation-settings:
-			'opsz' 144,
-			'SOFT' 88,
-			'WONK' 1;
-	}
-
-	.landing-hero-assurance {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 2rem;
-		max-width: 38rem;
-		font-size: 0.95rem;
-		line-height: 1.45;
-		color: var(--ink-body);
-	}
-
-	.landing-hero-assurance__copy {
-		max-width: 17rem;
-		text-align: right;
-	}
-
-	.landing-hero-assurance__mark {
-		font-size: 2rem;
-		font-weight: 700;
-		line-height: 0.95;
-		letter-spacing: -0.05em;
-		color: color-mix(in oklab, var(--ink) 78%, var(--ink-muted));
-	}
-
-	.landing-trust-mark {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.45rem;
-		padding: 0.55rem 0.95rem;
-		border: 1px solid var(--hairline);
-		border-radius: 999px;
-		background:
-			linear-gradient(
-				to bottom,
-				color-mix(in oklab, var(--surface-card) 96%, transparent),
-				color-mix(in oklab, var(--surface-soft) 92%, transparent)
-			);
-		font-size: 0.88rem;
-		font-weight: 600;
-		letter-spacing: -0.01em;
-		color: var(--ink);
-		box-shadow: var(--shadow-craft-sm);
-	}
-
-	.landing-mini-stat {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.landing-mini-stat__value {
-		font-size: 0.95rem;
-		font-weight: 600;
-		letter-spacing: -0.02em;
-		color: var(--ink);
-	}
-
-	.landing-mini-stat__label {
-		font-size: 0.82rem;
-		line-height: 1.45;
-		color: var(--ink-muted);
-	}
-
-	.landing-start-card {
-		gap: 1.75rem;
-		border-radius: 2rem;
-		padding: 2rem 1.8rem;
-	}
-
-	.landing-start-card--highlight {
-		background:
-			linear-gradient(to bottom, color-mix(in oklab, var(--signal-cyan-soft) 52%, var(--surface-card)), color-mix(in oklab, var(--surface-soft) 88%, transparent));
-	}
-
-	.landing-start-card__top {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.landing-start-card__divider {
-		height: 1px;
-		background: var(--hairline);
-	}
-
-	.landing-hero-frame {
-		position: relative;
-		padding: 1rem;
-		border: 1px solid var(--hairline);
-		border-radius: 2rem;
-		background:
-			radial-gradient(circle at top left, color-mix(in oklab, var(--signal-cyan-soft) 90%, transparent), transparent 32%),
-			radial-gradient(circle at bottom right, color-mix(in oklab, var(--signal-blue-soft) 90%, transparent), transparent 32%),
-			linear-gradient(to bottom, color-mix(in oklab, var(--surface-card) 96%, transparent), color-mix(in oklab, var(--surface-soft) 92%, transparent));
-		box-shadow: var(--shadow-craft-lg);
-	}
-
-	.landing-hero-frame__halo {
-		position: absolute;
-		width: 15rem;
-		height: 15rem;
-		border-radius: 999px;
-		filter: blur(46px);
-		opacity: 0.7;
-		pointer-events: none;
-	}
-
-	.landing-hero-frame__halo--cyan {
-		top: 2rem;
-		right: 5rem;
-		background: color-mix(in oklab, var(--signal-cyan) 42%, transparent);
-	}
-
-	.landing-hero-frame__halo--blue {
-		bottom: 3rem;
-		left: 4rem;
-		background: color-mix(in oklab, var(--signal-blue) 34%, transparent);
-	}
-
-	.landing-hero-frame__halo--lime {
-		bottom: 7rem;
-		right: 6rem;
-		background: color-mix(in oklab, var(--signal-lime) 28%, transparent);
-	}
-
-	.landing-browser {
-		position: relative;
-		overflow: hidden;
-		border: 1px solid color-mix(in oklab, var(--hairline) 88%, transparent);
-		border-radius: 1.45rem;
-		background: var(--surface-card);
-	}
-
-	.landing-browser__bar {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		padding: 0.9rem 1rem;
-		border-bottom: 1px solid var(--hairline);
-		background: color-mix(in oklab, var(--surface-soft) 94%, transparent);
-	}
-
-	.landing-browser__traffic {
-		display: inline-flex;
-		gap: 0.375rem;
-	}
-
-	.landing-browser__traffic span {
-		width: 0.6rem;
-		height: 0.6rem;
-		border-radius: 999px;
-		background: color-mix(in oklab, var(--ink) 18%, transparent);
-	}
-
-	.landing-browser__title {
-		font-family: var(--font-mono);
-		font-size: 0.72rem;
-		color: var(--ink-muted);
-	}
-
-	.landing-browser__body {
-		position: relative;
-		min-height: 30rem;
-		background: var(--canvas);
-	}
-
-	.landing-floating-card {
-		position: absolute;
-		z-index: 2;
-		display: flex;
-		gap: 0.8rem;
-		align-items: flex-start;
-		max-width: 15rem;
-		padding: 1rem;
-		border: 1px solid var(--hairline);
-		border-radius: 1.3rem;
-		background: color-mix(in oklab, var(--surface-card) 92%, transparent);
-		box-shadow: var(--shadow-craft-lg);
-		backdrop-filter: blur(12px);
-	}
-
-	.landing-floating-card__icon {
-		display: grid;
-		place-items: center;
-		width: 2.2rem;
-		height: 2.2rem;
-		border-radius: 999px;
-		flex-shrink: 0;
-	}
-
-	.landing-floating-card__title {
-		font-size: 0.86rem;
-		font-weight: 600;
-		letter-spacing: -0.02em;
-		color: var(--ink);
-	}
-
-	.landing-floating-card__body {
-		margin-top: 0.2rem;
-		font-size: 0.78rem;
-		line-height: 1.45;
-		color: var(--ink-muted);
-	}
-
-	.landing-tool-strip {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.95rem;
-	}
-
-	.landing-arrow-button {
-		display: inline-grid;
-		place-items: center;
-		width: 3rem;
-		height: 3rem;
-		border-radius: 999px;
-		border: 1px solid var(--hairline);
-		background: var(--surface-card);
-		color: var(--ink);
-		transition:
-			background-color 160ms ease,
-			transform 160ms ease;
-	}
-
-	.landing-arrow-button:hover {
-		background: var(--surface-soft);
-		transform: translateY(-1px);
-	}
-
-	.landing-feature-deck {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(24rem, 24rem));
-		gap: 1.05rem;
-		min-width: 98rem;
-		padding-bottom: 0.25rem;
-	}
-
-	.landing-feature-card {
-		min-height: 29.5rem;
-		border-radius: 1.9rem;
-		padding: 1.65rem 1.7rem 1.85rem;
-	}
-
-	.landing-feature-card__badge {
-		display: inline-grid;
-		place-items: center;
-		width: 2.9rem;
-		height: 2.9rem;
-		border-radius: 0.9rem;
-		background: color-mix(in oklab, var(--surface-soft) 92%, transparent);
-		border: 1px solid var(--hairline);
-	}
-
-	.landing-editor-stage {
-		position: relative;
-		padding: 1rem;
-		border: 1px solid var(--hairline);
-		border-radius: 2rem;
-		background:
-			radial-gradient(circle at 82% 18%, color-mix(in oklab, var(--signal-cyan-soft) 70%, transparent), transparent 18%),
-			linear-gradient(to bottom, color-mix(in oklab, var(--surface-card) 96%, transparent), color-mix(in oklab, var(--surface-soft) 86%, transparent));
-		box-shadow: var(--shadow-craft-lg);
-	}
-
-	@media (min-width: 768px) {
-		.landing-start-card {
-			padding: 2.6rem 2.5rem;
-		}
-
-		.landing-feature-card {
-			padding: 1.75rem 1.8rem 1.9rem;
-		}
-	}
-
-	.landing-showcase-card,
-	.landing-workflow-card,
-	.landing-contrast-panel {
-		height: 100%;
-		border: 1px solid var(--hairline);
-		border-radius: 2rem;
-		background: var(--surface-card);
-		box-shadow: var(--shadow-craft-sm);
-	}
-
-	.landing-showcase-card {
-		padding: 1.5rem;
-	}
-
-	.landing-showcase-card__icon {
-		display: inline-grid;
-		place-items: center;
-		width: 3rem;
-		height: 3rem;
-		border-radius: 1rem;
-	}
-
-	.landing-showcase-card__icon.signal-cyan {
-		background: var(--signal-cyan-soft);
-		color: var(--signal-cyan);
-	}
-
-	.landing-showcase-card__icon.signal-blue {
-		background: var(--signal-blue-soft);
-		color: var(--signal-blue);
-	}
-
-	.landing-showcase-card__icon.signal-lime {
-		background: var(--signal-lime-soft);
-		color: var(--signal-lime);
-	}
-
-	.landing-workflow-card {
-		padding: 1.5rem;
-	}
-
-	.landing-workflow-card__visual {
-		position: relative;
-		height: 14rem;
-		margin-bottom: 1.4rem;
-		border-radius: 1.6rem;
-		border: 1px solid var(--hairline);
-		background:
-			linear-gradient(to bottom, color-mix(in oklab, var(--surface-soft) 92%, transparent), color-mix(in oklab, var(--surface-card) 94%, transparent));
-		overflow: hidden;
-	}
-
-	.landing-contrast-panel__header {
-		display: flex;
-		align-items: center;
-		gap: 0.65rem;
-		padding: 1.25rem 1.5rem;
-		border-bottom: 1px solid var(--hairline);
-		font-size: 0.92rem;
-		font-weight: 600;
-		letter-spacing: -0.01em;
-		color: var(--ink);
-	}
-
-	.landing-contrast-line {
-		display: flex;
-		align-items: flex-start;
-		gap: 0.8rem;
-	}
-
-	.landing-cta-panel {
-		position: relative;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 4rem 1.5rem;
-		border: 1px solid var(--hairline);
-		border-radius: 2.2rem;
-		/* Faint vertical pinstripe field that fades out through the centre so the
+  .landing-corner-image {
+    position: absolute;
+    bottom: -0.5rem;
+    width: 14.5rem;
+    height: auto;
+    opacity: 0.96;
+    pointer-events: none;
+  }
+  .dark .landing-corner-image {
+    filter: saturate(0.5);
+  }
+
+  .landing-corner-image--left {
+    left: 1rem;
+  }
+
+  .landing-corner-image--right {
+    right: 1rem;
+  }
+
+  /* Tall vertical dot-column, mirrored on the right (Nex "PLAYBOOKS" CTA). */
+  .landing-cta-pattern {
+    position: absolute;
+    top: 50%;
+    width: clamp(4rem, 5vw, 6rem);
+    height: auto;
+    transform: translateY(-50%);
+    opacity: 0.95;
+    pointer-events: none;
+  }
+
+  .landing-cta-pattern--left {
+    left: 2rem;
+  }
+
+  .landing-cta-pattern--right {
+    right: 2rem;
+    transform: translateY(-50%) scaleX(-1);
+  }
+
+  /* Footer dot-grid texture — fades in toward the bottom edge (Nex footer). */
+  .landing-footer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .landing-footer-dots {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 8rem;
+    background-image: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--ink) 20%, transparent) 0 1.5px,
+      transparent 2px
+    );
+    background-size: 1.4rem 1.4rem;
+    background-position: center bottom;
+    opacity: 0.55;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 90%);
+    mask-image: linear-gradient(to bottom, transparent, #000 90%);
+  }
+
+  /* Import-source pills for the "bring your existing project" band. */
+  .landing-import-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--surface-card);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--ink-body);
+    box-shadow: var(--shadow-craft-sm);
+  }
+
+  .landing-import-item svg {
+    color: var(--ink-muted);
+  }
+
+  .landing-chip,
+  .landing-section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .landing-chip {
+    padding: 0.625rem 0.9rem;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--surface-card) 85%, transparent),
+      color-mix(in oklab, var(--surface-soft) 88%, transparent)
+    );
+    box-shadow: var(--shadow-craft-sm);
+  }
+
+  .landing-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 3.25rem;
+    padding-inline: 1.4rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition:
+      transform 160ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .landing-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .landing-button-primary {
+    background: var(--ink);
+    color: var(--canvas);
+  }
+
+  .landing-button-soft {
+    background: color-mix(in oklab, var(--surface-2) 92%, white 8%);
+    color: var(--ink);
+    box-shadow: var(--shadow-craft-sm);
+  }
+
+  .landing-button-secondary {
+    border: 1px solid var(--hairline);
+    background: var(--surface-card);
+    color: var(--ink);
+    box-shadow: var(--shadow-craft-sm);
+  }
+
+  .landing-button-ghost {
+    border: 1px solid var(--hairline);
+    background: color-mix(in oklab, var(--surface-card) 72%, transparent);
+    color: var(--ink);
+  }
+
+  .landing-hero-word {
+    font-family: var(--font-serif);
+    font-size: clamp(5rem, 10.2vw, 7.7rem);
+    font-weight: 700;
+    font-style: normal;
+    line-height: 0.9;
+    letter-spacing: -0.06em;
+    color: var(--ink);
+    font-variation-settings:
+      "opsz" 144,
+      "SOFT" 88,
+      "WONK" 1;
+  }
+
+  .landing-hero-assurance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    max-width: 38rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--ink-body);
+  }
+
+  .landing-hero-assurance__copy {
+    max-width: 17rem;
+    text-align: right;
+  }
+
+  .landing-hero-assurance__mark {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+    color: color-mix(in oklab, var(--ink) 78%, var(--ink-muted));
+  }
+
+  .landing-trust-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--surface-card) 96%, transparent),
+      color-mix(in oklab, var(--surface-soft) 92%, transparent)
+    );
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    box-shadow: var(--shadow-craft-sm);
+  }
+
+  .landing-mini-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .landing-mini-stat__value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .landing-mini-stat__label {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--ink-muted);
+  }
+
+  .landing-start-card {
+    gap: 1.75rem;
+    border-radius: 2rem;
+    padding: 2rem 1.8rem;
+  }
+
+  .landing-start-card--highlight {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--signal-cyan-soft) 52%, var(--surface-card)),
+      color-mix(in oklab, var(--surface-soft) 88%, transparent)
+    );
+  }
+
+  .landing-start-card__top {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .landing-start-card__divider {
+    height: 1px;
+    background: var(--hairline);
+  }
+
+  .landing-hero-frame {
+    position: relative;
+    padding: 1rem;
+    border: 1px solid var(--hairline);
+    border-radius: 2rem;
+    background:
+      radial-gradient(
+        circle at top left,
+        color-mix(in oklab, var(--signal-cyan-soft) 90%, transparent),
+        transparent 32%
+      ),
+      radial-gradient(
+        circle at bottom right,
+        color-mix(in oklab, var(--signal-blue-soft) 90%, transparent),
+        transparent 32%
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--surface-card) 96%, transparent),
+        color-mix(in oklab, var(--surface-soft) 92%, transparent)
+      );
+    box-shadow: var(--shadow-craft-lg);
+  }
+
+  .landing-hero-frame__halo {
+    position: absolute;
+    width: 15rem;
+    height: 15rem;
+    border-radius: 999px;
+    filter: blur(46px);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .landing-hero-frame__halo--cyan {
+    top: 2rem;
+    right: 5rem;
+    background: color-mix(in oklab, var(--signal-cyan) 42%, transparent);
+  }
+
+  .landing-hero-frame__halo--blue {
+    bottom: 3rem;
+    left: 4rem;
+    background: color-mix(in oklab, var(--signal-blue) 34%, transparent);
+  }
+
+  .landing-hero-frame__halo--lime {
+    bottom: 7rem;
+    right: 6rem;
+    background: color-mix(in oklab, var(--signal-lime) 28%, transparent);
+  }
+
+  .landing-browser {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--hairline) 88%, transparent);
+    border-radius: 1.45rem;
+    background: var(--surface-card);
+  }
+
+  .landing-browser__bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--hairline);
+    background: color-mix(in oklab, var(--surface-soft) 94%, transparent);
+  }
+
+  .landing-browser__traffic {
+    display: inline-flex;
+    gap: 0.375rem;
+  }
+
+  .landing-browser__traffic span {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--ink) 18%, transparent);
+  }
+
+  .landing-browser__title {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+  }
+
+  .landing-browser__body {
+    position: relative;
+    min-height: 30rem;
+    background: var(--canvas);
+  }
+
+  .landing-floating-card {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+    max-width: 15rem;
+    padding: 1rem;
+    border: 1px solid var(--hairline);
+    border-radius: 1.3rem;
+    background: color-mix(in oklab, var(--surface-card) 92%, transparent);
+    box-shadow: var(--shadow-craft-lg);
+    backdrop-filter: blur(12px);
+  }
+
+  .landing-floating-card__icon {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+
+  .landing-floating-card__title {
+    font-size: 0.86rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .landing-floating-card__body {
+    margin-top: 0.2rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--ink-muted);
+  }
+
+  .landing-tool-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.95rem;
+  }
+
+  .landing-arrow-button {
+    display: inline-grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--surface-card);
+    color: var(--ink);
+    transition:
+      background-color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .landing-arrow-button:hover {
+    background: var(--surface-soft);
+    transform: translateY(-1px);
+  }
+
+  .landing-feature-deck {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(24rem, 24rem));
+    gap: 1.05rem;
+    min-width: 98rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .landing-feature-card {
+    min-height: 29.5rem;
+    border-radius: 1.9rem;
+    padding: 1.65rem 1.7rem 1.85rem;
+  }
+
+  .landing-feature-card__badge {
+    display: inline-grid;
+    place-items: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    border-radius: 0.9rem;
+    background: color-mix(in oklab, var(--surface-soft) 92%, transparent);
+    border: 1px solid var(--hairline);
+  }
+
+  .landing-editor-stage {
+    position: relative;
+    padding: 1rem;
+    border: 1px solid var(--hairline);
+    border-radius: 2rem;
+    background:
+      radial-gradient(
+        circle at 82% 18%,
+        color-mix(in oklab, var(--signal-cyan-soft) 70%, transparent),
+        transparent 18%
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--surface-card) 96%, transparent),
+        color-mix(in oklab, var(--surface-soft) 86%, transparent)
+      );
+    box-shadow: var(--shadow-craft-lg);
+  }
+
+  @media (min-width: 768px) {
+    .landing-start-card {
+      padding: 2.6rem 2.5rem;
+    }
+
+    .landing-feature-card {
+      padding: 1.75rem 1.8rem 1.9rem;
+    }
+  }
+
+  .landing-showcase-card,
+  .landing-workflow-card,
+  .landing-contrast-panel {
+    height: 100%;
+    border: 1px solid var(--hairline);
+    border-radius: 2rem;
+    background: var(--surface-card);
+    box-shadow: var(--shadow-craft-sm);
+  }
+
+  .landing-showcase-card {
+    padding: 1.5rem;
+  }
+
+  .landing-showcase-card__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 1rem;
+  }
+
+  .landing-showcase-card__icon.signal-cyan {
+    background: var(--signal-cyan-soft);
+    color: var(--signal-cyan);
+  }
+
+  .landing-showcase-card__icon.signal-blue {
+    background: var(--signal-blue-soft);
+    color: var(--signal-blue);
+  }
+
+  .landing-showcase-card__icon.signal-lime {
+    background: var(--signal-lime-soft);
+    color: var(--signal-lime);
+  }
+
+  .landing-workflow-card {
+    padding: 1.5rem;
+  }
+
+  .landing-workflow-card__visual {
+    position: relative;
+    height: 14rem;
+    margin-bottom: 1.4rem;
+    border-radius: 1.6rem;
+    border: 1px solid var(--hairline);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--surface-soft) 92%, transparent),
+      color-mix(in oklab, var(--surface-card) 94%, transparent)
+    );
+    overflow: hidden;
+  }
+
+  .landing-contrast-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .landing-contrast-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .landing-cta-panel {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4rem 1.5rem;
+    border: 1px solid var(--hairline);
+    border-radius: 2.2rem;
+    /* Faint vertical pinstripe field that fades out through the centre so the
 		   copy stays clean — the Nex CTA texture, driven by --hairline. */
-		background:
-			radial-gradient(ellipse 58% 64% at 50% 50%, var(--surface-card) 42%, transparent 100%),
-			repeating-linear-gradient(
-				to right,
-				transparent 0,
-				transparent 1.35rem,
-				color-mix(in oklab, var(--hairline) 42%, transparent) 1.35rem,
-				color-mix(in oklab, var(--hairline) 42%, transparent) calc(1.35rem + 1px)
-			),
-			var(--surface-card);
-		text-align: center;
-	}
+    background:
+      radial-gradient(
+        ellipse 58% 64% at 50% 50%,
+        var(--surface-card) 42%,
+        transparent 100%
+      ),
+      repeating-linear-gradient(
+        to right,
+        transparent 0,
+        transparent 1.35rem,
+        color-mix(in oklab, var(--hairline) 42%, transparent) 1.35rem,
+        color-mix(in oklab, var(--hairline) 42%, transparent)
+          calc(1.35rem + 1px)
+      ),
+      var(--surface-card);
+    text-align: center;
+  }
 
+  /* -----------------------------------------------------------------------
+	   Landing material utilities (glass cards, frosted chips, photo grids).
+	   Shared with the marketing chrome — landing-Header / -Footer /
+	   -HeroBackdrop / -ShowcasePanel all consume them.
+
+	   The glass surfaces are token-driven: card colour comes from --card
+	   (white in light, near-black in dark), and the frosted blur/saturate
+	   pass renders identically on both. Light edge + soft drop complete the
+	   macOS-style "frosted window" look without hardcoded colours.
+	   ----------------------------------------------------------------------- */
+  .landing-glass {
+    background-color: color-mix(in oklab, var(--card) 60%, transparent);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid color-mix(in oklab, var(--border) 35%, transparent);
+  }
+
+  .landing-glass-strong {
+    background-color: color-mix(in oklab, var(--card) 80%, transparent);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid color-mix(in oklab, var(--border) 35%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklab, white 10%, transparent),
+      0 8px 24px -8px rgb(0 0 0 / 0.1);
+  }
+
+  .landing-glass-card {
+    background-color: color-mix(in oklab, var(--card) 55%, transparent);
+    border: 1px solid color-mix(in oklab, var(--border) 35%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklab, white 10%, transparent),
+      inset 0 -1px 0 0 color-mix(in oklab, var(--foreground) 3%, transparent),
+      0 1px 2px rgb(0 0 0 / 0.04),
+      0 8px 24px -8px rgb(0 0 0 / 0.08);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+  }
+
+  @supports (backdrop-filter: blur(0)) {
+    .landing-glass-card {
+      background-color: color-mix(in oklab, var(--card) 30%, transparent);
+    }
+  }
+
+  .dark .landing-glass-card {
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklab, white 8%, transparent),
+      inset 0 -1px 0 0 rgb(0 0 0 / 0.2),
+      0 1px 2px rgb(0 0 0 / 0.3),
+      0 12px 32px -8px rgb(0 0 0 / 0.4);
+  }
+
+  .landing-glass-chip {
+    background-color: color-mix(in oklab, var(--background) 55%, transparent);
+    border: 1px solid color-mix(in oklab, var(--border) 40%, transparent);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklab, white 12%, transparent),
+      0 4px 16px -4px rgb(0 0 0 / 0.08);
+  }
+
+  /* Subtle dot/grid backdrops used by hero + sections to anchor the page
+	   when the photo backdrop is not visible. */
+  .landing-bg-grid {
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 56px 56px;
+  }
+
+  .landing-bg-grid-fade {
+    mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 0%,
+      black 30%,
+      transparent 75%
+    );
+    -webkit-mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 0%,
+      black 30%,
+      transparent 75%
+    );
+  }
+
+  .landing-bg-dots {
+    background-image: radial-gradient(
+      color-mix(in oklab, var(--foreground) 10%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 20px 20px;
+  }
+
+  /* Soft aurora tint used at the top of sections to add depth without
+	   pulling focus from the copy. */
+  .landing-bg-aurora {
+    background-image:
+      radial-gradient(
+        ellipse 80% 50% at 50% -10%,
+        color-mix(in oklab, var(--brand) 14%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 80% 10%,
+        color-mix(in oklab, var(--brand) 8%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 20% 0%,
+        color-mix(in oklab, var(--brand) 6%, transparent),
+        transparent 60%
+      );
+  }
+
+  /* Quiet text utilities — wrap balance/pretty for headings & paragraphs. */
+  .landing-text-balance {
+    text-wrap: balance;
+  }
+  .landing-text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Thin gradient divider for soft section breaks. */
+  .landing-divider-soft {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklab, var(--foreground) 12%, transparent),
+      transparent
+    );
+  }
+
+  /* The visible footer wordmark — a translucent block of glyphs that sits
+	   over the footer backdrop photo, hugging the type via leading. */
+  .landing-footer-wordmark {
+    display: block;
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22vw;
+    line-height: 0.82;
+    letter-spacing: -0.06em;
+    color: color-mix(in oklab, var(--foreground) 50%, transparent);
+    user-select: none;
+  }
 }
 
 @media (max-width: 767px) {
-	@layer components {
-		.landing-hero-assurance {
-			flex-direction: column;
-			gap: 0.85rem;
-		}
+  @layer components {
+    .landing-hero-assurance {
+      flex-direction: column;
+      gap: 0.85rem;
+    }
 
-		.landing-hero-assurance__copy {
-			max-width: 20rem;
-			text-align: center;
-		}
+    .landing-hero-assurance__copy {
+      max-width: 20rem;
+      text-align: center;
+    }
 
-		.landing-site-header__nav {
-			display: none;
-		}
+    .landing-site-header__nav {
+      display: none;
+    }
 
-		.landing-corner-image {
-			display: none;
-		}
+    .landing-corner-image {
+      display: none;
+    }
 
-		.landing-feature-deck {
-			grid-template-columns: repeat(4, minmax(19rem, 19rem));
-			min-width: 79rem;
-		}
+    .landing-feature-deck {
+      grid-template-columns: repeat(4, minmax(19rem, 19rem));
+      min-width: 79rem;
+    }
 
-		.landing-browser__body {
-			min-height: 18rem;
-		}
-	}
+    .landing-browser__body {
+      min-height: 18rem;
+    }
+  }
 }
 
 /* The CTA edge columns need a wide panel to sit beside the copy; hide them on
    anything narrower than desktop. */
 @media (max-width: 1023px) {
-	.landing-cta-pattern {
-		display: none;
-	}
+  .landing-cta-pattern {
+    display: none;
+  }
 }

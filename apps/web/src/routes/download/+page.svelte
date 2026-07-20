@@ -399,8 +399,8 @@
 							<div>
 								<h3 class="text-sm font-semibold text-ink">Just want a quick look first?</h3>
 								<p class="mt-0.5 text-sm text-ink-muted">
-									Try the browser editor. It runs the same LaTeX in the page. The desktop app is where
-									offline compiling and the built-in Git client come together.
+									Try the browser editor. It runs the same LaTeX in the page. The desktop app is
+									where offline compiling and the built-in Git client come together.
 								</p>
 							</div>
 						</div>
@@ -471,10 +471,10 @@
 							>
 								<IconInfoCircle class="mt-0.5 size-4 shrink-0 text-ink-muted" />
 								<p class="text-sm leading-relaxed text-ink-muted">
-									Apple charges for the developer ID that removes this warning, and we have not added
-									it yet. The app is the same build you can read on GitHub. Until it is notarized,
-									macOS needs one command to trust it. {#if showHomebrew}Homebrew (step 1) does this
-										for you.{/if}
+									Apple charges for the developer ID that removes this warning, and we have not
+									added it yet. The app is the same build you can read on GitHub. Until it is
+									notarized, macOS needs one command to trust it. {#if showHomebrew}Homebrew (step
+										1) does this for you.{/if}
 								</p>
 							</div>
 
@@ -568,9 +568,10 @@
 							</span>
 							<h3 class="text-base font-semibold text-ink">Verifying your download</h3>
 							<p class="mt-2 text-sm leading-relaxed text-ink-muted">
-								Every release on GitHub lists the build artifacts next to their checksums. Compare the
-								hash of the file you downloaded against the one in the release notes before you run
-								it. The full source is in the same repository if you would rather build it yourself.
+								Every release on GitHub lists the build artifacts next to their checksums. Compare
+								the hash of the file you downloaded against the one in the release notes before you
+								run it. The full source is in the same repository if you would rather build it
+								yourself.
 							</p>
 							<div class="mt-6 flex flex-wrap gap-3">
 								<a
@@ -621,7 +622,13 @@
 							one, or start writing in the browser today.
 						</p>
 						<div class="mt-10 flex flex-wrap justify-center gap-4">
-							<Button href={repo} target="_blank" rel="noreferrer" variant="landing_soft" size="pill">
+							<Button
+								href={repo}
+								target="_blank"
+								rel="noreferrer"
+								variant="landing_soft"
+								size="pill"
+							>
 								<IconBrandGithub class="size-4" /> Watch on GitHub
 							</Button>
 							<Button href={resolve('/editor')} variant="landing_ghost" size="pill">

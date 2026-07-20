@@ -19,7 +19,7 @@
   --surface-2: oklch(92% 0.002 60);
   --inverse-canvas: oklch(8% 0.005 60);
 
-  --hairline: oklch(0% 0 0 / 0.10);
+  --hairline: oklch(0% 0 0 / 0.1);
   --hairline-soft: oklch(0% 0 0 / 0.06);
 
   /* ---- Ink (binary text hierarchy) ---- */
@@ -85,20 +85,23 @@
 
   --radius: 0.75rem;
 
-  --noise-bg: linear-gradient(oklch(97.357% 0.00561 84.444), oklch(97.357% 0.00561 84.444));
+  --noise-bg: linear-gradient(
+    oklch(97.357% 0.00561 84.444),
+    oklch(97.357% 0.00561 84.444)
+  );
 
   /* Framer spacing scale — raw vars, NOT in @theme to avoid Tailwind
      utility-namespace collisions (max-w-md, text-sm, etc.).
      Use as: padding: var(--space-lg);  margin-block: var(--space-section); */
   --space-hair: 1px;
-  --space-xxs: 0.25rem;   /* 4px  */
-  --space-xs: 0.5rem;     /* 8px  */
-  --space-sm: 0.75rem;    /* 12px */
-  --space-md: 0.9375rem;  /* 15px */
-  --space-lg: 1.25rem;    /* 20px */
-  --space-xl: 1.875rem;   /* 30px */
-  --space-xxl: 2.5rem;    /* 40px */
-  --space-section: 6rem;  /* 96px */
+  --space-xxs: 0.25rem; /* 4px  */
+  --space-xs: 0.5rem; /* 8px  */
+  --space-sm: 0.75rem; /* 12px */
+  --space-md: 0.9375rem; /* 15px */
+  --space-lg: 1.25rem; /* 20px */
+  --space-xl: 1.875rem; /* 30px */
+  --space-xxl: 2.5rem; /* 40px */
+  --space-section: 6rem; /* 96px */
 
   /* Framer letter-spacing scale — raw vars, applied via inline style or
      component classes. Not in @theme to avoid `tracking-*` overrides. */
@@ -116,24 +119,23 @@
 
 .dark,
 [data-theme="dark"] {
-  /* ---- Framer surfaces (the canonical dark) ---- */
-  --canvas: oklch(0.16 0 0);            /* near-black with faint warmth */
-  --surface-1: oklch(16% 0.005 60);        /* charcoal lift — cards */
-  --surface-2: oklch(22% 0.005 60);        /* featured / selected lift */
-  --inverse-canvas: oklch(100% 0 0);       /* pure white pill CTAs */
+  --canvas: oklch(0.16 0 0); /* near-black with faint warmth */
+  --surface-1: oklch(16% 0.005 60); /* charcoal lift — cards */
+  --surface-2: oklch(22% 0.005 60); /* featured / selected lift */
+  --inverse-canvas: oklch(100% 0 0); /* pure white pill CTAs */
 
-  --hairline: oklch(100% 0 0 / 0.10);
+  --hairline: oklch(100% 0 0 / 0.1);
   --hairline-soft: oklch(100% 0 0 / 0.06);
 
-  /* ---- Ink (binary, no mid-tone grays) ---- */
+  /* - Ink (binary, no mid-tone grays) - */
   --ink: oklch(100% 0 0);
-  --ink-muted: oklch(64% 0 0);             /* ≈ #999999 */
+  --ink-muted: oklch(64% 0 0); /* ≈ #999999 */
 
-  /* ---- Signal accent ---- */
+  /* - Signal accent - */
   --accent-blue: oklch(68% 0.19 240);
   --accent-blue-soft: oklch(68% 0.19 240 / 0.15);
 
-  /* ---- Gradient spotlight base anchors ---- */
+  /* - Gradient spotlight base anchors - */
   --gradient-violet: oklch(58% 0.25 290);
   --gradient-magenta: oklch(62% 0.27 350);
   --gradient-orange: oklch(72% 0.19 50);
@@ -142,6 +144,9 @@
   /* ---- Legacy shadcn tokens (original values; Framer tokens above are opt-in) ---- */
   --primary: oklch(92.249% 0.23442 125.904);
   --primary-foreground: oklch(15.907% 0.00002 271.152);
+
+  --background: oklch(20.352% 0.00157 197.844);
+  --foreground: oklch(95.514% 0.00011 271.152);
 
   --background: oklch(20.352% 0.00157 197.844);
   --foreground: oklch(95.514% 0.00011 271.152);
@@ -176,15 +181,24 @@
   --info: oklch(0.6 0.118 184.704);
   --info-foreground: oklch(0.985 0 0);
 
+  /* Same lane hues, lifted for a dark ground. See the light block for the why. */
+  --lane-cut: oklch(0.72 0.16 22);
+  --lane-zoom: oklch(0.82 0.17 128);
+  --lane-audio: oklch(0.74 0.12 215);
+  --lane-markup: oklch(0.74 0.15 285);
+
   --border: oklch(23.929% 0.00003 271.152);
   --border-subtle: oklch(100% 0.00011 271.152 / 0.05);
   /* Input surface — lifted above the card (0.27) and popover (0.205) surfaces so
-     a filled field reads clearly in dark dialogs. The old 0.301 sat ~3% over the
-     card, which all but vanished; 0.34 keeps a visible recess without glowing. */
+      a filled field reads clearly in dark dialogs. The old 0.301 sat ~3% over the
+      card, which all but vanished; 0.34 keeps a visible recess without glowing. */
   --input: oklch(0.34 0 0);
   --ring: var(--primary);
 
-  --noise-bg: linear-gradient(oklch(33.881% 0.00279 16.535), oklch(22.213% 0.00003 271.152));
+  --noise-bg: linear-gradient(
+    oklch(33.881% 0.00279 16.535),
+    oklch(22.213% 0.00003 271.152)
+  );
 }
 
 @theme {
@@ -196,8 +210,8 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --radius-spotlight: 1.875rem;  /* 30px — gradient spotlight cards */
-  --radius-pill: 100px;          /* pill CTAs */
+  --radius-spotlight: 1.875rem; /* 30px — gradient spotlight cards */
+  --radius-pill: 100px; /* pill CTAs */
 
   /* ---- Surface colors ---- */
   --color-canvas: var(--canvas);
@@ -250,9 +264,9 @@
   --color-ring: var(--ring);
 
   /* ---- Fonts (preserved) ---- */
-  --font-sans: 'Geist Variable', sans-serif;
-  --font-mono: 'Space Mono', 'Fira Code', 'Courier New', monospace;
-  --font-heading: 'Geist Variable', sans-serif;
+  --font-sans: "Geist Variable", sans-serif;
+  --font-mono: "Space Mono", "Fira Code", "Courier New", monospace;
+  --font-heading: "Geist Variable", sans-serif;
 
   /* NOTE: Framer's spacing (--space-*) and letter-spacing (--tracking-*)
      scales live in :root as raw CSS variables, NOT here in @theme.
@@ -266,35 +280,59 @@
      Level 2 — light-edge + drop (floating cards, modals)
      Level 3 — blue ring (focused / selected)            */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   /* Light-edge top + drop shadow (level 2) */
   --shadow-floating:
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.10),
-    0 10px 30px rgba(0, 0, 0, 0.25);
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.1), 0 10px 30px rgba(0, 0, 0, 0.25);
 
   /* Blue selection / focus ring (level 3) */
-  --shadow-focus-ring: 0 0 0 1px rgba(0, 153, 255, 0.45), 0 0 0 4px rgba(0, 153, 255, 0.15);
+  --shadow-focus-ring:
+    0 0 0 1px rgba(0, 153, 255, 0.45), 0 0 0 4px rgba(0, 153, 255, 0.15);
 
   /* Craft-specific multi-layer shadows (kept) */
   --shadow-craft-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-craft-md: 0 4px 8px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --shadow-craft-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.04);
-  --shadow-craft-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.1), 0 8px 16px -8px rgba(0, 0, 0, 0.06);
+  --shadow-craft-md:
+    0 4px 8px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-craft-lg:
+    0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.04);
+  --shadow-craft-xl:
+    0 20px 40px -8px rgba(0, 0, 0, 0.1), 0 8px 16px -8px rgba(0, 0, 0, 0.06);
 
   --shadow-craft-floating:
-    0 0 0 1px rgba(0, 0, 0, 0.05),
-    0 1px 2px 0 rgba(0, 0, 0, 0.05),
-    0 4px 12px 0 rgba(0, 0, 0, 0.05),
-    0 12px 24px -4px rgba(0, 0, 0, 0.05);
+    0 0 0 1px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.05),
+    0 4px 12px 0 rgba(0, 0, 0, 0.05), 0 12px 24px -4px rgba(0, 0, 0, 0.05);
 
   /* ---- Gradient utilities (spotlight card backgrounds) ---- */
-  --gradient-spotlight-violet: radial-gradient(120% 100% at 30% 20%, oklch(70% 0.25 290) 0%, oklch(45% 0.22 285) 60%, oklch(28% 0.16 280) 100%);
-  --gradient-spotlight-magenta: radial-gradient(120% 100% at 30% 20%, oklch(72% 0.27 350) 0%, oklch(50% 0.25 340) 60%, oklch(30% 0.18 335) 100%);
-  --gradient-spotlight-orange: radial-gradient(120% 100% at 30% 20%, oklch(82% 0.18 60) 0%, oklch(65% 0.20 40) 60%, oklch(40% 0.15 30) 100%);
-  --gradient-spotlight-coral: radial-gradient(120% 100% at 30% 20%, oklch(80% 0.16 25) 0%, oklch(62% 0.20 15) 60%, oklch(38% 0.14 10) 100%);
+  --gradient-spotlight-violet: radial-gradient(
+    120% 100% at 30% 20%,
+    oklch(70% 0.25 290) 0%,
+    oklch(45% 0.22 285) 60%,
+    oklch(28% 0.16 280) 100%
+  );
+  --gradient-spotlight-magenta: radial-gradient(
+    120% 100% at 30% 20%,
+    oklch(72% 0.27 350) 0%,
+    oklch(50% 0.25 340) 60%,
+    oklch(30% 0.18 335) 100%
+  );
+  --gradient-spotlight-orange: radial-gradient(
+    120% 100% at 30% 20%,
+    oklch(82% 0.18 60) 0%,
+    oklch(65% 0.2 40) 60%,
+    oklch(40% 0.15 30) 100%
+  );
+  --gradient-spotlight-coral: radial-gradient(
+    120% 100% at 30% 20%,
+    oklch(80% 0.16 25) 0%,
+    oklch(62% 0.2 15) 60%,
+    oklch(38% 0.14 10) 100%
+  );
 
   /* ---- Animations (kept) ---- */
   --animate-accordion-down: accordion-down 0.2s ease-out;
@@ -322,55 +360,67 @@
 }
 
 .scrollbar-transparent {
-   scrollbar-gutter: stable;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color:
-    color-mix(in srgb, var(--foreground) 15%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--foreground) 15%, transparent)
+    transparent;
   scroll-behavior: smooth;
   scrollbar-width: thin;
 }
 
 .scrollbar-transparent::-webkit-scrollbar {
   width: 8px;
-  height: 8px
+  height: 8px;
 }
 
 .scrollbar-transparent::-webkit-scrollbar-track {
   background: hsl(var(--muted));
-  border-radius: .5rem
+  border-radius: 0.5rem;
 }
 
 .scrollbar-transparent::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, hsl(var(--primary) / .6), hsl(var(--secondary) / .8));
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.6),
+    hsl(var(--secondary) / 0.8)
+  );
   border: 2px solid hsl(var(--background));
-  border-radius: .5rem;
-  transition: all .2s ease-in-out
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
 }
 
 .scrollbar-transparent::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, hsl(var(--primary) / .8), hsl(var(--secondary) / 1));
-  transform: scale(1.1)
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary) / 0.8),
+    hsl(var(--secondary) / 1)
+  );
+  transform: scale(1.1);
 }
 
 .scrollbar-transparent::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary)),
+    hsl(var(--secondary))
+  );
 }
 
 .scrollbar-transparent::-webkit-scrollbar-corner {
-  background: hsl(var(--background))
+  background: hsl(var(--background));
 }
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-  }
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
 li:has([class]) {
   list-style: none;
 }
@@ -387,6 +437,6 @@ button[type="button"]:has(class) {
 html {
   scroll-behavior: smooth;
   scrollbar-width: thin;
-  scrollbar-color:
-    color-mix(in srgb, var(--foreground) 15%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--foreground) 15%, transparent)
+    transparent;
 }

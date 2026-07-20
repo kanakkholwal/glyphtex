@@ -3,64 +3,116 @@
 	import { Button } from '@glyphx/ui/button';
 	import { Logo } from '@glyphx/ui/logo';
 	import { ThemeToggle } from '@glyphx/ui/theme-toggle';
-	import { IconArrowUpRight, IconMenu2, IconX } from '@tabler/icons-svelte';
+	import { navLinks, REPO_URL } from '$lib/landing/nav-data';
+	import { IconBrandGithub, IconMenu2, IconX } from '@tabler/icons-svelte';
 
 	const home = resolve('/');
-	const repo = 'https://github.com/kanakkholwal/glyphx';
-
-	const links = [
-		{ label: 'Features', href: `${home}#features` },
-		{ label: 'Workflow', href: `${home}#workflow` },
-		{ label: 'Compare', href: `${home}#compare` },
-		{ label: 'FAQ', href: `${home}#faq` }
-	];
+	const repo = REPO_URL;
 
 	let open = $state(false);
+	const close = () => (open = false);
+
+	// The nav-data hrefs are typed as `string`. Internal routes need
+	// resolve() so the type-safe router is happy and the lint is silent;
+	// external links pass through untouched. The cast widens resolve's
+	// type-safe signature (literal route union) to plain string so data-
+	// driven hrefs can flow through, and the explicit protocol check below
+	// keeps us from handing non-routes (mailto:, tel:, http(s)://, //cdn…)
+	// to resolve() at runtime — SvelteKit's runtime guard rejects those.
+	const resolveAny = resolve as (route: string) => string;
+	function hrefFor(href: string, external = false): string {
+		if (external) return href;
+		// Internal paths must start with a single `/` and have no scheme.
+		if (!href.startsWith('/') || href.startsWith('//')) return href;
+		return resolveAny(href);
+	}
+
+	// The nav starts surface-mounted (looks like a normal nav at the
+	// top of the page) and floats once the user scrolls past the hero.
+	// Threshold chosen to roughly match the hero card's height.
+	let scrolled = $state(false);
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+		const onScroll = () => {
+			scrolled = window.scrollY > 80;
+		};
+		onScroll();
+		window.addEventListener('scroll', onScroll, { passive: true });
+		return () => window.removeEventListener('scroll', onScroll);
+	});
 </script>
 
-<header class="landing-site-header">
-	<div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-		<div class="flex items-center gap-10">
-			<Logo href={home} size="md" badge={false} tone="mono" class="text-ink" />
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key === 'Escape') close();
+	}}
+/>
 
-			<nav class="landing-site-header__nav hidden items-center gap-7 lg:flex">
-				{#each links as link (link.href)}
+<!--
+  Surface vs floating. At scrollY=0 the nav reads as part of the page
+  (full-width, transparent, no chrome). Once the user scrolls past the
+  hero it lifts off: narrower max-width, glass background, hairline
+  border, shadow. The inner <nav> carries the transition so the
+  container itself doesn't reflow.
+-->
+<header
+	class={[
+		'fixed inset-x-0 top-0 z-50 py-4 transition-[background-color,backdrop-filter,box-shadow,border-color,padding] duration-300 ease-out',
+		scrolled
+			? 'bg-canvas/75 backdrop-blur-xl border-b border-hairline/70 landing-glass-strong'
+			: 'bg-transparent border-b border-transparent '
+	]}
+>
+	<nav
+		aria-label="Primary"
+		class={[
+			'max-w-7xl px-6 lg:px-10 mx-auto flex items-center gap-2 transition-[max-width,padding,border-radius,background-color,box-shadow,border-color] duration-300 ease-out'
+		]}
+	>
+		<a
+			href={home}
+			class="group/logo flex items-center gap-2.5 rounded-xl px-2 py-1 transition-transform active:scale-[0.97]"
+			aria-label="GlyphX home"
+		>
+			<Logo size="sm" badge text={true} tone="gradient" />
+		</a>
+
+		<!-- Inline links, centred (desktop only). -->
+		<ul class="hidden flex-1 items-center justify-center gap-0.5 md:flex">
+			{#each navLinks as link (link.href)}
+				<li>
 					<a
-						href={link.href}
-						class="text-sm font-medium tracking-[-0.01em] text-ink-muted transition-colors hover:text-ink"
+						href={hrefFor(link.href, link.external)}
+						class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
 					>
 						{link.label}
 					</a>
-				{/each}
-				<a
-					href={repo}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="group flex items-center gap-1 text-sm font-medium tracking-[-0.01em] text-ink-muted transition-colors hover:text-ink"
-				>
-					GitHub
-					<IconArrowUpRight class="size-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-				</a>
-			</nav>
-		</div>
+				</li>
+			{/each}
+		</ul>
 
-		<div class="flex items-center gap-3">
-			<ThemeToggle />
-
-			<Button
-				
-				href={resolve('/download')}
-				class="hidden sm:inline-flex"
+		<div class="ml-auto flex items-center gap-1.5 md:ml-0">
+			<a
+				href={repo}
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="GlyphX on GitHub"
+				class="hidden size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground md:grid"
 			>
-				Download desktop app
+				<IconBrandGithub class="size-4" />
+			</a>
+			<ThemeToggle size="icon-sm" />
+			<Button href={resolve('/download')} size="sm" variant="default" class="gap-1.5">
+				Download
 			</Button>
-
 			<button
 				type="button"
-				class="inline-flex size-10 items-center justify-center rounded-full border border-hairline bg-surface-card text-ink transition-colors hover:bg-surface-soft lg:hidden"
 				onclick={() => (open = !open)}
-				aria-label={open ? 'Close menu' : 'Open menu'}
 				aria-expanded={open}
+				aria-controls="mobile-nav"
+				aria-label={open ? 'Close menu' : 'Open menu'}
+				class="grid size-9 place-items-center rounded-lg text-foreground transition-colors hover:bg-foreground/5 md:hidden"
 			>
 				{#if open}
 					<IconX class="size-5" />
@@ -69,37 +121,45 @@
 				{/if}
 			</button>
 		</div>
-	</div>
+	</nav>
+</header>
 
-	{#if open}
-		<div class="border-t border-hairline bg-canvas px-6 py-5 lg:hidden">
-			<nav class="flex flex-col gap-2">
-				{#each links as link (link.href)}
+{#if open}
+	<!-- Click-away backdrop (mobile only). -->
+	<button
+		type="button"
+		class="fixed inset-0 z-40 md:hidden"
+		aria-label="Close menu"
+		tabindex="-1"
+		onclick={close}
+	></button>
+	<div
+		id="mobile-nav"
+		class="landing-glass-strong fixed inset-x-4 top-19 z-50 rounded-2xl p-2 md:hidden"
+	>
+		<ul class="flex flex-col">
+			{#each navLinks as link (link.href)}
+				<li>
 					<a
-						href={link.href}
-						class="rounded-2xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-soft hover:text-ink"
-						onclick={() => (open = false)}
+						href={hrefFor(link.href, link.external)}
+						onclick={close}
+						class="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-foreground"
 					>
 						{link.label}
 					</a>
-				{/each}
-				<a
-					href={resolve('/download')}
-					class="mt-2 rounded-2xl bg-ink px-4 py-3 text-sm font-medium text-canvas"
-					onclick={() => (open = false)}
-				>
-					Download desktop app
-				</a>
+				</li>
+			{/each}
+			<li>
 				<a
 					href={repo}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="rounded-2xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-soft hover:text-ink"
-					onclick={() => (open = false)}
+					onclick={close}
+					class="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-foreground"
 				>
 					GitHub
 				</a>
-			</nav>
-		</div>
-	{/if}
-</header>
+			</li>
+		</ul>
+	</div>
+{/if}

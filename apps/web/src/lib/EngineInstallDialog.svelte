@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@glyphx/ui/dialog';
+	import {
+		Dialog,
+		DialogContent,
+		DialogHeader,
+		DialogTitle,
+		DialogDescription
+	} from '@glyphx/ui/dialog';
 	import { Button } from '@glyphx/ui/button';
 	import { Checkbox } from '@glyphx/ui/checkbox';
 	import { IconCpu, IconLoader2, IconAlertTriangle } from '@tabler/icons-svelte';
@@ -64,8 +70,8 @@
 				Set up the LaTeX compiler
 			</DialogTitle>
 			<DialogDescription class="leading-relaxed">
-				GlyphX compiles LaTeX right in your browser. The engine and TeX files download once
-				(~{totalMB} MB) and are cached for offline use — pick what to include below.
+				GlyphX compiles LaTeX right in your browser. The engine and TeX files download once (~{totalMB}
+				MB) and are cached for offline use — pick what to include below.
 			</DialogDescription>
 		</DialogHeader>
 
@@ -76,7 +82,9 @@
 				<div class="min-w-0 flex-1">
 					<div class="flex items-center justify-between gap-2">
 						<span class="text-foreground text-sm font-medium">Core compiler</span>
-						<span class="text-muted-foreground shrink-0 text-xs tabular-nums">~{CORE_APPROX_MB} MB</span>
+						<span class="text-muted-foreground shrink-0 text-xs tabular-nums"
+							>~{CORE_APPROX_MB} MB</span
+						>
 					</div>
 					<p class="text-muted-foreground text-xs">
 						LaTeX engine (WebAssembly) + TeX format & base files. Required.
@@ -93,15 +101,17 @@
 					<div class="min-w-0 flex-1">
 						<div class="flex items-center justify-between gap-2">
 							<span class="text-foreground text-sm font-medium">{g.label}</span>
-							<span class="text-muted-foreground shrink-0 text-xs tabular-nums">~{g.approxMB} MB</span>
+							<span class="text-muted-foreground shrink-0 text-xs tabular-nums"
+								>~{g.approxMB} MB</span
+							>
 						</div>
 						<p class="text-muted-foreground text-xs">{g.description}</p>
 					</div>
 				</label>
 			{/each}
 			<p class="text-muted-foreground px-1 text-[11px] leading-relaxed">
-				Anything not included still downloads automatically the first time a document uses it,
-				then it's cached too.
+				Anything not included still downloads automatically the first time a document uses it, then
+				it's cached too.
 			</p>
 		</div>
 

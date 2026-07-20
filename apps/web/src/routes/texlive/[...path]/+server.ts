@@ -169,7 +169,10 @@ export const GET: RequestHandler = async ({ params, fetch, request, platform }) 
 		if (dev) await writeMirror(path, bytes);
 
 		if (edge) persist(edge.put(cacheKey, new Response(bytes, { status: 200, headers })));
-		if (r2) persist(Promise.resolve(r2.put(path, bytes, { httpMetadata: { contentType: ct } })).catch(() => {}));
+		if (r2)
+			persist(
+				Promise.resolve(r2.put(path, bytes, { httpMetadata: { contentType: ct } })).catch(() => {})
+			);
 
 		return new Response(bytes, { status: 200, headers });
 	}
