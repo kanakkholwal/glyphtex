@@ -1,7 +1,7 @@
 <script lang="ts" module>
   import { cn, type WithElementRef } from "@glyphx/ui/utils";
-	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
-	import { tv, type VariantProps } from "tailwind-variants";
+  import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
+  import { tv, type VariantProps } from "tailwind-variants";
 
 	/**
 	 * Button — Raycast-density variants built on shadcn semantic tokens.
@@ -29,6 +29,8 @@
 				default: "bg-primary text-primary-foreground border-transparent shadow-craft-sm hover:bg-primary/95",
 				default_soft:
 					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
+				brand_soft:
+					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
 				secondary:
 					"border-secondary bg-secondary text-secondary-foreground border-border/30 shadow-craft-sm hover:bg-muted/50",
 				outline:
@@ -52,6 +54,7 @@
 				raw: "border-0 p-0 h-auto w-auto hover:scale-100 active:scale-100",
 				dark: "bg-foreground text-background shadow-craft-sm hover:bg-foreground/90",
 				light: "bg-white text-black shadow-craft-sm dark:bg-black dark:text-white",
+				
 			},
 			size: {
 				default: "h-9 rounded-lg px-5 py-2.5 text-sm font-medium gap-2 [&_svg:not([class*='size-'])]:size-4",
