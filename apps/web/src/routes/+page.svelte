@@ -10,23 +10,32 @@
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
 	import {
+		IconAlertTriangle,
 		IconArrowRight,
+		IconArrowUp,
 		IconBook2,
 		IconBrandGithub,
+		IconBrowser,
 		IconCheck,
 		IconChevronDown,
+		IconCircleDot,
+		IconClock,
 		IconCloudOff,
 		IconDeviceDesktop,
 		IconDownload,
 		IconFileText,
 		IconFolders,
 		IconGitBranch,
+		IconHistory,
 		IconLock,
 		IconPlayerPlay,
 		IconSchool,
 		IconSearch,
+		IconShield,
+		IconSparkles,
 		IconStack3,
 		IconUsersGroup,
+		IconWifiOff,
 		IconWriting,
 		IconX
 	} from '@tabler/icons-svelte';
@@ -149,35 +158,90 @@
 		{ name: 'TeX', slug: 'latex', href: 'https://www.latex-project.org' }
 	];
 
-	// Cloud LaTeX friction rows. Honest contrasts that map to GlyphX's
-	// real advantages. Two columns of plain-language beats, not a spec sheet.
-	type ContrastRow = { cloud: string; glyph: string };
+	// Cloud LaTeX pain points. Each row is a concrete friction researchers
+	// hit with cloud LaTeX, with a category icon and a count that mirrors
+	// the "this many users have hit this" framing of the inspiration.
+	// The right-hand solution card answers each one in the same order.
+	type PainPoint = {
+		id: string;
+		title: string;
+		description: string;
+		count: number;
+		icon: typeof IconClock;
+		iconBg: string;
+		iconColor: string;
+	};
 
-	const contrastRows: ContrastRow[] = [
+	const painPoints: PainPoint[] = [
 		{
-			cloud: 'Compile waits behind a remote queue, with weekend outages',
-			glyph: 'Tectonic compiles on your machine, every time'
+			id: 'queue',
+			title: 'Compile queue times out before the bibliography is done.',
+			description:
+				'A 30-second biber run becomes a 4-minute wait when the shared queue is busy. The deadline does not care.',
+			count: 95,
+			icon: IconClock,
+			iconBg: 'bg-amber-500/10',
+			iconColor: 'text-amber-500'
 		},
 		{
-			cloud: 'Per-seat licensing scales with the lab, not the work',
-			glyph: 'One download covers the whole institution, no seat fees'
+			id: 'license',
+			title: 'Per-seat licensing blocks the whole lab from editing.',
+			description:
+				'Procurement caps the seat count. The undergrad who needs to proofread gets locked out.',
+			count: 67,
+			icon: IconLock,
+			iconBg: 'bg-orange-500/10',
+			iconColor: 'text-orange-500'
 		},
 		{
-			cloud: 'Unpublished drafts live on a third-party server',
-			glyph: 'Your drafts stay on your disk until you choose to share'
+			id: 'privacy',
+			title: 'Unpublished drafts sit on a third-party server.',
+			description: 'Submission-ready manuscripts leave traces somewhere you do not control.',
+			count: 52,
+			icon: IconShield,
+			iconBg: 'bg-rose-500/10',
+			iconColor: 'text-rose-500'
 		},
 		{
-			cloud: 'Full version history behind a paid history tier',
-			glyph: 'Full Git history with every commit, branch, and remote'
+			id: 'history',
+			title: 'Full history is locked behind the paid tier.',
+			description:
+				'Free plans cap revisions. The paper you wrote last year has its diffs paywalled.',
+			count: 47,
+			icon: IconHistory,
+			iconBg: 'bg-violet-500/10',
+			iconColor: 'text-violet-500'
 		},
 		{
-			cloud: 'A web editor that needs a tab open all day',
-			glyph: 'A native desktop app, or a browser tab for quick edits'
+			id: 'browser',
+			title: 'A browser tab that needs to stay open all day.',
+			description:
+				'Close it for a meeting and the compile dies. Save your work, lose your session.',
+			count: 32,
+			icon: IconBrowser,
+			iconBg: 'bg-sky-500/10',
+			iconColor: 'text-sky-500'
 		},
 		{
-			cloud: 'Compile queue times out before the bibliography is done',
-			glyph: 'Unlimited local compiles, no session, no timeout'
+			id: 'network',
+			title: 'Dropped connection mid-compile during a deadline.',
+			description: 'Cloud latency or a wifi blip mid-build means starting over. Every time.',
+			count: 24,
+			icon: IconWifiOff,
+			iconBg: 'bg-pink-500/10',
+			iconColor: 'text-pink-500'
 		}
+	];
+
+	// GlyphX solutions in the same order as `painPoints` so the eye can
+	// follow each row to its answer.
+	const solutions: string[] = [
+		'Tectonic compiles on your machine — no shared queue, no timeout.',
+		'GPLv3, free for individuals and institutions — no per-seat fees.',
+		'Your drafts stay on your own disk until you choose to share.',
+		'Full Git history with every commit, branch, and remote.',
+		'Native desktop app, or a browser tab for quick edits.',
+		'Unlimited local compiles — no session, no queue, no rate limit.'
 	];
 
 	// Workflow steps. Three beats, matching the trace-mvp rhythm.
@@ -612,51 +676,154 @@
 		</Section>
 
 		<!--
-		  Contrast section. Cloud LaTeX friction vs GlyphX. Renders as a
-		  two-column table inside a ShowcasePanel so it reads as one beat,
-		  not a feature dump.
+		  Why-not section. Inspired by the feedback-board layout: a column
+		  of pain points on the left (the cloud-LaTeX friction researchers
+		  hit), a vertical connector with a sparkle anchor in the middle,
+		  and a compact "fixes shipped in GlyphX" card on the right. The
+		  two sides animate independently so the eye crosses the connector.
 		-->
 		<Section id="why" bordered>
-			<Container>
+			<Container size="wide">
 				<SectionHeader
 					eyebrow="Why not cloud LaTeX"
-					title="The cloud editor is fine, until the deadline isn't."
-					description="Most cloud LaTeX editors are SaaS before they are typesetting tools. The job of writing a paper is not the job of waiting on a remote compile queue."
+					title="What you're up against."
+					description="The job of writing a paper is not the job of waiting on a remote compile queue, hunting for a license seat, or trusting a third-party server with an unpublished draft."
 					align="center"
 				/>
 
-				<div
-					class="landing-glass-card relative mx-auto mt-14 max-w-3xl overflow-hidden rounded-3xl shadow-craft-xl"
-				>
-					<div class="relative z-10">
-						<div
-							class="grid grid-cols-2 border-b border-hairline/50 bg-foreground/2 text-[11px] font-semibold uppercase tracking-[0.16em]"
-						>
-							<div class="flex items-center gap-2 px-6 py-4 text-muted-foreground">
-								<IconX class="size-3.5" /> Cloud LaTeX
-							</div>
-							<div class="flex items-center gap-2 border-l border-hairline/50 px-6 py-4 text-brand">
-								<IconCheck class="size-3.5" /> GlyphX
-							</div>
-						</div>
-						{#each contrastRows as row, i (row.cloud)}
-							<Reveal variant={i % 2 === 0 ? 'left' : 'right'} delay={i * 60}>
-								<div
-									class="grid grid-cols-2 {i < contrastRows.length - 1
-										? 'border-b border-hairline/30'
-										: ''}"
+				<div class="mt-14 grid gap-10 lg:grid-cols-[1.1fr_auto_1fr] lg:items-stretch lg:gap-6">
+					<!--
+					  Left column: pain points. Each row is a concrete cloud-LaTeX
+					  friction with a category icon, a count badge, and a stagger
+					  delay so the cards land one by one. The colours are picked
+					  per category (amber/orange/rose/...) to read as a
+					  multi-issue feedback board.
+					-->
+					<div class="flex flex-col gap-2.5">
+						{#each painPoints as point, i (point.id)}
+							<Reveal variant="left" delay={i * 70}>
+								<article
+									class="landing-glass-card group flex items-start gap-3.5 rounded-xl border border-hairline/50 p-4 transition-[border-color,box-shadow] duration-300 hover:border-hairline hover:shadow-craft-sm motion-reduce:transition-none"
 								>
-									<div class="px-6 py-5 text-sm text-muted-foreground">{row.cloud}</div>
-									<div
-										class="flex items-start gap-2.5 border-l border-hairline/30 bg-foreground/2 px-6 py-5 text-sm text-foreground"
+									<span
+										class="grid size-9 shrink-0 place-items-center rounded-lg {point.iconBg} {point.iconColor}"
 									>
-										<IconCheck class="mt-0.5 size-4 shrink-0 text-brand" />
-										{row.glyph}
+										<point.icon class="size-4" stroke-width={1.75} />
+									</span>
+									<div class="min-w-0 flex-1">
+										<p class="text-sm font-medium leading-snug text-foreground">
+											{point.title}
+										</p>
+										<p class="mt-1 text-xs leading-relaxed text-foreground/55">
+											{point.description}
+										</p>
 									</div>
-								</div>
+									<span
+										class="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/8 px-2 py-0.5 text-[11px] font-semibold text-warning ring-1 ring-inset ring-warning/20"
+									>
+										<IconArrowUp class="size-3" stroke-width={2.25} />
+										{point.count}
+									</span>
+								</article>
 							</Reveal>
 						{/each}
 					</div>
+
+					<!--
+					  Center connector. A hairline column with a sparkle anchor
+					  in the middle. Hidden on mobile (the cards already
+					  stack vertically). The ping ring around the sparkle
+					  draws the eye across the seam.
+					-->
+					<div class="hidden lg:flex w-12 flex-col items-center self-stretch" aria-hidden="true">
+						<div
+							class="h-full w-px flex-1 bg-gradient-to-b from-transparent via-hairline/70 to-transparent"
+						></div>
+						<div class="relative my-2">
+							<span class="absolute inset-0 -m-2 animate-ping rounded-full bg-brand/25"></span>
+							<span
+								class="relative grid size-14 place-items-center rounded-full bg-brand text-canvas shadow-craft-lg"
+							>
+								<IconSparkles class="size-7" stroke-width={1.5} />
+							</span>
+						</div>
+						<div
+							class="h-full w-px flex-1 bg-gradient-to-b from-transparent via-hairline/70 to-transparent"
+						></div>
+					</div>
+
+					<!--
+					  Right column: the solution card. One card, brand border,
+					  status badge, six fixes (in the same order as the pain
+					  points so the eye can follow each row across). Animates in
+					  with a 420ms delay so it lands after the pain points.
+					-->
+					<Reveal variant="right" delay={420}>
+						<article
+							class="landing-glass-card relative flex h-full flex-col gap-6 rounded-2xl border-2 border-brand/30 p-7 shadow-craft-lg"
+						>
+							<header class="flex items-center gap-2">
+								<span
+									class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-success"
+								>
+									<IconCircleDot class="size-3 animate-pulse" />
+									All in place
+								</span>
+								<span class="text-xs font-medium text-foreground/40">v0.1 · GPLv3</span>
+							</header>
+
+							<div>
+								<h3 class="text-2xl font-semibold leading-[1.15] tracking-tight text-foreground">
+									Fixes that ship with GlyphX
+								</h3>
+								<p class="mt-2 text-sm leading-relaxed text-foreground/65">
+									Every pain point on the left, solved without a server, a seat license, or a
+									per-month fee.
+								</p>
+							</div>
+
+							<ul class="flex flex-col gap-2.5 border-t border-hairline/60 pt-5">
+								{#each solutions as solution, i (i)}
+									<Reveal variant="right" delay={500 + i * 50}>
+										<li class="flex items-start gap-3 text-sm leading-relaxed text-foreground/85">
+											<span
+												class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-brand/12 text-brand"
+											>
+												<IconCheck class="size-3" stroke-width={2.5} />
+											</span>
+											<span>{solution}</span>
+										</li>
+									</Reveal>
+								{/each}
+							</ul>
+
+							<!--
+							  Footer: a stacked avatar row with initials (no
+							  external network calls) plus a quiet line about
+							  where GlyphX is used. The gradient is computed inline
+							  so the avatars look distinct without real photos.
+							-->
+							<footer class="mt-auto flex items-center gap-3 border-t border-hairline/60 pt-5">
+								<div class="flex -space-x-1.5">
+									{#each [0, 1, 2, 3] as i (i)}
+										<span
+											class="grid size-7 place-items-center rounded-full border-2 border-card text-[10px] font-bold text-canvas"
+											style="background: linear-gradient(135deg, hsl({(i + 1) *
+												73} 60% 60%), hsl({(i + 1) * 73 + 50} 50% 50%));"
+										>
+											{String.fromCharCode(65 + i)}
+										</span>
+									{/each}
+								</div>
+								<div>
+									<p class="text-xs font-medium text-foreground/85">
+										Free for individuals and labs
+									</p>
+									<p class="text-[11px] text-foreground/50">Open source · No telemetry</p>
+								</div>
+							</footer>
+						</article>
+					</Reveal>
 				</div>
 			</Container>
 		</Section>

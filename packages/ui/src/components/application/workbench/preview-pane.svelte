@@ -41,7 +41,7 @@
   >
     <Button
       variant="ghost"
-      size="icon-2xs"
+      size="icon-xs"
       title="Sync to PDF (⌘/Ctrl+J)"
       aria-label="Sync to PDF"
       onclick={() => compile.syncToPdf()}
@@ -74,7 +74,7 @@
       <div class="ml-auto flex items-center gap-1">
         <Button
           variant="ghost"
-          size="icon-2xs"
+          size="icon-xs"
           title="Find in PDF (Ctrl/Cmd+F)"
           aria-label="Find in PDF"
           onclick={() => compile.pdfView?.openFind()}
@@ -90,7 +90,7 @@
         <span class="bg-border mx-1 h-4 w-px"></span>
         <Button
           variant="ghost"
-          size="icon-2xs"
+          size="icon-xs"
           title="Zoom out"
           aria-label="Zoom out"
           onclick={() => compile.pdfView?.zoomOut()}
@@ -126,7 +126,7 @@
         </DropdownMenu>
         <Button
           variant="ghost"
-          size="icon-2xs"
+          size="icon-xs"
           title="Zoom in"
           aria-label="Zoom in"
           onclick={() => compile.pdfView?.zoomIn()}
@@ -136,7 +136,7 @@
         <span class="bg-border mx-1 h-4 w-px"></span>
         <Button
           variant="ghost"
-          size="icon-2xs"
+          size="icon-xs"
           title="Download PDF"
           aria-label="Download PDF"
           onclick={() => compile.downloadPdf()}
