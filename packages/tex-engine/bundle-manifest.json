@@ -1,0 +1,73 @@
+{
+	"$comment": [
+		"What the shipped TeX bundle must contain, and the single source of truth for it.",
+		"The installer UI offers these groups, so anything listed here must actually compile —",
+		"offering a group the bundle cannot satisfy is worse than not offering it, because the",
+		"failure surfaces as an inscrutable TeX error rather than a missing feature.",
+		"scripts/verify-bundle.mjs checks the bundle against this file and CI fails on a gap."
+	],
+	"groups": [
+		{
+			"id": "core",
+			"label": "Core compiler",
+			"required": true,
+			"approxMB": 12,
+			"files": ["latex.fmt", "article.cls", "report.cls", "book.cls"]
+		},
+		{
+			"id": "math",
+			"label": "Math",
+			"approxMB": 0.4,
+			"files": ["amsmath.sty", "amssymb.sty", "amsfonts.sty", "mathtools.sty"]
+		},
+		{
+			"id": "graphics",
+			"label": "Graphics & color",
+			"approxMB": 0.5,
+			"files": ["graphicx.sty", "xcolor.sty"]
+		},
+		{
+			"id": "tables",
+			"label": "Tables",
+			"approxMB": 0.4,
+			"files": ["booktabs.sty", "tabularx.sty", "array.sty", "longtable.sty", "multirow.sty"]
+		},
+		{
+			"id": "layout",
+			"label": "Layout & links",
+			"approxMB": 0.8,
+			"files": [
+				"geometry.sty",
+				"hyperref.sty",
+				"enumitem.sty",
+				"caption.sty",
+				"subcaption.sty",
+				"cleveref.sty"
+			]
+		},
+		{
+			"id": "drawing",
+			"label": "Diagrams & plots",
+			"approxMB": 4.5,
+			"files": ["tikz.sty", "pgfplots.sty"]
+		},
+		{
+			"id": "slides",
+			"label": "Presentations",
+			"approxMB": 1.5,
+			"files": ["beamer.cls"]
+		},
+		{
+			"id": "code",
+			"label": "Code & algorithms",
+			"approxMB": 0.5,
+			"files": ["listings.sty", "algorithm2e.sty"]
+		},
+		{
+			"id": "typography",
+			"label": "Typography",
+			"approxMB": 1.2,
+			"files": ["microtype.sty", "siunitx.sty", "lmodern.sty"]
+		}
+	]
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+
+# The engine binary is copied in by CI (or `pnpm sync:wasm`) before packing.
+# It is a build output of crates/tectonic-wasm, not a source file.
+wasm/*.wasm
+
+# src/generated/ is deliberately tracked: it is produced from the Rust types by
+# `pnpm generate`, and committing it means consumers and CI can build this
+# package without a Rust toolchain.

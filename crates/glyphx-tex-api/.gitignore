@@ -1,0 +1,6 @@
+target/
+
+# ts-rs writes here when TS_RS_EXPORT_DIR is unset (i.e. a bare `cargo test`).
+# The canonical, tracked copies live in packages/tex-engine/src/generated/,
+# written by that package's `pnpm generate`.
+bindings/

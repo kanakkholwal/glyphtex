@@ -1,0 +1,19 @@
+# Shell scripts run only under Linux (the Emscripten toolchain). Checked out
+# with CRLF on Windows they fail in a way that is genuinely hard to diagnose:
+# /bin/sh reads the trailing \r as part of the shebang, reports nothing useful,
+# and the script's side effects simply never happen.
+*.sh text eol=lf
+Makefile text eol=lf
+
+# Generated, but tracked so the npm package builds without a Rust toolchain.
+# Marking it linguist-generated keeps it out of diffs and language stats.
+packages/tex-engine/src/generated/** linguist-generated=true
+
+# Binary assets — never diff or line-ending-convert these.
+*.wasm binary
+*.fmt binary
+*.pdf binary
+*.tfm binary
+*.pfb binary
+*.otf binary
+*.ttf binary
