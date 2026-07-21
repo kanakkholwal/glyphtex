@@ -24,9 +24,20 @@ async function fetchCached(url: string, version: string, total: number, report: 
 		return new Uint8Array(await cached.arrayBuffer());
 	}
 
-	const response = await fetch(key);
+	// Name the file in any failure — "Failed to fetch" alone is untraceable
+	// once there are several assets.
+	const name = url.split('/').pop() ?? url;
+	let response: Response;
+	try {
+		response = await fetch(key);
+	} catch (cause) {
+		throw new Error(
+			`Could not download ${name}: ${cause instanceof Error ? cause.message : String(cause)}`,
+			{ cause }
+		);
+	}
 	if (!response.ok) {
-		throw new Error(`Could not download the compiler (${response.status} ${response.statusText}).`);
+		throw new Error(`Could not download ${name} (${response.status} ${response.statusText}).`);
 	}
 
 	// Read incrementally so the dialog shows real progress on a ~15 MB download.
@@ -53,8 +64,7 @@ async function fetchCached(url: string, version: string, total: number, report: 
 	}
 
 	// Cache the assembled bytes, not the response — its stream is already spent.
-	// Best-effort: a quota rejection on a ~15 MB put must not discard a download
-	// that already succeeded. The engine still runs; it just re-downloads later.
+	// Best-effort: a quota rejection must not discard a download that succeeded.
 	await cache?.put(key, new Response(bytes)).catch(() => {});
 
 	return bytes;
@@ -186,6 +196,9 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 		// The retry was poisoned too. Discard anyway — a dead engine fails every
 		// later compile, including ones that would succeed.
 		if (error instanceof EnginePoisonedError) discardEngine();
+		// The message that crosses back is written for a user; the stack only
+		// exists here, so log it before it is lost (AGENTS.md rule #5).
+		console.error('[GlyphX] engine worker failed:', error);
 		post({ id: request.id, type: 'error', message: messageOf(error) });
 	}
 };

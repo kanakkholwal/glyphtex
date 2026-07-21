@@ -1,8 +1,5 @@
-// `editor.api` ships no editor features — without this list the editor mounts
-// and tokenizes fine, then does nothing when you type. Unit tests won't catch it.
-//
-// This is `editor.main` minus its 81 bundled languages. Regenerate after an
-// upgrade: grep "^import '" esm/vs/editor/editor.main.js | grep -v languages/
+// `editor.api` ships no features: without this the editor mounts, tokenizes, then
+// does nothing when you type. It is `editor.main` minus its 81 bundled languages.
 import "monaco-editor/editor/contrib/anchorSelect/browser/anchorSelect";
 import "monaco-editor/editor/contrib/bracketMatching/browser/bracketMatching";
 import "monaco-editor/editor/contrib/caretOperations/browser/transpose";

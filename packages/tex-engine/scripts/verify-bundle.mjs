@@ -59,8 +59,8 @@ for (const group of manifest.groups) {
 
 if (missingTotal > 0) {
 	console.error(
-		`\n${missingTotal} file(s) missing. Either extend the bundle ` +
-			`(pnpm bundle:extend) or remove the affected group from bundle-manifest.json ` +
+		`\n${missingTotal} file(s) missing. Either rebuild the bundle ` +
+			`(pnpm bundle:build) or remove the affected group from bundle-manifest.json ` +
 			`and the installer UI — do not ship a group the engine cannot compile.`
 	);
 	process.exit(1);

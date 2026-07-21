@@ -109,15 +109,40 @@ export function untar(archive: Uint8Array): Map<string, Uint8Array> {
 	return files;
 }
 
+/** A gzip member always starts with these two bytes. */
+const GZIP_MAGIC = [0x1f, 0x8b] as const;
+
+/** Whether these bytes are actually gzip-compressed. */
+function isGzipped(bytes: Uint8Array): boolean {
+	return bytes.length >= 2 && bytes[0] === GZIP_MAGIC[0] && bytes[1] === GZIP_MAGIC[1];
+}
+
 /**
  * Gunzip via the platform's own decompressor. `DecompressionStream` is
  * available in every browser we target, so this pulls in no dependency.
+ *
+ * The input may already be plain tar. A server that decides `.tar.gz` means
+ * `Content-Encoding: gzip` — Vite's dev server does, and origins commonly do —
+ * makes the browser decompress the body transparently, so what arrives here is
+ * the tar itself. Sniffing the magic bytes handles both cases, and is the only
+ * way to be right: the response is indistinguishable from a genuinely
+ * uncompressed one by the time we see it.
  */
-export async function gunzip(gzipped: Uint8Array): Promise<Uint8Array> {
+export async function gunzip(bytes: Uint8Array): Promise<Uint8Array> {
+	if (!isGzipped(bytes)) return bytes;
+
 	if (typeof DecompressionStream === 'undefined') {
 		throw new Error('This browser cannot decompress the TeX bundle (no DecompressionStream).');
 	}
 
-	const stream = new Blob([gzipped as BlobPart]).stream().pipeThrough(new DecompressionStream('gzip'));
-	return new Uint8Array(await new Response(stream).arrayBuffer());
+	try {
+		const stream = new Blob([bytes as BlobPart])
+			.stream()
+			.pipeThrough(new DecompressionStream('gzip'));
+		return new Uint8Array(await new Response(stream).arrayBuffer());
+	} catch (cause) {
+		// A stream error surfaces from `Response` as a bare "Failed to fetch",
+		// which reads like a network problem and sends debugging the wrong way.
+		throw new Error('The TeX bundle is corrupt and could not be decompressed.', { cause });
+	}
 }

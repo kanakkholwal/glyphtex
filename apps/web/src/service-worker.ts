@@ -30,11 +30,30 @@ const ENGINE_CACHE = 'glyphx-engine';
 // the consent gate a lie.
 const PRECACHE = [...build, ...files].filter((p) => !p.startsWith('/engine/'));
 
+/**
+ * Open a cache, or null if this browser will not give us one.
+ *
+ * `caches.open` can reject outright — private windows, blocked site data, a
+ * profile under disk pressure. Every use here treats that as "no caching
+ * today", never as an error, because a service worker that fails a request when
+ * its cache is unavailable takes the whole site down with it: the app shell,
+ * every JS module, every worker script.
+ */
+async function openCache(name: string): Promise<Cache | null> {
+	try {
+		return await caches.open(name);
+	} catch {
+		return null;
+	}
+}
+
 sw.addEventListener('install', (event) => {
 	event.waitUntil(
 		(async () => {
-			const cache = await caches.open(CACHE);
-			await cache.addAll(PRECACHE);
+			const cache = await openCache(CACHE);
+			// Precaching is an offline optimisation, not a precondition for
+			// running — a failure here must not stop the worker activating.
+			await cache?.addAll(PRECACHE).catch(() => {});
 			await sw.skipWaiting();
 		})()
 	);
@@ -45,8 +64,12 @@ sw.addEventListener('activate', (event) => {
 		(async () => {
 			// Drop app-shell caches from previous deployments — but keep the current
 			// shell cache AND the persistent engine cache (the installed compiler).
-			for (const key of await caches.keys()) {
-				if (key !== CACHE && key !== ENGINE_CACHE) await caches.delete(key);
+			try {
+				for (const key of await caches.keys()) {
+					if (key !== CACHE && key !== ENGINE_CACHE) await caches.delete(key);
+				}
+			} catch {
+				/* housekeeping only — never block activation over it */
 			}
 			await sw.clients.claim();
 		})()
@@ -68,11 +91,15 @@ sw.addEventListener('fetch', (event) => {
 
 	event.respondWith(
 		(async () => {
-			const cache = await caches.open(CACHE);
+			const cache = await openCache(CACHE);
+			// No cache available: behave as if the service worker weren't here.
+			// Anything else fails every request on the page, which is far worse
+			// than losing offline support.
+			if (!cache) return fetch(request);
 
 			// Precached build assets are immutable (hashed) — serve cache-first.
 			if (PRECACHE.includes(url.pathname)) {
-				const cached = await cache.match(url.pathname);
+				const cached = await cache.match(url.pathname).catch(() => undefined);
 				if (cached) return cached;
 			}
 
@@ -80,10 +107,12 @@ sw.addEventListener('fetch', (event) => {
 			try {
 				const response = await fetch(request);
 				const isCacheable = response.status === 200 && response.type === 'basic';
-				if (isCacheable) cache.put(request, response.clone());
+				// Not awaited, and never allowed to reject: a full quota must not
+				// turn a successful response into a failed request.
+				if (isCacheable) void cache.put(request, response.clone()).catch(() => {});
 				return response;
 			} catch (err) {
-				const cached = await cache.match(request);
+				const cached = await cache.match(request).catch(() => undefined);
 				if (cached) return cached;
 				throw err;
 			}

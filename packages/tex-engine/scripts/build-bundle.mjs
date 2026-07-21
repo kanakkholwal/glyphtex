@@ -151,6 +151,22 @@ if (passing.size !== ALL_SAMPLES.length) {
 
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
+
+// The engine looks files up by the exact name it asked for, so two keys that
+// land on one path silently drop a file — and the bundle still looks complete.
+const byPath = new Map();
+for (const name of files.keys()) {
+	const path = resolve(outDir, name);
+	if (!byPath.has(path)) byPath.set(path, []);
+	byPath.get(path).push(name);
+}
+const collisions = [...byPath.values()].filter((n) => n.length > 1);
+if (collisions.length) {
+	console.error(`\n${collisions.length} name(s) collide on disk:`);
+	for (const names of collisions) console.error(`  ${names.join('  ==  ')}`);
+	process.exit(1);
+}
+
 for (const [name, bytes] of files) writeFileSync(resolve(outDir, name), bytes);
 
 const total = [...files.values()].reduce((n, b) => n + b.length, 0);
