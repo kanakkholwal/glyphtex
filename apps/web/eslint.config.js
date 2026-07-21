@@ -10,8 +10,8 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
-	// Vendored / static assets (e.g. the minified SwiftLaTeX WASM engine under
-	// static/swiftlatex) are not source — don't lint them.
+	// Static assets — including the staged TeX engine under static/engine/ —
+	// are build output, not source. Don't lint them.
 	{ ignores: ['static/'] },
 	js.configs.recommended,
 	ts.configs.recommended,
@@ -37,8 +37,16 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			// A leading underscore marks a binding that only exists to hold a
+			// position, e.g. `{#each ... as _, i}`.
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }
+			],
+			// `hrefFor` already resolves internal links; the rule cannot trace through
+			// it, so every link hit is a false positive. `goto` is still checked.
+			'svelte/no-navigation-without-resolve': ['error', { ignoreLinks: true }]
+		}
 	}
 );

@@ -18,8 +18,7 @@
 		IconInfoCircle,
 		IconPlayerPlay,
 		IconShieldCheck,
-		IconTerminal2,
-		IconWorld
+		IconTerminal2
 	} from '@tabler/icons-svelte';
 	import { onMount } from 'svelte';
 	import { cubicOut } from 'svelte/easing';

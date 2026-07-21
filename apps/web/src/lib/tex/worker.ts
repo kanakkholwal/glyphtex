@@ -1,8 +1,16 @@
 /// <reference lib="webworker" />
 
-import { TexEngine, EnginePoisonedError } from '@glyphx/tex-engine';
+import {
+	TexEngine,
+	EnginePoisonedError,
+	defaultPacks,
+	resolveMissing,
+	type PackDefinition,
+	type PackIndex
+} from '@glyphx/tex-engine';
 import { untar, gunzip } from './tar';
 import { loadManifest, openEngineCache } from './manifest';
+import { fetchPack, installedPacks, loadPackIndex } from './packs';
 import type { WorkerRequest, WorkerResponse } from './protocol';
 
 const post = (message: WorkerResponse, transfer: Transferable[] = []) =>
@@ -10,11 +18,18 @@ const post = (message: WorkerResponse, transfer: Transferable[] = []) =>
 
 let engine: TexEngine | null = null;
 let booting: Promise<TexEngine> | null = null;
+/** Loaded during boot; null when this deployment ships no packs. */
+let packIndex: PackIndex | null = null;
 
 type Report = (loaded: number, total: number, label: string) => void;
 
 /** Cache keys carry the manifest version, so a new engine misses the old key. */
-async function fetchCached(url: string, version: string, total: number, report: Report): Promise<Uint8Array> {
+async function fetchCached(
+	url: string,
+	version: string,
+	total: number,
+	report: Report
+): Promise<Uint8Array> {
 	const key = `${url}?v=${version}`;
 	const cache = await openEngineCache();
 
@@ -40,17 +55,8 @@ async function fetchCached(url: string, version: string, total: number, report: 
 		throw new Error(`Could not download ${name} (${response.status} ${response.statusText}).`);
 	}
 
-	// How many bytes we will actually read.
-	//
-	// Not `total` (the manifest's on-disk size) and not always Content-Length:
-	// when the transport applies its own compression the reader yields DECODED
-	// bytes while both of those describe the ENCODED size. Our bundle is a
-	// `.tar.gz`, and servers routinely serve that with `Content-Encoding: gzip`,
-	// so the stream can be 4x the declared figure — a percentage against it hits
-	// 100% almost immediately and looks like nothing downloaded at all.
-	//
-	// The decoded size is genuinely unknowable up front in that case, so we say
-	// so with 0 rather than showing a number we know to be wrong.
+	// Under `Content-Encoding` the reader yields decoded bytes while both `total`
+	// and Content-Length describe the encoded size; 0 means unknowable, not zero.
 	const encoded = response.headers.get('content-encoding');
 	const declared = Number(response.headers.get('content-length'));
 	const expected = encoded ? 0 : Number.isFinite(declared) && declared > 0 ? declared : total;
@@ -106,10 +112,8 @@ function boot(report: Report): Promise<TexEngine> {
 		const bundleBytes = manifest.files['tectonic-bundle.tar.gz'].bytes;
 		const total = wasmBytes + bundleBytes;
 
-		// Both files report against one running count, so the bar never resets
-		// between them. If either turns out to be transport-compressed its decoded
-		// size is unknown, and the whole download becomes indeterminate — a total
-		// of 0 — rather than being measured against a figure we know is wrong.
+		// One running count across both files, so the bar never resets between
+		// them; either one being transport-compressed makes the whole thing 0.
 		let read = 0;
 		let indeterminate = false;
 		const relay =
@@ -120,7 +124,12 @@ function boot(report: Report): Promise<TexEngine> {
 				report(read, indeterminate ? 0 : total, label);
 			};
 
-		const wasm = await fetchCached('/engine/tectonic_wasm.wasm', manifest.version, wasmBytes, relay(0));
+		const wasm = await fetchCached(
+			'/engine/tectonic_wasm.wasm',
+			manifest.version,
+			wasmBytes,
+			relay(0)
+		);
 		const archive = await fetchCached(
 			'/engine/tectonic-bundle.tar.gz',
 			manifest.version,
@@ -137,6 +146,25 @@ function boot(report: Report): Promise<TexEngine> {
 		report(read, settled, 'Starting the compiler…');
 		const started = await TexEngine.load(wasm);
 		started.addFiles(files);
+
+		// The engine filesystem is in-memory, so a rebuilt engine starts at core
+		// only; re-fetching defaults here also reaches pre-packs installs.
+		packIndex = await loadPackIndex().catch(() => null);
+		if (packIndex) {
+			const installed = await installedPacks(packIndex);
+			const have = new Set(installed.map((p) => p.id));
+			const wanted = [...defaultPacks(packIndex), ...packIndex.packs.filter((p) => have.has(p.id))];
+
+			for (const pack of new Set(wanted)) {
+				try {
+					started.addFiles(untar(await gunzip(await fetchPack(packIndex, pack.id))));
+				} catch (error) {
+					// One unreachable pack must not take down a working compiler; the
+					// document fails as if it were absent, which the prompt then fixes.
+					console.error(`[GlyphX] could not load pack "${pack.id}":`, error);
+				}
+			}
+		}
 
 		await evictOldVersions(manifest.version).catch(() => {
 			/* housekeeping — never fail a working boot over it */
@@ -157,10 +185,8 @@ function messageOf(error: unknown): string {
 	return String(error);
 }
 
-/**
- * A crash inside the wasm module locks its session permanently — every later
- * call repeats the error, so the engine must be rebuilt rather than reused.
- */
+// A crash inside the wasm module locks its session permanently, so the engine
+// must be rebuilt rather than reused.
 function discardEngine(): void {
 	engine = null;
 	booting = null;
@@ -172,7 +198,9 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 	try {
 		switch (request.type) {
 			case 'install': {
-				await boot((loaded, total, label) => post({ id: request.id, type: 'progress', loaded, total, label }));
+				await boot((loaded, total, label) =>
+					post({ id: request.id, type: 'progress', loaded, total, label })
+				);
 				post({ id: request.id, type: 'installed' });
 				break;
 			}
@@ -205,6 +233,13 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 
 				const output = pdf && pdf.byteLength > 0 ? pdf : undefined;
 
+				// Turn "File `fancyhdr.sty' not found" into a named, installable
+				// package set. Resolved here because the index lives in the worker.
+				const resolution =
+					packIndex && result.missingFiles.length > 0
+						? resolveMissing(packIndex, result.missingFiles, await installedPacks(packIndex))
+						: null;
+
 				post(
 					{
 						id: request.id,
@@ -213,11 +248,37 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 						log,
 						diagnostics: result.diagnostics,
 						status: result.status,
-						message: result.message ?? undefined
+						message: result.message ?? undefined,
+						missingPacks: resolution?.packs,
+						unsupportedFiles: resolution?.unsupported
 					},
 					// Transfer, not copy: the PDF is megabytes and nothing here rereads it.
 					output ? [output.buffer as ArrayBuffer] : []
 				);
+				break;
+			}
+
+			case 'installPacks': {
+				// Boot first: the packs have to go into a live engine, and booting
+				// here means "install a pack" works before the first compile.
+				const ready = await boot((loaded, total, label) =>
+					post({ id: request.id, type: 'progress', loaded, total, label })
+				);
+				if (!packIndex) throw new Error('No package sets are available in this deployment.');
+
+				for (const id of request.packIds) {
+					const pack = packIndex.packs.find((p: PackDefinition) => p.id === id);
+					post({
+						id: request.id,
+						type: 'progress',
+						loaded: 0,
+						total: 0,
+						label: `Adding ${pack?.label ?? id}…`
+					});
+					ready.addFiles(untar(await gunzip(await fetchPack(packIndex, id))));
+				}
+
+				post({ id: request.id, type: 'packsInstalled' });
 				break;
 			}
 		}

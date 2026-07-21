@@ -1,61 +1,77 @@
 <script lang="ts">
 	import { Workbench } from '@glyphx/ui/application';
-	import { compileLatex, warmEngine, engineReady } from '$lib/compile';
+	import { Button } from '@glyphx/ui/button';
+	import type { PackDefinition } from '@glyphx/tex-engine';
+	import { compileLatex, installPacks, warmEngine, engineReady } from '$lib/compile';
 	import { citationCommands } from '$lib/citations';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
 	import { onMount } from 'svelte';
 
-	// The engine and its TeX bundle are served from our own origin and cached on
-	// the device, so once installed there is no server in the compile path.
 	const serverNote = 'Engine: on-device';
 
-	// First-run gate: the in-browser compiler (engine WASM + TeX bundle) must be
-	// downloaded before anything compiles. Until it is, `compile` is withheld so
-	// the Workbench never auto-compiles into a cold engine, and the install dialog
-	// is shown (required — not dismissable).
+	// Until installed, `compile` is withheld so the Workbench never auto-compiles
+	// into a cold engine.
 	let ready = $state(false);
 	let showInstall = $state(false);
 
 	onMount(() => {
-		// Asks the cache directly, so clearing site data correctly brings the
-		// prompt back rather than leaving us claiming an engine we don't have.
 		void engineReady()
 			.then((installed) => {
 				ready = installed;
 				if (installed) {
-					// Already installed — warm the engine for an instant first compile.
 					warmEngine();
 				} else {
 					showInstall = true;
 				}
 			})
 			.catch(() => {
-				// If we cannot tell whether the engine is installed, offer to install
-				// it. Failing closed here is what produced the worst bug this page
-				// has had: no dialog AND no compiler, with the status bar quietly
-				// reading "Compiler not ready" and no way for the user to act on it.
-				// Re-downloading an engine someone already has is a far smaller cost
-				// than stranding them.
+				// Fail open: failing closed here strands the user with no dialog and no
+				// compiler. A redundant re-download costs less.
 				ready = false;
 				showInstall = true;
 			});
 	});
 
-	// Bibliographies need BibTeX or Biber, which are separate programs the
-	// in-browser engine has no way to run. Rather than let the citations quietly
-	// render as [?], say so once, on the compile that used them. Detection runs
-	// here (not in the engine) because desktop drives a real TeX installation and
-	// does run bibtex — this is a web-only limitation.
+	// Web-only limitation: BibTeX/Biber cannot run in the browser, so warn instead
+	// of silently rendering [?]. Detected here, not in the engine — desktop runs it.
 	let unsupportedCitations = $state<string[]>([]);
+
+	let missingPacks = $state<PackDefinition[]>([]);
+	let unsupportedFiles = $state<string[]>([]);
+	let installingPacks = $state(false);
+	let packError = $state<string | undefined>(undefined);
+
+	const packSizeMB = $derived((missingPacks.reduce((n, p) => n + p.bytes, 0) / 1048576).toFixed(2));
+
+	let lastSource = '';
 
 	async function compileWithNotice(source: string) {
 		unsupportedCitations = citationCommands(source);
-		return compileLatex(source);
+		lastSource = source;
+		const outcome = await compileLatex(source);
+		missingPacks = outcome.missingPacks ?? [];
+		unsupportedFiles = outcome.unsupportedFiles ?? [];
+		return outcome;
+	}
+
+	async function addMissingPacks() {
+		installingPacks = true;
+		packError = undefined;
+		try {
+			// resolveMissing already expanded dependencies, so this is the complete set.
+			await installPacks(missingPacks.map((p) => p.id));
+			missingPacks = [];
+			// Recompile now rather than waiting on the debounced auto-compile.
+			if (lastSource) await compileWithNotice(lastSource);
+		} catch (e) {
+			packError = e instanceof Error ? e.message : String(e);
+		} finally {
+			installingPacks = false;
+		}
 	}
 
 	function onInstalled() {
-		// The engine is already booted + warmed by the install; flipping `ready`
-		// wires `compile`, and the Workbench's auto-compile takes over.
+		// The install already booted the engine, so `compile` can be wired straight away.
 		ready = true;
 		showInstall = false;
 	}
@@ -64,6 +80,44 @@
 <svelte:head>
 	<title>GlyphX — Editor</title>
 </svelte:head>
+
+{#if missingPacks.length > 0}
+	<div
+		role="status"
+		class="border-border bg-muted/40 text-muted-foreground flex flex-wrap items-center gap-2 border-b px-3 py-1.5 text-xs"
+	>
+		<span class="text-foreground/70 font-medium">Missing packages</span>
+		<span>
+			This document needs {missingPacks.map((p) => p.label).join(', ')} ({packSizeMB} MB).
+		</span>
+		<Button
+			size="sm"
+			variant="outline"
+			class="h-6 px-2 text-xs"
+			onclick={addMissingPacks}
+			disabled={installingPacks}
+		>
+			{installingPacks ? 'Adding…' : 'Add'}
+		</Button>
+		{#if packError}
+			<span class="text-destructive">{packError}</span>
+		{/if}
+	</div>
+{/if}
+
+{#if unsupportedFiles.length > 0}
+	<div
+		role="status"
+		class="border-border bg-muted/40 text-muted-foreground flex items-center gap-2 border-b px-3 py-1.5 text-xs"
+	>
+		<span class="text-foreground/70 font-medium">Unavailable packages</span>
+		<span>
+			No package set provides {unsupportedFiles.slice(0, 3).join(', ')}{unsupportedFiles.length > 3
+				? ` and ${unsupportedFiles.length - 3} more`
+				: ''}. These are not supported in the browser yet.
+		</span>
+	</div>
+{/if}
 
 {#if unsupportedCitations.length > 0}
 	<div
@@ -78,10 +132,6 @@
 	</div>
 {/if}
 
-<Workbench
-	platform="web"
-	compile={ready ? compileWithNotice : undefined}
-	statusNote={serverNote}
-/>
+<Workbench platform="web" compile={ready ? compileWithNotice : undefined} statusNote={serverNote} />
 
 <EngineInstallDialog bind:open={showInstall} ondone={onInstalled} />

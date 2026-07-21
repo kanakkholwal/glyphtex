@@ -1,16 +1,3 @@
-/**
- * CompileStore — runs the LaTeX engine and owns the preview state.
- *
- * Live, debounced recompile-as-you-type. Tectonic is a heavier subprocess than
- * a WASM engine, so compiles are *coalesced*: while one is running we never
- * start a second — we mark the doc dirty and recompile once it lands. Holds the
- * rendered PDF (bytes + object URL), the SyncTeX map for forward/reverse sync,
- * the parsed diagnostics for the Problems panel, and the preview zoom state.
- *
- * No `$effect` here: the component arms the debounced auto-compile by calling
- * {@link armAutoCompile} from its own `$effect`, and disposes the object URL via
- * {@link disposePdf} from `onDestroy`.
- */
 import {
   parseLatexLog,
   parseSyncTex,
@@ -39,16 +26,8 @@ const NOT_READY =
 export type CompileDeps = {
   files: FileStore;
   layout: LayoutStore;
-  /**
-   * Read live, not captured.
-   *
-   * The host may not have a compile function at mount — the web app withholds
-   * it until the user has downloaded the engine — and then supplies one later.
-   * Storing the value instead of a getter froze `canCompile` at whatever it was
-   * when the workbench mounted, so an engine installed mid-session was never
-   * noticed and the status bar read "Compiler not ready" for the rest of the
-   * session, with nothing in the console to explain it.
-   */
+  /** Must be a getter, not a captured value: the host can install an engine after
+   *  mount, and a stored value froze `canCompile` at "Compiler not ready" forever. */
   getCompile: () => CompileFn | undefined;
   compileProject?: CompileProjectFn;
   saveFile?: SaveFileFn;
@@ -99,16 +78,13 @@ export class CompileStore {
     this.#saveFile = deps.saveFile;
   }
 
-  // Parsed diagnostics for the Problems panel; recomputed on each compile.
   readonly problems = $derived(
     parseLatexLog(this.compileLog, this.compileError),
   );
   readonly problemSummary = $derived(summarizeProblems(this.problems));
 
-  // Getters (not `$derived`) so they can reference the constructor-assigned
-  // `#files` / `#compile*` deps without tripping field-initialization order.
-  // They still read reactive `$state` (e.g. `#files.projectRoot`), so callers
-  // reading them in a reactive context re-run correctly.
+  // Getters, not `$derived`: they reference constructor-assigned deps, which a
+  // field initializer would read before the constructor runs.
   get projectCompile(): boolean {
     return Boolean(
       this.#compileProject && this.#files.projectRoot && this.#files.mainId,
@@ -145,11 +121,8 @@ export class CompileStore {
     if (hit) this.#layout.editor?.goToLine(hit.line);
   }
 
-  /**
-   * Save the compiled PDF from the preview toolbar. On desktop the host injects
-   * `saveFile` (Tauri's dialog + fs plugins → a real native "Save As"); on the
-   * web we fall back to a normal browser download.
-   */
+  /** Save the compiled PDF. Uses the host's `saveFile` (native Save As on desktop),
+   *  falling back to a browser download on the web. */
   async downloadPdf(): Promise<void> {
     const bytes = this.pdfBytes;
     if (!bytes) return;
@@ -225,12 +198,10 @@ export class CompileStore {
     try {
       do {
         this.#pendingRecompile = false;
-        // Compile the last *saved* content (project mode reads it from disk).
         const snapshot = this.#compileSource();
         const useProject = this.projectCompile;
-        // Skip redundant auto-recompiles of already-rendered content. Only in
-        // single-file mode — in a project, an edit to a non-active file (saved
-        // on switch) wouldn't change `source`, so we always recompile there.
+        // Single-file only: in a project, editing a non-active file doesn't
+        // change `source`, so skipping there would miss real changes.
         if (!manual && !useProject && snapshot === this.#lastCompiledSource)
           break;
         this.compileStatus = "compiling";
@@ -295,21 +266,15 @@ export class CompileStore {
     }
   }
 
-  /**
-   * Debounced auto-compile: re-arm whenever the *saved* content changes (a save
-   * lands → `savedTick` bumps) or the main file changes. Called from the
-   * component inside a `$effect`; returns its cleanup. With auto-save off,
-   * nothing here fires until you save — so the preview shows the last saved
-   * version. Disabled when auto-compile is off or no engine is wired.
-   */
+  /** Debounced auto-compile, re-armed on each save or main-file change. Call from a
+   *  `$effect` and return its cleanup; no-op when auto-compile is off or no engine. */
   armAutoCompile(): (() => void) | void {
     void this.#files.savedTick; // re-run after each save
     void this.#files.mainId; // recompile when the main file changes
     const auto = settings.autoCompile;
 
-    // A compiler that arrives late clears the "not ready" complaint left by an
-    // earlier attempt. Without this the banner outlives the condition it
-    // describes — and with auto-compile off nothing else would ever clear it.
+    // A late-arriving compiler clears the stale "not ready" banner; with
+    // auto-compile off nothing else would ever clear it.
     if (this.canCompile && this.compileError === NOT_READY) {
       this.compileError = undefined;
       this.compileStatus = "idle";

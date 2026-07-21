@@ -1,10 +1,3 @@
-// Minimal tar reader for the TeX support bundle.
-//
-// The bundle is a flat gzipped tar of ~500 `.sty`/`.cls`/`.tex`/font files with
-// no nesting, so this covers exactly what that archive contains — regular
-// files, directory entries (skipped), and GNU long names — and ignores the rest
-// of the format. It is not a general-purpose extractor.
-
 const BLOCK = 512;
 
 /** Offsets and widths of the header fields we read (POSIX ustar). */
@@ -24,11 +17,8 @@ function str(block: Uint8Array, at: number, len: number): string {
 	return decoder.decode(raw.subarray(0, end)).replace(/[\s\0]+$/, '');
 }
 
-/**
- * Sizes are octal ASCII, except that GNU writes large values as base-256 with
- * the high bit of the first byte set. The bundle has no such files, but
- * mis-reading one would desynchronise every entry after it, so handle both.
- */
+// Sizes are octal ASCII, except GNU's base-256 form flagged by the first byte's
+// high bit; mis-reading one desynchronises every entry after it.
 function size(block: Uint8Array): number {
 	if ((block[SIZE.at] & 0x80) !== 0) {
 		let n = 0;
@@ -46,10 +36,8 @@ function isZeroBlock(block: Uint8Array): boolean {
 }
 
 /**
- * Extract every regular file, keyed by name.
- *
- * Entry names are normalised: the archive stores them as `./foo.sty`, but the
- * engine's virtual filesystem is flat and looks files up by bare name.
+ * Extract every regular file, keyed by bare name (the engine's VFS is flat).
+ * Handles only the tar subset the bundle uses, not general archives.
  */
 export function untar(archive: Uint8Array): Map<string, Uint8Array> {
 	const files = new Map<string, Uint8Array>();
@@ -92,8 +80,7 @@ export function untar(archive: Uint8Array): Map<string, Uint8Array> {
 			if (prefix !== '') name = `${prefix}/${name}`;
 		}
 
-		// '0' and NUL are regular files; everything else (directories, pax
-		// headers, links) carries nothing the engine needs.
+		// '0' and NUL are regular files; other types carry nothing the engine needs.
 		if (type === '0' || type === '\0') {
 			const flat = name.replace(/^\.\//, '').split('/').pop() ?? name;
 			if (flat !== '') {
@@ -112,21 +99,13 @@ export function untar(archive: Uint8Array): Map<string, Uint8Array> {
 /** A gzip member always starts with these two bytes. */
 const GZIP_MAGIC = [0x1f, 0x8b] as const;
 
-/** Whether these bytes are actually gzip-compressed. */
 function isGzipped(bytes: Uint8Array): boolean {
 	return bytes.length >= 2 && bytes[0] === GZIP_MAGIC[0] && bytes[1] === GZIP_MAGIC[1];
 }
 
 /**
- * Gunzip via the platform's own decompressor. `DecompressionStream` is
- * available in every browser we target, so this pulls in no dependency.
- *
- * The input may already be plain tar. A server that decides `.tar.gz` means
- * `Content-Encoding: gzip` — Vite's dev server does, and origins commonly do —
- * makes the browser decompress the body transparently, so what arrives here is
- * the tar itself. Sniffing the magic bytes handles both cases, and is the only
- * way to be right: the response is indistinguishable from a genuinely
- * uncompressed one by the time we see it.
+ * Gunzip via `DecompressionStream`, passing plain tar through unchanged.
+ * Sniffs magic bytes: servers may serve `.tar.gz` as `Content-Encoding: gzip`.
  */
 export async function gunzip(bytes: Uint8Array): Promise<Uint8Array> {
 	if (!isGzipped(bytes)) return bytes;

@@ -21,8 +21,9 @@ apps/
                   Backend: Rust in src-tauri/ — LaTeX compile (Tectonic sidecar + System TeX),
                   engine management, Git (gitoxide), disk-backed projects, file associations.
   web/            SvelteKit 2 on Cloudflare Workers (adapter-cloudflare + wrangler). Marketing
-                  site + the same editor, compiling in-browser via the SwiftLaTeX pdfTeX WASM
-                  engine. NO database, NO auth, NO server user-state — local-first by design.
+                  site + the same editor, compiling in-browser via our own Tectonic WASM engine
+                  (crates/tectonic-wasm → packages/tex-engine). NO database, NO auth, NO server
+                  user-state — local-first by design.
 packages/
   ui/             @glyphx/ui — shared Svelte 5 components (shadcn-svelte + bits-ui), the shared
                   rune stores (settings, projects), and the Workbench used by both apps.
@@ -58,8 +59,8 @@ pnpm check                       # svelte-check
 ```
 
 CI lives in `.github/workflows/` (`ci-desktop.yml`, `release-desktop.yml`, `deploy-web.yml`,
-`refresh-texlive-bundle.yml`). The release Linux leg is built on **ubuntu-22.04 on purpose** (its
-glibc is the floor for the AppImage/.deb).
+`tex-engine.yml`). The release Linux leg is built on **ubuntu-22.04 on purpose** (its glibc is the
+floor for the AppImage/.deb).
 
 ---
 
@@ -285,18 +286,25 @@ it gets its own per-area `AGENTS.md`.
   build** (the Worker FS is read-only).
 - **No module-scope request/user state.** Module scope is for constants and (cross-request-safe)
   caches only — never per-user data (it leaks across requests; see §3).
-- The **`/texlive` route** is the canonical pattern: resolve each file (1) vendored bundle under
-  `static/texmirror/` via the **ASSETS binding**, (2) the **Cloudflare edge cache** (`caches.default`,
-  immutable per path, `waitUntil` the `put`), (3) upstreams (`PUBLIC_TEXLIVE_ENDPOINT` → public
-  fallback) — caching the result. The engine only ever talks to our own origin; the third party is
-  a cached backend, not a hard dependency.
+- There is **no package-server route** any more. The engine and its TeX bundle are plain static
+  assets under `static/engine/`, staged from `crates/tectonic-wasm/output/` by
+  `pnpm --filter @glyphx/web sync:engine`. That directory is **gitignored**, so the deploy workflow
+  must run the sync before building — a fresh checkout has no engine, and skipping it ships a green
+  pipeline with a 404 on `/engine/manifest.json`.
 
 ### Service worker & caching
-- `src/service-worker.ts` precaches `build + files` (the app shell + the engine WASM) but
-  **excludes `/texmirror/*`** (that's the route's server-side source, not a client preload).
-- The downloaded compiler (TeX format + packages) lives in a **separate, deploy-independent cache
-  (`glyphx-texlive`)** that `activate` must NOT delete — so updates never wipe the installed
-  compiler. App shell is network-first; immutable assets are cache-first.
+- Registered **in production only**, by hand from `src/routes/+layout.svelte` (`serviceWorker.register`
+  is off in `vite.config.ts`). In dev it intercepts Vite's module and HMR traffic for no benefit, and
+  a stale registration then serves yesterday's modules — so dev actively *unregisters* any worker it
+  finds.
+- `src/service-worker.ts` precaches `build + files` but **excludes `/engine/*`**: that is ~12 MB
+  only compile users need, and the install dialog exists precisely to ask first.
+- The downloaded compiler lives in a **separate, deploy-independent cache (`glyphx-engine`)** that
+  `activate` must NOT delete — updates never wipe the installed engine. App shell is network-first;
+  immutable assets are cache-first.
+- **Every cache access is best-effort.** `caches.open` rejects in private windows, with site data
+  blocked, and under disk pressure; a service worker that fails a request when its cache is
+  unavailable takes down the app shell, every module and every worker script with it.
 
 ### In-browser engine (GlyphX — Tectonic/XeTeX WASM)
 - The engine is **ours**: Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly in

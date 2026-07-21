@@ -1,14 +1,6 @@
 name: Deploy web
 
-# Builds and deploys the GlyphX web app (apps/web) to Cloudflare Workers via the
-# SvelteKit Cloudflare adapter + wrangler (see apps/web/wrangler.jsonc, which
-# binds the custom domain). Runs on pushes to `main` that touch apps/web (or
-# shared packages), or manually via "Run workflow" / `gh workflow run
-# deploy-web.yml`.
-#
-# Requires repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID. The
-# deploy URL shown in the GitHub environment is the `WEB_DEPLOY_URL` repo
-# variable (falls back to the wrangler custom domain).
+# Requires repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
 on:
   push:
     branches:
@@ -58,22 +50,31 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # - name: Format check (prettier)
-      #   run: pnpm --filter @glyphx/web format:check
+      - name: Format check (prettier)
+        run: pnpm --filter @glyphx/web format:check
 
-      # - name: Lint (eslint)
-      #   run: pnpm --filter @glyphx/web lint:eslint
+      - name: Lint (eslint)
+        run: pnpm --filter @glyphx/web lint:eslint
 
-      # apps/web/static/engine/ is gitignored (it is ~18 MB of build output), so
-      # it does not exist in a fresh checkout. Without this step the deploy
-      # succeeds and every visitor gets a 404 on /engine/manifest.json, which
-      # the app reports as "the compiler is not available offline yet" — a
-      # broken editor from a green pipeline.
-      #
-      # No download needed: crates/tectonic-wasm/output/ is tracked, so this
-      # only copies files the checkout already has.
+      # static/engine/ is gitignored, so without this every visitor 404s on
+      # /engine/manifest.json — a broken editor from a green pipeline.
       - name: Stage the TeX engine into static assets
         run: pnpm --filter @glyphx/web sync:engine
+
+      # tex-engine.yml only tests a freshly built engine, so it cannot catch the
+      # committed wasm drifting from the TypeScript wrapper that loads it.
+      - name: Verify the staged engine actually compiles
+        run: |
+          pnpm --filter @glyphx/tex-engine build
+          mkdir -p /tmp/engine-bundle
+          tar -xzf crates/tectonic-wasm/output/tectonic-bundle.tar.gz -C /tmp/engine-bundle
+          cd packages/tex-engine && pnpm test
+        env:
+          GLYPHX_WASM: ${{ github.workspace }}/apps/web/static/engine/tectonic_wasm.wasm
+          GLYPHX_BUNDLE: /tmp/engine-bundle
+          # Without this the suite SKIPS when an artifact is missing and exits 0,
+          # which is indistinguishable from passing.
+          GLYPHX_REQUIRE_ENGINE: '1'
 
       - name: Typecheck (svelte-check)
         run: pnpm --filter @glyphx/web check
@@ -83,7 +84,6 @@ jobs:
         env:
           NODE_ENV: production
           PUBLIC_GA_ID: ${{ env.PUBLIC_GA_ID }}
-          # PUBLIC_TEXLIVE_ENDPOINT: ${{ vars.PUBLIC_TEXLIVE_ENDPOINT }}
 
       - name: Deploy via Wrangler
         uses: cloudflare/wrangler-action@v3

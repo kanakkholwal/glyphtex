@@ -1,16 +1,3 @@
-/**
- * Document structure for LaTeX: the outline tree and section folding.
- *
- * Monaco derives breadcrumbs, the outline view and "go to symbol" from a
- * document symbol provider, and LaTeX has an obvious one — the sectioning
- * hierarchy — that it cannot infer on its own. Folding is the same information
- * viewed differently: a section folds down to the next heading of equal or
- * higher rank.
- *
- * Both are computed by scanning, not parsing. A real parse would handle
- * `\section` inside a comment or a verbatim block correctly; this skips
- * comments, which covers the case that actually happens.
- */
 import type * as Monaco from "monaco-editor";
 
 import type { MonacoNamespace } from "./monaco";
@@ -36,11 +23,8 @@ type Heading = {
 	line: number;
 };
 
-/**
- * Read a brace-balanced argument starting at `open` (the index of `{`).
- * Returns the contents, or null if the braces never close on this line —
- * `\section{Some \textbf{bold} title}` has to survive the nested pair.
- */
+// Brace-balanced so `\section{Some \textbf{bold} title}` survives; null if the
+// braces never close on this line.
 function readBraced(text: string, open: number): string | null {
 	let depth = 0;
 	for (let i = open; i < text.length; i++) {
@@ -58,7 +42,7 @@ function readBraced(text: string, open: number): string | null {
 	return null;
 }
 
-/** Strip a trailing `%` comment, respecting `\%`. */
+// Strips a trailing `%` comment, respecting `\%`.
 function withoutComment(line: string): string {
 	for (let i = 0; i < line.length; i++) {
 		if (line[i] !== "%") continue;
@@ -80,8 +64,7 @@ function findHeadings(model: Monaco.editor.ITextModel): Heading[] {
 		const title = readBraced(text, open);
 		headings.push({
 			rank: SECTION_RANK.indexOf(match[1] as (typeof SECTION_RANK)[number]),
-			// An unbalanced title (continued on the next line) still deserves an
-			// outline entry — fall back to the command name rather than dropping it.
+			// A title continued on the next line still gets an entry, named after the command.
 			title: title?.trim() || match[1],
 			line,
 		});
@@ -89,8 +72,7 @@ function findHeadings(model: Monaco.editor.ITextModel): Heading[] {
 	return headings;
 }
 
-/** Where a heading's section ends: just before the next heading of equal or
- *  higher rank, or the end of the document. */
+// A section ends just before the next heading of equal or higher rank.
 function sectionEnd(headings: Heading[], index: number, lastLine: number): number {
 	const start = headings[index];
 	for (let i = index + 1; i < headings.length; i++) {
@@ -107,8 +89,7 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 			const headings = findHeadings(model);
 			const lastLine = model.getLineCount();
 
-			// Build the tree with an explicit stack: each heading is a child of the
-			// nearest preceding heading of lower rank.
+			// Each heading is a child of the nearest preceding heading of lower rank.
 			const roots: Monaco.languages.DocumentSymbol[] = [];
 			const stack: { rank: number; symbol: Monaco.languages.DocumentSymbol }[] = [];
 
@@ -155,7 +136,6 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 			const headings = findHeadings(model);
 			headings.forEach((heading, index) => {
 				const end = sectionEnd(headings, index, lastLine);
-				// A one-line section has nothing to fold.
 				if (end > heading.line) {
 					ranges.push({
 						start: heading.line,
@@ -165,8 +145,8 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 				}
 			});
 
-			// Environments fold too, matched by name so a nested `\begin{center}`
-			// inside `\begin{figure}` closes the right one.
+			// Matched by name so a nested `\begin{center}` inside `\begin{figure}`
+			// closes the right one.
 			const open: { name: string; line: number }[] = [];
 			for (let line = 1; line <= lastLine; line++) {
 				const match = ENVIRONMENT_RE.exec(withoutComment(model.getLineContent(line)));
@@ -176,8 +156,8 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 					open.push({ name: match[2], line });
 					continue;
 				}
-				// Unwind to the matching \begin, discarding unbalanced ones rather
-				// than letting a stray \end swallow the rest of the document.
+				// Unwind to the matching \begin, discarding unbalanced ones so a stray
+				// \end cannot swallow the rest of the document.
 				for (let i = open.length - 1; i >= 0; i--) {
 					if (open[i].name !== match[2]) continue;
 					if (line > open[i].line + 1) {

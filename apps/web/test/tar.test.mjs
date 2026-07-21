@@ -69,7 +69,12 @@ describe('gunzip', () => {
 
 describe('untar', () => {
 	test('extracts files by bare name', async () => {
-		const files = untar(makeTar([['amsmath.sty', 'AMS'], ['article.cls', 'ART']]));
+		const files = untar(
+			makeTar([
+				['amsmath.sty', 'AMS'],
+				['article.cls', 'ART']
+			])
+		);
 		assert.deepEqual([...files.keys()].sort(), ['amsmath.sty', 'article.cls']);
 		assert.equal(new TextDecoder().decode(files.get('amsmath.sty')), 'AMS');
 	});
@@ -82,7 +87,10 @@ describe('untar', () => {
 	});
 
 	test('round-trips through gzip', async () => {
-		const archive = makeTar([['one.sty', 'first'], ['two.sty', 'second']]);
+		const archive = makeTar([
+			['one.sty', 'first'],
+			['two.sty', 'second']
+		]);
 		const files = untar(await gunzip(new Uint8Array(gzipSync(Buffer.from(archive)))));
 		assert.equal(files.size, 2);
 		assert.equal(new TextDecoder().decode(files.get('two.sty')), 'second');

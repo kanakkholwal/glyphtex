@@ -26,10 +26,12 @@
 	"scripts": {
 		"generate": "node ./scripts/generate-types.mjs",
 		"sync:wasm": "node ./scripts/sync-wasm.mjs",
+		"bundle": "node ./scripts/rebuild-bundle.mjs",
 		"bundle:verify": "node ./scripts/verify-bundle.mjs",
 		"bundle:format": "node ./scripts/make-format.mjs",
 		"bundle:build": "node ./scripts/build-bundle.mjs",
 		"bundle:pack": "node ./scripts/pack-bundle.mjs",
+		"bundle:packs": "node ./scripts/build-packs.mjs",
 		"build": "tsc -p tsconfig.json",
 		"check": "tsc -p tsconfig.json --noEmit",
 		"test": "node --test test/*.test.mjs"

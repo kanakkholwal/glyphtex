@@ -1,0 +1,194 @@
+{
+	"version": 1,
+	"packs": [
+		{
+			"id": "writing",
+			"label": "Writing & page layout",
+			"description": "Headers, footers, section styling, line spacing and title pages.",
+			"packages": [
+				"fancyhdr",
+				"titlesec",
+				"titling",
+				"setspace",
+				"parskip",
+				"lastpage",
+				"appendix",
+				"abstract"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 92657,
+			"hash": "ff60a200d15882e1"
+		},
+		{
+			"id": "figures",
+			"label": "Figures & placement",
+			"description": "Figure positioning, text wrapping, subfigures and PDF inclusion.",
+			"packages": [
+				"float",
+				"wrapfig",
+				"subfig",
+				"rotating",
+				"pdfpages",
+				"placeins"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 19981,
+			"hash": "8c044e93be2c6d4a"
+		},
+		{
+			"id": "boxes",
+			"label": "Coloured boxes",
+			"description": "tcolorbox — framed, coloured and breakable boxes for notes and theorems.",
+			"packages": [
+				"tcolorbox",
+				"environ"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 50983,
+			"hash": "5c6401fd44d722e2"
+		},
+		{
+			"id": "review",
+			"label": "Annotation & review",
+			"description": "Margin notes, highlighting, strikethrough and cancelled maths.",
+			"packages": [
+				"todonotes",
+				"soul",
+				"ulem",
+				"cancel"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 43013,
+			"hash": "783f78660e5538f6"
+		},
+		{
+			"id": "science",
+			"label": "Science notation",
+			"description": "Physics vector notation and chemical formulae.",
+			"packages": [
+				"physics",
+				"mhchem"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 70490,
+			"hash": "d17e9b51c8ec9f98"
+		},
+		{
+			"id": "tables-plus",
+			"label": "Advanced tables",
+			"description": "Matrix-style and modern table layouts beyond the core table support.",
+			"packages": [
+				"nicematrix",
+				"tabularray"
+			],
+			"requires": [
+				"science"
+			],
+			"optional": false,
+			"bytes": 112104,
+			"hash": "c5b8e3529eb84a7a"
+		},
+		{
+			"id": "references",
+			"label": "Citation styles",
+			"description": "natbib author-year citations and csquotes context-sensitive quoting. Note: generating a bibliography still needs BibTeX or Biber, which cannot run in the browser.",
+			"packages": [
+				"natbib",
+				"csquotes"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 29789,
+			"hash": "934d511d85fc2453"
+		},
+		{
+			"id": "drafting",
+			"label": "Drafting helpers",
+			"description": "Placeholder text and flexible list customisation for drafts.",
+			"packages": [
+				"lipsum",
+				"blindtext",
+				"xstring"
+			],
+			"requires": [
+				"science"
+			],
+			"optional": false,
+			"bytes": 77318,
+			"hash": "aa7b19a76ca9888b"
+		}
+	],
+	"provides": {
+		"fancyhdr.sty": "writing",
+		"titlesec.sty": "writing",
+		"titling.sty": "writing",
+		"setspace.sty": "writing",
+		"parskip.sty": "writing",
+		"lastpage.sty": "writing",
+		"lastpage2e.sty": "writing",
+		"lastpagemodern.sty": "writing",
+		"appendix.sty": "writing",
+		"abstract.sty": "writing",
+		"lmroman9-bold.otf": "writing",
+		"float.sty": "figures",
+		"wrapfig.sty": "figures",
+		"subfig.sty": "figures",
+		"rotating.sty": "figures",
+		"placeins.sty": "figures",
+		"tcolorbox.sty": "boxes",
+		"verbatim.sty": "boxes",
+		"environ.sty": "boxes",
+		"trimspaces.sty": "boxes",
+		"tcbskins.code.tex": "boxes",
+		"tikzfill.image.sty": "boxes",
+		"tcbskinsjigsaw.code.tex": "boxes",
+		"tikzlibraryfill.image.code.tex": "boxes",
+		"tcbbreakable.code.tex": "boxes",
+		"pdfcol.sty": "boxes",
+		"todonotes.sty": "review",
+		"xkeyval.sty": "review",
+		"xkeyval": "review",
+		"xkeyval.tex": "review",
+		"xkvutils": "review",
+		"xkvutils.tex": "review",
+		"keyval": "review",
+		"keyval.tex": "review",
+		"soul.sty": "review",
+		"tikzlibrarypositioning.code.tex": "review",
+		"soul-ori.sty": "review",
+		"ectt1000.tfm": "review",
+		"etexcmds.sty": "review",
+		"ulem.sty": "review",
+		"cancel.sty": "review",
+		"lasy6.tfm": "review",
+		"line10.pfb": "review",
+		"physics.sty": "science",
+		"xparse.sty": "science",
+		"expl3.sty": "science",
+		"mhchem.sty": "science",
+		"l3keys2e.sty": "science",
+		"chemgreek.sty": "science",
+		"cmbx10.tfm": "science",
+		"cmbx5.tfm": "science",
+		"cmbx7.tfm": "science",
+		"cmbx10.pfb": "science",
+		"nicematrix.sty": "tables-plus",
+		"tabularray.sty": "tables-plus",
+		"ninecolors.sty": "tables-plus",
+		"natbib.sty": "references",
+		"csquotes.sty": "references",
+		"csquotes.def": "references",
+		"csquotes.cfg": "references",
+		"lipsum.sty": "drafting",
+		"blindtext.sty": "drafting",
+		"lipsum.ltd": "drafting",
+		"lipsum.ltd.tex": "drafting",
+		"xstring.sty": "drafting",
+		"xstring.tex": "drafting"
+	}
+}

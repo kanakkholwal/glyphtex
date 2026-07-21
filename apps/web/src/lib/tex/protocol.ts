@@ -1,9 +1,4 @@
-// The message contract between the page and the TeX worker.
-//
-// Kept in its own module so both sides import the same definitions and a change
-// to one end cannot silently drift from the other.
-
-import type { CompileStatus, Diagnostic } from '@glyphx/tex-engine';
+import type { CompileStatus, Diagnostic, PackDefinition } from '@glyphx/tex-engine';
 
 /** `static/engine/manifest.json`, written by `scripts/sync-engine.mjs`. */
 export interface EngineManifest {
@@ -17,14 +12,13 @@ export type WorkerRequest =
 	/** Download, cache and boot the engine, reporting progress. */
 	| { id: number; type: 'install' }
 	/** Compile a document, booting the engine first if necessary. */
-	| { id: number; type: 'compile'; source: string };
+	| { id: number; type: 'compile'; source: string }
+	/** Download the named packs and load them into the running engine. */
+	| { id: number; type: 'installPacks'; packIds: string[] };
 
 /**
  * A request before the client stamps it with an id.
- *
- * Distributive by construction: a plain `Omit<WorkerRequest, 'id'>` would
- * collapse the union into one object type and lose the discriminant, so
- * `{ type: 'compile', source }` would stop type-checking.
+ * Distributive: plain `Omit` would collapse the union and lose the discriminant.
  */
 export type UnsentRequest<T = WorkerRequest> = T extends { id: number } ? Omit<T, 'id'> : never;
 
@@ -39,5 +33,12 @@ export type WorkerResponse =
 			diagnostics: Diagnostic[];
 			status: CompileStatus;
 			message?: string;
+			/**
+			 * Packs supplying the files this compile could not find; resolved in the
+			 * worker, where the pack index lives. `unsupportedFiles` is what no pack covers.
+			 */
+			missingPacks?: PackDefinition[];
+			unsupportedFiles?: string[];
 	  }
+	| { id: number; type: 'packsInstalled' }
 	| { id: number; type: 'error'; message: string };
