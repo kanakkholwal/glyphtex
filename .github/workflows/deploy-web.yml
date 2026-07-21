@@ -16,6 +16,9 @@ on:
     paths:
       - 'apps/web/**'
       - 'packages/**'
+      # The compiled engine ships as a static asset, so a new engine build is a
+      # web change even though nothing under apps/web/ was touched.
+      - 'crates/tectonic-wasm/output/**'
       - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
@@ -60,6 +63,17 @@ jobs:
 
       # - name: Lint (eslint)
       #   run: pnpm --filter @glyphx/web lint:eslint
+
+      # apps/web/static/engine/ is gitignored (it is ~18 MB of build output), so
+      # it does not exist in a fresh checkout. Without this step the deploy
+      # succeeds and every visitor gets a 404 on /engine/manifest.json, which
+      # the app reports as "the compiler is not available offline yet" — a
+      # broken editor from a green pipeline.
+      #
+      # No download needed: crates/tectonic-wasm/output/ is tracked, so this
+      # only copies files the checkout already has.
+      - name: Stage the TeX engine into static assets
+        run: pnpm --filter @glyphx/web sync:engine
 
       - name: Typecheck (svelte-check)
         run: pnpm --filter @glyphx/web check

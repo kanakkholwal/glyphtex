@@ -15,7 +15,6 @@ import { PersistedState } from "./persisted-state.svelte";
 
 export type Appearance = "light" | "dark" | "system";
 export type ResolvedTheme = "light" | "dark";
-export type LatexGrammar = "legacy" | "lezer";
 export type EditorFont = "jetbrains" | "geist";
 /** Source Control changes layout: flat list vs collapsible folder tree. */
 export type GitView = "tree" | "list";
@@ -61,8 +60,6 @@ export const EDITOR_FONT_LABELS: Record<EditorFont, string> = {
 };
 
 export interface EditorSettings {
-	/** Which LaTeX parser drives highlighting. `legacy` = stex, `lezer` = grammar. */
-	grammar: LatexGrammar;
 	font: EditorFont;
 	fontSize: number;
 	lineWrapping: boolean;
@@ -83,7 +80,6 @@ export interface EditorSettings {
 }
 
 export const EDITOR_DEFAULTS: EditorSettings = {
-	grammar: "legacy",
 	font: "jetbrains",
 	fontSize: 13,
 	lineWrapping: false,
@@ -187,13 +183,6 @@ class SettingsStore {
 	}
 	patchEditor(patch: Partial<EditorSettings>) {
 		this.#editor.current = { ...this.#editor.current, ...patch };
-	}
-
-	get grammar(): LatexGrammar {
-		return this.#editor.current.grammar;
-	}
-	set grammar(value: LatexGrammar) {
-		this.patchEditor({ grammar: value });
 	}
 
 	get font(): EditorFont {

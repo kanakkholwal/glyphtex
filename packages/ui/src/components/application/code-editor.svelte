@@ -6,18 +6,16 @@
 <script lang="ts">
   import { untrack } from "svelte";
 
-  import type { LatexGrammar } from "@glyphx/ui/editor";
-
   import {
     CodeEditorController,
     type EditorLanguage,
   } from "./code-editor/controller.svelte";
 
   /**
-   * CodeEditor — the shared CodeMirror 6 surface (web + desktop).
+   * CodeEditor — the shared Monaco surface (web + desktop).
    *
-   * Dumb on purpose: theme / grammar / font come in as props. This component is
-   * a thin shell — all editor state + behaviour live in
+   * Dumb on purpose: theme / language / font come in as props. This component
+   * is a thin shell — all editor state + behaviour live in
    * {@link CodeEditorController}; here we only bind props/effects to it and
    * re-export its imperative API via `bind:this`.
    */
@@ -27,7 +25,6 @@
     canUndo = $bindable(false),
     canRedo = $bindable(false),
     theme = "light" as "light" | "dark",
-    grammar = "legacy" as LatexGrammar,
     language = "latex" as EditorLanguage,
     fontSize = 13,
     fontFamily = "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace",
@@ -44,7 +41,6 @@
     canUndo?: boolean;
     canRedo?: boolean;
     theme?: "light" | "dark";
-    grammar?: LatexGrammar;
     /** Highlighting mode. `latex` uses the LaTeX parser; `markdown`/`plain`
      *  drive non-TeX files (READMEs, code) so they aren't mis-highlighted. */
     language?: EditorLanguage;
@@ -77,7 +73,6 @@
     const init = untrack(() => ({
       value,
       theme,
-      grammar,
       language,
       fontSize,
       fontFamily,
@@ -89,31 +84,31 @@
 
   // Live reconfiguration — each tracks `view` + exactly one prop set.
   $effect(() => {
-    void ctrl.view;
+    void ctrl.editor;
     ctrl.reconfigureTheme(theme);
   });
   $effect(() => {
-    void ctrl.view;
-    ctrl.reconfigureLang(language, grammar);
+    void ctrl.editor;
+    ctrl.reconfigureLang(language);
   });
   $effect(() => {
-    void ctrl.view;
+    void ctrl.editor;
     ctrl.reconfigureFont(fontSize, fontFamily);
   });
   $effect(() => {
-    void ctrl.view;
+    void ctrl.editor;
     ctrl.reconfigureWrap(lineWrapping);
   });
   $effect(() => {
-    void ctrl.view;
+    void ctrl.editor;
     ctrl.reconfigureReadonly(readonly);
   });
   $effect(() => {
-    void ctrl.view;
+    void ctrl.editor;
     ctrl.resetHistoryIfDocChanged(docKey);
   });
   $effect(() => {
-    void ctrl.view;
+    void ctrl.editor;
     ctrl.syncExternalValue(value);
   });
 

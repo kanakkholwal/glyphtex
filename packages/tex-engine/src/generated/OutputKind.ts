@@ -3,4 +3,4 @@
 /**
  * What kind of artifact an output file is.
  */
-export type OutputKind = "pdf" | "xdv" | "log" | "synctex" | "intermediate" | "other";
+export type OutputKind = "pdf" | "xdv" | "log" | "synctex" | "intermediate" | "format" | "other";

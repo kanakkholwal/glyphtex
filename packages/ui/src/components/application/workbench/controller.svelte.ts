@@ -92,17 +92,15 @@ export class WorkbenchController {
     this.compile = new CompileStore({
       files: this.files,
       layout: this.layout,
-      compile: props.compile,
+      // Getter, not value: the web app supplies this only after the engine
+      // is installed, and the workbench is constructed once.
+      getCompile: () => props.compile,
       compileProject: props.compileProject,
       saveFile: props.saveFile,
     });
 
     // Opening a project closes any diff left over from the previous one.
     this.files.onProjectLoaded = () => this.layout.closeDiff();
-  }
-
-  cycleGrammar(): void {
-    settings.grammar = settings.grammar === "legacy" ? "lezer" : "legacy";
   }
 
   // --- Application menu (VS Code-style) --------------------------------------

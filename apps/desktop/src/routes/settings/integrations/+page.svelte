@@ -76,7 +76,7 @@
 				layout="row"
 			>
 				{#if registered === null}
-					<Button variant="soft" size="xs" disabled>
+					<Button variant="default_soft" size="xs" disabled>
 						<Spinner class="size-3.5" /> Checking…
 					</Button>
 				{:else if registered}
@@ -95,7 +95,7 @@
 						</Button>
 					</div>
 				{:else}
-					<Button variant="soft" size="xs" disabled={busy} onclick={addShellIntegration}>
+					<Button variant="default_soft" size="xs" disabled={busy} onclick={addShellIntegration}>
 						{#if busy}
 							<Spinner class="size-3.5" /> Adding…
 						{:else}

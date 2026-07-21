@@ -81,6 +81,18 @@ pub struct CompileOptions {
     /// XeTeX's "semantic pagination" mode, used by the HTML backend.
     pub semantic_pagination: bool,
 
+    /// Run INITEX instead of typesetting: execute the entry file and dump the
+    /// resulting engine state to `<jobname>.fmt`.
+    ///
+    /// This is how the preloaded LaTeX format in the bundle is produced. It has
+    /// to be built by *this* engine — a format is a memory image, so one dumped
+    /// by a different XeTeX build will not load — which is why the option lives
+    /// here rather than the format being treated as an opaque input.
+    ///
+    /// A single pass is run and no PDF is produced, so `max_passes`,
+    /// `output_format` and the xdvipdfmx options are all ignored.
+    pub initex: bool,
+
     /// PDF or raw XDV.
     pub output_format: OutputFormat,
 
@@ -127,6 +139,7 @@ impl Default for CompileOptions {
             shell_escape: false,
             synctex: false,
             semantic_pagination: false,
+            initex: false,
             output_format: OutputFormat::default(),
             paper: "letter".to_owned(),
             compress_pdf: true,
@@ -221,6 +234,8 @@ pub enum OutputKind {
     Synctex,
     /// `.aux`, `.toc`, `.out` — inputs to the next pass.
     Intermediate,
+    /// A dumped TeX format, produced by an INITEX run.
+    Format,
     /// Anything else the document wrote.
     Other,
 }
@@ -237,6 +252,7 @@ impl OutputKind {
             Some("pdf") => OutputKind::Pdf,
             Some("xdv") => OutputKind::Xdv,
             Some("log") => OutputKind::Log,
+            Some("fmt") => OutputKind::Format,
             Some("aux" | "toc" | "out" | "lof" | "lot" | "bbl" | "bcf" | "nav" | "snm") => {
                 OutputKind::Intermediate
             }

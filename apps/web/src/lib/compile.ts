@@ -1,217 +1,141 @@
-// Browser LaTeX compilation via the SwiftLaTeX PdfTeX WASM engine
-// (self-hosted in /static/swiftlatex). The engine runs in a Web Worker and
-// fetches TeX packages on demand, so the first use of a package needs network;
-// everything else is in-browser.
+// Browser LaTeX compilation on the in-house GlyphX engine.
 //
-// The engine is pointed at our OWN same-origin endpoint `/texlive/` — a route
-// on our Cloudflare deployment (see routes/texlive/[...path]/+server.ts) that
-// serves a vendored format + proxies and edge-caches the upstream on-demand
-// server. So the third-party server is a cached backend behind our domain, not
-// a hard dependency: once a file is cached at our edge (or in the per-device
-// service-worker cache) it keeps working even if upstream is down.
+// The engine is Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly — the same
+// engine the desktop app runs — wrapped by `@glyphx/tex-engine`. It runs in a
+// Web Worker (see `tex/worker.ts`) because a compile is synchronous and takes
+// the better part of a second.
+//
+// Everything is same-origin and self-contained: the wasm binary and the TeX
+// support bundle are served from `/engine/`, downloaded once, and kept in the
+// persistent Cache API. After the first run there is no network in the compile
+// path at all, so compiling works offline and cannot be broken by a third-party
+// package server going down.
 
-import { PACKAGE_GROUPS } from './engine-packages';
+import type { Diagnostic } from '@glyphx/tex-engine';
+import { loadManifest, openEngineCache } from './tex/manifest';
+import type { UnsentRequest, WorkerRequest, WorkerResponse } from './tex/protocol';
 
-export type CompileOutcome = { pdf?: string; log?: string; error?: string };
+export type CompileOutcome = {
+	/** The PDF, base64-encoded for the preview pane. */
+	pdf?: string;
+	log?: string;
+	error?: string;
+	/** Diagnostics parsed by the engine itself, rather than scraped from the log. */
+	diagnostics?: Diagnostic[];
+};
 
-// Whether the user has completed the first-run "Set up the compiler" download.
-// This only gates the UI; the actual downloaded files live in the service
-// worker's persistent `glyphx-texlive` cache. If that's cleared but the flag
-// isn't, compiles simply re-fetch (and re-cache) on demand — no breakage.
-const READY_KEY = 'glyphx:web-engine-ready';
+/** Bytes downloaded so far during the first-run install. */
+export type InstallProgress = { loaded: number; total: number; label: string };
 
-export function engineReady(): boolean {
+/* ------------------------------------------------------------------ worker */
+
+let worker: Worker | null = null;
+let nextId = 1;
+
+/** In-flight requests, keyed by message id. */
+const pending = new Map<
+	number,
+	{ resolve: (r: WorkerResponse) => void; reject: (e: Error) => void; onProgress?: (p: InstallProgress) => void }
+>();
+
+function getWorker(): Worker {
+	if (worker) return worker;
+
+	worker = new Worker(new URL('./tex/worker.ts', import.meta.url), { type: 'module' });
+
+	worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
+		const response = event.data;
+		const entry = pending.get(response.id);
+		if (!entry) return;
+
+		if (response.type === 'progress') {
+			entry.onProgress?.({ loaded: response.loaded, total: response.total, label: response.label });
+			return; // more messages to come for this id
+		}
+
+		pending.delete(response.id);
+		if (response.type === 'error') entry.reject(new Error(response.message));
+		else entry.resolve(response);
+	};
+
+	// A worker-level error leaves every in-flight request unanswered, so fail
+	// them all rather than letting their promises hang forever.
+	worker.onerror = (event) => {
+		const error = new Error(event.message || 'The LaTeX engine worker stopped unexpectedly.');
+		for (const [id, entry] of pending) {
+			pending.delete(id);
+			entry.reject(error);
+		}
+		// Drop the dead worker so the next call starts a fresh one.
+		worker?.terminate();
+		worker = null;
+	};
+
+	return worker;
+}
+
+function send(
+	request: UnsentRequest,
+	onProgress?: (p: InstallProgress) => void
+): Promise<WorkerResponse> {
+	const id = nextId++;
+	return new Promise((resolve, reject) => {
+		pending.set(id, { resolve, reject, onProgress });
+		getWorker().postMessage({ ...request, id } as WorkerRequest);
+	});
+}
+
+/* ----------------------------------------------------------------- install */
+
+/**
+ * Whether the engine is already downloaded on this device.
+ *
+ * This asks the cache directly rather than trusting a "user clicked install"
+ * flag, so clearing site data correctly brings the setup prompt back instead of
+ * leaving the app claiming an engine it no longer has.
+ */
+export async function engineReady(): Promise<boolean> {
 	try {
-		return typeof localStorage !== 'undefined' && localStorage.getItem(READY_KEY) === '1';
+		const cache = await openEngineCache();
+		// No cache means nothing can have been persisted, so the engine is never
+		// "already installed" — the setup prompt is correct in that case.
+		if (!cache) return false;
+
+		const manifest = await loadManifest();
+		const wanted = Object.keys(manifest.files).map((name) => `/engine/${name}?v=${manifest.version}`);
+		const found = await Promise.all(wanted.map((url) => cache.match(url)));
+		return found.every(Boolean);
 	} catch {
 		return false;
 	}
 }
 
-export function markEngineReady(): void {
-	try {
-		localStorage.setItem(READY_KEY, '1');
-	} catch {
-		/* storage unavailable (private mode) — the install still works this session */
-	}
-}
-
-export type InstallProgress = { done: number; total: number; label: string };
-
-const ENGINE_SRC = '/swiftlatex/PdfTeXEngine.js';
-
 /**
- * The slice of the self-hosted SwiftLaTeX pdfTeX engine we actually call. Upstream
- * ships no types, so this is our narrowed contract at the boundary (AGENTS.md rule
- * #7 — parse/narrow untrusted shapes, no blanket `any`).
+ * First-run install: download the engine and the TeX bundle, cache them, and
+ * boot the engine so the first real compile has nothing left to do.
+ *
+ * Throws with a user-facing message if the download fails, so the dialog can
+ * show it and offer a retry.
  */
-interface PdfTeXEngine {
-	loadEngine(): Promise<void>;
-	writeMemFSFile(name: string, content: string): void;
-	setEngineMainFile(name: string): void;
-	compileLaTeX(): Promise<{ pdf?: ArrayBuffer; log?: string }>;
-	/** The underlying Web Worker; we post `settexliveurl` straight to it. */
-	latexWorker?: { postMessage(message: unknown): void };
-}
-type PdfTeXEngineClass = new () => PdfTeXEngine;
-
-/** Globals the classic engine script attaches to `window` once loaded. */
-interface EngineWindow {
-	exports?: { PdfTeXEngine?: PdfTeXEngineClass };
-	__PdfTeXEngineClass?: PdfTeXEngineClass;
+export async function installEngine(onProgress?: (p: InstallProgress) => void): Promise<void> {
+	if (typeof window === 'undefined') throw new Error('Install runs in the browser.');
+	await send({ type: 'install' }, onProgress);
 }
 
 /**
- * Our own same-origin TeX endpoint. The engine fetches `<endpoint>pdftex/<n>/<file>`;
- * `routes/texlive/[...path]/+server.ts` serves it from a vendored copy, our edge
- * cache, then the upstream on-demand server (which it caches). Same-origin means
- * the per-device service worker also caches it persistently.
- */
-function texliveEndpoint(): string {
-	return typeof location !== 'undefined' ? new URL('/texlive/', location.origin).href : '/texlive/';
-}
-
-let enginePromise: Promise<PdfTeXEngine> | null = null;
-
-/** Load PdfTeXEngine.js as a classic script; it exposes `window.exports.PdfTeXEngine`. */
-function loadEngineClass(): Promise<PdfTeXEngineClass> {
-	const w = window as unknown as EngineWindow;
-	if (w.__PdfTeXEngineClass) return Promise.resolve(w.__PdfTeXEngineClass);
-
-	return new Promise((resolve, reject) => {
-		const script = document.createElement('script');
-		script.src = ENGINE_SRC;
-		script.async = true;
-		script.onload = () => {
-			const cls = (window as unknown as EngineWindow).exports?.PdfTeXEngine;
-			if (cls) {
-				w.__PdfTeXEngineClass = cls;
-				resolve(cls);
-			} else {
-				reject(new Error('SwiftLaTeX engine loaded but PdfTeXEngine was not found.'));
-			}
-		};
-		script.onerror = () => reject(new Error('Failed to load the SwiftLaTeX engine.'));
-		document.head.appendChild(script);
-	});
-}
-
-/** Lazily create + boot a single engine instance (one compile at a time). */
-function getEngine(): Promise<PdfTeXEngine> {
-	if (!enginePromise) {
-		enginePromise = (async () => {
-			const PdfTeXEngine = await loadEngineClass();
-			const engine = new PdfTeXEngine();
-			await engine.loadEngine();
-			// Point the package/format server at our same-origin edge route.
-			// Posted straight to the worker — the wrapper's setTexliveEndpoint()
-			// detaches the worker reference (upstream bug), so we bypass it.
-			engine.latexWorker?.postMessage({ cmd: 'settexliveurl', url: texliveEndpoint() });
-			return engine;
-		})().catch((e) => {
-			enginePromise = null; // allow retry after a failed boot
-			throw e;
-		});
-	}
-	return enginePromise;
-}
-
-/**
- * Kick off loading + booting the WASM engine ahead of the first compile (~1.7 MB
- * download + worker spin-up), so the first "Compile" feels instant. Safe to call
- * repeatedly — it reuses the single cached engine and swallows boot errors (the
- * next real compile will surface them).
+ * Boot the engine ahead of the first compile, so pressing "Compile" on an
+ * already-installed device feels instant. Safe to call repeatedly — the worker
+ * keeps one engine — and errors are swallowed because a real compile will
+ * surface them properly.
  */
 export function warmEngine(): void {
 	if (typeof window === 'undefined') return;
-	void getEngine().catch(() => {
+	void send({ type: 'install' }).catch(() => {
 		/* a real compile will report the failure */
 	});
 }
 
-/** Compile a tiny throwaway doc to pull the format + `preamble`'s packages into
- *  the service-worker cache. Returns whether a PDF came out — used to tell a
- *  real failure (engine/server unreachable → no PDF) from a clean warm-up. */
-async function warmCompile(engine: PdfTeXEngine, preamble: string): Promise<boolean> {
-	const src = `\\documentclass{article}\n${preamble}\n\\begin{document}.\\end{document}`;
-	engine.writeMemFSFile('main.tex', src);
-	engine.setEngineMainFile('main.tex');
-	const result = await engine.compileLaTeX();
-	const ok = !!result?.pdf && new Uint8Array(result.pdf).byteLength > 0;
-	// Surface the engine's own log when the warm-up produced no PDF, so a format/
-	// engine mismatch ("Fatal format file error") or a missing file is visible
-	// instead of a bare "status code 1".
-	if (!ok && result?.log) console.error('[GlyphX] warm-compile log:\n' + result.log);
-	return ok;
-}
-
-/**
- * First-run install: boot the engine, then warm the TeX format and the selected
- * common-package groups so they're cached (persistently, by the service worker)
- * before the user's first real compile. `groupIds` are `PACKAGE_GROUPS` ids;
- * pass `[]` to fetch just the engine + format. Reports coarse per-step progress.
- * Throws if the engine can't boot or the package server is unreachable, so the
- * dialog can surface the error and offer a retry.
- */
-export async function installEngine(
-	groupIds: string[],
-	onProgress?: (p: InstallProgress) => void
-): Promise<void> {
-	if (typeof window === 'undefined') throw new Error('Install runs in the browser.');
-
-	const groups = PACKAGE_GROUPS.filter((g) => groupIds.includes(g.id));
-	// Steps: boot engine + warm format + one per selected group.
-	const total = groups.length + 2;
-	let done = 0;
-	const tick = (label: string) => onProgress?.({ done: ++done, total, label });
-
-	onProgress?.({ done, total, label: 'Starting the LaTeX engine…' });
-	const engine = await getEngine();
-	tick('LaTeX engine ready');
-
-	// Format step is the hard gate: a missing PDF here means the engine or the
-	// package server is unreachable, so don't claim "installed".
-	onProgress?.({ done, total, label: 'Downloading TeX format & core files…' });
-	const formatOk = await warmCompile(engine, '');
-	if (!formatOk) {
-		throw new Error("Couldn't reach the TeX package server to download the format file.");
-	}
-	tick('TeX format & core files');
-
-	// Package groups are best-effort: an individual package that won't warm
-	// shouldn't block the whole install — it'll be fetched on first real use.
-	for (const g of groups) {
-		onProgress?.({ done, total, label: `Downloading ${g.label} packages…` });
-		try {
-			await warmCompile(engine, g.packages.map((p) => `\\usepackage{${p}}`).join('\n'));
-		} catch {
-			/* keep going — the package streams + caches on demand later */
-		}
-		tick(`${g.label} packages`);
-	}
-
-	markEngineReady();
-}
-
-/**
- * LaTeX resolves cross-references by writing `.aux`/`.toc`/`.out` on one pass and
- * reading them on the next, so a single pass leaves `\ref`, `\cite`,
- * `\tableofcontents` and hyperref anchors unresolved (they render as `??`).
- * Desktop gets this for free — Tectonic and latexmk rerun internally. The
- * in-browser engine exposes one pass at a time, so we drive the loop ourselves.
- *
- * These are the standard "run me again" signals from the kernel and from
- * hyperref/longtable/tabularx/biblatex.
- */
-const RERUN_PATTERN =
-	/Rerun to get|Rerun LaTeX|Please rerun|rerunfilecheck Warning|Label\(s\) may have changed|Table widths have changed/i;
-
-/**
- * Cap on total passes. LaTeX normally converges in 2–3; latexmk's own default
- * ceiling is 5. We stop at 4 so a pathological document that never settles costs
- * bounded time rather than spinning.
- */
-const MAX_PASSES = 4;
+/* ----------------------------------------------------------------- compile */
 
 function bytesToBase64(bytes: Uint8Array): string {
 	let binary = '';
@@ -227,55 +151,34 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 		return { error: 'Compilation runs in the browser.' };
 	}
 
-	let engine: PdfTeXEngine;
+	let response: WorkerResponse;
 	try {
-		engine = await getEngine();
-	} catch {
-		return {
-			error:
-				'Could not start the in-browser LaTeX engine. Check your connection and reload — ' +
-				'the engine (~2 MB) downloads on first use.'
-		};
-	}
-
-	try {
-		engine.writeMemFSFile('main.tex', source);
-		engine.setEngineMainFile('main.tex');
-
-		// Run until the log stops asking for another pass. The engine's MEMFS
-		// persists between calls, so each pass reads the `.aux`/`.toc`/`.out` the
-		// previous one wrote — which is what actually resolves the references.
-		// Never `flushcache` in here: that would wipe those files and every pass
-		// would be pass one.
-		let log = '';
-		let pdf: Uint8Array | undefined;
-
-		for (let pass = 1; pass <= MAX_PASSES; pass++) {
-			const result = await engine.compileLaTeX();
-			log = result?.log ?? '';
-			pdf = result?.pdf ? new Uint8Array(result.pdf) : undefined;
-
-			// No PDF means a hard error — rerunning won't fix it, and a broken
-			// document would otherwise burn all four passes before reporting.
-			if (!pdf || pdf.byteLength === 0) break;
-			if (!RERUN_PATTERN.test(log)) break;
-		}
-
-		// Best-effort, like the desktop engines: if pdfTeX produced a PDF, show it
-		// even when it exited non-zero (recoverable errors). The errors live in the
-		// log and surface in the Problems panel.
-		if (pdf && pdf.byteLength > 0) {
-			return { pdf: bytesToBase64(pdf), log };
-		}
-		return {
-			log,
-			error: 'LaTeX compilation failed — no PDF was produced. See the Problems panel.'
-		};
+		response = await send({ type: 'compile', source });
 	} catch (e) {
-		// Plain-language message for the user; raw detail lives in the log (AGENTS.md rule #5).
+		// Plain-language message for the user; raw detail goes in the log
+		// (AGENTS.md rule #5).
 		return {
-			error: 'The LaTeX engine crashed while compiling. Reload the page and try again.',
-			log: String(e)
+			error: 'Could not start the LaTeX engine. Check your connection and reload.',
+			log: e instanceof Error ? e.message : String(e)
 		};
 	}
+
+	if (response.type !== 'compiled') {
+		return { error: 'The LaTeX engine returned an unexpected response.' };
+	}
+
+	// Best-effort, matching the desktop engines: if TeX produced a PDF, show it
+	// even when the run reported errors. TeX recovers from most problems and
+	// still typesets; the errors surface in the Problems panel.
+	if (response.pdf && response.pdf.byteLength > 0) {
+		return { pdf: bytesToBase64(response.pdf), log: response.log, diagnostics: response.diagnostics };
+	}
+
+	return {
+		log: response.log,
+		diagnostics: response.diagnostics,
+		error:
+			response.message ??
+			'LaTeX compilation failed — no PDF was produced. See the Problems panel.'
+	};
 }

@@ -11,7 +11,7 @@
 		...restProps
 	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
 		size?: "default" | "sm";
-		tone?: "default" | "soft" | "editorial";
+		tone?: "default" | "default_soft" | "editorial";
 	} = $props();
 </script>
 
@@ -23,7 +23,7 @@
 	class={cn(
 		"text-card-foreground transition-all duration-200",
 		tone === "default" && "bg-card border-border/40 shadow-sm",
-		tone === "soft" && "bg-surface-soft/65 border-hairline shadow-craft-sm",
+		tone === "default_soft" && "bg-surface-soft/65 border-hairline shadow-craft-sm",
 		tone === "editorial" &&
 			"bg-card border-hairline shadow-craft-lg",
 		size === "default" && "rounded-3xl p-6 md:p-8",

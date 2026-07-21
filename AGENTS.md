@@ -298,14 +298,24 @@ it gets its own per-area `AGENTS.md`.
   (`glyphx-texlive`)** that `activate` must NOT delete — so updates never wipe the installed
   compiler. App shell is network-first; immutable assets are cache-first.
 
-### In-browser engine (SwiftLaTeX pdfTeX WASM)
-- The engine is **self-hosted** in `static/swiftlatex/` (no CDN — cross-origin Workers are blocked,
-  and self-hosting keeps it offline-capable). It runs in a **Web Worker using synchronous XHR**
-  (so it needs a real browser; it can't run headless in Node — relevant to the capture tooling)
-  and **does not use SharedArrayBuffer**, so **no COOP/COEP headers are required**.
-- First-run is gated by a **required install dialog** (download engine + format + chosen package
-  groups, cached persistently); compiling is blocked until it completes. Don't auto-compile into a
-  cold engine.
+### In-browser engine (GlyphX — Tectonic/XeTeX WASM)
+- The engine is **ours**: Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly in
+  `crates/tectonic-wasm`, wrapped by `packages/tex-engine`. SwiftLaTeX is **gone** — do not
+  reintroduce it or `static/swiftlatex/`.
+- Served self-hosted from `static/engine/` (`tectonic_wasm.wasm` + `tectonic-bundle.tar.gz`,
+  staged by `pnpm engine:web:sync`, never committed there). Runs in a Web Worker; **no
+  SharedArrayBuffer, so no COOP/COEP headers**. Unlike SwiftLaTeX it needs no synchronous XHR, so
+  it runs headless in Node — which is how the e2e suites test it.
+- First-run is gated by a **required install dialog** (download + persistent Cache API, keyed on
+  the manifest content hash so a new engine invalidates the old install); compiling is blocked
+  until it completes. Don't auto-compile into a cold engine.
+- **A compile that aborts poisons the instance.** The wasm stack is torn down without unwinding
+  Rust, so the session lock is never released; the binding raises `EnginePoisonedError` and the
+  caller must discard the engine and rebuild it (`worker.ts` retries once). Never reuse an engine
+  after that error.
+- **Coverage is bounded by the bundle**: it contains what `packages/tex-engine/test/fixtures/
+  groups.mjs` needs and nothing more, so an unlisted package fails as a missing file. There is no
+  on-demand fetch. Widening coverage means widening the fixtures and rebuilding the bundle.
 
 ### Boundaries & security
 - **`PUBLIC_`-only env in the browser**; no secrets client-side. Validate untrusted input

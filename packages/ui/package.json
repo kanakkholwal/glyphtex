@@ -214,27 +214,17 @@
     "svelte": "^5.56.1"
   },
   "dependencies": {
-    "@codemirror/autocomplete": "^6.20.3",
-    "@codemirror/commands": "^6.10.3",
-    "@codemirror/language": "^6.12.3",
-    "@codemirror/legacy-modes": "^6.5.3",
-    "@codemirror/merge": "^6.12.2",
-    "@codemirror/search": "6.7.0",
-    "@codemirror/state": "^6.6.0",
-    "@codemirror/view": "^6.43.1",
     "@fontsource-variable/fraunces": "^5.2.9",
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/geist-mono": "^5.2.8",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
-    "@lezer/highlight": "^1.2.3",
     "@lucide/svelte": "^0.577.0",
     "@tabler/icons-svelte": "^3.41.1",
     "bits-ui": "^2.16.3",
     "clsx": "^2.1.1",
-    "codemirror": "^6.0.2",
-    "codemirror-lang-latex": "^0.4.1",
     "mode-watcher": "^1.1.0",
+    "monaco-editor": "^0.56.0",
     "pdfjs-dist": "^6.0.227",
     "svelte-sonner": "^1.1.0",
     "tailwind-merge": "^3.5.0",
@@ -247,11 +237,15 @@
     "@sveltejs/package": "^2.5.8",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tailwindcss/typography": "^0.5.19",
+    "esbuild": "^0.28.1",
     "svelte": "^5.56.1",
     "tailwindcss": "^4.2.1"
   },
   "scripts": {
     "build": "exit 0",
-    "check": "exit 0"
+    "check": "exit 0",
+    "pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --external:monaco-editor --log-level=error",
+    "test": "node --test test/*.test.mjs",
+    "test:browser": "node ./test/browser/editor-smoke.mjs"
   }
 }

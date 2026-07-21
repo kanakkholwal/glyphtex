@@ -99,13 +99,18 @@ jobs:
         with:
           submodules: recursive
 
-      # Not @stable: the version is pinned in crates/tectonic-wasm/rust-toolchain.toml
-      # and has to match EM_VERSION. Installing stable here would download a
-      # second toolchain that rustup then overrides on the first cargo call.
+      # Not @stable: the version is pinned in crates/tectonic-wasm/rust-toolchain.toml.
+      # Installing stable here would download a second toolchain that rustup
+      # then overrides on the first cargo call.
+      #
+      # rust-src is not optional — the build rebuilds std via -Zbuild-std so it
+      # uses the same exception scheme as Emscripten's C++ ports. Without it the
+      # build fails at the link with an undefined __cpp_exception.
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: '1.94'
           targets: wasm32-unknown-emscripten
+          components: rust-src
 
       - uses: mymindstorm/setup-emsdk@v14
         with:
@@ -172,6 +177,12 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      # The bundle — including the preloaded latex.fmt — is a committed data
+      # input, not a build output: a TeX format is a memory image of the engine
+      # that dumped it, so it is regenerated deliberately (pnpm
+      # engine:bundle:format, needs a TeX Live install) rather than on every CI
+      # run. Refreshing it means refreshing the packages from the same snapshot
+      # too; a format older than its packages fails as "LaTeX kernel too old".
       - name: Extract TeX bundle
         run: |
           mkdir -p /tmp/bundle
@@ -183,9 +194,18 @@ jobs:
           pnpm install --ignore-workspace --frozen-lockfile=false
           pnpm build
 
-      # These cover the regressions the engine rewrite exists to fix: a
-      # booktabs document that used to hang, and font-size changes that used to
-      # emit a 15-byte PDF with no error.
+      # Fails if the bundle lacks anything bundle-manifest.json promises. The
+      # installer offers those groups by name, so a gap here means the UI is
+      # advertising something the engine cannot compile.
+      - name: Verify bundle satisfies the manifest
+        run: cd packages/tex-engine && pnpm bundle:verify /tmp/bundle
+
+      # Two suites run here. compile.test.mjs covers the regressions the engine
+      # rewrite exists to fix (booktabs used to hang; font-size changes emitted
+      # a 15-byte PDF with no error). groups.test.mjs compiles a real document
+      # for every package group, because a file being *present* in the bundle
+      # does not mean the package *works* — that gap is how siunitx shipped
+      # listed-but-broken.
       - name: Test
         env:
           GLYPHX_WASM: ${{ github.workspace }}/crates/tectonic-wasm/output/tectonic_wasm.wasm
@@ -225,13 +245,16 @@ jobs:
       # No `pnpm generate` here: it shells out to `cargo test`, which would pull
       # an unpinned Rust into the release job to regenerate files that are
       # already committed and already drift-checked by the `api` job above.
+      # sync:wasm stages BOTH the engine and the TeX bundle. Copying the wasm
+      # alone would publish a package whose `./bundle` export points at nothing,
+      # and an engine with no format or classes cannot typeset a document — it
+      # instantiates cleanly and then fails on the first \documentclass.
       - name: Build and stage package
         run: |
           cd packages/tex-engine
           pnpm install --ignore-workspace --frozen-lockfile=false
           pnpm build
-          mkdir -p wasm
-          cp ../../crates/tectonic-wasm/output/tectonic_wasm.wasm wasm/
+          pnpm sync:wasm
           npm version "${{ steps.version.outputs.value }}" --no-git-tag-version
 
       - name: Publish to npm

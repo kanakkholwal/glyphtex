@@ -7,46 +7,51 @@
 		DialogDescription
 	} from '@glyphx/ui/dialog';
 	import { Button } from '@glyphx/ui/button';
-	import { Checkbox } from '@glyphx/ui/checkbox';
-	import { IconCpu, IconLoader2, IconAlertTriangle } from '@tabler/icons-svelte';
+	import { IconCpu, IconLoader2, IconAlertTriangle, IconWifiOff } from '@tabler/icons-svelte';
 	import { installEngine, type InstallProgress } from '$lib/compile';
-	import { PACKAGE_GROUPS, CORE_APPROX_MB, estimateMB } from '$lib/engine-packages';
 
 	/**
-	 * First-run gate for the in-browser LaTeX compiler. The engine + TeX files
-	 * download once and are cached by the service worker (persistently, across
-	 * deploys), so this only appears until the user installs. Required install —
-	 * there's no dismiss; compiling stays gated behind it.
+	 * First-run gate for the in-browser LaTeX compiler.
+	 *
+	 * The GlyphX engine ships as one wasm binary plus one TeX support bundle, so
+	 * unlike the old on-demand setup there is nothing to pick — it is a single
+	 * download that then works entirely offline. This dialog exists only to ask
+	 * before spending the user's bandwidth on it.
+	 *
+	 * Required install: compiling stays gated behind it, so there is no dismiss.
 	 */
 	let { open = $bindable(false), ondone }: { open?: boolean; ondone?: () => void } = $props();
-
-	// All groups selected by default — "all are needed", but the user can trim.
-	let selected = $state<Record<string, boolean>>(
-		Object.fromEntries(PACKAGE_GROUPS.map((g) => [g.id, true]))
-	);
-	const selectedIds = $derived(PACKAGE_GROUPS.filter((g) => selected[g.id]).map((g) => g.id));
-	const totalMB = $derived(estimateMB(selectedIds));
 
 	let installing = $state(false);
 	let progress = $state<InstallProgress | undefined>(undefined);
 	let error = $state<string | undefined>(undefined);
 
+	/**
+	 * A total of 0 means the size genuinely is not knowable — the server is
+	 * compressing the bundle in transit, so the bytes we count are decoded ones
+	 * with nothing to measure against. Then we show what has arrived instead of
+	 * a percentage, rather than inventing one.
+	 */
+	const measurable = $derived(!!progress && progress.total > 0);
 	const pct = $derived(
-		progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0
+		progress && measurable ? Math.min(100, Math.round((progress.loaded / progress.total) * 100)) : 0
 	);
+
+	const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
+
+	/** Rough download size for the pre-install copy; the real one is the engine's. */
+	const totalMB = $derived(measurable && progress ? Math.round(progress.total / 1048576) : 12);
 
 	async function start() {
 		installing = true;
 		error = undefined;
-		progress = { done: 0, total: selectedIds.length + 2, label: 'Preparing…' };
+		progress = undefined;
 		try {
-			await installEngine(selectedIds, (p) => (progress = p));
+			await installEngine((p) => (progress = p));
 			open = false;
 			ondone?.();
 		} catch (e) {
-			error =
-				'Could not download the compiler. Check your internet connection and try again. ' +
-				`(${String(e)})`;
+			error = e instanceof Error ? e.message : String(e);
 		} finally {
 			installing = false;
 		}
@@ -70,60 +75,40 @@
 				Set up the LaTeX compiler
 			</DialogTitle>
 			<DialogDescription class="leading-relaxed">
-				GlyphX compiles LaTeX right in your browser. The engine and TeX files download once (~{totalMB}
-				MB) and are cached for offline use — pick what to include below.
+				GlyphX compiles LaTeX right in your browser — the same engine the desktop app uses. It
+				downloads once (~{totalMB} MB) and is cached on this device.
 			</DialogDescription>
 		</DialogHeader>
 
-		<div class="flex flex-col gap-2">
-			<!-- Core: always installed, locked on. -->
-			<div class="border-border bg-muted/40 flex items-start gap-2.5 rounded-lg border p-2.5">
-				<Checkbox checked disabled aria-label="Core compiler (required)" class="mt-0.5" />
-				<div class="min-w-0 flex-1">
-					<div class="flex items-center justify-between gap-2">
-						<span class="text-foreground text-sm font-medium">Core compiler</span>
-						<span class="text-muted-foreground shrink-0 text-xs tabular-nums"
-							>~{CORE_APPROX_MB} MB</span
-						>
-					</div>
-					<p class="text-muted-foreground text-xs">
-						LaTeX engine (WebAssembly) + TeX format & base files. Required.
-					</p>
-				</div>
-			</div>
-
-			<!-- Optional, toggleable package groups. -->
-			{#each PACKAGE_GROUPS as g (g.id)}
-				<label
-					class="border-border hover:bg-muted/40 flex cursor-pointer items-start gap-2.5 rounded-lg border p-2.5 transition-colors"
-				>
-					<Checkbox bind:checked={selected[g.id]} disabled={installing} class="mt-0.5" />
-					<div class="min-w-0 flex-1">
-						<div class="flex items-center justify-between gap-2">
-							<span class="text-foreground text-sm font-medium">{g.label}</span>
-							<span class="text-muted-foreground shrink-0 text-xs tabular-nums"
-								>~{g.approxMB} MB</span
-							>
-						</div>
-						<p class="text-muted-foreground text-xs">{g.description}</p>
-					</div>
-				</label>
-			{/each}
-			<p class="text-muted-foreground px-1 text-[11px] leading-relaxed">
-				Anything not included still downloads automatically the first time a document uses it, then
-				it's cached too.
+		<div class="border-border bg-muted/40 flex items-start gap-2.5 rounded-lg border p-3">
+			<IconWifiOff size={16} class="text-muted-foreground mt-0.5 shrink-0" />
+			<p class="text-muted-foreground min-w-0 flex-1 text-xs leading-relaxed">
+				After this, compiling works <span class="text-foreground font-medium">fully offline</span>.
+				Your documents never leave your device, and there's no package server to wait on.
 			</p>
 		</div>
 
-		{#if installing && progress}
+		{#if installing}
 			<div class="flex flex-col gap-1.5">
 				<div class="text-muted-foreground flex items-center gap-2 text-xs">
 					<IconLoader2 size={14} class="animate-spin" />
-					<span class="min-w-0 flex-1 truncate">{progress.label}</span>
-					<span class="shrink-0 tabular-nums">{pct}%</span>
+					<span class="min-w-0 flex-1 truncate">{progress?.label ?? 'Preparing…'}</span>
+					<span class="shrink-0 tabular-nums">
+						{#if measurable}
+							{pct}%
+						{:else if progress && progress.loaded > 0}
+							{mb(progress.loaded)} MB
+						{/if}
+					</span>
 				</div>
 				<div class="bg-muted h-1.5 overflow-hidden rounded-full">
-					<div class="bg-primary h-full rounded-full transition-all" style="width:{pct}%"></div>
+					{#if measurable}
+						<div class="bg-primary h-full rounded-full transition-all" style="width:{pct}%"></div>
+					{:else}
+						<!-- Size unknown: a travelling sliver, so the bar reads as
+						     "working" rather than as a stalled 0%. -->
+						<div class="bg-primary engine-progress-indeterminate h-full w-1/3 rounded-full"></div>
+					{/if}
 				</div>
 			</div>
 		{/if}
@@ -138,13 +123,12 @@
 			</div>
 		{/if}
 
-		<div class="flex items-center justify-between gap-3">
-			<span class="text-muted-foreground text-xs tabular-nums">Total ~{totalMB} MB</span>
+		<div class="flex items-center justify-end">
 			<Button size="sm" onclick={start} disabled={installing}>
 				{#if installing}
 					Installing…
 				{:else if error}
-					Retry
+					Try again
 				{:else}
 					Download & install
 				{/if}
@@ -152,3 +136,27 @@
 		</div>
 	</DialogContent>
 </Dialog>
+
+<style>
+	/* Indeterminate progress: a sliver that travels the track. Honours reduced
+	   motion by falling back to a static half-width bar. */
+	.engine-progress-indeterminate {
+		animation: engine-progress-slide 1.4s ease-in-out infinite;
+	}
+
+	@keyframes engine-progress-slide {
+		0% {
+			transform: translateX(-100%);
+		}
+		100% {
+			transform: translateX(300%);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.engine-progress-indeterminate {
+			animation: none;
+			width: 50%;
+		}
+	}
+</style>

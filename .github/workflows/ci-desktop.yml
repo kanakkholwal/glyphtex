@@ -13,20 +13,23 @@ on:
   # branch. Running push on "**" as well caused a duplicate run whenever a commit
   # landed on a branch that also had an open PR. Tag pushes (`v*`, handled by
   # release-desktop.yml) don't match a `branches` filter, so no tags-ignore.
-  push:
-    branches:
-      - main
-    paths:
-      - "apps/desktop/**"
-      - "packages/**"
-      - "scripts/**"
-      - ".github/workflows/ci-desktop.yml"
-  pull_request:
-    paths:
-      - "apps/desktop/**"
-      - "packages/**"
-      - "scripts/**"
-      - ".github/workflows/ci-desktop.yml"
+  # DISABLE AUTO CI FOR NOW
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - "apps/desktop/**"
+  #     - "packages/**"
+  #     - "scripts/**"
+  #     - ".github/workflows/ci-desktop.yml"
+  # pull_request:
+  #   paths:
+  #     - "apps/desktop/**"
+  #     - "packages/**"
+  #     - "scripts/**"
+  #     - ".github/workflows/ci-desktop.yml"
+  workflow_dispatch:
+
 
 concurrency:
   group: ci-desktop-${{ github.ref }}

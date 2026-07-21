@@ -38,46 +38,43 @@ parsing, no C dependencies).
 
 ---
 
-## Blocked
+## Solved 2026-07-21
 
-### 1. The wasm build does not link
-
-**Retry this first** — the toolchains were pinned *after* the last attempt, and
-pinning was the whole point.
+### 1. The wasm build links, and the engine compiles documents
 
 ```console
 cd crates/tectonic-wasm && ./scripts/build-wasm.sh
 ```
 
-Requires Linux (WSL works) with emsdk activated. Confirm the versions actually
-in use are rustc 1.94 and emcc 5.0.2 — not whatever `latest` resolves to.
+3.36 MB (1.1 MB brotli), 13 `glyphx_*` exports, 24 imports, e2e suite 10/10.
+Requires Linux (WSL works) with emsdk activated.
 
-**The underlying conflict.** Newer rustc hardcodes `-fwasm-exceptions` in the
-`wasm32-unknown-emscripten` target spec, selecting native wasm exception
-handling. Emscripten's prebuilt ports (ICU is C++ and throws; libpng and
-freetype use `setjmp`) are built for the JS-based scheme and emit `invoke_*`
-trampolines. Linking the two fails with:
+**Pinning was not the fix.** The previous version of this document said to retry
+with pinned toolchains because "pinning was the whole point". That was wrong and
+it cost hours. Emscripten ships HarfBuzz and ICU built **only** with the JS
+exception scheme — a probe compiled with `-fwasm-exceptions` produces no wasm-EH
+variant of either, at any SDK version — while rustc defaults to wasm EH here. No
+combination of versions reconciles that.
 
-```
-AssertionError: invoke_ functions exported but exceptions and longjmp are both disabled
-```
+Three flags fix it, and the first two are useless apart:
 
-Rebuilding the ports for wasm EH makes Emscripten emit *variant-suffixed*
-libraries (`libfreetype-legacysjlj.a`), so plain `-lfreetype` stops resolving —
-`resolve_lib()` in the build script discovers the real names, but prefers an
-exact match, so a stale default-mode library in the sysroot wins. Run
-`emcc --clear-cache` before retrying if the sysroot has mixed variants.
+- `-Zemscripten-wasm-eh=no` — stops rustc selecting wasm EH. Needs
+  `RUSTC_BOOTSTRAP=1`; it is unstable.
+- `-Zbuild-std=std,panic_abort` — the precompiled `libstd` was built for wasm EH
+  and references `__cpp_exception`. Without rebuilding it, the link fails on that
+  symbol instead.
+- `-sSTANDALONE_WASM=1` — otherwise `-O3` minifies exports to `J`, `K`, `L`… and
+  collapses imports to module `a`, because emcc assumes you will use its JS glue.
+  Standalone mode emits real names and WASI imports, which is what the hand-
+  written shim expects.
 
-Things already ruled out, so nobody repeats them:
+Also ruled out, so nobody repeats them:
 
-- `panic = "abort"` does **not** stop rustc passing `-fwasm-exceptions`.
+- `panic = "abort"` alone does **not** stop rustc passing `-fwasm-exceptions`.
+- `-sWASM_EXCEPTIONS` and `-sMINIFY_WASM_IMPORTS_AND_EXPORTS` are **internal**
+  settings; emcc rejects both from the command line.
 - `-sRELOCATABLE` was **removed in Emscripten 6**, closing the side-module route.
 - `-fPIC` on the vendored C fixes our objects but not Emscripten's ports.
-
-**If the pinned pair still fails**, the fallback is to keep the committed
-prebuilt `output/tectonic_wasm.wasm` as the shipped artifact and defer rebuilds.
-That artifact is a fossil of an older toolchain, which is exactly the risk this
-work exists to remove — but it does compile documents today.
 
 ### 2. Open question: main module vs cdylib
 
@@ -86,60 +83,128 @@ escape the side-module PIC requirement, with `KEEP_FFI_EXPORTS` in `main.rs`
 anchoring the entry points. On the *pinned* toolchain the original `cdylib` may
 work unchanged. If it does, reverting is worth it — less machinery.
 
-### 3. The host shim needs verifying against the real module
+### 3. Host shim verified against the real module ✅
 
 [`packages/tex-engine/src/imports.ts`](../../packages/tex-engine/src/imports.ts)
-implements the 24 imports of the *prebuilt* wasm. A rebuild will almost
-certainly differ — a main module and a side module do not import the same set,
-and wasm EH removes `emscripten_longjmp` and the `invoke_*` trampolines
-entirely. Diff the real import table before running the e2e tests:
+matches the rebuilt module: 24 imports, 11 `wasi_snapshot_preview1` + 13 `env`.
+Because the build stays on the JS exception scheme, `invoke_*` and the longjmp
+import are still present — the concern that wasm EH would remove them does not
+apply.
+
+One rename was needed: current Emscripten imports `_emscripten_throw_longjmp`
+and passes **no arguments**, where older builds used `emscripten_longjmp(env,
+value)`. Both are declared, since an unused import is free but a missing one is
+a hard `LinkError`.
+
+To re-check after any rebuild:
 
 ```js
 WebAssembly.Module.imports(await WebAssembly.compile(bytes))
 ```
 
-### 4. Bundle is missing 8 files across 6 groups
+### 4. Bundle rebuilt from one TeX Live snapshot — all 9 groups satisfied ✅
+
+The bundle is now **discovered, not listed**: compile every fixture in
+`test/fixtures/groups.mjs`, feed `result.missingFiles` back in from TeX Live,
+repeat until they all produce PDFs. TeX's file resolution is Turing-complete, so
+no static scan can predict it — but the engine always names what it wants.
 
 ```console
-pnpm engine:bundle:verify
+pnpm engine:bundle:format <dir>                    # dump latex.fmt with our engine
+pnpm engine:bundle:build  <dir> --format <dir>     # converge against the fixtures
+pnpm engine:bundle:pack   <dir>                    # deterministic tar.gz
+pnpm engine:bundle:verify <dir>
 ```
 
-```
-GAP  Core compiler   report.cls, book.cls
-GAP  Math            mathtools.sty
-GAP  Layout & links  cleveref.sty
-GAP  Presentations   beamer.cls
-GAP  Code            algorithm2e.sty
-GAP  Typography      siunitx.sty, lmodern.sty
-```
+396 files, 35.4 MB raw. **12/12 fixtures compile, 9/9 manifest groups green.**
+That is *smaller* than the previous 931-file bundle: much of that one existed to
+work around a broken kernel (below), and a correct format needs far less.
 
-The installer UI offers these groups, so today it promises things the engine
-cannot compile — the same class of silent false promise as the font fallback,
-one layer up. Either fill the gaps or remove the groups; do not ship them
-broken.
+Needs `kpsewhich`, i.e. TeX Live. On Windows, **TeX Live installs into `$HOME`
+under WSL without sudo** — that is what unblocked this. ⚠️
+`C:\texlive\2026\bin\windows` is on `PATH` but **does not exist**; stale entry.
 
-Filling them needs a TeX Live installation for `kpsewhich`, then:
+Traps worth knowing, each of which cost real time:
 
-```console
-pnpm engine:bundle:extend && pnpm engine:bundle:verify
-```
+- **Files loaded via `\@input` are invisible to discovery.** TeX skips a missing
+  `\@input`/`\InputIfFileExists` file *silently*, so it never reaches
+  `missingFiles` and the bundle looks complete. See "first-aid" below — this is
+  the single nastiest failure mode in this system.
+- **A format must be built by the engine that loads it.** It is a memory image.
+  `latex.fmt` from TeX Live's xetex will not load here.
+- **`.sty`/`.cls` are not enough for fonts.** XeTeX asks for font *files*
+  (`[lmsans10-regular]`), so OTFs must be present. Beamer surfaced this because
+  it defaults to sans; serif-defaulting classes did not.
+- **Regex dependency scanning under-reports.** The old `extend-bundle.mjs`
+  flagged `size1.sty`/`bk1.sty`, dismissed as noise — they were real
+  (`\input{bk1\@ptsize.clo}`, the pattern stops at the macro). It has been
+  deleted in favour of the `missingFiles` loop.
 
-⚠️ `C:\texlive\2026\bin\windows` is on `PATH` but **does not exist** — a stale
-entry, not an install.
+`pdftex.map` was **removed** (4.4 MB raw): it is a pdfTeX map and this engine is
+XeTeX. A/B tested — byte-identical output across every test document, and
+compiles run about twice as fast without it (6.1 s → 2.9 s for the suite).
 
-`extend-bundle.mjs` resolves dependencies by scanning `\RequirePackage`,
-`\usepackage`, `\LoadClass` and `\input`. That is approximate, because TeX's
-real resolution is Turing-complete. The robust replacement, once the engine
-links: compile a document, feed `result.missingFiles` back in, repeat until
-empty. No guessing at all — and it doubles as the on-demand fetch path.
+---
+
+## Resolved
+
+### siunitx "LaTeX kernel too old" — fixed by regenerating the format ✅
+
+The bundled `latex.fmt` was a dump of an older LaTeX kernel than the packages
+around it, and siunitx v3 checks the kernel date and refuses. Format/package
+version *skew*, not a missing file.
+
+Fixed the right way: `latex.fmt` is now dumped by our own engine in INITEX mode
+from the same TeX Live snapshot as the packages (`pnpm engine:bundle:format`),
+so the snapshot is internally consistent instead of packages being frozen to an
+old kernel.
+
+### cleveref after hyperref — missing kernel first-aid ✅
+
+Symptom: `\cref` fails with an undefined
+`\__socket_refstepcounter_plug_hyperref/fixcleveref:w`, while **native TeX Live
+compiled the identical document fine** — which is what ruled out an upstream
+package incompatibility.
+
+Cause: `latex.ltx` pulls in `latex2e-first-aid-for-external-files.ltx` with
+`\@input`, which **skips silently** when the file is absent. INITEX therefore ran
+clean to `\dump` and produced a format that was simply missing first-aid's
+definitions. Our cleveref is dated 2018/03/27, one day inside hyperref's
+`\@ifpackagelater{cleveref}{2018/03/28}` cutoff, so hyperref installs a compat
+plug whose body is the only caller of `\firstaid@cref@updatelabeldata`.
+
+Two things this teaches, both encoded in the scripts now:
+
+- Silently-loaded files must be **seeded explicitly**; `missingFiles` cannot see
+  them. `make-format.mjs` seeds them, and the full set was enumerated from
+  `latex.ltx` rather than patching the one instance.
+- first-aid belongs in the **format**, not the runtime bundle. `\@input` runs
+  inside `latex.ltx`, i.e. before `\dump`; adding the file to the bundle is too
+  late and does nothing. (Tried it. It did nothing.)
+
+`make-format.mjs` also refuses to write a format from an INITEX run that
+reported errors — a dump after a partial kernel load loads happily and then
+fails much later in ways that look like package bugs.
 
 ---
 
 ## Planned
 
-- **On-demand package fetching.** `missingFiles` is the designed hook: fetch,
-  `addFile`, recompile. Auxiliary files are retained across compiles, so the
-  retry resumes rather than restarting.
+- **On-demand package fetching — the coverage cliff.** ⚠️ This is the largest
+  known gap in production behaviour, so state it plainly: **the bundle contains
+  what the 12 fixtures need, and nothing else.** It is not general LaTeX
+  coverage. A document using any package outside that set fails at compile time
+  with a missing file, and there is currently no fallback — the
+  `/texlive/[...path]` proxy that used to cover this was removed.
+
+  `missingFiles` is the designed hook: fetch, `addFile`, recompile. Auxiliary
+  files are retained across compiles, so the retry resumes rather than
+  restarting. Until it exists, either widen the fixture set (which widens the
+  bundle) or accept that unlisted packages fail.
+
+  When implementing it, remember the first-aid lesson above: files loaded via
+  `\@input`/`\InputIfFileExists` never appear in `missingFiles`, so on-demand
+  fetch cannot recover them either. They must stay seeded.
 - **Offline bundle format.** Packed archive + offset index, fetched once and
   mounted, so every lookup during a compile is a synchronous in-memory read.
   This matters because `kpse_find_file`-style lookups are synchronous C and OPFS

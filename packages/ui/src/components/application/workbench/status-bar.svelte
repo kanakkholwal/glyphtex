@@ -5,8 +5,8 @@
   import type { WorkbenchController } from "./controller.svelte";
 
   /**
-   * Status bar — compile status + mode, unsaved count, engine/grammar toggle,
-   * problems summary, cursor position, and document metrics.
+   * Status bar — compile status + mode, unsaved count, engine, problems
+   * summary, cursor position, and document metrics.
    */
   let { ctrl }: { ctrl: WorkbenchController } = $props();
   const files = $derived(ctrl.files);
@@ -56,13 +56,6 @@
     </button>
   {/if}
   <span>LaTeX · Tectonic</span>
-  <button
-    class="hover:text-foreground transition-colors"
-    title="Toggle LaTeX grammar"
-    onclick={() => ctrl.cycleGrammar()}
-  >
-    {settings.grammar === "legacy" ? "stex" : "lezer"}
-  </button>
   <button
     class="inline-flex items-center gap-1 transition-colors hover:text-foreground {compile
       .problemSummary.errors

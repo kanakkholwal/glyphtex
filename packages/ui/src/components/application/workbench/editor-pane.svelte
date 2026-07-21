@@ -12,6 +12,8 @@
     IconX,
   } from "@tabler/icons-svelte";
 
+  import { setWorkspaceFiles } from "@glyphx/ui/editor";
+
   import AssetViewer from "../asset-viewer.svelte";
   import CodeEditor from "../code-editor.svelte";
   import DiffView from "../diff-view.svelte";
@@ -29,6 +31,26 @@
   const files = $derived(ctrl.files);
   const layout = $derived(ctrl.layout);
   const search = $derived(ctrl.search);
+
+  // Publish the project to the language providers, which otherwise only ever
+  // see the one file Monaco has a model for. This is what lets `\cite{` read a
+  // sibling .bib and `\ref{` reach a label in another chapter.
+  //
+  // Deliberately keyed on `savedTick` rather than on live buffers: reindexing
+  // every keystroke across every file would be wasteful, and a label only
+  // becomes referenceable once it is written down. The open file's own labels
+  // come from its live model inside the provider, so they stay instant.
+  $effect(() => {
+    void files.savedTick;
+    setWorkspaceFiles(
+      files.files
+        .filter((f) => f.loaded !== false)
+        .map((f) => ({
+          path: f.path ?? f.name,
+          content: files.liveContent(f),
+        })),
+    );
+  });
 </script>
 
 <section
@@ -109,7 +131,6 @@
           modified={layout.diffTarget.modified}
           mode={settings.diffView}
           theme={settings.resolved}
-          grammar={settings.grammar}
           language={layout.diffLanguage}
           fontSize={settings.fontSize}
           fontFamily={settings.fontStack}
@@ -190,7 +211,6 @@
         bind:canRedo={layout.canRedo}
         docKey={files.activeId}
         theme={settings.resolved}
-        grammar={settings.grammar}
         language={files.activeLanguage}
         fontSize={settings.fontSize}
         fontFamily={settings.fontStack}

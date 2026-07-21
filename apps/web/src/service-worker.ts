@@ -15,37 +15,45 @@ const sw = self as unknown as ServiceWorkerGlobalScope;
 // App-shell cache — keyed by build version, replaced on every deploy.
 const CACHE = `glyphx-cache-${version}`;
 
-// The downloaded LaTeX compiler (TeX Live on-demand packages + the format file)
-// lives in its OWN cache, keyed WITHOUT the build version. These files are
-// immutable per URL path and expensive to refetch (the format alone is ~10 MB),
-// so a new deploy must never wipe them — that's what keeps "the compiler is
-// actually installed" true across updates. It's populated on demand (and by the
-// first-run install dialog) and only ever grows.
-const TEXLIVE_CACHE = 'glyphx-texlive';
+// The downloaded LaTeX compiler (wasm binary + TeX support bundle) lives in its
+// OWN cache, keyed WITHOUT the build version — see src/lib/tex/worker.ts, which
+// owns it. ~15 MB and expensive to refetch, so a new deploy must never wipe it;
+// that's what keeps "the compiler is actually installed" true across updates.
+// Entries are keyed by engine content hash, so a genuinely new engine misses
+// this cache on its own and the worker evicts the superseded version.
+const ENGINE_CACHE = 'glyphx-engine';
 
-// App shell + static assets to precache on install (includes /swiftlatex/* —
-// the engine WASM + JS, so the engine itself is available offline after the
-// first visit). The vendored TeX base bundle under /texmirror/* is deliberately
-// excluded — it's the `/texlive` route's server-side source (served to the
-// client as /texlive/* and cached there), so precaching it would force a large
-// download on every first visit for users who may never compile.
-const PRECACHE = [...build, ...files].filter((p) => !p.startsWith('/texmirror/'));
+// App shell + static assets to precache on install. `/engine/*` is deliberately
+// excluded: it is ~15 MB, it is only needed by users who actually compile, and
+// the install dialog exists precisely so we ask before downloading it.
+// Precaching it here would spend that bandwidth on every first visit and make
+// the consent gate a lie.
+const PRECACHE = [...build, ...files].filter((p) => !p.startsWith('/engine/'));
 
 /**
- * Whether a request targets the TeX Live on-demand server. The engine fetches
- * `<endpoint>pdftex/<fmt-int>/<file>` and `<endpoint>pdftex/pk/<dpi>/<file>`
- * regardless of which endpoint (self-hosted or public) it settled on, so we key
- * off the `/pdftex/` path rather than a fixed host.
+ * Open a cache, or null if this browser will not give us one.
+ *
+ * `caches.open` can reject outright — private windows, blocked site data, a
+ * profile under disk pressure. Every use here treats that as "no caching
+ * today", never as an error, because a service worker that fails a request when
+ * its cache is unavailable takes the whole site down with it: the app shell,
+ * every JS module, every worker script.
  */
-function isTexlive(url: URL): boolean {
-	return url.pathname.includes('/pdftex/');
+async function openCache(name: string): Promise<Cache | null> {
+	try {
+		return await caches.open(name);
+	} catch {
+		return null;
+	}
 }
 
 sw.addEventListener('install', (event) => {
 	event.waitUntil(
 		(async () => {
-			const cache = await caches.open(CACHE);
-			await cache.addAll(PRECACHE);
+			const cache = await openCache(CACHE);
+			// Precaching is an offline optimisation, not a precondition for
+			// running — a failure here must not stop the worker activating.
+			await cache?.addAll(PRECACHE).catch(() => {});
 			await sw.skipWaiting();
 		})()
 	);
@@ -55,9 +63,13 @@ sw.addEventListener('activate', (event) => {
 	event.waitUntil(
 		(async () => {
 			// Drop app-shell caches from previous deployments — but keep the current
-			// shell cache AND the persistent TeX Live cache (the installed compiler).
-			for (const key of await caches.keys()) {
-				if (key !== CACHE && key !== TEXLIVE_CACHE) await caches.delete(key);
+			// shell cache AND the persistent engine cache (the installed compiler).
+			try {
+				for (const key of await caches.keys()) {
+					if (key !== CACHE && key !== ENGINE_CACHE) await caches.delete(key);
+				}
+			} catch {
+				/* housekeeping only — never block activation over it */
 			}
 			await sw.clients.claim();
 		})()
@@ -71,39 +83,23 @@ sw.addEventListener('fetch', (event) => {
 	const url = new URL(request.url);
 	if (!url.protocol.startsWith('http')) return;
 
-	// TeX Live packages / format: immutable per path → cache-first in the
-	// persistent cache, so once downloaded the compiler keeps working offline and
-	// across deploys. (Engine worker fetches are same-origin-controlled, so the
-	// SW intercepts them too.)
-	if (isTexlive(url)) {
-		event.respondWith(
-			(async () => {
-				const cache = await caches.open(TEXLIVE_CACHE);
-				const cached = await cache.match(request);
-				if (cached) return cached;
-				try {
-					const response = await fetch(request);
-					// Only cache real hits — never a 404 (a missing-package probe must
-					// not be remembered as a permanent negative).
-					if (response.ok) cache.put(request, response.clone());
-					return response;
-				} catch (err) {
-					const fallback = await cache.match(request);
-					if (fallback) return fallback;
-					throw err;
-				}
-			})()
-		);
-		return;
-	}
+	// Engine artifacts: pass straight through, uncached by us. The TeX worker
+	// puts these in ENGINE_CACHE itself, keyed by engine version, so caching them
+	// here as well would store the same ~15 MB twice and let the two copies
+	// disagree about which engine version is installed.
+	if (url.pathname.startsWith('/engine/')) return;
 
 	event.respondWith(
 		(async () => {
-			const cache = await caches.open(CACHE);
+			const cache = await openCache(CACHE);
+			// No cache available: behave as if the service worker weren't here.
+			// Anything else fails every request on the page, which is far worse
+			// than losing offline support.
+			if (!cache) return fetch(request);
 
 			// Precached build assets are immutable (hashed) — serve cache-first.
 			if (PRECACHE.includes(url.pathname)) {
-				const cached = await cache.match(url.pathname);
+				const cached = await cache.match(url.pathname).catch(() => undefined);
 				if (cached) return cached;
 			}
 
@@ -111,10 +107,12 @@ sw.addEventListener('fetch', (event) => {
 			try {
 				const response = await fetch(request);
 				const isCacheable = response.status === 200 && response.type === 'basic';
-				if (isCacheable) cache.put(request, response.clone());
+				// Not awaited, and never allowed to reject: a full quota must not
+				// turn a successful response into a failed request.
+				if (isCacheable) void cache.put(request, response.clone()).catch(() => {});
 				return response;
 			} catch (err) {
-				const cached = await cache.match(request);
+				const cached = await cache.match(request).catch(() => undefined);
 				if (cached) return cached;
 				throw err;
 			}

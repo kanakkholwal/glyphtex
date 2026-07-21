@@ -9,8 +9,14 @@
 import { createImports, ExitStatus, type EngineIo } from './imports.js';
 import type { CompileOptions, CompileResult } from './generated/index.js';
 
-/** ABI version this wrapper is written against. */
-export const SUPPORTED_ABI_VERSION = 1;
+/**
+ * ABI version this wrapper is written against.
+ *
+ * 2 — `clear_files`, `clear_outputs` and `file_count` return a status code
+ * instead of nothing, so they can report a poisoned session (see
+ * {@link EnginePoisonedError}). Under 1 they could only fail silently or trap.
+ */
+export const SUPPORTED_ABI_VERSION = 2;
 
 /**
  * Options accepted by {@link TexEngine.compile}.
@@ -43,8 +49,8 @@ interface EngineExports {
 	): number;
 	glyphx_remove_file(namePtr: number, nameLen: number): number;
 	glyphx_file_count(): number;
-	glyphx_clear_files(): void;
-	glyphx_clear_outputs(): void;
+	glyphx_clear_files(): number;
+	glyphx_clear_outputs(): number;
 	glyphx_compile(optionsPtr: number, optionsLen: number): number;
 	glyphx_result_ptr(): number;
 	glyphx_result_len(): number;
@@ -66,8 +72,35 @@ export class EngineError extends Error {
 const ERROR_CODES: Record<number, string> = {
 	[-1]: 'invalid pointer or length',
 	[-2]: 'argument was not valid UTF-8',
-	[-3]: 'options JSON could not be parsed'
+	[-3]: 'options JSON could not be parsed',
+	[-4]: 'the engine is spent — a previous compile trapped and left it unusable'
 };
+
+/** Status code the module returns once its session can no longer be used. */
+const POISONED = -4;
+
+/**
+ * Raised once the module is unusable, whatever is called next.
+ *
+ * A compile that traps (rather than reporting an error) tears down the wasm
+ * stack without unwinding Rust, which leaves the engine's session permanently
+ * borrowed. Nothing recovers that from the inside.
+ *
+ * The only fix is a new instance: discard this `TexEngine` and `load()` again.
+ * Hosts that keep one engine for a whole session — the web worker does — should
+ * catch this specifically and rebuild rather than reporting a compile failure,
+ * because every later compile would fail too.
+ */
+export class EnginePoisonedError extends EngineError {
+	constructor() {
+		super(
+			'the TeX engine is no longer usable: an earlier compile crashed inside the ' +
+				'module. Load a new engine instance to continue.',
+			POISONED
+		);
+		this.name = 'EnginePoisonedError';
+	}
+}
 
 export class TexEngine {
 	readonly #exports: EngineExports;
@@ -144,7 +177,7 @@ export class TexEngine {
 
 	/** How many files are currently in the virtual filesystem. */
 	get fileCount(): number {
-		return this.#exports.glyphx_file_count();
+		return this.#check(this.#exports.glyphx_file_count(), 'read the file count');
 	}
 
 	/** Add or replace a file. Accepts a string (encoded UTF-8) or raw bytes. */
@@ -159,6 +192,7 @@ export class TexEngine {
 				dataPtr.ptr,
 				dataPtr.len
 			);
+			if (rc === POISONED) throw new EnginePoisonedError();
 			if (rc !== 0) throw this.#error(`could not add "${name}"`, rc);
 		} finally {
 			this.#release(namePtr);
@@ -179,6 +213,7 @@ export class TexEngine {
 		const n = this.#write(this.#encoder.encode(name));
 		try {
 			const rc = this.#exports.glyphx_remove_file(n.ptr, n.len);
+			if (rc === POISONED) throw new EnginePoisonedError();
 			if (rc < 0) throw this.#error(`could not remove "${name}"`, rc);
 			return rc === 1;
 		} finally {
@@ -188,12 +223,12 @@ export class TexEngine {
 
 	/** Drop every input file. */
 	clearFiles(): void {
-		this.#exports.glyphx_clear_files();
+		this.#check(this.#exports.glyphx_clear_files(), 'clear the input files');
 	}
 
 	/** Discard the previous compile's auxiliary files, forcing a cold build. */
 	clearOutputs(): void {
-		this.#exports.glyphx_clear_outputs();
+		this.#check(this.#exports.glyphx_clear_outputs(), 'clear the previous outputs');
 	}
 
 	/**
@@ -208,6 +243,10 @@ export class TexEngine {
 		const opts = this.#write(payload);
 		try {
 			const rc = this.#exports.glyphx_compile(opts.ptr, opts.len);
+			// Checked before reading the result: a poisoned session has no result
+			// to read, and the stale bytes from the previous compile would be
+			// reported as if they described this one.
+			if (rc === POISONED) throw new EnginePoisonedError();
 			const result = this.#readResult();
 			// A negative code means the request itself was unusable; the result
 			// still carries the explanation, so prefer its message.
@@ -293,6 +332,19 @@ export class TexEngine {
 
 	#release({ ptr, len }: { ptr: number; len: number }): void {
 		if (ptr !== 0) this.#exports.glyphx_dealloc(ptr, len);
+	}
+
+	/**
+	 * Turn a status code into a value or an error.
+	 *
+	 * A poisoned session gets its own type: it is not a failure of *this* call
+	 * and retrying is pointless, so a caller must be able to tell it apart from
+	 * an ordinary rejected argument.
+	 */
+	#check(code: number, context: string): number {
+		if (code === POISONED) throw new EnginePoisonedError();
+		if (code < 0) throw this.#error(`could not ${context}`, code);
+		return code;
 	}
 
 	#error(context: string, code: number): EngineError {

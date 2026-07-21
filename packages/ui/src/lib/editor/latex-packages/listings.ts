@@ -1,0 +1,117 @@
+import type { PackageData } from "./index";
+
+export const data: PackageData = {
+	commands: [
+		{
+			name: "lstset",
+			snippet: "lstset{\n\tlanguage=${1:Python},\n\tbasicstyle=\\ttfamily\\small,\n\tnumbers=left,\n\tbreaklines=true,\n\tframe=single,\n}$0",
+			detail: "Set listings options globally",
+			doc: "The keys worth knowing: `language`, `basicstyle`, `keywordstyle`, `commentstyle`, `stringstyle`, `numbers=left`, `numberstyle`, `breaklines`, `frame`, `showstringspaces=false`, `tabsize`, `captionpos=b`.",
+			example: "\\lstset{language=C, basicstyle=\\ttfamily\\small, breaklines=true}",
+			package: "listings",
+		},
+		{
+			name: "lstinputlisting",
+			snippet: "lstinputlisting[language=${1:Python}]{${2:file.py}}$0",
+			detail: "Typeset a source file from disk",
+			doc: "Better than pasting: `firstline`/`lastline` pick a range, and the file stays the single source of truth. `linerange={4-9}` also works.",
+			example: "\\lstinputlisting[language=Python, firstline=10, lastline=25]{app.py}",
+			package: "listings",
+			context: "text",
+		},
+		{
+			name: "lstinline",
+			snippet: "lstinline|$1|$0",
+			detail: "Inline code, like \\verb but highlighted",
+			doc: "Delimited by any character that does not appear in the code — `|` by convention. Options go in brackets first: `\\lstinline[language=C]|int x|`.",
+			example: "the \\lstinline|printf()| call",
+			package: "listings",
+			context: "text",
+		},
+		{
+			name: "lstdefinestyle",
+			snippet: "lstdefinestyle{${1:mystyle}}{\n\tbasicstyle=\\ttfamily\\small,\n\tnumbers=left,\n\tbreaklines=true,\n}$0",
+			detail: "Define a named set of listing options",
+			doc: "Applied afterwards with `style=mystyle`, either in `\\lstset` or on a single listing.",
+			example: "\\lstdefinestyle{mine}{frame=single, numbers=left}",
+			package: "listings",
+		},
+		{
+			name: "lstdefinelanguage",
+			snippet: "lstdefinelanguage{${1:MyLang}}{\n\tmorekeywords={${2:let, fn}},\n\tmorecomment=[l]{//},\n\tmorestring=[b]\",\n}$0",
+			detail: "Teach listings a language it does not know",
+			doc: "The keys that matter are `morekeywords`, `morecomment=[l]{//}` (to end of line) or `[s]{/*}{*/}` (block), and `morestring=[b]\"`.",
+			package: "listings",
+		},
+		{
+			name: "lstnewenvironment",
+			snippet: "lstnewenvironment{${1:code}}{}{}$0",
+			detail: "Define a listing environment with preset options",
+			package: "listings",
+		},
+		{
+			name: "lstlistoflistings",
+			detail: "Insert the list of listings",
+			package: "listings",
+			context: "text",
+		},
+		{
+			name: "lstlistingname",
+			detail: "The caption word for listings (default 'Listing')",
+			doc: "Renamed with `\\renewcommand{\\lstlistingname}{Code}`.",
+			package: "listings",
+		},
+		{
+			name: "lstlistlistingname",
+			detail: "Heading of the list of listings",
+			package: "listings",
+		},
+		{
+			name: "lstname",
+			detail: "The current listing's file name",
+			doc: "Only meaningful inside `\\lstinputlisting`; handy in a caption template.",
+			package: "listings",
+		},
+		{
+			name: "lstMakeShortInline",
+			snippet: "lstMakeShortInline[${1:language=C}]{${2:|}}$0",
+			detail: "Make a character a shorthand for \\lstinline",
+			doc: "After this, `|code|` is inline code. Convenient, but it takes the character away from everything else — including tabular column specs.",
+			package: "listings",
+		},
+		{
+			name: "lstDeleteShortInline",
+			snippet: "lstDeleteShortInline{${1:|}}$0",
+			detail: "Give the shorthand character back",
+			package: "listings",
+		},
+		{
+			name: "lstloadlanguages",
+			snippet: "lstloadlanguages{${1:C, Python}}$0",
+			detail: "Preload language definitions",
+			package: "listings",
+		},
+		{
+			name: "lstalias",
+			snippet: "lstalias{${1:alias}}{${2:existing}}$0",
+			detail: "Give an existing language another name",
+			example: "\\lstalias{js}{Java}",
+			package: "listings",
+		},
+		{
+			name: "lstdefineformat",
+			snippet: "lstdefineformat{${1:name}}{${2:;=\\newline}}$0",
+			detail: "Define a reformatting rule applied to listed code",
+			package: "listings",
+		},
+	],
+	environments: [
+		{
+			name: "lstlisting",
+			detail: "Source code block with syntax highlighting",
+			body: "[language=${1:Python}]\n$0\n",
+			package: "listings",
+			context: "text",
+		},
+	],
+};

@@ -16,12 +16,9 @@ export class ExitStatus extends Error {
 	}
 }
 
-/** Thrown by `emscripten_longjmp` and caught by the `invoke_*` trampolines. */
+/** Thrown by the longjmp import and caught by the `invoke_*` trampolines. */
 class LongjmpError extends Error {
-	constructor(
-		readonly env: number,
-		readonly value: number
-	) {
+	constructor() {
 		super('longjmp');
 		this.name = 'LongjmpError';
 	}
@@ -146,8 +143,20 @@ export function createImports(io: EngineIo = {}): {
 		invoke_vii: invoke,
 		invoke_iiij: invoke,
 		invoke_iiiiiiiiiiji: invoke,
-		emscripten_longjmp: (envPtr: number, value: number) => {
-			throw new LongjmpError(envPtr, value);
+		// Emscripten renamed this. Current builds import `_emscripten_throw_longjmp`
+		// and pass no arguments — the jmp_buf and return value are handled on the
+		// C side, and the import exists only to unwind. Older builds imported
+		// `emscripten_longjmp(env, value)`.
+		//
+		// Both are declared because an unused import is harmless (WebAssembly only
+		// reads the names the module actually asks for), whereas a missing one is
+		// a hard LinkError at instantiation. This keeps the wrapper able to load
+		// the pre-rewrite artifact as well as current builds.
+		_emscripten_throw_longjmp: () => {
+			throw new LongjmpError();
+		},
+		emscripten_longjmp: () => {
+			throw new LongjmpError();
 		},
 		emscripten_notify_memory_growth: () => {},
 		// Graphite shaping is not linked. Returning null makes HarfBuzz fall

@@ -31,10 +31,25 @@ import type {
   SaveFileFn,
 } from "./types";
 
+/** Shown when a compile is attempted with no engine wired up yet. Named so the
+ *  message can be recognised and cleared once one appears. */
+const NOT_READY =
+  "The compiler isn't ready yet — finish the one-time setup to compile.";
+
 export type CompileDeps = {
   files: FileStore;
   layout: LayoutStore;
-  compile?: CompileFn;
+  /**
+   * Read live, not captured.
+   *
+   * The host may not have a compile function at mount — the web app withholds
+   * it until the user has downloaded the engine — and then supplies one later.
+   * Storing the value instead of a getter froze `canCompile` at whatever it was
+   * when the workbench mounted, so an engine installed mid-session was never
+   * noticed and the status bar read "Compiler not ready" for the rest of the
+   * session, with nothing in the console to explain it.
+   */
+  getCompile: () => CompileFn | undefined;
   compileProject?: CompileProjectFn;
   saveFile?: SaveFileFn;
 };
@@ -42,7 +57,7 @@ export type CompileDeps = {
 export class CompileStore {
   readonly #files: FileStore;
   readonly #layout: LayoutStore;
-  readonly #compile?: CompileFn;
+  readonly #getCompile: () => CompileFn | undefined;
   readonly #compileProject?: CompileProjectFn;
   readonly #saveFile?: SaveFileFn;
 
@@ -79,7 +94,7 @@ export class CompileStore {
   constructor(deps: CompileDeps) {
     this.#files = deps.files;
     this.#layout = deps.layout;
-    this.#compile = deps.compile;
+    this.#getCompile = deps.getCompile;
     this.#compileProject = deps.compileProject;
     this.#saveFile = deps.saveFile;
   }
@@ -100,12 +115,12 @@ export class CompileStore {
     );
   }
   get canCompile(): boolean {
-    return Boolean(this.#compile) || this.projectCompile;
+    return Boolean(this.#getCompile()) || this.projectCompile;
   }
 
   readonly compileLabel = $derived(
     !this.canCompile
-      ? "Desktop only"
+      ? "Compiler not ready"
       : this.compileStatus === "compiling"
         ? "Compiling…"
         : this.compileStatus === "error"
@@ -190,7 +205,7 @@ export class CompileStore {
 
   async runCompile(manual = false): Promise<void> {
     if (!this.canCompile) {
-      this.compileError = "Compilation runs in the GlyphX desktop app.";
+      this.compileError = NOT_READY;
       this.compileStatus = "error";
       if (manual && this.#layout.viewMode === "editor")
         this.#layout.viewMode = "split";
@@ -221,6 +236,9 @@ export class CompileStore {
         this.compileStatus = "compiling";
         const started = performance.now();
         const root = this.#files.projectRoot;
+        // Resolved per run, not captured: the host can supply a compiler after
+        // mount (the web app does, once the engine is installed).
+        const compileFn = this.#getCompile();
         const out =
           useProject && this.#compileProject && root
             ? await this.#compileProject(
@@ -228,8 +246,8 @@ export class CompileStore {
                 this.#files.files.find((f) => f.id === this.#files.mainId)
                   ?.name ?? "",
               )
-            : this.#compile
-              ? await this.#compile(snapshot)
+            : compileFn
+              ? await compileFn(snapshot)
               : { error: "No compiler available." };
         this.lastCompileMs = Math.round(performance.now() - started);
         this.compileLog = out.log ?? "";
@@ -288,6 +306,15 @@ export class CompileStore {
     void this.#files.savedTick; // re-run after each save
     void this.#files.mainId; // recompile when the main file changes
     const auto = settings.autoCompile;
+
+    // A compiler that arrives late clears the "not ready" complaint left by an
+    // earlier attempt. Without this the banner outlives the condition it
+    // describes — and with auto-compile off nothing else would ever clear it.
+    if (this.canCompile && this.compileError === NOT_READY) {
+      this.compileError = undefined;
+      this.compileStatus = "idle";
+    }
+
     if (!this.canCompile || !auto) return;
     const timer = setTimeout(() => this.runCompile(false), COMPILE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
