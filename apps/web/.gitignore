@@ -21,3 +21,7 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# TeX engine artifacts — build outputs of crates/tectonic-wasm, copied in by
+# `pnpm sync:engine`. ~15 MB; not source.
+/static/engine

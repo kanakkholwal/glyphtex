@@ -99,13 +99,18 @@ jobs:
         with:
           submodules: recursive
 
-      # Not @stable: the version is pinned in crates/tectonic-wasm/rust-toolchain.toml
-      # and has to match EM_VERSION. Installing stable here would download a
-      # second toolchain that rustup then overrides on the first cargo call.
+      # Not @stable: the version is pinned in crates/tectonic-wasm/rust-toolchain.toml.
+      # Installing stable here would download a second toolchain that rustup
+      # then overrides on the first cargo call.
+      #
+      # rust-src is not optional — the build rebuilds std via -Zbuild-std so it
+      # uses the same exception scheme as Emscripten's C++ ports. Without it the
+      # build fails at the link with an undefined __cpp_exception.
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: '1.94'
           targets: wasm32-unknown-emscripten
+          components: rust-src
 
       - uses: mymindstorm/setup-emsdk@v14
         with:

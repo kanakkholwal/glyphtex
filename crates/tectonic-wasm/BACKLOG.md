@@ -38,46 +38,43 @@ parsing, no C dependencies).
 
 ---
 
-## Blocked
+## Solved 2026-07-21
 
-### 1. The wasm build does not link
-
-**Retry this first** — the toolchains were pinned *after* the last attempt, and
-pinning was the whole point.
+### 1. The wasm build links, and the engine compiles documents
 
 ```console
 cd crates/tectonic-wasm && ./scripts/build-wasm.sh
 ```
 
-Requires Linux (WSL works) with emsdk activated. Confirm the versions actually
-in use are rustc 1.94 and emcc 5.0.2 — not whatever `latest` resolves to.
+3.36 MB (1.1 MB brotli), 13 `glyphx_*` exports, 24 imports, e2e suite 10/10.
+Requires Linux (WSL works) with emsdk activated.
 
-**The underlying conflict.** Newer rustc hardcodes `-fwasm-exceptions` in the
-`wasm32-unknown-emscripten` target spec, selecting native wasm exception
-handling. Emscripten's prebuilt ports (ICU is C++ and throws; libpng and
-freetype use `setjmp`) are built for the JS-based scheme and emit `invoke_*`
-trampolines. Linking the two fails with:
+**Pinning was not the fix.** The previous version of this document said to retry
+with pinned toolchains because "pinning was the whole point". That was wrong and
+it cost hours. Emscripten ships HarfBuzz and ICU built **only** with the JS
+exception scheme — a probe compiled with `-fwasm-exceptions` produces no wasm-EH
+variant of either, at any SDK version — while rustc defaults to wasm EH here. No
+combination of versions reconciles that.
 
-```
-AssertionError: invoke_ functions exported but exceptions and longjmp are both disabled
-```
+Three flags fix it, and the first two are useless apart:
 
-Rebuilding the ports for wasm EH makes Emscripten emit *variant-suffixed*
-libraries (`libfreetype-legacysjlj.a`), so plain `-lfreetype` stops resolving —
-`resolve_lib()` in the build script discovers the real names, but prefers an
-exact match, so a stale default-mode library in the sysroot wins. Run
-`emcc --clear-cache` before retrying if the sysroot has mixed variants.
+- `-Zemscripten-wasm-eh=no` — stops rustc selecting wasm EH. Needs
+  `RUSTC_BOOTSTRAP=1`; it is unstable.
+- `-Zbuild-std=std,panic_abort` — the precompiled `libstd` was built for wasm EH
+  and references `__cpp_exception`. Without rebuilding it, the link fails on that
+  symbol instead.
+- `-sSTANDALONE_WASM=1` — otherwise `-O3` minifies exports to `J`, `K`, `L`… and
+  collapses imports to module `a`, because emcc assumes you will use its JS glue.
+  Standalone mode emits real names and WASI imports, which is what the hand-
+  written shim expects.
 
-Things already ruled out, so nobody repeats them:
+Also ruled out, so nobody repeats them:
 
-- `panic = "abort"` does **not** stop rustc passing `-fwasm-exceptions`.
+- `panic = "abort"` alone does **not** stop rustc passing `-fwasm-exceptions`.
+- `-sWASM_EXCEPTIONS` and `-sMINIFY_WASM_IMPORTS_AND_EXPORTS` are **internal**
+  settings; emcc rejects both from the command line.
 - `-sRELOCATABLE` was **removed in Emscripten 6**, closing the side-module route.
 - `-fPIC` on the vendored C fixes our objects but not Emscripten's ports.
-
-**If the pinned pair still fails**, the fallback is to keep the committed
-prebuilt `output/tectonic_wasm.wasm` as the shipped artifact and defer rebuilds.
-That artifact is a fossil of an older toolchain, which is exactly the risk this
-work exists to remove — but it does compile documents today.
 
 ### 2. Open question: main module vs cdylib
 
@@ -86,52 +83,89 @@ escape the side-module PIC requirement, with `KEEP_FFI_EXPORTS` in `main.rs`
 anchoring the entry points. On the *pinned* toolchain the original `cdylib` may
 work unchanged. If it does, reverting is worth it — less machinery.
 
-### 3. The host shim needs verifying against the real module
+### 3. Host shim verified against the real module ✅
 
 [`packages/tex-engine/src/imports.ts`](../../packages/tex-engine/src/imports.ts)
-implements the 24 imports of the *prebuilt* wasm. A rebuild will almost
-certainly differ — a main module and a side module do not import the same set,
-and wasm EH removes `emscripten_longjmp` and the `invoke_*` trampolines
-entirely. Diff the real import table before running the e2e tests:
+matches the rebuilt module: 24 imports, 11 `wasi_snapshot_preview1` + 13 `env`.
+Because the build stays on the JS exception scheme, `invoke_*` and the longjmp
+import are still present — the concern that wasm EH would remove them does not
+apply.
+
+One rename was needed: current Emscripten imports `_emscripten_throw_longjmp`
+and passes **no arguments**, where older builds used `emscripten_longjmp(env,
+value)`. Both are declared, since an unused import is free but a missing one is
+a hard `LinkError`.
+
+To re-check after any rebuild:
 
 ```js
 WebAssembly.Module.imports(await WebAssembly.compile(bytes))
 ```
 
-### 4. Bundle is missing 8 files across 6 groups
+### 4. Bundle gaps filled — all 9 groups satisfied ✅
 
-```console
-pnpm engine:bundle:verify
-```
+484 → 931 files. `pnpm engine:bundle:verify` reports every group green, and
+`article`, `report`, `book`, `beamer`, `mathtools` and `cleveref` all compile
+spotless against the built engine.
 
-```
-GAP  Core compiler   report.cls, book.cls
-GAP  Math            mathtools.sty
-GAP  Layout & links  cleveref.sty
-GAP  Presentations   beamer.cls
-GAP  Code            algorithm2e.sty
-GAP  Typography      siunitx.sty, lmodern.sty
-```
-
-The installer UI offers these groups, so today it promises things the engine
-cannot compile — the same class of silent false promise as the font fallback,
-one layer up. Either fill the gaps or remove the groups; do not ship them
-broken.
-
-Filling them needs a TeX Live installation for `kpsewhich`, then:
+Filling them needs `kpsewhich`, i.e. a TeX Live install. On Windows that is the
+blocker; **TeX Live installs into `$HOME` under WSL without sudo**, which is how
+this was unblocked:
 
 ```console
 pnpm engine:bundle:extend && pnpm engine:bundle:verify
 ```
 
 ⚠️ `C:\texlive\2026\bin\windows` is on `PATH` but **does not exist** — a stale
-entry, not an install.
+entry, not an install. Use WSL.
+
+Two traps worth knowing:
+
+- **`extend-bundle.mjs` under-reports.** It flagged `size1.sty` and `bk1.sty`,
+  which look like regex noise and were initially dismissed as such. They were
+  real: the source says `\input{bk1\@ptsize.clo}` and the pattern stops at the
+  macro. The actual files are `size1{0,1,2}.clo` / `bk1{0,1,2}.clo`, and `book`
+  and `beamer` both failed without them.
+- **`.sty`/`.cls` are not enough for fonts.** XeTeX asks for font *files*
+  (`[lmsans10-regular]`), so the OTFs must be present. Beamer surfaced this
+  because it defaults to sans; the serif-defaulting classes did not.
+
+`pdftex.map` was **removed** (4.4 MB raw): it is a pdfTeX map and this engine is
+XeTeX. A/B tested — byte-identical output across every test document, and
+compiles run about twice as fast without it (6.1 s → 2.9 s for the suite).
 
 `extend-bundle.mjs` resolves dependencies by scanning `\RequirePackage`,
 `\usepackage`, `\LoadClass` and `\input`. That is approximate, because TeX's
 real resolution is Turing-complete. The robust replacement, once the engine
 links: compile a document, feed `result.missingFiles` back in, repeat until
 empty. No guessing at all — and it doubles as the on-demand fetch path.
+
+---
+
+## Known issues
+
+### siunitx: "LaTeX kernel too old"
+
+`\usepackage{siunitx}` compiles and produces a PDF, but reports:
+
+```text
+Package siunitx Error: LaTeX kernel too old.
+```
+
+The bundled `latex.fmt` is a dump of an older LaTeX kernel than the packages
+now in the bundle, which came from a current TeX Live. siunitx v3 checks the
+kernel date and refuses. This is a **format/package version skew**, not a
+missing file, so `bundle:extend` cannot fix it.
+
+It is the one gap between "the group is in the manifest" and "the group works",
+and it likely affects other modern `expl3`-based packages. Two candidate fixes:
+
+- regenerate `latex.fmt` from the same TeX Live snapshot the packages come from
+  (`scripts/generate-format.sh` exists), or
+- pin the packages to the vintage the format expects.
+
+The first is the right one — it makes the snapshot internally consistent instead
+of freezing packages to an old kernel.
 
 ---
 

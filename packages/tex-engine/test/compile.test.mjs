@@ -153,8 +153,12 @@ describe('TexEngine', { skip: haveArtifacts ? false : 'wasm or bundle not availa
 	});
 
 	test('surfaces TeX errors as diagnostics without failing outright', () => {
+		// The document needs real text alongside the bad command. With only the
+		// error in it, TeX has nothing to typeset, ships no page, and writes no
+		// .xdv — so `failed` is the honest status, and asserting `errors` here
+		// would be asserting that a document with no pages still produces a PDF.
 		const result = compile(
-			'\\documentclass{article}\\begin{document}\\undefinedcommand\\end{document}'
+			'\\documentclass{article}\\begin{document}Hello.\\undefinedcommand More.\\end{document}'
 		);
 		assert.equal(result.status, 'errors');
 		assert.ok(

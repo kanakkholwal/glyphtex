@@ -28,22 +28,29 @@ echo "sysroot: $SYSROOT"
 
 step() { echo; echo "=== $* ==="; }
 
-# Exception handling must be consistent across every object in the link, and
-# the mode is not ours to choose: rustc hardcodes -fwasm-exceptions in the
-# wasm32-unknown-emscripten target spec. It is not removable via
-# panic = "abort" — that was tried, and rustc still passes it.
+# Exception handling has to be the SAME scheme in every object in the link, and
+# the choice is forced by Emscripten's prebuilt ports.
 #
-# So the vendored C and the Emscripten ports have to be built for wasm EH too.
-# Otherwise they emit the JS-based invoke_* trampolines and the link dies on:
+# HarfBuzz and ICU are C++, they use exceptions, and Emscripten only ever ships
+# them built with the JS-based scheme. That is not a caching artifact: building
+# a probe with -fwasm-exceptions produces no wasm-EH variant of libharfbuzz.a or
+# libicu_common.a at all. Only freetype and png even have variants.
+#
+# rustc defaults to the *other* scheme (wasm EH) on this target. Mixing them
+# fails at the very last step with a message that describes the opposite of the
+# problem:
 #   AssertionError: invoke_ functions exported but exceptions and longjmp are
 #   both disabled
+# The invoke_* trampolines are present precisely *because* the C++ ports use the
+# JS scheme; the assert only means emcc could not reconcile the two.
 #
-# The catch is that Emscripten builds these as *variant* libraries with a
-# name suffix (e.g. libfreetype-legacysjlj.a) rather than overwriting the
-# defaults, so -lfreetype stops resolving. The suffix depends on the flag
-# combination and on the Emscripten version, so it is discovered below rather
-# than hardcoded.
-EH_FLAGS="-fwasm-exceptions -sSUPPORT_LONGJMP=wasm"
+# So: everything uses the JS scheme. That is also the configuration the one
+# known-good build of this engine used — its module imports invoke_* and
+# emscripten_longjmp, which is what @glyphx/tex-engine's host shim implements.
+#
+# Empty on purpose: the C is compiled with Emscripten's defaults, which is the
+# JS scheme, matching the ports.
+EH_FLAGS=""
 
 # Resolve the actual -l name for a port, preferring an exact match and falling
 # back to whatever variant Emscripten produced.
@@ -142,27 +149,17 @@ export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
 # see the note in Cargo.toml. Nothing to set here; PIC would only cost size and
 # speed, and Emscripten's own ports are non-PIC regardless.
 
-# setjmp/longjmp mode must agree between compile and link, and the choice is
-# forced: rustc passes -fwasm-exceptions on this target, and emcc rejects
-# "SUPPORT_LONGJMP=emscripten is not compatible with -fwasm-exceptions". So both
-# sides use the wasm mode.
+# setjmp/longjmp uses Emscripten's default (JS) mode, to match the exception
+# scheme chosen above. Do not pass -sSUPPORT_LONGJMP=wasm: that is only valid
+# alongside wasm exceptions, and emcc rejects the mismatched pair with
+# "SUPPORT_LONGJMP=emscripten is not compatible with -fwasm-exceptions".
 #
-# Getting this wrong fails in two distinct ways, neither of which names the real
-# cause. Omitting it entirely leaves longjmp disabled while the C still emits
-# invoke_* trampolines:
-#   AssertionError: invoke_ functions exported but exceptions and longjmp are
-#   both disabled
-# and setting it only at link time produces the same assertion, because cc-rs
-# compiled the C without it.
-#
-# Consequence for hosts: the module uses native wasm exception handling, so it
-# does NOT import `emscripten_longjmp` or the `invoke_*` trampolines the way an
-# older JS-longjmp build did.
-export CFLAGS="$EH_FLAGS"
-export CXXFLAGS="$EH_FLAGS"
-# Emscripten only understands the empty case as "unset"; an empty string in
-# CFLAGS is harmless, but keep the intent explicit.
-[ -n "$EH_FLAGS" ] || { unset CFLAGS; unset CXXFLAGS; }
+# Consequence for hosts: the module imports `emscripten_longjmp` and the
+# `invoke_*` trampolines, which packages/tex-engine/src/imports.ts implements.
+if [ -n "$EH_FLAGS" ]; then
+  export CFLAGS="$EH_FLAGS"
+  export CXXFLAGS="$EH_FLAGS"
+fi
 
 # Without this, wasm-ld garbage-collects the FFI entry points: nothing inside
 # the module calls them, since the host is the only caller.
@@ -180,9 +177,23 @@ for base in graphite2 freetype harfbuzz png z icu_common icu_i18n fontconfig; do
 done
 echo "linking against:$LIBS"
 
+# -Zemscripten-wasm-eh=no is the whole fix for the exception mismatch described
+# at the top: it stops rustc emitting -fwasm-exceptions, putting Rust on the
+# same JS scheme as the C++ ports.
+#
+# It is an unstable flag, hence RUSTC_BOOTSTRAP. That is a real (if blunt)
+# escape hatch and the alternative is worse: a custom target JSON, which then
+# drags in -Zbuild-std to rebuild the standard library. Both are unstable; this
+# one is a single flag. Revisit if the option ever stabilises or if the ports
+# gain wasm-EH builds.
+#
+# Do NOT add -sWASM_EXCEPTIONS: emcc rejects it ("WASM_EXCEPTIONS is an internal
+# setting and cannot be set from command line").
+export RUSTC_BOOTSTRAP=1
 export RUSTFLAGS="-L $SYSROOT/lib/wasm32-emscripten $LIBS \
+ -Z emscripten-wasm-eh=no \
  -C link-args=-sEXPORTED_FUNCTIONS=$EXPORTS \
- -C link-args=-sSUPPORT_LONGJMP=wasm \
+ -C link-args=-sSTANDALONE_WASM=1 \
  -C link-args=-sUSE_FREETYPE \
  -C link-args=-sUSE_ZLIB \
  -C link-args=-sUSE_LIBPNG \
@@ -193,11 +204,36 @@ export RUSTFLAGS="-L $SYSROOT/lib/wasm32-emscripten $LIBS \
  -C link-args=-sMAXIMUM_MEMORY=2147483648"
 
 cd "$REPO"
-cargo build --target "$TARGET" --release
+
+# Reference point for the freshness check after the build.
+STAMP="$(mktemp)"
+trap 'rm -f "$STAMP"' EXIT
+
+# std must be rebuilt, not just our crate: -Zemscripten-wasm-eh=no only affects
+# what rustc compiles now, and the precompiled libstd was built for wasm EH. It
+# references __cpp_exception, which does not exist once the rest of the link is
+# on the JS scheme, and the failure surfaces at the very last step.
+#
+# Overridable, but the default has to be correct — the build does not link
+# without it, and a caller who has to know that is a trap.
+# shellcheck disable=SC2086
+cargo build --target "$TARGET" --release ${GLYPHX_BUILD_STD:--Z build-std=std,panic_abort}
 
 ARTIFACT="${CARGO_TARGET_DIR:-$REPO/target}/$TARGET/release/tectonic_wasm.wasm"
+
+# Freshness, not just existence. Checking `-f` alone means a stale artifact from
+# an earlier successful build satisfies the check, so a failed run copies the
+# old binary to output/ and exits 0 — reporting success while shipping
+# something that was never built from the current source. That actually
+# happened during development, and it is the worst kind of failure: silent.
 if [ ! -f "$ARTIFACT" ]; then
   echo "error: no artifact at $ARTIFACT" >&2
+  exit 1
+fi
+if [ ! "$ARTIFACT" -nt "$STAMP" ]; then
+  echo "error: $ARTIFACT is older than this build started — cargo did not"  >&2
+  echo "       produce a new binary, so the previous one would have been"   >&2
+  echo "       published as if it were fresh. Treating as a failure."       >&2
   exit 1
 fi
 

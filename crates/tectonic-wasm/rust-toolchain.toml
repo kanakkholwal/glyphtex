@@ -1,18 +1,22 @@
-# Pinned deliberately, and it must stay in step with EM_VERSION in
+# Pinned deliberately, and it should stay in step with EM_VERSION in
 # .github/workflows/tex-engine.yml.
 #
-# Newer rustc hardcodes -fwasm-exceptions in the wasm32-unknown-emscripten
-# target spec (it is not removable via panic = "abort" — that was tried). The
-# vendored C and Emscripten's prebuilt ports use the JS-based exception scheme
-# and emit invoke_* trampolines, so the two cannot be linked together:
+# What pinning does NOT do is fix the exception-handling mismatch. An earlier
+# version of this comment claimed it did; that was wrong, and it cost a long
+# debugging session. Emscripten ships HarfBuzz and ICU built ONLY with the
+# JS exception scheme — no version of the SDK offers wasm-EH variants of them —
+# while rustc defaults to wasm EH on this target. No choice of versions
+# reconciles those. The actual fix lives in scripts/build-wasm.sh:
+# -Zemscripten-wasm-eh=no together with -Zbuild-std.
 #
-#   AssertionError: invoke_ functions exported but exceptions and longjmp are
-#   both disabled
-#
-# Pinning rustc and Emscripten to the same era (~March 2026) keeps both halves
-# on the JS-based scheme, which is also what the host shim in
-# @glyphx/tex-engine implements. Bump these two together or not at all.
+# Pinning is still worth keeping, for the ordinary reason: reproducible builds
+# and no surprise lint or codegen changes mid-project.
 [toolchain]
 channel = "1.94"
 targets = ["wasm32-unknown-emscripten"]
 profile = "minimal"
+# rust-src is required: the build rebuilds the standard library with -Zbuild-std
+# so that std uses the same (JS) exception scheme as everything else. Without
+# this component the build fails late, at the link, with an undefined
+# `__cpp_exception` coming out of the precompiled libstd.
+components = ["rust-src"]
