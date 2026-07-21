@@ -215,16 +215,25 @@ fails much later in ways that look like package bugs.
   degradation: a missing file is `pdftex_fail`, and a missing map entry falls
   through to the PK path, which is also fatal without Metafont.
 - **SyncTeX wiring.** The engine emits it; the editor does not consume it yet.
-- **Size budget in CI.** Currently reported, not enforced.
+  SyncTeX is *not* syntax highlighting (Monaco already handles that) — it is the
+  position map between source and PDF that makes click-in-PDF → jump-to-line and
+  cursor-in-source → scroll-preview work. Editor-side work only; no engine risk.
 
 ## Not achievable in WebAssembly
 
 Each needs a subprocess. Say so in the UI rather than failing obscurely.
 
 - **`minted`** — needs Python/Pygments. Use `listings` (pure TeX).
-- **`biber`** — Perl, no wasm build exists. Note the current bundle ships **no
-  bibtex binary either**, so citations do not work at all today; do not offer a
+- **`biber`** — Perl, no wasm build exists. The bundle ships **no bibtex binary
+  either**, so processor-driven bibliographies do not work; do not offer a
   bibliography group until that changes.
+
+  The web editor now warns when a document uses `\bibliography`,
+  `\bibliographystyle`, `\addbibresource` or `\printbibliography`
+  (`apps/web/src/lib/citations.ts`), rather than letting every citation quietly
+  render as `[?]`. It deliberately does **not** warn on `\cite` alone: a manual
+  `thebibliography`/`\bibitem` document needs no external processor and compiles
+  correctly today. Desktop is unaffected — it runs a real TeX installation.
 - **TikZ externalization** — needs shell escape.
 
 `shellEscape` is exposed for parity with a native build and has no effect here.

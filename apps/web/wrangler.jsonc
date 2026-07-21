@@ -18,17 +18,11 @@
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
 	},
-	// Durable, account-owned mirror of fetched TeX files (OPTIONAL). The `/texlive`
-	// route reads from here (free egress) and write-throughs every upstream hit, so
-	// the bundle self-populates from real usage and the third-party server is hit at
-	// most once per file. The route no-ops gracefully when this binding is absent,
-	// so leaving it commented lets you deploy on the card-free Workers free plan.
-	//
-	// To enable: Cloudflare requires a payment method to turn R2 on (its free tier —
-	// 10 GB storage, free egress — still costs $0). Then create the bucket and
-	// uncomment:
-	//   wrangler r2 bucket create glyphx-texlive
-	// "r2_buckets": [{ "binding": "TEXLIVE", "bucket_name": "glyphx-texlive" }],
+	// No R2 binding, and none needed: the TeX engine and its support bundle ship
+	// as ordinary static assets under static/engine/, served through ASSETS above.
+	// (An earlier design proxied a third-party package server through a `/texlive`
+	// route backed by an R2 mirror — that is gone, along with the route.)
+
 	// Production custom domain. Requires `nexonauts.com` to be a zone on the same
 	// Cloudflare account as CLOUDFLARE_ACCOUNT_ID — wrangler then provisions the
 	// DNS record + TLS cert on deploy. (Remove this block to manage the domain

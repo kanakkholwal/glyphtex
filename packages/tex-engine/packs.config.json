@@ -1,0 +1,68 @@
+{
+	"$comment": [
+		"Pack definitions — the source of truth for what ships beyond the core bundle.",
+		"Adding a pack: add an entry here, add test/fixtures/packs/<id>.tex that uses it, then",
+		"run `pnpm bundle:packs`. The fixture is not optional: presence in a manifest is not",
+		"evidence a package works, which is exactly how siunitx once shipped listed-but-broken.",
+		"See PACKS.md for the design and the invariants."
+	],
+	"packs": [
+		{
+			"id": "writing",
+			"label": "Writing & page layout",
+			"description": "Headers, footers, section styling, line spacing and title pages.",
+			"packages": [
+				"fancyhdr",
+				"titlesec",
+				"titling",
+				"setspace",
+				"parskip",
+				"lastpage",
+				"appendix",
+				"abstract"
+			]
+		},
+		{
+			"id": "figures",
+			"label": "Figures & placement",
+			"description": "Figure positioning, text wrapping, subfigures and PDF inclusion.",
+			"packages": ["float", "wrapfig", "subfig", "rotating", "pdfpages", "placeins"]
+		},
+		{
+			"id": "boxes",
+			"label": "Coloured boxes",
+			"description": "tcolorbox — framed, coloured and breakable boxes for notes and theorems.",
+			"packages": ["tcolorbox", "environ"]
+		},
+		{
+			"id": "review",
+			"label": "Annotation & review",
+			"description": "Margin notes, highlighting, strikethrough and cancelled maths.",
+			"packages": ["todonotes", "soul", "ulem", "cancel"]
+		},
+		{
+			"id": "science",
+			"label": "Science notation",
+			"description": "Physics vector notation and chemical formulae.",
+			"packages": ["physics", "mhchem"]
+		},
+		{
+			"id": "tables-plus",
+			"label": "Advanced tables",
+			"description": "Matrix-style and modern table layouts beyond the core table support.",
+			"packages": ["nicematrix", "tabularray"]
+		},
+		{
+			"id": "references",
+			"label": "Citation styles",
+			"description": "natbib author-year citations and csquotes context-sensitive quoting. Note: generating a bibliography still needs BibTeX or Biber, which cannot run in the browser.",
+			"packages": ["natbib", "csquotes"]
+		},
+		{
+			"id": "drafting",
+			"label": "Drafting helpers",
+			"description": "Placeholder text and flexible list customisation for drafts.",
+			"packages": ["lipsum", "blindtext", "xstring"]
+		}
+	]
+}

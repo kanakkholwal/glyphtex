@@ -30,6 +30,7 @@
 		"bundle:format": "node ./scripts/make-format.mjs",
 		"bundle:build": "node ./scripts/build-bundle.mjs",
 		"bundle:pack": "node ./scripts/pack-bundle.mjs",
+		"bundle:packs": "node ./scripts/build-packs.mjs",
 		"build": "tsc -p tsconfig.json",
 		"check": "tsc -p tsconfig.json --noEmit",
 		"test": "node --test test/*.test.mjs"

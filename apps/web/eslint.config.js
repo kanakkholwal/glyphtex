@@ -10,8 +10,8 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
-	// Vendored / static assets (e.g. the minified SwiftLaTeX WASM engine under
-	// static/swiftlatex) are not source — don't lint them.
+	// Static assets — including the staged TeX engine under static/engine/ —
+	// are build output, not source. Don't lint them.
 	{ ignores: ['static/'] },
 	js.configs.recommended,
 	ts.configs.recommended,

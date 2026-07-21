@@ -75,6 +75,27 @@ jobs:
       - name: Stage the TeX engine into static assets
         run: pnpm --filter @glyphx/web sync:engine
 
+      # Compile a real document with the exact artifacts just staged.
+      #
+      # `tex-engine.yml` only ever exercises a FRESHLY BUILT engine, so it cannot
+      # catch the failure that matters here: the committed wasm drifting from the
+      # TypeScript wrapper that loads it. That is not hypothetical — an engine
+      # built before an ABI bump loads, reports ABI 1 to a wrapper expecting 2,
+      # and throws on the user's first compile. The deploy is green; the editor
+      # is dead. Ten seconds here buys that.
+      - name: Verify the staged engine actually compiles
+        run: |
+          pnpm --filter @glyphx/tex-engine build
+          mkdir -p /tmp/engine-bundle
+          tar -xzf crates/tectonic-wasm/output/tectonic-bundle.tar.gz -C /tmp/engine-bundle
+          cd packages/tex-engine && pnpm test
+        env:
+          GLYPHX_WASM: ${{ github.workspace }}/apps/web/static/engine/tectonic_wasm.wasm
+          GLYPHX_BUNDLE: /tmp/engine-bundle
+          # Without this the suite SKIPS when an artifact is missing and exits 0,
+          # which is indistinguishable from passing.
+          GLYPHX_REQUIRE_ENGINE: '1'
+
       - name: Typecheck (svelte-check)
         run: pnpm --filter @glyphx/web check
 
@@ -83,7 +104,6 @@ jobs:
         env:
           NODE_ENV: production
           PUBLIC_GA_ID: ${{ env.PUBLIC_GA_ID }}
-          # PUBLIC_TEXLIVE_ENDPOINT: ${{ vars.PUBLIC_TEXLIVE_ENDPOINT }}
 
       - name: Deploy via Wrangler
         uses: cloudflare/wrangler-action@v3
