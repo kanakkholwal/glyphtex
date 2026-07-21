@@ -193,6 +193,26 @@ export async function installEngine(
 	markEngineReady();
 }
 
+/**
+ * LaTeX resolves cross-references by writing `.aux`/`.toc`/`.out` on one pass and
+ * reading them on the next, so a single pass leaves `\ref`, `\cite`,
+ * `\tableofcontents` and hyperref anchors unresolved (they render as `??`).
+ * Desktop gets this for free — Tectonic and latexmk rerun internally. The
+ * in-browser engine exposes one pass at a time, so we drive the loop ourselves.
+ *
+ * These are the standard "run me again" signals from the kernel and from
+ * hyperref/longtable/tabularx/biblatex.
+ */
+const RERUN_PATTERN =
+	/Rerun to get|Rerun LaTeX|Please rerun|rerunfilecheck Warning|Label\(s\) may have changed|Table widths have changed/i;
+
+/**
+ * Cap on total passes. LaTeX normally converges in 2–3; latexmk's own default
+ * ceiling is 5. We stop at 4 so a pathological document that never settles costs
+ * bounded time rather than spinning.
+ */
+const MAX_PASSES = 4;
+
 function bytesToBase64(bytes: Uint8Array): string {
 	let binary = '';
 	const chunk = 0x8000;
@@ -221,9 +241,25 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 	try {
 		engine.writeMemFSFile('main.tex', source);
 		engine.setEngineMainFile('main.tex');
-		const result = await engine.compileLaTeX();
-		const log: string = result?.log ?? '';
-		const pdf: Uint8Array | undefined = result?.pdf ? new Uint8Array(result.pdf) : undefined;
+
+		// Run until the log stops asking for another pass. The engine's MEMFS
+		// persists between calls, so each pass reads the `.aux`/`.toc`/`.out` the
+		// previous one wrote — which is what actually resolves the references.
+		// Never `flushcache` in here: that would wipe those files and every pass
+		// would be pass one.
+		let log = '';
+		let pdf: Uint8Array | undefined;
+
+		for (let pass = 1; pass <= MAX_PASSES; pass++) {
+			const result = await engine.compileLaTeX();
+			log = result?.log ?? '';
+			pdf = result?.pdf ? new Uint8Array(result.pdf) : undefined;
+
+			// No PDF means a hard error — rerunning won't fix it, and a broken
+			// document would otherwise burn all four passes before reporting.
+			if (!pdf || pdf.byteLength === 0) break;
+			if (!RERUN_PATTERN.test(log)) break;
+		}
 
 		// Best-effort, like the desktop engines: if pdfTeX produced a PDF, show it
 		// even when it exited non-zero (recoverable errors). The errors live in the

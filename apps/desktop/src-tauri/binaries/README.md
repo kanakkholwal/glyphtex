@@ -6,9 +6,12 @@ so the binary keeps the build simple and cross-platform).
 
 The Rust command (`src/compile.rs`) resolves the binary in this order:
 
-1. **`GLYPH_TECTONIC_BIN`** environment variable (absolute path), then
-2. a **sidecar** next to the app executable (`tectonic[.exe]`), then
-3. **`tectonic` on `PATH`**.
+1. **`GLYPHX_TECTONIC_BIN`** environment variable (absolute path), then
+2. a **managed engine** downloaded into the app-data dir (see `src/engine.rs`), then
+3. a **sidecar** next to the app executable, or a `binaries/` dir in any ancestor
+   (`tectonic[.exe]` — the ancestor walk covers `tauri dev`, where the exe lives
+   under `target/debug`), then
+4. **`tectonic` on `PATH`**.
 
 ## Getting Tectonic
 
@@ -20,10 +23,15 @@ The quickest path during development is to put it on `PATH`:
 
 …or download a release binary from
 <https://github.com/tectonic-typesetting/tectonic/releases> and either drop it
-in this folder, set `GLYPH_TECTONIC_BIN` to its path, or add it to `PATH`.
+in this folder, set `GLYPHX_TECTONIC_BIN` to its path, or add it to `PATH`.
 
 > First compile downloads Tectonic's TeX bundle (~once, cached). After that it
 > works fully offline.
+
+> **Bundle vintage.** Tectonic's default bundle is **TeX Live 2023** (frozen
+> 2023-03-13) and upstream has not published a newer one — the bundle repo was
+> archived in Oct 2024. Packages added to CTAN after that date are simply not in
+> it, which is the usual cause of a "file not found" for a recent package.
 
 ## Bundling for distribution
 

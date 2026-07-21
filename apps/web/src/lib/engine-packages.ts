@@ -2,6 +2,15 @@
 // engine is SwiftLaTeX **pdfTeX**, so every package here is pdfLaTeX-compatible
 // (no fontspec / XeTeX-only packages). Sizes are rough — TeX Live fetches files
 // individually on demand, so these are guidance, not exact byte counts.
+//
+// Deliberately absent, so nobody "helpfully" adds them later:
+//   - **Bibliography** (biblatex / natbib). The .sty files fetch fine, but this
+//     engine build ships **no bibtex binary at all** and biber is Perl (no WASM
+//     build exists), so citations would still render as [?]. Offering the group
+//     would promise something that cannot work. Desktop handles bibliographies.
+//   - **minted**. Needs a Python/Pygments subprocess — impossible in WASM.
+//     Use `listings` instead (pure TeX, no external process).
+//   - **fontspec / unicode-math**. XeTeX/LuaTeX only; this is pdfTeX.
 
 export type PackageGroup = {
 	id: string;
@@ -49,7 +58,43 @@ export const PACKAGE_GROUPS: PackageGroup[] = [
 		label: 'Layout & links',
 		description: 'geometry, hyperref, enumitem, caption — page setup, links, lists',
 		approxMB: 0.8,
-		packages: ['geometry', 'hyperref', 'enumitem', 'caption']
+		// subcaption ships inside `caption`; cleveref must be loaded after hyperref.
+		packages: ['geometry', 'hyperref', 'enumitem', 'caption', 'subcaption', 'cleveref']
+	},
+	{
+		id: 'drawing',
+		label: 'Diagrams & plots',
+		// pgf/TikZ is by far the largest item here and it is not really optional:
+		// beamer and tcolorbox both depend on it, so selecting either pulls this
+		// tree anyway.
+		description: 'TikZ, pgfplots — diagrams, charts & plots',
+		approxMB: 4.5,
+		packages: ['tikz', 'pgfplots']
+	},
+	{
+		id: 'slides',
+		label: 'Presentations',
+		description: 'beamer — slide decks',
+		approxMB: 1.5,
+		packages: ['beamer']
+	},
+	{
+		id: 'code',
+		label: 'Code & algorithms',
+		// listings reads source directly in TeX — no external highlighter, so
+		// unlike minted it works in the browser.
+		description: 'listings, algorithm2e — code blocks & pseudocode',
+		approxMB: 0.5,
+		packages: ['listings', 'algorithm2e']
+	},
+	{
+		id: 'typography',
+		label: 'Typography',
+		// Full microtype: this is pdfTeX, so font expansion works here — the
+		// feature XeTeX-based engines (including desktop Tectonic) don't get.
+		description: 'microtype, siunitx, lmodern — refined spacing, units, fonts',
+		approxMB: 1.2,
+		packages: ['microtype', 'siunitx', 'lmodern']
 	}
 ];
 
