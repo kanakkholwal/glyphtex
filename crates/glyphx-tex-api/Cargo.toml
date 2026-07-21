@@ -1,0 +1,19 @@
+[package]
+name = "glyphx-tex-api"
+version = "0.1.0"
+edition = "2021"
+description = "Typed API surface and TeX log parsing for the GlyphX TeX engine"
+license = "MIT"
+
+# Deliberately free of C dependencies and of the engine itself, so it builds and
+# tests on any host and for wasm32-unknown-unknown. That is what lets the
+# TypeScript bindings be generated without the Emscripten toolchain.
+[dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+ts-rs = "12.0.1"
+
+[dev-dependencies]
+serde_json = "1.0.151"
+
+[lints.rust]
+missing_docs = "deny"

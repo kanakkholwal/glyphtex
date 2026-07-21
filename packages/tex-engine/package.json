@@ -1,0 +1,37 @@
+{
+	"name": "@glyphx/tex-engine",
+	"version": "0.1.0",
+	"description": "Typed TypeScript bindings for the GlyphX TeX engine (Tectonic compiled to WebAssembly)",
+	"license": "MIT",
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kanakkholwal/glyph.git",
+		"directory": "packages/tex-engine"
+	},
+	"homepage": "https://github.com/kanakkholwal/glyph/tree/main/packages/tex-engine#readme",
+	"bugs": "https://github.com/kanakkholwal/glyph/issues",
+	"files": ["dist", "src", "wasm"],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./wasm": "./wasm/tectonic_wasm.wasm",
+		"./package.json": "./package.json"
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"scripts": {
+		"generate": "node ./scripts/generate-types.mjs",
+		"sync:wasm": "node ./scripts/sync-wasm.mjs",
+		"bundle:verify": "node ./scripts/verify-bundle.mjs",
+		"bundle:extend": "node ./scripts/extend-bundle.mjs",
+		"build": "tsc -p tsconfig.json",
+		"check": "tsc -p tsconfig.json --noEmit",
+		"test": "node --test test/*.test.mjs"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.3"
+	}
+}

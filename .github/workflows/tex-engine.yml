@@ -1,0 +1,251 @@
+name: TeX engine
+
+# Builds the Tectonic WASM engine, tests it end to end, and on a tag publishes
+# both a GitHub Release and the @glyphx/tex-engine npm package.
+#
+# WebAssembly is architecture-neutral, so unlike a native binary this needs no
+# per-platform build matrix and no optionalDependencies platform packages — one
+# artifact runs in browsers, Node, Bun and Deno alike.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'crates/**'
+      - 'packages/tex-engine/**'
+      - '.github/workflows/tex-engine.yml'
+    tags: ['tex-engine-v*']
+  pull_request:
+    paths:
+      - 'crates/**'
+      - 'packages/tex-engine/**'
+  workflow_dispatch:
+
+concurrency:
+  group: tex-engine-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Must stay in step with crates/tectonic-wasm/rust-toolchain.toml — see the
+  # note there. Emscripten 6 removed -sRELOCATABLE and changed the exception
+  # and longjmp defaults, and newer rustc forces wasm exception handling; the
+  # two only agree when both are pinned to the same era.
+  EM_VERSION: 5.0.2
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Fast feedback: the pure-Rust crate needs no C toolchain, so it fails in
+  # under a minute rather than after the ~20-minute engine build.
+  api:
+    name: API crate + TypeScript types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned, not @stable. Clippy gains lints every six weeks and this job
+      # runs with -D warnings, so @stable turns an unrelated PR red whenever a
+      # new lint fires on existing code. Bump this deliberately.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.94'
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/glyphx-tex-api
+
+      - name: Format
+        run: cargo fmt --check
+        working-directory: crates/glyphx-tex-api
+
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+        working-directory: crates/glyphx-tex-api
+
+      - name: Test
+        run: cargo test
+        working-directory: crates/glyphx-tex-api
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Regenerate TypeScript types
+        run: |
+          cd packages/tex-engine
+          pnpm install --ignore-workspace --frozen-lockfile=false
+          pnpm generate
+
+      # The generated types are committed so consumers can build without a Rust
+      # toolchain. If they drift from the Rust definitions, the two can
+      # disagree silently — so treat drift as a failure.
+      - name: Check generated types are up to date
+        run: |
+          if ! git diff --exit-code -- packages/tex-engine/src/generated; then
+            echo "::error::Generated TypeScript is stale. Run 'pnpm generate' in packages/tex-engine and commit."
+            exit 1
+          fi
+
+      - name: Typecheck wrapper
+        run: cd packages/tex-engine && pnpm check
+
+  engine:
+    name: Build WASM engine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Not @stable: the version is pinned in crates/tectonic-wasm/rust-toolchain.toml
+      # and has to match EM_VERSION. Installing stable here would download a
+      # second toolchain that rustup then overrides on the first cargo call.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.94'
+          targets: wasm32-unknown-emscripten
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EM_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/tectonic-wasm
+
+      # graphite2 is built from source by the build script; its cmake step is
+      # the slowest part that never changes.
+      - name: Cache Emscripten sysroot additions
+        uses: actions/cache@v4
+        with:
+          path: |
+            emsdk-cache/upstream/emscripten/cache/sysroot/lib/wasm32-emscripten/libgraphite2.a
+            emsdk-cache/upstream/emscripten/cache/sysroot/include/graphite2
+          key: graphite2-wasm-1.3.14-${{ env.EM_VERSION }}
+
+      - name: Build
+        run: ./scripts/build-wasm.sh
+        working-directory: crates/tectonic-wasm
+
+      # awk, not bc: bc is not part of the ubuntu-24.04 runner image.
+      - name: Report size
+        run: |
+          WASM=crates/tectonic-wasm/output/tectonic_wasm.wasm
+          RAW=$(stat -c%s "$WASM")
+          BR=$(brotli -q 11 -c "$WASM" | wc -c)
+          mb() { awk -v b="$1" 'BEGIN { printf "%.2f", b/1048576 }'; }
+          {
+            echo "### Engine size"
+            echo "| | bytes | MB |"
+            echo "|---|---:|---:|"
+            echo "| raw | $RAW | $(mb "$RAW") |"
+            echo "| brotli -q11 | $BR | $(mb "$BR") |"
+            # The offline payload budget is 50 MB total; flag early if the
+            # engine alone starts eating a serious share of it.
+            awk -v b="$BR" 'BEGIN { if (b > 10485760) print "\n> [!WARNING]\n> Compressed engine exceeds 10 MB." }'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tectonic-wasm
+          path: crates/tectonic-wasm/output/tectonic_wasm.wasm
+          if-no-files-found: error
+
+  test:
+    name: End-to-end compile tests
+    needs: engine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tectonic-wasm
+          path: crates/tectonic-wasm/output
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Extract TeX bundle
+        run: |
+          mkdir -p /tmp/bundle
+          tar xzf crates/tectonic-wasm/output/tectonic-bundle.tar.gz -C /tmp/bundle
+
+      - name: Build package
+        run: |
+          cd packages/tex-engine
+          pnpm install --ignore-workspace --frozen-lockfile=false
+          pnpm build
+
+      # These cover the regressions the engine rewrite exists to fix: a
+      # booktabs document that used to hang, and font-size changes that used to
+      # emit a 15-byte PDF with no error.
+      - name: Test
+        env:
+          GLYPHX_WASM: ${{ github.workspace }}/crates/tectonic-wasm/output/tectonic_wasm.wasm
+          GLYPHX_BUNDLE: /tmp/bundle
+          # Without this the suite skips when an artifact path is wrong and
+          # `node --test` still exits 0 — a green job that ran zero tests.
+          GLYPHX_REQUIRE_ENGINE: '1'
+        run: cd packages/tex-engine && pnpm test
+
+  release:
+    name: Release + publish
+    needs: [api, engine, test]
+    if: startsWith(github.ref, 'refs/tags/tex-engine-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: tectonic-wasm
+          path: crates/tectonic-wasm/output
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - name: Derive version from tag
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#tex-engine-v}" >> "$GITHUB_OUTPUT"
+
+      # No `pnpm generate` here: it shells out to `cargo test`, which would pull
+      # an unpinned Rust into the release job to regenerate files that are
+      # already committed and already drift-checked by the `api` job above.
+      - name: Build and stage package
+        run: |
+          cd packages/tex-engine
+          pnpm install --ignore-workspace --frozen-lockfile=false
+          pnpm build
+          mkdir -p wasm
+          cp ../../crates/tectonic-wasm/output/tectonic_wasm.wasm wasm/
+          npm version "${{ steps.version.outputs.value }}" --no-git-tag-version
+
+      - name: Publish to npm
+        run: cd packages/tex-engine && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Compress engine for release
+        run: brotli -q 11 -k crates/tectonic-wasm/output/tectonic_wasm.wasm
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            crates/tectonic-wasm/output/tectonic_wasm.wasm
+            crates/tectonic-wasm/output/tectonic_wasm.wasm.br
+            crates/tectonic-wasm/output/tectonic-bundle.tar.gz
+          generate_release_notes: true

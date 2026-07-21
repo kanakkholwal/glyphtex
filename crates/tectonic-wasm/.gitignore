@@ -1,0 +1,33 @@
+# Build artifacts
+target/
+pkgconfig/
+
+# Deliberately NOT ignored: output/tectonic_wasm.wasm (3.3 MB).
+#
+# It looks like a build output, but right now it cannot be rebuilt: the link
+# step fails on any current toolchain (see BACKLOG.md #1), so this binary is a
+# fossil of the exact toolchain nl5887 used. Untracked, a single `git clean
+# -xfd` would destroy it permanently and we could not produce another.
+#
+# It does NOT validate the current source: it exports the old `tectonic_*` ABI,
+# not our `glyphx_*` one, so the e2e suite cannot run against it. What it is
+# good for is proving the toolchain target is reachable at all, and pinning the
+# import surface — its 24 imports are what packages/tex-engine/src/imports.ts
+# is written against, and they match.
+#
+# Re-add `output/*.wasm` here once scripts/build-wasm.sh links successfully —
+# at that point it becomes reproducible, and tracking it would only add
+# megabytes of churn to every commit.
+
+# Deliberately NOT ignored: output/tectonic-bundle.tar.gz and output/latex.fmt.
+#
+# Those are data inputs, not build outputs — they come from a TeX Live install
+# and cannot be regenerated without one, so dropping them would leave the repo
+# unbuildable and untestable on a clean machine. They are also stable, changing
+# only when the TeX Live snapshot is refreshed, so they cost history size once
+# rather than continuously.
+
+# OS
+.DS_Store
+*.swp
+*~
