@@ -29,14 +29,6 @@
 	} from '@tabler/icons-svelte';
 	import { canDropInto, getDrag, setDrag } from './file-dnd';
 
-	/**
-	 * FileTree — recursive Explorer tree. Folders expand/collapse with a smooth
-	 * `slide`; files and folders are draggable and folders are drop targets, so
-	 * items move between folders (nested) exactly like VS Code. Both files and
-	 * folders carry a ⋯ menu (rename inline / delete; files also set-as-main).
-	 * The compile target (`mainId`) shows a "main" badge. Open-state is local per
-	 * folder (default open). Indentation is depth-driven.
-	 */
 	let {
 		nodes,
 		activeId = '',
@@ -60,34 +52,30 @@
 	}: {
 		nodes: TreeNode[];
 		activeId?: string;
-		/** Id of the project's main (compile-target) file. */
+		/** Compile-target file. */
 		mainId?: string | null;
-		/** Path of the currently-selected folder (highlighted like the active file). */
+		/** Path of the currently-selected folder. */
 		selectedPath?: string | null;
-		/** Ids of files with unsaved edits (rendered as a "modified" dot). */
 		dirtyIds?: Set<string>;
-		/** File id → Git status word ("modified" / "untracked" / …) for the M/U/A badge. */
+		/** File id → Git status word ("modified" / "untracked" / …). */
 		gitStatus?: Record<string, string>;
 		depth?: number;
 		open?: Record<string, boolean>;
 		onopen?: (id: string) => void;
-		/** A folder row was clicked — report its path so the host can track selection. */
 		onselectfolder?: (path: string) => void;
-		/** Rename a file — receives the new leaf name (folder prefix is preserved upstream). */
+		/** Receives the new leaf name; folder prefix is preserved upstream. */
 		onrename?: (id: string, name: string) => void;
 		ondelete?: (id: string) => void;
-		/** Mark a file as the compile target. Omitted when there's no project. */
+		/** Omitted when there's no project — hides the "Set as main" item. */
 		onsetmain?: (id: string) => void;
-		/** Move a file into `targetDir` ('' = root). */
+		/** `targetDir` '' = root. */
 		onmovefile?: (id: string, targetDir: string) => void;
-		/** Move a folder into `targetDir` ('' = root). */
+		/** `targetDir` '' = root. */
 		onmovefolder?: (path: string, targetDir: string) => void;
-		/** Rename a folder — receives the new leaf name. */
+		/** Receives the new leaf name. */
 		onrenamefolder?: (path: string, name: string) => void;
 		ondeletefolder?: (path: string) => void;
-		/** Create a new file inside `dir`. */
 		onnewfilein?: (dir: string) => void;
-		/** Create a new subfolder inside `dir`. */
 		onnewfolderin?: (dir: string) => void;
 	} = $props();
 
@@ -152,7 +140,7 @@
 		else onmovefolder?.(it.path, path);
 	}
 
-	// --- Change indicators (VS Code parity) — unsaved dot + Git M/U/A badge. ---
+	// --- Change indicators ---
 	const STATUS_LABEL: Record<string, string> = {
 		modified: 'M',
 		deleted: 'D',
@@ -167,7 +155,6 @@
 		added: 'text-success',
 		renamed: 'text-brand'
 	};
-	// A folder is "changed" when any descendant file is dirty or Git-tracked-dirty.
 	function folderChanged(n: TreeNode): boolean {
 		if (n.type === 'file') return dirtyIds.has(n.id) || !!gitStatus[n.id];
 		return n.children.some(folderChanged);
@@ -284,7 +271,7 @@
 					{dirtyIds}
 					{gitStatus}
 					depth={depth + 1}
-					bind:open
+					{open}
 					{onopen}
 					{onselectfolder}
 					{onrename}

@@ -1,18 +1,9 @@
-/**
- * `biblatex` — the modern bibliography and citation system.
- *
- * Replaces the classic `\bibliography`/BibTeX workflow entirely: sources are
- * declared in the preamble with `\addbibresource`, the list is printed with
- * `\printbibliography`, and styles are chosen through package options rather
- * than a `.bst` file. It wants the Biber backend —
- * `\usepackage[backend=biber,style=authoryear]{biblatex}` — which means the
- * build runs latex → biber → latex → latex, not bibtex.
- */
 import type { PackageData } from "./index";
 
+// Wants `backend=biber`, so the build runs latex → biber → latex → latex.
 export const data: PackageData = {
 	commands: [
-		/* --- resources and printing ------------------------------------------ */
+		/* --- resources and printing --- */
 		{
 			name: "addbibresource",
 			snippet: "addbibresource{${1:refs.bib}}$0",
@@ -53,7 +44,7 @@ export const data: PackageData = {
 			package: "biblatex",
 		},
 
-		/* --- everyday citation ------------------------------------------------ */
+		/* --- everyday citation --- */
 		{
 			name: "cite",
 			snippet: "cite{$1}$0",
@@ -134,7 +125,7 @@ export const data: PackageData = {
 			context: "text",
 		},
 
-		/* --- citation parts --------------------------------------------------- */
+		/* --- citation parts --- */
 		{
 			name: "citeauthor",
 			snippet: "citeauthor{$1}$0",
@@ -227,7 +218,7 @@ export const data: PackageData = {
 			context: "text",
 		},
 
-		/* --- configuration ---------------------------------------------------- */
+		/* --- configuration --- */
 		{
 			name: "defbibheading",
 			snippet: "defbibheading{${1:name}}[${2:Title}]{$0}",

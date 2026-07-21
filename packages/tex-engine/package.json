@@ -27,6 +27,7 @@
 		"sync:wasm": "node ./scripts/sync-wasm.mjs",
 		"bundle:verify": "node ./scripts/verify-bundle.mjs",
 		"bundle:extend": "node ./scripts/extend-bundle.mjs",
+		"bundle:format": "node ./scripts/make-format.mjs",
 		"build": "tsc -p tsconfig.json",
 		"check": "tsc -p tsconfig.json --noEmit",
 		"test": "node --test test/*.test.mjs"

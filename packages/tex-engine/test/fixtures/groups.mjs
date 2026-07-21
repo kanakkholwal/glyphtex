@@ -1,28 +1,53 @@
-// One sample document per package group offered in the installer UI
-// (bundle-manifest.json). Each is deliberately small but exercises the feature
-// the group exists for, so a failure names the group rather than "LaTeX broke".
-//
-// `String.raw` throughout: these are TeX sources full of backslashes, and
-// ordinary escaping turns \b into a backspace and \u into a syntax error —
-// both of which produce baffling failures far from the cause.
+// Every package bundle-manifest.json promises must appear in some document here:
+// `bundle:verify` only checks presence, which is how siunitx shipped unusable.
+// `String.raw` throughout — plain strings turn \b into a backspace, \u into a syntax error.
 
-/** @typedef {{ id: string, label: string, source: string, expect?: RegExp }} GroupFixture */
+/** @typedef {{ label: string, source: string }} Sample */
+/** @typedef {{ id: string, label: string, documents: Sample[] }} GroupFixture */
 
 /** @type {GroupFixture[]} */
 export const GROUP_FIXTURES = [
 	{
 		id: 'core',
 		label: 'Core compiler',
-		source: String.raw`\documentclass{article}
+		documents: [
+			{
+				label: 'article',
+				source: String.raw`\documentclass{article}
 \begin{document}
 \section{Heading}
 Plain text, \emph{emphasis}, and a footnote.\footnote{Like this.}
 \end{document}`
+			},
+			{
+				label: 'report',
+				source: String.raw`\documentclass{report}
+\begin{document}
+\chapter{First chapter}
+\section{A section}
+Report class uses chapters.
+\end{document}`
+			},
+			{
+				label: 'book',
+				source: String.raw`\documentclass{book}
+\begin{document}
+\frontmatter
+\chapter{Preface}
+\mainmatter
+\chapter{Opening}
+Book class distinguishes front and main matter.
+\end{document}`
+			}
+		]
 	},
 	{
 		id: 'math',
 		label: 'Math',
-		source: String.raw`\documentclass{article}
+		documents: [
+			{
+				label: 'amsmath + amssymb + mathtools',
+				source: String.raw`\documentclass{article}
 \usepackage{amsmath,amssymb,mathtools}
 \begin{document}
 \begin{align}
@@ -31,23 +56,35 @@ Plain text, \emph{emphasis}, and a footnote.\footnote{Like this.}
 \end{align}
 Symbols: $\alpha\beta\gamma \in \mathbb{R}, \forall x \leq \aleph_0$.
 \[ \begin{pmatrix} a & b \\ c & d \end{pmatrix} \]
+% dcases is a math-mode environment (mathtools), so it needs the \[ \] around it.
+\[ f(x) = \begin{dcases} x & x > 0 \\ 0 & \text{otherwise} \end{dcases} \]
 \end{document}`
+			}
+		]
 	},
 	{
 		id: 'graphics',
 		label: 'Graphics & color',
-		source: String.raw`\documentclass{article}
+		documents: [
+			{
+				label: 'graphicx + xcolor',
+				source: String.raw`\documentclass{article}
 \usepackage{graphicx,xcolor}
 \begin{document}
 \textcolor{red}{Red text} and \colorbox{yellow}{a highlight}.
 \definecolor{brand}{RGB}{37,99,235}\textcolor{brand}{Brand colour.}
-\scalebox{1.5}{Scaled}\rotatebox{15}{Rotated}
+\scalebox{1.5}{Scaled}\rotatebox{15}{Rotated}\resizebox{2cm}{!}{Resized}
 \end{document}`
+			}
+		]
 	},
 	{
 		id: 'tables',
 		label: 'Tables',
-		source: String.raw`\documentclass{article}
+		documents: [
+			{
+				label: 'booktabs + tabularx + array + longtable + multirow',
+				source: String.raw`\documentclass{article}
 \usepackage{booktabs,tabularx,array,longtable,multirow}
 \begin{document}
 \begin{tabularx}{\linewidth}{lXr}
@@ -62,11 +99,16 @@ Symbols: $\alpha\beta\gamma \in \mathbb{R}, \forall x \leq \aleph_0$.
   A & 1 \\ B & 2 \\
 \end{longtable}
 \end{document}`
+			}
+		]
 	},
 	{
 		id: 'layout',
 		label: 'Layout & links',
-		source: String.raw`\documentclass{article}
+		documents: [
+			{
+				label: 'geometry + hyperref + enumitem + caption',
+				source: String.raw`\documentclass{article}
 \usepackage[margin=2cm]{geometry}
 \usepackage{hyperref,enumitem,caption}
 \begin{document}
@@ -79,11 +121,33 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
 \end{itemize}
 \begin{figure}[h]\centering\rule{2cm}{1cm}\caption{A caption.}\end{figure}
 \end{document}`
+			},
+			{
+				label: 'subcaption + cleveref',
+				source: String.raw`\documentclass{article}
+\usepackage{graphicx,caption,subcaption}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\begin{document}
+\section{Section}\label{sec:a}
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.4\linewidth}\centering\rule{1cm}{1cm}\caption{Left}\label{fig:l}\end{subfigure}
+  \begin{subfigure}{0.4\linewidth}\centering\rule{1cm}{1cm}\caption{Right}\label{fig:r}\end{subfigure}
+  \caption{Two panels.}\label{fig:both}
+\end{figure}
+\cref{sec:a} contains \cref{fig:both}, made of \cref{fig:l} and \cref{fig:r}.
+\end{document}`
+			}
+		]
 	},
 	{
 		id: 'drawing',
 		label: 'Diagrams & plots',
-		source: String.raw`\documentclass{article}
+		documents: [
+			{
+				label: 'tikz + pgfplots',
+				source: String.raw`\documentclass{article}
 \usepackage{tikz,pgfplots}
 \pgfplotsset{compat=1.18}
 \begin{document}
@@ -97,11 +161,16 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
   \end{axis}
 \end{tikzpicture}
 \end{document}`
+			}
+		]
 	},
 	{
 		id: 'slides',
 		label: 'Presentations',
-		source: String.raw`\documentclass{beamer}
+		documents: [
+			{
+				label: 'beamer',
+				source: String.raw`\documentclass{beamer}
 \begin{document}
 \begin{frame}{Title slide}
   \begin{itemize}
@@ -113,11 +182,16 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
   $\displaystyle \sum_{i=1}^{n} i = \frac{n(n+1)}{2}$
 \end{frame}
 \end{document}`
+			}
+		]
 	},
 	{
 		id: 'code',
 		label: 'Code & algorithms',
-		source: String.raw`\documentclass{article}
+		documents: [
+			{
+				label: 'listings + algorithm2e',
+				source: String.raw`\documentclass{article}
 \usepackage{listings}
 \usepackage[ruled,vlined]{algorithm2e}
 \begin{document}
@@ -132,11 +206,16 @@ int main(void) { return 0; }
   \Return $s$\;
 \end{algorithm}
 \end{document}`
+			}
+		]
 	},
 	{
 		id: 'typography',
 		label: 'Typography',
-		source: String.raw`\documentclass{article}
+		documents: [
+			{
+				label: 'microtype + lmodern + siunitx',
+				source: String.raw`\documentclass{article}
 \usepackage{microtype}
 \usepackage{lmodern}
 \usepackage{siunitx}
@@ -145,5 +224,11 @@ Microtype adjusts spacing across a justified paragraph, which needs enough
 words to actually break across a line or two so the protrusion machinery runs.
 Units: \SI{9.81}{\metre\per\second\squared} and \SI{300}{\kelvin}.
 \end{document}`
+			}
+		]
 	}
 ];
+
+export const ALL_SAMPLES = GROUP_FIXTURES.flatMap((g) =>
+	g.documents.map((d) => ({ groupId: g.id, groupLabel: g.label, ...d }))
+);

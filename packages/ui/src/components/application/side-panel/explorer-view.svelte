@@ -6,10 +6,6 @@
   import FileTree from "../file-tree.svelte";
   import type { SidePanelStore } from "./store.svelte";
 
-  /**
-   * Explorer view — the workspace root header (also a drop target for moving
-   * items to the top level), the file tree, and the active file's Outline.
-   */
   let {
     store,
     projectName,
@@ -45,8 +41,7 @@
   } = $props();
 </script>
 
-<!-- Workspace root header (the project / directory name, VS Code style).
-     Doubles as a drop target to move items out to the top level. -->
+<!-- Root header doubles as a drop target: dropping here moves items to the top level. -->
 <button
   class="text-foreground flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold tracking-wide uppercase transition-colors {store.rootDragOver
     ? 'bg-brand-subtle ring-brand/40 ring-1 ring-inset'
@@ -74,7 +69,7 @@
       {dirtyIds}
       {gitStatus}
       selectedPath={store.selectedFolderPath}
-      bind:open={store.treeOpen}
+      open={store.treeOpen}
       onopen={(id) => store.selectFile(id)}
       onselectfolder={(path) => store.selectFolder(path)}
       onrename={(id, name) => onrenamefile?.(id, name)}
@@ -90,7 +85,6 @@
   </div>
 {/if}
 
-<!-- Outline — the active file's sectioning structure (table of contents). -->
 <div class="border-border/60 mt-2 border-t pt-1.5">
   <button
     class="text-muted-foreground hover:text-foreground flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold tracking-wide uppercase transition-colors"

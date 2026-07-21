@@ -1,20 +1,3 @@
-/**
- * Semantic token overlay for LaTeX.
- *
- * Monaco lets exactly one tokenizer own a language — Monarch *or* TextMate,
- * never both — but semantic tokens layer on top of either. That makes this the
- * only place to express things a grammar structurally cannot, because they
- * depend on the rest of the document rather than on the characters at hand:
- *
- *   - a command the document never defines and no loaded package provides,
- *     which is usually a typo (`\reff`, `\bagin`)
- *   - a macro the author defined themselves, worth distinguishing from kernel
- *     commands
- *   - a `\ref`/`\cite` whose target does not exist anywhere in the project
- *
- * A grammar sees `\foo` and can only say "control sequence". This pass knows
- * whether `\foo` means anything.
- */
 import type * as Monaco from "monaco-editor";
 
 import type { MonacoNamespace } from "./monaco";
@@ -23,13 +6,8 @@ import { LATEX_COMMANDS } from "./latex-data";
 import { loadedPackageData } from "./latex-packages";
 import { workspaceBibEntries, workspaceLabels } from "./latex-workspace";
 
-/**
- * Token types we emit, in the order Monaco will refer to them by index.
- *
- * `unknown` maps to a theme colour meaning "this is probably wrong"; the others
- * are informational. Keep this in sync with the legend below — the protocol is
- * positional, so a reordering silently recolours everything.
- */
+// Monaco refers to these by index, so the protocol is positional: reordering
+// silently recolours everything. Keep in sync with TokenType below.
 const TOKEN_TYPES = ["macro", "unknownMacro", "danglingRef", "resolvedRef"] as const;
 
 const enum TokenType {
@@ -39,8 +17,8 @@ const enum TokenType {
 	ResolvedRef = 3,
 }
 
-/** Commands that are always fine regardless of the dataset: TeX primitives and
- *  anything the grammar already treats as structural. */
+// Never flagged regardless of the dataset: TeX primitives and anything the
+// grammar already treats as structural.
 const ALWAYS_KNOWN = new Set([
 	"begin",
 	"end",
@@ -70,9 +48,13 @@ const COMMAND = /\\([a-zA-Z@]+)/g;
 const DEFINITION =
 	/\\(?:newcommand|renewcommand|providecommand|DeclareMathOperator)\s*\*?\s*\{?\\([a-zA-Z@]+)\}?/g;
 
-/** Strip `%` comments so a commented-out `\reff` is not flagged. */
+// Blanks `%` comments padded to the exact original length: offsets from this
+// string go to model.getPositionAt, which indexes the ORIGINAL document.
 function withoutComments(text: string): string {
-	return text.replace(/(^|[^\\])%.*$/gm, (_m, prefix: string) => prefix);
+	return text.replace(
+		/(^|[^\\])(%.*)$/gm,
+		(_m, prefix: string, comment: string) => prefix + " ".repeat(comment.length),
+	);
 }
 
 export function registerLatexSemanticTokens(monaco: MonacoNamespace): Monaco.IDisposable {
@@ -123,9 +105,8 @@ export function registerLatexSemanticTokens(monaco: MonacoNamespace): Monaco.IDi
 				}
 			}
 
-			// Only flag a target as dangling when we have something to check
-			// against. With no labels indexed at all — a fresh single file — every
-			// \ref would light up red, which is noise, not information.
+			// Only flag dangling when something is indexed: with no labels at all
+			// (a fresh single file) every \ref would light up red.
 			if (labels.size > 0) {
 				REF_CALL.lastIndex = 0;
 				while ((m = REF_CALL.exec(text))) {

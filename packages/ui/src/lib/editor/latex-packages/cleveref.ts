@@ -1,15 +1,6 @@
-/**
- * `cleveref` — cross-references that write their own name.
- *
- * `\cref{fig:a}` gives “fig. 1”, and a list of labels collapses into “figs. 1
- * to 3” by itself, so the reference type never has to be typed by hand and
- * never drifts when a float changes kind.
- *
- * It must be loaded AFTER `hyperref` (and after `amsmath`/`amsthm`), or the
- * references come out unlinked or wrongly named.
- */
 import type { PackageData } from "./index";
 
+// Must be loaded after `hyperref`, `amsmath` and `amsthm`.
 export const data: PackageData = {
 	commands: [
 		{

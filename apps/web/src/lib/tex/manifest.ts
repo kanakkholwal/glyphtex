@@ -11,6 +11,24 @@ export const ENGINE_CACHE = 'glyphx-engine';
 
 const MANIFEST_URL = '/engine/manifest.json';
 
+/**
+ * Open the engine cache, or return null if this browser will not give us one.
+ *
+ * The Cache API is an optimisation here, never a requirement: it is what makes
+ * the engine survive a reload, but a compiler that re-downloads every session
+ * still compiles. Private-mode windows, blocked site data and headless
+ * environments can all make `caches.open` reject outright, and treating that as
+ * fatal would take the whole feature down rather than just its persistence.
+ */
+export async function openEngineCache(): Promise<Cache | null> {
+	if (typeof caches === 'undefined') return null;
+	try {
+		return await caches.open(ENGINE_CACHE);
+	} catch {
+		return null;
+	}
+}
+
 /** Narrow the parsed JSON before trusting it (AGENTS.md rule #7). */
 function parse(value: unknown): EngineManifest {
 	if (
@@ -32,7 +50,7 @@ function parse(value: unknown): EngineManifest {
  * manifest always describes the engine the user most recently could have had.
  */
 export async function loadManifest(): Promise<EngineManifest> {
-	const cache = typeof caches !== 'undefined' ? await caches.open(ENGINE_CACHE) : null;
+	const cache = await openEngineCache();
 
 	try {
 		const response = await fetch(MANIFEST_URL, { cache: 'no-cache' });

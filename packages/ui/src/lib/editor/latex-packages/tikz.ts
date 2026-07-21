@@ -1,17 +1,8 @@
-/**
- * `tikz` — the drawing language, and by some margin the largest module here.
- *
- * Almost everything happens inside a `tikzpicture`, and almost every drawing
- * command is a path terminated by a semicolon — the snippets include that
- * semicolon, because omitting it is the most common TikZ error there is.
- * Anything past the basics (arrow tips, relative positioning, coordinate
- * arithmetic, patterns) lives in a library loaded with `\usetikzlibrary`.
- */
 import type { PackageData } from "./index";
 
 export const data: PackageData = {
 	commands: [
-		/* --- setup ----------------------------------------------------------- */
+		/* --- setup --- */
 		{
 			name: "usetikzlibrary",
 			snippet: "usetikzlibrary{${1:arrows.meta, positioning, calc}}$0",
@@ -45,7 +36,7 @@ export const data: PackageData = {
 			context: "text",
 		},
 
-		/* --- path commands --------------------------------------------------- */
+		/* --- path commands --- */
 		{
 			name: "draw",
 			snippet: "draw[$1] ($2) -- ($3);$0",
@@ -162,7 +153,7 @@ export const data: PackageData = {
 			package: "tikz",
 		},
 
-		/* --- loops and arithmetic --------------------------------------------- */
+		/* --- loops and arithmetic --- */
 		{
 			name: "foreach",
 			snippet: "foreach \\x in {${1:1,...,4}} {\n\t$0\n}",
@@ -211,7 +202,7 @@ export const data: PackageData = {
 			package: "tikz",
 		},
 
-		/* --- keys ------------------------------------------------------------- */
+		/* --- keys --- */
 		{
 			name: "pgfkeys",
 			snippet: "pgfkeys{${1:/tikz/key}=${2:value}}$0",
@@ -226,7 +217,7 @@ export const data: PackageData = {
 			package: "tikz",
 		},
 
-		/* --- layers ------------------------------------------------------------ */
+		/* --- layers --- */
 		{
 			name: "pgfdeclarelayer",
 			snippet: "pgfdeclarelayer{${1:background}}$0",
@@ -249,7 +240,7 @@ export const data: PackageData = {
 			package: "tikz",
 		},
 
-		/* --- low-level PGF ------------------------------------------------------ */
+		/* --- low-level PGF --- */
 		{
 			name: "pgfpoint",
 			snippet: "pgfpoint{${1:1cm}}{${2:1cm}}$0",
@@ -336,7 +327,7 @@ export const data: PackageData = {
 			package: "tikz",
 		},
 
-		/* --- colour ------------------------------------------------------------- */
+		/* --- colour --- */
 		{
 			name: "definecolor",
 			snippet: "definecolor{${1:name}}{${2:RGB}}{${3:0,0,0}}$0",
@@ -353,7 +344,7 @@ export const data: PackageData = {
 			package: "tikz",
 		},
 
-		/* --- fadings, marks, coordinate systems ---------------------------------- */
+		/* --- fadings, marks, coordinate systems --- */
 		{
 			name: "tikzfading",
 			snippet: "tikzfading[name=${1:fade out}, inner color=transparent!0, outer color=transparent!100]$0",
@@ -386,7 +377,7 @@ export const data: PackageData = {
 			package: "tikz",
 		},
 
-		/* --- externalisation ------------------------------------------------------ */
+		/* --- externalisation --- */
 		{
 			name: "tikzexternalize",
 			detail: "Compile each picture to its own cached PDF",

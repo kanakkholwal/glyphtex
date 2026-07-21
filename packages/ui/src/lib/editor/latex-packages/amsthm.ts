@@ -1,14 +1,3 @@
-/**
- * `amsthm` — theorem environments and proofs.
- *
- * Supplies `\newtheorem` with a notion of *style* (`plain`, `definition`,
- * `remark`) and a `proof` environment that ends in a QED symbol. Nothing is
- * predefined: `theorem`, `lemma` and friends exist only once the preamble
- * declares them.
- *
- * `\theoremstyle` applies to every `\newtheorem` that follows it, so declare
- * the styled groups in order rather than interleaving them.
- */
 import type { PackageData } from "./index";
 
 export const data: PackageData = {
@@ -33,7 +22,7 @@ export const data: PackageData = {
 			snippet: "theoremstyle{${1:plain}}$0",
 			detail: "Select the style for subsequent \\newtheorem declarations",
 			doc: "`plain` — italic body, bold head (theorems). `definition` — upright body (definitions, examples). `remark` — italic head, upright body (remarks, notes).",
-			example: "\\theoremstyle{definition}\n\\newtheorem{definition}{Definition}[section]",
+			example: "\\theoremstyle{definition}",
 			package: "amsthm",
 		},
 		{

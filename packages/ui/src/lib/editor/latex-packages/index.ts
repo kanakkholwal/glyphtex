@@ -1,16 +1,3 @@
-/**
- * Per-package LaTeX completion data, loaded on demand.
- *
- * The core dataset in `latex-data.ts` covers the kernel and the handful of
- * packages nearly every document loads. Everything else lives here, one module
- * per package, behind a dynamic import — TikZ alone is bigger than the entire
- * core dataset, and a document that never says `\usepackage{tikz}` should never
- * pay for it.
- *
- * The completion provider watches the document's `\usepackage` lines and pulls
- * the matching modules in the background, so the suggestions simply get better
- * a moment after a package is added rather than blocking anything.
- */
 import type { LatexCommand, LatexEnvironment } from "../latex-data";
 
 export type PackageData = {
@@ -18,10 +5,7 @@ export type PackageData = {
 	environments: readonly LatexEnvironment[];
 };
 
-/**
- * Package name → loader. Vite code-splits each dynamic import into its own
- * chunk, which is the entire point: the keys are cheap, the values are not.
- */
+/** Package name → loader. Vite code-splits each dynamic import into its own chunk. */
 export const PACKAGE_LOADERS: Readonly<Record<string, () => Promise<PackageData>>> = {
 	tikz: () => import("./tikz").then((m) => m.data),
 	pgfplots: () => import("./pgfplots").then((m) => m.data),
@@ -48,15 +32,12 @@ export const PACKAGE_LOADERS: Readonly<Record<string, () => Promise<PackageData>
 /** Packages we have data for, for the `\usepackage{}` suggestion detail. */
 export const KNOWN_PACKAGES: readonly string[] = Object.keys(PACKAGE_LOADERS);
 
-/** Everything loaded so far this session, keyed by package name. */
 const loaded = new Map<string, PackageData>();
-/** In-flight loads, so a package referenced twice is fetched once. */
 const loading = new Map<string, Promise<PackageData | null>>();
 
 /**
- * Ensure data for `names` is loaded. Resolves once every requested package that
- * has data is available; unknown packages resolve to nothing rather than
- * throwing, because a document may legitimately load anything.
+ * Ensure data for `names` is loaded. Unknown packages resolve to nothing rather
+ * than throwing, because a document may legitimately load anything.
  */
 export function ensurePackages(names: Iterable<string>): Promise<void> {
 	const pending: Promise<unknown>[] = [];
@@ -79,8 +60,7 @@ export function ensurePackages(names: Iterable<string>): Promise<void> {
 				return data;
 			})
 			.catch(() => {
-				// A chunk that fails to load must not poison the session — drop the
-				// in-flight entry so a later edit retries it.
+				// Drop the in-flight entry so a later edit retries the failed chunk.
 				loading.delete(name);
 				return null;
 			});

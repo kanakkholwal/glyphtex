@@ -1,15 +1,3 @@
-/**
- * `enumitem` — key=value control over list layout.
- *
- * Replaces the ritual of redefining `\labelenumi` and poking at `\itemsep` with
- * a single option list, either per-list (`\begin{itemize}[nosep]`) or globally
- * (`\setlist`).
- *
- * The keys worth remembering: `label=` (e.g. `\alph*)`), `noitemsep` (kill the
- * space between items), `nosep` (kill it around the list too), `itemsep=`,
- * `parsep=`, `topsep=`, `leftmargin=`, `labelsep=`, `widest=`, `start=`,
- * `resume`, and `wide` for a list with no indentation at all.
- */
 import type { PackageData } from "./index";
 
 export const data: PackageData = {

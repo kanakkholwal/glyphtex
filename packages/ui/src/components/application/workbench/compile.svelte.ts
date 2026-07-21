@@ -105,7 +105,7 @@ export class CompileStore {
 
   readonly compileLabel = $derived(
     !this.canCompile
-      ? "Desktop only"
+      ? "Compiler not ready"
       : this.compileStatus === "compiling"
         ? "Compiling…"
         : this.compileStatus === "error"

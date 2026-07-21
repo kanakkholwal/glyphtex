@@ -1,46 +1,45 @@
 {
-  "name": "glyphx",
-  "version": "0.0.0",
-  "private": true,
-  "description": "GlyphX — local-first, privacy-first LaTeX editor. Desktop (Tauri) + web, sharing one UI.",
-  "license": "GPL-3.0-or-later",
-  "packageManager": "pnpm@10.23.0",
-  "engines": {
-    "node": ">=22"
-  },
-  "scripts": {
-    "dev": "turbo run dev",
-    "dev:web": "turbo run dev --filter=@glyphx/web",
-    "dev:desktop": "turbo run dev --filter=@glyphx/desktop",
-    "build": "turbo run build",
-    "build:web": "turbo run build --filter=@glyphx/web",
-    "build:desktop": "turbo run build --filter=@glyphx/desktop",
-    "check": "turbo run check",
-    "lint": "turbo run lint",
-    "lint:fix": "turbo run lint:fix",
-    "lint:rust": "turbo run lint:rust",
-    "lint:rust:fix": "turbo run lint:rust:fix",
-    "format": "turbo run format",
-    "format:check": "turbo run format:check",
-    "fmt": "turbo run format format:rust",
-
-    "engine:types": "pnpm --filter @glyphx/tex-engine generate",
-    "engine:build": "bash crates/tectonic-wasm/scripts/build-wasm.sh",
-    "engine:sync": "pnpm --filter @glyphx/tex-engine sync:wasm",
-    "engine:package": "pnpm --filter @glyphx/tex-engine build",
-    "engine:check": "cargo test --manifest-path crates/glyphx-tex-api/Cargo.toml && pnpm --filter @glyphx/tex-engine check",
-    "engine:test": "pnpm --filter @glyphx/tex-engine test",
-    "engine:bundle:verify": "pnpm --filter @glyphx/tex-engine bundle:verify",
-    "engine:bundle:extend": "pnpm --filter @glyphx/tex-engine bundle:extend",
-    "engine:lint": "cargo clippy --manifest-path crates/glyphx-tex-api/Cargo.toml --all-targets -- -D warnings",
-    "engine:fmt": "cargo fmt --manifest-path crates/glyphx-tex-api/Cargo.toml",
-
-    "engine:all": "pnpm engine:types && pnpm engine:check && pnpm engine:build && pnpm engine:sync && pnpm engine:package && pnpm engine:bundle:verify && pnpm engine:test",
-
-    "_comment:verify": "engine:bundle:verify is deliberately not in this aggregate yet: the bundle has 8 known gaps (see crates/tectonic-wasm/BACKLOG.md), and a permanently-red command trains people to ignore failures. It stays a release gate in CI. Add it here once the gaps are filled.",
-    "verify": "pnpm check && pnpm lint && pnpm engine:check"
-  },
-  "devDependencies": {
-    "turbo": "^2"
-  }
+	"name": "glyphx",
+	"version": "0.0.0",
+	"private": true,
+	"description": "GlyphX — local-first, privacy-first LaTeX editor. Desktop (Tauri) + web, sharing one UI.",
+	"license": "GPL-3.0-or-later",
+	"packageManager": "pnpm@10.23.0",
+	"engines": {
+		"node": ">=22"
+	},
+	"scripts": {
+		"dev": "turbo run dev",
+		"dev:web": "turbo run dev --filter=@glyphx/web",
+		"dev:desktop": "turbo run dev --filter=@glyphx/desktop",
+		"build": "turbo run build",
+		"build:web": "turbo run build --filter=@glyphx/web",
+		"build:desktop": "turbo run build --filter=@glyphx/desktop",
+		"check": "turbo run check",
+		"lint": "turbo run lint",
+		"lint:fix": "turbo run lint:fix",
+		"lint:rust": "turbo run lint:rust",
+		"lint:rust:fix": "turbo run lint:rust:fix",
+		"format": "turbo run format",
+		"format:check": "turbo run format:check",
+		"fmt": "turbo run format format:rust",
+		"engine:types": "pnpm --filter @glyphx/tex-engine generate",
+		"engine:build": "bash crates/tectonic-wasm/scripts/build-wasm.sh",
+		"engine:sync": "pnpm --filter @glyphx/tex-engine sync:wasm",
+		"engine:package": "pnpm --filter @glyphx/tex-engine build",
+		"engine:check": "cargo test --manifest-path crates/glyphx-tex-api/Cargo.toml && pnpm --filter @glyphx/tex-engine check",
+		"engine:test": "pnpm --filter @glyphx/tex-engine test",
+		"engine:bundle:verify": "pnpm --filter @glyphx/tex-engine bundle:verify",
+		"engine:bundle:extend": "pnpm --filter @glyphx/tex-engine bundle:extend",
+		"engine:bundle:format": "pnpm --filter @glyphx/tex-engine bundle:format",
+		"engine:web:sync": "pnpm --filter @glyphx/web sync:engine",
+		"engine:lint": "cargo clippy --manifest-path crates/glyphx-tex-api/Cargo.toml --all-targets -- -D warnings",
+		"engine:fmt": "cargo fmt --manifest-path crates/glyphx-tex-api/Cargo.toml",
+		"engine:all": "pnpm engine:types && pnpm engine:check && pnpm engine:build && pnpm engine:sync && pnpm engine:package && pnpm engine:bundle:verify && pnpm engine:test",
+		"_comment:verify": "engine:bundle:verify is deliberately not in this aggregate yet: the bundle has 8 known gaps (see crates/tectonic-wasm/BACKLOG.md), and a permanently-red command trains people to ignore failures. It stays a release gate in CI. Add it here once the gaps are filled.",
+		"verify": "pnpm check && pnpm lint && pnpm engine:check"
+	},
+	"devDependencies": {
+		"turbo": "^2"
+	}
 }

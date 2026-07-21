@@ -1,13 +1,3 @@
-// Every package group the installer offers must actually compile.
-//
-// bundle-manifest.json lists the files each group needs, and verify-bundle.mjs
-// checks they are present — but presence is not support. A `.sty` can be in the
-// bundle and still fail at compile time because a dependency, a font file, or
-// the LaTeX kernel version is wrong. These tests close that gap: one real
-// document per group, each asserted to produce a PDF.
-//
-// This is the same class of false promise as the old font fallback — the UI
-// offering something the engine cannot deliver — one layer up.
 import { test, before, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -40,39 +30,35 @@ describe('package groups', { skip: haveArtifacts ? false : 'wasm or bundle not a
 	});
 
 	for (const group of GROUP_FIXTURES) {
-		test(`${group.id} — ${group.label}`, () => {
-			engine.clearOutputs();
-			engine.addFile('main.tex', group.source);
-			const result = engine.compile({ entry: 'main.tex' });
+		for (const sample of group.documents) {
+			test(`${group.id}: ${sample.label}`, () => {
+				engine.clearOutputs();
+				engine.addFile('main.tex', sample.source);
+				const result = engine.compile({ entry: 'main.tex' });
 
-			// Report the engine's own diagnosis rather than a bare assertion
-			// failure — "expected not 'failed'" says nothing actionable.
-			const errors = result.diagnostics
-				.filter((d) => d.severity === 'error')
-				.slice(0, 3)
-				.map((d) => d.message)
-				.join(' | ');
-			const detail = [result.message, errors].filter(Boolean).join(' — ');
+				const errors = result.diagnostics
+					.filter((d) => d.severity === 'error')
+					.slice(0, 3)
+					.map((d) => d.message)
+					.join(' | ');
+				const detail = [result.message, errors].filter(Boolean).join(' — ');
+				const where = `${group.label} / ${sample.label}`;
 
-			assert.notEqual(result.status, 'failed', `${group.label}: ${detail || 'no output'}`);
+				assert.notEqual(result.status, 'failed', `${where}: ${detail || 'no output'}`);
 
-			const pdf = engine.pdf();
-			assert.ok(pdf && pdf.length > 0, `${group.label}: no PDF bytes`);
-			assert.equal(
-				Buffer.from(pdf.subarray(0, 5)).toString('latin1'),
-				'%PDF-',
-				`${group.label}: output is not a PDF`
-			);
-			// A header-only PDF is the failure mode the font-fallback bug used to
-			// produce: valid magic bytes, zero content, no error anywhere.
-			assert.ok(pdf.length > 1000, `${group.label}: PDF is suspiciously small (${pdf.length} B)`);
+				const pdf = engine.pdf();
+				assert.ok(pdf && pdf.length > 0, `${where}: no PDF bytes`);
+				assert.equal(
+					Buffer.from(pdf.subarray(0, 5)).toString('latin1'),
+					'%PDF-',
+					`${where}: output is not a PDF`
+				);
+				// The font-fallback bug produced header-only PDFs: valid magic bytes,
+				// no content, no error anywhere.
+				assert.ok(pdf.length > 1000, `${where}: PDF suspiciously small (${pdf.length} B)`);
 
-			// A group whose packages loaded but errored is not "supported".
-			assert.equal(
-				result.status === 'errors',
-				false,
-				`${group.label} compiled with errors: ${errors}`
-			);
-		});
+				assert.notEqual(result.status, 'errors', `${where} compiled with errors: ${errors}`);
+			});
+		}
 	}
 });

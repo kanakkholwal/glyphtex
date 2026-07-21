@@ -1,17 +1,3 @@
-/**
- * LaTeX language intelligence for Monaco: completion and hover.
- *
- * There is no LaTeX language server in the browser, so this is a deliberately
- * pragmatic stand-in for one — everything is derived from a static dataset plus
- * a scan of the open document. That covers what a writer actually notices
- * (commands, environments, cross-references, citations) without a LaTeX
- * installation or a backend.
- *
- * Suggestions are context-*ranked*, not context-filtered. A wrong guess about
- * whether the caret is inside math should demote a suggestion, never hide it:
- * a missing completion is far more annoying than a badly ordered one, and the
- * math heuristic below is a heuristic.
- */
 import type * as Monaco from "monaco-editor";
 
 import type { MonacoNamespace } from "./monaco";
@@ -28,35 +14,27 @@ import {
 	type LatexEnvironment,
 } from "./latex-data";
 
-/** Commands whose braces hold a label defined elsewhere in the document. */
 const REF_COMMANDS =
 	/\\(ref|eqref|autoref|pageref|nameref|cref|Cref|crefrange|labelcref|vref)\s*\{[^}]*$/;
 
-/** Commands whose braces hold a citation key. */
 const CITE_COMMANDS =
 	/\\(cite|citep|citet|citeauthor|citeyear|parencite|textcite|autocite|footcite|nocite)\s*(\[[^\]]*\])*\s*\{[^}]*$/;
 
 const BEGIN_END = /\\(begin|end)\s*\{[^}]*$/;
 const USEPACKAGE = /\\(usepackage|RequirePackage)\s*(\[[^\]]*\])?\s*\{[^}]*$/;
 const DOCUMENTCLASS = /\\documentclass\s*(\[[^\]]*\])?\s*\{[^}]*$/;
-/** A partially typed command: the backslash and any letters after it. */
 const PARTIAL_COMMAND = /\\([a-zA-Z@]*)$/;
 
-/** Symbols harvested from the document itself. */
 type DocumentSymbols = {
 	labels: { name: string; line: number }[];
 	citations: { key: string; line: number }[];
 	commands: { name: string; line: number }[];
 	environments: string[];
-	/** Packages the document loads, used to pull in their completion data. */
 	packages: string[];
 };
 
-/**
- * Cache keyed by model, invalidated on version id — the document is rescanned
- * once per edit rather than once per keystroke-in-a-completion, which matters
- * because completion providers run on every character typed.
- */
+// Keyed by model, invalidated on version id: completion providers run on every
+// keystroke, so rescan once per edit instead.
 const symbolCache = new WeakMap<
 	Monaco.editor.ITextModel,
 	{ version: number; symbols: DocumentSymbols }
@@ -85,9 +63,8 @@ function scanDocument(model: Monaco.editor.ITextModel): DocumentSymbols {
 	};
 
 	collect(/\\label\s*\{([^}]+)\}/g, (m, line) => symbols.labels.push({ name: m[1], line }));
-	// Both bibliography styles: a plain thebibliography list and .bib keys that
-	// happen to be cited already (the latter is how you get useful completion
-	// without parsing a .bib file we may not have).
+	// Both bibliography styles: thebibliography items, plus already-cited keys —
+	// which gives useful completion without parsing a .bib we may not have.
 	collect(/\\bibitem\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/g, (m, line) =>
 		symbols.citations.push({ key: m[1], line }),
 	);
@@ -124,6 +101,16 @@ function scanDocument(model: Monaco.editor.ITextModel): DocumentSymbols {
 	return symbols;
 }
 
+// Sources are passed general-to-specific and later entries win, because packages
+// legitimately redefine core names (beamer's `frame` is not the core `frame`).
+function mergeByName<T extends { name: string }>(...sources: readonly T[][]): T[] {
+	const merged = new Map<string, T>();
+	for (const source of sources) {
+		for (const item of source) merged.set(item.name, item);
+	}
+	return [...merged.values()];
+}
+
 function dedupeBy<T>(items: T[], key: (item: T) => string): T[] {
 	const seen = new Set<string>();
 	return items.filter((item) => {
@@ -134,14 +121,8 @@ function dedupeBy<T>(items: T[], key: (item: T) => string): T[] {
 	});
 }
 
-/**
- * Whether the caret is most likely inside math.
- *
- * Counts unescaped `$` and tracks the display-math delimiters and environments
- * before the caret. It cannot be exact without a full parse — `\text{}` inside
- * math and verbatim blocks both fool it — which is why the result only
- * influences ranking.
- */
+// Heuristic, not exact: `\text{}` inside math and verbatim blocks both fool it,
+// which is why the result only influences ranking and never filters.
 function inMathContext(textBefore: string): boolean {
 	let dollars = 0;
 	for (let i = 0; i < textBefore.length; i++) {
@@ -181,10 +162,8 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 		triggerCharacters: ["\\", "{", ",", "["],
 
 		provideCompletionItems(model, position) {
-			// Pull in data for whatever the document loads. Deliberately not
-			// awaited: the current keystroke answers from what is already loaded,
-			// and the next one — milliseconds later — sees the rest. Blocking here
-			// would stall the widget on a network chunk.
+			// Deliberately not awaited: awaiting would stall the widget on a network
+			// chunk; the next keystroke sees the newly loaded data.
 			void ensurePackages(scanDocument(model).packages);
 
 			const lineBefore = model.getValueInRange({
@@ -246,11 +225,11 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 			detail: "Defined in this document",
 		}));
 
-		return [
-			...LATEX_ENVIRONMENTS,
-			...loadedPackageData().environments,
-			...userDefined,
-		].map((env) => {
+		return mergeByName<LatexEnvironment>(
+			[...LATEX_ENVIRONMENTS],
+			[...loadedPackageData().environments],
+			userDefined,
+		).map((env) => {
 			const body = env.body ?? "\n\t$0\n";
 			return {
 				label: env.name,
@@ -374,11 +353,11 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 			detail: `Defined on line ${command.line}`,
 		}));
 
-		return [
-			...LATEX_COMMANDS,
-			...loadedPackageData().commands,
-			...userDefined,
-		].map((command) => ({
+		return mergeByName<LatexCommand>(
+			[...LATEX_COMMANDS],
+			[...loadedPackageData().commands],
+			userDefined,
+		).map((command) => ({
 			label: `\\${command.name}`,
 			kind: command.snippet ? Kind.Function : Kind.Constant,
 			detail: command.detail,

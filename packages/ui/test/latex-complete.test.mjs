@@ -1,9 +1,8 @@
-// Exercise the LaTeX completion provider against a stub Monaco model.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { registerLatexCompletions } from './.build/latex-complete.mjs';
+import { registerLatexCompletions } from './.build/editor.mjs';
 
-/* ---- stub monaco namespace: only what the provider actually touches ---- */
+// Stub monaco namespace: only what the provider actually touches.
 let completionProvider = null;
 let hoverProvider = null;
 
@@ -16,7 +15,6 @@ const monaco = {
 	},
 };
 
-/* ---- stub ITextModel over a plain string ---- */
 function makeModel(text) {
 	const lines = text.split('\n');
 	const offsetOf = (lineNumber, column) => {
@@ -59,7 +57,6 @@ E = mc^2
 \\end{equation}
 `;
 
-/** Complete at the end of `snippet` appended as a new last line. */
 function completeAfter(fragment) {
 	const text = DOC + fragment;
 	const model = makeModel(text);
@@ -105,7 +102,7 @@ describe('LaTeX completion', () => {
 		const frac = items.find((i) => i.label === '\\frac');
 		assert.ok(frac, 'frac should be offered');
 		assert.equal(frac.insertText, '\\frac{$1}{$2}$0');
-		// The replace range must cover "\fra" (4 chars) so we don't get "\fra\frac".
+		// Range must cover "\fra" (4 chars) or the insert reads "\fra\frac".
 		assert.equal(frac.range.endColumn - frac.range.startColumn, 4);
 		assert.equal(frac.filterText, '\\frac');
 	});
@@ -118,7 +115,6 @@ describe('LaTeX completion', () => {
 	test('\\usepackage{ offers packages, \\documentclass{ offers classes', () => {
 		assert.ok(labelsOf(completeAfter('\\usepackage{')).includes('graphicx'));
 		assert.ok(labelsOf(completeAfter('\\documentclass{')).includes('beamer'));
-		// Must not bleed into each other.
 		assert.ok(!labelsOf(completeAfter('\\documentclass{')).includes('graphicx'));
 	});
 

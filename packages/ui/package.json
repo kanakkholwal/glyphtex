@@ -244,7 +244,8 @@
   "scripts": {
     "build": "exit 0",
     "check": "exit 0",
-    "pretest": "esbuild src/lib/editor/latex-complete.ts --bundle --format=esm --outfile=test/.build/latex-complete.mjs --external:monaco-editor --log-level=error",
-    "test": "node --test test/*.test.mjs"
+    "pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --external:monaco-editor --log-level=error",
+    "test": "node --test test/*.test.mjs",
+    "test:browser": "node ./test/browser/editor-smoke.mjs"
   }
 }

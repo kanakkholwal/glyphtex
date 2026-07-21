@@ -1,16 +1,9 @@
-/**
- * `hyperref` — hyperlinks, PDF bookmarks and document metadata.
- *
- * Turns every cross-reference, citation and ToC entry into a clickable link and
- * writes the PDF's outline and metadata. It redefines a great deal of the
- * kernel, so it should be loaded LAST — after almost every other package, with
- * `cleveref` the notable exception that comes after it.
- */
 import type { PackageData } from "./index";
 
+// Load last, after every other package except `cleveref`, which comes after it.
 export const data: PackageData = {
 	commands: [
-		/* --- links ------------------------------------------------------------ */
+		/* --- links --- */
 		{
 			name: "href",
 			snippet: "href{${1:https://example.com}}{${2:link text}}$0",
@@ -68,7 +61,7 @@ export const data: PackageData = {
 			context: "text",
 		},
 
-		/* --- references ------------------------------------------------------- */
+		/* --- references --- */
 		{
 			name: "autoref",
 			snippet: "autoref{$1}$0",
@@ -117,7 +110,7 @@ export const data: PackageData = {
 			context: "text",
 		},
 
-		/* --- setup and metadata ------------------------------------------------ */
+		/* --- setup and metadata --- */
 		{
 			name: "hypersetup",
 			snippet: "hypersetup{\n\tcolorlinks=true,\n\tlinkcolor=${1:blue},\n\tcitecolor=${2:blue},\n\turlcolor=${3:blue},\n}$0",
@@ -165,7 +158,7 @@ export const data: PackageData = {
 			package: "hyperref",
 		},
 
-		/* --- forms and files ---------------------------------------------------- */
+		/* --- forms and files --- */
 		{
 			name: "Acrobatmenu",
 			snippet: "Acrobatmenu{${1:GoToPage}}{${2:text}}$0",

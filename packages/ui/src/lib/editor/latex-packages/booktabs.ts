@@ -1,13 +1,3 @@
-/**
- * `booktabs` — professional table rules.
- *
- * Formal tables use a handful of horizontal rules of graded weight and no
- * vertical rules at all. The package supplies those rules with correct spacing
- * above and below, which is the part `\hline` gets wrong.
- *
- * The convention is one `\toprule`, one `\midrule` under the header, and one
- * `\bottomrule` — never a doubled rule, never a `|` in the column spec.
- */
 import type { PackageData } from "./index";
 
 export const data: PackageData = {

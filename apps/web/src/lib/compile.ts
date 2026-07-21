@@ -12,7 +12,7 @@
 // package server going down.
 
 import type { Diagnostic } from '@glyphx/tex-engine';
-import { loadManifest, ENGINE_CACHE } from './tex/manifest';
+import { loadManifest, openEngineCache } from './tex/manifest';
 import type { UnsentRequest, WorkerRequest, WorkerResponse } from './tex/protocol';
 
 export type CompileOutcome = {
@@ -95,11 +95,13 @@ function send(
  * leaving the app claiming an engine it no longer has.
  */
 export async function engineReady(): Promise<boolean> {
-	if (typeof caches === 'undefined') return false;
-
 	try {
+		const cache = await openEngineCache();
+		// No cache means nothing can have been persisted, so the engine is never
+		// "already installed" — the setup prompt is correct in that case.
+		if (!cache) return false;
+
 		const manifest = await loadManifest();
-		const cache = await caches.open(ENGINE_CACHE);
 		const wanted = Object.keys(manifest.files).map((name) => `/engine/${name}?v=${manifest.version}`);
 		const found = await Promise.all(wanted.map((url) => cache.match(url)));
 		return found.every(Boolean);

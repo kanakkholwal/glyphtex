@@ -1,16 +1,6 @@
-/**
- * `natbib` — author–year and numeric citations for classic BibTeX.
- *
- * The long-standing companion to `\bibliographystyle`/`\bibliography`, and what
- * most journal classes still expect. Its distinction is between textual
- * (`\citet`) and parenthetical (`\citep`) citations, each with a starred and a
- * bracket-less variant.
- *
- * natbib and biblatex are MUTUALLY EXCLUSIVE — loading both is an error. Pick
- * natbib for a BibTeX/`.bst` workflow, biblatex (with Biber) otherwise.
- */
 import type { PackageData } from "./index";
 
+// Mutually exclusive with `biblatex` — loading both is an error.
 export const data: PackageData = {
 	commands: [
 		{
