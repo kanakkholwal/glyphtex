@@ -1,31 +1,4 @@
-/* ============================================================================
-   GlyphX — Design System
-   Single source of truth for tokens, consumed by every app via
-   `@import '@glyphx/ui/app.css'`.
-
-   Identity: "neutral monochrome with a single rationed GlyphX blue."
-   Both modes share ONE neutral greyscale: light is clean near-white (#FAFAFA)
-   on white cards; dark is a neutral near-black (#121212) on #191919 cards.
-   Neutral zinc greys carry the ladder + muted text; ink is the primary voice;
-   ONE rationed GlyphX blue accent (--brand #007ACC / #1F9CF0) marks active /
-   selected / focused / linked / branded. All colours are authored in oklch
-   (perceptually uniform, wide-gamut-ready). Target ~90% neutral surfaces, ~10%
-   brand. Restraint is the premium signal — colour is the exception, never the rule.
-
-   Token registers:
-   - Semantic tokens (--background, --primary, --muted, --border, …) drive the
-     whole component library + editor chrome. These stay monochrome slate.
-   - --brand (GlyphX blue) is the single rationed accent. Never hijack the
-     shadcn neutral --accent (a hover/surface token) for brand colour.
-   - Marketing helpers (--canvas, --surface-*, --ink*, --hairline) mirror the
-     semantic surfaces for the landing layer.
-   ============================================================================ */
-
-/* Self-hosted variable fonts — bundled, so they work fully offline.
-   Inter (UI + body voice, with the bespoke OpenType character variants) + Geist
-   (the geometric display face — our GT-Walsheim substitute for headline moments).
-   Geist Mono / JetBrains Mono are the technical voices (labels, code, the editor).
-   Fraunces is the editorial serif, kept only for the marketing serif accent. */
+/* Self-hosted variable fonts — bundled, so they work fully offline. */
 @import "@fontsource-variable/inter/index.css";
 @import "@fontsource-variable/geist/index.css";
 @import "@fontsource-variable/geist-mono/index.css";
@@ -44,20 +17,10 @@
    default node_modules ignore so classes resolve when consumed cross-package. */
 @source './';
 
-/* ---------------------------------------------------------------------------
-   Light — clean near-white neutrals (the default register)
-   --------------------------------------------------------------------------- */
+/* --- Light --- */
 :root {
-  /* --- Islands Light --------------------------------------------------------
-     The light counterpart, derived from `islandLightPalette` in
-     `lib/editor/jetbrains-monaco.ts` the same way the dark block is. Note the
-     asymmetry, which is upstream's and not ours: JetBrains' "Islands Light"
-     ships no editor scheme of its own — it declares `editorScheme: "Light"` —
-     so the light surface is the New UI Light scheme, a cooler and flatter set
-     than Islands Dark.
-
-     Surface ladder: bg #ffffff < lineHighlight #f5f8fe < indentGuide #ebecf0
-     < widgetBorder #e9eaee. */
+  /* Derived from `islandLightPalette` in `lib/editor/jetbrains-monaco.ts`. Upstream
+     Islands Light has no editor scheme of its own, so this is New UI Light. */
   --background: #f7f8fa; /* one step under white so cards read as raised */
   --foreground: #080808; /* palette.fg */
   --card: #ffffff; /* palette.bg */
@@ -77,10 +40,8 @@
   --accent: #ebecf0; /* palette.indentGuide — hover/pressed surface */
   --accent-foreground: #080808;
 
-  /* Status. The light scheme's raw #ff0000 / #ebc700 are squiggle colours meant
-     to sit under text at small size; used as UI fills they are garish and the
-     yellow fails contrast on white. These are the same hues pulled to usable
-     lightness — the one place this file deliberately departs from upstream. */
+  /* The scheme's raw #ff0000 / #ebc700 are squiggle colours: garish as UI fills and
+     the yellow fails contrast on white, so these are the same hues re-lightened. */
   --destructive: #d13438;
   --destructive-foreground: #ffffff;
   --success: #067d17; /* palette.string — already usable as-is */
@@ -112,8 +73,8 @@
   --chart-4: oklch(0.7118 0.0129 286.07);
   --chart-5: oklch(0.72 0.165 246);
 
-  /* ---- The single chromatic accent — sky-blue (Framer accent, ~#0099FF). The
-	   one signal colour: links, focus rings, selection, active/branded. ---- */
+  /* The one signal colour: links, focus rings, selection, active/branded. Never
+     hijack the neutral --accent (a hover/surface token) for brand colour. */
   --brand: oklch(0.62 0.185 246);
   --brand-foreground: oklch(1 0 0);
   --brand-hover: oklch(0.565 0.175 246);
@@ -127,9 +88,7 @@
     #007acc 100%
   );
 
-  /* Marketing accents — reserved for editorial/illustrative landing moments.
-	   Still tokenized here so the website's visual direction stays centrally
-	   controllable from one stylesheet. */
+  /* Marketing accents — editorial/illustrative landing moments only. */
   --signal-cyan: oklch(0.7832 0.1259 208.88);
   --signal-cyan-soft: oklch(0.7832 0.1259 208.88 / 0.14);
   --signal-blue: oklch(0.6274 0.1918 259.39);
@@ -158,9 +117,8 @@
   /* Base radius — crisp, not pill. Component scale derives from this. */
   --radius: 0.625rem;
 
-  /* Spacing scale (adopted from trace-mvp). Raw vars, NOT in @theme — kept out
-	   of Tailwind's --spacing-* namespace so they don't clobber max-w-*, text-*,
-	   etc. Use as: padding: var(--space-lg). */
+  /* Raw vars, NOT in @theme: Tailwind's --spacing-* namespace would clobber
+     max-w-*, text-*, etc. Use as `padding: var(--space-lg)`. */
   --space-hair: 1px;
   --space-xxs: 0.25rem;
   --space-xs: 0.5rem;
@@ -171,9 +129,7 @@
   --space-xxl: 2.5rem;
   --space-section: 6rem;
 
-  /* Display letter-spacing scale (adopted from trace-mvp). Raw vars — applied
-	   via inline style / component classes, NOT in @theme (would override the
-	   tracking-* utilities). */
+  /* Raw vars, NOT in @theme: there they would override the tracking-* utilities. */
   --tracking-display-xxl: -5.5px;
   --tracking-display-xl: -4.25px;
   --tracking-display-lg: -3.1px;
@@ -186,25 +142,10 @@
   --tracking-micro: -0.12px;
 }
 
-/* ---------------------------------------------------------------------------
-   Dark — neutral near-black (clean greys; brand blue is the only hue)
-   --------------------------------------------------------------------------- */
+/* --- Dark --- */
 .dark {
-  /* --- Islands Dark ---------------------------------------------------------
-     The app chrome is the JetBrains "Islands Dark" scheme, so the workbench,
-     side panels and the editor surface read as one continuous IDE rather than
-     an editor embedded in a differently-coloured shell.
-
-     Every value below is a literal from `islandDarkPalette` in
-     `lib/editor/jetbrains-monaco.ts` — that module is the source of truth and
-     each token names the palette key it came from. Do not "improve" a value
-     here in isolation; change the palette, or the editor and its chrome drift
-     apart, which is precisely what this replaced.
-
-     The surface ladder is the scheme's own depth cues, in order:
-       bg #191a1c  <  lineHighlight #1f2024  <  widgetBg #26282c  <  border #33353b
-     Kept as hex rather than converted to oklch: these are transcribed constants,
-     and a converted copy is a copy that can silently disagree with the editor. */
+  /* Literals from `islandDarkPalette` in `lib/editor/jetbrains-monaco.ts` — edit the
+     palette, not these, or the editor and its chrome drift apart. Hex, not oklch. */
   --background: #191a1c; /* palette.bg */
   --foreground: #bcbec4; /* palette.fg */
   --card: #1f2024; /* palette.lineHighlight — one step off the canvas */
@@ -224,8 +165,7 @@
   --accent: #33353b; /* palette.widgetBorder — hover/pressed surface */
   --accent-foreground: #bcbec4;
 
-  /* Status colours are the scheme's own squiggle colours, so a problem in the
-     Problems panel is the same red as the squiggle under the offending line. */
+  /* The scheme's own squiggle colours, so the Problems panel matches the squiggle. */
   --destructive: #fa6675; /* palette.error */
   --destructive-foreground: #191a1c;
   --success: #6aab73; /* palette.string */
@@ -282,10 +222,8 @@
   --border-subtle: #26282c;
 }
 
-/* ---------------------------------------------------------------------------
-   Map tokens → Tailwind utilities.
-   `inline` keeps the var reference live so .dark overrides flow through.
-   --------------------------------------------------------------------------- */
+/* Map tokens → Tailwind utilities. `inline` keeps the var reference live so
+   .dark overrides flow through. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -369,20 +307,15 @@
   --ease-craft: cubic-bezier(0.625, 0.05, 0, 1);
 }
 
-/* ---------------------------------------------------------------------------
-   Static design tokens (typography, materiality). Not theme-dependent.
-   --------------------------------------------------------------------------- */
+/* Static design tokens (typography, materiality). Not theme-dependent. */
 @theme {
-  /* Inter is the UI + body voice (its OpenType character variants are enabled on
-	   <body>). Geist is the geometric display face — our GT-Walsheim substitute. */
   --font-sans:
     "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
   --font-display:
     "Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
-  /* Editorial serif — warm, magazine-like display voice for marketing headline
-	   moments only (the autosend "Cooper Lt BT" register). Never app chrome. */
+  /* Marketing headline moments only. Never app chrome. */
   --font-serif:
     "Fraunces Variable", "Fraunces", "Cooper Lt BT", Georgia, "Times New Roman",
     serif;
@@ -404,9 +337,8 @@
   --shadow-craft-xl:
     0 20px 40px -8px rgb(9 9 11 / 0.1), 0 8px 16px -8px rgb(9 9 11 / 0.06);
 
-  /* Elevation set (adopted from trace-mvp): base drops + a light-edge floating
-	   shadow + a focus ring. Monochrome — colours stay ours (ring derives from
-	   --ring rather than trace's blue). */
+  /* Elevation set (adopted from trace-mvp), but monochrome: the ring derives
+     from --ring rather than trace's blue. */
   --shadow-md:
     0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
   --shadow-xl:
@@ -418,9 +350,6 @@
     0 0 0 4px color-mix(in oklab, var(--ring) 15%, transparent);
 }
 
-/* ---------------------------------------------------------------------------
-   Base layer
-   --------------------------------------------------------------------------- */
 @layer base {
   * {
     border-color: var(--border);
@@ -451,8 +380,7 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    /* Inter's bespoke voice — the OpenType character variants DESIGN.md calls out
-		   (alt 1/g/i-l/0, stylistic sets, discretionary ligatures). */
+    /* Inter's bespoke OpenType character variants (see DESIGN.md). */
     font-feature-settings:
       "cv01", "cv05", "cv09", "cv11", "ss03", "ss07", "dlig";
     -webkit-font-smoothing: antialiased;
@@ -466,9 +394,7 @@
     letter-spacing: -0.025em;
   }
 
-  /* Editorial serif headlines (marketing) — Fraunces with the SOFT axis dialled
-	   up for warmth and a generous optical size. Light weight reads magazine-like,
-	   not corporate. Pair `italic` on emphasis words for the autosend hero look. */
+  /* Fraunces with the SOFT axis dialled up; pair `italic` on emphasis words. */
   .font-serif {
     font-family: var(--font-serif);
     font-weight: 400;
@@ -498,9 +424,8 @@
   }
 }
 
-/* Unlayered (wins over Tailwind utilities): menu / option / tab items hard-code
-   `cursor-default` in their base components, but they're clickable — give them a
-   pointer. Disabled items keep the default. */
+/* Unlayered so it wins over Tailwind: the base components hard-code
+   `cursor-default` on these clickable items. */
 [role="menuitem"]:not([data-disabled]):not([aria-disabled="true"]),
 [role="menuitemcheckbox"]:not([data-disabled]):not([aria-disabled="true"]),
 [role="menuitemradio"]:not([data-disabled]):not([aria-disabled="true"]),
@@ -509,10 +434,9 @@
   cursor: pointer;
 }
 
-/* --- Scrollbars (slim, monochrome) ------------------------------------------
-   A quiet neutral scrollbar everywhere — a thin foreground-tinted pill on a
-   transparent track that brightens on hover/active. Firefox uses the standard
-   props; WebKit/Chromium (the Tauri WebView) gets the styled pseudo-elements. */
+/* --- Scrollbars --- */
+/* Firefox uses the standard props; WebKit/Chromium (the Tauri WebView) needs
+   the pseudo-elements below. */
 * {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent)
@@ -528,8 +452,7 @@
 }
 ::-webkit-scrollbar-thumb {
   background: color-mix(in oklab, var(--foreground) 16%, transparent);
-  /* The transparent border + padding-box clip makes the pill look slim with
-	   breathing room from the track edge. */
+  /* Transparent border + padding-box clip is what insets the pill from the track. */
   border: 3px solid transparent;
   border-radius: 9999px;
   background-clip: padding-box;
@@ -561,11 +484,7 @@
   display: none;
 }
 
-/* ---------------------------------------------------------------------------
-   Marketing / landing primitives
-   Shared structural language for the website redesign. Keep these token-driven
-   so changing the look means editing this stylesheet, not hunting markup.
-   --------------------------------------------------------------------------- */
+/* --- Marketing / landing primitives --- */
 @layer components {
   .landing-site-header {
     position: relative;
@@ -599,9 +518,8 @@
     pointer-events: none;
   }
 
-  /* Rules sit at the 80rem content-column edge (not 1.25rem inside it), so the
-	   inner container padding becomes a real gutter between the line and content
-	   instead of the ~4px sliver it was before. */
+  /* Rules sit at the 80rem content-column edge, not 1.25rem inside it, so the
+     container padding reads as a gutter rather than a ~4px sliver. */
   .landing-shell::before {
     left: max(1.25rem, calc((100vw - 80rem) / 2));
   }
@@ -640,9 +558,7 @@
     pointer-events: none;
   }
 
-  /* Section heading ladder — ONE display treatment for every marketing H2 so
-	   sizes stay consistent instead of per-section arbitrary values. Emphasis
-	   words use the Fraunces serif via <em> (mirrors the hero's serif accent). */
+  /* ONE display treatment for every marketing H2; emphasis words use <em>. */
   .landing-section-title {
     font-family: var(--font-display);
     font-weight: 600;
@@ -664,8 +580,7 @@
       "WONK" 1;
   }
 
-  /* Decorative dot-pattern SVGs (vendored in static/decor). Used in the hero
-	   corners and mirrored on the CTA panel edges — the same signature motif. */
+  /* Decorative dot-pattern SVGs, vendored in static/decor. */
   .landing-corner-image {
     position: absolute;
     bottom: -0.5rem;
@@ -1213,8 +1128,7 @@
     padding: 4rem 1.5rem;
     border: 1px solid var(--hairline);
     border-radius: 2.2rem;
-    /* Faint vertical pinstripe field that fades out through the centre so the
-		   copy stays clean — the Nex CTA texture, driven by --hairline. */
+    /* Pinstripe field that fades out through the centre so the copy stays clean. */
     background:
       radial-gradient(
         ellipse 58% 64% at 50% 50%,
@@ -1233,16 +1147,7 @@
     text-align: center;
   }
 
-  /* -----------------------------------------------------------------------
-	   Landing material utilities (glass cards, frosted chips, photo grids).
-	   Shared with the marketing chrome — landing-Header / -Footer /
-	   -HeroBackdrop / -ShowcasePanel all consume them.
-
-	   The glass surfaces are token-driven: card colour comes from --card
-	   (white in light, near-black in dark), and the frosted blur/saturate
-	   pass renders identically on both. Light edge + soft drop complete the
-	   macOS-style "frosted window" look without hardcoded colours.
-	   ----------------------------------------------------------------------- */
+  /* --- Landing material utilities --- */
   .landing-glass {
     background-color: color-mix(in oklab, var(--card) 60%, transparent);
     backdrop-filter: blur(24px) saturate(160%);
@@ -1296,8 +1201,7 @@
       0 4px 16px -4px rgb(0 0 0 / 0.08);
   }
 
-  /* Subtle dot/grid backdrops used by hero + sections to anchor the page
-	   when the photo backdrop is not visible. */
+  /* Dot/grid backdrops that anchor the page when the photo backdrop isn't visible. */
   .landing-bg-grid {
     background-image:
       linear-gradient(
@@ -1334,8 +1238,6 @@
     background-size: 20px 20px;
   }
 
-  /* Soft aurora tint used at the top of sections to add depth without
-	   pulling focus from the copy. */
   .landing-bg-aurora {
     background-image:
       radial-gradient(
@@ -1374,8 +1276,7 @@
     );
   }
 
-  /* The visible footer wordmark — a translucent block of glyphs that sits
-	   over the footer backdrop photo, hugging the type via leading. */
+  /* Translucent block of glyphs sitting over the footer backdrop photo. */
   .landing-footer-wordmark {
     display: block;
     text-align: center;
@@ -1428,10 +1329,9 @@
   }
 }
 
-/* --- Monaco --------------------------------------------------------------
-   The editor paints itself from its registered theme, but decorations we add
-   ourselves need real CSS. Search hits are the only one: the find/replace panel
-   drives them through a decorations collection (see code-editor/controller). */
+/* --- Monaco --- */
+/* Monaco paints itself from its registered theme; decorations we add need real
+   CSS. Search hits come from code-editor/controller's decorations collection. */
 .glyphx-search-match {
   background-color: color-mix(in oklab, var(--color-warning) 32%, transparent);
   border-radius: 2px;

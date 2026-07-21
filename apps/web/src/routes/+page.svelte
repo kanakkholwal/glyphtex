@@ -11,7 +11,6 @@
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
 	import {
-		IconAlertTriangle,
 		IconArrowRight,
 		IconBolt,
 		IconLayout,
@@ -20,7 +19,6 @@
 		IconBrandGithub,
 		IconBrowser,
 		IconCheck,
-		IconChevronDown,
 		IconClock,
 		IconMinus,
 		IconCloudOff,
@@ -39,8 +37,7 @@
 		IconStack3,
 		IconUsersGroup,
 		IconWifiOff,
-		IconWriting,
-		IconX
+		IconWriting
 	} from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { fly, slide } from 'svelte/transition';
@@ -81,7 +78,9 @@
 	let wordIndex = $state(0);
 
 	$effect(() => {
-		// Reset the typed buffer whenever the target word changes.
+		// Reset the typed buffer whenever the target word changes; the bare
+		// reference is what registers the dependency.
+		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 		wordIndex;
 		currentWord = '';
 	});
@@ -259,43 +258,6 @@
 		{ name: 'LP', hue: 280, sat: 45 }
 	];
 
-	// Workflow steps. Three beats, matching the trace-mvp rhythm.
-	type WorkflowStep = {
-		step: string;
-		title: string;
-		body: string;
-		bullets: string[];
-	};
-
-	const workflowSteps: WorkflowStep[] = [
-		{
-			step: 'Step 1',
-			title: 'Open the project you already have',
-			body: 'A GlyphX project is a plain folder of .tex files. Bring an Overleaf export, a thesis repo, or a fresh blank document. Nothing reshapes your source.',
-			bullets: ['Plain files on disk', 'No account required', 'Overleaf, Git, or .zip import']
-		},
-		{
-			step: 'Step 2',
-			title: 'Compile locally while you write',
-			body: 'The editor and engine share one view. Errors surface next to the line that caused them, the PDF stays live as you type, and there is no remote queue between you and the build.',
-			bullets: [
-				'Bundled Tectonic engine on desktop',
-				'In-browser compile on web',
-				'SyncTeX from PDF to source'
-			]
-		},
-		{
-			step: 'Step 3',
-			title: 'Keep history under your control',
-			body: 'Diffs, commits, branches, and remotes live in your own repository. GlyphX helps with the workflow; the archive still belongs to you and the tools you already trust.',
-			bullets: [
-				'Built-in Git UI',
-				'Works with GitHub, GitLab, or a university server',
-				'No proprietary history tier'
-			]
-		}
-	];
-
 	// PolishGrid features. The "applied automatically" beat that tells
 	// visitors the loop runs without manual rebuilds.
 	type PolishFeature = {
@@ -330,14 +292,6 @@
 				'A single keystroke searches every .tex and .bib in the project. Live, with file previews.'
 		}
 	];
-
-	// Inside-the-editor tour. Six beats covering what an academic writer
-	// actually reaches for, distilled into one-line descriptions.
-	type EditorFeature = {
-		icon: typeof IconWriting;
-		title: string;
-		description: string;
-	};
 
 	// How-it-works section data. Three showcase cards that fan out above
 	// the step grid (compile / preview / history), then three step cards
@@ -395,43 +349,6 @@
 			step: '03',
 			title: 'Track in Git, share when ready.',
 			body: 'Every revision is committed. Push to GitHub, GitLab, or your university server when the draft is done.'
-		}
-	];
-
-	const editorFeatures: EditorFeature[] = [
-		{
-			icon: IconBrandGithub,
-			title: 'SyncTeX from PDF to source',
-			description:
-				'Click a figure or equation in the preview, jump back to the line that produced it.'
-		},
-		{
-			icon: IconFolders,
-			title: 'Multi-file chapters',
-			description:
-				'Split a thesis into chapters, includes, and figures. The outline mirrors the structure.'
-		},
-		{
-			icon: IconSearch,
-			title: 'Citations and references',
-			description: 'Insert \cite{...} keys from the loaded .bib. Typos get flagged before compile.'
-		},
-		{
-			icon: IconStack3,
-			title: 'Outline and structure',
-			description: 'Sections, figures, tables, and equations in one tree. Click to jump anywhere.'
-		},
-		{
-			icon: IconGitBranch,
-			title: 'Diffs and history',
-			description:
-				'See what changed in a chapter, branch an experiment, merge it back when it lands.'
-		},
-		{
-			icon: IconDeviceDesktop,
-			title: 'Two-way sync with system TeX',
-			description:
-				'Use the bundled engine or point GlyphX at the lab installation. Same project either way.'
 		}
 	];
 
@@ -1265,7 +1182,7 @@
 										  Loops nothing; this is a static visual aid, not a live feed.
 										-->
 										<div class="mt-7 flex flex-col gap-3">
-											{#each [{ msg: 'Final revisions · chapter 5', hash: 'c7d8e9f', who: 'today' }, { msg: 'Add citation · Smith 2024', hash: 'e4f5a6b', who: '2 days ago' }, { msg: 'Draft · conclusion', hash: 'a1b2c3d', who: 'last week' }, { msg: 'Fix typo · section 3.2', hash: '9f8e7d6', who: 'last month' }] as commit, i (commit.hash)}
+											{#each [{ msg: 'Final revisions · chapter 5', hash: 'c7d8e9f', who: 'today' }, { msg: 'Add citation · Smith 2024', hash: 'e4f5a6b', who: '2 days ago' }, { msg: 'Draft · conclusion', hash: 'a1b2c3d', who: 'last week' }, { msg: 'Fix typo · section 3.2', hash: '9f8e7d6', who: 'last month' }] as commit (commit.hash)}
 												<div
 													class="flex items-center gap-3 rounded-lg border border-hairline/60 bg-background/70 px-3.5 py-2.5"
 												>

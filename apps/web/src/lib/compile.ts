@@ -1,17 +1,4 @@
-// Browser LaTeX compilation on the in-house GlyphX engine.
-//
-// The engine is Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly — the same
-// engine the desktop app runs — wrapped by `@glyphx/tex-engine`. It runs in a
-// Web Worker (see `tex/worker.ts`) because a compile is synchronous and takes
-// the better part of a second.
-//
-// Everything is same-origin and self-contained: the wasm binary and the TeX
-// support bundle are served from `/engine/`, downloaded once, and kept in the
-// persistent Cache API. After the first run there is no network in the compile
-// path at all, so compiling works offline and cannot be broken by a third-party
-// package server going down.
-
-import type { Diagnostic } from '@glyphx/tex-engine';
+import type { Diagnostic, PackDefinition } from '@glyphx/tex-engine';
 import { loadManifest, openEngineCache } from './tex/manifest';
 import type { UnsentRequest, WorkerRequest, WorkerResponse } from './tex/protocol';
 
@@ -22,12 +9,14 @@ export type CompileOutcome = {
 	error?: string;
 	/** Diagnostics parsed by the engine itself, rather than scraped from the log. */
 	diagnostics?: Diagnostic[];
+	/** Package sets that would supply what this compile could not find. */
+	missingPacks?: PackDefinition[];
+	/** Missing files no package set provides — an install would not help. */
+	unsupportedFiles?: string[];
 };
 
 /** Bytes downloaded so far during the first-run install. */
 export type InstallProgress = { loaded: number; total: number; label: string };
-
-/* ------------------------------------------------------------------ worker */
 
 let worker: Worker | null = null;
 let nextId = 1;
@@ -35,9 +24,14 @@ let nextId = 1;
 /** In-flight requests, keyed by message id. */
 const pending = new Map<
 	number,
-	{ resolve: (r: WorkerResponse) => void; reject: (e: Error) => void; onProgress?: (p: InstallProgress) => void }
+	{
+		resolve: (r: WorkerResponse) => void;
+		reject: (e: Error) => void;
+		onProgress?: (p: InstallProgress) => void;
+	}
 >();
 
+// Off the main thread: a compile is synchronous and takes ~a second.
 function getWorker(): Worker {
 	if (worker) return worker;
 
@@ -58,15 +52,13 @@ function getWorker(): Worker {
 		else entry.resolve(response);
 	};
 
-	// A worker-level error leaves every in-flight request unanswered, so fail
-	// them all rather than letting their promises hang forever.
+	// A worker-level error answers nothing, so reject every in-flight request.
 	worker.onerror = (event) => {
 		const error = new Error(event.message || 'The LaTeX engine worker stopped unexpectedly.');
 		for (const [id, entry] of pending) {
 			pending.delete(id);
 			entry.reject(error);
 		}
-		// Drop the dead worker so the next call starts a fresh one.
 		worker?.terminate();
 		worker = null;
 	};
@@ -85,24 +77,19 @@ function send(
 	});
 }
 
-/* ----------------------------------------------------------------- install */
-
 /**
  * Whether the engine is already downloaded on this device.
- *
- * This asks the cache directly rather than trusting a "user clicked install"
- * flag, so clearing site data correctly brings the setup prompt back instead of
- * leaving the app claiming an engine it no longer has.
+ * Asks the cache directly, so clearing site data brings the setup prompt back.
  */
 export async function engineReady(): Promise<boolean> {
 	try {
 		const cache = await openEngineCache();
-		// No cache means nothing can have been persisted, so the engine is never
-		// "already installed" — the setup prompt is correct in that case.
 		if (!cache) return false;
 
 		const manifest = await loadManifest();
-		const wanted = Object.keys(manifest.files).map((name) => `/engine/${name}?v=${manifest.version}`);
+		const wanted = Object.keys(manifest.files).map(
+			(name) => `/engine/${name}?v=${manifest.version}`
+		);
 		const found = await Promise.all(wanted.map((url) => cache.match(url)));
 		return found.every(Boolean);
 	} catch {
@@ -111,11 +98,8 @@ export async function engineReady(): Promise<boolean> {
 }
 
 /**
- * First-run install: download the engine and the TeX bundle, cache them, and
- * boot the engine so the first real compile has nothing left to do.
- *
- * Throws with a user-facing message if the download fails, so the dialog can
- * show it and offer a retry.
+ * First-run install: download and cache the engine and TeX bundle, then boot it.
+ * Throws with a user-facing message if the download fails.
  */
 export async function installEngine(onProgress?: (p: InstallProgress) => void): Promise<void> {
 	if (typeof window === 'undefined') throw new Error('Install runs in the browser.');
@@ -123,10 +107,8 @@ export async function installEngine(onProgress?: (p: InstallProgress) => void): 
 }
 
 /**
- * Boot the engine ahead of the first compile, so pressing "Compile" on an
- * already-installed device feels instant. Safe to call repeatedly — the worker
- * keeps one engine — and errors are swallowed because a real compile will
- * surface them properly.
+ * Boot the engine ahead of the first compile. Safe to call repeatedly.
+ * Errors are swallowed; a real compile surfaces them properly.
  */
 export function warmEngine(): void {
 	if (typeof window === 'undefined') return;
@@ -134,8 +116,6 @@ export function warmEngine(): void {
 		/* a real compile will report the failure */
 	});
 }
-
-/* ----------------------------------------------------------------- compile */
 
 function bytesToBase64(bytes: Uint8Array): string {
 	let binary = '';
@@ -155,8 +135,7 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 	try {
 		response = await send({ type: 'compile', source });
 	} catch (e) {
-		// Plain-language message for the user; raw detail goes in the log
-		// (AGENTS.md rule #5).
+		// Plain-language message for the user; raw detail goes in the log (AGENTS.md rule #5).
 		return {
 			error: 'Could not start the LaTeX engine. Check your connection and reload.',
 			log: e instanceof Error ? e.message : String(e)
@@ -167,18 +146,35 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 		return { error: 'The LaTeX engine returned an unexpected response.' };
 	}
 
-	// Best-effort, matching the desktop engines: if TeX produced a PDF, show it
-	// even when the run reported errors. TeX recovers from most problems and
-	// still typesets; the errors surface in the Problems panel.
+	// Show any PDF TeX produced even on error — it recovers and still typesets.
 	if (response.pdf && response.pdf.byteLength > 0) {
-		return { pdf: bytesToBase64(response.pdf), log: response.log, diagnostics: response.diagnostics };
+		return {
+			pdf: bytesToBase64(response.pdf),
+			log: response.log,
+			diagnostics: response.diagnostics,
+			missingPacks: response.missingPacks,
+			unsupportedFiles: response.unsupportedFiles
+		};
 	}
 
 	return {
 		log: response.log,
 		diagnostics: response.diagnostics,
+		missingPacks: response.missingPacks,
+		unsupportedFiles: response.unsupportedFiles,
 		error:
-			response.message ??
-			'LaTeX compilation failed — no PDF was produced. See the Problems panel.'
+			response.message ?? 'LaTeX compilation failed — no PDF was produced. See the Problems panel.'
 	};
+}
+
+/**
+ * Download and activate package sets, then report so the caller can recompile.
+ * `packIds` must already include dependencies (expand via `resolveMissing`).
+ */
+export async function installPacks(
+	packIds: string[],
+	onProgress?: (p: InstallProgress) => void
+): Promise<void> {
+	if (typeof window === 'undefined') throw new Error('Package sets install in the browser.');
+	await send({ type: 'installPacks', packIds }, onProgress);
 }

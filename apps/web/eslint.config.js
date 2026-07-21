@@ -37,8 +37,16 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			// A leading underscore marks a binding that only exists to hold a
+			// position, e.g. `{#each ... as _, i}`.
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{ argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }
+			],
+			// `hrefFor` already resolves internal links; the rule cannot trace through
+			// it, so every link hit is a false positive. `goto` is still checked.
+			'svelte/no-navigation-without-resolve': ['error', { ignoreLinks: true }]
+		}
 	}
 );

@@ -1,14 +1,5 @@
-/**
- * LaTeX language support for Monaco — Monarch tokenizer + language configuration.
- *
- * Replaces the CodeMirror stex/Lezer grammar (./latex.ts). Monaco is loaded
- * dynamically (it is browser-only and heavy), so this module imports it as a
- * *type* only and takes the namespace as a parameter — a runtime import here
- * would drag the whole editor into every bundle that touches the grammar.
- *
- * Token names are the ones the editor theme styles: keyword, keyword.control,
- * comment, string, variable, type, constant, number, delimiter.{curly,square,math}.
- */
+// Monaco is taken as a parameter and imported as a type only: a runtime import here
+// would drag the whole editor into every bundle that touches the grammar.
 import type * as Monaco from "monaco-editor";
 import type { MonacoNamespace } from "./monaco";
 
@@ -102,10 +93,8 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 
 	tokenizer: {
 		root: [
-			// `\verb<d>...<d>` is consumed whole via a backreference to the chosen
-			// delimiter. It is single-line by definition, so no state is needed —
-			// and an unterminated `\verb` simply falls through to the command rules
-			// instead of trapping the tokenizer.
+			// `\verb<d>...<d>` needs no state: it is single-line by definition, so an
+			// unterminated one falls through to the command rules instead of trapping.
 			[/\\verb\*?([^a-zA-Z*\s]).*?\1/, "string"],
 
 			// Math openers must be tested before the generic control-symbol rule
@@ -113,13 +102,10 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 			[/\\\[/, { token: "delimiter.math", next: "@mathBracket" }],
 			[/\\\(/, { token: "delimiter.math", next: "@mathParen" }],
 
-			// Escapes (`\%`, `\$`, `\{`, `\\`, `\&`, `\_`, `\#`). Matching these
-			// first is what keeps `50\%` from starting a comment and `\$` from
-			// opening math mode.
+			// Escapes must match first, or `50\%` starts a comment and `\$` opens math mode.
 			[/\\[^a-zA-Z@\s]/, "keyword"],
 
-			// Verbatim-like environments: highlight the delimiters, then hand the
-			// body to a state that emits plain strings until the matching `\end`.
+			// Verbatim bodies go to a state that emits plain strings until the matching `\end`.
 			[
 				new RegExp(`(\\\\begin)(\\s*)(\\{)(${VERBATIM_ENVS})(\\})`),
 				[
@@ -131,8 +117,7 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 				],
 			],
 
-			// Display-math environments are `\[…\]` under another name, so their
-			// bodies get the same math state.
+			// Display-math environments are `\[…\]` under another name, so same math state.
 			[
 				new RegExp(`(\\\\begin)(\\s*)(\\{)(${MATH_ENVS})(\\})`),
 				[
@@ -144,7 +129,6 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 				],
 			],
 
-			// `\begin{env}` / `\end{env}` — the environment name is the `type`.
 			[
 				/(\\(?:begin|end))(\s*)(\{)([^}]*)(\})/,
 				["keyword.control", "white", "delimiter.curly", "type", "delimiter.curly"],
@@ -156,9 +140,8 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 				["keyword.control", "white", "delimiter.curly", "variable", "delimiter.curly"],
 			],
 
-			// File/package commands, with and without the optional `[...]` argument.
-			// Both forms are matched inline (they are single-line in practice) so a
-			// stray brace on the next line cannot leak the argument styling.
+			// Both `[...]` forms are matched inline so a stray brace on the next line
+			// cannot leak the argument styling.
 			[
 				new RegExp(`(\\\\(?:${FILE_COMMANDS}))(\\s*)(\\[)([^\\]]*)(\\])(\\s*)(\\{)([^}]*)(\\})`),
 				[
@@ -178,8 +161,8 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 				["keyword.control", "white", "delimiter.curly", "string", "delimiter.curly"],
 			],
 
-			// Any other command. Trailing `*` (e.g. `\section*`) is part of the match
-			// but not of the name we test against the structural list.
+			// A trailing `*` is part of the match but not of the name tested against
+			// the structural list.
 			[
 				/\\([a-zA-Z@]+)\*?/,
 				{ cases: { "$1@structural": "keyword.control", "@default": "keyword" } },
@@ -191,8 +174,7 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 			[/\$/, { token: "delimiter.math", next: "@mathInline" }],
 		],
 
-		// Shared between text and math: comments, brackets and numbers behave the
-		// same in both. Escapes are handled by the caller *before* this include.
+		// Escapes are handled by the caller *before* this include.
 		common: [
 			[/%.*$/, "comment"],
 			[/[{}]/, "@brackets"],
@@ -201,8 +183,8 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 			[/\d+(?:\.\d+)?/, "number"],
 		],
 
-		// One state per math delimiter so each can only be closed by its own
-		// partner — `$…\]` must not terminate.
+		// One state per math delimiter so each closes only on its own partner:
+		// `$…\]` must not terminate.
 		mathInline: [
 			{ include: "@mathBody" },
 			[/\$/, { token: "delimiter.math", next: "@pop" }],
@@ -225,7 +207,7 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 		],
 
 		// Math environments nest (`aligned` inside `equation`), so a nested `\begin`
-		// pushes another level and the pops stay balanced.
+		// pushes another level to keep the pops balanced.
 		mathEnv: [
 			[
 				new RegExp(`(\\\\end)(\\s*)(\\{)(${MATH_ENVS})(\\})`),
@@ -250,12 +232,10 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 			{ include: "@mathBody" },
 		],
 
-		// NOTE: the closing delimiter of each math state is matched *after* this
-		// include, so `\\` (a line break) is consumed here before `\]` can be
-		// mistaken for it — and every rule below consumes at least one character.
+		// Each math state matches its closer *after* this include, so `\\` is consumed
+		// here before `\]` can be mistaken for it.
 		mathBody: [
 			[/\\\\/, "keyword"],
-			// `\label`/`\ref` are as common inside equations as outside them.
 			[
 				new RegExp(`(\\\\(?:${REF_COMMANDS}))(\\s*)(\\{)([^}]*)(\\})`),
 				["keyword.control", "white", "delimiter.curly", "variable", "delimiter.curly"],
@@ -267,9 +247,8 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 			{ include: "@common" },
 		],
 
-		// Verbatim bodies: everything is a plain string until the matching `\end`.
-		// Whitespace is tokenized separately so an *indented* `\end{verbatim}` is
-		// still reached by the rule above (rules are retried at every position).
+		// Whitespace is tokenized separately so an *indented* `\end{verbatim}` is still
+		// reached by the rule above.
 		verbatim: [
 			[
 				new RegExp(`(\\\\end)(\\s*)(\\{)(${VERBATIM_ENVS})(\\})`),
@@ -311,8 +290,8 @@ export const latexConfiguration: Monaco.languages.LanguageConfiguration = {
 		{ open: "$", close: "$" },
 		{ open: "`", close: "'" },
 	],
-	// Environments are the natural fold unit; Monaco's indentation-based folding
-	// gets LaTeX wrong because bodies are conventionally unindented.
+	// Monaco's indentation-based folding gets LaTeX wrong: bodies are conventionally
+	// unindented, so fold on environments instead.
 	folding: {
 		markers: {
 			start: /\\begin\{[^}]*\}/,
@@ -324,12 +303,8 @@ export const latexConfiguration: Monaco.languages.LanguageConfiguration = {
 	wordPattern: /(-?\d*\.\d\w*)|(\\[a-zA-Z@]+)|([^`~!@#%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g,
 };
 
-/**
- * Register the LaTeX language on a dynamically-imported monaco namespace.
- *
- * Idempotent: editors mount and remount, and monaco's registry is global, so
- * re-registering would stack duplicate tokenizers.
- */
+/** Registers LaTeX on a dynamically-imported monaco namespace. Idempotent: monaco's
+ * registry is global, so re-registering on remount would stack duplicate tokenizers. */
 export function registerLatex(monaco: MonacoNamespace): void {
 	if (monaco.languages.getLanguages().some((lang) => lang.id === LATEX_ID)) return;
 

@@ -26,6 +26,7 @@
 	"scripts": {
 		"generate": "node ./scripts/generate-types.mjs",
 		"sync:wasm": "node ./scripts/sync-wasm.mjs",
+		"bundle": "node ./scripts/rebuild-bundle.mjs",
 		"bundle:verify": "node ./scripts/verify-bundle.mjs",
 		"bundle:format": "node ./scripts/make-format.mjs",
 		"bundle:build": "node ./scripts/build-bundle.mjs",

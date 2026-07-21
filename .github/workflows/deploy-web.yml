@@ -1,14 +1,6 @@
 name: Deploy web
 
-# Builds and deploys the GlyphX web app (apps/web) to Cloudflare Workers via the
-# SvelteKit Cloudflare adapter + wrangler (see apps/web/wrangler.jsonc, which
-# binds the custom domain). Runs on pushes to `main` that touch apps/web (or
-# shared packages), or manually via "Run workflow" / `gh workflow run
-# deploy-web.yml`.
-#
-# Requires repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID. The
-# deploy URL shown in the GitHub environment is the `WEB_DEPLOY_URL` repo
-# variable (falls back to the wrangler custom domain).
+# Requires repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
 on:
   push:
     branches:
@@ -58,31 +50,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # - name: Format check (prettier)
-      #   run: pnpm --filter @glyphx/web format:check
+      - name: Format check (prettier)
+        run: pnpm --filter @glyphx/web format:check
 
-      # - name: Lint (eslint)
-      #   run: pnpm --filter @glyphx/web lint:eslint
+      - name: Lint (eslint)
+        run: pnpm --filter @glyphx/web lint:eslint
 
-      # apps/web/static/engine/ is gitignored (it is ~18 MB of build output), so
-      # it does not exist in a fresh checkout. Without this step the deploy
-      # succeeds and every visitor gets a 404 on /engine/manifest.json, which
-      # the app reports as "the compiler is not available offline yet" — a
-      # broken editor from a green pipeline.
-      #
-      # No download needed: crates/tectonic-wasm/output/ is tracked, so this
-      # only copies files the checkout already has.
+      # static/engine/ is gitignored, so without this every visitor 404s on
+      # /engine/manifest.json — a broken editor from a green pipeline.
       - name: Stage the TeX engine into static assets
         run: pnpm --filter @glyphx/web sync:engine
 
-      # Compile a real document with the exact artifacts just staged.
-      #
-      # `tex-engine.yml` only ever exercises a FRESHLY BUILT engine, so it cannot
-      # catch the failure that matters here: the committed wasm drifting from the
-      # TypeScript wrapper that loads it. That is not hypothetical — an engine
-      # built before an ABI bump loads, reports ABI 1 to a wrapper expecting 2,
-      # and throws on the user's first compile. The deploy is green; the editor
-      # is dead. Ten seconds here buys that.
+      # tex-engine.yml only tests a freshly built engine, so it cannot catch the
+      # committed wasm drifting from the TypeScript wrapper that loads it.
       - name: Verify the staged engine actually compiles
         run: |
           pnpm --filter @glyphx/tex-engine build

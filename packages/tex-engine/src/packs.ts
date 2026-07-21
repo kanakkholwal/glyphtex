@@ -1,35 +1,23 @@
-// Package packs: optional, independently installable sets of TeX files.
-//
-// See PACKS.md for the design. The short version: the core bundle is exactly as
-// wide as the fixtures that built it, so anything beyond it ships as a pack —
-// the same deterministic tarball shape, downloaded and cached separately.
-//
-// This module is the contract. The build script writes JSON that conforms to
-// it; the runtime narrows before trusting it.
+// See PACKS.md for the design. This module is the contract: the build script
+// writes JSON conforming to it, the runtime narrows before trusting it.
 
-/** A pack as described by the generated index. */
 export type PackDefinition = {
-	/** Stable identifier, also the tarball basename: `pack-<id>.tar.gz`. */
+	/** Stable id, also the tarball basename: `pack-<id>.tar.gz`. */
 	id: string;
-	/** Human label for the installer UI. */
 	label: string;
-	/** One line on what it is for. */
 	description: string;
-	/** TeX Live package names this pack covers, for display and traceability. */
+	/** TeX Live package names, for display and traceability. */
 	packages: string[];
+	/** Packs owning files this one needs; shared files are delegated, not copied. */
+	requires: string[];
+	/** Skip in the first-run install. For future font packs, not a few .sty files. */
+	optional: boolean;
 	/** Compressed size, so the UI can state the cost before spending it. */
 	bytes: number;
 	/** Content hash — the cache key, and what makes a stale pack detectable. */
 	hash: string;
 };
 
-/**
- * The generated pack index.
- *
- * `provides` maps a filename to the pack id that supplies it. It is the inverse
- * of each pack's file list, and it is what turns a missing-file failure into a
- * named, one-click install instead of a raw TeX error.
- */
 export type PackIndex = {
 	/** Bumped when the shape changes, so an old cached index is rejected. */
 	version: number;
@@ -45,6 +33,22 @@ export type InstalledPack = {
 	hash: string;
 };
 
+// Walks the closure rather than filtering on the flag: a default pack may depend
+// on an optional one, and installing it alone would still fail to compile.
+export function defaultPacks(index: PackIndex): PackDefinition[] {
+	const byId = new Map(index.packs.map((p) => [p.id, p]));
+	const wanted = new Set<string>();
+
+	function want(id: string): void {
+		if (wanted.has(id)) return;
+		wanted.add(id);
+		for (const dep of byId.get(id)?.requires ?? []) want(dep);
+	}
+	for (const pack of index.packs) if (!pack.optional) want(pack.id);
+
+	return index.packs.filter((p) => wanted.has(p.id));
+}
+
 function isStringArray(value: unknown): value is string[] {
 	return Array.isArray(value) && value.every((v) => typeof v === 'string');
 }
@@ -57,18 +61,15 @@ function isPackDefinition(value: unknown): value is PackDefinition {
 		typeof p.label === 'string' &&
 		typeof p.description === 'string' &&
 		isStringArray(p.packages) &&
+		isStringArray(p.requires) &&
+		typeof p.optional === 'boolean' &&
 		typeof p.bytes === 'number' &&
 		typeof p.hash === 'string'
 	);
 }
 
-/**
- * Parse an untrusted pack index (AGENTS.md rule 4).
- *
- * Throws rather than returning a partial index: a half-understood index would
- * silently under-report what is installable, which reads to the user as "that
- * package is not supported" — the exact wrong message.
- */
+// Throws rather than returning a partial index: silently under-reporting what is
+// installable reads to the user as "that package is not supported".
 export function parsePackIndex(value: unknown): PackIndex {
 	if (typeof value !== 'object' || value === null) {
 		throw new Error('The package index is malformed.');
@@ -97,34 +98,51 @@ export function parsePackIndex(value: unknown): PackIndex {
 			throw new Error(`The package index maps ${file} to unknown pack "${id}".`);
 		}
 	}
+	for (const pack of index.packs) {
+		for (const id of pack.requires) {
+			// An unresolvable dependency installs a pack that still cannot compile.
+			if (!ids.has(id)) {
+				throw new Error(`Pack "${pack.id}" requires unknown pack "${id}".`);
+			}
+		}
+	}
 	return index;
 }
 
-/**
- * Which packs would satisfy these missing files, and which files nothing covers.
- *
- * Both halves matter: the installable set drives the prompt, and the
- * `unsupported` remainder is what must be reported plainly instead of implying
- * an install would help.
- */
+// A healthy compile still reports probes: fonts by name, `tex-text.tec`, and
+// `foo.sty.aux`/`.bbl` cascades. Only .sty/.cls names are installable.
+function isInstallable(file: string): boolean {
+	return /\.(sty|cls)$/.test(file) && !/\.(sty|cls|def)\.[a-z]+$/.test(file);
+}
+
+// Returns both halves: the packs drive the install prompt, and `unsupported`
+// must be reported plainly rather than implying an install would help.
 export function resolveMissing(
 	index: PackIndex,
 	missingFiles: readonly string[],
 	installed: readonly InstalledPack[] = []
 ): { packs: PackDefinition[]; unsupported: string[] } {
 	const have = new Set(installed.map((p) => p.id));
+	const byId = new Map(index.packs.map((p) => [p.id, p]));
 	const wanted = new Set<string>();
 	const unsupported: string[] = [];
 
-	for (const file of missingFiles) {
-		const id = index.provides[file];
-		// An already-installed pack that still cannot supply the file means the
-		// file is genuinely elsewhere — treat it as unsupported rather than
-		// offering an install that would change nothing.
-		if (id && !have.has(id)) wanted.add(id);
-		else if (!id) unsupported.push(file);
+	// Pull in dependencies too, or the install completes and still fails.
+	function want(id: string): void {
+		if (wanted.has(id) || have.has(id)) return;
+		wanted.add(id);
+		for (const dep of byId.get(id)?.requires ?? []) want(dep);
 	}
 
+	for (const file of missingFiles) {
+		const id = index.provides[file];
+		// An installed pack that still lacks the file means it is genuinely
+		// elsewhere; offering that install again would change nothing.
+		if (id && !have.has(id)) want(id);
+		else if (!id && isInstallable(file)) unsupported.push(file);
+	}
+
+	// Index order, so dependencies come before the packs that need them.
 	return {
 		packs: index.packs.filter((p) => wanted.has(p.id)),
 		unsupported

@@ -1,14 +1,4 @@
 {
-	// Cloudflare Workers deploy config for the GlyphX web app.
-	//
-	// `@sveltejs/adapter-cloudflare` builds an SSR worker + static assets into
-	// `.svelte-kit/cloudflare`; `wrangler deploy` (run from this directory by
-	// .github/workflows/deploy-web.yml) ships it.
-	//
-	// Rename `name` to your Worker name and attach a custom domain via the
-	// Cloudflare dashboard (Workers → Triggers → Custom Domains) or a `routes`
-	// entry here. The deploy URL shown in GitHub is driven by the
-	// `WEB_DEPLOY_URL` repo variable, not this file.
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "glyphx-web",
 	"main": ".svelte-kit/cloudflare/_worker.js",
@@ -18,14 +8,7 @@
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
 	},
-	// No R2 binding, and none needed: the TeX engine and its support bundle ship
-	// as ordinary static assets under static/engine/, served through ASSETS above.
-	// (An earlier design proxied a third-party package server through a `/texlive`
-	// route backed by an R2 mirror — that is gone, along with the route.)
-
-	// Production custom domain. Requires `nexonauts.com` to be a zone on the same
-	// Cloudflare account as CLOUDFLARE_ACCOUNT_ID — wrangler then provisions the
-	// DNS record + TLS cert on deploy. (Remove this block to manage the domain
-	// from the dashboard instead.)
+	// Requires `nexonauts.com` to be a zone on the same account as
+	// CLOUDFLARE_ACCOUNT_ID; wrangler then provisions the DNS record and cert.
 	"routes": [{ "pattern": "glyphx.nexonauts.com", "custom_domain": true }]
 }

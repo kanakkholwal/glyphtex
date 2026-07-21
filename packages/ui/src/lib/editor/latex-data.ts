@@ -1,28 +1,4 @@
-/**
- * LaTeX completion data — commands, environments, packages and document classes.
- *
- * Pure data. This module deliberately imports nothing (least of all monaco): the
- * completion provider that consumes it is the only place that knows about
- * `CompletionItemKind`, ranges and insert rules, so this file stays cheap to
- * import from anywhere and trivial to test.
- *
- * The entries are hand-authored from general LaTeX knowledge rather than
- * generated from a package database — the aim is the ~300 commands people
- * actually type, each with a one-line description worth reading, not exhaustive
- * coverage of every control sequence in TeX Live.
- *
- * Snippets are Monaco/TextMate bodies: `$1`/`$2` tabstops, `$0` final cursor,
- * `${1:default}` placeholders. They are stored WITHOUT the leading backslash,
- * because the trigger character is typically already in the buffer — the
- * provider decides whether to re-emit it. A command that takes no arguments has
- * no `snippet` at all; the provider inserts the bare name.
- *
- * Environment `body` is likewise the text inserted between `\begin{name}` and
- * `\end{name}`. Since it lands immediately after `\begin{name}`, an environment
- * that takes its own mandatory argument (tabular's column spec, minipage's
- * width) opens its body with that argument — that is why some bodies start with
- * `{...}` rather than a newline.
- */
+// Deliberately imports nothing, monaco least of all: the provider owns every monaco concern.
 
 export type LatexCommand = {
 	/** Name without the leading backslash, e.g. "frac". */
@@ -33,11 +9,8 @@ export type LatexCommand = {
 	detail: string;
 	/** Longer markdown documentation, optional. */
 	doc?: string;
-	/**
-	 * A short, realistic usage line, e.g. "\\draw (0,0) -- (2,1);". Rendered as a
-	 * fenced `latex` block in the hover card, below `doc` — so it is raw LaTeX,
-	 * not markdown, and needs no backticks of its own.
-	 */
+	/** A short usage line. Rendered as a fenced `latex` block in the hover card, so it
+	 * is raw LaTeX and needs no backticks of its own. */
 	example?: string;
 	/** Package that provides it. Omit for LaTeX kernel / plain TeX. */
 	package?: string;
@@ -48,7 +21,8 @@ export type LatexCommand = {
 export type LatexEnvironment = {
 	name: string;
 	detail: string;
-	/** Snippet body for the environment's INNER content, e.g. for itemize: "\n\t\\item $0\n". Optional. */
+	/** Inner content, inserted straight after `\begin{name}` — so an environment with a
+	 * mandatory argument (tabular's column spec) opens its body with that argument. */
 	body?: string;
 	package?: string;
 	context?: "math" | "text" | "both";
@@ -60,7 +34,6 @@ export type LatexClass = { name: string; detail: string };
 /* ------------------------------------------------------------------ commands */
 
 export const LATEX_COMMANDS: readonly LatexCommand[] = [
-	/* --- sectioning ------------------------------------------------------ */
 	{
 		name: "part",
 		snippet: "part{$1}$0",
@@ -108,7 +81,6 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 		context: "text",
 	},
 
-	/* --- document structure ---------------------------------------------- */
 	{
 		name: "documentclass",
 		snippet: "documentclass[${1:11pt}]{${2:article}}$0",
@@ -197,7 +169,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "TeX", detail: "The TeX logo", context: "text" },
 	{ name: "LaTeXe", detail: "The LaTeX2e logo", context: "text" },
 
-	/* --- text formatting -------------------------------------------------- */
+	// --- text formatting ---
 	{ name: "textbf", snippet: "textbf{$1}$0", detail: "Bold text", context: "text" },
 	{ name: "textit", snippet: "textit{$1}$0", detail: "Italic text", context: "text" },
 	{ name: "texttt", snippet: "texttt{$1}$0", detail: "Monospace (typewriter) text", context: "text" },
@@ -239,7 +211,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "scshape", detail: "Switch to small caps until the group ends", context: "text" },
 	{ name: "normalfont", detail: "Reset all font attributes", context: "text" },
 
-	/* --- font sizes -------------------------------------------------------- */
+	// --- font sizes ---
 	{ name: "tiny", detail: "Font size: tiny", context: "text" },
 	{ name: "scriptsize", detail: "Font size: script", context: "text" },
 	{ name: "footnotesize", detail: "Font size: footnote", context: "text" },
@@ -251,7 +223,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "huge", detail: "Font size: huge", context: "text" },
 	{ name: "Huge", detail: "Font size: largest", context: "text" },
 
-	/* --- colour and boxes --------------------------------------------------- */
+	// --- colour and boxes ---
 	{
 		name: "textcolor",
 		snippet: "textcolor{${1:red}}{$2}$0",
@@ -286,7 +258,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "raisebox", snippet: "raisebox{${1:1ex}}{$2}$0", detail: "Shift a box vertically", context: "both" },
 	{ name: "rule", snippet: "rule{${1:\\linewidth}}{${2:0.4pt}}$0", detail: "Solid rectangular rule", context: "both" },
 
-	/* --- references and citations ------------------------------------------- */
+	// --- references and citations ---
 	{ name: "label", snippet: "label{${1:sec:}}$0", detail: "Attach a cross-reference key", context: "both" },
 	{ name: "ref", snippet: "ref{$1}$0", detail: "Reference a label's number", context: "both" },
 	{
@@ -359,7 +331,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "index", snippet: "index{$1}$0", detail: "Add an index entry", package: "makeidx", context: "text" },
 	{ name: "glossary", snippet: "glossary{$1}$0", detail: "Add a glossary entry", context: "text" },
 
-	/* --- math: structure ---------------------------------------------------- */
+	// --- math: structure ---
 	{ name: "frac", snippet: "frac{$1}{$2}$0", detail: "Fraction", context: "math" },
 	{ name: "dfrac", snippet: "dfrac{$1}{$2}$0", detail: "Display-style fraction", package: "amsmath", context: "math" },
 	{ name: "tfrac", snippet: "tfrac{$1}{$2}$0", detail: "Text-style (small) fraction", package: "amsmath", context: "math" },
@@ -422,7 +394,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "textstyle", detail: "Force inline-size math", context: "math" },
 	{ name: "scriptstyle", detail: "Force script-size math", context: "math" },
 
-	/* --- math: accents and alphabets --------------------------------------- */
+	// --- math: accents and alphabets ---
 	{ name: "overline", snippet: "overline{$1}$0", detail: "Line above", context: "math" },
 	{ name: "hat", snippet: "hat{$1}$0", detail: "Hat accent", context: "math" },
 	{ name: "widehat", snippet: "widehat{$1}$0", detail: "Wide hat accent", context: "math" },
@@ -445,7 +417,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "mathtt", snippet: "mathtt{$1}$0", detail: "Monospace math", context: "math" },
 	{ name: "bm", snippet: "bm{$1}$0", detail: "Bold math, including symbols", package: "bm", context: "math" },
 
-	/* --- math: symbols ------------------------------------------------------ */
+	// --- math: symbols ---
 	{ name: "infty", detail: "Infinity", context: "math" },
 	{ name: "partial", detail: "Partial derivative sign", context: "math" },
 	{ name: "nabla", detail: "Nabla / del operator", context: "math" },
@@ -519,7 +491,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "implies", detail: "Implies, with wide spacing", package: "amsmath", context: "math" },
 	{ name: "iff", detail: "If and only if, with wide spacing", package: "amsmath", context: "math" },
 
-	/* --- Greek: lowercase --------------------------------------------------- */
+	// --- Greek: lowercase ---
 	{ name: "alpha", detail: "Greek small letter alpha", context: "math" },
 	{ name: "beta", detail: "Greek small letter beta", context: "math" },
 	{ name: "gamma", detail: "Greek small letter gamma", context: "math" },
@@ -550,7 +522,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "psi", detail: "Greek small letter psi", context: "math" },
 	{ name: "omega", detail: "Greek small letter omega", context: "math" },
 
-	/* --- Greek: uppercase --------------------------------------------------- */
+	// --- Greek: uppercase ---
 	{ name: "Gamma", detail: "Greek capital letter gamma", context: "math" },
 	{ name: "Delta", detail: "Greek capital letter delta", context: "math" },
 	{ name: "Theta", detail: "Greek capital letter theta", context: "math" },
@@ -563,7 +535,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "Psi", detail: "Greek capital letter psi", context: "math" },
 	{ name: "Omega", detail: "Greek capital letter omega", context: "math" },
 
-	/* --- math operators (upright, log-like) -------------------------------- */
+	// --- math operators (upright, log-like) ---
 	{ name: "sin", detail: "Sine", context: "math" },
 	{ name: "cos", detail: "Cosine", context: "math" },
 	{ name: "tan", detail: "Tangent", context: "math" },
@@ -593,7 +565,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "bmod", detail: "Binary modulo operator", context: "math" },
 	{ name: "pmod", snippet: "pmod{$1}$0", detail: "Parenthesised modulo", context: "math" },
 
-	/* --- tables, figures, lists --------------------------------------------- */
+	// --- tables, figures, lists ---
 	{
 		name: "caption",
 		snippet: "caption{$1}$0",
@@ -638,7 +610,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "tabcolsep", detail: "Half the horizontal space between table columns (length)", context: "text" },
 	{ name: "arraystretch", detail: "Row-height multiplier for tables (redefine with \\renewcommand)", context: "text" },
 
-	/* --- definitions --------------------------------------------------------- */
+	// --- definitions ---
 	{
 		name: "newcommand",
 		snippet: "newcommand{\\$1}[${2:1}]{$3}$0",
@@ -683,7 +655,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "let", snippet: "let\\$1=\\$2$0", detail: "Bind one control sequence to another" },
 	{ name: "ensuremath", snippet: "ensuremath{$1}$0", detail: "Typeset as math whichever mode we are in" },
 
-	/* --- spacing and breaks --------------------------------------------------- */
+	// --- spacing and breaks ---
 	{ name: "newpage", detail: "Start a new page", context: "text" },
 	{ name: "clearpage", detail: "New page, flushing pending floats", context: "text" },
 	{ name: "cleardoublepage", detail: "New recto page, flushing floats (two-sided)", context: "text" },
@@ -709,7 +681,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "vphantom", snippet: "vphantom{$1}$0", detail: "Vertical-only phantom", context: "math" },
 	{ name: "hphantom", snippet: "hphantom{$1}$0", detail: "Horizontal-only phantom", context: "math" },
 
-	/* --- page style and layout ------------------------------------------------ */
+	// --- page style and layout ---
 	{ name: "pagestyle", snippet: "pagestyle{${1:fancy}}$0", detail: "Set the page style for the rest of the document" },
 	{ name: "thispagestyle", snippet: "thispagestyle{${1:empty}}$0", detail: "Set the page style for this page only" },
 	{ name: "pagenumbering", snippet: "pagenumbering{${1:arabic}}$0", detail: "Choose the page-number format" },
@@ -723,7 +695,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "onecolumn", detail: "Switch to single-column layout", context: "text" },
 	{ name: "twocolumn", detail: "Switch to two-column layout", context: "text" },
 
-	/* --- package-specific odds and ends --------------------------------------- */
+	// --- package-specific odds and ends ---
 	{ name: "lstinline", snippet: "lstinline|$1|$0", detail: "Inline source code", package: "listings", context: "text" },
 	{ name: "lstinputlisting", snippet: "lstinputlisting[language=${1:Python}]{$2}$0", detail: "Include a source file as a listing", package: "listings", context: "text" },
 	{ name: "lstset", snippet: "lstset{$1}$0", detail: "Configure the listings package", package: "listings" },
@@ -749,7 +721,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "selectlanguage", snippet: "selectlanguage{${1:english}}$0", detail: "Switch the document language", package: "babel" },
 	{ name: "qedhere", detail: "Place the QED symbol on this line", package: "amsthm", context: "both" },
 
-	/* --- beamer ---------------------------------------------------------------- */
+	// --- beamer ---
 	{ name: "frametitle", snippet: "frametitle{$1}$0", detail: "Title of the current slide", package: "beamer", context: "text" },
 	{ name: "framesubtitle", snippet: "framesubtitle{$1}$0", detail: "Subtitle of the current slide", package: "beamer", context: "text" },
 	{ name: "usetheme", snippet: "usetheme{${1:default}}$0", detail: "Select a beamer theme", package: "beamer" },
@@ -764,13 +736,13 @@ export const LATEX_ENVIRONMENTS: readonly LatexEnvironment[] = [
 	{ name: "document", detail: "The document body", body: "\n$0\n" },
 	{ name: "abstract", detail: "Abstract", body: "\n\t$0\n", context: "text" },
 
-	/* lists */
+	// --- lists ---
 	{ name: "itemize", detail: "Bulleted list", body: "\n\t\\item $0\n", context: "text" },
 	{ name: "enumerate", detail: "Numbered list", body: "\n\t\\item $0\n", context: "text" },
 	{ name: "description", detail: "Labelled list", body: "\n\t\\item[${1:term}] $0\n", context: "text" },
 	{ name: "list", detail: "Generic list (the primitive behind the others)", context: "text" },
 
-	/* floats and tables */
+	// --- floats and tables ---
 	{ name: "figure", detail: "Floating figure", body: "[${1:htbp}]\n\t\\centering\n\t$0\n\t\\caption{}\n\t\\label{fig:}\n", context: "text" },
 	{ name: "figure*", detail: "Full-width floating figure (two-column)", body: "[${1:htbp}]\n\t\\centering\n\t$0\n\t\\caption{}\n", context: "text" },
 	{ name: "table", detail: "Floating table", body: "[${1:htbp}]\n\t\\centering\n\t$0\n\t\\caption{}\n\t\\label{tab:}\n", context: "text" },
@@ -783,12 +755,12 @@ export const LATEX_ENVIRONMENTS: readonly LatexEnvironment[] = [
 	{ name: "wrapfigure", detail: "Figure with text wrapped around it", body: "{${1:r}}{${2:0.4\\textwidth}}\n\t\\centering\n\t$0\n", package: "wrapfig", context: "text" },
 	{ name: "minipage", detail: "A page within a page", body: "{${1:0.48\\textwidth}}\n\t$0\n", context: "text" },
 
-	/* alignment */
+	// --- alignment ---
 	{ name: "center", detail: "Centred block", body: "\n\t$0\n", context: "text" },
 	{ name: "flushleft", detail: "Left-aligned block", body: "\n\t$0\n", context: "text" },
 	{ name: "flushright", detail: "Right-aligned block", body: "\n\t$0\n", context: "text" },
 
-	/* quotations and verbatim */
+	// --- quotations and verbatim ---
 	{ name: "quote", detail: "Short quotation, indented both sides", body: "\n\t$0\n", context: "text" },
 	{ name: "quotation", detail: "Long quotation, with paragraph indents", body: "\n\t$0\n", context: "text" },
 	{ name: "verse", detail: "Poetry, with hanging indents", body: "\n\t$0\n", context: "text" },
@@ -796,7 +768,7 @@ export const LATEX_ENVIRONMENTS: readonly LatexEnvironment[] = [
 	{ name: "lstlisting", detail: "Source code with syntax highlighting", body: "[language=${1:Python}]\n$0\n", package: "listings", context: "text" },
 	{ name: "minted", detail: "Source code highlighted by Pygments", body: "{${1:python}}\n$0\n", package: "minted", context: "text" },
 
-	/* math */
+	// --- math ---
 	{ name: "equation", detail: "Numbered display equation", body: "\n\t$0\n", package: "amsmath", context: "math" },
 	{ name: "equation*", detail: "Unnumbered display equation", body: "\n\t$0\n", package: "amsmath", context: "math" },
 	{ name: "displaymath", detail: "Unnumbered display equation (kernel)", body: "\n\t$0\n", context: "math" },
@@ -822,7 +794,7 @@ export const LATEX_ENVIRONMENTS: readonly LatexEnvironment[] = [
 	{ name: "Vmatrix", detail: "Matrix in double bars (norm)", body: "\n\t$0\n", package: "amsmath", context: "math" },
 	{ name: "smallmatrix", detail: "Inline-sized matrix", body: "\n\t$0\n", package: "amsmath", context: "math" },
 
-	/* theorems */
+	// --- theorems ---
 	{ name: "theorem", detail: "Theorem", body: "\n\t$0\n", package: "amsthm", context: "text" },
 	{ name: "lemma", detail: "Lemma", body: "\n\t$0\n", package: "amsthm", context: "text" },
 	{ name: "corollary", detail: "Corollary", body: "\n\t$0\n", package: "amsthm", context: "text" },
@@ -832,14 +804,14 @@ export const LATEX_ENVIRONMENTS: readonly LatexEnvironment[] = [
 	{ name: "example", detail: "Example", body: "\n\t$0\n", package: "amsthm", context: "text" },
 	{ name: "proof", detail: "Proof, ending in a QED symbol", body: "\n\t$0\n", package: "amsthm", context: "text" },
 
-	/* algorithms and drawings */
+	// --- algorithms and drawings ---
 	{ name: "algorithm", detail: "Floating algorithm", body: "\n\t\\caption{$1}\n\t$0\n", package: "algorithm", context: "text" },
 	{ name: "algorithmic", detail: "Algorithm pseudocode body", body: "\n\t$0\n", package: "algorithmicx", context: "text" },
 	{ name: "tikzpicture", detail: "TikZ drawing", body: "\n\t$0\n", package: "tikz", context: "text" },
 	{ name: "axis", detail: "PGFPlots axis (inside tikzpicture)", body: "\n\t$0\n", package: "pgfplots", context: "text" },
 	{ name: "scope", detail: "TikZ scope with local options", body: "\n\t$0\n", package: "tikz", context: "text" },
 
-	/* back matter and beamer */
+	// --- back matter and beamer ---
 	{ name: "thebibliography", detail: "Hand-written bibliography", body: "{${1:9}}\n\t\\bibitem{$2} $0\n", context: "text" },
 	{ name: "appendices", detail: "Appendix block", body: "\n\t$0\n", package: "appendix", context: "text" },
 	{ name: "frame", detail: "A beamer slide", body: "{${1:Title}}\n\t$0\n", package: "beamer", context: "text" },
@@ -853,7 +825,7 @@ export const LATEX_ENVIRONMENTS: readonly LatexEnvironment[] = [
 /* -------------------------------------------------------------- packages */
 
 export const LATEX_PACKAGES: readonly LatexPackage[] = [
-	/* math */
+	// --- math ---
 	{ name: "amsmath", detail: "AMS math environments, \\text, \\DeclareMathOperator" },
 	{ name: "amssymb", detail: "Extra AMS math symbols, \\mathbb" },
 	{ name: "amsthm", detail: "Theorem environments and the proof environment" },
@@ -867,7 +839,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "braket", detail: "Dirac bra-ket notation" },
 	{ name: "unicode-math", detail: "OpenType math fonts (XeTeX/LuaTeX)" },
 
-	/* graphics and colour */
+	// --- graphics and colour ---
 	{ name: "graphicx", detail: "Include and transform images" },
 	{ name: "xcolor", detail: "Colour by name, model or mix" },
 	{ name: "tikz", detail: "Draw vector graphics in LaTeX" },
@@ -880,7 +852,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "epstopdf", detail: "Convert EPS graphics on the fly" },
 	{ name: "transparent", detail: "Transparency in PDF output" },
 
-	/* page layout */
+	// --- page layout ---
 	{ name: "geometry", detail: "Page dimensions and margins" },
 	{ name: "fancyhdr", detail: "Custom headers and footers" },
 	{ name: "titlesec", detail: "Restyle section headings" },
@@ -896,7 +868,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "pdfpages", detail: "Insert pages of an existing PDF" },
 	{ name: "everypage", detail: "Hook code onto every page" },
 
-	/* tables */
+	// --- tables ---
 	{ name: "booktabs", detail: "Publication-quality horizontal rules" },
 	{ name: "array", detail: "Extended column specifications" },
 	{ name: "tabularx", detail: "Tables that fill a given width" },
@@ -909,7 +881,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "threeparttable", detail: "Tables with notes underneath" },
 	{ name: "csvsimple", detail: "Typeset CSV files directly" },
 
-	/* floats and captions */
+	// --- floats and captions ---
 	{ name: "float", detail: "The [H] placement and new float types" },
 	{ name: "placeins", detail: "\\FloatBarrier to stop floats drifting" },
 	{ name: "caption", detail: "Control caption format and spacing" },
@@ -917,7 +889,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "wrapfig", detail: "Wrap text around a figure" },
 	{ name: "rotating", detail: "Rotated figures, tables and pages" },
 
-	/* lists and text */
+	// --- lists and text ---
 	{ name: "enumitem", detail: "Customise list labels and spacing" },
 	{ name: "paralist", detail: "Compact and inline lists" },
 	{ name: "microtype", detail: "Micro-typography — protrusion and font expansion" },
@@ -930,7 +902,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "url", detail: "Typeset URLs with sensible line breaks" },
 	{ name: "hyphenat", detail: "Control hyphenation" },
 
-	/* fonts and encoding */
+	// --- fonts and encoding ---
 	{ name: "inputenc", detail: "Input encoding (unnecessary since 2018 — UTF-8 is default)" },
 	{ name: "fontenc", detail: "Output font encoding; use [T1] for proper 8-bit fonts" },
 	{ name: "babel", detail: "Multilingual typesetting and hyphenation" },
@@ -946,7 +918,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "inconsolata", detail: "Inconsolata monospace" },
 	{ name: "fontawesome5", detail: "Font Awesome icons" },
 
-	/* references and bibliography */
+	// --- references and bibliography ---
 	{ name: "hyperref", detail: "Hyperlinks, PDF bookmarks and metadata" },
 	{ name: "cleveref", detail: "References that name their own type" },
 	{ name: "varioref", detail: "References that mention the page when it differs" },
@@ -960,7 +932,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "acronym", detail: "Acronyms expanded on first use" },
 	{ name: "nomencl", detail: "Nomenclature list" },
 
-	/* code and algorithms */
+	// --- code and algorithms ---
 	{ name: "listings", detail: "Source code with keyword highlighting" },
 	{ name: "minted", detail: "Source code highlighted by Pygments (needs shell-escape)" },
 	{ name: "fancyvrb", detail: "Verbatim with options and framing" },
@@ -971,14 +943,14 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "algpseudocode", detail: "Pseudocode layer of algorithmicx" },
 	{ name: "algorithmicx", detail: "Framework behind algpseudocode" },
 
-	/* science and data */
+	// --- science and data ---
 	{ name: "siunitx", detail: "Numbers, units and quantities, typeset consistently" },
 	{ name: "chemfig", detail: "Chemical structure diagrams" },
 	{ name: "mhchem", detail: "Chemical formulas and equations" },
 	{ name: "circuitikz", detail: "Circuit diagrams built on TikZ" },
 	{ name: "musixtex", detail: "Music notation" },
 
-	/* structure and utilities */
+	// --- structure and utilities ---
 	{ name: "appendix", detail: "Appendix formatting and per-chapter appendices" },
 	{ name: "import", detail: "\\input from other directories, relative paths intact" },
 	{ name: "subfiles", detail: "Compile chapters standalone or as one document" },
@@ -1003,7 +975,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "microtype-show", detail: "Debug view of microtype's adjustments" },
 ];
 
-/* -------------------------------------------------------------- classes */
+/* ------------------------------------------------------------- classes */
 
 export const LATEX_CLASSES: readonly LatexClass[] = [
 	{ name: "article", detail: "Short documents — papers, notes. No \\chapter." },

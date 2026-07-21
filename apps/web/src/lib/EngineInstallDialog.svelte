@@ -10,28 +10,13 @@
 	import { IconCpu, IconLoader2, IconAlertTriangle, IconWifiOff } from '@tabler/icons-svelte';
 	import { installEngine, type InstallProgress } from '$lib/compile';
 
-	/**
-	 * First-run gate for the in-browser LaTeX compiler.
-	 *
-	 * The GlyphX engine ships as one wasm binary plus one TeX support bundle, so
-	 * unlike the old on-demand setup there is nothing to pick — it is a single
-	 * download that then works entirely offline. This dialog exists only to ask
-	 * before spending the user's bandwidth on it.
-	 *
-	 * Required install: compiling stays gated behind it, so there is no dismiss.
-	 */
 	let { open = $bindable(false), ondone }: { open?: boolean; ondone?: () => void } = $props();
 
 	let installing = $state(false);
 	let progress = $state<InstallProgress | undefined>(undefined);
 	let error = $state<string | undefined>(undefined);
 
-	/**
-	 * A total of 0 means the size genuinely is not knowable — the server is
-	 * compressing the bundle in transit, so the bytes we count are decoded ones
-	 * with nothing to measure against. Then we show what has arrived instead of
-	 * a percentage, rather than inventing one.
-	 */
+	// total 0 means the server compressed in transit, so no percentage is knowable.
 	const measurable = $derived(!!progress && progress.total > 0);
 	const pct = $derived(
 		progress && measurable ? Math.min(100, Math.round((progress.loaded / progress.total) * 100)) : 0
@@ -57,8 +42,7 @@
 		}
 	}
 
-	// Required install: every user-initiated dismiss path is disabled on
-	// <DialogContent> below (no close button, outside-click + Esc ignored), so the
+	// Required install: dismiss paths are disabled on <DialogContent> below, so the
 	// dialog only closes when `start()` sets `open = false` on success.
 </script>
 
@@ -105,8 +89,7 @@
 					{#if measurable}
 						<div class="bg-primary h-full rounded-full transition-all" style="width:{pct}%"></div>
 					{:else}
-						<!-- Size unknown: a travelling sliver, so the bar reads as
-						     "working" rather than as a stalled 0%. -->
+						<!-- Size unknown: a travelling sliver reads as working, not a stalled 0%. -->
 						<div class="bg-primary engine-progress-indeterminate h-full w-1/3 rounded-full"></div>
 					{/if}
 				</div>
@@ -138,8 +121,6 @@
 </Dialog>
 
 <style>
-	/* Indeterminate progress: a sliver that travels the track. Honours reduced
-	   motion by falling back to a static half-width bar. */
 	.engine-progress-indeterminate {
 		animation: engine-progress-slide 1.4s ease-in-out infinite;
 	}

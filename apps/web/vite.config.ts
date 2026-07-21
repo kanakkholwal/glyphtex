@@ -13,16 +13,10 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 
-			// Deployed to Cloudflare Workers (static assets + SSR worker). The
-			// build output lands in .svelte-kit/cloudflare; wrangler.jsonc points
-			// the deploy at it. See .github/workflows/deploy-web.yml.
 			adapter: adapter(),
 
-			// Registered by hand instead (see src/routes/+layout.svelte), so it can
-			// be kept out of development. A service worker in dev intercepts Vite's
-			// module and HMR traffic for no benefit — offline support is a
-			// production feature — and a stale registration then serves yesterday's
-			// modules until it is manually cleared.
+			// Registered by hand in src/routes/+layout.svelte so it stays out of dev,
+			// where it intercepts HMR traffic and then serves stale modules.
 			serviceWorker: { register: false }
 		})
 	]

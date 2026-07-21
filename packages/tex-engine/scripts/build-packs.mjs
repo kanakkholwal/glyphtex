@@ -91,14 +91,29 @@ const MAX_ROUNDS = 200;
 const built = [];
 const provides = {};
 
+/** id -> files, for packs already built; lets later packs depend on them. */
+const packFiles = new Map();
+
 for (const pack of config.packs) {
 	const source = fixtures.get(pack.id);
-	/** Files this pack adds on top of core. */
+	/** Files this pack adds on top of core and its dependencies. */
 	const extra = new Map();
+	/** Packs whose files this one turned out to need. */
+	const requires = new Set();
 
 	function add(name) {
 		if (core.has(name) || extra.has(name)) return false;
 		if (!isBareName(name)) return false;
+
+		// Already owned by an earlier pack: depend on it rather than shipping a
+		// second copy. Two copies of a .sty can drift, and "which pack provides
+		// this?" stops having one answer.
+		const owner = provides[name];
+		if (owner) {
+			requires.add(owner);
+			return true;
+		}
+
 		const path = kpse(name);
 		if (!path) return false;
 		extra.set(name, new Uint8Array(readFileSync(path)));
@@ -115,6 +130,12 @@ for (const pack of config.packs) {
 		// round fails for a reason that has nothing to do with the pack.
 		const engine = await TexEngine.load(WASM);
 		for (const [name, bytes] of core) engine.addFile(name, bytes);
+		// Dependencies first: this pack does not carry their files, so without
+		// them it could never converge — it would keep asking for a file it has
+		// deliberately delegated to another pack.
+		for (const id of requires) {
+			for (const [name, bytes] of packFiles.get(id) ?? []) engine.addFile(name, bytes);
+		}
 		for (const [name, bytes] of extra) engine.addFile(name, bytes);
 		engine.addFile('main.tex', source);
 
@@ -165,28 +186,34 @@ for (const pack of config.packs) {
 	writeFileSync(resolve(outDir, `pack-${pack.id}.tar.gz`), gz);
 
 	for (const name of extra.keys()) {
-		// A file in two packs would make "which pack do I need" ambiguous and let
-		// two copies drift apart. Fail rather than pick one.
+		// `add()` routes an already-owned file to a dependency, so reaching here
+		// twice would mean that logic failed and two packs really do carry it.
 		if (provides[name]) {
-			console.error(`\n${name} is provided by both "${provides[name]}" and "${pack.id}".`);
-			console.error('Move it into one pack, or into the core bundle if both need it.');
+			console.error(`\n${name} ended up in both "${provides[name]}" and "${pack.id}".`);
 			process.exit(1);
 		}
 		provides[name] = pack.id;
 	}
+	packFiles.set(pack.id, extra);
 
 	built.push({
 		id: pack.id,
 		label: pack.label,
 		description: pack.description,
 		packages: pack.packages,
+		requires: [...requires],
+		// Packs ship with the engine unless the config opts them out. Set
+		// `"optional": true` for anything large enough that a user should choose
+		// it — a font pack, not a handful of .sty files.
+		optional: pack.optional === true,
 		bytes: gz.length,
 		hash
 	});
 
+	const deps = requires.size > 0 ? `  requires ${[...requires].join(', ')}` : '';
 	console.log(
 		`  ${pack.id.padEnd(12)} ${String(count).padStart(4)} files  ` +
-			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz`
+			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz${deps}`
 	);
 }
 

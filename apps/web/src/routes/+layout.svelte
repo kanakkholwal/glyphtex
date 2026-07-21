@@ -8,25 +8,16 @@
 
 	let { children } = $props();
 
-	// Keep `.dark` on <html> in sync with the resolved theme. Re-runs on toggle
-	// and on cross-window storage sync (PersistedState updates `resolved`).
+	// Keep `.dark` on <html> in sync; re-runs on toggle and cross-window storage sync.
 	$effect(() => {
 		settings.apply();
 	});
 
-	// Google Analytics (no-op unless PUBLIC_GA_ID is set). gtag.js sends the
-	// initial page_view on load; we report each subsequent client navigation.
+	// No-op unless PUBLIC_GA_ID is set; gtag.js sends the initial page_view itself.
 	onMount(() => loadAnalytics());
 
-	/**
-	 * Register the service worker — production only (see `serviceWorker.register`
-	 * in vite.config.ts for why).
-	 *
-	 * In development we go further and actively remove any worker a previous
-	 * production build (or an earlier dev server on this port) left registered.
-	 * Ports get reused across projects, and an orphaned worker happily serves
-	 * stale modules and intercepts HMR, which presents as impossible bugs.
-	 */
+	// Production only. In dev, unregister leftover workers: a reused port can serve
+	// stale modules and intercept HMR, which presents as impossible bugs.
 	onMount(() => {
 		if (!('serviceWorker' in navigator)) return;
 

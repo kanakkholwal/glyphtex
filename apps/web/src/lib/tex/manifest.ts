@@ -1,10 +1,3 @@
-// Loading the engine manifest, online or off.
-//
-// The manifest names the engine version, which is the key everything else in
-// the engine cache is stored under — so it has to be readable offline too, or
-// an installed user who opens the app on a plane would be told to install
-// again. It is cached alongside the artifacts it describes.
-
 import type { EngineManifest } from './protocol';
 
 export const ENGINE_CACHE = 'glyphx-engine';
@@ -12,13 +5,8 @@ export const ENGINE_CACHE = 'glyphx-engine';
 const MANIFEST_URL = '/engine/manifest.json';
 
 /**
- * Open the engine cache, or return null if this browser will not give us one.
- *
- * The Cache API is an optimisation here, never a requirement: it is what makes
- * the engine survive a reload, but a compiler that re-downloads every session
- * still compiles. Private-mode windows, blocked site data and headless
- * environments can all make `caches.open` reject outright, and treating that as
- * fatal would take the whole feature down rather than just its persistence.
+ * Open the engine cache, or null if unavailable (private mode, blocked storage).
+ * Caching is an optimisation only — callers must work without it.
  */
 export async function openEngineCache(): Promise<Cache | null> {
 	if (typeof caches === 'undefined') return null;
@@ -43,11 +31,8 @@ function parse(value: unknown): EngineManifest {
 }
 
 /**
- * Fetch the manifest, preferring the network so a new deploy is picked up
- * promptly, and falling back to the cached copy when offline.
- *
- * The network copy is written back to the cache on every success, so the cached
- * manifest always describes the engine the user most recently could have had.
+ * Fetch the manifest network-first, falling back to the cached copy offline.
+ * It must stay cached: its version is the key the engine artifacts live under.
  */
 export async function loadManifest(): Promise<EngineManifest> {
 	const cache = await openEngineCache();

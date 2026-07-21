@@ -14,15 +14,20 @@ pkgconfig/
 # Retire this exemption if deploy starts consuming a published artifact instead
 # of the working tree.
 
-# Deliberately NOT ignored: output/tectonic-bundle.tar.gz.
+# Deliberately NOT ignored: output/tectonic-bundle.tar.gz and output/packs/.
 #
-# A data input, not a build output: it is assembled from a TeX Live install, so
-# a clean machine cannot regenerate it and would be left unable to compile or
-# test anything. It changes only when the TeX Live snapshot is refreshed, so it
-# costs history size once rather than continuously.
+# Data inputs, not build outputs: they are assembled from a TeX Live install, so
+# a clean machine cannot regenerate them and would be left unable to compile or
+# test anything. deploy-web.yml runs `sync:engine` without a TeX Live, so an
+# untracked bundle means a deployed editor that cannot compile, and untracked
+# packs mean the pack feature silently vanishes in production — `loadPackIndex`
+# returns null and no package set is ever offered.
 #
-# Rebuild it with:  pnpm engine:bundle:build && pnpm engine:bundle:pack
-# (needs TeX Live; on Windows use WSL)
+# They change only when the TeX Live snapshot is refreshed or a pack is added,
+# so they cost history size once rather than continuously. The packs are 0.5 MB
+# in total, against 8.6 MB for the core bundle.
+#
+# Rebuild with:  pnpm engine:bundle (needs TeX Live; on Windows use WSL)
 
 # OS
 .DS_Store

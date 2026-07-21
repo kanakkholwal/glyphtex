@@ -1,13 +1,6 @@
-// Deterministic gzipped-tar writer, shared by the bundle and pack packers.
-//
-// Written here rather than shelling out to `tar` because these archives are
-// committed artifacts: the same input must produce the same bytes on any
-// machine. GNU tar, bsdtar and Windows tar disagree about field padding, device
-// numbers and whether a `./` prefix is emitted, and gzip stamps an mtime into
-// its header unless told not to.
-//
-// The reader is apps/web/src/lib/tex/tar.ts — plain POSIX ustar, flat, no
-// nesting, regular files only. That is deliberately the subset written here.
+// Hand-written because these archives are committed: system `tar` implementations
+// disagree on padding and `./` prefixes, so the same input would not give the
+// same bytes. Reader is apps/web/src/lib/tex/tar.ts — flat ustar, regular files.
 import { gzipSync, constants } from 'node:zlib';
 
 const BLOCK = 512;
@@ -20,9 +13,7 @@ function octal(value, width) {
 function header(name, size) {
 	const block = Buffer.alloc(BLOCK);
 	const encoded = Buffer.from(name, 'utf8');
-	// 100 bytes is the ustar name field. The prefix field could extend it, but
-	// these archives are flat with short TeX filenames, so a name that long means
-	// something is wrong upstream — say so rather than silently truncating.
+	// TeX filenames are short, so 100 bytes means something is wrong upstream.
 	if (encoded.length > 100) throw new Error(`name too long for ustar (${encoded.length}b): ${name}`);
 	encoded.copy(block, 0);
 
@@ -42,12 +33,7 @@ function header(name, size) {
 	return block;
 }
 
-/**
- * Pack `files` (name → bytes) into gzipped tar bytes.
- *
- * Entries are sorted by name so archive order never depends on the order the
- * caller happened to collect them in.
- */
+// Sorted, so archive order never depends on collection order.
 export function packTarGz(files) {
 	const names = [...files.keys()].sort();
 	const chunks = [];

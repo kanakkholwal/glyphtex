@@ -1,15 +1,3 @@
-/**
- * WorkbenchController — the root that composes the Workbench's four domain
- * stores (files, layout, search, compile), wires their cross-references, and
- * owns the things that span all of them: the application menu, the global
- * keyboard shortcuts, and the side-effect "drivers" the component runs from its
- * `$effect`s / lifecycle.
- *
- * The `.svelte` component constructs one of these, binds the markup to its
- * stores, and calls the driver methods — keeping all `$props` / `$effect` /
- * `onMount` (the genuinely Svelte glue) in the component and all state +
- * behaviour here.
- */
 import type { EngineManager } from "../engine-settings.svelte";
 import type { GitProvider } from "../git-panel.svelte";
 import type { Menu } from "../menu-bar.svelte";
@@ -31,10 +19,8 @@ import type {
 export type WorkbenchProps = {
   platform?: "web" | "desktop";
   compile?: CompileFn;
-  /**
-   * Compile a multi-file project on disk (desktop). Used whenever a project
-   * folder is open so `\input` / `\includegraphics` / `\bibliography` resolve.
-   */
+  /** Compile a multi-file project on disk (desktop), so `\input` /
+   *  `\includegraphics` / `\bibliography` resolve. */
   compileProject?: CompileProjectFn;
   engine?: EngineManager;
   /** Host-injected Git backend (desktop = gitoxide). Enables Source Control. */
@@ -92,8 +78,8 @@ export class WorkbenchController {
     this.compile = new CompileStore({
       files: this.files,
       layout: this.layout,
-      // Getter, not value: the web app supplies this only after the engine
-      // is installed, and the workbench is constructed once.
+      // Getter, not value: the controller is constructed once, so a captured
+      // `compile` never sees the prop flip after the engine is installed.
       getCompile: () => props.compile,
       compileProject: props.compileProject,
       saveFile: props.saveFile,
@@ -103,11 +89,9 @@ export class WorkbenchController {
     this.files.onProjectLoaded = () => this.layout.closeDiff();
   }
 
-  // --- Application menu (VS Code-style) --------------------------------------
-  // A getter (recomputed on read) so checkmarks (view mode, live compile, open
-  // panel) stay in sync, and so it can reference the constructor-assigned stores
-  // without tripping field-initialization order. Actions reuse the same store
-  // methods the rest of the chrome calls.
+  // --- Application menu ---
+  // A getter, not a field: recomputed on read so checkmarks stay in sync, and it
+  // can reference constructor-assigned stores without initialization-order issues.
   get menus(): Menu[] {
     return [
     {
@@ -320,10 +304,9 @@ export class WorkbenchController {
     ];
   }
 
-  // --- Global keyboard shortcuts --------------------------------------------
-  // Matched against the shared registry so the keys here, the menu hints, and
-  // the Keyboard Shortcuts dialog can never drift apart. Editor-scoped combos
-  // (Undo / Redo) are handled by CodeMirror when the editor is focused.
+  // --- Global keyboard shortcuts ---
+  // Matched against the shared registry so keys, menu hints and the shortcuts
+  // dialog can't drift. Undo/Redo are left to the editor when it has focus.
   onKeydown(e: KeyboardEvent): void {
     // Cheap early-out: every app shortcut carries a Mod (⌘/Ctrl).
     if (!(e.ctrlKey || e.metaKey)) return;
@@ -355,7 +338,7 @@ export class WorkbenchController {
     if (settings.autoSave === "onFocusChange") void this.files.saveActive();
   }
 
-  // --- Side-effect drivers (run from the component's `$effect`s) -------------
+  // --- Side-effect drivers (run from the component's `$effect`s) ---
   /** Persist back to the host (in-memory projects only), debounced. */
   armPersist(): (() => void) | void {
     void this.files.source; // track edits
@@ -391,7 +374,7 @@ export class WorkbenchController {
       this.layout.editor?.clearSearch();
   }
 
-  // --- Lifecycle helpers (run from onMount / onDestroy) ---------------------
+  // --- Lifecycle helpers (run from onMount / onDestroy) ---
   /** Open a launched folder/file and listen for later "Open with GlyphX" paths.
    *  Returns the unlisten cleanup (for `onMount`'s return). */
   mountFileAssociation(): () => void {

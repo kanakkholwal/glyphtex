@@ -1,22 +1,19 @@
-// Copy the in-house TeX engine into the web app's static assets.
-//
-// Both files are build outputs of crates/tectonic-wasm, not sources, so they
-// are gitignored under static/engine/ and copied in here — the same
-// arrangement packages/tex-engine uses for the wasm binary. CI runs this
-// before `vite build`; locally, run it after `crates/tectonic-wasm/scripts/
-// build-wasm.sh`.
-//
-// A manifest carrying each file's size and a content hash is written alongside
-// them. The hash is what the browser keys its persistent Cache API entries on,
-// so shipping a new engine invalidates the old download instead of leaving
-// users on a stale bundle.
-import { copyFileSync, mkdirSync, existsSync, statSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+	copyFileSync,
+	mkdirSync,
+	existsSync,
+	statSync,
+	readFileSync,
+	readdirSync,
+	writeFileSync
+} from 'node:fs';
 import { createHash } from 'node:crypto';
-import { dirname, resolve, basename } from 'node:path';
+import { dirname, resolve, basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(here, '..');
+// Build outputs, not sources: gitignored under static/engine/ and copied in here.
 const outputDir = process.argv[2] ?? resolve(appRoot, '../../crates/tectonic-wasm/output');
 
 const SOURCES = ['tectonic_wasm.wasm', 'tectonic-bundle.tar.gz'];
@@ -64,4 +61,27 @@ writeFileSync(
 	JSON.stringify({ version, totalBytes: total, files }, null, '\t') + '\n'
 );
 
-console.log(`\nengine ${version} -> static/engine/ (${(total / 1048576).toFixed(2)} MB total)`);
+// Packs are optional and versioned by their own hashes, not the engine version,
+// so a new engine build does not force a re-download of unchanged packs.
+const packSource = resolve(outputDir, 'packs');
+if (existsSync(packSource)) {
+	const packDest = resolve(destDir, 'packs');
+	mkdirSync(packDest, { recursive: true });
+
+	let packBytes = 0;
+	let packCount = 0;
+	for (const name of readdirSync(packSource)) {
+		const from = join(packSource, name);
+		if (!statSync(from).isFile()) continue;
+		copyFileSync(from, resolve(packDest, name));
+		packBytes += statSync(from).size;
+		if (name.endsWith('.tar.gz')) packCount++;
+	}
+	console.log(
+		`  ${String(packCount).padStart(2)} packs${' '.repeat(20)} ${(packBytes / 1048576).toFixed(2)} MB`
+	);
+} else {
+	console.log('  (no packs — run pnpm engine:bundle:packs to build them)');
+}
+
+console.log(`\nengine ${version} -> static/engine/ (${(total / 1048576).toFixed(2)} MB core)`);

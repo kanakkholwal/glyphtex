@@ -1,15 +1,3 @@
-/**
- * What the language providers know about the project beyond the open file.
- *
- * Monaco only ever holds one model here — the file on screen — but LaTeX is
- * inherently multi-file: `\cite` keys live in a `.bib`, and `\ref` targets
- * routinely live in a chapter the user is not currently looking at. So the
- * workbench pushes the project's files in here, and the providers read from it.
- *
- * This is a plain module-level store rather than a rune, because its consumers
- * are Monaco provider callbacks, not components — they pull on demand and have
- * no reactive context to subscribe from.
- */
 import { parseBib, type BibEntry } from "./bibtex";
 
 export type WorkspaceFile = {
@@ -18,6 +6,8 @@ export type WorkspaceFile = {
 	content: string;
 };
 
+// A plain module store rather than a rune: the consumers are Monaco provider
+// callbacks, which pull on demand and have no reactive context to subscribe from.
 let files: WorkspaceFile[] = [];
 
 /** Bumped on every push, so derived views know their cache is stale. */
@@ -34,13 +24,8 @@ export type WorkspaceLabel = {
 	line: number;
 };
 
-/**
- * Replace the project's files. Called by the workbench whenever the file set or
- * their saved contents change.
- *
- * Cheap to call often: it only invalidates caches, and the parsing behind them
- * is lazy, so a push nothing subsequently reads costs nothing.
- */
+/** Replaces the project's files. Cheap to call often: it only invalidates caches,
+ * and the parsing behind them is lazy. */
 export function setWorkspaceFiles(next: readonly WorkspaceFile[]): void {
 	files = [...next];
 	revision++;
@@ -71,12 +56,8 @@ export function workspaceBibEntries(): BibEntry[] {
 	return entries;
 }
 
-/**
- * Every `\label` in the project's `.tex` files.
- *
- * The open file is deliberately included by the caller from its live model
- * instead, so labels the user is typing right now appear before they are saved.
- */
+/** Every `\label` in the project's `.tex` files. The open file is contributed by the
+ * caller from its live model instead, so unsaved labels still appear. */
 export function workspaceLabels(): WorkspaceLabel[] {
 	if (labelCache?.revision === revision) return labelCache.value;
 
@@ -85,8 +66,7 @@ export function workspaceLabels(): WorkspaceLabel[] {
 		if (!/\.(tex|ltx|sty|cls)$/i.test(file.path)) continue;
 
 		const name = basename(file.path);
-		// Line number by counting newlines up to the match — the files here have
-		// no Monaco model to ask, and a `.bib`-sized scan is not worth an index.
+		// Newlines are counted by hand: these files have no Monaco model to ask.
 		const re = /\\label\s*\{([^}]+)\}/g;
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(file.content))) {

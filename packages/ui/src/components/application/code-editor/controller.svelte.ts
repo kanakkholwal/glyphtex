@@ -1,20 +1,3 @@
-/**
- * CodeEditorController — owns the Monaco editor instance and the editor's
- * imperative API (wrap/insert, undo/redo, go-to-line, find/replace).
- *
- * The `.svelte` component is a thin shell: it binds props/effects to these
- * methods and re-exports the API via `bind:this`. Every prop change is applied
- * with `updateOptions` / `setModelLanguage` rather than by re-creating the
- * editor, so toggling theme / font / wrapping never loses cursor, scroll or
- * undo history. Only `editor` is reactive (`$state`) so the component's
- * reconfigure effects re-run once it mounts.
- *
- * The editor's public API is offset-based (`from`/`to` character indices),
- * because that is what the find/replace panel speaks. Monaco is line/column
- * based, so offsets are converted at the boundary via the model's own
- * `getOffsetAt` / `getPositionAt` — never recomputed by hand, which would go
- * wrong on CRLF documents.
- */
 import type * as Monaco from "monaco-editor";
 
 import { loadMonaco, type MonacoNamespace } from "@glyphx/ui/editor";
@@ -42,7 +25,6 @@ export type CodeEditorCallbacks = {
   oncursor?: (pos: { line: number; column: number }) => void;
 };
 
-/** Monaco's id for each of our language modes. */
 function languageId(lang: EditorLanguage): string {
   if (lang === "latex") return "latex";
   if (lang === "markdown") return "markdown";
@@ -58,7 +40,6 @@ export class CodeEditorController {
   editor = $state<Monaco.editor.IStandaloneCodeEditor>();
 
   #monaco: MonacoNamespace | null = null;
-  /** Disposables from the mount, torn down together. */
   #disposables: Monaco.IDisposable[] = [];
   #decorations: Monaco.editor.IEditorDecorationsCollection | null = null;
 
@@ -70,14 +51,8 @@ export class CodeEditorController {
     this.#cb = cb;
   }
 
-  /**
-   * Mount the editor into `parent` with the initial prop values; returns the
-   * teardown for the component's mount effect.
-   *
-   * Monaco arrives asynchronously (it cannot be imported during SSR), but the
-   * effect needs its teardown synchronously — so the teardown flips a flag that
-   * a late-resolving load checks before attaching anything.
-   */
+  /** Mount into `parent`; returns the teardown for the component's mount effect.
+   *  Monaco loads async but the teardown must be sync, hence the `disposed` flag. */
   mount(parent: HTMLElement, init: EditorInit): () => void {
     let disposed = false;
 
@@ -132,12 +107,9 @@ export class CodeEditorController {
       // Drives latex-semantic.ts: unknown commands, user macros, dangling refs.
       "semanticHighlighting.enabled": true,
 
-      // --- Suggestions ------------------------------------------------------
-      // Prose is not code, so Monaco's defaults need adjusting: a LaTeX author
-      // types mostly words, and popping the widget open on every one of them
-      // would be unusable. `quickSuggestions` is therefore off for plain text —
-      // the provider's trigger characters (`\`, `{`, `,`) open it instead,
-      // which is exactly when a suggestion is actually wanted.
+      // --- Suggestions ---
+      // Prose types mostly words, so quick suggestions stay off; the provider's
+      // trigger characters (`\`, `{`, `,`) open the widget instead.
       quickSuggestions: { other: false, comments: false, strings: false },
       suggestOnTriggerCharacters: true,
       // Ctrl/Cmd+Space still works everywhere for an explicit request.
@@ -204,12 +176,11 @@ export class CodeEditorController {
     this.#monaco = null;
   }
 
-  /** The live model, or null before mount completes. */
   get #model(): Monaco.editor.ITextModel | null {
     return this.editor?.getModel() ?? null;
   }
 
-  // --- Live reconfiguration (each driven by one component effect) -----------
+  // --- Live reconfiguration ---
 
   /** Note Monaco themes are global, not per-editor: this restyles every editor
    *  on the page, which is what we want — they share one app theme. */
@@ -236,14 +207,8 @@ export class CodeEditorController {
     this.editor?.updateOptions({ readOnly: ro });
   }
 
-  /**
-   * Switching documents resets the undo history so undo/redo can never reach
-   * into another file's edits (a single editor is reused across files).
-   *
-   * Monaco keeps the undo stack on the model, so a fresh model is exactly a
-   * fresh history — and it is also the only way to clear it, since the stack
-   * has no public reset.
-   */
+  /** Reset undo history on document switch, so undo can't reach another file's edits.
+   *  Swaps the model because Monaco's undo stack lives there and has no public reset. */
   resetHistoryIfDocChanged(key: string): void {
     const editor = this.editor;
     const monaco = this.#monaco;
@@ -266,19 +231,15 @@ export class CodeEditorController {
     previous?.dispose();
   }
 
-  /**
-   * External value → editor (e.g. open a different file). Guarded so typing
-   * doesn't loop. External replacements are never undoable, which is why this
-   * uses `applyEdits` (bypasses the undo stack) rather than `pushEditOperations`
-   * or `setValue` (which would clear the stack outright).
-   */
+  /** External value → editor, guarded so typing doesn't loop. `applyEdits` bypasses
+   *  the undo stack; `setValue`/`pushEditOperations` would clear or pollute it. */
   syncExternalValue(next: string): void {
     const model = this.#model;
     if (!model || next === model.getValue()) return;
     model.applyEdits([{ range: model.getFullModelRange(), text: next }]);
   }
 
-  // --- Imperative API -------------------------------------------------------
+  // --- Imperative API ---
 
   wrapSelection(before: string, after: string = before): void {
     const editor = this.editor;
@@ -452,7 +413,8 @@ export class CodeEditorController {
     this.#decorations?.clear();
   }
 
-  /** Offset pair → Monaco range, clamped to the document. */
+  // Offset pair → Monaco range via the model's own conversion; hand-computing
+  // line/column from offsets goes wrong on CRLF documents.
   #rangeOf(model: Monaco.editor.ITextModel, from: number, to: number): Monaco.IRange {
     const max = model.getValueLength();
     const start = model.getPositionAt(Math.max(0, Math.min(from, max)));

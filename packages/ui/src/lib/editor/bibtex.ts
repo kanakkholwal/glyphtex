@@ -1,17 +1,3 @@
-/**
- * A small BibTeX reader, for citation completion.
- *
- * This exists to answer one question — "what keys can I cite, and what are
- * they?" — so it reads entry types, keys and a few display fields, and
- * deliberately does not try to be a full BibTeX implementation. It does not
- * expand `@string` abbreviations, resolve crossrefs, or interpret TeX inside
- * field values beyond stripping the braces people use for capitalisation.
- *
- * It is written to never throw on malformed input: a half-typed `.bib` file is
- * the normal case while someone is editing one, and losing every suggestion
- * because the last entry is incomplete would be worse than parsing what we can.
- */
-
 export type BibEntry = {
 	/** Citation key — what goes inside `\cite{}`. */
 	key: string;
@@ -30,11 +16,7 @@ const NON_ENTRY = new Set(["comment", "preamble", "string"]);
 /** Fields worth showing in a suggestion; everything else is ignored. */
 const INTERESTING = new Set(["title", "author", "year", "date", "editor", "booktitle"]);
 
-/**
- * Read a brace-delimited value starting at `open` (index of `{`), returning the
- * contents and the index just past the closing brace. Tracks nesting so
- * `title = {The {TeX}book}` survives, and honours backslash escapes.
- */
+// Nesting-aware so `title = {The {TeX}book}` survives; `end` is just past the close.
 function readBraced(text: string, open: number): { value: string; end: number } {
 	let depth = 0;
 	for (let i = open; i < text.length; i++) {
@@ -53,7 +35,7 @@ function readBraced(text: string, open: number): { value: string; end: number } 
 	return { value: text.slice(open + 1), end: text.length };
 }
 
-/** Read a `"…"` value, honouring backslash escapes. */
+// Reads a `"…"` value, honouring backslash escapes.
 function readQuoted(text: string, open: number): { value: string; end: number } {
 	for (let i = open + 1; i < text.length; i++) {
 		if (text[i] === "\\") {
@@ -65,7 +47,7 @@ function readQuoted(text: string, open: number): { value: string; end: number } 
 	return { value: text.slice(open + 1), end: text.length };
 }
 
-/** Collapse the braces and whitespace BibTeX uses for capitalisation control. */
+// Collapses the braces and whitespace BibTeX uses for capitalisation control.
 function clean(value: string): string {
 	return value
 		.replace(/[{}]/g, "")
@@ -73,10 +55,8 @@ function clean(value: string): string {
 		.trim();
 }
 
-/**
- * Parse the body of one entry (everything inside the outer braces) into its key
- * and display fields. The key is whatever precedes the first comma.
- */
+// `body` is everything inside the outer braces; the key is whatever precedes the
+// first comma.
 function parseEntryBody(body: string): { key: string; fields: Record<string, string> } {
 	const firstComma = body.indexOf(",");
 	if (firstComma === -1) return { key: body.trim(), fields: {} };
@@ -86,7 +66,6 @@ function parseEntryBody(body: string): { key: string; fields: Record<string, str
 
 	let i = firstComma + 1;
 	while (i < body.length) {
-		// name =
 		const nameMatch = /\s*([a-zA-Z][a-zA-Z0-9_-]*)\s*=\s*/.exec(body.slice(i));
 		if (!nameMatch) break;
 		const name = nameMatch[1].toLowerCase();
@@ -110,7 +89,6 @@ function parseEntryBody(body: string): { key: string; fields: Record<string, str
 
 		if (INTERESTING.has(name)) fields[name] = clean(value);
 
-		// Skip to just past the next comma.
 		const comma = body.indexOf(",", i);
 		if (comma === -1) break;
 		i = comma + 1;
@@ -136,8 +114,7 @@ export function parseBib(text: string, source?: string): BibEntry[] {
 
 		const type = typeMatch[1].toLowerCase();
 		const open = at + typeMatch[0].length - 1;
-		// `@article(...)` is legal too, but parenthesised entries are vanishingly
-		// rare and brace-counting them separately is not worth it — skip them.
+		// `@article(...)` is legal but vanishingly rare; not worth a second scanner.
 		if (text[open] !== "{") {
 			i = at + typeMatch[0].length;
 			continue;
@@ -169,7 +146,7 @@ export function parseBib(text: string, source?: string): BibEntry[] {
 export function describeEntry(entry: BibEntry): string {
 	const parts: string[] = [];
 	if (entry.author) {
-		// "Knuth, Donald E. and Lamport, Leslie" → "Knuth et al."
+		// Surname of the first author only, plus "et al." when there are more.
 		const authors = entry.author.split(/\s+and\s+/);
 		const first = authors[0].split(",")[0].trim();
 		parts.push(authors.length > 1 ? `${first} et al.` : first);
