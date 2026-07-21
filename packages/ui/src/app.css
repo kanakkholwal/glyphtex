@@ -48,54 +48,62 @@
    Light — clean near-white neutrals (the default register)
    --------------------------------------------------------------------------- */
 :root {
-  /* Surfaces: clean neutral near-white, pure-white cards, an elevated neutral
-	   surface, near-black neutral ink — one system with the neutral dark. */
-  --background: oklch(0.9851 0 0);
-  --foreground: oklch(0.2103 0.0059 285.89);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2103 0.0059 285.89);
-  --surface: oklch(0.9674 0.0013 286.38);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2103 0.0059 285.89);
+  /* --- Islands Light --------------------------------------------------------
+     The light counterpart, derived from `islandLightPalette` in
+     `lib/editor/jetbrains-monaco.ts` the same way the dark block is. Note the
+     asymmetry, which is upstream's and not ours: JetBrains' "Islands Light"
+     ships no editor scheme of its own — it declares `editorScheme: "Light"` —
+     so the light surface is the New UI Light scheme, a cooler and flatter set
+     than Islands Dark.
+
+     Surface ladder: bg #ffffff < lineHighlight #f5f8fe < indentGuide #ebecf0
+     < widgetBorder #e9eaee. */
+  --background: #f7f8fa; /* one step under white so cards read as raised */
+  --foreground: #080808; /* palette.fg */
+  --card: #ffffff; /* palette.bg */
+  --card-foreground: #080808;
+  --surface: #f5f8fe; /* palette.lineHighlight */
+  --popover: #ffffff; /* palette.widgetBg */
+  --popover-foreground: #080808;
 
   /* Primary = ink (near-black neutral). The monochrome emphasis voice (NOT the brand). */
-  --primary: oklch(0.2103 0.0059 285.89);
-  --primary-foreground: oklch(0.9851 0 0);
+  --primary: #080808;
+  --primary-foreground: #ffffff;
 
-  /* Neutral ladder — clean zinc greys; accent is the neutral hover/surface. */
-  --secondary: oklch(0.9674 0.0013 286.38);
-  --secondary-foreground: oklch(0.2103 0.0059 285.89);
-  --muted: oklch(0.9674 0.0013 286.38);
-  --muted-foreground: oklch(0.5517 0.0138 285.94);
-  --accent: oklch(
-    0.9674 0.0013 286.38
-  ); /* neutral hover/surface — deliberately NOT brand */
-  --accent-foreground: oklch(0.2103 0.0059 285.89);
+  --secondary: #f5f8fe;
+  --secondary-foreground: #080808;
+  --muted: #f5f8fe;
+  --muted-foreground: #8c8c8c; /* palette.comment */
+  --accent: #ebecf0; /* palette.indentGuide — hover/pressed surface */
+  --accent-foreground: #080808;
 
-  /* Status — error / warning / success stay distinct from the brand blue. */
-  --destructive: oklch(0.6368 0.2078 25.33);
-  --destructive-foreground: oklch(1 0 0);
-  --success: oklch(0.6959 0.1491 162.48);
-  --success-foreground: oklch(1 0 0);
-  --warning: oklch(0.7686 0.1647 70.08);
-  --warning-foreground: oklch(1 0 0);
-  --info: oklch(0.62 0.185 246);
-  --info-foreground: oklch(1 0 0);
+  /* Status. The light scheme's raw #ff0000 / #ebc700 are squiggle colours meant
+     to sit under text at small size; used as UI fills they are garish and the
+     yellow fails contrast on white. These are the same hues pulled to usable
+     lightness — the one place this file deliberately departs from upstream. */
+  --destructive: #d13438;
+  --destructive-foreground: #ffffff;
+  --success: #067d17; /* palette.string — already usable as-is */
+  --success-foreground: #ffffff;
+  --warning: #9a7b00;
+  --warning-foreground: #ffffff;
+  --info: #00627a; /* palette.func */
+  --info-foreground: #ffffff;
 
-  /* Lines & focus — neutral hairlines; the focus ring is brand blue. */
-  --border: oklch(0.9197 0.004 286.32);
-  --input: oklch(0.9197 0.004 286.32);
-  --ring: oklch(0.62 0.185 246);
+  /* Lines & focus. */
+  --border: #e9eaee; /* palette.widgetBorder */
+  --input: #e9eaee;
+  --ring: #1750eb; /* palette.number — the scheme's saturated blue */
 
   /* Sidebar (one quiet neutral step off the canvas). */
-  --sidebar: oklch(0.9674 0.0013 286.38);
-  --sidebar-foreground: oklch(0.3703 0.0119 285.81);
-  --sidebar-primary: oklch(0.2103 0.0059 285.89);
-  --sidebar-primary-foreground: oklch(0.9851 0 0);
-  --sidebar-accent: oklch(0.9674 0.0013 286.38);
-  --sidebar-accent-foreground: oklch(0.2103 0.0059 285.89);
-  --sidebar-border: oklch(0.9197 0.004 286.32);
-  --sidebar-ring: oklch(0.62 0.185 246);
+  --sidebar: #f5f8fe; /* palette.lineHighlight */
+  --sidebar-foreground: #3c3f43;
+  --sidebar-primary: #080808;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ebecf0;
+  --sidebar-accent-foreground: #080808;
+  --sidebar-border: #e9eaee;
+  --sidebar-ring: #1750eb;
 
   /* Charts — brand blue + a neutral ramp. */
   --chart-1: oklch(0.62 0.185 246);
@@ -131,21 +139,21 @@
 
   /* Marketing surface mirrors (landing layer) — neutral; hairlines are SOLID
 	   neutral lines so the landing reads as a crisp structural grid. */
-  --canvas: oklch(0.9851 0 0);
-  --surface-soft: oklch(0.9674 0.0013 286.38);
-  --surface-card: oklch(1 0 0);
-  --surface-strong: oklch(0.9197 0.004 286.32);
+  --canvas: #f7f8fa;
+  --surface-soft: #f5f8fe; /* palette.lineHighlight */
+  --surface-card: #ffffff; /* palette.bg */
+  --surface-strong: #ebecf0; /* palette.indentGuide */
   /* Surface-lift scale (trace-mvp): canvas → surface-1 → surface-2 (lift, not
 	   opacity). `inverse-canvas` is the polarity-flipped CTA surface. */
-  --surface-1: oklch(0.9674 0.0013 286.38);
-  --surface-2: oklch(0.9349 0.004 286.32);
-  --inverse-canvas: oklch(0.2103 0.0059 285.89);
-  --ink: oklch(0.2103 0.0059 285.89);
-  --ink-body: oklch(0.3703 0.0119 285.81);
-  --ink-muted: oklch(0.5517 0.0138 285.94);
-  --hairline: oklch(0.9197 0.004 286.32);
-  --hairline-soft: oklch(0.9527 0.0027 286.35);
-  --border-subtle: oklch(0.9527 0.0027 286.35);
+  --surface-1: #ffffff;
+  --surface-2: #f5f8fe;
+  --inverse-canvas: #191a1c; /* the dark scheme's canvas — one system */
+  --ink: #080808; /* palette.fg */
+  --ink-body: #3c3f43;
+  --ink-muted: #8c8c8c; /* palette.comment */
+  --hairline: #e9eaee; /* palette.widgetBorder */
+  --hairline-soft: #f0f1f4;
+  --border-subtle: #f0f1f4;
 
   /* Base radius — crisp, not pill. Component scale derives from this. */
   --radius: 0.625rem;
@@ -182,50 +190,64 @@
    Dark — neutral near-black (clean greys; brand blue is the only hue)
    --------------------------------------------------------------------------- */
 .dark {
-  /* Neutral night — a clean near-black neutral palette (adopted from the
-	   college-ecosystem dark tokens): pure greys, cool muted text. GlyphX blue
-	   and the semantic status colours stay as the only hues. */
-  --background: oklch(0.176 0.008 58);
-  --foreground: oklch(0.9401 0 0);
-  --card: oklch(0.211 0.008 58);
-  --card-foreground: oklch(0.9401 0 0);
-  --surface: oklch(0.234 0.008 58);
-  --popover: oklch(0.211 0.008 58);
-  --popover-foreground: oklch(0.9401 0 0);
+  /* --- Islands Dark ---------------------------------------------------------
+     The app chrome is the JetBrains "Islands Dark" scheme, so the workbench,
+     side panels and the editor surface read as one continuous IDE rather than
+     an editor embedded in a differently-coloured shell.
 
-  /* Primary = ink emphasis (near-white). The brand stays blue, in --brand. */
-  --primary: oklch(0.9461 0 0);
-  --primary-foreground: oklch(0.176 0.008 58);
+     Every value below is a literal from `islandDarkPalette` in
+     `lib/editor/jetbrains-monaco.ts` — that module is the source of truth and
+     each token names the palette key it came from. Do not "improve" a value
+     here in isolation; change the palette, or the editor and its chrome drift
+     apart, which is precisely what this replaced.
 
-  --secondary: oklch(0.272 0.008 58);
-  --secondary-foreground: oklch(0.9851 0 0);
-  --muted: oklch(0.238 0.008 58);
-  --muted-foreground: oklch(0.7137 0.0192 261.32);
-  --accent: oklch(0.272 0.008 58);
-  --accent-foreground: oklch(0.9401 0 0);
+     The surface ladder is the scheme's own depth cues, in order:
+       bg #191a1c  <  lineHighlight #1f2024  <  widgetBg #26282c  <  border #33353b
+     Kept as hex rather than converted to oklch: these are transcribed constants,
+     and a converted copy is a copy that can silently disagree with the editor. */
+  --background: #191a1c; /* palette.bg */
+  --foreground: #bcbec4; /* palette.fg */
+  --card: #1f2024; /* palette.lineHighlight — one step off the canvas */
+  --card-foreground: #bcbec4;
+  --surface: #26282c; /* palette.widgetBg — the "layer 1" island surface */
+  --popover: #26282c; /* popovers sit where the suggest widget sits */
+  --popover-foreground: #bcbec4;
 
-  --destructive: oklch(0.7106 0.1661 22.22);
-  --destructive-foreground: oklch(0.1799 0.0212 29.75);
-  --success: oklch(0.7729 0.1535 163.22);
-  --success-foreground: oklch(0.1759 0.0253 156.26);
-  --warning: oklch(0.8369 0.1644 84.43);
-  --warning-foreground: oklch(0.2018 0.0279 91.71);
-  --info: oklch(0.72 0.165 246);
-  --info-foreground: oklch(0.1767 0.0343 246.52);
+  /* Primary = ink emphasis. The brand stays blue, in --brand. */
+  --primary: #ced0d6; /* palette.caret — the scheme's brightest neutral */
+  --primary-foreground: #191a1c;
 
-  --border: oklch(0.258 0.008 58);
-  --input: oklch(1 0 0 / 0.15);
-  --ring: oklch(0.72 0.165 246);
+  --secondary: #26282c;
+  --secondary-foreground: #bcbec4;
+  --muted: #1f2024;
+  --muted-foreground: #7a7e85; /* palette.comment — the scheme's quiet text */
+  --accent: #33353b; /* palette.widgetBorder — hover/pressed surface */
+  --accent-foreground: #bcbec4;
 
-  /* Sidebar one quiet step off the floor. */
-  --sidebar: oklch(0.197 0.008 58);
-  --sidebar-foreground: oklch(0.8328 0 0);
-  --sidebar-primary: oklch(0.9461 0 0);
-  --sidebar-primary-foreground: oklch(0.176 0.008 58);
-  --sidebar-accent: oklch(0.272 0.008 58);
-  --sidebar-accent-foreground: oklch(0.9401 0 0);
-  --sidebar-border: oklch(0.258 0.008 58);
-  --sidebar-ring: oklch(0.72 0.165 246);
+  /* Status colours are the scheme's own squiggle colours, so a problem in the
+     Problems panel is the same red as the squiggle under the offending line. */
+  --destructive: #fa6675; /* palette.error */
+  --destructive-foreground: #191a1c;
+  --success: #6aab73; /* palette.string */
+  --success-foreground: #191a1c;
+  --warning: #f2c55c; /* palette.warning */
+  --warning-foreground: #191a1c;
+  --info: #56a8f5; /* palette.func */
+  --info-foreground: #191a1c;
+
+  --border: #33353b; /* palette.widgetBorder */
+  --input: #33353b;
+  --ring: #56a8f5; /* palette.func — focus matches the scheme's link blue */
+
+  /* Sidebar one quiet step off the floor, between canvas and card. */
+  --sidebar: #1c1d20;
+  --sidebar-foreground: #bcbec4;
+  --sidebar-primary: #ced0d6;
+  --sidebar-primary-foreground: #191a1c;
+  --sidebar-accent: #33353b;
+  --sidebar-accent-foreground: #bcbec4;
+  --sidebar-border: #33353b;
+  --sidebar-ring: #56a8f5;
 
   --chart-1: oklch(0.72 0.165 246);
   --chart-2: oklch(0.9401 0 0);
@@ -244,19 +266,20 @@
   --signal-lime: oklch(0.8046 0.1208 117.27);
   --signal-lime-soft: oklch(0.8046 0.1208 117.27 / 0.18);
 
-  --canvas: oklch(0.176 0.008 58);
-  --surface-soft: oklch(0.211 0.008 58);
-  --surface-card: oklch(0.211 0.008 58);
-  --surface-strong: oklch(0.272 0.008 58);
-  --surface-1: oklch(0.211 0.008 58);
-  --surface-2: oklch(0.234 0.008 58);
-  --inverse-canvas: oklch(0.9461 0 0);
-  --ink: oklch(0.9401 0 0);
-  --ink-body: oklch(0.8328 0 0);
-  --ink-muted: oklch(0.7137 0.0192 261.32);
-  --hairline: oklch(0.258 0.008 58);
-  --hairline-soft: oklch(0.238 0.008 58);
-  --border-subtle: oklch(0.238 0.008 58);
+  /* The same Islands ladder, under the names the app layout uses. */
+  --canvas: #191a1c; /* palette.bg */
+  --surface-soft: #1f2024; /* palette.lineHighlight */
+  --surface-card: #1f2024;
+  --surface-strong: #33353b; /* palette.widgetBorder */
+  --surface-1: #1f2024;
+  --surface-2: #26282c; /* palette.widgetBg */
+  --inverse-canvas: #bcbec4;
+  --ink: #bcbec4; /* palette.fg */
+  --ink-body: #a3a6ad; /* between fg and comment — body copy */
+  --ink-muted: #7a7e85; /* palette.comment */
+  --hairline: #33353b;
+  --hairline-soft: #26282c;
+  --border-subtle: #26282c;
 }
 
 /* ---------------------------------------------------------------------------

@@ -2,30 +2,27 @@
 target/
 pkgconfig/
 
-# Deliberately NOT ignored: output/tectonic_wasm.wasm (3.3 MB).
+# Deliberately NOT ignored: output/tectonic_wasm.wasm (3.5 MB).
 #
-# It looks like a build output, but right now it cannot be rebuilt: the link
-# step fails on any current toolchain (see BACKLOG.md #1), so this binary is a
-# fossil of the exact toolchain nl5887 used. Untracked, a single `git clean
-# -xfd` would destroy it permanently and we could not produce another.
+# It IS reproducible now — scripts/build-wasm.sh links successfully (BACKLOG #1
+# is resolved), and this binary exports our `glyphx_*` ABI, so the e2e suite
+# runs against it. It stays tracked for a different reason than before: the
+# build needs emsdk plus a `-Z build-std` nightly-equivalent toolchain and takes
+# tens of minutes, and deploy-web.yml runs `sync:engine` without building the
+# engine. Untracked, every web deploy would either 404 or pay that build.
 #
-# It does NOT validate the current source: it exports the old `tectonic_*` ABI,
-# not our `glyphx_*` one, so the e2e suite cannot run against it. What it is
-# good for is proving the toolchain target is reachable at all, and pinning the
-# import surface — its 24 imports are what packages/tex-engine/src/imports.ts
-# is written against, and they match.
-#
-# Re-add `output/*.wasm` here once scripts/build-wasm.sh links successfully —
-# at that point it becomes reproducible, and tracking it would only add
-# megabytes of churn to every commit.
+# Retire this exemption if deploy starts consuming a published artifact instead
+# of the working tree.
 
-# Deliberately NOT ignored: output/tectonic-bundle.tar.gz and output/latex.fmt.
+# Deliberately NOT ignored: output/tectonic-bundle.tar.gz.
 #
-# Those are data inputs, not build outputs — they come from a TeX Live install
-# and cannot be regenerated without one, so dropping them would leave the repo
-# unbuildable and untestable on a clean machine. They are also stable, changing
-# only when the TeX Live snapshot is refreshed, so they cost history size once
-# rather than continuously.
+# A data input, not a build output: it is assembled from a TeX Live install, so
+# a clean machine cannot regenerate it and would be left unable to compile or
+# test anything. It changes only when the TeX Live snapshot is refreshed, so it
+# costs history size once rather than continuously.
+#
+# Rebuild it with:  pnpm engine:bundle:build && pnpm engine:bundle:pack
+# (needs TeX Live; on Windows use WSL)
 
 # OS
 .DS_Store

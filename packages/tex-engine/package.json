@@ -18,6 +18,7 @@
 			"default": "./dist/index.js"
 		},
 		"./wasm": "./wasm/tectonic_wasm.wasm",
+		"./bundle": "./wasm/tectonic-bundle.tar.gz",
 		"./package.json": "./package.json"
 	},
 	"main": "./dist/index.js",
@@ -28,6 +29,7 @@
 		"bundle:verify": "node ./scripts/verify-bundle.mjs",
 		"bundle:format": "node ./scripts/make-format.mjs",
 		"bundle:build": "node ./scripts/build-bundle.mjs",
+		"bundle:pack": "node ./scripts/pack-bundle.mjs",
 		"build": "tsc -p tsconfig.json",
 		"check": "tsc -p tsconfig.json --noEmit",
 		"test": "node --test test/*.test.mjs"

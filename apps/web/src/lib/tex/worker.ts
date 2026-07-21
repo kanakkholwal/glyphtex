@@ -40,7 +40,22 @@ async function fetchCached(url: string, version: string, total: number, report: 
 		throw new Error(`Could not download ${name} (${response.status} ${response.statusText}).`);
 	}
 
-	// Read incrementally so the dialog shows real progress on a ~15 MB download.
+	// How many bytes we will actually read.
+	//
+	// Not `total` (the manifest's on-disk size) and not always Content-Length:
+	// when the transport applies its own compression the reader yields DECODED
+	// bytes while both of those describe the ENCODED size. Our bundle is a
+	// `.tar.gz`, and servers routinely serve that with `Content-Encoding: gzip`,
+	// so the stream can be 4x the declared figure — a percentage against it hits
+	// 100% almost immediately and looks like nothing downloaded at all.
+	//
+	// The decoded size is genuinely unknowable up front in that case, so we say
+	// so with 0 rather than showing a number we know to be wrong.
+	const encoded = response.headers.get('content-encoding');
+	const declared = Number(response.headers.get('content-length'));
+	const expected = encoded ? 0 : Number.isFinite(declared) && declared > 0 ? declared : total;
+
+	// Read incrementally so the dialog can show progress on a large download.
 	const body = response.body;
 	if (!body) return new Uint8Array(await response.arrayBuffer());
 
@@ -53,7 +68,7 @@ async function fetchCached(url: string, version: string, total: number, report: 
 		if (done) break;
 		chunks.push(value);
 		loaded += value.byteLength;
-		report(loaded, total, 'Downloading the compiler…');
+		report(loaded, expected, 'Downloading the compiler…');
 	}
 
 	const bytes = new Uint8Array(loaded);
@@ -91,21 +106,35 @@ function boot(report: Report): Promise<TexEngine> {
 		const bundleBytes = manifest.files['tectonic-bundle.tar.gz'].bytes;
 		const total = wasmBytes + bundleBytes;
 
-		// Both files report against the combined total, so the bar never resets.
-		const wasm = await fetchCached('/engine/tectonic_wasm.wasm', manifest.version, wasmBytes, (loaded, _t, label) =>
-			report(loaded, total, label)
-		);
+		// Both files report against one running count, so the bar never resets
+		// between them. If either turns out to be transport-compressed its decoded
+		// size is unknown, and the whole download becomes indeterminate — a total
+		// of 0 — rather than being measured against a figure we know is wrong.
+		let read = 0;
+		let indeterminate = false;
+		const relay =
+			(offset: number) =>
+			(loaded: number, expected: number, label: string): void => {
+				if (expected === 0) indeterminate = true;
+				read = offset + loaded;
+				report(read, indeterminate ? 0 : total, label);
+			};
+
+		const wasm = await fetchCached('/engine/tectonic_wasm.wasm', manifest.version, wasmBytes, relay(0));
 		const archive = await fetchCached(
 			'/engine/tectonic-bundle.tar.gz',
 			manifest.version,
 			bundleBytes,
-			(loaded, _t, label) => report(wasmBytes + loaded, total, label)
+			relay(read)
 		);
 
-		report(total, total, 'Unpacking TeX packages…');
+		// Past this point there is nothing left to measure, so the numbers hold
+		// still and only the label moves.
+		const settled = indeterminate ? 0 : total;
+		report(read, settled, 'Unpacking TeX packages…');
 		const files = untar(await gunzip(archive));
 
-		report(total, total, 'Starting the compiler…');
+		report(read, settled, 'Starting the compiler…');
 		const started = await TexEngine.load(wasm);
 		started.addFiles(files);
 

@@ -32,11 +32,11 @@
 		"engine:bundle:verify": "pnpm --filter @glyphx/tex-engine bundle:verify",
 		"engine:bundle:format": "pnpm --filter @glyphx/tex-engine bundle:format",
 		"engine:bundle:build": "pnpm --filter @glyphx/tex-engine bundle:build",
+		"engine:bundle:pack": "pnpm --filter @glyphx/tex-engine bundle:pack",
 		"engine:web:sync": "pnpm --filter @glyphx/web sync:engine",
 		"engine:lint": "cargo clippy --manifest-path crates/glyphx-tex-api/Cargo.toml --all-targets -- -D warnings",
 		"engine:fmt": "cargo fmt --manifest-path crates/glyphx-tex-api/Cargo.toml",
 		"engine:all": "pnpm engine:types && pnpm engine:check && pnpm engine:build && pnpm engine:sync && pnpm engine:package && pnpm engine:bundle:verify && pnpm engine:test",
-		"_comment:verify": "engine:bundle:verify is deliberately not in this aggregate yet: the bundle has 8 known gaps (see crates/tectonic-wasm/BACKLOG.md), and a permanently-red command trains people to ignore failures. It stays a release gate in CI. Add it here once the gaps are filled.",
 		"verify": "pnpm check && pnpm lint && pnpm engine:check"
 	},
 	"devDependencies": {

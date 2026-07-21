@@ -245,13 +245,16 @@ jobs:
       # No `pnpm generate` here: it shells out to `cargo test`, which would pull
       # an unpinned Rust into the release job to regenerate files that are
       # already committed and already drift-checked by the `api` job above.
+      # sync:wasm stages BOTH the engine and the TeX bundle. Copying the wasm
+      # alone would publish a package whose `./bundle` export points at nothing,
+      # and an engine with no format or classes cannot typeset a document — it
+      # instantiates cleanly and then fails on the first \documentclass.
       - name: Build and stage package
         run: |
           cd packages/tex-engine
           pnpm install --ignore-workspace --frozen-lockfile=false
           pnpm build
-          mkdir -p wasm
-          cp ../../crates/tectonic-wasm/output/tectonic_wasm.wasm wasm/
+          pnpm sync:wasm
           npm version "${{ steps.version.outputs.value }}" --no-git-tag-version
 
       - name: Publish to npm

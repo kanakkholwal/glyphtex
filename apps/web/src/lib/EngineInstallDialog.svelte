@@ -16,7 +16,7 @@
 	 * The GlyphX engine ships as one wasm binary plus one TeX support bundle, so
 	 * unlike the old on-demand setup there is nothing to pick — it is a single
 	 * download that then works entirely offline. This dialog exists only to ask
-	 * before spending ~15 MB of the user's bandwidth.
+	 * before spending the user's bandwidth on it.
 	 *
 	 * Required install: compiling stays gated behind it, so there is no dismiss.
 	 */
@@ -26,14 +26,21 @@
 	let progress = $state<InstallProgress | undefined>(undefined);
 	let error = $state<string | undefined>(undefined);
 
+	/**
+	 * A total of 0 means the size genuinely is not knowable — the server is
+	 * compressing the bundle in transit, so the bytes we count are decoded ones
+	 * with nothing to measure against. Then we show what has arrived instead of
+	 * a percentage, rather than inventing one.
+	 */
+	const measurable = $derived(!!progress && progress.total > 0);
 	const pct = $derived(
-		progress && progress.total > 0
-			? Math.min(100, Math.round((progress.loaded / progress.total) * 100))
-			: 0
+		progress && measurable ? Math.min(100, Math.round((progress.loaded / progress.total) * 100)) : 0
 	);
 
-	/** Total download size, from the manifest once known, rounded for display. */
-	const totalMB = $derived(progress ? Math.round(progress.total / 1048576) : 15);
+	const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
+
+	/** Rough download size for the pre-install copy; the real one is the engine's. */
+	const totalMB = $derived(measurable && progress ? Math.round(progress.total / 1048576) : 12);
 
 	async function start() {
 		installing = true;
@@ -86,10 +93,22 @@
 				<div class="text-muted-foreground flex items-center gap-2 text-xs">
 					<IconLoader2 size={14} class="animate-spin" />
 					<span class="min-w-0 flex-1 truncate">{progress?.label ?? 'Preparing…'}</span>
-					<span class="shrink-0 tabular-nums">{pct}%</span>
+					<span class="shrink-0 tabular-nums">
+						{#if measurable}
+							{pct}%
+						{:else if progress && progress.loaded > 0}
+							{mb(progress.loaded)} MB
+						{/if}
+					</span>
 				</div>
 				<div class="bg-muted h-1.5 overflow-hidden rounded-full">
-					<div class="bg-primary h-full rounded-full transition-all" style="width:{pct}%"></div>
+					{#if measurable}
+						<div class="bg-primary h-full rounded-full transition-all" style="width:{pct}%"></div>
+					{:else}
+						<!-- Size unknown: a travelling sliver, so the bar reads as
+						     "working" rather than as a stalled 0%. -->
+						<div class="bg-primary engine-progress-indeterminate h-full w-1/3 rounded-full"></div>
+					{/if}
 				</div>
 			</div>
 		{/if}
@@ -117,3 +136,27 @@
 		</div>
 	</DialogContent>
 </Dialog>
+
+<style>
+	/* Indeterminate progress: a sliver that travels the track. Honours reduced
+	   motion by falling back to a static half-width bar. */
+	.engine-progress-indeterminate {
+		animation: engine-progress-slide 1.4s ease-in-out infinite;
+	}
+
+	@keyframes engine-progress-slide {
+		0% {
+			transform: translateX(-100%);
+		}
+		100% {
+			transform: translateX(300%);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.engine-progress-indeterminate {
+			animation: none;
+			width: 50%;
+		}
+	}
+</style>

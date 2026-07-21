@@ -102,78 +102,109 @@ To re-check after any rebuild:
 WebAssembly.Module.imports(await WebAssembly.compile(bytes))
 ```
 
-### 4. Bundle gaps filled — all 9 groups satisfied ✅
+### 4. Bundle rebuilt from one TeX Live snapshot — all 9 groups satisfied ✅
 
-484 → 931 files. `pnpm engine:bundle:verify` reports every group green, and
-`article`, `report`, `book`, `beamer`, `mathtools` and `cleveref` all compile
-spotless against the built engine.
-
-Filling them needs `kpsewhich`, i.e. a TeX Live install. On Windows that is the
-blocker; **TeX Live installs into `$HOME` under WSL without sudo**, which is how
-this was unblocked:
+The bundle is now **discovered, not listed**: compile every fixture in
+`test/fixtures/groups.mjs`, feed `result.missingFiles` back in from TeX Live,
+repeat until they all produce PDFs. TeX's file resolution is Turing-complete, so
+no static scan can predict it — but the engine always names what it wants.
 
 ```console
-pnpm engine:bundle:extend && pnpm engine:bundle:verify
+pnpm engine:bundle:format <dir>                    # dump latex.fmt with our engine
+pnpm engine:bundle:build  <dir> --format <dir>     # converge against the fixtures
+pnpm engine:bundle:pack   <dir>                    # deterministic tar.gz
+pnpm engine:bundle:verify <dir>
 ```
 
-⚠️ `C:\texlive\2026\bin\windows` is on `PATH` but **does not exist** — a stale
-entry, not an install. Use WSL.
+396 files, 35.4 MB raw. **12/12 fixtures compile, 9/9 manifest groups green.**
+That is *smaller* than the previous 931-file bundle: much of that one existed to
+work around a broken kernel (below), and a correct format needs far less.
 
-Two traps worth knowing:
+Needs `kpsewhich`, i.e. TeX Live. On Windows, **TeX Live installs into `$HOME`
+under WSL without sudo** — that is what unblocked this. ⚠️
+`C:\texlive\2026\bin\windows` is on `PATH` but **does not exist**; stale entry.
 
-- **`extend-bundle.mjs` under-reports.** It flagged `size1.sty` and `bk1.sty`,
-  which look like regex noise and were initially dismissed as such. They were
-  real: the source says `\input{bk1\@ptsize.clo}` and the pattern stops at the
-  macro. The actual files are `size1{0,1,2}.clo` / `bk1{0,1,2}.clo`, and `book`
-  and `beamer` both failed without them.
+Traps worth knowing, each of which cost real time:
+
+- **Files loaded via `\@input` are invisible to discovery.** TeX skips a missing
+  `\@input`/`\InputIfFileExists` file *silently*, so it never reaches
+  `missingFiles` and the bundle looks complete. See "first-aid" below — this is
+  the single nastiest failure mode in this system.
+- **A format must be built by the engine that loads it.** It is a memory image.
+  `latex.fmt` from TeX Live's xetex will not load here.
 - **`.sty`/`.cls` are not enough for fonts.** XeTeX asks for font *files*
-  (`[lmsans10-regular]`), so the OTFs must be present. Beamer surfaced this
-  because it defaults to sans; the serif-defaulting classes did not.
+  (`[lmsans10-regular]`), so OTFs must be present. Beamer surfaced this because
+  it defaults to sans; serif-defaulting classes did not.
+- **Regex dependency scanning under-reports.** The old `extend-bundle.mjs`
+  flagged `size1.sty`/`bk1.sty`, dismissed as noise — they were real
+  (`\input{bk1\@ptsize.clo}`, the pattern stops at the macro). It has been
+  deleted in favour of the `missingFiles` loop.
 
 `pdftex.map` was **removed** (4.4 MB raw): it is a pdfTeX map and this engine is
 XeTeX. A/B tested — byte-identical output across every test document, and
 compiles run about twice as fast without it (6.1 s → 2.9 s for the suite).
 
-`extend-bundle.mjs` resolves dependencies by scanning `\RequirePackage`,
-`\usepackage`, `\LoadClass` and `\input`. That is approximate, because TeX's
-real resolution is Turing-complete. The robust replacement, once the engine
-links: compile a document, feed `result.missingFiles` back in, repeat until
-empty. No guessing at all — and it doubles as the on-demand fetch path.
-
 ---
 
-## Known issues
+## Resolved
 
-### siunitx: "LaTeX kernel too old"
+### siunitx "LaTeX kernel too old" — fixed by regenerating the format ✅
 
-`\usepackage{siunitx}` compiles and produces a PDF, but reports:
+The bundled `latex.fmt` was a dump of an older LaTeX kernel than the packages
+around it, and siunitx v3 checks the kernel date and refuses. Format/package
+version *skew*, not a missing file.
 
-```text
-Package siunitx Error: LaTeX kernel too old.
-```
+Fixed the right way: `latex.fmt` is now dumped by our own engine in INITEX mode
+from the same TeX Live snapshot as the packages (`pnpm engine:bundle:format`),
+so the snapshot is internally consistent instead of packages being frozen to an
+old kernel.
 
-The bundled `latex.fmt` is a dump of an older LaTeX kernel than the packages
-now in the bundle, which came from a current TeX Live. siunitx v3 checks the
-kernel date and refuses. This is a **format/package version skew**, not a
-missing file, so `bundle:extend` cannot fix it.
+### cleveref after hyperref — missing kernel first-aid ✅
 
-It is the one gap between "the group is in the manifest" and "the group works",
-and it likely affects other modern `expl3`-based packages. Two candidate fixes:
+Symptom: `\cref` fails with an undefined
+`\__socket_refstepcounter_plug_hyperref/fixcleveref:w`, while **native TeX Live
+compiled the identical document fine** — which is what ruled out an upstream
+package incompatibility.
 
-- regenerate `latex.fmt` from the same TeX Live snapshot the packages come from
-  (`scripts/generate-format.sh` exists), or
-- pin the packages to the vintage the format expects.
+Cause: `latex.ltx` pulls in `latex2e-first-aid-for-external-files.ltx` with
+`\@input`, which **skips silently** when the file is absent. INITEX therefore ran
+clean to `\dump` and produced a format that was simply missing first-aid's
+definitions. Our cleveref is dated 2018/03/27, one day inside hyperref's
+`\@ifpackagelater{cleveref}{2018/03/28}` cutoff, so hyperref installs a compat
+plug whose body is the only caller of `\firstaid@cref@updatelabeldata`.
 
-The first is the right one — it makes the snapshot internally consistent instead
-of freezing packages to an old kernel.
+Two things this teaches, both encoded in the scripts now:
+
+- Silently-loaded files must be **seeded explicitly**; `missingFiles` cannot see
+  them. `make-format.mjs` seeds them, and the full set was enumerated from
+  `latex.ltx` rather than patching the one instance.
+- first-aid belongs in the **format**, not the runtime bundle. `\@input` runs
+  inside `latex.ltx`, i.e. before `\dump`; adding the file to the bundle is too
+  late and does nothing. (Tried it. It did nothing.)
+
+`make-format.mjs` also refuses to write a format from an INITEX run that
+reported errors — a dump after a partial kernel load loads happily and then
+fails much later in ways that look like package bugs.
 
 ---
 
 ## Planned
 
-- **On-demand package fetching.** `missingFiles` is the designed hook: fetch,
-  `addFile`, recompile. Auxiliary files are retained across compiles, so the
-  retry resumes rather than restarting.
+- **On-demand package fetching — the coverage cliff.** ⚠️ This is the largest
+  known gap in production behaviour, so state it plainly: **the bundle contains
+  what the 12 fixtures need, and nothing else.** It is not general LaTeX
+  coverage. A document using any package outside that set fails at compile time
+  with a missing file, and there is currently no fallback — the
+  `/texlive/[...path]` proxy that used to cover this was removed.
+
+  `missingFiles` is the designed hook: fetch, `addFile`, recompile. Auxiliary
+  files are retained across compiles, so the retry resumes rather than
+  restarting. Until it exists, either widen the fixture set (which widens the
+  bundle) or accept that unlisted packages fail.
+
+  When implementing it, remember the first-aid lesson above: files loaded via
+  `\@input`/`\InputIfFileExists` never appear in `missingFiles`, so on-demand
+  fetch cannot recover them either. They must stay seeded.
 - **Offline bundle format.** Packed archive + offset index, fetched once and
   mounted, so every lookup during a compile is a synchronous in-memory read.
   This matters because `kpse_find_file`-style lookups are synchronous C and OPFS

@@ -15,7 +15,9 @@
 		"lint:eslint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"pretest": "esbuild src/lib/tex/tar.ts src/lib/citations.ts --bundle --format=esm --outdir=test/.build --out-extension:.js=.mjs --log-level=error",
+		"test": "node --test test/*.test.mjs"
 	},
 	"dependencies": {
 		"@glyphx/tex-engine": "workspace:*",
@@ -35,6 +37,7 @@
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/gsap": "^3.0.0",
 		"@types/node": "^25",
+		"esbuild": "^0.28.1",
 		"eslint": "^10.4.1",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.19.0",

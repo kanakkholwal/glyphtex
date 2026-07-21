@@ -56,8 +56,17 @@ function kpse(name) {
 const WASM = new Uint8Array(readFileSync(wasmPath));
 const inputs = new Map();
 
+// Bare names only. The engine's filesystem is flat, and this list is consumed
+// by build-bundle.mjs as filenames to write — TeX asks for `/dev/null`, which
+// kpsewhich happily resolves, and an absolute name there escapes the output
+// directory entirely.
+function isBareName(name) {
+	return name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.';
+}
+
 function add(name) {
 	if (inputs.has(name)) return false;
+	if (!isBareName(name)) return false;
 	const path = kpse(name);
 	if (!path) return false;
 	inputs.set(name, new Uint8Array(readFileSync(path)));

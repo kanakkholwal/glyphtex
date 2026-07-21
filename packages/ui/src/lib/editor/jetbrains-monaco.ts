@@ -18,9 +18,11 @@
  * Darcula's warm #2b2b2b, and the gutter is flush with the text surface instead
  * of being a lighter strip.
  *
- * As with the CodeMirror port in `./jetbrains.ts`, these are intentionally the
- * *real* JetBrains palettes, NOT the warm Clay app chrome — the editor keeps its
- * own IDE identity.
+ * These are the *real* JetBrains palettes, transcribed rather than adapted.
+ * `islandDarkPalette` / `islandLightPalette` are exported because they are also
+ * the source the app's own design tokens are derived from (see the Islands
+ * block in `app.css`) — the workbench chrome, side panels and editor are one
+ * surface, so they read from one palette rather than two that drift.
  *
  * Monaco parses `rules[].foreground` with `/^#?([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?$/`
  * and then discards the alpha pair, so token colours here must stay fully
@@ -34,7 +36,7 @@ export const ISLAND_LIGHT = "glyphx-island-light";
 
 /* ------------------------------------------------------------ Islands Dark */
 
-const dark = {
+export const islandDarkPalette = {
 	bg: "#191a1c",
 	fg: "#bcbec4",
 	caret: "#ced0d6",
@@ -73,7 +75,7 @@ const dark = {
 
 /* ----------------------------------------------------------- Islands Light */
 
-const light = {
+export const islandLightPalette = {
 	bg: "#ffffff",
 	fg: "#080808",
 	caret: "#000000",
@@ -110,7 +112,7 @@ const light = {
 	invalid: "#ff0000",
 } as const;
 
-type Palette = typeof dark | typeof light;
+type Palette = typeof islandDarkPalette | typeof islandLightPalette;
 
 /**
  * Maps the tokens the LaTeX Monarch grammar emits onto the scheme.
@@ -186,15 +188,15 @@ function colors(p: Palette): Monaco.editor.IColors {
 export const islandDark: Monaco.editor.IStandaloneThemeData = {
 	base: "vs-dark",
 	inherit: true,
-	rules: rules(dark),
-	colors: colors(dark),
+	rules: rules(islandDarkPalette),
+	colors: colors(islandDarkPalette),
 };
 
 export const islandLight: Monaco.editor.IStandaloneThemeData = {
 	base: "vs",
 	inherit: true,
-	rules: rules(light),
-	colors: colors(light),
+	rules: rules(islandLightPalette),
+	colors: colors(islandLightPalette),
 };
 
 // `defineTheme` re-applies the theme to every editor already using it, so guard

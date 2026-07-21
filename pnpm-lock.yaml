@@ -154,6 +154,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.9.3
+      esbuild:
+        specifier: ^0.28.1
+        version: 0.28.1
       eslint:
         specifier: ^10.4.1
         version: 10.5.0(jiti@2.7.0)

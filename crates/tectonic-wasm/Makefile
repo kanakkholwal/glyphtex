@@ -30,18 +30,14 @@ export RANLIB          := emranlib
 export PKG_CONFIG_PATH := $(PCDIR)
 export PKG_CONFIG_ALLOW_CROSS := 1
 export PKG_CONFIG_SYSROOT_DIR := $(SYSROOT)
-export RUSTFLAGS       := -L $(SYSROOT)/lib/wasm32-emscripten \
-	-l graphite2 -l freetype -l harfbuzz -l png -l z \
-	-l icu_common -l icu_i18n -l fontconfig \
-	-C link-args=-sSUPPORT_LONGJMP=wasm \
-	-C link-args=-sUSE_FREETYPE \
-	-C link-args=-sUSE_ZLIB \
-	-C link-args=-sUSE_LIBPNG \
-	-C link-args=-sUSE_ICU \
-	-C link-args=-sERROR_ON_UNDEFINED_SYMBOLS=0 \
-	-C link-args=-sALLOW_MEMORY_GROWTH=1 \
-	-C link-args=-sINITIAL_MEMORY=536870912 \
-	-C link-args=-sMAXIMUM_MEMORY=1073741824
+
+# RUSTFLAGS deliberately live in scripts/build-wasm.sh, not here.
+#
+# This file used to set `-sSUPPORT_LONGJMP=wasm`, which cannot link: Emscripten
+# ships its HarfBuzz/ICU ports built with the *JS* exception scheme, so the
+# engine has to match them (`-Zemscripten-wasm-eh=no`) rather than opt into
+# native wasm EH. Getting that wrong costs hours in undefined-symbol errors that
+# name none of the real cause. One definition, in the script that is tested.
 
 .PHONY: all setup deps build bundle format check clean distclean
 
@@ -94,30 +90,24 @@ deps-pkgconfig:
 	@./scripts/create-pkgconfig.sh $(SYSROOT) $(PCDIR)
 
 # ── Build ─────────────────────────────────────────────────────
-build: $(WASM_OUT)
-	@mkdir -p $(OUTPUT_DIR)
-	@cp $(WASM_OUT) $(OUTPUT_DIR)/tectonic_wasm.wasm
-	@echo ""
-	@echo "✅ Build complete!"
-	@ls -lh $(OUTPUT_DIR)/tectonic_wasm.wasm
-
-$(WASM_OUT): src/lib.rs Cargo.toml
-	@echo "=== Building Tectonic WASM ==="
-	cargo build --target $(TARGET) --release
+# Delegates: the link flags are subtle enough that having two copies guarantees
+# one of them is wrong.
+build:
+	@./scripts/build-wasm.sh
 
 # ── Bundle ────────────────────────────────────────────────────
+# The bundle and the format are produced by the engine itself, driven from
+# packages/tex-engine. Both need TeX Live on PATH (use WSL on Windows), and both
+# must come from the SAME snapshot: a format older than its packages does not
+# fail as a missing file, it fails as "LaTeX kernel too old" or as undefined
+# macros deep inside a package.
 bundle:
-	@echo "=== Creating TeX package bundle ==="
-	@echo "Compile a test document with native tectonic to populate cache:"
-	@echo "  tectonic test.tex"
-	@echo "Then run: ./scripts/create-bundle.sh"
+	@echo "Build, then pack, the TeX support bundle:"
+	@echo "  pnpm engine:bundle:format <dir>     # dump latex.fmt with our own engine"
+	@echo "  pnpm engine:bundle:build  <dir> --format <dir>"
+	@echo "  pnpm engine:bundle:pack   <dir>     # -> output/tectonic-bundle.tar.gz"
 
-# ── Format ────────────────────────────────────────────────────
-# Generate latex.fmt using the WASM engine (INITEX mode)
-# This ensures the format is compatible with the WASM build
-format: build
-	@echo "=== Generating WASM-native latex.fmt ==="
-	@./scripts/generate-format.sh $(OUTPUT_DIR)/tectonic_wasm.wasm $(OUTPUT_DIR)
+format: bundle
 
 # ── Validate ──────────────────────────────────────────────────
 check:

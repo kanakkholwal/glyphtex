@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -54,8 +54,24 @@ function kpse(name) {
 const WASM = new Uint8Array(readFileSync(wasmPath));
 const files = new Map();
 
+/**
+ * The bundle is flat and the engine looks files up by bare name, so a name
+ * carrying a path separator can never be served from it.
+ *
+ * Rejecting them is also what keeps the writer inside `outDir`: `resolve()`
+ * lets an absolute name override the base entirely. TeX really does ask for
+ * `/dev/null`, and kpsewhich really does "resolve" it, so without this the
+ * builder wrote a file straight to /dev/null — which succeeds silently, leaving
+ * the bundle one file short of what it reported. A name like `/etc/...` would
+ * be the same mechanism aimed somewhere that matters.
+ */
+function isBareName(name) {
+	return name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.';
+}
+
 function addFromTexLive(name) {
 	if (files.has(name)) return false;
+	if (!isBareName(name)) return false;
 	const path = kpse(name);
 	if (!path) return false;
 	files.set(name, new Uint8Array(readFileSync(path)));
@@ -168,6 +184,19 @@ if (collisions.length) {
 }
 
 for (const [name, bytes] of files) writeFileSync(resolve(outDir, name), bytes);
+
+// Count what actually landed. Resolving every key to a distinct path is not the
+// same as producing that many files, and a bundle silently one file short is
+// indistinguishable from a complete one until some document cannot compile.
+const written = readdirSync(outDir);
+if (written.length !== files.size) {
+	const onDisk = new Set(written);
+	const absent = [...files.keys()].filter((n) => !onDisk.has(n));
+	console.error(`\nresolved ${files.size} files but wrote ${written.length}.`);
+	if (absent.length) for (const n of absent) console.error(`  never landed: ${JSON.stringify(n)}`);
+	else console.error('  every key is present — the extra is on disk, not in the set.');
+	process.exit(1);
+}
 
 const total = [...files.values()].reduce((n, b) => n + b.length, 0);
 console.log(`\nevery fixture compiles.`);
