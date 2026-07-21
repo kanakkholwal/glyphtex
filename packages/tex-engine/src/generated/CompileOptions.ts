@@ -10,8 +10,8 @@ import type { OutputFormat } from "./OutputFormat";
  */
 export type CompileOptions = { 
 /**
- * The file the engine starts from. Must have been supplied via
- * `add_file`, or be the primary input set by `set_input`.
+ * The file the engine starts from. Must already have been supplied via
+ * `add_file`.
  */
 entry: string, 
 /**
@@ -74,8 +74,10 @@ deterministic: boolean,
  */
 buildDate: number | null, 
 /**
- * Keep `.aux`, `.toc`, `.out` and friends in the result. They are needed to
- * make a *subsequent* compile incremental.
+ * List `.aux`, `.toc`, `.out` and friends in `CompileResult::outputs`.
+ *
+ * Only affects reporting. They are always retained internally, because the
+ * next compile reads them to converge in fewer passes.
  */
 keepIntermediates: boolean, 
 /**

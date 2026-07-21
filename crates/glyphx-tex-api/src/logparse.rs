@@ -100,11 +100,7 @@ fn trailing_input_line(text: &str) -> Option<u32> {
 }
 
 /// Match `LaTeX Warning:` and `Package <name> Warning:` forms.
-fn parse_warning(
-    lines: &[&str],
-    i: usize,
-    files: &FileStack,
-) -> Option<(Diagnostic, usize)> {
+fn parse_warning(lines: &[&str], i: usize, files: &FileStack) -> Option<(Diagnostic, usize)> {
     let line = lines[i];
     let (package, body) = if let Some(rest) = line.strip_prefix("LaTeX Warning: ") {
         (None, rest)

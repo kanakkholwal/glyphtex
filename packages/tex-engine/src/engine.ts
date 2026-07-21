@@ -73,6 +73,8 @@ export class TexEngine {
 	readonly #exports: EngineExports;
 	readonly #encoder = new TextEncoder();
 	readonly #decoder = new TextDecoder();
+	/** Job name of the most recent compile; the default for pdf() and log(). */
+	#jobname = 'main';
 
 	private constructor(exports: EngineExports) {
 		this.#exports = exports;
@@ -197,6 +199,14 @@ export class TexEngine {
 			if (rc < 0 && result.status !== 'failed') {
 				throw this.#error('compile request rejected', rc);
 			}
+			// Remember the job name the engine actually used, so pdf() and log()
+			// work without the caller restating it. Taken from the produced file
+			// names rather than recomputed from the request, because the
+			// derivation rule lives in Rust and must not be duplicated here.
+			const artifact = result.outputs.find((o) => o.kind === 'pdf' || o.kind === 'log');
+			if (artifact) {
+				this.#jobname = artifact.name.replace(/\.[^.]+$/, '');
+			}
 			return result;
 		} finally {
 			this.#release(opts);
@@ -227,13 +237,18 @@ export class TexEngine {
 		}
 	}
 
-	/** Convenience: the compiled PDF, if the last compile produced one. */
-	pdf(jobname = 'main'): Uint8Array | undefined {
+	/**
+	 * Convenience: the compiled PDF, if the last compile produced one.
+	 *
+	 * Defaults to the job name of the last compile, so it needs no argument in
+	 * the common case.
+	 */
+	pdf(jobname = this.#jobname): Uint8Array | undefined {
 		return this.output(`${jobname}.pdf`);
 	}
 
 	/** Convenience: the TeX log from the last compile, decoded as text. */
-	log(jobname = 'main'): string | undefined {
+	log(jobname = this.#jobname): string | undefined {
 		const bytes = this.output(`${jobname}.log`);
 		return bytes && this.#decoder.decode(bytes);
 	}

@@ -6,8 +6,13 @@
 Makefile text eol=lf
 
 # Generated, but tracked so the npm package builds without a Rust toolchain.
-# Marking it linguist-generated keeps it out of diffs and language stats.
-packages/tex-engine/src/generated/** linguist-generated=true
+# linguist-generated keeps it out of diffs and language stats.
+#
+# eol=lf is load-bearing: CI regenerates these on Linux and fails the build if
+# `git diff` shows a change. Without a pinned line ending, a checkout on Windows
+# converts them to CRLF and the drift check fails on line endings alone — a
+# false alarm that says "your types are stale" when they are identical.
+packages/tex-engine/src/generated/** linguist-generated=true text eol=lf
 
 # Binary assets — never diff or line-ending-convert these.
 *.wasm binary

@@ -2,7 +2,8 @@
 //!
 //! These types are the single source of truth for the API: `serde` carries them
 //! across the WASM boundary as JSON, and `ts-rs` emits the matching TypeScript
-//! declarations (see `ts/` and the `export_bindings_*` tests).
+//! declarations into `packages/tex-engine/src/generated/` (written by the
+//! `export_bindings_*` tests, which `pnpm generate` drives).
 //!
 //! Only the *control plane* travels as JSON. File contents — the LaTeX source
 //! going in, the PDF coming out — move through raw linear memory, because
@@ -50,8 +51,8 @@ pub enum OutputFormat {
 #[ts(export)]
 #[serde(default, rename_all = "camelCase")]
 pub struct CompileOptions {
-    /// The file the engine starts from. Must have been supplied via
-    /// `add_file`, or be the primary input set by `set_input`.
+    /// The file the engine starts from. Must already have been supplied via
+    /// `add_file`.
     pub entry: String,
 
     /// Base name for generated artifacts (`<jobname>.pdf`, `.log`, `.synctex`).
@@ -102,8 +103,10 @@ pub struct CompileOptions {
     #[ts(type = "number | null")]
     pub build_date: Option<i64>,
 
-    /// Keep `.aux`, `.toc`, `.out` and friends in the result. They are needed to
-    /// make a *subsequent* compile incremental.
+    /// List `.aux`, `.toc`, `.out` and friends in `CompileResult::outputs`.
+    ///
+    /// Only affects reporting. They are always retained internally, because the
+    /// next compile reads them to converge in fewer passes.
     pub keep_intermediates: bool,
 
     /// Keep `<jobname>.log`. On by default — the log is where diagnostics live.
@@ -142,11 +145,7 @@ impl CompileOptions {
         if let Some(name) = self.jobname.as_deref() {
             return name;
         }
-        let base = self
-            .entry
-            .rsplit(['/', '\\'])
-            .next()
-            .unwrap_or(&self.entry);
+        let base = self.entry.rsplit(['/', '\\']).next().unwrap_or(&self.entry);
         base.strip_suffix(".tex").unwrap_or(base)
     }
 
@@ -175,14 +174,6 @@ pub enum CompileStatus {
     Errors,
     /// The engine could not produce output. See `message`.
     Failed,
-}
-
-impl CompileStatus {
-    /// Whether an artifact was produced. True for everything but `Failed` —
-    /// TeX errors are recoverable and still yield a PDF.
-    pub fn produced_output(self) -> bool {
-        !matches!(self, CompileStatus::Failed)
-    }
 }
 
 /// Severity of a single parsed log message.
@@ -237,11 +228,15 @@ pub enum OutputKind {
 impl OutputKind {
     /// Classify by file extension.
     pub fn classify(name: &str) -> Self {
+        // Checked before the extension match because SyncTeX output may arrive
+        // gzipped, as `<job>.synctex.gz`, where the extension alone says `gz`.
+        if name.contains(".synctex") {
+            return OutputKind::Synctex;
+        }
         match name.rsplit('.').next() {
             Some("pdf") => OutputKind::Pdf,
             Some("xdv") => OutputKind::Xdv,
             Some("log") => OutputKind::Log,
-            Some("synctex") | Some("gz") if name.contains(".synctex") => OutputKind::Synctex,
             Some("aux" | "toc" | "out" | "lof" | "lot" | "bbl" | "bcf" | "nav" | "snm") => {
                 OutputKind::Intermediate
             }
