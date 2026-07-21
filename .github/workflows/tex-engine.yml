@@ -42,8 +42,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@stable
+      # Pinned, not @stable. Clippy gains lints every six weeks and this job
+      # runs with -D warnings, so @stable turns an unrelated PR red whenever a
+      # new lint fires on existing code. Bump this deliberately.
+      - uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: '1.94'
           components: clippy, rustfmt
 
       - uses: Swatinem/rust-cache@v2
@@ -126,16 +130,23 @@ jobs:
         run: ./scripts/build-wasm.sh
         working-directory: crates/tectonic-wasm
 
+      # awk, not bc: bc is not part of the ubuntu-24.04 runner image.
       - name: Report size
         run: |
           WASM=crates/tectonic-wasm/output/tectonic_wasm.wasm
           RAW=$(stat -c%s "$WASM")
           BR=$(brotli -q 11 -c "$WASM" | wc -c)
-          echo "### Engine size" >> "$GITHUB_STEP_SUMMARY"
-          echo "| | bytes | MB |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---:|---:|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| raw | $RAW | $(echo "scale=2; $RAW/1048576" | bc) |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| brotli -q11 | $BR | $(echo "scale=2; $BR/1048576" | bc) |" >> "$GITHUB_STEP_SUMMARY"
+          mb() { awk -v b="$1" 'BEGIN { printf "%.2f", b/1048576 }'; }
+          {
+            echo "### Engine size"
+            echo "| | bytes | MB |"
+            echo "|---|---:|---:|"
+            echo "| raw | $RAW | $(mb "$RAW") |"
+            echo "| brotli -q11 | $BR | $(mb "$BR") |"
+            # The offline payload budget is 50 MB total; flag early if the
+            # engine alone starts eating a serious share of it.
+            awk -v b="$BR" 'BEGIN { if (b > 10485760) print "\n> [!WARNING]\n> Compressed engine exceeds 10 MB." }'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -179,6 +190,9 @@ jobs:
         env:
           GLYPHX_WASM: ${{ github.workspace }}/crates/tectonic-wasm/output/tectonic_wasm.wasm
           GLYPHX_BUNDLE: /tmp/bundle
+          # Without this the suite skips when an artifact path is wrong and
+          # `node --test` still exits 0 — a green job that ran zero tests.
+          GLYPHX_REQUIRE_ENGINE: '1'
         run: cd packages/tex-engine && pnpm test
 
   release:
@@ -208,11 +222,13 @@ jobs:
         id: version
         run: echo "value=${GITHUB_REF_NAME#tex-engine-v}" >> "$GITHUB_OUTPUT"
 
+      # No `pnpm generate` here: it shells out to `cargo test`, which would pull
+      # an unpinned Rust into the release job to regenerate files that are
+      # already committed and already drift-checked by the `api` job above.
       - name: Build and stage package
         run: |
           cd packages/tex-engine
           pnpm install --ignore-workspace --frozen-lockfile=false
-          pnpm generate
           pnpm build
           mkdir -p wasm
           cp ../../crates/tectonic-wasm/output/tectonic_wasm.wasm wasm/

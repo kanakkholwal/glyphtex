@@ -22,6 +22,20 @@ const bundleDir = process.env.GLYPHX_BUNDLE ? resolve(process.env.GLYPHX_BUNDLE)
 
 const haveArtifacts = existsSync(wasmPath) && bundleDir && existsSync(bundleDir);
 
+// Skipping is right on a dev machine without the Emscripten toolchain, but in
+// CI it is indistinguishable from passing: node --test exits 0 having run
+// nothing. Anywhere the engine is supposed to exist, set GLYPHX_REQUIRE_ENGINE
+// so a missing artifact fails loudly instead of reporting green.
+if (process.env.GLYPHX_REQUIRE_ENGINE && !haveArtifacts) {
+	throw new Error(
+		'GLYPHX_REQUIRE_ENGINE is set but the artifacts are missing:\n' +
+			`  wasm:   ${wasmPath} ${existsSync(wasmPath) ? '(ok)' : '(MISSING)'}\n` +
+			`  bundle: ${bundleDir ?? '(GLYPHX_BUNDLE unset)'} ${
+				bundleDir && existsSync(bundleDir) ? '(ok)' : '(MISSING)'
+			}`
+	);
+}
+
 describe('TexEngine', { skip: haveArtifacts ? false : 'wasm or bundle not available' }, () => {
 	let engine;
 

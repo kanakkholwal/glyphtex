@@ -104,14 +104,14 @@ fn parse_warning(lines: &[&str], i: usize, files: &FileStack) -> Option<(Diagnos
     let line = lines[i];
     let (package, body) = if let Some(rest) = line.strip_prefix("LaTeX Warning: ") {
         (None, rest)
-    } else if let Some(rest) = line.strip_prefix("Package ") {
-        let (name, after) = rest.split_once(" Warning: ")?;
-        (Some(name.to_owned()), after)
-    } else if let Some(rest) = line.strip_prefix("Class ") {
-        let (name, after) = rest.split_once(" Warning: ")?;
-        (Some(name.to_owned()), after)
     } else {
-        return None;
+        // `Package foo Warning: ...` and `Class bar Warning: ...` differ only in
+        // the leading keyword; both then carry a name and the warning body.
+        let rest = line
+            .strip_prefix("Package ")
+            .or_else(|| line.strip_prefix("Class "))?;
+        let (name, after) = rest.split_once(" Warning: ")?;
+        (Some(name.to_owned()), after)
     };
 
     let (message, consumed) = fold(lines, i, body);

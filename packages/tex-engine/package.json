@@ -4,6 +4,13 @@
 	"description": "Typed TypeScript bindings for the GlyphX TeX engine (Tectonic compiled to WebAssembly)",
 	"license": "MIT",
 	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kanakkholwal/glyph.git",
+		"directory": "packages/tex-engine"
+	},
+	"homepage": "https://github.com/kanakkholwal/glyph/tree/main/packages/tex-engine#readme",
+	"bugs": "https://github.com/kanakkholwal/glyph/issues",
 	"files": ["dist", "src", "wasm"],
 	"exports": {
 		".": {

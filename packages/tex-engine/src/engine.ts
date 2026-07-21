@@ -117,6 +117,21 @@ export class TexEngine {
 			if (!(e instanceof ExitStatus)) throw e;
 		}
 
+		// Check the export exists before calling it. Loading a module built from
+		// different source — nl5887's original, say, which exports tectonic_* —
+		// otherwise fails as "undefined is not a function" from deep inside
+		// load(), which says nothing about the actual mismatch.
+		if (typeof exports.glyphx_abi_version !== 'function') {
+			const found = Object.keys(instance.exports)
+				.filter((n) => !n.startsWith('__') && n !== 'memory')
+				.slice(0, 8);
+			throw new EngineError(
+				'this module does not export the GlyphX engine ABI ' +
+					`(glyphx_abi_version is missing; it exports ${found.join(', ')}). ` +
+					'It was built from different source than this wrapper.'
+			);
+		}
+
 		const abi = exports.glyphx_abi_version();
 		if (abi !== SUPPORTED_ABI_VERSION) {
 			throw new EngineError(

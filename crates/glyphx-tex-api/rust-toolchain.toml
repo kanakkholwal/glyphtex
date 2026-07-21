@@ -1,0 +1,15 @@
+# Pinned to match the `api` job in .github/workflows/tex-engine.yml.
+#
+# That job runs `cargo clippy -- -D warnings`. Clippy adds lints every six
+# weeks, and on a floating toolchain a new lint firing on untouched code turns
+# an unrelated PR red — which is exactly what happened when clippy 1.97 raised
+# `question_mark` on logparse.rs. Pinning makes CI reproducible and moves the
+# lint bump to a deliberate, reviewable change.
+#
+# Unlike ../tectonic-wasm, this crate has no C or Emscripten dependency, so the
+# version is free to move on its own schedule; it is only kept equal for the
+# sake of one less number to remember.
+[toolchain]
+channel = "1.94"
+components = ["clippy", "rustfmt"]
+profile = "minimal"
