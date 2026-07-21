@@ -5,6 +5,11 @@
 *.sh text eol=lf
 Makefile text eol=lf
 
+# Git itself rewrites this file (submodule add/set-url) and always writes LF.
+# Without a pinned ending it flips between LF and CRLF and shows up as a
+# spurious diff every time a submodule is touched on Windows.
+.gitmodules text eol=lf
+
 # Generated, but tracked so the npm package builds without a Rust toolchain.
 # linguist-generated keeps it out of diffs and language stats.
 #

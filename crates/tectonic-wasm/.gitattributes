@@ -1,0 +1,6 @@
+# The build scripts only ever run under Linux (Emscripten toolchain). Checked
+# out with CRLF on Windows they fail silently — /bin/sh reads the trailing \r as
+# part of the shebang and the interpreter is never found, leaving the sysroot
+# stubs uncreated with no obvious error. Pin them to LF regardless of platform.
+*.sh text eol=lf
+Makefile text eol=lf

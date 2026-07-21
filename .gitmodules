@@ -1,0 +1,22 @@
+# The TeX engine builds against two upstream trees that are large, unmodified,
+# and not ours. They are submodules rather than vendored copies so the repo
+# stays small (vendoring them costs ~140 MB, mostly HarfBuzz test fixtures)
+# while the exact commits stay pinned and reproducible.
+#
+# Clone with: git clone --recursive
+# Or after a plain clone: git submodule update --init --recursive
+#
+# --recursive matters: tectonic has submodules of its own (harfbuzz,
+# reference_sources), and the build fails with confusing C compile errors
+# rather than a clear "missing submodule" if they are absent.
+
+[submodule "crates/tectonic-wasm/tectonic"]
+	path = crates/tectonic-wasm/tectonic
+	url = https://github.com/tectonic-typesetting/tectonic.git
+
+# Only needed to build the engine locally. CI installs Emscripten via
+# mymindstorm/setup-emsdk pinned to EM_VERSION in .github/workflows/tex-engine.yml,
+# and that version must stay in step with crates/tectonic-wasm/rust-toolchain.toml.
+[submodule "crates/tectonic-wasm/emsdk"]
+	path = crates/tectonic-wasm/emsdk
+	url = https://github.com/emscripten-core/emsdk.git

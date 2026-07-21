@@ -1,0 +1,18 @@
+# Pinned deliberately, and it must stay in step with EM_VERSION in
+# .github/workflows/tex-engine.yml.
+#
+# Newer rustc hardcodes -fwasm-exceptions in the wasm32-unknown-emscripten
+# target spec (it is not removable via panic = "abort" — that was tried). The
+# vendored C and Emscripten's prebuilt ports use the JS-based exception scheme
+# and emit invoke_* trampolines, so the two cannot be linked together:
+#
+#   AssertionError: invoke_ functions exported but exceptions and longjmp are
+#   both disabled
+#
+# Pinning rustc and Emscripten to the same era (~March 2026) keeps both halves
+# on the JS-based scheme, which is also what the host shim in
+# @glyphx/tex-engine implements. Bump these two together or not at all.
+[toolchain]
+channel = "1.94"
+targets = ["wasm32-unknown-emscripten"]
+profile = "minimal"

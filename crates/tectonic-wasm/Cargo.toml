@@ -1,0 +1,63 @@
+[package]
+name = "tectonic-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "Tectonic TeX engine compiled to WebAssembly"
+license = "MIT"
+
+# Built as a binary, not a cdylib.
+#
+# On wasm32-unknown-emscripten rustc links a `cdylib` with -sSIDE_MODULE=2, and
+# a side module requires every object — including Emscripten's own ICU, HarfBuzz
+# and FreeType ports — to be position-independent. Those ports ship non-PIC, and
+# the flag that used to rebuild them as PIC (-sRELOCATABLE) was removed in
+# Emscripten 6. So the side-module route is closed on any current toolchain,
+# which is why the upstream prebuilt artifact cannot be reproduced as-is.
+#
+# A binary links a normal main module, where non-PIC objects are fine. The FFI
+# entry points are kept alive by -sEXPORTED_FUNCTIONS in scripts/build-wasm.sh.
+[lib]
+name = "glyphx_tex"
+crate-type = ["rlib"]
+
+[[bin]]
+name = "tectonic_wasm"
+path = "src/main.rs"
+
+[dependencies]
+tectonic_engine_xetex = { path = "tectonic/crates/engine_xetex", default-features = false }
+tectonic_engine_xdvipdfmx = { path = "tectonic/crates/engine_xdvipdfmx", default-features = false }
+tectonic_engine_bibtex = { path = "tectonic/crates/engine_bibtex", default-features = false }
+tectonic_bridge_core = { path = "tectonic/crates/bridge_core", default-features = false }
+tectonic_io_base = { path = "tectonic/crates/io_base", default-features = false }
+tectonic_status_base = { path = "tectonic/crates/status_base", default-features = false }
+tectonic_errors = { path = "tectonic/crates/errors", default-features = false }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+glyphx-tex-api = { version = "0.1.0", path = "../glyphx-tex-api" }
+
+[profile.release]
+# panic = "abort" is load-bearing, not just a size optimisation.
+#
+# With unwinding enabled, rustc passes -fwasm-exceptions on this target, which
+# selects native wasm exception handling. The vendored C is compiled by cc-rs
+# in Emscripten's default JS-based mode and emits invoke_* trampolines, and
+# mixing the two fails at link with:
+#   AssertionError: invoke_ functions exported but exceptions and longjmp are
+#   both disabled
+# Aborting on panic removes the need for unwinding, so the whole link stays in
+# the JS-based scheme the C already uses — which is also what the host shim in
+# @glyphx/tex-engine implements.
+#
+# Aborting is the right behaviour here regardless: a panic crossing the FFI
+# boundary back into JavaScript is undefined behaviour, so there is nothing to
+# usefully unwind to.
+panic = "abort"
+opt-level = 3
+codegen-units = 1
+
+[workspace]
+resolver = "2"
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(web_sys_unstable_apis)'] }
