@@ -10,6 +10,7 @@
  * comment, string, variable, type, constant, number, delimiter.{curly,square,math}.
  */
 import type * as Monaco from "monaco-editor";
+import type { MonacoNamespace } from "./monaco";
 
 export const LATEX_ID = "latex";
 
@@ -22,6 +23,10 @@ const FILE_COMMANDS =
 
 /** Environments whose bodies are *not* LaTeX and must not be highlighted. */
 const VERBATIM_ENVS = "verbatim\\*?|lstlisting|minted|Verbatim";
+
+/** Environments whose bodies are math, i.e. `\[…\]` under another name. */
+const MATH_ENVS =
+	"equation\\*?|align(?:at)?\\*?|gather\\*?|multline\\*?|flalign\\*?|eqnarray\\*?|displaymath|math|split|aligned|gathered|cases|array|matrix|[pbvBV]matrix|smallmatrix|subequations";
 
 export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 	defaultToken: "",
@@ -74,6 +79,9 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 		"bigcap", "bigoplus", "bigotimes", "lim", "limsup", "liminf", "sup",
 		"inf", "max", "min", "det", "exp", "ln", "log", "sin", "cos", "tan",
 		"arcsin", "arccos", "arctan", "sinh", "cosh", "tanh",
+		"frac", "dfrac", "tfrac", "binom", "sqrt", "left", "right", "big", "Big",
+		"bigg", "Bigg", "hat", "bar", "vec", "dot", "ddot", "tilde", "overline",
+		"underline", "overbrace", "underbrace",
 		"infty", "partial", "nabla", "forall", "exists", "nexists", "emptyset",
 		"varnothing", "aleph", "hbar", "ell", "Re", "Im", "wp", "prime", "cdot",
 		"cdots", "ldots", "vdots", "ddots", "times", "div", "pm", "mp", "ast",
@@ -120,6 +128,19 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 					"delimiter.curly",
 					"type",
 					{ token: "delimiter.curly", next: "@verbatim" },
+				],
+			],
+
+			// Display-math environments are `\[…\]` under another name, so their
+			// bodies get the same math state.
+			[
+				new RegExp(`(\\\\begin)(\\s*)(\\{)(${MATH_ENVS})(\\})`),
+				[
+					"keyword.control",
+					"white",
+					"delimiter.curly",
+					"type",
+					{ token: "delimiter.curly", next: "@mathEnv" },
 				],
 			],
 
@@ -203,12 +224,44 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 			[/\\\)/, { token: "delimiter.math", next: "@pop" }],
 		],
 
+		// Math environments nest (`aligned` inside `equation`), so a nested `\begin`
+		// pushes another level and the pops stay balanced.
+		mathEnv: [
+			[
+				new RegExp(`(\\\\end)(\\s*)(\\{)(${MATH_ENVS})(\\})`),
+				[
+					"keyword.control",
+					"white",
+					"delimiter.curly",
+					"type",
+					{ token: "delimiter.curly", next: "@pop" },
+				],
+			],
+			[
+				new RegExp(`(\\\\begin)(\\s*)(\\{)(${MATH_ENVS})(\\})`),
+				[
+					"keyword.control",
+					"white",
+					"delimiter.curly",
+					"type",
+					{ token: "delimiter.curly", next: "@mathEnv" },
+				],
+			],
+			{ include: "@mathBody" },
+		],
+
 		// NOTE: the closing delimiter of each math state is matched *after* this
 		// include, so `\\` (a line break) is consumed here before `\]` can be
 		// mistaken for it — and every rule below consumes at least one character.
 		mathBody: [
 			[/\\\\/, "keyword"],
-			[/\\[a-zA-Z@]+/, { cases: { "@mathConstants": "constant", "@default": "keyword" } }],
+			// `\label`/`\ref` are as common inside equations as outside them.
+			[
+				new RegExp(`(\\\\(?:${REF_COMMANDS}))(\\s*)(\\{)([^}]*)(\\})`),
+				["keyword.control", "white", "delimiter.curly", "variable", "delimiter.curly"],
+			],
+			// The guard tests group 1 — the list holds bare names, without the backslash.
+			[/\\([a-zA-Z@]+)/, { cases: { "$1@mathConstants": "constant", "@default": "keyword" } }],
 			[/\\[^a-zA-Z@\s\])]/, "keyword"],
 			[/[\^_]/, "delimiter"],
 			{ include: "@common" },
@@ -275,7 +328,7 @@ export const latexConfiguration: Monaco.languages.LanguageConfiguration = {
  * Idempotent: editors mount and remount, and monaco's registry is global, so
  * re-registering would stack duplicate tokenizers.
  */
-export function registerLatex(monaco: typeof import("monaco-editor")): void {
+export function registerLatex(monaco: MonacoNamespace): void {
 	if (monaco.languages.getLanguages().some((lang) => lang.id === LATEX_ID)) return;
 
 	monaco.languages.register({

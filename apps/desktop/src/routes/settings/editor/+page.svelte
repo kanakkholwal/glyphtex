@@ -9,14 +9,9 @@
 		EDITOR_FONT_LABELS,
 		settings,
 		type AutoSaveMode,
-		type EditorFont,
-		type LatexGrammar
+		type EditorFont
 	} from '@glyphx/ui/settings';
 
-	const grammarOpts: { value: LatexGrammar; label: string }[] = [
-		{ value: 'legacy', label: 'stex' },
-		{ value: 'lezer', label: 'lezer' }
-	];
 	const fontOpts = (Object.keys(EDITOR_FONT_LABELS) as EditorFont[]).map((id) => ({
 		value: id,
 		label: EDITOR_FONT_LABELS[id]
@@ -72,13 +67,6 @@
 	</header>
 
 	<SettingsSection label="Display" divided>
-		{@render selectRow(
-			'LaTeX grammar',
-			'The parser that drives syntax highlighting.',
-			grammarOpts,
-			settings.grammar,
-			(v) => (settings.grammar = v as LatexGrammar)
-		)}
 		{@render selectRow(
 			'Editor font',
 			'Monospace typeface for the editing surface.',

@@ -1404,3 +1404,12 @@
     display: none;
   }
 }
+
+/* --- Monaco --------------------------------------------------------------
+   The editor paints itself from its registered theme, but decorations we add
+   ourselves need real CSS. Search hits are the only one: the find/replace panel
+   drives them through a decorations collection (see code-editor/controller). */
+.glyphx-search-match {
+  background-color: color-mix(in oklab, var(--color-warning) 32%, transparent);
+  border-radius: 2px;
+}

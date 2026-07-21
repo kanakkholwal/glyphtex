@@ -14,7 +14,6 @@
     type Appearance,
     type AutoSaveMode,
     type EditorFont,
-    type LatexGrammar,
     type SidebarPosition,
   } from "@glyphx/ui/settings";
   import { SettingsField } from "@glyphx/ui/settings-field";
@@ -50,10 +49,6 @@
   const sidebarOpts: { value: SidebarPosition; label: string }[] = [
     { value: "left", label: "Left" },
     { value: "right", label: "Right" },
-  ];
-  const grammarOpts: { value: LatexGrammar; label: string }[] = [
-    { value: "legacy", label: "stex" },
-    { value: "lezer", label: "lezer" },
   ];
   const fontOpts = (Object.keys(EDITOR_FONT_LABELS) as EditorFont[]).map(
     (id) => ({ value: id, label: EDITOR_FONT_LABELS[id] }),
@@ -122,13 +117,6 @@
       unit="px"
       onchange={(v) => (settings.fontSize = v)}
     />
-
-    {@render selectField(
-      "LaTeX grammar",
-      grammarOpts,
-      settings.grammar,
-      (v) => (settings.grammar = v as LatexGrammar),
-    )}
 
     <SettingsField size="sm" label="Line wrapping" layout="row">
       <Switch

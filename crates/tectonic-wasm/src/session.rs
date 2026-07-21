@@ -153,6 +153,10 @@ impl Run {
 
     /// Drive XeTeX until the auxiliary files stop changing, then convert to PDF.
     fn execute(self) -> (CompileResult, HashMap<String, Rc<Vec<u8>>>) {
+        if self.options.initex {
+            return self.initex();
+        }
+
         let mut passes_run = 0;
         let mut outcome = TexOutcome::Spotless;
         let mut prior = signature(&self.outputs.borrow());
@@ -198,6 +202,32 @@ impl Run {
         self.finish(status, passes_run, None)
     }
 
+    /// One INITEX run, dumping `<jobname>.fmt`.
+    ///
+    /// Deliberately not the normal loop: there is nothing to converge on, no
+    /// XDV to convert, and rerunning would dump the format twice. A run that
+    /// produces no `.fmt` is a failure even if XeTeX reports success, because
+    /// the whole point of the call is that file.
+    fn initex(self) -> (CompileResult, HashMap<String, Rc<Vec<u8>>>) {
+        if let Err(message) = self.tex_pass() {
+            return self.finish(CompileStatus::Failed, 1, Some(message));
+        }
+
+        let dump = format!("{}.fmt", self.jobname);
+        if !self.outputs.borrow().contains_key(&dump) {
+            return self.finish(
+                CompileStatus::Failed,
+                1,
+                Some(format!(
+                    "INITEX ran but wrote no `{dump}`. The entry file has to reach \\dump — \
+                     a plain document will not, an .ini file will."
+                )),
+            );
+        }
+
+        self.finish(CompileStatus::Spotless, 1, None)
+    }
+
     /// One XeTeX pass. Returns a message on failure.
     fn tex_pass(&self) -> Result<TexOutcome, String> {
         let mut io = self.io();
@@ -213,6 +243,7 @@ impl Run {
             .shell_escape(self.options.shell_escape)
             .synctex(self.options.synctex)
             .semantic_pagination(self.options.semantic_pagination)
+            .initex_mode(self.options.initex)
             .build_date(self.build_date);
 
         let result = engine.process(&mut launcher, "latex", &self.jobname);

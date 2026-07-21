@@ -137,7 +137,7 @@
 			aria-hidden="true"
 			class={cn(
 				"pointer-events-none absolute left-0 top-0 z-0 rounded-md will-change-transform",
-				variant === "soft" && "bg-card shadow-(--shadow-craft-inset)",
+				variant === "default_soft" && "bg-card shadow-(--shadow-craft-inset)",
 				variant === "default" && "bg-background shadow-sm",
 			)}
 			style="transform: translate({x.current}px, {y.current}px); width: {w.current}px; height: {h.current}px;"

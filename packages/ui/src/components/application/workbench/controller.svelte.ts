@@ -101,10 +101,6 @@ export class WorkbenchController {
     this.files.onProjectLoaded = () => this.layout.closeDiff();
   }
 
-  cycleGrammar(): void {
-    settings.grammar = settings.grammar === "legacy" ? "lezer" : "legacy";
-  }
-
   // --- Application menu (VS Code-style) --------------------------------------
   // A getter (recomputed on read) so checkmarks (view mode, live compile, open
   // panel) stay in sync, and so it can reference the constructor-assigned stores

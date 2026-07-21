@@ -72,7 +72,7 @@
 				</p>
 			</div>
 			<Button
-				variant="soft"
+				variant="default_soft"
 				size="xs"
 				class="shrink-0"
 				disabled={updater.status === 'checking' || updater.status === 'downloading'}

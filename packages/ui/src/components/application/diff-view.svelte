@@ -1,21 +1,18 @@
 <script lang="ts">
-	import { EditorView, lineNumbers } from '@codemirror/view';
-	import { EditorState } from '@codemirror/state';
-	import { MergeView, unifiedMergeView } from '@codemirror/merge';
-	import { jetbrainsTheme, latexLanguage, type LatexGrammar } from '@glyphx/ui/editor';
+	import type * as Monaco from 'monaco-editor';
+	import { loadMonaco, type MonacoNamespace } from '@glyphx/ui/editor';
 
 	/**
-	 * DiffView — read-only diff of two texts, built on `@codemirror/merge`.
-	 * `mode` switches between VS Code-style side-by-side (`MergeView`) and inline /
-	 * unified (`unifiedMergeView`). Theme / font / grammar mirror the editor so a
-	 * diff reads like the document it came from. Rebuilt whenever a prop changes.
+	 * DiffView — read-only diff of two texts, built on Monaco's diff editor.
+	 * `mode` switches between VS Code-style side-by-side and inline / unified,
+	 * which here is one option rather than two different components. Theme / font
+	 * / language mirror the editor so a diff reads like the document it came from.
 	 */
 	let {
 		original = '',
 		modified = '',
 		mode = 'side' as 'side' | 'inline',
 		theme = 'light' as 'light' | 'dark',
-		grammar = 'legacy' as LatexGrammar,
 		language = 'latex' as 'latex' | 'markdown' | 'plain',
 		fontSize = 13,
 		fontFamily = "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace"
@@ -24,142 +21,137 @@
 		modified?: string;
 		mode?: 'side' | 'inline';
 		theme?: 'light' | 'dark';
-		grammar?: LatexGrammar;
 		language?: 'latex' | 'markdown' | 'plain';
 		fontSize?: number;
 		fontFamily?: string;
 	} = $props();
 
 	let host = $state<HTMLDivElement>();
+	let editor = $state<Monaco.editor.IStandaloneDiffEditor>();
+	let monaco: MonacoNamespace | undefined;
 
-	const langExtension = (lang: 'latex' | 'markdown' | 'plain', g: LatexGrammar) =>
-		lang === 'latex' ? latexLanguage(g) : [];
+	const languageId = (lang: 'latex' | 'markdown' | 'plain') =>
+		lang === 'latex' ? 'latex' : lang === 'markdown' ? 'markdown' : 'plaintext';
 
-	const fontExtension = (size: number, family: string) =>
-		EditorView.theme({
-			'&': { fontSize: `${size}px` },
-			'.cm-scroller': { fontFamily: family },
-			'.cm-gutters': { fontFamily: family }
-		});
-
-	const heightTheme = EditorView.theme({
-		'&': { height: '100%', backgroundColor: 'transparent' },
-		'.cm-scroller': { lineHeight: '1.6', overflow: 'auto' }
-	});
-
-	// Rebuild the view whenever any input changes (merge views can't be live
-	// reconfigured the way the editor's compartments are).
+	// Create the diff editor once. Unlike the CodeMirror merge view this one
+	// reconfigures in place, so content / theme / font changes below never
+	// rebuild it — which keeps scroll position across a recompile.
 	$effect(() => {
 		const parent = host;
 		if (!parent) return;
-		const o = original;
-		const m = modified;
-		const md = mode;
-		const common = [
-			lineNumbers(),
-			EditorView.editable.of(false),
-			EditorState.readOnly.of(true),
-			heightTheme,
-			jetbrainsTheme(theme),
-			langExtension(language, grammar),
-			fontExtension(fontSize, fontFamily)
-		];
 
-		if (md === 'side') {
-			const view = new MergeView({
-				a: { doc: o, extensions: common },
-				b: { doc: m, extensions: common },
-				parent,
-				gutter: true,
-				highlightChanges: true,
-				collapseUnchanged: { margin: 3, minSize: 4 }
-			});
-			return () => view.destroy();
-		}
-
-		const view = new EditorView({
-			parent,
-			state: EditorState.create({
-				doc: m,
-				extensions: [...common, unifiedMergeView({ original: o, mergeControls: false })]
+		let disposed = false;
+		void loadMonaco()
+			.then((m) => {
+				if (disposed) return;
+				monaco = m;
+				editor = m.editor.createDiffEditor(parent, {
+					automaticLayout: true,
+					readOnly: true,
+					originalEditable: false,
+					renderSideBySide: mode === 'side',
+					// The document-shaped equivalent of collapseUnchanged: fold long
+					// runs of identical lines so a one-line change isn't buried.
+					hideUnchangedRegions: { enabled: true, contextLineCount: 3, minimumLineCount: 4 },
+					minimap: { enabled: false },
+					scrollBeyondLastLine: false,
+					lineHeight: 1.6,
+					renderOverviewRuler: false,
+					scrollbar: { useShadows: false, verticalScrollbarSize: 10, horizontalScrollbarSize: 10 }
+				});
 			})
+			.catch((error) => {
+				console.error('[GlyphX] the diff view failed to load:', error);
+			});
+
+		return () => {
+			disposed = true;
+			const current = editor;
+			if (current) {
+				// Diff models are owned by the global registry, not the editor, so
+				// they have to be disposed by hand or every diff leaks two models.
+				const model = current.getModel();
+				model?.original.dispose();
+				model?.modified.dispose();
+				current.dispose();
+			}
+			editor = undefined;
+			monaco = undefined;
+		};
+	});
+
+	// Swap the models whenever the texts or the language change. New models
+	// (rather than setValue) keep the diff computation clean and mean the two
+	// sides can never disagree about their language.
+	$effect(() => {
+		const current = editor;
+		const m = monaco;
+		if (!current || !m) return;
+
+		const id = languageId(language);
+		const previous = current.getModel();
+		current.setModel({
+			original: m.editor.createModel(original, id),
+			modified: m.editor.createModel(modified, id)
 		});
-		return () => view.destroy();
+		previous?.original.dispose();
+		previous?.modified.dispose();
+	});
+
+	$effect(() => {
+		editor?.updateOptions({ renderSideBySide: mode === 'side' });
+	});
+
+	$effect(() => {
+		void editor;
+		monaco?.editor.setTheme(theme === 'dark' ? 'glyphx-island-dark' : 'glyphx-island-light');
+	});
+
+	$effect(() => {
+		editor?.updateOptions({ fontSize, fontFamily });
 	});
 </script>
 
-<div bind:this={host} class="h-full min-h-0 w-full overflow-auto text-[13px]"></div>
+<div bind:this={host} class="h-full min-h-0 w-full text-[13px]"></div>
 
 <style>
-	/* --- Side-by-side: make the panes fill the available height instead of
-	   sitting at the top (MergeView lays editors out at content height). --- */
-	:global(.cm-mergeView) {
-		display: flex;
-		flex-direction: column;
-		min-height: 100%;
-	}
-	:global(.cm-mergeViewEditors) {
-		flex: 1 1 auto;
-		min-height: 0;
-	}
-	:global(.cm-mergeViewEditor) {
-		display: flex;
-		flex-direction: column;
-		min-height: 0;
-	}
-	:global(.cm-mergeViewEditor > .cm-editor) {
-		flex-grow: 1;
-	}
-
-	/* --- Clearer add/remove colors (semantic tokens, never hardcoded). --- */
+	/* Monaco's default diff tints are VS Code's blue/green; override them with
+	   our semantic tokens (never hardcoded colors) so a diff matches the rest of
+	   the app in both themes. */
 	/* removed lines → red tint */
-	:global(.cm-merge-a .cm-changedLine),
-	:global(.cm-deletedChunk),
-	:global(.cm-deletedLine) {
+	:global(.monaco-diff-editor .line-delete) {
 		background-color: color-mix(in oklab, var(--color-destructive) 14%, transparent) !important;
 	}
-	/* added / changed lines → green tint */
-	:global(.cm-merge-b .cm-changedLine),
-	:global(.cm-insertedLine),
-	:global(.cm-inlineChangedLine) {
+	/* added lines → green tint */
+	:global(.monaco-diff-editor .line-insert) {
 		background-color: color-mix(in oklab, var(--color-success) 14%, transparent) !important;
 	}
 	/* the precise text that changed within a line → stronger tint */
-	:global(.cm-merge-a .cm-changedText),
-	:global(.cm-deletedChunk .cm-deletedText) {
-		background: color-mix(in oklab, var(--color-destructive) 30%, transparent) !important;
+	:global(.monaco-diff-editor .char-delete) {
+		background-color: color-mix(in oklab, var(--color-destructive) 30%, transparent) !important;
 	}
-	:global(.cm-merge-b .cm-changedText) {
-		background: color-mix(in oklab, var(--color-success) 30%, transparent) !important;
+	:global(.monaco-diff-editor .char-insert) {
+		background-color: color-mix(in oklab, var(--color-success) 30%, transparent) !important;
 	}
 
-	/* --- Change gutter: show +/− glyphs instead of a thin colored bar. --- */
-	:global(.cm-changeGutter) {
-		width: 1.2em !important;
-		padding-left: 0 !important;
+	/* Monaco draws a colored border around each changed region; tint those too
+	   rather than leaving VS Code's palette showing through. */
+	:global(.monaco-diff-editor .line-delete.char-delete),
+	:global(.monaco-diff-editor .inline-deleted-margin-view-zone) {
+		border-color: color-mix(in oklab, var(--color-destructive) 40%, transparent) !important;
 	}
-	:global(.cm-changeGutter .cm-gutterElement) {
-		text-align: center;
-		font-weight: 700;
+	:global(.monaco-diff-editor .line-insert.char-insert),
+	:global(.monaco-diff-editor .inline-added-margin-view-zone) {
+		border-color: color-mix(in oklab, var(--color-success) 40%, transparent) !important;
 	}
-	/* removed → red − */
-	:global(.cm-merge-a .cm-changedLineGutter),
-	:global(.cm-deletedLineGutter) {
-		background: transparent !important;
-		color: var(--color-destructive);
-	}
-	:global(.cm-merge-a .cm-changedLineGutter)::after,
-	:global(.cm-deletedLineGutter)::after {
-		content: "−";
-	}
-	/* added / changed → green + */
-	:global(.cm-merge-b .cm-changedLineGutter),
-	:global(.cm-inlineChangedLineGutter) {
-		background: transparent !important;
+
+	/* The +/− glyphs in the change margin, matching the editor's own gutter. */
+	:global(.monaco-diff-editor .diff-review-insert),
+	:global(.monaco-diff-editor .insert-sign) {
 		color: var(--color-success);
 	}
-	:global(.cm-merge-b .cm-changedLineGutter)::after,
-	:global(.cm-inlineChangedLineGutter)::after {
-		content: "+";
+	:global(.monaco-diff-editor .diff-review-remove),
+	:global(.monaco-diff-editor .delete-sign) {
+		color: var(--color-destructive);
 	}
 </style>

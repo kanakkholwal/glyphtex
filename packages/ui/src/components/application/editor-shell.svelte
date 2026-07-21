@@ -28,12 +28,12 @@ Nothing is uploaded. Nothing leaves this device.
 	import { Button } from '@glyphx/ui/button';
 	import { Badge } from '@glyphx/ui/badge';
 	import { ThemeToggle } from '@glyphx/ui/theme-toggle';
-	import { settings, type LatexGrammar } from '@glyphx/ui/settings';
+	import { settings } from '@glyphx/ui/settings';
 	import CodeEditor from './code-editor.svelte';
 
 	/**
 	 * EditorShell — calm editor chrome shared by desktop + web `/editor`.
-	 * The source pane is a real CodeMirror surface (JetBrains theme + LaTeX
+	 * The source pane is a real Monaco surface (JetBrains Island theme + LaTeX
 	 * grammar). Compile/preview wiring (Tectonic via Rust on desktop, WASM on
 	 * web) lands next; the preview here is a placeholder.
 	 */
@@ -45,11 +45,6 @@ Nothing is uploaded. Nothing leaves this device.
 
 	const lineCount = $derived(source.split('\n').length);
 	const charCount = $derived(source.length);
-
-	const grammars: { id: LatexGrammar; label: string }[] = [
-		{ id: 'legacy', label: 'stex' },
-		{ id: 'lezer', label: 'lezer' }
-	];
 </script>
 
 <div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
@@ -79,21 +74,6 @@ Nothing is uploaded. Nothing leaves this device.
 		<Badge variant="default" class="uppercase">LaTeX</Badge>
 
 		<div class="ml-auto flex items-center gap-1.5">
-			<!-- LaTeX grammar switch -->
-			<div class="border-border bg-muted/40 flex items-center rounded-md border p-0.5" role="group" aria-label="LaTeX grammar">
-				{#each grammars as g (g.id)}
-					<button
-						class="rounded-[5px] px-2 py-1 text-xs font-medium transition-colors {settings.grammar === g.id
-							? 'bg-card text-foreground shadow-craft-sm'
-							: 'text-muted-foreground hover:text-foreground'}"
-						aria-pressed={settings.grammar === g.id}
-						onclick={() => (settings.grammar = g.id)}
-					>
-						{g.label}
-					</button>
-				{/each}
-			</div>
-
 			<Button variant="ghost" size="sm">Format</Button>
 			<Button size="sm">Compile</Button>
 			<ThemeToggle />
@@ -115,7 +95,6 @@ Nothing is uploaded. Nothing leaves this device.
 				<CodeEditor
 					bind:value={source}
 					theme={settings.resolved}
-					grammar={settings.grammar}
 					fontSize={settings.fontSize}
 					lineWrapping={settings.lineWrapping}
 				/>
@@ -161,7 +140,6 @@ Nothing is uploaded. Nothing leaves this device.
 			Offline-ready
 		</span>
 		<span>LaTeX · Tectonic</span>
-		<span class="text-muted-foreground/60">{settings.grammar === 'legacy' ? 'stex' : 'lezer'}</span>
 		<span class="text-muted-foreground/50 ml-auto">Ln {lineCount} · {charCount} chars</span>
 		<span class="text-muted-foreground/50 capitalize">{platform}</span>
 	</footer>

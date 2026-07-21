@@ -13,12 +13,18 @@
  * Monarch grammar, which tokenizes on the main thread, so pulling those in
  * would add megabytes to the bundle for services nothing here uses.
  */
-import type * as Monaco from "monaco-editor";
-
 import { registerLatex } from "./latex-monarch";
 import { registerJetBrainsThemes } from "./jetbrains-monaco";
 
-export type MonacoNamespace = typeof Monaco;
+/**
+ * What `loadMonaco` actually resolves to.
+ *
+ * Typed against the bare editor API rather than the package root, because that
+ * is what is imported below — the root's extra namespaces (`lsp`, `css`,
+ * `html`, `json`, `typescript`) are genuinely absent here, and claiming
+ * otherwise would let callers reach for services that do not exist.
+ */
+export type MonacoNamespace = typeof import("monaco-editor/editor/editor.api");
 
 /** Shape Monaco looks for on `self` to find its workers. */
 interface MonacoEnvironmentHost {
@@ -37,12 +43,19 @@ export function loadMonaco(): Promise<MonacoNamespace> {
   }
 
   loading ??= (async () => {
+    // Deliberately NOT `import("monaco-editor")`: the package root registers
+    // every bundled language (abap, apex, … ~80 of them) and pulls in the
+    // TypeScript/CSS/HTML/JSON language services. This editor needs the core
+    // plus exactly two languages, so it imports the bare API and adds markdown
+    // by hand — LaTeX comes from our own Monarch grammar below.
+    //
     // `?worker` is Vite's worker-bundling suffix. Both apps that consume this
     // package build with Vite, and the import sits inside this browser-only
     // path so it never reaches the SSR module graph.
     const [monaco, { default: EditorWorker }] = await Promise.all([
-      import("monaco-editor"),
-      import("monaco-editor/esm/vs/editor/editor.worker?worker"),
+      import("monaco-editor/editor/editor.api"),
+      import("monaco-editor/editor/editor.worker?worker"),
+      import("monaco-editor/languages/definitions/markdown/register"),
     ]);
 
     (self as unknown as MonacoEnvironmentHost).MonacoEnvironment = {

@@ -109,7 +109,6 @@
           modified={layout.diffTarget.modified}
           mode={settings.diffView}
           theme={settings.resolved}
-          grammar={settings.grammar}
           language={layout.diffLanguage}
           fontSize={settings.fontSize}
           fontFamily={settings.fontStack}
@@ -190,7 +189,6 @@
         bind:canRedo={layout.canRedo}
         docKey={files.activeId}
         theme={settings.resolved}
-        grammar={settings.grammar}
         language={files.activeLanguage}
         fontSize={settings.fontSize}
         fontFamily={settings.fontStack}

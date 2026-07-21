@@ -48,6 +48,19 @@ synctex: boolean,
  */
 semanticPagination: boolean, 
 /**
+ * Run INITEX instead of typesetting: execute the entry file and dump the
+ * resulting engine state to `<jobname>.fmt`.
+ *
+ * This is how the preloaded LaTeX format in the bundle is produced. It has
+ * to be built by *this* engine — a format is a memory image, so one dumped
+ * by a different XeTeX build will not load — which is why the option lives
+ * here rather than the format being treated as an opaque input.
+ *
+ * A single pass is run and no PDF is produced, so `max_passes`,
+ * `output_format` and the xdvipdfmx options are all ignored.
+ */
+initex: boolean, 
+/**
  * PDF or raw XDV.
  */
 outputFormat: OutputFormat, 
