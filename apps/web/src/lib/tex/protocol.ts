@@ -8,11 +8,14 @@ export interface EngineManifest {
 	files: Record<string, { bytes: number; hash: string }>;
 }
 
+/** One file for the engine's in-memory filesystem. `data` carries images. */
+export type CompileFile = { name: string; text?: string; data?: Uint8Array };
+
 export type WorkerRequest =
 	/** Download, cache and boot the engine, reporting progress. */
 	| { id: number; type: 'install' }
-	/** Compile a document, booting the engine first if necessary. */
-	| { id: number; type: 'compile'; source: string }
+	/** Compile `entry` with `files` mounted, booting the engine first if necessary. */
+	| { id: number; type: 'compile'; files: CompileFile[]; entry: string }
 	/** Download the named packs and load them into the running engine. */
 	| { id: number; type: 'installPacks'; packIds: string[] };
 

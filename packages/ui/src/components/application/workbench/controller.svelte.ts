@@ -10,6 +10,7 @@ import { FileStore } from "./files.svelte";
 import { LayoutStore } from "./layout.svelte";
 import { SearchStore } from "./search.svelte";
 import type {
+  CompileFilesFn,
   CompileFn,
   CompileProjectFn,
   GlyphFile,
@@ -22,6 +23,8 @@ export type WorkbenchProps = {
   /** Compile a multi-file project on disk (desktop), so `\input` /
    *  `\includegraphics` / `\bibliography` resolve. */
   compileProject?: CompileProjectFn;
+  /** In-memory multi-file compile (web projects); same resolution, no disk. */
+  compileFiles?: CompileFilesFn;
   engine?: EngineManager;
   /** Host-injected Git backend (desktop = gitoxide). Enables Source Control. */
   git?: GitProvider;
@@ -81,6 +84,7 @@ export class WorkbenchController {
       // Getter, not value: the controller is constructed once, so a captured
       // `compile` never sees the prop flip after the engine is installed.
       getCompile: () => props.compile,
+      getCompileFiles: () => props.compileFiles,
       compileProject: props.compileProject,
       saveFile: props.saveFile,
     });

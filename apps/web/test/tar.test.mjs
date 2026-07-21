@@ -8,7 +8,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { gzipSync } from 'node:zlib';
-import { gunzip, untar } from './.build/tar.mjs';
+import { gunzip, untar } from './.build/tex/tar.mjs';
 
 /** Build a minimal, valid tar archive in memory. */
 function makeTar(entries) {

@@ -1,6 +1,8 @@
 import type { Diagnostic, PackDefinition } from '@glyphx/tex-engine';
 import { loadManifest, openEngineCache } from './tex/manifest';
-import type { UnsentRequest, WorkerRequest, WorkerResponse } from './tex/protocol';
+import type { CompileFile, UnsentRequest, WorkerRequest, WorkerResponse } from './tex/protocol';
+
+export type { CompileFile };
 
 export type CompileOutcome = {
 	/** The PDF, base64-encoded for the preview pane. */
@@ -126,14 +128,26 @@ function bytesToBase64(bytes: Uint8Array): string {
 	return btoa(binary);
 }
 
-export async function compileLatex(source: string): Promise<CompileOutcome> {
+/** Single-file compile; the multi-file path with one `main.tex` mounted. */
+export function compileLatex(source: string): Promise<CompileOutcome> {
+	return compileFiles([{ name: 'main.tex', text: source }], 'main.tex');
+}
+
+/**
+ * Compile `entry` with every file mounted, so `\input` and `\includegraphics`
+ * resolve. Binary members carry `data`; text members carry `text`.
+ */
+export async function compileFiles(files: CompileFile[], entry: string): Promise<CompileOutcome> {
 	if (typeof window === 'undefined') {
 		return { error: 'Compilation runs in the browser.' };
+	}
+	if (!files.some((f) => f.name === entry)) {
+		return { error: `The main file "${entry}" is not part of this document.` };
 	}
 
 	let response: WorkerResponse;
 	try {
-		response = await send({ type: 'compile', source });
+		response = await send({ type: 'compile', files, entry });
 	} catch (e) {
 		// Plain-language message for the user; raw detail goes in the log (AGENTS.md rule #5).
 		return {

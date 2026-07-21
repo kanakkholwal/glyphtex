@@ -76,6 +76,11 @@ jobs:
           # which is indistinguishable from passing.
           GLYPHX_REQUIRE_ENGINE: '1'
 
+      - name: Unit tests
+        run: |
+          pnpm --filter @glyphx/ui test
+          pnpm --filter @glyphx/web test
+
       - name: Typecheck (svelte-check)
         run: pnpm --filter @glyphx/web check
 

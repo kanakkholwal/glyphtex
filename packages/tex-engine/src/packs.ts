@@ -111,7 +111,11 @@ export function parsePackIndex(value: unknown): PackIndex {
 
 // A healthy compile still reports probes: fonts by name, `tex-text.tec`, and
 // `foo.sty.aux`/`.bbl` cascades. Only .sty/.cls names are installable.
+//
+// Path-qualified names are never packages: kpathsea finds those by bare name,
+// so `figures/fig.bb.sty` is graphics probing next to the user's own image.
 function isInstallable(file: string): boolean {
+	if (file.includes('/')) return false;
 	return /\.(sty|cls)$/.test(file) && !/\.(sty|cls|def)\.[a-z]+$/.test(file);
 }
 

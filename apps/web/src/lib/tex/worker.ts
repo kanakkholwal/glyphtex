@@ -210,22 +210,25 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 					/* the install flow is where the download is surfaced */
 				});
 
+				const mount = (engine: TexEngine) => {
+					for (const file of request.files) {
+						engine.addFile(file.name, file.data ?? file.text ?? '');
+					}
+				};
+				// jobname defaults to the entry's basename, so pdf()/log() follow it.
+				const options = { entry: request.entry, synctex: true, maxPasses: 5 };
+
 				let result;
 				try {
-					ready.addFile('main.tex', request.source);
-					result = ready.compile({
-						entry: 'main.tex',
-						synctex: true,
-						// The engine reruns internally until the log stops asking.
-						maxPasses: 5
-					});
+					mount(ready);
+					result = ready.compile(options);
 				} catch (error) {
 					if (!(error instanceof EnginePoisonedError)) throw error;
 					// An earlier document may be the culprit, so this one gets a clean try.
 					discardEngine();
 					ready = await boot(() => {});
-					ready.addFile('main.tex', request.source);
-					result = ready.compile({ entry: 'main.tex', synctex: true, maxPasses: 5 });
+					mount(ready);
+					result = ready.compile(options);
 				}
 
 				const log = ready.log() ?? '';
