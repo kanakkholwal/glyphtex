@@ -50,7 +50,7 @@ use std::cell::RefCell;
 
 /// ABI version. Bump on any breaking change to the exported functions or to the
 /// JSON shapes in [`api`]; callers should check it before anything else.
-pub const ABI_VERSION: u32 = 1;
+pub const ABI_VERSION: u32 = 2;
 
 /// Argument pointers were null, or lengths were implausible.
 const ERR_BAD_POINTER: i32 = -1;
@@ -58,9 +58,37 @@ const ERR_BAD_POINTER: i32 = -1;
 const ERR_BAD_UTF8: i32 = -2;
 /// The options JSON did not parse.
 const ERR_BAD_JSON: i32 = -3;
+/// The session is still borrowed from an earlier call that never returned.
+///
+/// This means a previous `glyphx_compile` trapped rather than returning: the
+/// wasm stack was torn down without unwinding Rust, so the `RefCell` guard was
+/// never dropped. Every later call would otherwise panic on the borrow, and
+/// under `panic = "abort"` a panic is a trap — so one bad document would brick
+/// the instance for good.
+///
+/// Reporting it instead lets the host do the only thing that actually works:
+/// discard this instance and load a fresh one.
+const ERR_POISONED: i32 = -4;
 
 thread_local! {
     static SESSION: RefCell<Session> = RefCell::new(Session::new());
+}
+
+/// Borrow the session mutably, or `None` if a previous call left it borrowed.
+///
+/// `try_borrow_mut`, never `borrow_mut`: the panicking form aborts under
+/// `panic = "abort"`, turning a recoverable "this instance is spent" into a
+/// trap that takes the whole module with it. See [`ERR_POISONED`].
+fn with_session_mut<R>(f: impl FnOnce(&mut Session) -> R) -> Option<R> {
+    SESSION.with(|cell| cell.try_borrow_mut().ok().map(|mut s| f(&mut s)))
+}
+
+/// Borrow the session for reading, or `None` if it is poisoned.
+fn with_session<R>(f: impl FnOnce(&Session) -> R) -> Option<R> {
+    SESSION.with(|cell| cell.try_borrow().ok().map(|s| f(&s)))
+}
+
+thread_local! {
     /// JSON for the most recent compile, held so the caller can read it back
     /// without us leaking an allocation on every call.
     static LAST_RESULT: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
@@ -144,8 +172,10 @@ pub unsafe extern "C" fn glyphx_add_file(
     let Ok(name) = std::str::from_utf8(name_bytes) else {
         return ERR_BAD_UTF8;
     };
-    SESSION.with_borrow_mut(|s| s.add_file(name, data.to_vec()));
-    0
+    match with_session_mut(|s| s.add_file(name, data.to_vec())) {
+        Some(()) => 0,
+        None => ERR_POISONED,
+    }
 }
 
 /// Remove a file. Returns 1 if it existed, 0 if not, or a negative error code.
@@ -161,25 +191,37 @@ pub unsafe extern "C" fn glyphx_remove_file(name_ptr: *const u8, name_len: usize
     let Ok(name) = std::str::from_utf8(bytes) else {
         return ERR_BAD_UTF8;
     };
-    i32::from(SESSION.with_borrow_mut(|s| s.remove_file(name)))
+    match with_session_mut(|s| s.remove_file(name)) {
+        Some(existed) => i32::from(existed),
+        None => ERR_POISONED,
+    }
 }
 
 /// Number of files currently in the virtual filesystem.
 #[no_mangle]
-pub extern "C" fn glyphx_file_count() -> usize {
-    SESSION.with_borrow(|s| s.file_count())
+pub extern "C" fn glyphx_file_count() -> i32 {
+    match with_session(|s| s.file_count()) {
+        Some(n) => i32::try_from(n).unwrap_or(i32::MAX),
+        None => ERR_POISONED,
+    }
 }
 
 /// Drop every input file.
 #[no_mangle]
-pub extern "C" fn glyphx_clear_files() {
-    SESSION.with_borrow_mut(|s| s.clear_files());
+pub extern "C" fn glyphx_clear_files() -> i32 {
+    match with_session_mut(|s| s.clear_files()) {
+        Some(()) => 0,
+        None => ERR_POISONED,
+    }
 }
 
 /// Discard auxiliary files from the previous compile, forcing a cold build.
 #[no_mangle]
-pub extern "C" fn glyphx_clear_outputs() {
-    SESSION.with_borrow_mut(|s| s.clear_outputs());
+pub extern "C" fn glyphx_clear_outputs() -> i32 {
+    match with_session_mut(|s| s.clear_outputs()) {
+        Some(()) => 0,
+        None => ERR_POISONED,
+    }
 }
 
 /// Compile the document described by `options_json` (a JSON `CompileOptions`;
@@ -216,7 +258,9 @@ pub unsafe extern "C" fn glyphx_compile(options_ptr: *const u8, options_len: usi
         }
     };
 
-    let result = SESSION.with_borrow_mut(|s| s.compile(options));
+    let Some(result) = with_session_mut(|s| s.compile(options)) else {
+        return ERR_POISONED;
+    };
     store_result(&result);
     0
 }
@@ -260,7 +304,7 @@ pub unsafe extern "C" fn glyphx_output_len(name_ptr: *const u8, name_len: usize)
     let Ok(name) = std::str::from_utf8(bytes) else {
         return -1;
     };
-    match SESSION.with_borrow(|s| s.output(name)) {
+    match with_session(|s| s.output(name)).flatten() {
         Some(data) => {
             let len = data.len();
             STAGED_OUTPUT.with_borrow_mut(|slot| *slot = data.as_ref().clone());

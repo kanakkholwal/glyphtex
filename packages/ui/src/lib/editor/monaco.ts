@@ -14,6 +14,9 @@
  * would add megabytes to the bundle for services nothing here uses.
  */
 import { registerLatex } from "./latex-monarch";
+import { registerLatexCompletions } from "./latex-complete";
+import { registerLatexStructure } from "./latex-structure";
+import { registerLatexSemanticTokens } from "./latex-semantic";
 import { registerJetBrainsThemes } from "./jetbrains-monaco";
 
 /**
@@ -63,6 +66,11 @@ export function loadMonaco(): Promise<MonacoNamespace> {
     };
 
     registerLatex(monaco);
+    // Registered for the lifetime of the page, like the language itself — the
+    // returned disposables are intentionally dropped, because this runs once.
+    registerLatexCompletions(monaco);
+    registerLatexStructure(monaco);
+    registerLatexSemanticTokens(monaco);
     registerJetBrainsThemes(monaco);
 
     return monaco;

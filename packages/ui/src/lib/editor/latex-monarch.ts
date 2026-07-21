@@ -319,7 +319,9 @@ export const latexConfiguration: Monaco.languages.LanguageConfiguration = {
 			end: /\\end\{[^}]*\}/,
 		},
 	},
-	wordPattern: /(-?\d*\.\d\w*)|([^`~!@#%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g,
+	// `\command` counts as one word, so double-click selects the whole control
+	// sequence and completion filters against the backslash the user just typed.
+	wordPattern: /(-?\d*\.\d\w*)|(\\[a-zA-Z@]+)|([^`~!@#%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g,
 };
 
 /**

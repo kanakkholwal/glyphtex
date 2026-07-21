@@ -138,6 +138,21 @@ function rules(p: Palette): Monaco.editor.ITokenThemeRule[] {
 		{ token: "tag", foreground: p.keyword },
 		{ token: "attribute.name", foreground: p.meta },
 		{ token: "invalid", foreground: p.invalid, fontStyle: "underline" },
+
+		// --- Semantic tokens (see latex-semantic.ts) -------------------------
+		// Monaco resolves these by matching the semantic token TYPE NAME against
+		// this same rules list — `standaloneThemeService.getTokenStyleMetadata`
+		// does `tokenTheme._match([type, ...modifiers].join("."))` — so they are
+		// plain entries here rather than a separate semanticTokenColors map,
+		// which the standalone theme format has no field for.
+		//
+		// These deliberately only *tint*. A false positive is possible (a macro
+		// from a package we ship no data for reads as unknown), so nothing here
+		// is allowed to look like a hard error the way `invalid` does.
+		{ token: "macro", foreground: p.constant },
+		{ token: "unknownMacro", foreground: p.invalid },
+		{ token: "danglingRef", foreground: p.warning, fontStyle: "underline" },
+		{ token: "resolvedRef", foreground: p.func },
 	];
 }
 

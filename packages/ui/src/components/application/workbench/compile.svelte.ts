@@ -190,7 +190,8 @@ export class CompileStore {
 
   async runCompile(manual = false): Promise<void> {
     if (!this.canCompile) {
-      this.compileError = "Compilation runs in the GlyphX desktop app.";
+      this.compileError =
+        "The compiler isn't ready yet — finish the one-time setup to compile.";
       this.compileStatus = "error";
       if (manual && this.#layout.viewMode === "editor")
         this.#layout.viewMode = "split";

@@ -117,11 +117,43 @@ export class CodeEditorController {
       scrollBeyondLastLine: false,
       renderLineHighlight: "all",
       smoothScrolling: true,
+      // Folding follows our section/environment provider rather than
+      // indentation, which is meaningless in LaTeX.
+      folding: true,
+      foldingStrategy: "auto",
+      showFoldingControls: "mouseover",
+      // Keeps the enclosing \section heading pinned while you scroll inside it.
+      stickyScroll: { enabled: true, maxLineCount: 3 },
       cursorBlinking: "smooth",
       padding: { top: 12, bottom: 12 },
       tabSize: 2,
       insertSpaces: true,
       bracketPairColorization: { enabled: false },
+      // Drives latex-semantic.ts: unknown commands, user macros, dangling refs.
+      "semanticHighlighting.enabled": true,
+
+      // --- Suggestions ------------------------------------------------------
+      // Prose is not code, so Monaco's defaults need adjusting: a LaTeX author
+      // types mostly words, and popping the widget open on every one of them
+      // would be unusable. `quickSuggestions` is therefore off for plain text —
+      // the provider's trigger characters (`\`, `{`, `,`) open it instead,
+      // which is exactly when a suggestion is actually wanted.
+      quickSuggestions: { other: false, comments: false, strings: false },
+      suggestOnTriggerCharacters: true,
+      // Ctrl/Cmd+Space still works everywhere for an explicit request.
+      wordBasedSuggestions: "currentDocument",
+      tabCompletion: "on",
+      snippetSuggestions: "inline",
+      // Enter inserts a newline; Tab accepts. Prose has far more Enter presses
+      // than accepted completions, and the reverse mapping eats paragraphs.
+      acceptSuggestionOnEnter: "off",
+      suggest: {
+        showWords: true,
+        showSnippets: true,
+        insertMode: "replace",
+        localityBonus: true,
+      },
+
       // Monaco's own find widget is redundant: the app has its own find/replace
       // panel driving findAll()/replaceAllMatches().
       find: { addExtraSpaceOnTop: false, seedSearchStringFromSelection: "never" },

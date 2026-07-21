@@ -198,12 +198,13 @@
             {:else}
               <div class="flex flex-col items-center gap-1.5">
                 <p class="text-foreground text-sm font-medium">
-                  Preview is desktop-only
+                  Setting up the compiler
                 </p>
                 <p
                   class="text-muted-foreground max-w-[18rem] text-xs leading-relaxed"
                 >
-                  Compilation runs in the GlyphX desktop app — fully offline.
+                  GlyphX compiles on your device. Finish the one-time setup and
+                  your document renders here.
                 </p>
               </div>
             {/if}

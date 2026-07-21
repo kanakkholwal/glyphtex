@@ -1,0 +1,167 @@
+/**
+ * `cleveref` — cross-references that write their own name.
+ *
+ * `\cref{fig:a}` gives “fig. 1”, and a list of labels collapses into “figs. 1
+ * to 3” by itself, so the reference type never has to be typed by hand and
+ * never drifts when a float changes kind.
+ *
+ * It must be loaded AFTER `hyperref` (and after `amsmath`/`amsthm`), or the
+ * references come out unlinked or wrongly named.
+ */
+import type { PackageData } from "./index";
+
+export const data: PackageData = {
+	commands: [
+		{
+			name: "cref",
+			snippet: "cref{$1}$0",
+			detail: "Reference with its type name, lowercase",
+			doc: "Takes a comma-separated list and sorts/compresses it: `\\cref{a,b,c}` → “figs. 1 to 3”. Do not add the word “figure” yourself.",
+			example: "as shown in \\cref{fig:overview,fig:detail}",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "Cref",
+			snippet: "Cref{$1}$0",
+			detail: "Reference with its type name, capitalised",
+			doc: "The form to use at the start of a sentence: “Figure 1 shows …”.",
+			example: "\\Cref{sec:method} describes the setup.",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "crefrange",
+			snippet: "crefrange{${1:first}}{${2:last}}$0",
+			detail: "Explicit range of references, lowercase",
+			example: "\\crefrange{fig:a}{fig:d}",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "Crefrange",
+			snippet: "Crefrange{${1:first}}{${2:last}}$0",
+			detail: "Explicit range of references, capitalised",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "cpageref",
+			snippet: "cpageref{$1}$0",
+			detail: "Page reference with the word “page”",
+			example: "on \\cpageref{tab:results}",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "Cpageref",
+			snippet: "Cpageref{$1}$0",
+			detail: "Page reference with “Page”, capitalised",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "cpagerefrange",
+			snippet: "cpagerefrange{${1:first}}{${2:last}}$0",
+			detail: "Range of page references, lowercase",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "Cpagerefrange",
+			snippet: "Cpagerefrange{${1:first}}{${2:last}}$0",
+			detail: "Range of page references, capitalised",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "namecref",
+			snippet: "namecref{$1}$0",
+			detail: "Just the type name of a label — “figure”, no number",
+			doc: "For sentences that supply their own number, or refer to the thing generically: “the preceding \\namecref{sec:intro}”.",
+			example: "the preceding \\namecref{sec:intro}",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "nameCref",
+			snippet: "nameCref{$1}$0",
+			detail: "Type name of a label, capitalised",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "namecrefs",
+			snippet: "namecrefs{$1}$0",
+			detail: "Plural type name of a label",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "labelcref",
+			snippet: "labelcref{$1}$0",
+			detail: "Just the number, formatted and compressed",
+			doc: "The complement of `\\namecref` — cleveref's list handling without the type name.",
+			example: "see \\namecref{fig:a}s \\labelcref{fig:a,fig:b}",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "labelcpageref",
+			snippet: "labelcpageref{$1}$0",
+			detail: "Just the page number(s), compressed",
+			package: "cleveref",
+			context: "text",
+		},
+		{
+			name: "crefname",
+			snippet: "crefname{${1:figure}}{${2:fig.}}{${3:figs.}}$0",
+			detail: "Set the lowercase singular and plural names for a type",
+			doc: "Preamble only. The three arguments are the counter name, the singular and the plural.",
+			example: "\\crefname{equation}{eq.}{eqs.}",
+			package: "cleveref",
+		},
+		{
+			name: "Crefname",
+			snippet: "Crefname{${1:figure}}{${2:Figure}}{${3:Figures}}$0",
+			detail: "Set the capitalised singular and plural names for a type",
+			example: "\\Crefname{equation}{Equation}{Equations}",
+			package: "cleveref",
+		},
+		{
+			name: "creflabelformat",
+			snippet: "creflabelformat{${1:equation}}{#2#1#3}$0",
+			detail: "Change how one type's number is wrapped",
+			doc: "`#1` is the number, `#2`/`#3` the surrounding material — this is how equation numbers get their parentheses.",
+			example: "\\creflabelformat{equation}{#2(#1)#3}",
+			package: "cleveref",
+		},
+		{
+			name: "crefrangelabelformat",
+			snippet: "crefrangelabelformat{${1:equation}}{#3#1#4 to #5#2#6}$0",
+			detail: "Change how a type's ranges are formatted",
+			package: "cleveref",
+		},
+		{
+			name: "crefdefaultlabelformat",
+			snippet: "crefdefaultlabelformat{#2#1#3}$0",
+			detail: "Default number format for every type",
+			package: "cleveref",
+		},
+		{
+			name: "crefmultiformat",
+			snippet: "crefmultiformat{${1:equation}}{#2#1#3}{ and #2#1#3}{, #2#1#3}{ and #2#1#3}$0",
+			detail: "Formatting for multi-label references of one type",
+			package: "cleveref",
+		},
+		{
+			name: "label",
+			snippet: "label[${1:equation}]{${2:eq:key}}$0",
+			detail: "Label with an explicit cleveref type",
+			doc: "cleveref adds an optional argument to `\\label` for cases where it cannot detect the counter itself — inside a custom environment, say.",
+			package: "cleveref",
+			context: "both",
+		},
+	],
+	environments: [],
+};

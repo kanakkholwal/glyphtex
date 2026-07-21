@@ -237,11 +237,14 @@
     "@sveltejs/package": "^2.5.8",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tailwindcss/typography": "^0.5.19",
+    "esbuild": "^0.28.1",
     "svelte": "^5.56.1",
     "tailwindcss": "^4.2.1"
   },
   "scripts": {
     "build": "exit 0",
-    "check": "exit 0"
+    "check": "exit 0",
+    "pretest": "esbuild src/lib/editor/latex-complete.ts --bundle --format=esm --outfile=test/.build/latex-complete.mjs --external:monaco-editor --log-level=error",
+    "test": "node --test test/*.test.mjs"
   }
 }

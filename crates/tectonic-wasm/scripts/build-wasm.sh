@@ -200,7 +200,7 @@ export RUSTFLAGS="-L $SYSROOT/lib/wasm32-emscripten $LIBS \
  -C link-args=-sUSE_ICU \
  -C link-args=-sERROR_ON_UNDEFINED_SYMBOLS=0 \
  -C link-args=-sALLOW_MEMORY_GROWTH=1 \
- -C link-args=-sINITIAL_MEMORY=268435456 \
+ -C link-args=-sINITIAL_MEMORY=${GLYPHX_INITIAL_MEMORY:-268435456} \
  -C link-args=-sMAXIMUM_MEMORY=2147483648"
 
 cd "$REPO"
