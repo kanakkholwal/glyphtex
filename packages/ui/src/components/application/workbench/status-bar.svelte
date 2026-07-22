@@ -1,6 +1,6 @@
 <script lang="ts">
   import { settings } from "@glyphx/ui/settings";
-  import { IconAlertTriangle } from '@glyphx/ui/icons';
+  import { IconAlertTriangle } from '@tabler/icons-svelte';
 
   import type { WorkbenchController } from "./controller.svelte";
 

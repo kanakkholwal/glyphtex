@@ -121,10 +121,6 @@
       "svelte": "./src/components/ui/logo/index.ts",
       "default": "./src/components/ui/logo/index.ts"
     },
-    "./icons": {
-      "svelte": "./src/components/ui/icons/index.ts",
-      "default": "./src/components/ui/icons/index.ts"
-    },
     "./skeleton": {
       "svelte": "./src/components/ui/skeleton/index.ts",
       "default": "./src/components/ui/skeleton/index.ts"
@@ -236,7 +232,6 @@
     "vaul-svelte": "^0.3.2"
   },
   "devDependencies": {
-    "@iconify-json/tabler": "^1.2.37",
     "@internationalized/date": "^3.12.2",
     "@sveltejs/package": "^2.5.8",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
@@ -248,7 +243,6 @@
   "scripts": {
     "build": "exit 0",
     "check": "exit 0",
-    "gen:icons": "node scripts/gen-icons.mjs",
     "pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --external:monaco-editor --log-level=error",
     "test": "node --test test/*.test.mjs",
     "test:browser": "node ./test/browser/editor-smoke.mjs"

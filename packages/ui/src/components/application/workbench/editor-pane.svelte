@@ -12,7 +12,7 @@
     IconRefresh,
     IconSearch,
     IconX,
-  } from '@glyphx/ui/icons';
+  } from '@tabler/icons-svelte';
 
   import { setWorkspaceFiles } from "@glyphx/ui/editor";
 

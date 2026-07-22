@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
-	import { IconChevronUp } from '@glyphx/ui/icons';
+	import { IconChevronUp } from '@tabler/icons-svelte';
 	import { Select as SelectPrimitive } from "bits-ui";
 
 	let {

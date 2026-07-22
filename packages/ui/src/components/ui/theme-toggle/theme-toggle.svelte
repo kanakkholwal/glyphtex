@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { settings, type Appearance } from "@glyphx/ui/settings";
 	import { Button, type ButtonSize } from "@glyphx/ui/button";
-	import { IconSun, IconMoon, IconDeviceDesktop } from '@glyphx/ui/icons';
+	import { IconSun, IconMoon, IconDeviceDesktop } from '@tabler/icons-svelte';
 
 	/**
 	 * ThemeToggle — cycles light → dark → system. Reads/writes the settings

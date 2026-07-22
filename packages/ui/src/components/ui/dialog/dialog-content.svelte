@@ -6,7 +6,7 @@
 	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
 	import type { ComponentProps } from "svelte";
 	import { Button } from "../button";
-	import { IconX } from '@glyphx/ui/icons';
+	import { IconX } from '@tabler/icons-svelte';
 
 	let {
 		ref = $bindable(null),

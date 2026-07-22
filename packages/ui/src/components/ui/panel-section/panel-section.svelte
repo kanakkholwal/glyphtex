@@ -29,7 +29,7 @@
 </script>
 
 <script lang="ts">
-	import { IconChevronDown } from '@glyphx/ui/icons';
+	import { IconChevronDown } from '@tabler/icons-svelte';
 	import { Spring } from "svelte/motion";
 	import { slide } from "svelte/transition";
 	import { cubicOut } from "svelte/easing";

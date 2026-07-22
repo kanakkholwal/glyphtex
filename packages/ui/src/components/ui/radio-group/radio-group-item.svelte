@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { RadioGroup as RadioGroupPrimitive } from "bits-ui";
-	import { IconCircle } from '@glyphx/ui/icons';
+	import { IconCircle } from '@tabler/icons-svelte';
 	import { cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
 
 	let {

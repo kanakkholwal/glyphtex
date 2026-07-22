@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import { Button } from '@glyphx/ui/button';
-	import { IconFiles, IconGitBranch, IconListTree, IconSearch, IconSettings } from '@glyphx/ui/icons';
+	import { IconFiles, IconGitBranch, IconListTree, IconSearch, IconSettings } from '@tabler/icons-svelte';
 
 	/**
 	 * Rail — the left mode switcher (Explorer / Search / Source Control / Settings).

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@glyphx/ui/dialog";
 	import { Kbd } from "@glyphx/ui/kbd";
-	import { IconKeyboard } from '@glyphx/ui/icons';
+	import { IconKeyboard } from '@tabler/icons-svelte';
 
 	import {
 		isMacPlatform,

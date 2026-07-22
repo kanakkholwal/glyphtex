@@ -17,7 +17,7 @@
     IconDownload,
     IconFileTypePdf,
     IconFileZip,
-  } from '@glyphx/ui/icons';
+  } from '@tabler/icons-svelte';
   /**
    * ExportMenu — Export / Share. Every export goes through the host-injected
    * `saveFile` (desktop = Tauri's native "Save As") when present, else a plain

@@ -9,7 +9,7 @@
 	import { Button } from "@glyphx/ui/button";
 	import { Dialog, DialogContent } from "@glyphx/ui/dialog";
 	import { Logo } from "@glyphx/ui/logo";
-	import { IconBrandGithub, IconWorld } from '@glyphx/ui/icons';
+	import { IconBrandGithub, IconWorld } from '@tabler/icons-svelte';
 
 	/**
 	 * AboutDialog — a compact "About GlyphX" card: the brand lockup, a one-line

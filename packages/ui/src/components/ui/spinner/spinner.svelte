@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from "@glyphx/ui/utils";
-	import { IconLoader } from '@glyphx/ui/icons';
+	import { IconLoader } from '@tabler/icons-svelte';
 	import type { SVGAttributes } from "svelte/elements";
 
 	let {

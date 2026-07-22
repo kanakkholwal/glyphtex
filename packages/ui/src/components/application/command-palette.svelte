@@ -11,7 +11,7 @@
 		CommandItem,
 		CommandList
 	} from '@glyphx/ui/command';
-	import { IconChevronDown, IconCornerDownLeft, IconFile, IconStack2 } from '@glyphx/ui/icons';
+	import { IconChevronDown, IconCornerDownLeft, IconFile, IconStack2 } from '@tabler/icons-svelte';
 
 	/**
 	 * CommandPalette — the centre of the top bar. Shows the workspace name as a

@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-  import { IconCurrentLocation } from "@glyphx/ui/icons";
+  import { IconCurrentLocation } from '@tabler/icons-svelte';
   import { settings } from "@glyphx/ui/settings";
   import { Toaster } from "@glyphx/ui/sonner";
   import { onDestroy, onMount } from "svelte";

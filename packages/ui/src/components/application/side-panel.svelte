@@ -1,6 +1,6 @@
 <script lang="ts">
   import { settings } from "@glyphx/ui/settings";
-  import { IconGitBranch } from '@glyphx/ui/icons';
+  import { IconGitBranch } from '@tabler/icons-svelte';
 
   import type { ActivityView } from "./activity-bar.svelte";
   import type { EngineManager } from "./engine-settings.svelte";

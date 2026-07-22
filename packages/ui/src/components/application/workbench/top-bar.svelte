@@ -21,7 +21,7 @@
     IconPencil,
     IconPhotoPlus,
     IconTargetArrow,
-  } from "@glyphx/ui/icons";
+  } from '@tabler/icons-svelte';
 
   import CommandPalette from "../command-palette.svelte";
   import ExportMenu from "../export-menu.svelte";

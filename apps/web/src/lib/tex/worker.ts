@@ -11,6 +11,7 @@ import {
 import { untar, gunzip } from './tar';
 import { loadManifest, openEngineCache } from './manifest';
 import { fetchPack, installedPacks, loadPackIndex } from './packs';
+import { emptyMount, mountDocument, shadowsBundle } from './mount';
 import type { WorkerRequest, WorkerResponse } from './protocol';
 
 const post = (message: WorkerResponse, transfer: Transferable[] = []) =>
@@ -20,6 +21,17 @@ let engine: TexEngine | null = null;
 let booting: Promise<TexEngine> | null = null;
 /** Loaded during boot; null when this deployment ships no packs. */
 let packIndex: PackIndex | null = null;
+
+// The engine outlives any one document, and its filesystem is a single flat map
+// shared by bundle and project files. Tracking who owns what is what keeps one
+// document's sources — and its .aux — from being inherited by the next.
+let bundleNames = new Set<string>();
+let mounted = emptyMount();
+
+function trackBundle(engine: TexEngine, files: Map<string, Uint8Array>): void {
+	engine.addFiles(files);
+	for (const name of files.keys()) bundleNames.add(name);
+}
 
 type Report = (loaded: number, total: number, label: string) => void;
 
@@ -145,7 +157,8 @@ function boot(report: Report): Promise<TexEngine> {
 
 		report(read, settled, 'Starting the compiler…');
 		const started = await TexEngine.load(wasm);
-		started.addFiles(files);
+		bundleNames = new Set();
+		trackBundle(started, files);
 
 		// The engine filesystem is in-memory, so a rebuilt engine starts at core
 		// only; re-fetching defaults here also reaches pre-packs installs.
@@ -157,7 +170,7 @@ function boot(report: Report): Promise<TexEngine> {
 
 			for (const pack of new Set(wanted)) {
 				try {
-					started.addFiles(untar(await gunzip(await fetchPack(packIndex, pack.id))));
+					trackBundle(started, untar(await gunzip(await fetchPack(packIndex, pack.id))));
 				} catch (error) {
 					// One unreachable pack must not take down a working compiler; the
 					// document fails as if it were absent, which the prompt then fixes.
@@ -190,6 +203,7 @@ function messageOf(error: unknown): string {
 function discardEngine(): void {
 	engine = null;
 	booting = null;
+	mounted = emptyMount();
 }
 
 self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
@@ -211,12 +225,17 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 				});
 
 				const mount = (engine: TexEngine) => {
-					for (const file of request.files) {
-						engine.addFile(file.name, file.data ?? file.text ?? '');
-					}
+					mounted = mountDocument(engine, mounted, request.docId, request.files);
 				};
 				// jobname defaults to the entry's basename, so pdf()/log() follow it.
 				const options = { entry: request.entry, synctex: true, maxPasses: 5 };
+
+				// Rebuilding is the only way to unmount a project file that shadowed a
+				// bundle one. Rare, and the bundle comes back from the cache.
+				if (shadowsBundle(mounted, bundleNames, request.docId)) {
+					discardEngine();
+					ready = await boot(() => {});
+				}
 
 				let result;
 				try {
@@ -278,7 +297,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 						total: 0,
 						label: `Adding ${pack?.label ?? id}…`
 					});
-					ready.addFiles(untar(await gunzip(await fetchPack(packIndex, id))));
+					trackBundle(ready, untar(await gunzip(await fetchPack(packIndex, id))));
 				}
 
 				post({ id: request.id, type: 'packsInstalled' });

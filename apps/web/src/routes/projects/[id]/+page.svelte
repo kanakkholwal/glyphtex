@@ -206,7 +206,7 @@
 		const source = files.find((f) => f.name === main);
 		unsupportedCitations = citationCommands(source?.saved ?? source?.content ?? '');
 
-		const outcome = await compileFiles(toCompileFiles(files, binary), main);
+		const outcome = await compileFiles(toCompileFiles(files, binary), main, id);
 		missingPacks = outcome.missingPacks ?? [];
 		unsupportedFiles = outcome.unsupportedFiles ?? [];
 		return outcome;

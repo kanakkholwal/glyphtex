@@ -6,7 +6,7 @@
     IconFileText,
     IconReplace,
     IconReplaceFilled,
-  } from '@glyphx/ui/icons';
+  } from '@tabler/icons-svelte';
 
   import {
     SEARCH_BTN,

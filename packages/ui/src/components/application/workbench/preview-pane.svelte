@@ -14,7 +14,7 @@
     IconPlayerPlayFilled,
     IconPlus,
     IconSearch,
-  } from '@glyphx/ui/icons';
+  } from '@tabler/icons-svelte';
   import {
     DropdownMenu,
     DropdownMenuCheckboxItem,

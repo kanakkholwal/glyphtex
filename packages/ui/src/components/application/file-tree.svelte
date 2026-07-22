@@ -26,7 +26,7 @@
 		IconPencil,
 		IconTrash,
 		IconTargetArrow
-	} from '@glyphx/ui/icons';
+	} from '@tabler/icons-svelte';
 	import { canDropInto, getDrag, setDrag } from './file-dnd';
 
 	let {

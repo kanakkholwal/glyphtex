@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
 
-  import { IconFile, IconFileText, IconFileTypePdf, IconPhotoPlus, IconX } from "@glyphx/ui/icons";
+  import { IconFile, IconFileText, IconFileTypePdf, IconPhotoPlus, IconX } from '@tabler/icons-svelte';
 
   import { classifyFile, type FileKind } from "../file-kinds";
   import type { FileStore } from "./files.svelte";

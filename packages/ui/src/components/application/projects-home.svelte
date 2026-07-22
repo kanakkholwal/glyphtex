@@ -37,7 +37,7 @@
 	  IconSearch,
 	  IconSettings,
 	  IconTrash
-	} from '@glyphx/ui/icons';
+	} from '@tabler/icons-svelte';
 	import { tick } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import { cubicOut } from 'svelte/easing';

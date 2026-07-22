@@ -145,7 +145,7 @@
 
 <script lang="ts">
 	import { cn } from "@glyphx/ui/utils";
-	import { IconColorPicker } from '@glyphx/ui/icons';
+	import { IconColorPicker } from '@tabler/icons-svelte';
 
 	/** Chromium-only `EyeDropper` constructor — narrowed off `window` at the boundary. */
 	interface EyeDropperCtor {

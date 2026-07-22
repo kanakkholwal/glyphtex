@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconList } from "@glyphx/ui/icons";
+  import { IconList } from '@tabler/icons-svelte';
 
   import type { SidePanelStore } from "./store.svelte";
 

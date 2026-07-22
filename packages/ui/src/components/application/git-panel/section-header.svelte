@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronRight } from '@glyphx/ui/icons';
+  import { IconChevronRight } from '@tabler/icons-svelte';
 
   import type { GitPanelStore } from "./store.svelte";
   import type { SectionKey } from "./types";

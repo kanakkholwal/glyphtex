@@ -6,7 +6,7 @@
     IconArrowUp,
     IconGitCommit,
     IconRefresh,
-  } from '@glyphx/ui/icons';
+  } from '@tabler/icons-svelte';
 
   import type { GitPanelStore } from "./store.svelte";
 

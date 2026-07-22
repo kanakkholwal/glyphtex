@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from "@glyphx/ui/button";
 	import { Spinner } from "@glyphx/ui/spinner";
-	import { IconFileOff, IconFolderShare } from '@glyphx/ui/icons';
+	import { IconFileOff, IconFolderShare } from '@tabler/icons-svelte';
 
 	import type { FileKind } from "./file-kinds";
 	import PdfView from "./pdf-view.svelte";

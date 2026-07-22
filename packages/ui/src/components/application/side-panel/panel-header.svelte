@@ -12,7 +12,7 @@
     IconRefresh,
     IconSearchOff,
     IconTrash,
-  } from '@glyphx/ui/icons';
+  } from '@tabler/icons-svelte';
 
   import type { ActivityView } from "../activity-bar.svelte";
   import type { SidePanelStore } from "./store.svelte";

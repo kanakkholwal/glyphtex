@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import { IconMinus } from '@glyphx/ui/icons';
-	import { IconCheck } from '@glyphx/ui/icons';
+	import { IconMinus } from '@tabler/icons-svelte';
+	import { IconCheck } from '@tabler/icons-svelte';
 	import { cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
 	import type { Snippet } from "svelte";
 
