@@ -28,7 +28,7 @@
 
 <script lang="ts">
 	import * as Tooltip from "../tooltip";
-	import { cn, type WithElementRef, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
+	import { cn, type WithElementRef, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import { mergeProps } from "bits-ui";
 	import type { ComponentProps, Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";

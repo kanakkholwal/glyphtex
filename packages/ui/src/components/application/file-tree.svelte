@@ -12,7 +12,7 @@
 		DropdownMenuItem,
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
-	} from '@glyphx/ui/dropdown-menu';
+	} from '@glyphtex/ui/dropdown-menu';
 	import { slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import {

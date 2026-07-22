@@ -13,8 +13,8 @@
 import type { ActivityView } from "../activity-bar.svelte";
 import { classifyFile, editorLanguage } from "../file-kinds";
 import type { GitProvider } from "../git-panel.svelte";
-import { settings } from "@glyphx/ui/settings";
-import { toast } from "@glyphx/ui/sonner";
+import { settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
 import type { DiffTarget, EditorApi, ViewMode } from "./types";
 

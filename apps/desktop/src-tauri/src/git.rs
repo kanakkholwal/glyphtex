@@ -443,10 +443,10 @@ pub async fn git_commit(root: String, message: String) -> Result<String, String>
         (
             snap.string("user.name")
                 .map(|s| s.to_string())
-                .unwrap_or_else(|| "GlyphX".to_string()),
+                .unwrap_or_else(|| "GlyphTeX".to_string()),
             snap.string("user.email")
                 .map(|s| s.to_string())
-                .unwrap_or_else(|| "glyphx@localhost".to_string()),
+                .unwrap_or_else(|| "glyphtex@localhost".to_string()),
         )
     };
     // gix stamps the reflog with the *configured* committer (not the signature

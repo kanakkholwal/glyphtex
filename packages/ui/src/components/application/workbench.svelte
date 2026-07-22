@@ -1,16 +1,17 @@
 <script lang="ts" module>
-  // Public type kept stable for `@glyphx/ui/application` consumers.
+  // Public type kept stable for `@glyphtex/ui/application` consumers.
   export type { ViewMode } from "./workbench/types";
 </script>
 
 <script lang="ts">
   import { IconCurrentLocation } from '@tabler/icons-svelte';
-  import { settings } from "@glyphx/ui/settings";
-  import { Toaster } from "@glyphx/ui/sonner";
+  import { settings } from "@glyphtex/ui/settings";
+  import { Toaster } from "@glyphtex/ui/sonner";
   import { onDestroy, onMount } from "svelte";
 
   import AboutDialog from "./about-dialog.svelte";
   import ActivityBar from "./activity-bar.svelte";
+  import CommandPalette from "./command-palette.svelte";
   import ProblemsPanel from "./problems-panel.svelte";
   import ShortcutsDialog from "./shortcuts-dialog.svelte";
   import SidePanel from "./side-panel.svelte";
@@ -67,20 +68,24 @@
   onblur={() => ctrl.onWindowBlur()}
 />
 
-<div class="bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden">
-  <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
-
-  <!-- Body — `flex-row-reverse` docks the rail + side panel on the right edge
-       (VS Code's "move primary side bar right"); the editor keeps the rest. -->
-  <div
-    bind:this={layout.shellEl}
-    class="flex min-h-0 flex-1 {layout.sidebarRight ? 'flex-row-reverse' : ''}"
-  >
-    <ActivityBar
-      active={layout.activeView}
-      onselect={(v) => layout.selectView(v)}
-      position={settings.sidebarPosition}
-    />
+<!-- The rail and panel run full height; the header belongs to the editor column,
+     so it describes the open document rather than the whole app.
+     `flex-row-reverse` docks the rail + panel on the right edge (VS Code's
+     "move primary side bar right"); the editor keeps the rest. -->
+<div
+  bind:this={layout.shellEl}
+  class="bg-background text-foreground flex h-full min-h-0 overflow-hidden {layout.sidebarRight
+    ? 'flex-row-reverse'
+    : ''}"
+>
+  <ActivityBar
+    active={layout.activeView}
+    onselect={(v) => layout.selectView(v)}
+    position={settings.sidebarPosition}
+    menus={ctrl.menus}
+    onnewfile={() => files.newFile()}
+    onopenproject={files.project ? () => files.openFolder() : undefined}
+  />
 
     <!-- Smooth collapse + drag-to-resize (panel stays mounted; capped at 30%). -->
     <div
@@ -163,6 +168,8 @@
          width, so a wide PDF page / long log line can't push the layout past the
          window edge (which would hide the preview toolbar + log copy button). -->
     <main class="flex min-h-0 min-w-0 flex-1 flex-col">
+      <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
+
       <div bind:this={layout.bodyEl} class="flex min-h-0 min-w-0 flex-1">
         {#if layout.viewMode !== "preview"}
           <EditorPane {ctrl} />
@@ -216,8 +223,16 @@
 
       <StatusBar {ctrl} />
     </main>
-  </div>
 </div>
+
+<!-- Quick-open (⌘/Ctrl+P). Dialog only — its trigger is the header breadcrumb. -->
+<CommandPalette
+  bind:open={layout.paletteOpen}
+  files={files.files}
+  activeId={files.activeId}
+  projectName={files.displayName}
+  onopen={(id) => files.openFile(id)}
+/>
 
 <!-- Explorer move/delete prompts: name-conflict resolution + destructive confirm. -->
 <ConflictDialog {files} />
@@ -235,11 +250,11 @@
     :global(body *) {
       visibility: hidden !important;
     }
-    :global(.glyphx-print-area),
-    :global(.glyphx-print-area *) {
+    :global(.glyphtex-print-area),
+    :global(.glyphtex-print-area *) {
       visibility: visible !important;
     }
-    :global(.glyphx-print-area) {
+    :global(.glyphtex-print-area) {
       position: fixed;
       inset: 0;
       max-width: none;

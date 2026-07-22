@@ -7,8 +7,8 @@
 	import { initTauriTheme } from '$lib/tauri-theme';
 	import { updater } from '$lib/updater.svelte';
 	import UpdaterCard from '$lib/updater-card.svelte';
-	import { NavProgress } from '@glyphx/ui/nav-progress';
-	import { settings } from '@glyphx/ui/settings';
+	import { NavProgress } from '@glyphtex/ui/nav-progress';
+	import { settings } from '@glyphtex/ui/settings';
 	import { onMount, tick } from 'svelte';
 	import './layout.css';
 
@@ -58,8 +58,8 @@
 		});
 	});
 
-	// File association: open the folder / file GlyphX was launched with (and react
-	// to later "Open with GlyphX" launches forwarded by the single-instance
+	// File association: open the folder / file GlyphTeX was launched with (and react
+	// to later "Open with GlyphTeX" launches forwarded by the single-instance
 	// plugin) by routing into the folder-mode editor.
 	onMount(() => {
 		let unlisten: (() => void) | undefined;

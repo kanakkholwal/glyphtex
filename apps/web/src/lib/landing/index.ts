@@ -1,5 +1,5 @@
 // Landing-specific components. Only used on the marketing site. Kept under
-// `apps/web/src/lib/landing/` so the shared `@glyphx/ui` package stays
+// `apps/web/src/lib/landing/` so the shared `@glyphtex/ui` package stays
 // focused on the editor + chrome primitives these pages reuse.
 
 export { default as BeforeAfterSlider } from './BeforeAfterSlider.svelte';

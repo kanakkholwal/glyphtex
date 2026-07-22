@@ -18,8 +18,8 @@ import {
 } from "../file-kinds";
 import type { GitProvider } from "../git-panel.svelte";
 import type { ProjectHost } from "../project";
-import { settings } from "@glyphx/ui/settings";
-import { toast } from "@glyphx/ui/sonner";
+import { settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
 import {
   baseName,
@@ -981,7 +981,7 @@ export class FileStore {
     }
   }
 
-  /** Register the OS "Open with GlyphX" folder integration (desktop, Windows).
+  /** Register the OS "Open with GlyphTeX" folder integration (desktop, Windows).
    *  Resolves `true` on success so the caller can show inline confirmation. */
   async registerShell(): Promise<boolean> {
     if (!this.project?.registerShellIntegration) return false;

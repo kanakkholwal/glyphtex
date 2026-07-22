@@ -5,7 +5,7 @@
 # the bundler needs `patchelf` (AppImage) and the appindicator lib for the tray.
 # Shared by ci-desktop.yml (compile gate) and release-desktop.yml (full bundle).
 #
-# Unlike the upstream project this was forked from, GlyphX has no screen-capture
+# Unlike the upstream project this was forked from, GlyphTeX has no screen-capture
 # stack — there is no PipeWire / x11 / ashpd dependency here. Tectonic ships as a
 # prebuilt sidecar binary (downloaded separately), so no TeX/native libs are
 # needed to build; fontconfig is pulled in only so the bundled engine can find

@@ -136,7 +136,7 @@ async function walkEntry(entry: FsEntry, out: File[]): Promise<void> {
 	if (entry.isFile && entry.file) {
 		const file = await readFile(entry);
 		// fullPath starts with '/'; the relative path drives the stored tree.
-		Object.defineProperty(file, '_glyphxPath', { value: entry.fullPath.replace(/^\//, '') });
+		Object.defineProperty(file, '_glyphtexPath', { value: entry.fullPath.replace(/^\//, '') });
 		out.push(file);
 		return;
 	}
@@ -176,7 +176,7 @@ export async function filesFromDataTransfer(dt: DataTransfer): Promise<File[]> {
 
 /** The relative path a dropped folder walk stashed on each file, if any. */
 const droppedPath = (file: File): string =>
-	(file as unknown as { _glyphxPath?: string })._glyphxPath ?? file.name;
+	(file as unknown as { _glyphtexPath?: string })._glyphtexPath ?? file.name;
 
 /** Loose files dropped or picked into an open document (images, .tex, folders). */
 export async function importLooseFiles(

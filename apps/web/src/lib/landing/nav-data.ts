@@ -4,9 +4,9 @@
 
 export type NavLink = { label: string; href: string; external?: boolean };
 
-export const REPO_URL = 'https://github.com/kanakkholwal/glyphx';
+export const REPO_URL = 'https://github.com/kanakkholwal/glyphtex';
 export const REPO_RELEASES_URL = `${REPO_URL}/releases`;
-export const CONTACT_EMAIL = 'mailto:hello@glyphx.app';
+export const CONTACT_EMAIL = 'mailto:hello@glyphtex.app';
 
 // In-page anchors live on the homepage. External routes hit /download and
 // /editor, which the web app already exposes. Other marketing routes that

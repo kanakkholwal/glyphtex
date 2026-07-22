@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from "@glyphx/ui/button";
-	import { Spinner } from "@glyphx/ui/spinner";
+	import { Button } from "@glyphtex/ui/button";
+	import { Spinner } from "@glyphtex/ui/spinner";
 	import { IconFileOff, IconFolderShare } from '@tabler/icons-svelte';
 	import { Image } from "@unpic/svelte";
 
@@ -133,7 +133,7 @@
 					{#if error}
 						{leaf} couldn't be opened in the editor.
 					{:else}
-						<span class="font-mono">{leaf}</span> isn't a text, image, or PDF file, so GlyphX
+						<span class="font-mono">{leaf}</span> isn't a text, image, or PDF file, so GlyphTeX
 						won't render it without an external app.
 					{/if}
 					Open it in your file manager instead.
@@ -148,7 +148,7 @@
 		</div>
 	{:else if kind === "image" && imgUrl}
 		<!-- Checkered mat so transparent PNGs/SVGs read correctly. -->
-		<div class="glyphx-checker flex flex-1 items-center justify-center overflow-auto p-6">
+		<div class="glyphtex-checker flex flex-1 items-center justify-center overflow-auto p-6">
 			{#if imgSize.w > 0}
 				<!-- `objectFit` must be a prop: unpic writes it inline, beating any class. -->
 				<Image
@@ -179,7 +179,7 @@
 
 <style>
 	/* Subtle checkerboard for transparent images. */
-	.glyphx-checker {
+	.glyphtex-checker {
 		background-image:
 			linear-gradient(45deg, var(--muted) 25%, transparent 25%),
 			linear-gradient(-45deg, var(--muted) 25%, transparent 25%),

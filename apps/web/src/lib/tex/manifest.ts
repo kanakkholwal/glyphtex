@@ -1,6 +1,6 @@
 import type { EngineManifest } from './protocol';
 
-export const ENGINE_CACHE = 'glyphx-engine';
+export const ENGINE_CACHE = 'glyphtex-engine';
 
 const MANIFEST_URL = '/engine/manifest.json';
 

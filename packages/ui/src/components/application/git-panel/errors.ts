@@ -15,7 +15,7 @@ export function describeError(raw: string, op: string): GitErrorInfo {
     return {
       title: "Git isn’t installed",
       message:
-        "Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphX and try again.",
+        "Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphTeX and try again.",
       details,
     };
   if (

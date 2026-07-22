@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { updater } from '$lib/updater.svelte';
-	import { Badge } from '@glyphx/ui/badge';
-	import { Button } from '@glyphx/ui/button';
-	import { Logo } from '@glyphx/ui/logo';
-	import { SettingsSection } from '@glyphx/ui/settings-section';
-	import { Spinner } from '@glyphx/ui/spinner';
+	import { Badge } from '@glyphtex/ui/badge';
+	import { Button } from '@glyphtex/ui/button';
+	import { Logo } from '@glyphtex/ui/logo';
+	import { SettingsSection } from '@glyphtex/ui/settings-section';
+	import { Spinner } from '@glyphtex/ui/spinner';
 	import { onMount } from 'svelte';
 
 	let appVersion = $state('0.1.0');
@@ -34,7 +34,7 @@
 			case 'error':
 				return updater.error ?? 'Update check failed.';
 			default:
-				return 'GlyphX checks for updates automatically on launch.';
+				return 'GlyphTeX checks for updates automatically on launch.';
 		}
 	});
 </script>
@@ -42,7 +42,7 @@
 <div class="flex flex-col gap-8">
 	<header>
 		<h2 class="font-display text-2xl font-semibold tracking-tight">About</h2>
-		<p class="text-muted-foreground mt-1.5 text-sm">What GlyphX is, and what it promises.</p>
+		<p class="text-muted-foreground mt-1.5 text-sm">What GlyphTeX is, and what it promises.</p>
 	</header>
 
 	<SettingsSection class="flex flex-col gap-5 p-5">
@@ -50,7 +50,7 @@
 			<Logo text={false} badge size={48} />
 			<div class="flex flex-col gap-1">
 				<div class="flex items-center gap-2">
-					<p class="text-foreground text-base font-medium">GlyphX</p>
+					<p class="text-foreground text-base font-medium">GlyphTeX</p>
 					<Badge variant="secondary">v{appVersion}</Badge>
 				</div>
 				<p class="text-muted-foreground text-sm">Local-first LaTeX editor</p>
@@ -90,7 +90,7 @@
 
 		<div class="text-muted-foreground flex flex-col gap-3 text-sm leading-relaxed">
 			<p>
-				GlyphX compiles real LaTeX on your machine with Tectonic — nothing is uploaded, and it works
+				GlyphTeX compiles real LaTeX on your machine with Tectonic — nothing is uploaded, and it works
 				fully offline. Your documents stay on disk, in plain files you own.
 			</p>
 			<p>

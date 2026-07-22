@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { settings } from "@glyphx/ui/settings";
+  import { settings } from "@glyphtex/ui/settings";
   import { IconGitBranch } from '@tabler/icons-svelte';
 
   import type { ActivityView } from "./activity-bar.svelte";
@@ -115,7 +115,7 @@
     ondownloadfolder?: (path: string) => void;
     /** Jump the editor to a 1-based line (Outline click). */
     ongotoline?: (line: number) => void;
-    /** Register the OS "Open with GlyphX" folder integration (desktop). */
+    /** Register the OS "Open with GlyphTeX" folder integration (desktop). */
     onregistershell?: () => void | Promise<boolean>;
     searchResults?: SearchMatch[];
     searchActive?: number;

@@ -3,7 +3,7 @@ import type { GitProvider } from "../git-panel.svelte";
 import type { Menu } from "../menu-bar.svelte";
 import type { ProjectHost } from "../project";
 import { matchShortcut, shortcutLabel } from "../shortcuts";
-import { AUTO_SAVE_DELAY_MS, settings } from "@glyphx/ui/settings";
+import { AUTO_SAVE_DELAY_MS, settings } from "@glyphtex/ui/settings";
 
 import { CompileStore } from "./compile.svelte";
 import { FileStore } from "./files.svelte";
@@ -111,7 +111,7 @@ export class WorkbenchController {
       project: props.project,
       git: props.git,
       initialFiles: props.initialFiles,
-      projectName: props.projectName ?? "glyphx-project",
+      projectName: props.projectName ?? "glyphtex-project",
     });
     this.layout = new LayoutStore({
       git: props.git,
@@ -398,7 +398,7 @@ export class WorkbenchController {
         },
         { type: "separator" },
         {
-          label: "About GlyphX",
+          label: "About GlyphTeX",
           run: () => (this.layout.aboutOpen = true),
         },
       ],
@@ -477,7 +477,7 @@ export class WorkbenchController {
   }
 
   // --- Lifecycle helpers (run from onMount / onDestroy) ---
-  /** Open a launched folder/file and listen for later "Open with GlyphX" paths.
+  /** Open a launched folder/file and listen for later "Open with GlyphTeX" paths.
    *  Returns the unlisten cleanup (for `onMount`'s return). */
   mountFileAssociation(): () => void {
     const project = this.files.project;

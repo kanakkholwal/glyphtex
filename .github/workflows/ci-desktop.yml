@@ -69,13 +69,13 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       # - name: Format check (prettier)
-      #   run: pnpm --filter @glyphx/desktop format:check
+      #   run: pnpm --filter @glyphtex/desktop format:check
 
       # - name: Lint (eslint)
-      #   run: pnpm --filter @glyphx/desktop lint:eslint
+      #   run: pnpm --filter @glyphtex/desktop lint:eslint
 
       - name: Typecheck (svelte-check)
-        run: pnpm --filter @glyphx/desktop check
+        run: pnpm --filter @glyphtex/desktop check
 
   fmt:
     name: rustfmt
@@ -177,7 +177,7 @@ jobs:
       # want: it proves the code builds on each OS without the slow packaging
       # steps.
       - name: Compile desktop app (no bundle)
-        run: pnpm --filter @glyphx/desktop tauri build --no-bundle ${{ matrix.platform.tauri_args }}
+        run: pnpm --filter @glyphtex/desktop tauri build --no-bundle ${{ matrix.platform.tauri_args }}
 
       # Rust unit tests (OS-agnostic pure functions — engine-flag mapping, etc.).
       # `--release` + the same target reuses the artifacts the compile step just

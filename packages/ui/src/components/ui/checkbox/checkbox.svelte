@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Checkbox as CheckboxPrimitive } from "bits-ui";
-	import { cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
+	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import { IconCheck } from '@tabler/icons-svelte';
 	import { IconMinus } from '@tabler/icons-svelte';
 

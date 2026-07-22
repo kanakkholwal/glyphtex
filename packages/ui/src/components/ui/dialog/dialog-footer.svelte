@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from "@glyphx/ui/utils";
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
 	import type { HTMLAttributes } from "svelte/elements";
 	import { Dialog as DialogPrimitive } from "bits-ui";
 	import { Button } from "../button";

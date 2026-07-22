@@ -1,6 +1,6 @@
 name: Release Desktop App
 
-# Builds + bundles the GlyphX desktop app for Windows / macOS (arm64 + x64) /
+# Builds + bundles the GlyphTeX desktop app for Windows / macOS (arm64 + x64) /
 # Linux when a `v*` tag is pushed (or via manual dispatch), and attaches the
 # installers to a GitHub Release. Tectonic ships inside each installer as a
 # Tauri sidecar (downloaded per target triple by scripts/release/download-tectonic.mjs).
@@ -60,7 +60,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.resolve_tag.outputs.tag }}
-          name: GlyphX ${{ steps.resolve_tag.outputs.tag }}
+          name: GlyphTeX ${{ steps.resolve_tag.outputs.tag }}
           draft: true
           prerelease: false
           generate_release_notes: true
@@ -180,9 +180,9 @@ jobs:
           # secrets once you wire up auto-update.
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: pnpm --filter @glyphx/desktop tauri build ${{ matrix.platform.tauri_args }}
+        run: pnpm --filter @glyphtex/desktop tauri build ${{ matrix.platform.tauri_args }}
 
-      # Both macOS legs emit an identically-named `GlyphX.app.tar.gz` updater
+      # Both macOS legs emit an identically-named `GlyphTeX.app.tar.gz` updater
       # bundle; tag each with its arch so they don't collide on the release and
       # so generate-latest-json.sh can tell darwin-aarch64 from darwin-x86_64.
       - name: Tag macOS updater bundle with arch
@@ -243,7 +243,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: glyphx-${{ matrix.platform.name }}-${{ needs.create-release.outputs.tag_name }}
+          name: glyphtex-${{ matrix.platform.name }}-${{ needs.create-release.outputs.tag_name }}
           path: |
             apps/desktop/src-tauri/target/release/bundle/**/*
             apps/desktop/src-tauri/target/${{ matrix.platform.rust_target }}/release/bundle/**/*

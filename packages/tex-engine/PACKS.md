@@ -1,6 +1,6 @@
 # Package packs
 
-How GlyphX ships LaTeX packages beyond the core bundle, and how to add more.
+How GlyphTeX ships LaTeX packages beyond the core bundle, and how to add more.
 
 ## The problem
 

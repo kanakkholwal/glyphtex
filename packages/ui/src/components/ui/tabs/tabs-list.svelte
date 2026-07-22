@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 	import { Tabs as TabsPrimitive } from "bits-ui";
 	import { cubicOut } from "svelte/easing";
 	import { Tween } from "svelte/motion";

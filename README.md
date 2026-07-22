@@ -1,6 +1,6 @@
 <div align="center">
 
-# GlyphX
+# GlyphTeX
 
 ### The LaTeX editor Overleaf should have been.
 
@@ -10,14 +10,14 @@ nothing has to leave your machine.
 
 **Free in your browser · Free as a desktop app · Open source**
 
-<img src="screenshot.png" alt="GlyphX logo" />
+<img src="screenshot.png" alt="GlyphTeX logo" />
 </div>
 
 ---
 
 ## What it is
 
-GlyphX is a place to write LaTeX that keeps your work where you can see it: on
+GlyphTeX is a place to write LaTeX that keeps your work where you can see it: on
 your computer.
 
 There are two ways to use it, and they run the same editor.
@@ -44,7 +44,7 @@ version history, a few more collaborators, or Git, and you are reading a pricing
 page. None of that has much to do with writing LaTeX. It has to do with running a
 cloud.
 
-GlyphX starts from the other side. The editor and the compiler run on your
+GlyphTeX starts from the other side. The editor and the compiler run on your
 computer. Opening a project means reading a folder. Saving means writing a file.
 There is no server in the loop, so there is nothing to time out, nothing to
 subscribe to, and nothing of yours sitting on a machine you cannot see.
@@ -92,11 +92,11 @@ you already own.
 
 - **Try it in your browser.** No download and no account.
 - **Download the desktop app** for macOS, Windows, and Linux from the
-  [Releases](https://github.com/kanakkholwal/glyphx/releases) page. The desktop
+  [Releases](https://github.com/kanakkholwal/glyphtex/releases) page. The desktop
   app updates itself, so you stay on the latest build without reinstalling.
 
 Already have Overleaf projects? They are plain LaTeX underneath. Download the
-project folder, drop it into GlyphX, and keep writing.
+project folder, drop it into GlyphTeX, and keep writing.
 
 ## On the roadmap
 
@@ -113,12 +113,12 @@ These are planned, not shipped, and we would rather say so plainly.
 
 ## Contributing
 
-GlyphX is open source, and bug reports, ideas, and pull requests are all welcome.
+GlyphTeX is open source, and bug reports, ideas, and pull requests are all welcome.
 See **[CONTRIBUTING.md](CONTRIBUTING.md)** for how to set the project up on your
 machine and submit a change.
 
 ## License
 
-GlyphX is licensed under the **[GNU General Public License v3.0](LICENSE)**. You
+GlyphTeX is licensed under the **[GNU General Public License v3.0](LICENSE)**. You
 are free to use, study, share, and modify it. If you distribute a modified
 version, it has to stay under the same license.

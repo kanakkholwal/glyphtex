@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 	import { RadioGroup as RadioGroupPrimitive } from "bits-ui";
 
 	let {

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Reveal } from '@glyphx/ui/reveal';
-	import { cn } from '@glyphx/ui/utils';
+	import { Reveal } from '@glyphtex/ui/reveal';
+	import { cn } from '@glyphtex/ui/utils';
 
 	// Step 2's auto-polish grid. A soft "Applied" highlight ticks through the
 	// cards one at a time so the section reads as features being applied live,

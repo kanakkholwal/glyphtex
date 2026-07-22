@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import type { PackDefinition } from '@glyphx/tex-engine';
+	import type { PackDefinition } from 'glyphtex-engine';
 	import {
 		Workbench,
 		type DownloadRequest,
 		type GlyphFile,
 		type WorkbenchController
-	} from '@glyphx/ui/application';
-	import { toast } from '@glyphx/ui/sonner';
+	} from '@glyphtex/ui/application';
+	import { toast } from '@glyphtex/ui/sonner';
 	import { onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
@@ -116,7 +116,7 @@
 			await writeFiles(project.id, toNewFiles(files, binary));
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not save.');
-			console.error('[GlyphX]', error);
+			console.error('[GlyphTeX]', error);
 		} finally {
 			saving = false;
 		}
@@ -153,7 +153,7 @@
 				files.map((f) => ({
 					name: f.path,
 					content: f.data
-						? '% Binary file — edited outside GlyphX, included as-is.\n'
+						? '% Binary file — edited outside GlyphTeX, included as-is.\n'
 						: (f.text ?? '')
 				}))
 			);
@@ -281,7 +281,7 @@
 </script>
 
 <svelte:head>
-	<title>{project ? `${project.name} · GlyphX` : 'GlyphX'}</title>
+	<title>{project ? `${project.name} · GlyphTeX` : 'GlyphTeX'}</title>
 </svelte:head>
 
 {#if missing}

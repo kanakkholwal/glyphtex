@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@glyphx/ui/dialog";
-	import { Kbd } from "@glyphx/ui/kbd";
+	import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@glyphtex/ui/dialog";
+	import { Kbd } from "@glyphtex/ui/kbd";
 	import { IconKeyboard } from '@tabler/icons-svelte';
 
 	import {

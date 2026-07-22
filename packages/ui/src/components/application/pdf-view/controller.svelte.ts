@@ -273,7 +273,7 @@ export class PdfViewController {
 
     if (this.#flashEl) this.#flashEl.remove();
     const el = document.createElement("div");
-    el.className = "glyphx-sync-flash";
+    el.className = "glyphtex-sync-flash";
     el.style.left = `${leftPx}px`;
     el.style.top = `${topPx}px`;
     el.style.width = `${wPx}px`;

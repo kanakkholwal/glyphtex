@@ -1,11 +1,11 @@
 # TeX engine — backlog
 
-State of the GlyphX TeX engine work, what is blocked, and what to do next.
+State of the GlyphTeX TeX engine work, what is blocked, and what to do next.
 Written 2026-07-21.
 
 Related: [`scripts/build-wasm.sh`](scripts/build-wasm.sh) (canonical build, every
 constraint documented inline), [`packages/tex-engine`](../../packages/tex-engine)
-(TypeScript bindings), [`crates/glyphx-tex-api`](../glyphx-tex-api) (types + log
+(TypeScript bindings), [`crates/glyphtex-tex-api`](../glyphtex-tex-api) (types + log
 parsing, no C dependencies).
 
 ---
@@ -14,7 +14,7 @@ parsing, no C dependencies).
 
 - Engine rewritten into modules: `io.rs` (VFS), `session.rs` (pass
   orchestration), `lib.rs` (FFI), with types and log parsing split into the
-  dependency-free `glyphx-tex-api` crate.
+  dependency-free `glyphtex-tex-api` crate.
 - **Harmful font fallback removed.** It fuzzy-matched missing fonts by size digit
   (`cmsy5` → `cmsy10`) and returned a Type1 `.pfb` where TFM metrics were
   expected, which hung the engine on `booktabs` and produced a 15-byte PDF for

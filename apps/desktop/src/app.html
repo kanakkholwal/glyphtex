@@ -8,7 +8,7 @@
 			// Apply the persisted theme before first paint to avoid a flash.
 			(function () {
 				try {
-					var a = localStorage.getItem('glyphx:appearance') || 'system';
+					var a = localStorage.getItem('glyphtex:appearance') || 'system';
 					var dark =
 						a === 'dark' ||
 						(a === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);

@@ -1,6 +1,6 @@
 // Regenerate the TypeScript declarations from the Rust definitions.
 //
-// The types live in `crates/glyphx-tex-api`, which is deliberately free of C
+// The types live in `crates/glyphtex-tex-api`, which is deliberately free of C
 // dependencies and of the engine itself — so this runs on any machine, with no
 // Emscripten toolchain required.
 import { execFileSync } from 'node:child_process';
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = resolve(here, '..');
-const crateDir = resolve(pkgRoot, '../../crates/glyphx-tex-api');
+const crateDir = resolve(pkgRoot, '../../crates/glyphtex-tex-api');
 const outDir = join(pkgRoot, 'src/generated');
 
 mkdirSync(outDir, { recursive: true });
@@ -23,7 +23,7 @@ execFileSync('cargo', ['test', '--quiet'], {
 });
 
 // ts-rs emits one file per type but no entry point; write a barrel so consumers
-// can `import type { CompileResult } from '@glyphx/tex-engine'`.
+// can `import type { CompileResult } from 'glyphtex-engine'`.
 const modules = readdirSync(outDir)
 	.filter((f) => f.endsWith('.ts') && f !== 'index.ts')
 	.map((f) => f.replace(/\.ts$/, ''))

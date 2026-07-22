@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '@glyphx/ui/button';
-	import { Logo } from '@glyphx/ui/logo';
-	import { ThemeToggle } from '@glyphx/ui/theme-toggle';
+	import { Button } from '@glyphtex/ui/button';
+	import { Logo } from '@glyphtex/ui/logo';
+	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
 	import { navLinks, REPO_URL } from '$lib/landing/nav-data';
 	import { IconBrandGithub, IconMenu2, IconX } from '@tabler/icons-svelte';
 
@@ -73,7 +73,7 @@
 		<a
 			href={home}
 			class="group/logo flex items-center gap-2.5 rounded-xl px-2 py-1 transition-transform active:scale-[0.97]"
-			aria-label="GlyphX home"
+			aria-label="GlyphTeX home"
 		>
 			<Logo size="sm" badge text={true} tone="gradient" />
 		</a>
@@ -97,7 +97,7 @@
 				href={repo}
 				target="_blank"
 				rel="noopener noreferrer"
-				aria-label="GlyphX on GitHub"
+				aria-label="GlyphTeX on GitHub"
 				class="hidden size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground md:grid"
 			>
 				<IconBrandGithub class="size-4" />

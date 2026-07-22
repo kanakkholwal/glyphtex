@@ -1,7 +1,7 @@
 import { getContext, setContext } from "svelte";
 import { tv, type VariantProps } from "tailwind-variants";
 
-const SIZE_KEY = Symbol.for("glyphx-ui.dropdown-menu.size");
+const SIZE_KEY = Symbol.for("glyphtex-ui.dropdown-menu.size");
 
 export type DropdownMenuSize = "sm" | "default" | "lg";
 

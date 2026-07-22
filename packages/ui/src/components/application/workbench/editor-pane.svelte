@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Button } from "@glyphx/ui/button";
-  import { settings } from "@glyphx/ui/settings";
+  import { Button } from "@glyphtex/ui/button";
+  import { settings } from "@glyphtex/ui/settings";
   import {
     IconArrowBackUp,
     IconArrowForwardUp,
@@ -14,7 +14,7 @@
     IconX,
   } from '@tabler/icons-svelte';
 
-  import { setWorkspaceFiles } from "@glyphx/ui/editor";
+  import { setWorkspaceFiles } from "@glyphtex/ui/editor";
 
   import AssetViewer from "../asset-viewer.svelte";
   import CodeEditor from "../code-editor.svelte";

@@ -6,7 +6,7 @@
  * imperative API (CodeMirror), held by the {@link LayoutStore}.
  */
 import { applyCase } from "../case-preserve";
-import { toast } from "@glyphx/ui/sonner";
+import { toast } from "@glyphtex/ui/sonner";
 
 import type { LayoutStore } from "./layout.svelte";
 import type { SearchMatch, SearchOptions } from "./types";

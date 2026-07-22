@@ -104,16 +104,16 @@ for (const seed of ['latex2e-first-aid-for-external-files.ltx']) {
  * ourselves adds the shim without editing an upstream file. No `@` in the saved
  * name: it is catcode 12 until latex.ltx runs.
  */
-const ENTRY = 'glyphx-format.ini';
+const ENTRY = 'glyphtex-format.ini';
 inputs.set(
 	ENTRY,
 	new TextEncoder().encode(
 		[
-			'\\let\\glyphxdump\\dump',
+			'\\let\\glyphtexdump\\dump',
 			'\\let\\dump\\relax',
 			'\\input xelatex.ini',
 			'\\ifdefined\\partokencontext\\else \\newcount\\partokencontext \\fi',
-			'\\glyphxdump',
+			'\\glyphtexdump',
 			''
 		].join('\n')
 	)

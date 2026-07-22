@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Badge } from '@glyphx/ui/badge';
-	import { Button } from '@glyphx/ui/button';
-	import { SettingsField } from '@glyphx/ui/settings-field';
-	import { SettingsSection } from '@glyphx/ui/settings-section';
-	import { Spinner } from '@glyphx/ui/spinner';
-	import { toast } from '@glyphx/ui/sonner';
+	import { Badge } from '@glyphtex/ui/badge';
+	import { Button } from '@glyphtex/ui/button';
+	import { SettingsField } from '@glyphtex/ui/settings-field';
+	import { SettingsSection } from '@glyphtex/ui/settings-section';
+	import { Spinner } from '@glyphtex/ui/spinner';
+	import { toast } from '@glyphtex/ui/sonner';
 	import { IconCheck, IconCloud } from '@tabler/icons-svelte';
 	import { onMount } from 'svelte';
 	import { projectHost } from '$lib/project';
@@ -32,11 +32,11 @@
 		try {
 			const msg = await projectHost.registerShellIntegration?.();
 			registered = true;
-			toast.success(msg ?? 'Added “Open with GlyphX” to the folder menu.');
+			toast.success(msg ?? 'Added “Open with GlyphTeX” to the folder menu.');
 		} catch (e) {
 			// Plain language for the toast; raw cause to the console (§5).
 			console.error('[integrations] register shell integration failed', e);
-			toast.error('Could not add “Open with GlyphX” to the folder menu.');
+			toast.error('Could not add “Open with GlyphTeX” to the folder menu.');
 		} finally {
 			busy = false;
 		}
@@ -48,10 +48,10 @@
 		try {
 			const msg = await projectHost.unregisterShellIntegration?.();
 			registered = false;
-			toast.success(msg ?? 'Removed “Open with GlyphX” from the folder menu.');
+			toast.success(msg ?? 'Removed “Open with GlyphTeX” from the folder menu.');
 		} catch (e) {
 			console.error('[integrations] unregister shell integration failed', e);
-			toast.error('Could not remove “Open with GlyphX” from the folder menu.');
+			toast.error('Could not remove “Open with GlyphTeX” from the folder menu.');
 		} finally {
 			busy = false;
 		}
@@ -71,8 +71,8 @@
 			<SettingsField
 				label="Shell integration"
 				description={registered
-					? 'Added — right-click any folder and choose “Open with GlyphX”.'
-					: 'Add an “Open with GlyphX” entry to the folder right-click menu. (.tex and .glyx files are associated by the installer.)'}
+					? 'Added — right-click any folder and choose “Open with GlyphTeX”.'
+					: 'Add an “Open with GlyphTeX” entry to the folder right-click menu. (.tex and .glyx files are associated by the installer.)'}
 				layout="row"
 			>
 				{#if registered === null}
@@ -114,7 +114,7 @@
 		<div class="text-muted-foreground flex items-center gap-3 px-5 py-5 text-sm">
 			<IconCloud size={20} class="shrink-0 opacity-70" />
 			<p class="leading-relaxed">
-				Optional end-to-end encrypted sync across your devices. GlyphX stays local-first — this will
+				Optional end-to-end encrypted sync across your devices. GlyphTeX stays local-first — this will
 				always be opt-in.
 			</p>
 		</div>

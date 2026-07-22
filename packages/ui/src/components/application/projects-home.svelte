@@ -1,10 +1,10 @@
 <script lang="ts" module>
-	import type { Project } from '@glyphx/ui/projects';
+	import type { Project } from '@glyphtex/ui/projects';
 	export type { Project };
 </script>
 
 <script lang="ts">
-	import { Button } from '@glyphx/ui/button';
+	import { Button } from '@glyphtex/ui/button';
 	import {
 	  Dialog,
 	  DialogContent,
@@ -12,17 +12,17 @@
 	  DialogFooter,
 	  DialogHeader,
 	  DialogTitle
-	} from '@glyphx/ui/dialog';
+	} from '@glyphtex/ui/dialog';
 	import {
 	  DropdownMenu,
 	  DropdownMenuContent,
 	  DropdownMenuItem,
 	  DropdownMenuSeparator,
 	  DropdownMenuTrigger
-	} from '@glyphx/ui/dropdown-menu';
-	import { Logo } from '@glyphx/ui/logo';
-	import { projectViewTransitionName } from '@glyphx/ui/projects';
-	import { ThemeToggle } from '@glyphx/ui/theme-toggle';
+	} from '@glyphtex/ui/dropdown-menu';
+	import { Logo } from '@glyphtex/ui/logo';
+	import { projectViewTransitionName } from '@glyphtex/ui/projects';
+	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
 	import {
 	  IconChevronDown,
 	  IconCloudDownload,
@@ -196,8 +196,8 @@
 			<Button
 				size="icon-sm"
 				variant="ghost"
-				title="About GlyphX"
-				aria-label="About GlyphX"
+				title="About GlyphTeX"
+				aria-label="About GlyphTeX"
 				onclick={() => (aboutOpen = true)}
 			>
 				<IconInfoCircle size={16} />
@@ -482,7 +482,7 @@
 	</div>
 </div>
 
-<!-- About GlyphX — brand, version, and links out (GitHub / website). -->
+<!-- About GlyphTeX — brand, version, and links out (GitHub / website). -->
 <AboutDialog bind:open={aboutOpen} {platform} />
 
 <!-- Delete confirmation. Disk-backed projects show their folder path, because
@@ -496,7 +496,7 @@
 					This permanently deletes the project folder and all its files from your disk.
 					This cannot be undone.
 				{:else}
-					This removes the project from GlyphX. This cannot be undone.
+					This removes the project from GlyphTeX. This cannot be undone.
 				{/if}
 			</DialogDescription>
 		</DialogHeader>

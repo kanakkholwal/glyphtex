@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { ProjectsHome } from '@glyphx/ui/application';
-	import { toast } from '@glyphx/ui/sonner';
+	import { ProjectsHome } from '@glyphtex/ui/application';
+	import { toast } from '@glyphtex/ui/sonner';
 	import { onMount } from 'svelte';
 
 	import StoragePanel from '$lib/StoragePanel.svelte';
@@ -23,7 +23,7 @@
 	} from '$lib/storage/projects';
 	import { requestPersistence } from '$lib/storage/quota';
 	import { starterFiles } from '$lib/storage/template';
-	import { Logo } from '@glyphx/ui/logo';
+	import { Logo } from '@glyphtex/ui/logo';
 
 	let stored = $state<StoredProject[]>([]);
 	let loading = $state(true);
@@ -35,7 +35,7 @@
 	function report(error: unknown, fallback: string): void {
 		const message = error instanceof Error ? error.message : fallback;
 		toast.error(message);
-		console.error('[GlyphX]', error);
+		console.error('[GlyphTeX]', error);
 	}
 
 	async function refresh(): Promise<void> {
@@ -156,8 +156,8 @@
 </script>
 
 <svelte:head>
-	<title>Documents · GlyphX</title>
-	<meta name="description" content="Your GlyphX LaTeX documents, stored in this browser." />
+	<title>Documents · GlyphTeX</title>
+	<meta name="description" content="Your GlyphTeX LaTeX documents, stored in this browser." />
 </svelte:head>
 
 {#if loading}

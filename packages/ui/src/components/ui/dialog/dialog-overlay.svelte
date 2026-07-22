@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CRAFT_OVERLAY_BACKDROP_ANIMATION, cn } from "@glyphx/ui/utils";
+	import { CRAFT_OVERLAY_BACKDROP_ANIMATION, cn } from "@glyphtex/ui/utils";
 	import { Dialog as DialogPrimitive } from "bits-ui";
 
 	let {

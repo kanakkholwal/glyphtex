@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import type { ResolvedPathname } from '$app/types';
-	import { Logo } from '@glyphx/ui/logo';
+	import { Logo } from '@glyphtex/ui/logo';
 	import { footerCols, footerSocials } from '$lib/landing/nav-data';
 	import { IconBrandGithub, IconFileCode2, IconMail } from '@tabler/icons-svelte';
 
@@ -31,7 +31,7 @@
 	  Editorial backdrop mirroring the hero: the photo sits in the lower half
 	  and fades into the page background so the columns stay readable up top.
 	  Different fade from HeroBackdrop (top-only dissolve, no bottom fade), so
-	  the giant GlyphX wordmark below the columns stays on full-bleed photo.
+	  the giant GlyphTeX wordmark below the columns stays on full-bleed photo.
 	-->
 	<div aria-hidden="true" class="pointer-events-none absolute inset-0">
 		<div
@@ -49,7 +49,7 @@
 	>
 		<div class="grid gap-14 md:grid-cols-12">
 			<div class="md:col-span-5">
-				<a href={home} class="inline-flex items-center gap-2.5" aria-label="GlyphX home">
+				<a href={home} class="inline-flex items-center gap-2.5" aria-label="GlyphTeX home">
 					<Logo size="md" badge tone="gradient" />
 				</a>
 				<p class="mt-6 max-w-sm text-pretty text-sm leading-relaxed text-muted-foreground">
@@ -73,7 +73,7 @@
 				</div>
 
 				<p class="mt-7 text-xs text-muted-foreground">
-					© {year} GlyphX · GPLv3. Local-first typesetting for serious writing.
+					© {year} GlyphTeX · GPLv3. Local-first typesetting for serious writing.
 				</p>
 			</div>
 
@@ -107,6 +107,6 @@
 	     absolutely positioned overlay), sitting over the full-bleed photo like
 	     the trace-mvp footer. Leading is tightened so the band hugs the type. -->
 	<div class="relative z-10 overflow-hidden px-4 pb-8 md:pb-12">
-		<span class="landing-footer-wordmark">GlyphX</span>
+		<span class="landing-footer-wordmark">GlyphTeX</span>
 	</div>
 </footer>

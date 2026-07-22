@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
 
 	let {

@@ -1,4 +1,4 @@
-//! Typed API surface for the GlyphX TeX engine, plus TeX log parsing.
+//! Typed API surface for the GlyphTeX TeX engine, plus TeX log parsing.
 //!
 //! This crate holds everything that does *not* need the TeX engine: the option
 //! and result types that cross the WebAssembly boundary as JSON, and the parser
@@ -10,7 +10,7 @@
 //! types by `ts-rs` — can be produced and tested on any machine:
 //!
 //! ```console
-//! $ cargo test -p glyphx-tex-api
+//! $ cargo test -p glyphtex-tex-api
 //! ```
 //!
 //! which writes `.ts` files into `bindings/`.

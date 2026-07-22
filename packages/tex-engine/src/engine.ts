@@ -1,5 +1,5 @@
 /**
- * Typed wrapper around the GlyphX TeX engine WebAssembly module.
+ * Typed wrapper around the GlyphTeX TeX engine WebAssembly module.
  *
  * The boundary is deliberately split: options and results cross as JSON (small,
  * once per compile, and typed by declarations generated from the Rust
@@ -159,7 +159,7 @@ export class TexEngine {
 				.filter((n) => !n.startsWith('__') && n !== 'memory')
 				.slice(0, 8);
 			throw new EngineError(
-				'this module does not export the GlyphX engine ABI ' +
+				'this module does not export the GlyphTeX engine ABI ' +
 					`(glyphx_abi_version is missing; it exports ${found.join(', ')}). ` +
 					'It was built from different source than this wrapper.'
 			);

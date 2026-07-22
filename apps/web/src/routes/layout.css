@@ -1,6 +1,6 @@
-/* Web app styles — pulls in the shared GlyphX design system (tokens, base,
+/* Web app styles — pulls in the shared GlyphTeX design system (tokens, base,
    Tailwind, tw-animate-css). App-specific overrides can follow below. */
-@import '@glyphx/ui/app.css';
+@import '@glyphtex/ui/app.css';
 
 /* Belt-and-suspenders: ensure the shared component sources are scanned even
    if automatic detection roots at the app. (Shared CSS also declares this.) */

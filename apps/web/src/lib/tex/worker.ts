@@ -7,7 +7,7 @@ import {
 	resolveMissing,
 	type PackDefinition,
 	type PackIndex
-} from '@glyphx/tex-engine';
+} from 'glyphtex-engine';
 import { untar, gunzip } from './tar';
 import { loadManifest, openEngineCache } from './manifest';
 import { fetchPack, installedPacks, loadPackIndex } from './packs';
@@ -174,7 +174,7 @@ function boot(report: Report): Promise<TexEngine> {
 				} catch (error) {
 					// One unreachable pack must not take down a working compiler; the
 					// document fails as if it were absent, which the prompt then fixes.
-					console.error(`[GlyphX] could not load pack "${pack.id}":`, error);
+					console.error(`[GlyphTeX] could not load pack "${pack.id}":`, error);
 				}
 			}
 		}
@@ -310,7 +310,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 		if (error instanceof EnginePoisonedError) discardEngine();
 		// The message that crosses back is written for a user; the stack only
 		// exists here, so log it before it is lost (AGENTS.md rule #5).
-		console.error('[GlyphX] engine worker failed:', error);
+		console.error('[GlyphTeX] engine worker failed:', error);
 		post({ id: request.id, type: 'error', message: messageOf(error) });
 	}
 };

@@ -1368,7 +1368,7 @@
 /* --- Monaco --- */
 /* Monaco paints itself from its registered theme; decorations we add need real
    CSS. Search hits come from code-editor/controller's decorations collection. */
-.glyphx-search-match {
+.glyphtex-search-match {
   background-color: color-mix(in oklab, var(--color-warning) 32%, transparent);
   border-radius: 2px;
 }

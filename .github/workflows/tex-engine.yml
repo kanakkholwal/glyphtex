@@ -1,7 +1,7 @@
 name: TeX engine
 
 # Builds the Tectonic WASM engine, tests it end to end, and on a tag publishes
-# both a GitHub Release and the @glyphx/tex-engine npm package.
+# both a GitHub Release and the glyphtex-engine npm package.
 # The engine is a single .wasm file, and the bundle is a tarball of the
 # preloaded LaTeX format and all the packages it needs. 
 on:
@@ -59,19 +59,19 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: crates/glyphx-tex-api
+          workspaces: crates/glyphtex-tex-api
 
       - name: Format
         run: cargo fmt --check
-        working-directory: crates/glyphx-tex-api
+        working-directory: crates/glyphtex-tex-api
 
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings
-        working-directory: crates/glyphx-tex-api
+        working-directory: crates/glyphtex-tex-api
 
       - name: Test
         run: cargo test
-        working-directory: crates/glyphx-tex-api
+        working-directory: crates/glyphtex-tex-api
 
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
@@ -204,11 +204,11 @@ jobs:
       # listed-but-broken.
       - name: Test
         env:
-          GLYPHX_WASM: ${{ github.workspace }}/crates/tectonic-wasm/output/tectonic_wasm.wasm
-          GLYPHX_BUNDLE: /tmp/bundle
+          GLYPHTEX_WASM: ${{ github.workspace }}/crates/tectonic-wasm/output/tectonic_wasm.wasm
+          GLYPHTEX_BUNDLE: /tmp/bundle
           # Without this the suite skips when an artifact path is wrong and
           # `node --test` still exits 0 — a green job that ran zero tests.
-          GLYPHX_REQUIRE_ENGINE: '1'
+          GLYPHTEX_REQUIRE_ENGINE: '1'
         run: cd packages/tex-engine && pnpm test
 
   release:
@@ -255,7 +255,7 @@ jobs:
           npm version "${{ steps.version.outputs.value }}" --no-git-tag-version
 
       - name: Publish to npm
-        run: cd packages/tex-engine && npm publish --access public --provenance
+        run: cd packages/tex-engine && npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

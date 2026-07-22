@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { settings } from "@glyphx/ui/settings";
+	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconAlertOctagon,
 		IconAlertTriangle,
@@ -17,7 +17,7 @@
 </script>
 
 <!--
-  GlyphX desktop/web Sonner theming.
+  GlyphTeX desktop/web Sonner theming.
 
   Visual contract: each toast is a 320px-wide card that *visually matches*
   the bottom-right corner notifications (auto-updater, what's-new) so the

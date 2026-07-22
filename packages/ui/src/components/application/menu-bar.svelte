@@ -22,7 +22,7 @@
 		MenubarSeparator,
 		MenubarShortcut,
 		MenubarTrigger
-	} from '@glyphx/ui/menubar';
+	} from '@glyphtex/ui/menubar';
 
 	/**
 	 * MenuBar — the VS Code-style application menu (File · Edit · View …), a thin

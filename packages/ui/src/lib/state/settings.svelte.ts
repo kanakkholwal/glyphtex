@@ -1,5 +1,5 @@
 /**
- * GlyphX settings — appearance (theme) + editor preferences.
+ * GlyphTeX settings — appearance (theme) + editor preferences.
  *
  * Built on {@link PersistedState}, so every setting is persisted to
  * localStorage and synced live across every Tauri window / browser tab that
@@ -96,11 +96,11 @@ export const COMPILE_DEBOUNCE_MS = 650;
 /** Idle time (ms) before "After delay" auto-save writes the buffer to disk. */
 export const AUTO_SAVE_DELAY_MS = 1000;
 
-export const APPEARANCE_KEY = "glyphx:appearance";
-export const EDITOR_KEY = "glyphx:editor";
-export const GIT_VIEW_KEY = "glyphx:git-view";
-export const DIFF_VIEW_KEY = "glyphx:diff-view";
-export const SIDEBAR_POSITION_KEY = "glyphx:sidebar-position";
+export const APPEARANCE_KEY = "glyphtex:appearance";
+export const EDITOR_KEY = "glyphtex:editor";
+export const GIT_VIEW_KEY = "glyphtex:git-view";
+export const DIFF_VIEW_KEY = "glyphtex:diff-view";
+export const SIDEBAR_POSITION_KEY = "glyphtex:sidebar-position";
 
 const isBrowser = typeof window !== "undefined";
 

@@ -3,12 +3,12 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { message } from '@tauri-apps/plugin-dialog';
-	import { ProjectsHome } from '@glyphx/ui/application';
-	import { projects } from '@glyphx/ui/projects';
+	import { ProjectsHome } from '@glyphtex/ui/application';
+	import { projects } from '@glyphtex/ui/projects';
 	import { projectHost } from '$lib/project';
 	import { gitProvider } from '$lib/git';
 
-	// Reflect what's actually on disk: every project folder GlyphX manages in its
+	// Reflect what's actually on disk: every project folder GlyphTeX manages in its
 	// own data directory shows on the home page, even if its remembered reference
 	// was lost (cleared storage, fresh machine). Imported / opened folders keep
 	// living in the store. The scan never reorders existing entries.
@@ -83,7 +83,7 @@
 </script>
 
 <svelte:head>
-	<title>GlyphX — Projects</title>
+	<title>GlyphTeX — Projects</title>
 </svelte:head>
 
 <ProjectsHome

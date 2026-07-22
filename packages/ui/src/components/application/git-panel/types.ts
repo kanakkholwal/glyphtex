@@ -4,7 +4,7 @@
  * Pure module (no runes / Svelte) so the store, the pure helpers, and the
  * markup components can all import it. The host-facing types (`GitProvider`,
  * `GitChange`, …) are re-exported from `git-panel.svelte` to keep the public
- * `@glyphx/ui/application` surface unchanged.
+ * `@glyphtex/ui/application` surface unchanged.
  */
 
 export type GitChange = { path: string; status: string; staged: boolean };

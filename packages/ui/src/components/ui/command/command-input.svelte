@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 	import { IconSearch } from '@tabler/icons-svelte';
 	import { Command as CommandPrimitive } from "bits-ui";
 	import * as InputGroup from "../input-group";

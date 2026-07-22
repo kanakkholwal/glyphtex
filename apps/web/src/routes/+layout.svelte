@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { dev } from '$app/environment';
-	import { settings } from '@glyphx/ui/settings';
+	import { settings } from '@glyphtex/ui/settings';
 	import { loadAnalytics, trackPageview } from '$lib/analytics';
 	import './layout.css';
 

@@ -1,8 +1,8 @@
 {
 	"$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-	"productName": "GlyphX",
+	"productName": "GlyphTeX",
 	"version": "0.1.0",
-	"identifier": "com.nexonauts.glyphx",
+	"identifier": "com.nexonauts.glyphtex",
 	"build": {
 		"frontendDist": "../build",
 		"devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
 	"app": {
 		"windows": [
 			{
-				"title": "GlyphX",
+				"title": "GlyphTeX",
 				"width": 1280,
 				"height": 832,
 				"minWidth": 880,
@@ -47,11 +47,11 @@
 				"mimeType": "text/x-tex"
 			},
 			{
-				"ext": ["glyphx"],
-				"name": "GlyphX Project",
-				"description": "GlyphX LaTeX project",
+				"ext": ["glyphtex"],
+				"name": "GlyphTeX Project",
+				"description": "GlyphTeX LaTeX project",
 				"role": "Editor",
-				"mimeType": "application/x-glyphx-project"
+				"mimeType": "application/x-glyphtex-project"
 			}
 		],
 		"windows": {
@@ -72,7 +72,7 @@
 	"plugins": {
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhBMDUyMzE0NDAwMUVGN0QKUldSOTd3RkFGQ01GaXEydXZqMmpTTHYzV1Nnc2E4ei9PZXdUN3BRK1VVRlZHRWNqQW1pWHJVd2sK",
-			"endpoints": ["https://github.com/kanakkholwal/glyphx/releases/latest/download/latest.json"],
+			"endpoints": ["https://github.com/kanakkholwal/glyphtex/releases/latest/download/latest.json"],
 			"dialog": false
 		}
 	}

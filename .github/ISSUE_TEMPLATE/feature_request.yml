@@ -14,7 +14,7 @@ body:
     id: proposal
     attributes:
       label: Proposed solution
-      description: How you'd like GlyphX to behave. UI sketches and references to other editors (Overleaf, VS Code, etc.) welcome.
+      description: How you'd like GlyphTeX to behave. UI sketches and references to other editors (Overleaf, VS Code, etc.) welcome.
     validations:
       required: true
   - type: textarea
@@ -33,7 +33,7 @@ body:
         - Desktop — PDF preview / SyncTeX
         - Desktop — projects / file management
         - Desktop — settings
-        - Web (glyphx.nexonauts.com)
+        - Web (glyphtex.nexonauts.com)
         - CLI / automation
     validations:
       required: true
@@ -44,7 +44,7 @@ body:
       options:
         - Nice to have
         - Would significantly improve my workflow
-        - I can't use GlyphX for my use case without it
+        - I can't use GlyphTeX for my use case without it
     validations:
       required: true
   - type: checkboxes

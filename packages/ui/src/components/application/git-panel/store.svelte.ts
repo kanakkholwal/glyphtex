@@ -157,7 +157,7 @@ export class GitPanelStore {
 
   /** Native OS confirm (desktop) with a window.confirm fallback (web). */
   async #askConfirm(msg: string): Promise<boolean> {
-    if (this.#git?.confirm) return this.#git.confirm(msg, "GlyphX");
+    if (this.#git?.confirm) return this.#git.confirm(msg, "GlyphTeX");
     return typeof window !== "undefined" ? window.confirm(msg) : true;
   }
 
@@ -270,7 +270,7 @@ export class GitPanelStore {
       this.gitError = {
         title: "Git isn’t installed",
         message:
-          "Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphX and try again.",
+          "Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphTeX and try again.",
       };
       return;
     }

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Button } from "@glyphx/ui/button";
-  import { ButtonGroup } from "@glyphx/ui/button-group";
-  import { Logo } from "@glyphx/ui/logo";
-  import { settings } from "@glyphx/ui/settings";
-  import { Spinner } from "@glyphx/ui/spinner";
+  import { Button } from "@glyphtex/ui/button";
+  import { ButtonGroup } from "@glyphtex/ui/button-group";
+  import { Logo } from "@glyphtex/ui/logo";
+  import { settings } from "@glyphtex/ui/settings";
+  import { Spinner } from "@glyphtex/ui/spinner";
   import {
     IconAlertTriangle,
     IconChevronDown,
@@ -23,7 +23,7 @@
     DropdownMenuSeparator,
     DropdownMenuShortcut,
     DropdownMenuTrigger,
-  } from "@glyphx/ui/dropdown-menu";
+  } from "@glyphtex/ui/dropdown-menu";
 
   import PdfView from "../pdf-view.svelte";
   import { shortcutLabel } from "../shortcuts";
@@ -44,55 +44,7 @@
   <div
     class="text-muted-foreground border-border bg-card flex h-9 shrink-0 items-center gap-1 border-b px-1.5 text-xs"
   >
-    <!-- Primary compile lives with its output (the PDF and errors), not in the
-         global header. Split-button: run + a ▾ menu for live-compile / sync. -->
-    <ButtonGroup
-      class="[&>[data-slot]:first-child]:!rounded-l-md [&>[data-slot]:last-child]:!rounded-r-md"
-    >
-      <Button
-        onclick={() => compile.runCompile(true)}
-        disabled={compile.compiling}
-        size="sm"
-        class="pl-2.5"
-      >
-        {#if compile.compiling}
-          <IconLoader2 class="animate-spin" />
-        {:else}
-          <IconPlayerPlayFilled />
-        {/if}
-        {compile.compiling ? "Compiling…" : "Compile"}
-      </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          {#snippet child({ props })}
-            <Button {...props} size="icon-sm" title="Compile options" aria-label="Compile options">
-              <IconChevronDown class="size-4" />
-            </Button>
-          {/snippet}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" class="w-52">
-          <DropdownMenuCheckboxItem
-            checked={settings.autoCompile}
-            onCheckedChange={(v) => (settings.autoCompile = v)}
-          >
-            Live compile
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuItem
-            disabled={!compile.canCompile}
-            onclick={() => compile.runCompile(true)}
-          >
-            Compile once
-            <DropdownMenuShortcut>{shortcutLabel("compile")}</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onclick={() => compile.syncToPdf()}>
-            Sync to PDF
-            <DropdownMenuShortcut>{shortcutLabel("sync-pdf")}</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </ButtonGroup>
-
+    <!-- Compile is the header's job now; this bar reports and navigates. -->
     <Button
       variant="ghost"
       size="icon-sm"
@@ -106,7 +58,7 @@
       class="inline-flex min-w-0 items-center gap-1.5 truncate {compile.compileStatus ===
       'error'
         ? 'text-destructive'
-        : 'text-muted-foreground/80'}"
+        : 'text-muted-foreground'}"
     >
       {#if compile.compileStatus === "compiling"}
         <IconLoader2 size={14} class="animate-spin" />
@@ -225,7 +177,7 @@
           </div>
         {:else}
           <div
-            class="glyphx-print-area flex h-full flex-col items-center justify-center gap-6 text-center"
+            class="glyphtex-print-area flex h-full flex-col items-center justify-center gap-6 text-center"
           >
             <Logo text={false} badge size={64} class="opacity-95" />
             {#if compile.compileStatus === "compiling"}
@@ -244,7 +196,7 @@
                   class="text-muted-foreground max-w-[18rem] text-xs leading-relaxed"
                 >
                   {settings.autoCompile
-                    ? "Start typing — GlyphX renders live, entirely on your device."
+                    ? "Start typing — GlyphTeX renders live, entirely on your device."
                     : "Press Compile (⌘/Ctrl+S) to render — entirely on your device."}
                 </p>
               </div>
@@ -256,7 +208,7 @@
                 <p
                   class="text-muted-foreground max-w-[18rem] text-xs leading-relaxed"
                 >
-                  GlyphX compiles on your device. Finish the one-time setup and
+                  GlyphTeX compiles on your device. Finish the one-time setup and
                   your document renders here.
                 </p>
               </div>

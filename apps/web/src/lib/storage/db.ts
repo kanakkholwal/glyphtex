@@ -1,4 +1,4 @@
-const DB_NAME = 'glyphx';
+const DB_NAME = 'glyphtex';
 const DB_VERSION = 1;
 
 export const PROJECTS = 'projects';
@@ -58,7 +58,7 @@ export function openDb(): Promise<IDBDatabase> {
 		};
 		req.onerror = () => reject(new StorageError('Could not open local storage.', req.error));
 		req.onblocked = () =>
-			reject(new StorageError('Another GlyphX tab is holding storage open. Close it and retry.'));
+			reject(new StorageError('Another GlyphTeX tab is holding storage open. Close it and retry.'));
 	}).catch((error) => {
 		open = null;
 		throw error;

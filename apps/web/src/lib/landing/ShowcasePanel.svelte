@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '@glyphx/ui/utils';
+	import { cn } from '@glyphtex/ui/utils';
 	import type { Snippet } from 'svelte';
 
 	// Full-bleed showcase panel. A softly tinted rounded card that holds the

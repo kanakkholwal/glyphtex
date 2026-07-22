@@ -1,18 +1,18 @@
-# Contributing to GlyphX
+# Contributing to GlyphTeX
 
-Thanks for taking the time to help out! This guide covers how to get GlyphX
+Thanks for taking the time to help out! This guide covers how to get GlyphTeX
 running on your machine and how to send a change our way. Bug reports, feature
 ideas, docs fixes, and pull requests are all welcome.
 
 ## Ways to contribute
 
-- **Found a bug or have an idea?** Open an [issue](https://github.com/kanakkholwal/glyphx/issues) — a clear description and steps to reproduce go a long way.
+- **Found a bug or have an idea?** Open an [issue](https://github.com/kanakkholwal/glyphtex/issues) — a clear description and steps to reproduce go a long way.
 - **Want to write code?** Comment on the issue you'd like to take (or open one first for anything non-trivial), then send a pull request. Small, focused PRs are easiest to review.
 - **Docs and copy** count too — typos, unclear wording, and missing setup steps are all fair game.
 
 ## Project layout
 
-GlyphX is a monorepo with a shared UI used by both a web app and a desktop app:
+GlyphTeX is a monorepo with a shared UI used by both a web app and a desktop app:
 
 ```
 glyph-mvp/
@@ -45,7 +45,7 @@ You can work on the **web app and shared UI without Rust** — skip the Tauri bi
 ## Getting set up
 
 ```bash
-git clone https://github.com/kanakkholwal/glyphx.git
+git clone https://github.com/kanakkholwal/glyphtex.git
 cd glyph
 pnpm install        # installs everything across the monorepo
 ```
@@ -77,7 +77,7 @@ If you touched the Rust side of the desktop app, also run:
 
 ```bash
 pnpm lint:rust                              # clippy
-pnpm --filter @glyphx/desktop test:rust     # Rust unit tests
+pnpm --filter @glyphtex/desktop test:rust     # Rust unit tests
 ```
 
 ## Pull request guidelines
@@ -89,5 +89,5 @@ pnpm --filter @glyphx/desktop test:rust     # Rust unit tests
 
 ## License
 
-By contributing to GlyphX, you agree that your contributions are licensed under
+By contributing to GlyphTeX, you agree that your contributions are licensed under
 the project's [GNU General Public License v3.0](LICENSE).

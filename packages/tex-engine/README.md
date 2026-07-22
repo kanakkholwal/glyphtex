@@ -1,10 +1,10 @@
-# @glyphx/tex-engine
+# glyphtex-engine
 
 LaTeX → PDF in the browser and on the server. Wraps [Tectonic](https://tectonic-typesetting.github.io)
 (XeTeX + xdvipdfmx) compiled to WebAssembly.
 
 ```ts
-import { TexEngine } from '@glyphx/tex-engine';
+import { TexEngine } from 'glyphtex-engine';
 
 const engine = await TexEngine.load(fetch('/tectonic.wasm'));
 
@@ -98,7 +98,7 @@ so your editor's completions are authoritative.
 ## Types come from Rust
 
 The declarations in `src/generated/` are produced from the Rust definitions in
-`crates/glyphx-tex-api` by [ts-rs](https://github.com/Aleph-Alpha/ts-rs), so
+`crates/glyphtex-tex-api` by [ts-rs](https://github.com/Aleph-Alpha/ts-rs), so
 they cannot drift from what the engine accepts.
 
 ```console
@@ -122,7 +122,7 @@ These need a subprocess, which does not exist in this sandbox:
 
 ```console
 pnpm build
-GLYPHX_WASM=path/to/tectonic_wasm.wasm GLYPHX_BUNDLE=path/to/bundle pnpm test
+GLYPHTEX_WASM=path/to/tectonic_wasm.wasm GLYPHTEX_BUNDLE=path/to/bundle pnpm test
 ```
 
 The suite skips itself when those are absent.

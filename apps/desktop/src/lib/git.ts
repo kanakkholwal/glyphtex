@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { confirm } from '@tauri-apps/plugin-dialog';
-import type { GitProvider } from '@glyphx/ui/application';
+import type { GitProvider } from '@glyphtex/ui/application';
 
 /**
  * Desktop Git provider — local version control via the Rust `git` module

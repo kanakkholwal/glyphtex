@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
+	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import { LinkPreview as HoverCardPrimitive } from "bits-ui";
 	import type { ComponentProps } from "svelte";
 	import HoverCardPortal from "./hover-card-portal.svelte";

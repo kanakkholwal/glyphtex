@@ -20,7 +20,7 @@ export type ProjectHost = {
 	 */
 	createLocalProject?: (name: string) => Promise<string>;
 	/**
-	 * List the project folders GlyphX manages in its own data directory, so the
+	 * List the project folders GlyphTeX manages in its own data directory, so the
 	 * home page reflects what's actually on disk (not just remembered references).
 	 */
 	listLocalProjects?: () => Promise<{ root: string; name: string; modified: number }[]>;
@@ -54,14 +54,14 @@ export type ProjectHost = {
 	/** Reveal a file / folder in the OS file manager (Explorer / Finder / …). */
 	revealInOS?: (path: string) => Promise<void>;
 
-	/** Path GlyphX was launched to open (file association); consumed once. */
+	/** Path GlyphTeX was launched to open (file association); consumed once. */
 	takeLaunchPath?: () => Promise<string | null>;
 	/** Subscribe to later open-path events (a second launch). Returns an unsubscribe fn. */
 	onOpenPath?: (cb: (path: string) => void) => Promise<() => void>;
-	/** Best-effort: register the "Open with GlyphX" folder context menu (Windows). */
+	/** Best-effort: register the "Open with GlyphTeX" folder context menu (Windows). */
 	registerShellIntegration?: () => Promise<string>;
-	/** Remove the "Open with GlyphX" folder context menu (Windows). */
+	/** Remove the "Open with GlyphTeX" folder context menu (Windows). */
 	unregisterShellIntegration?: () => Promise<string>;
-	/** Whether the "Open with GlyphX" folder context menu is currently registered. */
+	/** Whether the "Open with GlyphTeX" folder context menu is currently registered. */
 	shellIntegrationRegistered?: () => Promise<boolean>;
 };

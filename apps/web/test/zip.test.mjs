@@ -52,7 +52,7 @@ test('reads an archive produced by the system zip tool', async (t) => {
 	// The real interop check: our reader against a foreign writer.
 	let dir;
 	try {
-		dir = mkdtempSync(join(tmpdir(), 'glyphx-zip-'));
+		dir = mkdtempSync(join(tmpdir(), 'glyphtex-zip-'));
 		mkdirSync(join(dir, 'sections'));
 		writeFileSync(join(dir, 'main.tex'), 'hello from powershell\n');
 		writeFileSync(join(dir, 'sections', 'a.tex'), 'y'.repeat(5000));

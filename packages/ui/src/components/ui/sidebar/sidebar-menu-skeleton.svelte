@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from "@glyphx/ui/utils";
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
 	import { Skeleton } from "../skeleton";
 	import type { HTMLAttributes } from "svelte/elements";
 

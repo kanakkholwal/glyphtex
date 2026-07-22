@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '@glyphx/ui/utils';
+	import { cn } from '@glyphtex/ui/utils';
 
 	// Step 1's "Open the project you already have" mock. A faux file-tree on
 	// the left and a tiny preview pane on the right, styled in the app's

@@ -1,4 +1,4 @@
-//! GlyphX TeX engine — Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly.
+//! GlyphTeX TeX engine — Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly.
 //!
 //! # Boundary design
 //!
@@ -36,10 +36,10 @@
 mod io;
 mod session;
 
-/// The typed API surface, shared with the pure-Rust `glyphx-tex-api` crate that
+/// The typed API surface, shared with the pure-Rust `glyphtex-tex-api` crate that
 /// also generates the TypeScript declarations.
-pub use glyphx_tex_api::api;
-pub use glyphx_tex_api::{
+pub use glyphtex_tex_api::api;
+pub use glyphtex_tex_api::{
     CompileOptions, CompileResult, CompileStatus, Diagnostic, LogLevel, OutputFile, OutputFormat,
     OutputKind, Severity,
 };

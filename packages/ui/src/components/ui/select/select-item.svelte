@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Select as SelectPrimitive } from "bits-ui";
-	import { cn, type WithoutChild } from "@glyphx/ui/utils";
+	import { cn, type WithoutChild } from "@glyphtex/ui/utils";
 	import { IconCheck } from '@tabler/icons-svelte';
 
 	let {

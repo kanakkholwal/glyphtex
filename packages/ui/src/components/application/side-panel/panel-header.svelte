@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Button } from "@glyphx/ui/button";
-  import { settings } from "@glyphx/ui/settings";
+  import { Button } from "@glyphtex/ui/button";
+  import { settings } from "@glyphtex/ui/settings";
   import {
     IconFilePlus,
     IconFold,

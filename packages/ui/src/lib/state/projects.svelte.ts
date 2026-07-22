@@ -124,7 +124,7 @@ function uid(prefix = 'p'): string {
  * Reactive: read `projects.list` in templates/$derived; mutations write through.
  */
 class ProjectsStore {
-	#store = new PersistedState<Project[]>('glyphx:projects', SEED);
+	#store = new PersistedState<Project[]>('glyphtex:projects', SEED);
 
 	/** Most-recently-edited first. */
 	get list(): Project[] {

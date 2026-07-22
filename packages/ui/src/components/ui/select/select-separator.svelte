@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 	import type { Separator as SeparatorPrimitive } from "bits-ui";
 	import { Separator } from "../separator";
 

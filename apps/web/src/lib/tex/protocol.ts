@@ -1,4 +1,4 @@
-import type { CompileStatus, Diagnostic, PackDefinition } from '@glyphx/tex-engine';
+import type { CompileStatus, Diagnostic, PackDefinition } from 'glyphtex-engine';
 
 /** `static/engine/manifest.json`, written by `scripts/sync-engine.mjs`. */
 export interface EngineManifest {

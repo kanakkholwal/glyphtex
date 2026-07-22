@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event';
 import { open, save } from '@tauri-apps/plugin-dialog';
 import { readFile } from '@tauri-apps/plugin-fs';
 import { revealItemInDir } from '@tauri-apps/plugin-opener';
-import type { ProjectFile, ProjectHost } from '@glyphx/ui/application';
+import type { ProjectFile, ProjectHost } from '@glyphtex/ui/application';
 
 /**
  * Desktop project host — folder-based LaTeX projects backed by Tauri's native
@@ -24,7 +24,7 @@ export const projectHost: ProjectHost = {
 		const sel = await open({
 			multiple: false,
 			filters: [
-				{ name: 'GlyphX project / archive', extensions: ['zip', 'glyx', 'tex'] },
+				{ name: 'GlyphTeX project / archive', extensions: ['zip', 'glyx', 'tex'] },
 				{ name: 'All files', extensions: ['*'] }
 			]
 		});
@@ -63,7 +63,7 @@ export const projectHost: ProjectHost = {
 	revealInOS: (path) => revealItemInDir(path),
 
 	takeLaunchPath: () => invoke<string | null>('take_launch_path'),
-	onOpenPath: (cb) => listen<string>('glyphx://open-path', (e) => cb(e.payload)),
+	onOpenPath: (cb) => listen<string>('glyphtex://open-path', (e) => cb(e.payload)),
 	registerShellIntegration: () => invoke<string>('register_shell_integration'),
 	unregisterShellIntegration: () => invoke<string>('unregister_shell_integration'),
 	shellIntegrationRegistered: () => invoke<boolean>('shell_integration_registered')

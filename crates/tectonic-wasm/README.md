@@ -79,14 +79,14 @@ permanently red trains people to ignore failures.
 
 ## API
 
-**Use [`@glyphx/tex-engine`](../../packages/tex-engine), not the raw exports.**
+**Use [`glyphtex-engine`](../../packages/tex-engine), not the raw exports.**
 It owns the imports the module needs (including the longjmp trampolines), the
 ABI check, and the JSON encoding below. The raw ABI is documented here because
 it is the contract that package is written against, not because callers should
 reimplement it.
 
 ```javascript
-import { TexEngine } from '@glyphx/tex-engine';
+import { TexEngine } from 'glyphtex-engine';
 
 const engine = await TexEngine.load(wasmBytes);
 for (const [name, bytes] of bundleFiles) engine.addFile(name, bytes);

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Rename the macOS updater bundle so the arm64 and x64 matrix legs don't collide.
 #
-# Tauri emits the macOS updater bundle as `GlyphX.app.tar.gz` (+ `.sig`) with no
+# Tauri emits the macOS updater bundle as `GlyphTeX.app.tar.gz` (+ `.sig`) with no
 # architecture in the name. When both the arm64 and x64 build legs upload to the
 # same draft release — and both feed latest.json — they collide on the asset
 # name and the manifest can't tell darwin-aarch64 from darwin-x86_64. This
-# renames each to the DMG-style `GlyphX_<version>_<arch>.app.tar.gz` so the
+# renames each to the DMG-style `GlyphTeX_<version>_<arch>.app.tar.gz` so the
 # release carries both, distinguishable by filename (which is also what
 # generate-latest-json.sh matches on).
 #

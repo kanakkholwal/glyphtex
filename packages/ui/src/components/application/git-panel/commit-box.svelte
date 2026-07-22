@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Button } from "@glyphx/ui/button";
-  import { Textarea } from "@glyphx/ui/textarea";
+  import { Button } from "@glyphtex/ui/button";
+  import { Textarea } from "@glyphtex/ui/textarea";
   import {
     IconArrowDown,
     IconArrowUp,

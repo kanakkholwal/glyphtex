@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, type ButtonSize } from "@glyphx/ui/button";
+  import { Button, type ButtonSize } from "@glyphtex/ui/button";
   import {
     DropdownMenu,
     DropdownMenuContent,
@@ -7,8 +7,8 @@
     DropdownMenuSeparator,
     DropdownMenuShortcut,
     DropdownMenuTrigger,
-  } from "@glyphx/ui/dropdown-menu";
-  import { toast } from "@glyphx/ui/sonner";
+  } from "@glyphtex/ui/dropdown-menu";
+  import { toast } from "@glyphtex/ui/sonner";
   import {
     IconCheck,
     IconChevronDown,

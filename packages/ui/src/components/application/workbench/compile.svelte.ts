@@ -4,9 +4,9 @@ import {
   summarizeProblems,
   type SyncTexLocation,
   type SyncTexMap,
-} from "@glyphx/ui/editor";
-import { COMPILE_DEBOUNCE_MS, settings } from "@glyphx/ui/settings";
-import { toast } from "@glyphx/ui/sonner";
+} from "@glyphtex/ui/editor";
+import { COMPILE_DEBOUNCE_MS, settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
 import type { FileStore } from "./files.svelte";
 import type { LayoutStore } from "./layout.svelte";
@@ -239,11 +239,11 @@ export class CompileStore {
         // Mirror to the devtools console so logs are readable/debuggable.
         if (out.error) {
           console.error(
-            `[GlyphX] LaTeX compilation failed (${this.lastCompileMs}ms): ${out.error}`,
+            `[GlyphTeX] LaTeX compilation failed (${this.lastCompileMs}ms): ${out.error}`,
           );
           if (out.log) console.error(out.log);
         } else {
-          console.info(`[GlyphX] compiled in ${this.lastCompileMs}ms`);
+          console.info(`[GlyphTeX] compiled in ${this.lastCompileMs}ms`);
           if (out.log?.trim()) console.debug(out.log);
         }
         if (out.pdf) {
@@ -271,7 +271,7 @@ export class CompileStore {
       this.compileHint = undefined;
       this.compileStatus = "error";
       this.showProblems = true;
-      console.error("[GlyphX] compile threw:", e);
+      console.error("[GlyphTeX] compile threw:", e);
     } finally {
       this.compiling = false;
     }

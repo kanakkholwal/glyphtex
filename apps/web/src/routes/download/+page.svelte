@@ -2,8 +2,8 @@
 	import { resolve } from '$app/paths';
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
-	import { Button } from '@glyphx/ui/button';
-	import { Reveal } from '@glyphx/ui/reveal';
+	import { Button } from '@glyphtex/ui/button';
+	import { Reveal } from '@glyphtex/ui/reveal';
 	import { Container, HeroBackdrop, Section } from '$lib/landing';
 	import {
 		IconArrowRight,
@@ -26,7 +26,7 @@
 	import { trackEvent } from '$lib/analytics';
 
 	const owner = 'kanakkholwal';
-	const repoName = 'glyphx';
+	const repoName = 'glyphtex';
 	const repo = `https://github.com/${owner}/${repoName}`;
 	const releases = `${repo}/releases`;
 	// Default hero backdrop. Mirrors the home page's hero (rounded card,
@@ -149,10 +149,10 @@
 	// downloaded .dmg is Gatekeeper-blocked until the quarantine flag is cleared.
 	// Homebrew would clear it automatically, but the cask is not published yet,
 	// so the step is built and kept hidden behind this flag. Flip it to true once
-	// `brew tap kanakkholwal/glyphx` + the glyphx cask are live.
+	// `brew tap kanakkholwal/glyphtex` + the glyphtex cask are live.
 	const showHomebrew = false;
-	const brewCmd = 'brew install --cask kanakkholwal/glyphx/glyphx';
-	const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/GlyphX.app';
+	const brewCmd = 'brew install --cask kanakkholwal/glyphtex/glyphtex';
+	const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/GlyphTeX.app';
 
 	type MacStep = { title: string; body: string; code?: string; done?: string };
 	const macSteps: MacStep[] = [
@@ -171,16 +171,16 @@
 			body: 'Apple Silicon for M1, M2, M3, and M4 Macs. Intel for older models. Not sure which you have? Open the Apple menu, then About This Mac.'
 		},
 		{
-			title: 'Drag GlyphX into Applications',
-			body: 'Open the .dmg and drop GlyphX into your Applications folder, the same as any other Mac app.'
+			title: 'Drag GlyphTeX into Applications',
+			body: 'Open the .dmg and drop GlyphTeX into your Applications folder, the same as any other Mac app.'
 		},
 		{
 			title: 'Clear the Gatekeeper warning, once',
-			body: 'GlyphX is not notarized by Apple yet, so the first launch can show a "GlyphX is damaged" or "unidentified developer" message. Run this line in Terminal to clear it. It only removes the quarantine flag macOS adds to downloaded apps.',
+			body: 'GlyphTeX is not notarized by Apple yet, so the first launch can show a "GlyphTeX is damaged" or "unidentified developer" message. Run this line in Terminal to clear it. It only removes the quarantine flag macOS adds to downloaded apps.',
 			code: quarantineCmd
 		},
 		{
-			title: 'Open GlyphX',
+			title: 'Open GlyphTeX',
 			body: 'Launch it from Applications or Spotlight and you are in. macOS will not ask again. If you ever reinstall from a .dmg and the warning returns, run the same line once more.'
 		}
 	];
@@ -246,10 +246,10 @@
 </script>
 
 <svelte:head>
-	<title>Download GlyphX: the local-first LaTeX editor</title>
+	<title>Download GlyphTeX: the local-first LaTeX editor</title>
 	<meta
 		name="description"
-		content="Download GlyphX for macOS, Windows, and Linux. A local-first LaTeX editor that ships its own engine, compiles offline, and keeps your projects on your own disk. Free, no account."
+		content="Download GlyphTeX for macOS, Windows, and Linux. A local-first LaTeX editor that ships its own engine, compiles offline, and keeps your projects on your own disk. Free, no account."
 	/>
 </svelte:head>
 
@@ -290,7 +290,7 @@
 						class="landing-text-balance text-[2.5rem] font-bold leading-[1.05] tracking-[-0.025em] text-foreground sm:text-5xl md:text-[3rem]"
 						in:fly={{ y: 12, duration: 600, delay: 80, easing: cubicOut }}
 					>
-						Download GlyphX.
+						Download GlyphTeX.
 						<span
 							class="mt-2 block font-serif text-xl font-medium italic text-foreground/65 sm:text-2xl md:text-3xl"
 							style="line-height: 1.15;"
@@ -376,7 +376,7 @@
 							<span
 								class="rounded-full border border-brand/30 bg-brand/10 px-2 py-0.5 font-semibold text-brand"
 							>
-								GlyphX {version}
+								GlyphTeX {version}
 							</span>
 							{#if releasedOn}<span>released {releasedOn}</span>{/if}
 						</span>
@@ -591,7 +591,7 @@
 							</ol>
 
 							<p class="mt-6 text-xs leading-relaxed text-muted-foreground">
-								Prefer not to use Terminal? You can also right-click GlyphX in Applications, choose
+								Prefer not to use Terminal? You can also right-click GlyphTeX in Applications, choose
 								Open, and confirm once in the dialog that appears.
 							</p>
 						</div>

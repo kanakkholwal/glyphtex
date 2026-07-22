@@ -41,7 +41,7 @@ body:
   - type: input
     id: app-version
     attributes:
-      label: GlyphX version
+      label: GlyphTeX version
       placeholder: "v0.1.0"
     validations:
       required: true
@@ -70,10 +70,10 @@ body:
       description: |
         Please attach app logs and any OS-level crash dump.
 
-        **GlyphX logs:**
-        - Windows: `%APPDATA%\com.nexonauts.glyphx\logs`
-        - macOS: `~/Library/Logs/com.nexonauts.glyphx`
-        - Linux: `~/.config/com.nexonauts.glyphx/logs`
+        **GlyphTeX logs:**
+        - Windows: `%APPDATA%\com.nexonauts.glyphtex\logs`
+        - macOS: `~/Library/Logs/com.nexonauts.glyphtex`
+        - Linux: `~/.config/com.nexonauts.glyphtex/logs`
 
         **OS crash reports:**
         - Windows: Event Viewer → Windows Logs → Application
