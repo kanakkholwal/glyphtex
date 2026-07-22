@@ -258,7 +258,7 @@
 				{:else if systemReady}
 					<div class="flex items-center gap-2">
 						<span
-							class="bg-success/10 text-success inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+							class="bg-success/10 text-success inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide"
 						>
 							Detected
 						</span>
@@ -327,13 +327,13 @@
 								</span>
 								{#if v.active}
 									<span
-										class="bg-brand-subtle text-brand inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+										class="bg-brand-subtle text-brand inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide"
 									>
 										Active
 									</span>
 								{:else if v.installed}
 									<span
-										class="text-muted-foreground/70 shrink-0 text-[10px] font-medium uppercase tracking-wide"
+										class="text-faint shrink-0 text-xs font-medium uppercase tracking-wide"
 									>
 										Installed
 									</span>

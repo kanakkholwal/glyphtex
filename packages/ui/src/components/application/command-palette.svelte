@@ -73,7 +73,7 @@
 <!-- Centre: the workspace name (VS Code's command-centre slot). Doubles as a
      rename field on web, and opens quick-open (⌘P) otherwise. -->
 <div
-	class="border-border/60 bg-muted/30 flex h-8 w-72 max-w-[40vw] items-center gap-2 rounded-md border px-2.5 text-[13px]"
+	class="border-border/60 bg-muted/30 flex h-8 w-72 max-w-[40vw] items-center gap-2 rounded-md border px-2.5 text-sm"
 >
 	<IconStack2 size={16} class="text-muted-foreground shrink-0 opacity-70" />
 	{#if editing}
@@ -101,7 +101,7 @@
 			{projectName}
 		</button>
 		{#if saving !== undefined}
-			<span class="text-muted-foreground shrink-0 text-[11px]" aria-live="polite">
+			<span class="text-muted-foreground shrink-0 text-xs" aria-live="polite">
 				{saving ? 'Saving…' : 'Saved'}
 			</span>
 		{:else}
@@ -132,7 +132,7 @@
 					     and keeps this group flush-right. -->
 					<span data-slot="command-shortcut" class="ml-auto flex shrink-0 items-center gap-2">
 						{#if f.id === activeId}
-							<span class="text-muted-foreground/50 text-[11px]">open</span>
+							<span class="text-muted-foreground/50 text-xs">open</span>
 						{/if}
 						<IconCornerDownLeft
 							size={13}

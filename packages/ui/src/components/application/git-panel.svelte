@@ -115,7 +115,7 @@
       </span>
       {#if store.head?.behind || store.head?.ahead}
         <span
-          class="text-muted-foreground/80 flex shrink-0 items-center gap-0.5 text-[10px]"
+          class="text-muted-foreground/80 flex shrink-0 items-center gap-0.5 text-xs"
           title={`${store.head?.ahead ?? 0} ahead, ${store.head?.behind ?? 0} behind ${store.head?.upstream ?? "upstream"}`}
         >
           {#if store.head?.behind}<IconArrowDown size={11} />{store.head
@@ -128,7 +128,7 @@
     <!-- Merge-in-progress banner -->
     {#if store.head?.merging}
       <div
-        class="border-warning/40 bg-warning/10 text-warning flex items-start gap-1.5 rounded border px-2 py-1.5 text-[11px] leading-snug"
+        class="border-warning/40 bg-warning/10 text-warning flex items-start gap-1.5 rounded border px-2 py-1.5 text-xs leading-snug"
       >
         <IconAlertTriangle size={13} class="mt-px shrink-0" />
         <span>
@@ -142,7 +142,7 @@
     <CommitBox {store} />
 
     {#if store.error}
-      <p class="text-destructive px-0.5 text-[11px] leading-snug">{store.error}</p>
+      <p class="text-destructive px-0.5 text-xs leading-snug">{store.error}</p>
     {/if}
 
     <!-- Staged -->
@@ -211,7 +211,7 @@
       {#if store.sections.changes}
         <div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-0.5">
           {#if !store.unstaged.length}
-            <p class="text-muted-foreground/70 px-0.5 py-1 text-[11px]">
+            <p class="text-muted-foreground/70 px-0.5 py-1 text-xs">
               {store.loading
                 ? "Checking…"
                 : store.staged.length

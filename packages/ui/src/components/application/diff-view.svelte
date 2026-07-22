@@ -112,7 +112,7 @@
 	});
 </script>
 
-<div bind:this={host} class="h-full min-h-0 w-full text-[13px]"></div>
+<div bind:this={host} class="h-full min-h-0 w-full text-sm"></div>
 
 <style>
 	/* Monaco's default diff tints are VS Code's blue/green; override them with

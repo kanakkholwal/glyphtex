@@ -15,7 +15,7 @@
 </script>
 
 <footer
-  class="border-border bg-card text-muted-foreground flex h-7 shrink-0 items-center gap-3 border-t px-3 text-[11px]"
+  class="border-border bg-card text-muted-foreground flex h-7 shrink-0 items-center gap-3 border-t px-3 text-xs"
 >
   <span
     class="flex items-center gap-1.5 {compile.compileStatus === 'error'

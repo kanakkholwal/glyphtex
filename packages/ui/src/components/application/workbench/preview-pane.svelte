@@ -220,7 +220,7 @@
             </p>
             {#if compile.compileLog}
               <pre
-                class="text-muted-foreground mt-3 max-h-72 overflow-auto font-mono text-[11px] whitespace-pre-wrap">{compile.compileLog}</pre>
+                class="text-muted-foreground mt-3 max-h-72 overflow-auto font-mono text-xs whitespace-pre-wrap">{compile.compileLog}</pre>
             {/if}
           </div>
         {:else}

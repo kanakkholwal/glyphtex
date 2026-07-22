@@ -140,7 +140,7 @@
 								</span>
 								{#if p.line != null}
 									<span
-										class="bg-muted text-muted-foreground mt-px shrink-0 rounded px-1 font-mono text-[11px] tabular-nums"
+										class="bg-muted text-muted-foreground mt-px shrink-0 rounded px-1 font-mono text-xs tabular-nums"
 									>
 										L{p.line}
 									</span>
@@ -155,7 +155,7 @@
 			{/if}
 		{:else if log.trim()}
 			<pre
-				class="text-muted-foreground px-3 py-2 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">{log}</pre>
+				class="text-muted-foreground px-3 py-2 font-mono text-xs leading-relaxed whitespace-pre-wrap">{log}</pre>
 		{:else}
 			<p class="text-muted-foreground px-3 py-6 text-center text-xs">No log output.</p>
 		{/if}

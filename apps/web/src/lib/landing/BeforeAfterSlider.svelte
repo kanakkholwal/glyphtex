@@ -95,12 +95,12 @@
 
 	<!-- Corner labels -->
 	<span
-		class="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/85 ring-1 ring-inset ring-white/15 backdrop-blur"
+		class="pointer-events-none absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white/85 ring-1 ring-inset ring-white/15 backdrop-blur"
 	>
 		{raw.label}
 	</span>
 	<span
-		class="pointer-events-none absolute right-3 top-3 rounded-full bg-brand/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-brand ring-1 ring-inset ring-brand/30 backdrop-blur"
+		class="pointer-events-none absolute right-3 top-3 rounded-full bg-brand/20 px-2.5 py-1 text-xs font-bold uppercase tracking-[0.16em] text-brand ring-1 ring-inset ring-brand/30 backdrop-blur"
 	>
 		{polished.label}
 	</span>
@@ -112,7 +112,7 @@
 		>
 			{#each applied as feat (feat)}
 				<span
-					class="inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-white/90 ring-1 ring-inset ring-white/15 backdrop-blur"
+					class="inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-xs font-semibold text-white/90 ring-1 ring-inset ring-white/15 backdrop-blur"
 				>
 					<span class="text-brand">✓</span>
 					{feat}
@@ -124,14 +124,14 @@
 	<!-- Duration labels (optional) -->
 	{#if raw.durationLabel}
 		<span
-			class="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/55 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white/80 ring-1 ring-inset ring-white/15 backdrop-blur"
+			class="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/55 px-1.5 py-0.5 font-mono text-xs font-semibold text-white/80 ring-1 ring-inset ring-white/15 backdrop-blur"
 		>
 			{raw.durationLabel}
 		</span>
 	{/if}
 	{#if polished.durationLabel}
 		<span
-			class="pointer-events-none absolute bottom-3 right-3 rounded-md bg-brand/15 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-brand ring-1 ring-inset ring-brand/30 backdrop-blur"
+			class="pointer-events-none absolute bottom-3 right-3 rounded-md bg-brand/15 px-1.5 py-0.5 font-mono text-xs font-semibold text-brand ring-1 ring-inset ring-brand/30 backdrop-blur"
 		>
 			{polished.durationLabel}
 		</span>

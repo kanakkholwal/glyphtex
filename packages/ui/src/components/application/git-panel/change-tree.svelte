@@ -90,7 +90,7 @@
           size={13}
         />{/if}
     </Button>
-    <span class="shrink-0 font-mono text-[10px] {STATUS_CLASS[c.status] ?? ''}">
+    <span class="shrink-0 font-mono text-xs {STATUS_CLASS[c.status] ?? ''}">
       {STATUS_LABEL[c.status] ?? "?"}
     </span>
   </div>

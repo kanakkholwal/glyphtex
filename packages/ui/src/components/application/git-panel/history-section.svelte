@@ -25,11 +25,11 @@
             class="flex items-baseline gap-1.5 px-0.5 py-0.5 text-xs"
             title={c.author}
           >
-            <span class="text-muted-foreground/70 shrink-0 font-mono text-[10px]"
+            <span class="text-muted-foreground/70 shrink-0 font-mono text-xs"
               >{c.hash}</span
             >
             <span class="text-foreground/85 truncate">{c.summary}</span>
-            <span class="text-muted-foreground/50 ml-auto shrink-0 text-[10px]"
+            <span class="text-muted-foreground/50 ml-auto shrink-0 text-xs"
               >{whenLabel(c.time)}</span
             >
           </div>

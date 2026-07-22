@@ -47,7 +47,7 @@
 </script>
 
 <div
-  class="text-muted-foreground flex h-9 shrink-0 items-center justify-between px-3 text-xs font-medium tracking-wider uppercase"
+  class="text-faint flex h-9 shrink-0 items-center justify-between px-3 text-xs font-medium tracking-wider uppercase"
 >
   <span>{store.heading}</span>
   {#if view === "files"}

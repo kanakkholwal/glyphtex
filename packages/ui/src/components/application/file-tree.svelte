@@ -192,7 +192,7 @@
 					<!-- svelte-ignore a11y_autofocus -->
 					<input
 						bind:value={renameValue}
-						class="bg-background border-ring text-foreground min-w-0 flex-1 rounded border px-1 py-0 text-[13px] outline-none"
+						class="bg-background border-ring text-foreground min-w-0 flex-1 rounded border px-1 py-0 text-sm outline-none"
 						autofocus
 						spellcheck="false"
 						onclick={(e) => e.stopPropagation()}
@@ -327,7 +327,7 @@
 					<!-- svelte-ignore a11y_autofocus -->
 					<input
 						bind:value={renameValue}
-						class="bg-background border-ring text-foreground min-w-0 flex-1 rounded border px-1 py-0 text-[13px] outline-none"
+						class="bg-background border-ring text-foreground min-w-0 flex-1 rounded border px-1 py-0 text-sm outline-none"
 						autofocus
 						spellcheck="false"
 						onclick={(e) => e.stopPropagation()}
@@ -376,7 +376,7 @@
 						{#if dirty}
 							<span class="bg-brand block size-1.5 rounded-full"></span>
 						{:else}
-							<span class="font-mono text-[10px] leading-none {STATUS_CLASS[status] ?? ''}"
+							<span class="font-mono text-xs leading-none {STATUS_CLASS[status] ?? ''}"
 								>{STATUS_LABEL[status] ?? '?'}</span
 							>
 						{/if}

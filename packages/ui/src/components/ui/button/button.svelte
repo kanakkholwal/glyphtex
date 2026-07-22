@@ -7,20 +7,25 @@
 	 * Button — Raycast-density variants built on shadcn semantic tokens.
 	 *
 	 * Guidelines:
-	 * - Use `size="xs"` for dense toolbar rows (11px text, 24px height).
-	 * - Use `size="sm"` for secondary actions (12px text, 32px height).
+	 * - Use `size="xs"` for dense toolbar rows (12px text, 24px height).
+	 * - Use `size="sm"` for secondary actions (13px text, 32px height).
 	 * - Use `size="default"` only for primary CTAs in forms / empty states.
 	 * - Colors must come from semantic tokens — never hardcoded (emerald, sky…).
 	 * - Prefer `ghost` + `icon-sm` for toolbar icon buttons.
+	 *
+	 * Shape follows role: CTA sizes (default / lg / xl) are pills, dense control
+	 * sizes are 8px rounded rects. Icons follow the role scale — 14px inline,
+	 * 16px in controls, 20px in card-level actions.
 	 */
 	export const buttonVariants = tv({
 		base: [
 			"group/button inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap cursor-pointer user-select-none",
-			"rounded-sm border border-border/40 bg-clip-padding font-medium outline-none transition-all duration-200 select-none",
+			"rounded-md border border-border/40 bg-clip-padding font-medium outline-none transition-all duration-200 select-none",
 			"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
 			"aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-3",
 			"dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-			"active:scale-[0.99] hover:scale-[1.01]",
+			// Press feedback only. Growing on hover makes dense toolbars twitch.
+			"active:scale-[0.99]",
 			"disabled:pointer-events-none disabled:opacity-50",
 			"[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 		].join(" "),
@@ -57,15 +62,17 @@
 				
 			},
 			size: {
-				default: "h-9 rounded-lg px-5 py-2.5 text-sm font-medium gap-2 [&_svg:not([class*='size-'])]:size-4",
-				xl: "h-12.5 rounded-xl active:rounded-3xl py-3.5 px-7 text-lg font-medium gap-2.5 [&_svg:not([class*='size-'])]:size-6",
-				lg: "h-11 rounded-xl active:rounded-2xl px-8 text-base font-semibold gap-2 [&_svg:not([class*='size-'])]:size-5",
-				sm: "h-8 rounded-md px-3 text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-4",
-				xs: "h-6 rounded-md px-2 text-[11px] gap-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-				icon: "size-9 rounded-lg",
-				"icon-sm": "size-8 rounded-md [&_svg:not([class*='size-'])]:size-[18px]",
+				// CTA sizes — pill.
+				default: "h-9 rounded-pill px-5 text-md font-medium gap-2 [&_svg:not([class*='size-'])]:size-4",
+				xl: "h-12.5 rounded-pill px-7 text-base font-medium gap-2.5 [&_svg:not([class*='size-'])]:size-5",
+				lg: "h-11 rounded-pill px-7 text-md font-semibold gap-2 [&_svg:not([class*='size-'])]:size-5",
+				// Control sizes — 8px rect.
+				sm: "h-8 rounded-md px-3 text-sm gap-1.5 [&_svg:not([class*='size-'])]:size-4",
+				xs: "h-6 rounded-md px-2 text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+				icon: "size-9 rounded-md [&_svg:not([class*='size-'])]:size-5",
+				"icon-sm": "size-8 rounded-md [&_svg:not([class*='size-'])]:size-4",
 				"icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3.5",
-				"icon-lg": "size-11 rounded-xl [&_svg:not([class*='size-'])]:size-5",
+				"icon-lg": "size-11 rounded-lg [&_svg:not([class*='size-'])]:size-5",
 				"icon-xl": "size-14 rounded-2xl [&_svg:not([class*='size-'])]:size-6",
 				raw: "",
 			},

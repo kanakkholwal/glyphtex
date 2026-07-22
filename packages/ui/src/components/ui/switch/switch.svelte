@@ -21,7 +21,7 @@
 	bind:checked
 	data-slot="switch"
 	class={cn(
-		"peer bg-input data-[state=checked]:bg-brand relative inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full outline-none transition-colors",
+		"peer bg-border data-[state=checked]:bg-brand relative inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full outline-none transition-colors",
 		"focus-visible:ring-ring/50 focus-visible:ring-[3px]",
 		"disabled:cursor-not-allowed disabled:opacity-50",
 		className,

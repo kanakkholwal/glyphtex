@@ -104,7 +104,7 @@
 					</span>
 					{#if title}
 						<span
-							class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70 group-hover/section:text-muted-foreground"
+							class="text-xs font-semibold uppercase tracking-[0.12em] text-faint group-hover/section:text-muted-foreground"
 							title={hint}
 						>
 							{title}
@@ -127,7 +127,7 @@
 				<div class="flex min-w-0 items-center gap-1.5">
 					{#if title}
 						<h3
-							class="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/70"
+							class="text-xs font-semibold uppercase tracking-[0.12em] text-faint"
 							title={hint}
 						>
 							{title}

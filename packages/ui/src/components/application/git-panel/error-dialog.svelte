@@ -52,7 +52,7 @@
         </button>
         {#if store.showErrorDetails}
           <pre
-            class="border-border/60 bg-muted/40 text-muted-foreground mt-1.5 max-h-40 overflow-auto rounded border p-2 font-mono text-[11px] leading-snug whitespace-pre-wrap">{store
+            class="border-border/60 bg-muted/40 text-muted-foreground mt-1.5 max-h-40 overflow-auto rounded border p-2 font-mono text-xs leading-snug whitespace-pre-wrap">{store
               .gitError.details}</pre>
         {/if}
       </div>

@@ -23,7 +23,7 @@
 </script>
 
 <button
-  class="text-muted-foreground hover:text-foreground flex min-w-0 flex-1 items-center gap-1 rounded text-[10px] font-semibold tracking-wide uppercase transition-colors"
+  class="text-faint hover:text-foreground flex min-w-0 flex-1 items-center gap-1 rounded text-xs font-semibold tracking-wide uppercase transition-colors"
   aria-expanded={store.sections[sectionKey]}
   onclick={() => store.toggleSection(sectionKey)}
 >

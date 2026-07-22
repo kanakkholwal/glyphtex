@@ -167,7 +167,7 @@
 		</div>
 		{#if imgSize.w > 0}
 			<div
-				class="text-muted-foreground/70 border-border shrink-0 border-t px-3 py-1 text-center font-mono text-[11px] tabular-nums"
+				class="text-muted-foreground/70 border-border shrink-0 border-t px-3 py-1 text-center font-mono text-xs tabular-nums"
 			>
 				{imgSize.w} × {imgSize.h}
 			</div>

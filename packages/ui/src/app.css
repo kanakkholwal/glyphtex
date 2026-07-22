@@ -19,26 +19,34 @@
 
 /* --- Light --- */
 :root {
-  /* Derived from `islandLightPalette` in `lib/editor/jetbrains-monaco.ts`. Upstream
-     Islands Light has no editor scheme of its own, so this is New UI Light. */
-  --background: #f7f8fa; /* one step under white so cards read as raised */
-  --foreground: #080808; /* palette.fg */
-  --card: #ffffff; /* palette.bg */
-  --card-foreground: #080808;
-  --surface: #f5f8fe; /* palette.lineHighlight */
-  --popover: #ffffff; /* palette.widgetBg */
-  --popover-foreground: #080808;
+  /* The three-step neutral ramp every surface and label derives from. Exact hex,
+     not oklch: these are fixed brand values, not computed steps off a base. */
+  --ink: #292929; /* titles, active nav, primary text */
+  --ink-body: #5d5d5d; /* descriptions, inactive nav, secondary text */
+  --ink-muted: #9e9e9e; /* section labels, placeholders, metadata */
 
-  /* Primary = ink (near-black neutral). The monochrome emphasis voice (NOT the brand). */
-  --primary: #080808;
+  --background: #ffffff;
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --surface: #f7f7f7;
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+
+  /* Primary = ink. The CTA is a near-black pill, never a saturated fill; the
+     brand blue stays a signal colour (links, focus, selection) in --brand. */
+  --primary: #292929;
   --primary-foreground: #ffffff;
 
-  --secondary: #f5f8fe;
-  --secondary-foreground: #080808;
-  --muted: #f5f8fe;
-  --muted-foreground: #8c8c8c; /* palette.comment */
-  --accent: #ebecf0; /* palette.indentGuide — hover/pressed surface */
-  --accent-foreground: #080808;
+  --secondary: #f5f5f5;
+  --secondary-foreground: var(--ink);
+  --muted: #f5f5f5;
+  --muted-foreground: var(--ink-body);
+  /* Third step, for labels that must recede. Deliberately below the 4.5:1 body
+     threshold — reserve it for non-essential text (see DESIGN note in review). */
+  --faint: var(--ink-muted);
+  --accent: #f0f0f0; /* hover / pressed surface */
+  --accent-foreground: var(--ink);
 
   /* The scheme's raw #ff0000 / #ebc700 are squiggle colours: garish as UI fills and
      the yellow fails contrast on white, so these are the same hues re-lightened. */
@@ -51,19 +59,22 @@
   --info: #00627a; /* palette.func */
   --info-foreground: #ffffff;
 
-  /* Lines & focus. */
-  --border: #e9eaee; /* palette.widgetBorder */
-  --input: #e9eaee;
+  /* Lines & focus. Structure comes from hairlines, not from surface contrast:
+     the panels are all white, so the 1px rules are what separate them. */
+  --border: #ebebeb;
+  /* Field FILL only. Lines come from --border — the two were one token, which
+     stops working once every surface is white. */
+  --input: #f5f5f5;
   --ring: #1750eb; /* palette.number — the scheme's saturated blue */
 
-  /* Sidebar (one quiet neutral step off the canvas). */
-  --sidebar: #f5f8fe; /* palette.lineHighlight */
-  --sidebar-foreground: #3c3f43;
-  --sidebar-primary: #080808;
+  /* Sidebar sits on the same white as the canvas; the divider does the work. */
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--ink-body);
+  --sidebar-primary: var(--ink);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ebecf0;
-  --sidebar-accent-foreground: #080808;
-  --sidebar-border: #e9eaee;
+  --sidebar-accent: #f0f0f0;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: #ebebeb;
   --sidebar-ring: #1750eb;
 
   /* Charts — brand blue + a neutral ramp. */
@@ -98,24 +109,28 @@
 
   /* Marketing surface mirrors (landing layer) — neutral; hairlines are SOLID
 	   neutral lines so the landing reads as a crisp structural grid. */
-  --canvas: #f7f8fa;
-  --surface-soft: #f5f8fe; /* palette.lineHighlight */
-  --surface-card: #ffffff; /* palette.bg */
-  --surface-strong: #ebecf0; /* palette.indentGuide */
+  --canvas: #f6f5f3; /* warm off-white page backdrop behind the app frame */
+  --surface-soft: #f5f5f5;
+  --surface-card: #ffffff;
+  --surface-strong: #f0f0f0;
   /* Surface-lift scale (trace-mvp): canvas → surface-1 → surface-2 (lift, not
 	   opacity). `inverse-canvas` is the polarity-flipped CTA surface. */
   --surface-1: #ffffff;
-  --surface-2: #f5f8fe;
+  --surface-2: #f5f5f5;
   --inverse-canvas: #191a1c; /* the dark scheme's canvas — one system */
-  --ink: #080808; /* palette.fg */
-  --ink-body: #3c3f43;
-  --ink-muted: #8c8c8c; /* palette.comment */
-  --hairline: #e9eaee; /* palette.widgetBorder */
-  --hairline-soft: #f0f1f4;
-  --border-subtle: #f0f1f4;
+  --hairline: #ebebeb;
+  --hairline-soft: #f2f2f2;
+  --border-subtle: #f2f2f2;
 
-  /* Base radius — crisp, not pill. Component scale derives from this. */
-  --radius: 0.625rem;
+  /* Base radius — 8px, the nav/control step. Cards step up to --radius-2xl and
+     CTAs go pill; see the radius scale in @theme inline. */
+  --radius: 0.5rem;
+
+  /* Icon sizing, by role. Raw vars for reference — components use the matching
+     Tailwind step (size-3.5 / size-4 / size-5) so the class stays greppable. */
+  --icon-nav: 14px; /* menus, tree rows, inline affordances */
+  --icon-control: 16px; /* toolbar buttons */
+  --icon-card: 20px; /* card headers, activity rail, feature rows */
 
   /* Raw vars, NOT in @theme: Tailwind's --spacing-* namespace would clobber
      max-w-*, text-*, etc. Use as `padding: var(--space-lg)`. */
@@ -162,6 +177,9 @@
   --secondary-foreground: #bcbec4;
   --muted: #1f2024;
   --muted-foreground: #7a7e85; /* palette.comment — the scheme's quiet text */
+  /* Section labels only. Matches what `text-muted-foreground/70` already rendered
+     as over the dark card, so those labels keep the weight they had. */
+  --faint: #6b6f76;
   --accent: #33353b; /* palette.widgetBorder — hover/pressed surface */
   --accent-foreground: #bcbec4;
 
@@ -240,6 +258,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-faint: var(--faint);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -292,16 +311,19 @@
   --color-hairline-soft: var(--hairline-soft);
   --color-border-subtle: var(--border-subtle);
 
-  /* Radius scale derived from --radius (extended to match trace-mvp). */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Radius scale. Three steps carry the system: 8px for anything in a nav or
+     toolbar, 16px for cards and panels, full-round for CTAs. The rest exist so
+     nested corners can step down without inventing values. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px; /* nav rows, buttons, inputs, menu items */
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px; /* cards, panels, dialogs */
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
   --radius-spotlight: 1.875rem;
-  --radius-pill: 100px;
+  --radius-pill: 9999px; /* CTAs */
 
   /* Shared motion easing — the "settle into place" curve used by Reveal. */
   --ease-craft: cubic-bezier(0.625, 0.05, 0, 1);
@@ -309,6 +331,17 @@
 
 /* Static design tokens (typography, materiality). Not theme-dependent. */
 @theme {
+  /* Application type scale — 12 / 13 / 14, with 24 for page titles. `text-base`
+     stays 16px: it is the landing/prose step, not app chrome. */
+  --text-xs: 12px;
+  --text-xs--line-height: 1.35;
+  --text-sm: 13px;
+  --text-sm--line-height: 1.45;
+  --text-md: 14px;
+  --text-md--line-height: 1.5;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 1.25;
+
   --font-sans:
     "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
@@ -380,6 +413,9 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
+    /* Slight negative tracking is what makes the UI read as tight rather than
+       loose at 12–14px. Display sizes override it with their own tracking. */
+    letter-spacing: -0.15px;
     /* Inter's bespoke OpenType character variants (see DESIGN.md). */
     font-feature-settings:
       "cv01", "cv05", "cv09", "cv11", "ss03", "ss07", "dlig";

@@ -20,7 +20,7 @@
           onclick={() => ongotoline?.(item.line)}
         >
           <span class="bg-muted-foreground/40 size-1 shrink-0 rounded-full"></span>
-          <span class="truncate text-[13px]">{item.title}</span>
+          <span class="truncate text-sm">{item.title}</span>
         </button>
       </li>
     {/each}
@@ -29,7 +29,7 @@
   <div class="text-muted-foreground/70 flex flex-col items-center gap-2 px-3 py-10 text-center">
     <IconList size={26} class="opacity-50" />
     <p class="text-xs">No sections yet.</p>
-    <p class="text-[11px] leading-relaxed">
+    <p class="text-xs leading-relaxed">
       Add <span class="font-mono">\section&#123;…&#125;</span> headings and they appear here.
     </p>
   </div>

@@ -26,8 +26,8 @@
 		tone === "default_soft" && "bg-surface-soft/65 border-hairline shadow-craft-sm",
 		tone === "editorial" &&
 			"bg-card border-hairline shadow-craft-lg",
-		size === "default" && "rounded-3xl p-6 md:p-8",
-		size === "sm" && "rounded-[1.4rem] p-4 md:p-5",
+		size === "default" && "rounded-2xl p-6 md:p-8",
+		size === "sm" && "rounded-xl p-4 md:p-5",
 		"group/card flex flex-col gap-4 overflow-hidden",
 		className
 	)}

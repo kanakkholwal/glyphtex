@@ -27,7 +27,9 @@
   }
 </script>
 
-<div class="border-border bg-card flex h-9 shrink-0 items-stretch border-b">
+<!-- Recessed in light, where the card and canvas are both white and the active
+     tab would otherwise have nothing to sit against. Dark already has the lift. -->
+<div class="border-border bg-muted dark:bg-card flex h-9 shrink-0 items-stretch border-b">
   <div class="flex min-w-0 flex-1 items-stretch overflow-x-auto" role="tablist" aria-label="Open files">
   {#each files.openTabFiles as file (file.id)}
     {@const active = file.id === files.activeId}

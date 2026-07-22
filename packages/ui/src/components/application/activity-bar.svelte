@@ -62,7 +62,7 @@
 				onclick={() => onselect?.(item.id)}
 			>
 				<Icon class="size-5" />
-				<span class="w-full truncate text-center text-[10px] leading-none font-medium">
+				<span class="w-full truncate text-center text-xs leading-none font-medium">
 					{item.label}
 				</span>
 			</Button>

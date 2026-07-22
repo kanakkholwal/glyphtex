@@ -70,7 +70,7 @@
 				</Button>
 			</div>
 
-			<p class="text-muted-foreground/60 text-[11px]">
+			<p class="text-muted-foreground/60 text-xs">
 				Built by <a href="https://x.com/kanakkholwal" target="_blank" rel="noreferrer noopener" class="underline hover:no-underline">@kanakkholwal</a>. Open source under the project license.
 			</p>
 		</div>

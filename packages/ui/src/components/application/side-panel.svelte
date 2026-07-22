@@ -171,7 +171,7 @@
   />
 
   <div
-    class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1.5 pb-2 text-[13px]"
+    class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1.5 pb-2 text-sm"
   >
     {#if view === "files"}
       <ExplorerView

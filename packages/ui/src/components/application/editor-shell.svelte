@@ -54,7 +54,7 @@ Nothing is uploaded. Nothing leaves this device.
 	>
 		<div class="flex items-center gap-2">
 			<div
-				class="bg-primary text-primary-foreground grid size-6 place-items-center rounded-md text-[13px] font-semibold"
+				class="bg-primary text-primary-foreground grid size-6 place-items-center rounded-md text-sm font-semibold"
 				aria-hidden="true"
 			>
 				G
@@ -117,7 +117,7 @@ Nothing is uploaded. Nothing leaves this device.
 					class="bg-card text-card-foreground border-border shadow-craft-sm mx-auto max-w-prose rounded-lg border p-8"
 				>
 					<div
-						class="text-muted-foreground/60 mb-4 text-[11px] font-medium tracking-widest uppercase"
+						class="text-faint mb-4 text-xs font-medium tracking-widest uppercase"
 					>
 						Rendered output
 					</div>
@@ -133,7 +133,7 @@ Nothing is uploaded. Nothing leaves this device.
 
 	<!-- Status bar -->
 	<footer
-		class="border-border bg-card text-muted-foreground flex h-7 shrink-0 items-center gap-4 border-t px-3 text-[11px]"
+		class="border-border bg-card text-muted-foreground flex h-7 shrink-0 items-center gap-4 border-t px-3 text-xs"
 	>
 		<span class="flex items-center gap-1.5">
 			<span class="bg-success size-1.5 rounded-full"></span>
