@@ -16,15 +16,18 @@
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"pretest": "esbuild src/lib/tex/tar.ts src/lib/tex/mount.ts src/lib/citations.ts src/lib/storage/projects.ts src/lib/storage/bridge.ts src/lib/storage/zip.ts src/lib/storage/import.ts --bundle --format=esm --outdir=test/.build --outbase=src/lib --out-extension:.js=.mjs --log-level=error",
+		"pretest": "esbuild src/lib/tex/tar.ts src/lib/tex/mount.ts src/lib/citations.ts src/lib/storage/projects.ts src/lib/storage/bridge.ts src/lib/storage/zip.ts src/lib/storage/import.ts src/lib/storage/ignore.ts src/lib/git/diff.ts src/lib/git/status.ts --bundle --format=esm --outdir=test/.build --outbase=src/lib --out-extension:.js=.mjs --log-level=error",
 		"test": "node --test test/*.test.mjs"
 	},
 	"dependencies": {
-		"glyphtex-engine": "workspace:*",
 		"@glyphtex/ui": "workspace:*",
+		"@isomorphic-git/lightning-fs": "^4.6.3",
 		"@tabler/icons-svelte": "^3.44.0",
+		"buffer": "^6.0.3",
 		"clsx": "^2.1.1",
+		"glyphtex-engine": "workspace:*",
 		"gsap": "^3.15.0",
+		"isomorphic-git": "^1.38.10",
 		"pdfjs-dist": "6.0.227",
 		"tailwind-merge": "^3.6.0"
 	},

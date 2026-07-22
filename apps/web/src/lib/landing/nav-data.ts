@@ -14,7 +14,9 @@ export const CONTACT_EMAIL = 'mailto:hello@glyphtex.app';
 // or skip them.
 const FEATURES: NavLink = { label: 'Features', href: '/#features' };
 const WORKFLOW: NavLink = { label: 'Workflow', href: '/#workflow' };
-const COMPARE: NavLink = { label: 'Compare', href: '/#compare' };
+// #compare is the free-for-individuals / free-for-institutions section, so the
+// label says Pricing — "Compare" promised a comparison table that isn't there.
+const COMPARE: NavLink = { label: 'Pricing', href: '/#compare' };
 const FAQ: NavLink = { label: 'FAQ', href: '/#faq' };
 // Labelled as a prototype rather than "Download": the desktop build is not
 // released yet, so this must not read as a shipping product.

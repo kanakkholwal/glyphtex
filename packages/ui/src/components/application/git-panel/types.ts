@@ -20,6 +20,20 @@ export type GitHeadInfo = {
 
 export type GitRemote = { name: string; url: string };
 
+/** Host-held Git settings the panel can edit. */
+export type GitSettings = {
+  /** Commit author name. */
+  name: string;
+  /** Commit author email. */
+  email: string;
+  /** False while `name`/`email` are still the host's placeholder, so the panel can
+   *  ask for a real identity before the first commit is attributed to nobody. */
+  chosen: boolean;
+  /** Relay for remote requests on hosts that need one (browsers can't reach Git
+   *  servers directly). Omitted where it doesn't apply, e.g. desktop. */
+  corsProxy?: string | null;
+};
+
 /** Host-injected Git backend (desktop = Tauri / gitoxide). */
 export type GitProvider = {
   /** Whether a usable system `git` is installed — gates the remote half (push/pull/sync). */
@@ -77,6 +91,12 @@ export type GitProvider = {
   ) => Promise<{ conflicts: boolean; message: string }>;
   /** Native confirmation dialog (desktop wires Tauri's); falls back to window.confirm. */
   confirm?: (message: string, title?: string) => Promise<boolean>;
+  /** Editable commit identity / relay. Hosts that read these from elsewhere (a
+   *  global `.gitconfig`) leave it out and the panel hides the section. */
+  settings?: {
+    get: () => Promise<GitSettings>;
+    save: (next: Omit<GitSettings, "chosen">) => Promise<void>;
+  };
 };
 
 /** Collapsible top-level sections (like the Explorer's Files / Outline). */

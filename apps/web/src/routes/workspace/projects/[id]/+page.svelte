@@ -18,6 +18,7 @@
 	import { compileFiles, engineReady, installPacks, warmEngine } from '$lib/compile';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
 	import EngineNotices from '$lib/EngineNotices.svelte';
+	import { gitProvider, gitRootFor, onWorkingTreeChanged } from '$lib/git';
 	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from '$lib/storage/bridge';
 	import { filesFromDataTransfer, importLooseFiles } from '$lib/storage/import';
 	import {
@@ -86,6 +87,24 @@
 			showInstall = true;
 		}
 	});
+
+	// Pull / clone / discard rewrite storage underneath the open session, so the
+	// editor has to re-read rather than keep serving (and later re-saving) stale text.
+	onMount(() =>
+		onWorkingTreeChanged(async (changed) => {
+			if (changed !== id || !ctrl) return;
+			try {
+				const files = await readFiles(id);
+				binary = new SvelteMap(binaryMap(files));
+				latest = toGlyphFiles(files);
+				await ctrl.files.reloadFrom(latest.map((f) => ({ name: f.name, content: f.content })));
+				const found = await getProject(id);
+				if (found) project = found;
+			} catch (error) {
+				toast.error(error instanceof Error ? error.message : 'Could not reload this document.');
+			}
+		})
+	);
 
 	// The workbench owns `mainId`; mirror the stored entry into it once mounted so
 	// the Explorer's "main" badge and the compile entry agree.
@@ -328,6 +347,8 @@
 				projectName={project.name}
 				{initialFiles}
 				{saving}
+				git={gitProvider}
+				gitRoot={gitRootFor(project.id)}
 				backHref={resolve('/workspace')}
 				backLabel="Documents"
 				onRenameProject={rename}

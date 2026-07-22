@@ -6,6 +6,7 @@
     GitHeadInfo,
     GitProvider,
     GitRemote,
+    GitSettings,
   } from "./git-panel/types";
 </script>
 
@@ -26,6 +27,7 @@
   import HistorySection from "./git-panel/history-section.svelte";
   import RemotesSection from "./git-panel/remotes-section.svelte";
   import SectionHeader from "./git-panel/section-header.svelte";
+  import SettingsSection from "./git-panel/settings-section.svelte";
   import { GitPanelStore } from "./git-panel/store.svelte";
   import type { GitProvider } from "./git-panel/types";
 
@@ -91,7 +93,7 @@
     class="text-muted-foreground flex flex-col items-center gap-2 px-2 py-8 text-center text-xs"
   >
     <IconGitBranch size={22} />
-    <p>This folder isn't a Git repository yet.</p>
+    <p>This project isn't a Git repository yet.</p>
     <Button
       variant="outline"
       size="sm"
@@ -230,6 +232,8 @@
         </div>
       {/if}
     </div>
+
+    <SettingsSection {store} />
 
     <RemotesSection {store} />
 

@@ -59,7 +59,7 @@
 
 				<div class="mt-7 flex items-center gap-2">
 					{#each footerSocials as social (social.label)}
-						{const Icon = socialIcons[social.label as keyof typeof socialIcons]}
+						{@const Icon = socialIcons[social.label as keyof typeof socialIcons]}
 						<a
 							href={hrefFor(social.href, social.external)}
 							aria-label={social.label}

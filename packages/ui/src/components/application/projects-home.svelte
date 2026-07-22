@@ -68,6 +68,7 @@
 		oncreate,
 		onopenfolder,
 		onimport,
+		onimportfolder,
 		onclone,
 		onopen,
 		onrename,
@@ -90,8 +91,10 @@
 		oncreate?: () => string | void | Promise<string | void>;
 		/** Open an existing project folder from disk (desktop). */
 		onopenfolder?: () => void;
-		/** Import a .zip project (desktop). */
+		/** Import a .zip project. */
 		onimport?: () => void;
+		/** Import a folder from disk, copying it into the project store. */
+		onimportfolder?: () => void;
 		/** Clone a Git repository by URL (desktop). */
 		onclone?: (url: string) => void | Promise<void>;
 		onopen?: (id: string) => void;
@@ -123,7 +126,7 @@
 
 	const scope = $derived(activeScope);
 	let sort = $state<Sort>('newest');
-	let dense = $state(false);
+	let view = $state<'grid' | 'list'>('grid');
 	let query = $state('');
 	let renaming = $state<string | null>(null);
 	let renameValue = $state('');
@@ -197,12 +200,11 @@
 		{ id: 'templates', label: 'Templates', icon: IconTemplate }
 	];
 
-	// Overrides on SidebarMenuButton: taller rows, 18px icons, and a brand-tinted
-	// active state instead of the default neutral accent fill.
-	const navRow =
-		'h-10 rounded-lg px-3 text-md data-active:bg-brand-subtle data-active:text-brand [&_svg]:size-[1.125rem]';
+	// Height, text size, and icon size all come from SidebarMenuButton's defaults so
+	// every row matches. Brand shows as the active label colour, not a filled block.
+	const navRow = 'rounded-lg px-3 data-active:text-brand';
 	/** Footer rows never take an active state — they are actions, not locations. */
-	const actionRow = `${navRow} text-muted-foreground hover:text-foreground`;
+	const actionRow = 'rounded-lg px-3 text-muted-foreground hover:text-foreground';
 
 	const sorts: { id: Sort; label: string }[] = [
 		{ id: 'newest', label: 'Newest first' },
@@ -263,14 +265,89 @@
 
 </script>
 
+{#snippet projectTitle(p: Project)}
+	{#if renaming === p.id}
+		<!-- svelte-ignore a11y_autofocus -->
+		<input
+			bind:value={renameValue}
+			class="bg-card border-border text-foreground focus-visible:border-ring w-full rounded-md border px-1.5 py-0.5 text-sm font-medium outline-none"
+			autofocus
+			onkeydown={(e) => {
+				if (e.key === 'Enter') commitRename(p.id);
+				if (e.key === 'Escape') renaming = null;
+			}}
+			onblur={() => commitRename(p.id)}
+		/>
+	{:else}
+		<button
+			class="text-foreground hover:text-brand ease-craft block max-w-full truncate text-left text-sm font-medium transition-colors"
+			onclick={() => onopen?.(p.id)}
+		>
+			{p.name}
+		</button>
+	{/if}
+	<p class="text-muted-foreground mt-0.5 truncate text-xs">
+		{#if p.root}
+			<span title={p.root}>Edited {relativeTime(p.updatedAt)}</span>
+		{:else}
+			{p.files.length}
+			{p.files.length === 1 ? 'file' : 'files'} · {relativeTime(p.updatedAt)}
+		{/if}
+	</p>
+{/snippet}
+
+{#snippet projectActions(p: Project)}
+	<DropdownMenu>
+		<DropdownMenuTrigger>
+			{#snippet child({ props })}
+				<button
+					{...props}
+					class="text-muted-foreground hover:bg-muted hover:text-foreground ease-craft -mr-1 grid size-7 shrink-0 place-items-center rounded-md opacity-0 transition-[opacity,colors] duration-200 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+					title="Project actions"
+					aria-label={`Actions for ${p.name}`}
+				>
+					<IconDotsVertical size={15} />
+				</button>
+			{/snippet}
+		</DropdownMenuTrigger>
+		<DropdownMenuContent align="end" class="w-50">
+			{#if onstar}
+				<DropdownMenuItem onclick={() => onstar?.(p.id, !p.starred)}>
+					{#if p.starred}
+						<IconStarFilled class="text-warning" /> Unstar
+					{:else}
+						<IconStar class="text-muted-foreground" /> Star
+					{/if}
+				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+			{/if}
+			<DropdownMenuItem onclick={() => startRename(p)}>
+				<IconPencil class="text-muted-foreground" /> Rename
+			</DropdownMenuItem>
+			<DropdownMenuItem onclick={() => onduplicate?.(p.id)}>
+				<IconCopy class="text-muted-foreground" /> Duplicate
+			</DropdownMenuItem>
+			{#if onreveal && p.root}
+				<DropdownMenuItem onclick={() => onreveal?.(p.id)} class="whitespace-nowrap">
+					<IconFolderShare class="text-muted-foreground" /> Reveal in file manager
+				</DropdownMenuItem>
+			{/if}
+			<DropdownMenuSeparator />
+			<DropdownMenuItem variant="destructive" onclick={() => (pendingDelete = p)}>
+				<IconTrash /> Delete
+			</DropdownMenuItem>
+		</DropdownMenuContent>
+	</DropdownMenu>
+{/snippet}
+
 <Sidebar.Provider class="text-foreground h-dvh min-h-0">
 	<Sidebar.Root variant="inset" collapsible="icon">
 		<Sidebar.Header class="h-14 justify-center px-3 group-data-[collapsible=icon]:px-0">
 			<Logo
-				size={28}
+				size="md"
 				badge
 				viewTransitionName="app-logo"
-				class="text-base tracking-tight group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:[&>span:last-child]:hidden"
+				class="tracking-tight group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:[&>span:last-child]:hidden"
 			/>
 		</Sidebar.Header>
 
@@ -354,10 +431,10 @@
 				<div
 					class="border-sidebar-border bg-card rounded-xl border p-3 group-data-[collapsible=icon]:hidden"
 				>
-					<div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
-						<IconCloud size={16} class="shrink-0" /> Local storage
+					<div class="text-muted-foreground flex items-center gap-2 text-xs font-medium">
+						<IconCloud size={14} class="shrink-0" /> Local storage
 					</div>
-					<div class="bg-muted mt-2.5 h-1.5 overflow-hidden rounded-full">
+					<div class="bg-muted mt-2 h-1 overflow-hidden rounded-full">
 						<div
 							class="h-full rounded-full transition-[width] duration-500 {tight
 								? 'bg-warning'
@@ -371,6 +448,10 @@
 				</div>
 			{/if}
 		</Sidebar.Footer>
+
+		<!-- Drag-handle-looking strip on the sidebar's edge; clicking it toggles
+		     collapse, matching the Trigger in the content header. -->
+		<Sidebar.Rail />
 	</Sidebar.Root>
 
 	<!-- `bg-card`, not the inset's default `bg-background`: in dark this panel is
@@ -416,7 +497,7 @@
 				<div class="flex flex-wrap items-center gap-2">
 					<!-- Every "bring in an existing project" action collapses into this one
 					     menu so the primary New-project button stays unambiguous. -->
-					{#if onopenfolder || onimport || onclone}
+					{#if onopenfolder || onimport || onimportfolder || onclone}
 						<DropdownMenu>
 							<DropdownMenuTrigger>
 								{#snippet child({ props })}
@@ -430,6 +511,11 @@
 								{#if onopenfolder}
 									<DropdownMenuItem onclick={() => onopenfolder?.()}>
 										<IconFolderOpen class="text-muted-foreground" /> Open folder…
+									</DropdownMenuItem>
+								{/if}
+								{#if onimportfolder}
+									<DropdownMenuItem onclick={() => onimportfolder?.()}>
+										<IconFolderOpen class="text-muted-foreground" /> Import folder…
 									</DropdownMenuItem>
 								{/if}
 								{#if onimport}
@@ -520,24 +606,28 @@
 					</DropdownMenuContent>
 				</DropdownMenu>
 
-				<div class="border-border flex h-10 items-center gap-0.5 rounded-xl border p-1">
+				<div
+					class="border-border flex h-10 items-center gap-0.5 rounded-xl border p-1"
+					role="group"
+					aria-label="View mode"
+				>
 					<Button
-						variant={dense ? 'ghost' : 'secondary'}
+						variant={view === 'grid' ? 'secondary' : 'ghost'}
 						size="icon-sm"
-						title="Comfortable grid"
-						aria-label="Comfortable grid"
-						aria-pressed={!dense}
-						onclick={() => (dense = false)}
+						title="Grid view"
+						aria-label="Grid view"
+						aria-pressed={view === 'grid'}
+						onclick={() => (view = 'grid')}
 					>
 						<IconLayoutGrid />
 					</Button>
 					<Button
-						variant={dense ? 'secondary' : 'ghost'}
+						variant={view === 'list' ? 'secondary' : 'ghost'}
 						size="icon-sm"
-						title="Dense grid"
-						aria-label="Dense grid"
-						aria-pressed={dense}
-						onclick={() => (dense = true)}
+						title="List view"
+						aria-label="List view"
+						aria-pressed={view === 'list'}
+						onclick={() => (view = 'list')}
 					>
 						<IconLayoutList />
 					</Button>
@@ -552,24 +642,39 @@
 			{#if loading}
 				<!-- Skeletons, not a full-page spinner: the rail and toolbar are already
 				     correct, so only the unknown region should be in a loading state. -->
-				<div
-					class="mt-7 grid gap-x-5 gap-y-7 {dense
-						? 'grid-cols-[repeat(auto-fill,minmax(150px,1fr))]'
-						: 'grid-cols-[repeat(auto-fill,minmax(190px,1fr))]'}"
-					aria-busy="true"
-					aria-label="Loading projects"
-					role="status"
-				>
-					{#each { length: 6 } as _, i (i)}
-						<div class="animate-pulse" style:animation-delay={`${i * 70}ms`}>
-							<div class="bg-muted aspect-[4/5] rounded-xl"></div>
-							<div class="mt-2.5 space-y-1.5 px-0.5">
-								<div class="bg-muted h-3 w-3/5 rounded-full"></div>
-								<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
+				{#if view === 'list'}
+					<div class="mt-6 flex flex-col gap-1.5" aria-busy="true" aria-label="Loading projects" role="status">
+						{#each { length: 6 } as _, i (i)}
+							<div
+								class="border-border flex animate-pulse items-center gap-3 rounded-xl border px-3 py-2.5"
+								style:animation-delay={`${i * 70}ms`}
+							>
+								<div class="bg-muted size-9 shrink-0 rounded-lg"></div>
+								<div class="flex-1 space-y-1.5">
+									<div class="bg-muted h-3 w-1/4 rounded-full"></div>
+									<div class="bg-muted h-2.5 w-1/6 rounded-full"></div>
+								</div>
 							</div>
-						</div>
-					{/each}
-				</div>
+						{/each}
+					</div>
+				{:else}
+					<div
+						class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-5 gap-y-7"
+						aria-busy="true"
+						aria-label="Loading projects"
+						role="status"
+					>
+						{#each { length: 6 } as _, i (i)}
+							<div class="animate-pulse" style:animation-delay={`${i * 70}ms`}>
+								<div class="bg-muted aspect-[4/5] rounded-xl"></div>
+								<div class="mt-2.5 space-y-1.5 px-0.5">
+									<div class="bg-muted h-3 w-3/5 rounded-full"></div>
+									<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
 			{:else if filtered.length === 0}
 				<div
 					class="border-border text-muted-foreground mt-8 flex flex-col items-center gap-4 rounded-2xl border border-dashed py-20 text-center"
@@ -606,11 +711,59 @@
 						</p>
 					{/if}
 				</div>
+			{:else if view === 'list'}
+				<div class="mt-6 flex flex-col gap-1.5" role="list" aria-label="Projects">
+					<button
+						class="group border-border hover:border-ring/50 hover:bg-muted/30 ease-craft flex items-center gap-3 rounded-xl border border-dashed px-3 py-2.5 text-left transition-colors"
+						in:fly={{ y: 6, duration: 260, easing: cubicOut }}
+						onclick={handleCreate}
+					>
+						<span
+							class="bg-muted text-muted-foreground group-hover:bg-brand-subtle group-hover:text-brand ease-craft grid size-9 shrink-0 place-items-center rounded-lg transition-colors"
+						>
+							<IconPlus size={17} />
+						</span>
+						<span class="text-muted-foreground group-hover:text-foreground text-sm font-medium">
+							New project
+						</span>
+					</button>
+
+					{#each filtered as p, i (p.id)}
+						<div
+							class="group border-border hover:bg-muted/40 ease-craft flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors"
+							role="listitem"
+							in:fly={{ y: 6, duration: 260, delay: Math.min(i, 12) * 18, easing: cubicOut }}
+							out:fade={{ duration: 120, easing: cubicOut }}
+							animate:flip={{ duration: 280, easing: cubicOut }}
+						>
+							<button
+								class="border-border bg-card ease-craft grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg border transition-shadow group-hover:shadow-craft-sm"
+								style:view-transition-name={projectViewTransitionName(p.id)}
+								style:view-transition-class="morph-surface"
+								onclick={() => onopen?.(p.id)}
+								aria-label={`Open ${p.name}`}
+							>
+								<span class="flex w-full flex-col gap-[3px] px-2" aria-hidden="true">
+									<span class="bg-foreground/70 h-[3px] w-3/5 rounded-full"></span>
+									<span class="bg-foreground/15 h-[2px] w-full rounded-full"></span>
+									<span class="bg-foreground/15 h-[2px] w-4/5 rounded-full"></span>
+								</span>
+							</button>
+
+							<div class="min-w-0 flex-1">
+								{@render projectTitle(p)}
+							</div>
+
+							{#if p.starred}
+								<IconStarFilled class="text-warning size-3.5 shrink-0" />
+							{/if}
+							{@render projectActions(p)}
+						</div>
+					{/each}
+				</div>
 			{:else}
 				<div
-					class="mt-7 grid gap-x-5 gap-y-7 {dense
-						? 'grid-cols-[repeat(auto-fill,minmax(150px,1fr))]'
-						: 'grid-cols-[repeat(auto-fill,minmax(190px,1fr))]'}"
+					class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-5 gap-y-7"
 					role="list"
 					aria-label="Projects"
 				>
@@ -683,77 +836,9 @@
 
 							<div class="mt-2.5 flex items-start justify-between gap-1.5 px-0.5">
 								<div class="min-w-0 flex-1">
-									{#if renaming === p.id}
-										<!-- svelte-ignore a11y_autofocus -->
-										<input
-											bind:value={renameValue}
-											class="bg-card border-border text-foreground focus-visible:border-ring w-full rounded-md border px-1.5 py-0.5 text-sm font-medium outline-none"
-											autofocus
-											onkeydown={(e) => {
-												if (e.key === 'Enter') commitRename(p.id);
-												if (e.key === 'Escape') renaming = null;
-											}}
-											onblur={() => commitRename(p.id)}
-										/>
-									{:else}
-										<button
-											class="text-foreground hover:text-brand ease-craft block max-w-full truncate text-left text-sm font-medium transition-colors"
-											onclick={() => onopen?.(p.id)}
-										>
-											{p.name}
-										</button>
-									{/if}
-									<p class="text-muted-foreground mt-0.5 truncate text-xs">
-										{#if p.root}
-											<span title={p.root}>Edited {relativeTime(p.updatedAt)}</span>
-										{:else}
-											{p.files.length}
-											{p.files.length === 1 ? 'file' : 'files'} · {relativeTime(p.updatedAt)}
-										{/if}
-									</p>
+									{@render projectTitle(p)}
 								</div>
-
-								<DropdownMenu>
-									<DropdownMenuTrigger>
-										{#snippet child({ props })}
-											<button
-												{...props}
-												class="text-muted-foreground hover:bg-muted hover:text-foreground ease-craft -mr-1 grid size-7 shrink-0 place-items-center rounded-md opacity-0 transition-[opacity,colors] duration-200 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
-												title="Project actions"
-												aria-label={`Actions for ${p.name}`}
-											>
-												<IconDotsVertical size={15} />
-											</button>
-										{/snippet}
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align="end" class="w-50">
-										{#if onstar}
-											<DropdownMenuItem onclick={() => onstar?.(p.id, !p.starred)}>
-												{#if p.starred}
-													<IconStarFilled class="text-warning" /> Unstar
-												{:else}
-													<IconStar class="text-muted-foreground" /> Star
-												{/if}
-											</DropdownMenuItem>
-											<DropdownMenuSeparator />
-										{/if}
-										<DropdownMenuItem onclick={() => startRename(p)}>
-											<IconPencil class="text-muted-foreground" /> Rename
-										</DropdownMenuItem>
-										<DropdownMenuItem onclick={() => onduplicate?.(p.id)}>
-											<IconCopy class="text-muted-foreground" /> Duplicate
-										</DropdownMenuItem>
-										{#if onreveal && p.root}
-											<DropdownMenuItem onclick={() => onreveal?.(p.id)} class="whitespace-nowrap">
-												<IconFolderShare class="text-muted-foreground" /> Reveal in file manager
-											</DropdownMenuItem>
-										{/if}
-										<DropdownMenuSeparator />
-										<DropdownMenuItem variant="destructive" onclick={() => (pendingDelete = p)}>
-											<IconTrash /> Delete
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
+								{@render projectActions(p)}
 							</div>
 						</div>
 					{/each}

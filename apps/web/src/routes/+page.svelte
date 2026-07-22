@@ -19,7 +19,6 @@
 	import { SectionHeader } from '@glyphtex/ui/section-header';
 	import {
 		IconArrowRight,
-		IconArrowUp,
 		IconBolt,
 		IconBook2,
 		IconBrandGithub,
@@ -41,7 +40,6 @@
 		IconSearch,
 		IconShield,
 		IconStack3,
-		IconStar,
 		IconUsersGroup,
 		IconWifiOff,
 		IconWriting
@@ -81,25 +79,22 @@
 	// uppercase eyebrow, and quiet brand logos. Logos fetched from
 	// simpleicons.org CDN; lazy-loaded so they don't gate first paint.
 	const techLogos = [
-		{ name: 'Tectonic', slug: 'tectonic', href: 'https://tectonic-typesetting.github.io' },
 		{ name: 'Tauri', slug: 'tauri', href: 'https://tauri.app' },
 		{ name: 'Rust', slug: 'rust', href: 'https://www.rust-lang.org' },
 		{ name: 'Svelte', slug: 'svelte', href: 'https://svelte.dev' },
 		{ name: 'TypeScript', slug: 'typescript', href: 'https://www.typescriptlang.org' },
 		{ name: 'Vite', slug: 'vite', href: 'https://vitejs.dev' },
 		{ name: 'Git', slug: 'git', href: 'https://git-scm.com' },
+		{ name: 'Wasmer', slug: 'wasm', href: 'https://webassembly.org' },
 		{ name: 'TeX', slug: 'latex', href: 'https://www.latex-project.org' }
 	];
 
-	// Cloud LaTeX pain points. Each row is a concrete friction researchers
-	// hit with cloud LaTeX, with a category icon and a count that mirrors
-	// the "this many users have hit this" framing of the inspiration.
-	// The right-hand solution card answers each one in the same order.
+	// Concrete frictions researchers hit with cloud LaTeX. The right-hand
+	// solution card answers each one in the same order.
 	type PainPoint = {
 		id: string;
 		title: string;
 		description: string;
-		count: number;
 		icon: typeof IconClock;
 		iconBg: string;
 		iconColor: string;
@@ -111,7 +106,6 @@
 			title: 'Compile queue times out before the bibliography is done.',
 			description:
 				'A 30-second biber run becomes a 4-minute wait when the shared queue is busy. The deadline does not care.',
-			count: 95,
 			icon: IconClock,
 			iconBg: 'bg-amber-500/10',
 			iconColor: 'text-amber-500'
@@ -121,7 +115,6 @@
 			title: 'Per-seat licensing blocks the whole lab from editing.',
 			description:
 				'Procurement caps the seat count. The undergrad who needs to proofread gets locked out.',
-			count: 67,
 			icon: IconLock,
 			iconBg: 'bg-orange-500/10',
 			iconColor: 'text-orange-500'
@@ -130,7 +123,6 @@
 			id: 'privacy',
 			title: 'Unpublished drafts sit on a third-party server.',
 			description: 'Submission-ready manuscripts leave traces somewhere you do not control.',
-			count: 52,
 			icon: IconShield,
 			iconBg: 'bg-rose-500/10',
 			iconColor: 'text-rose-500'
@@ -140,7 +132,6 @@
 			title: 'Full history is locked behind the paid tier.',
 			description:
 				'Free plans cap revisions. The paper you wrote last year has its diffs paywalled.',
-			count: 47,
 			icon: IconHistory,
 			iconBg: 'bg-violet-500/10',
 			iconColor: 'text-violet-500'
@@ -150,7 +141,6 @@
 			title: 'A browser tab that needs to stay open all day.',
 			description:
 				'Close it for a meeting and the compile dies. Save your work, lose your session.',
-			count: 32,
 			icon: IconBrowser,
 			iconBg: 'bg-sky-500/10',
 			iconColor: 'text-sky-500'
@@ -159,7 +149,6 @@
 			id: 'network',
 			title: 'Dropped connection mid-compile during a deadline.',
 			description: 'Cloud latency or a wifi blip mid-build means starting over. Every time.',
-			count: 24,
 			icon: IconWifiOff,
 			iconBg: 'bg-pink-500/10',
 			iconColor: 'text-pink-500'
@@ -175,18 +164,7 @@
 		'Compile on your machine, instantly. No queue, no limits.',
 		'Free for everyone, forever. No subscriptions, no per-seat fees.',
 		'Your drafts stay on your own disk. Every revision is tracked.',
-		'A real desktop app, or a browser tab for quick edits.'
-	];
-
-	// Dummy avatar set. The hue rotates so each circle reads as a
-	// distinct person without photos or a network call. Used in the
-	// solution card's "used at research labs" footer.
-	type AvatarPerson = { name: string; hue: number; sat: number };
-	const avatarPeople: AvatarPerson[] = [
-		{ name: 'AK', hue: 215, sat: 55 },
-		{ name: 'SR', hue: 145, sat: 45 },
-		{ name: 'MJ', hue: 30, sat: 60 },
-		{ name: 'LP', hue: 280, sat: 45 }
+		'Open a browser tab and write. Nothing to install, no account.'
 	];
 
 	// PolishGrid features. The "applied automatically" beat that tells
@@ -348,9 +326,9 @@
 		{
 			label: 'For institutions',
 			price: 'Free',
-			body: 'No per-seat fees, no licence server, no procurement paperwork. Deploy on every lab machine and walk away.',
-			href: repo,
-			cta: 'Talk to us'
+			body: 'No per-seat fees, no licence server, no procurement paperwork. GPLv3, so the licence review is a short one.',
+			href: `${repo}/blob/main/LICENSE`,
+			cta: 'Read the licence'
 		}
 	];
 
@@ -360,15 +338,15 @@
 	const faqs: Faq[] = [
 		{
 			q: 'Can I bring my Overleaf project into GlyphTeX?',
-			a: 'Yes. Export from Overleaf as a .zip (or pull the Git repo, if your project uses one) and open the folder in GlyphTeX. The source stays plain .tex and .bib files; nothing is reshaped.'
+			a: 'Yes. Export from Overleaf as a .zip and drop it into the workspace. The source stays plain .tex and .bib files; nothing is reshaped, and you can export the folder again at any time.'
 		},
 		{
 			q: 'Does GlyphTeX support biblatex and biber?',
-			a: 'Yes. The desktop app uses the bundled Tectonic engine by default, and you can point it at any system TeX installation that has biblatex and biber installed. The web build compiles a TeX Live set in the browser.'
+			a: 'Yes. GlyphTeX bundles the Tectonic engine with a TeX Live package set and pulls what your document asks for, biblatex and biber included. Nothing to install separately.'
 		},
 		{
 			q: 'Will it handle a 300-page thesis?',
-			a: 'Yes. Projects are split across chapters and includes, and the outline panel mirrors the structure. Compile runs locally so the only practical limit is your machine.'
+			a: 'Yes. Projects split across chapters and includes, and the outline panel mirrors the structure. Compiling happens on your own hardware, so the only practical limit is your machine.'
 		},
 		{
 			q: 'Can my students use it without paying?',
@@ -376,11 +354,11 @@
 		},
 		{
 			q: 'Does it work offline?',
-			a: 'The desktop app compiles entirely on your machine. The web build downloads the engine once and then runs offline too. Nothing uploads by default.'
+			a: 'Yes. The workspace downloads the engine once, then compiles in the tab with no network at all. Your files live in browser storage on your own device; nothing uploads.'
 		},
 		{
 			q: 'How do collaborators share a manuscript?',
-			a: 'Use any Git remote: GitHub, GitLab, a self-hosted Gitea, or your university server. GlyphTeX has a built-in Git UI, so commits, branches, and merges never need a separate tool.'
+			a: 'Export the project folder and push it to any Git remote you already use: GitHub, GitLab, a self-hosted Gitea, or a university server. A built-in Git client exists in the desktop shell, which is paused for now.'
 		},
 		{
 			q: 'Does SyncTeX work?',
@@ -388,7 +366,7 @@
 		},
 		{
 			q: 'Can I run it on a university-managed machine?',
-			a: 'Yes. The desktop app installs per-user with no admin rights required on Windows and macOS, and is a flat .deb / .AppImage on Linux. No kernel module, no driver, no daemon.'
+			a: 'Yes. The workspace is a web page, so there is nothing to install and no admin rights to request. If a managed browser blocks site storage, use a normal window and export your project when you finish.'
 		}
 	];
 
@@ -398,16 +376,37 @@
 
 <svelte:head>
 	<title>GlyphTeX · A local-first LaTeX editor for academic writing</title>
+	<link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin="anonymous" />
 	<meta
 		name="description"
 		content="GlyphTeX is a local-first LaTeX editor for academic writing. Plain .tex projects, compiled on your machine, versioned with Git. GPLv3, free for individuals and institutions."
 	/>
 </svelte:head>
 
+{#snippet techLogo(logo: (typeof techLogos)[number], duplicate = false)}
+	<a
+		href={logo.href}
+		target="_blank"
+		rel="noopener noreferrer"
+		class="text-foreground/55 hover:text-foreground flex shrink-0 items-center gap-2.5 opacity-60 grayscale transition-[opacity,filter,color] duration-200 hover:opacity-100 hover:grayscale-0"
+		title={logo.name}
+		aria-hidden={duplicate ? 'true' : undefined}
+		tabindex={duplicate ? -1 : undefined}
+	>
+		<img
+			src="https://cdn.simpleicons.org/{logo.slug}/9ca3af"
+			alt={duplicate ? '' : `${logo.name} logo`}
+			loading="lazy"
+			decoding="async"
+			width="20"
+			height="20"
+			class="h-5 w-5 dark:invert"
+		/>
+		<span class="text-sm font-semibold tracking-tight">{logo.name}</span>
+	</a>
+{/snippet}
+
 <div class="min-h-screen bg-canvas font-sans text-ink antialiased selection:bg-brand-subtle">
-	<!-- Site background grid sits behind every section, faded toward the
-	     edges. Same idea as the trace-mvp grid: anchors the page when the
-	     photo backdrop is not visible. -->
 	<div
 		aria-hidden="true"
 		class="landing-bg-grid landing-bg-grid-fade pointer-events-none fixed inset-0 -z-10 opacity-30"
@@ -416,174 +415,115 @@
 	<SiteHeader />
 
 	<main>
-		<!--
-		  Hero. Contained rounded card (not full-bleed) with a subtle
-		  gradient + dot-pattern backdrop and decorative plus marks. Layout
-		  mirrors the React reference: headline + body + CTAs on the left, a
-		  secondary CTA card on the right. Entrance motion runs through Svelte
-		  native transitions (svelte/transition) — no framer-motion dependency.
+		<section class="relative min-h-dvh w-full overflow-hidden">
+			<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
 
-		  Below the card: a marquee of the tech stack, no photo of the editor
-		  yet (the editor preview moved into the Step 1 showcase below).
-		-->
-		<!--
-		  pt-20 (80px) clears the surface-mounted nav (nav is fixed at
-		  top-0 and ~60px tall). The nav transitions to floating on scroll,
-		  so this gap stays consistent with the page chrome either way.
-		-->
-		<section class="relative px-4 pt-20 pb-12 md:px-10 md:pt-24 md:pb-16">
-			<!--
-			  Hero card. The floating nav sits at top-4 with ~52px of chrome,
-			  so pt-32/40 clears it on every viewport. Single centered column
-			  inside the rounded card — the HeroBackdrop wash handles the
-			  photo-to-text fade so the headline stays readable on top of
-			  the default backdrop. No right-side card, no decorative plus
-			  marks; everything that fought for attention now lives below.
-			-->
 			<div
-				class="relative mx-auto max-w-[1410px] overflow-hidden rounded-[2rem] border border-hairline"
+				class="relative z-10 mx-auto flex min-h-dvh max-w-7xl flex-col justify-center px-6 pt-28 pb-16 lg:px-10"
 			>
-				<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
-
-				<!--
-				  Two-zone layout. The badge sits at the top of the card as its
-				  own beat; the rest of the content (headline, tagline, body,
-				  CTAs, trust strip) is a single column anchored to the bottom
-				  via justify-between. The empty middle stays photo-first so
-				  the photo carries the visual weight, not the type.
-
-				  Spacing rhythm (UX) inside the bottom column:
-				    headline → tagline    mt-2   (tight, same statement)
-				    tagline → body       mt-5   (medium, narrative shift)
-				    body → CTA           mt-6   (the action moment)
-				    CTA → trust strip    mt-5   (quiet, supporting)
-				-->
-				<div
-					class="relative z-10 flex min-h-120 flex-col justify-between gap-8 px-6 py-10 md:min-h-145 md:px-12 md:py-14 lg:px-16"
+				<a
+					href={repo}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="landing-glass-chip mb-8 inline-flex w-fit items-center gap-1.5 self-start rounded-full px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:text-foreground"
+					in:fly={{ y: 8, duration: 500, delay: 0, easing: cubicOut }}
 				>
-					<!-- Top: badge as its own beat -->
-					<a
-						href={repo}
-						target="_blank"
-						rel="noopener noreferrer"
-						class="landing-glass-chip inline-flex w-fit items-center gap-1.5 self-start rounded-full px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:text-foreground"
-						in:fly={{ y: 8, duration: 500, delay: 0, easing: cubicOut }}
+					<IconBrandGithub class="size-3.5" />
+					Open source · GPLv3
+				</a>
+
+				<div class="flex max-w-2xl flex-col items-start text-left">
+					<h1
+						class="landing-text-balance text-[2.5rem] font-bold leading-[1.05] tracking-[-0.025em] text-foreground sm:text-5xl md:text-[3rem]"
+						in:fly={{ y: 12, duration: 600, delay: 80, easing: cubicOut }}
 					>
-						<IconBrandGithub class="size-3.5" />
-						Open source · GPLv3
-					</a>
-
-					<!-- Bottom: headline + tagline + body + CTAs + trust strip -->
-					<div class="flex max-w-2xl flex-col items-start text-left">
-						<h1
-							class="landing-text-balance text-[2.5rem] font-bold leading-[1.05] tracking-[-0.025em] text-foreground sm:text-5xl md:text-[3rem]"
-							in:fly={{ y: 12, duration: 600, delay: 80, easing: cubicOut }}
+						LaTeX, on your machine.
+						<span
+							class="mt-2 block font-serif text-xl font-medium italic text-foreground/65 sm:text-2xl md:text-3xl"
+							style="line-height: 1.15;"
 						>
-							LaTeX, on your machine.
-							<span
-								class="mt-2 block font-serif text-xl font-medium italic text-foreground/65 sm:text-2xl md:text-3xl"
-								style="line-height: 1.15;"
-							>
-								Write your
-								<ContainerTextFlip words={rotatingWords} interval={2600} />
-							</span>
-						</h1>
+							Write your
+							<ContainerTextFlip words={rotatingWords} interval={2600} />
+						</span>
+					</h1>
 
-						<p
-							class="landing-text-pretty mt-5 max-w-xl text-sm font-medium leading-relaxed text-foreground/85 sm:text-lg"
-							in:fly={{ y: 12, duration: 600, delay: 160, easing: cubicOut }}
-						>
-							A local-first LaTeX editor for academic writing. Open a thesis, a paper, or a set of
-							lecture notes. Compile on your machine. Track every revision in Git.
-						</p>
+					<p
+						class="landing-text-pretty mt-5 max-w-xl text-base font-medium leading-relaxed text-foreground/85 sm:text-lg"
+						in:fly={{ y: 12, duration: 600, delay: 160, easing: cubicOut }}
+					>
+						A local-first LaTeX editor for academic writing. Open a thesis, a paper, or a set of
+						lecture notes. Compile on your machine. Track every revision in Git.
+					</p>
 
-						<div
-							class="mt-6 flex flex-col items-start gap-3 sm:flex-row"
-							in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
-						>
-							<!-- Desktop download is hidden until the app is no longer a prototype.
+					<div
+						class="mt-6 flex flex-col items-start gap-3 sm:flex-row"
+						in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
+					>
+						<!-- Desktop download is hidden until the app is no longer a prototype.
 							     Restore this button (and the /download nav entry) at release. -->
-							<Button
-								href={resolve('/workspace')}
-								variant="default"
-								size="lg"
-								class="group/cta gap-2.5"
-								onclick={() => trackEvent('cta_workspace_click', { location: 'hero' })}
-							>
-								<IconPlayerPlay class="size-4" />
-								Try the workspace
-								<IconArrowRight
-									class="size-4 transition-transform group-hover/cta:translate-x-0.5"
-								/>
-							</Button>
-							<Button
-								href={repo}
-								target="_blank"
-								rel="noopener noreferrer"
-								variant="outline"
-								size="lg"
-								class="group/star gap-2"
-							>
-								<IconStar
-									class="size-4 transition-colors group-hover/star:fill-warning group-hover/star:text-warning"
-								/>
-								Star the repo
-							</Button>
-						</div>
-
-						<div
-							class="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium tracking-wide text-foreground/70"
-							in:fly={{ y: 8, duration: 500, delay: 320, easing: cubicOut }}
+						<Button
+							href={resolve('/workspace')}
+							variant="default"
+							size="lg"
+							class="group/cta gap-2.5"
+							onclick={() => trackEvent('cta_workspace_click', { location: 'hero' })}
 						>
-							<span class="relative flex size-1.5">
-								<span
-									class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand/60 opacity-70"
-								></span>
-								<span class="relative inline-flex size-1.5 rounded-full bg-brand"></span>
-							</span>
-							Free · No account · Runs in your browser · Files stay on your device
-						</div>
+							<IconPlayerPlay class="size-4" />
+							Try the workspace
+							<IconArrowRight class="size-4 transition-transform group-hover/cta:translate-x-0.5" />
+						</Button>
+						<Button
+							href={repo}
+							target="_blank"
+							rel="noopener noreferrer"
+							variant="outline"
+							size="lg"
+							class="group/star gap-2"
+						>
+							<IconBrandGithub class="size-4" />
+							Star the repo
+						</Button>
+					</div>
+
+					<div
+						class="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium tracking-wide text-foreground/70"
+						in:fly={{ y: 8, duration: 500, delay: 320, easing: cubicOut }}
+					>
+						<span class="relative flex size-1.5">
+							<span
+								class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand/60 opacity-70"
+							></span>
+							<span class="relative inline-flex size-1.5 rounded-full bg-brand"></span>
+						</span>
+						Free · No account · Runs in your browser · Files stay on your device
 					</div>
 				</div>
 			</div>
+		</section>
 
-			<!--
-			  Tech-stack marquee. Single quiet row below the hero card. The
-			  list is duplicated in markup so the CSS translateX(-50%) loop
-			  wraps seamlessly; reduced motion pins the track in place.
-			-->
-			<div class="mx-auto mt-8 flex max-w-[1410px] items-center gap-6 overflow-hidden">
-				<span
-					class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground whitespace-nowrap"
+		<!--
+		  Tech-stack marquee. The track holds two copies of the list so the CSS
+		  translateX(-50%) loop wraps seamlessly; the second copy is hidden from
+		  assistive tech and the tab order so the links aren't announced twice.
+		-->
+		<!-- No border-b: the next Section's `bordered` border-t draws this seam. -->
+		<section class="relative px-4 py-12 md:px-10">
+			<div class="mx-auto max-w-7xl">
+				<p
+					class="text-muted-foreground mb-6 text-center text-[11px] font-semibold tracking-[0.18em] uppercase"
 				>
 					Built on
-				</span>
+				</p>
 				<div
-					class="relative flex-1 overflow-hidden"
-					style="mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);"
+					class="marquee-mask group relative overflow-hidden"
+					style="mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);"
 				>
-					<div class="marquee-track flex items-center gap-10 whitespace-nowrap">
-						{#each [...techLogos, ...techLogos] as logo, i (i)}
-							<a
-								href={logo.href}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="flex shrink-0 items-center gap-2 opacity-50 grayscale transition-opacity hover:opacity-90"
-								title={logo.name}
-							>
-								<img
-									src="https://cdn.simpleicons.org/{logo.slug}/9ca3af"
-									alt="{logo.name} logo"
-									loading="lazy"
-									decoding="async"
-									width="20"
-									height="20"
-									class="h-5 w-5 dark:invert"
-								/>
-								<span class="text-sm font-semibold tracking-tight text-foreground/55">
-									{logo.name}
-								</span>
-							</a>
+					<div class="marquee-track flex w-max items-center gap-12 whitespace-nowrap">
+						{#each techLogos as logo (logo.slug)}
+							{@render techLogo(logo)}
+						{/each}
+						{#each techLogos as logo (`dup-${logo.slug}`)}
+							{@render techLogo(logo, true)}
 						{/each}
 					</div>
 				</div>
@@ -599,11 +539,18 @@
 		<Section spacing="tight" bordered>
 			<Container>
 				<Reveal variant="blur">
-					<ul class="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-7 gap-y-3">
-						{#each openSourceClaims as claim (claim.label)}
-							{const Icon = claim.icon}
-							<li class="inline-flex items-center gap-2 text-[13px] font-medium text-foreground/70">
-								<Icon class="size-4 text-foreground/40" />
+					<!-- Hairline separators keep this from reading as a second loose
+					     logo row directly under the marquee. -->
+					<ul class="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-6 gap-y-4">
+						{#each openSourceClaims as claim, i (claim.label)}
+							{@const Icon = claim.icon}
+							<li
+								class="text-foreground/75 inline-flex items-center gap-2 text-[13px] font-medium {i >
+								0
+									? 'before:bg-hairline before:mr-6 before:hidden before:h-4 before:w-px before:content-[""] sm:before:block'
+									: ''}"
+							>
+								<Icon class="text-foreground/45 size-4 shrink-0" stroke-width={1.75} />
 								{claim.label}
 							</li>
 						{/each}
@@ -656,19 +603,13 @@
 										<point.icon class="size-4" stroke-width={1.75} />
 									</span>
 									<div class="min-w-0 flex-1">
-										<p class="text-sm font-medium leading-snug text-foreground">
+										<p class="text-foreground text-sm leading-snug font-medium">
 											{point.title}
 										</p>
-										<p class="mt-1 text-xs leading-relaxed text-foreground/55">
+										<p class="text-foreground/55 mt-1 text-xs leading-relaxed">
 											{point.description}
 										</p>
 									</div>
-									<span
-										class="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/8 px-2 py-0.5 text-[11px] font-semibold text-warning ring-1 ring-inset ring-warning/20"
-									>
-										<IconArrowUp class="size-3" stroke-width={2.25} />
-										{point.count}
-									</span>
 								</article>
 							</Reveal>
 						{/each}
@@ -742,36 +683,16 @@
 								{/each}
 							</ul>
 
-							<!--
-							  Footer: dummy avatar stack + a single quiet label.
-							  Each avatar is an inline SVG (head + shoulders silhouette
-							  on a coloured background) so it reads as a real person
-							  without pulling photos or hitting a third-party API. The
-							  hue rotates per slot so the row reads as four distinct
-							  people.
-							-->
-							<footer class="mt-auto flex items-center gap-2.5 border-t border-hairline/60 pt-4">
-								<div class="flex -space-x-1.5">
-									{#each avatarPeople as person, i (i)}
-										<span
-											class="grid size-7 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-card"
-											style="background-color: hsl({person.hue} {person.sat}% 58%);"
-											aria-label={person.name}
-										>
-											<svg viewBox="0 0 40 40" class="size-full" aria-hidden="true">
-												<circle cx="20" cy="15" r="5.5" fill="rgba(255,255,255,0.95)" />
-												<path
-													d="M 5 40 C 5 28 12 23 20 23 C 28 23 35 28 35 40 Z"
-													fill="rgba(255,255,255,0.95)"
-												/>
-											</svg>
-										</span>
-									{/each}
-								</div>
+							<footer class="border-hairline/60 mt-auto flex items-center gap-2.5 border-t pt-4">
+								<span
+									class="bg-foreground/5 text-foreground/70 grid size-7 shrink-0 place-items-center rounded-full"
+								>
+									<IconBrandGithub class="size-3.5" />
+								</span>
 								<p class="text-[12px] text-foreground/65">
-									<span class="font-medium text-foreground/85">Used at research labs</span>
+									<span class="text-foreground/85 font-medium">Read it before you trust it</span>
 									<br class="sm:hidden" />
-									<span class="text-foreground/55"> Open source · No telemetry</span>
+									<span class="text-foreground/55"> GPLv3 · No account · No telemetry</span>
 								</p>
 							</footer>
 						</article>
@@ -796,13 +717,13 @@
 								Step 1 · Open
 							</span>
 							<h2
-								class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.25rem]"
+								class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 							>
 								Open the project
 								<span class="block font-medium italic text-foreground/45"> you already have. </span>
 							</h2>
 							<p
-								class="landing-text-pretty mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+								class="landing-text-pretty mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
 							>
 								A GlyphTeX project is a folder of plain .tex files. Bring an Overleaf export, a
 								thesis repo, or a fresh blank document. No reshaping, no proprietary format.
@@ -810,7 +731,7 @@
 
 							<ul class="mt-12 space-y-6">
 								{#each [{ icon: IconFileText, title: 'Overleaf export', description: 'Drag the .zip from Overleaf into GlyphTeX. The folder structure stays intact.' }, { icon: IconGitBranch, title: 'Git repository', description: 'Point GlyphTeX at an existing repo. Pulls, pushes, and history work as expected.' }, { icon: IconFolders, title: 'Plain .tex folder', description: 'A directory of chapters, figures, and a .bib. Open it and start writing.' }] as item, i (item.title)}
-									{const Icon = item.icon}
+									{@const Icon = item.icon}
 									<Reveal as="li" variant="left" delay={i * 70} class="flex items-start gap-4">
 										<span
 											class="landing-glass-chip mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl text-foreground/70"
@@ -867,7 +788,7 @@
 							Step 2 · Compile
 						</span>
 						<h2
-							class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.25rem]"
+							class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 						>
 							The engine runs
 							<span class="block font-medium italic text-foreground/45"> while you write. </span>
@@ -961,14 +882,14 @@
 					</Reveal>
 					<Reveal variant="up" delay={470}>
 						<h2
-							class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
+							class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 						>
 							Three steps. No queue. No ceremony.
 						</h2>
 					</Reveal>
 					<Reveal variant="up" delay={520}>
 						<p
-							class="landing-text-pretty mt-4 max-w-xl mx-auto text-base leading-relaxed text-foreground/70 sm:text-lg"
+							class="landing-text-pretty mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
 						>
 							Open your project, write locally, track every revision. Same LaTeX, just yours.
 						</p>
@@ -1047,13 +968,13 @@
 								Step 3 · Track
 							</span>
 							<h2
-								class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-[3.25rem]"
+								class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 							>
 								History stays
 								<span class="block font-medium italic text-foreground/45"> in your repo. </span>
 							</h2>
 							<p
-								class="landing-text-pretty mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg"
+								class="landing-text-pretty mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
 							>
 								Diffs, commits, branches, and remotes live in your own repository. GlyphTeX helps
 								with the workflow; the archive still belongs to you and the tools you already trust.
@@ -1061,7 +982,7 @@
 
 							<ul class="mt-10 space-y-5">
 								{#each [{ icon: IconGitBranch, title: 'Built-in Git UI', description: 'Stage, commit, branch, and merge without leaving the editor.' }, { icon: IconLock, title: 'No proprietary history tier', description: 'Every revision, forever. The repository is the source of truth.' }, { icon: IconBrandGithub, title: 'Works with your remote', description: 'GitHub, GitLab, a self-hosted Gitea, or your university server.' }] as item, i (item.title)}
-									{const Icon = item.icon}
+									{@const Icon = item.icon}
 									<Reveal as="li" variant="left" delay={i * 70} class="flex items-start gap-4">
 										<span
 											class="landing-glass-chip mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl text-foreground/70"
@@ -1196,14 +1117,14 @@
 					</Reveal>
 					<Reveal variant="up" delay={470}>
 						<h2
-							class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
+							class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 						>
 							Opinionated where it matters, out of your way everywhere else.
 						</h2>
 					</Reveal>
 					<Reveal variant="up" delay={520}>
 						<p
-							class="landing-text-pretty mt-4 max-w-xl mx-auto text-base leading-relaxed text-foreground/70 sm:text-lg"
+							class="landing-text-pretty mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
 						>
 							The workflow GlyphTeX is opinionated about is the one researchers already live in: a
 							folder of .tex files, a bibliography, and a long revision history.
@@ -1218,7 +1139,7 @@
 				-->
 				<div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
 					{#each audienceCards as card, i (card.title)}
-						{const Icon = card.icon}
+						{@const Icon = card.icon}
 						<div
 							in:fly={{
 								y: 20,
@@ -1272,7 +1193,7 @@
 				<SectionHeader
 					eyebrow="For the lab"
 					title="Free for individuals. Free for the institution."
-					description="The same binary, the same engine, the same features. No seat to count, no licence server, no procurement paperwork."
+					description="The same editor and the same engine either way. No seat to count, no licence server, no procurement paperwork."
 					align="center"
 				/>
 
@@ -1315,37 +1236,45 @@
 		-->
 		<Section id="faq" bordered>
 			<Container>
-				<div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
-					<div class="lg:col-span-4">
+				<!-- 5/7 rather than 4/8: at col-span-4 the heading broke onto four lines
+				     against a half-empty answer column. -->
+				<div class="grid gap-12 lg:grid-cols-12 lg:gap-14">
+					<div class="lg:col-span-5">
 						<div class="lg:sticky lg:top-28">
 							<span
-								class="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+								class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.18em] text-foreground/70 uppercase"
 							>
+								<span class="bg-brand size-1.5 rounded-full"></span>
 								FAQ
 							</span>
 							<h2
-								class="landing-text-balance mt-3 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl"
+								class="landing-text-balance mt-5 max-w-sm text-3xl leading-[1.08] font-semibold tracking-tight text-foreground sm:text-4xl"
 							>
-								Questions worth asking before trusting a LaTeX tool.
+								Questions worth asking first.
 							</h2>
-							<p class="mt-4 text-sm leading-relaxed text-muted-foreground">
-								Still wondering something?
-								<a
-									href={repo}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="font-semibold text-brand hover:underline"
-								>
-									Open an issue on GitHub
-								</a>.
+							<p class="text-muted-foreground mt-4 max-w-sm text-sm leading-relaxed text-pretty">
+								Everything here restates a claim made further up the page, so nothing in the answers
+								is a promise the editor doesn't already keep.
 							</p>
+							<a
+								href="{repo}/issues"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="text-brand group/faq mt-5 inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
+							>
+								<IconBrandGithub class="size-4" />
+								Ask something else
+								<IconArrowRight
+									class="size-3.5 transition-transform group-hover/faq:translate-x-0.5"
+								/>
+							</a>
 						</div>
 					</div>
 
-					<div class="lg:col-span-8">
+					<div class="lg:col-span-7">
 						<ul class="space-y-3">
 							{#each faqs as faq, i (faq.q)}
-								{const open = openFaq === i}
+								{@const open = openFaq === i}
 								<li>
 									<!--
 									  Accordion card ported from the trace-mvp reference:
@@ -1411,7 +1340,7 @@
 								class="landing-glass-chip inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/80"
 							>
 								<span class="size-1.5 rounded-full bg-foreground/40"></span>
-								v0.1 beta · ready for early adopters
+								ready for early adopters
 							</div>
 						</Reveal>
 
@@ -1428,7 +1357,7 @@
 
 						<Reveal variant="up" delay={140}>
 							<p
-								class="landing-text-pretty mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+								class="landing-text-pretty mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
 							>
 								Open a thesis in 30 seconds. Compile on your machine. Version it in Git. Free for
 								individuals, free for the lab.
@@ -1494,6 +1423,12 @@
 	.marquee-track {
 		animation: hero-marquee 38s linear infinite;
 		will-change: transform;
+	}
+
+	/* Otherwise a logo slides out from under the cursor before it can be clicked. */
+	.marquee-mask:hover .marquee-track,
+	.marquee-mask:focus-within .marquee-track {
+		animation-play-state: paused;
 	}
 
 	/*

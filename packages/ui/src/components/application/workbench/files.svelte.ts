@@ -29,6 +29,8 @@ import {
 export type FileStoreDeps = {
   project?: ProjectHost;
   git?: GitProvider;
+  /** Repository root when there is no folder project (web's virtual working tree). */
+  gitRoot?: string | null;
   initialFiles?: GlyphFile[];
   projectName: string;
 };
@@ -60,6 +62,13 @@ export class FileStore {
   projectRoot = $state<string | null>(null);
   mainId = $state<string | null>(null);
 
+  // Web has no folder on disk but still has a repository (isomorphic-git over a
+  // browser fs), so Source Control keys off this rather than `projectRoot`.
+  readonly #gitRoot?: string | null;
+  get scmRoot(): string | null {
+    return this.projectRoot ?? this.#gitRoot ?? null;
+  }
+
   // Files that turned out to be unreadable as text (binary with a text-y name)
   // get demoted to "binary" so we show the fallback instead of mojibake.
   unreadableIds = $state<Set<string>>(new Set());
@@ -78,6 +87,7 @@ export class FileStore {
   constructor(deps: FileStoreDeps) {
     this.project = deps.project;
     this.git = deps.git;
+    this.#gitRoot = deps.gitRoot;
     this.#projectName = deps.projectName;
     const seed =
       deps.initialFiles && deps.initialFiles.length
@@ -141,6 +151,20 @@ export class FileStore {
         });
       }
     }
+  }
+
+  /** Replace the session after something rewrote the tree behind the editor (pull,
+   *  clone, discard). Unsaved buffers are dropped — the tree has already won. */
+  async reloadFrom(entries: { name: string; content: string }[]): Promise<void> {
+    const keep = new Set(entries.map((e) => e.name));
+    for (const f of [...this.files]) if (!keep.has(f.name)) await this.removeRel(f.name);
+    this.addFiles(entries);
+    const active =
+      this.files.find((f) => f.id === this.activeId) ?? this.files[0];
+    if (!active) return;
+    this.activeId = active.id;
+    this.source = active.content ?? "";
+    if (!this.openTabs.includes(active.id)) this.openTabs = [active.id];
   }
 
   // --- Derived view of the active file --------------------------------------
@@ -267,12 +291,13 @@ export class FileStore {
 
   // --- Git working-tree status (for the Explorer "M / U / A" labels) --------
   async refreshGitStatus(): Promise<void> {
-    if (!this.git || !this.projectRoot) {
+    const root = this.scmRoot;
+    if (!this.git || !root) {
       this.gitStatus = {};
       return;
     }
     try {
-      const changes = await this.git.status(this.projectRoot);
+      const changes = await this.git.status(root);
       const byPath = new Map(changes.map((c) => [c.path, c.status]));
       const next: Record<string, string> = {};
       for (const f of this.files) {

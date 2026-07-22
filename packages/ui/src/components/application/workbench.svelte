@@ -95,7 +95,7 @@
         hasProject={files.hasProject}
         engine={ctrl.engine}
         git={files.git}
-        projectRoot={files.projectRoot}
+        gitRoot={files.scmRoot}
         onopendiff={(path, staged) => layout.openDiff(path, staged)}
         activeDiffPath={layout.diffTarget?.path ?? null}
         widthPx={layout.sidebarWidth}
@@ -169,7 +169,7 @@
         {/if}
 
         {#if layout.viewMode === "split"}
-          {const stacked = layout.splitDir === "vertical"}
+          {@const stacked = layout.splitDir === "vertical"}
           <div
             class="group relative z-10 flex shrink-0 touch-none items-center justify-center {stacked
               ? 'h-1 w-full cursor-row-resize'
