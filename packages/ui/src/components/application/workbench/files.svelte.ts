@@ -54,6 +54,8 @@ export class FileStore {
 
   files = $state<GlyphFile[]>([]);
   activeId = $state("main");
+  /** Ids of files with an open editor tab, in tab order. */
+  openTabs = $state<string[]>([]);
   /** Live buffer for the active file. */
   source = $state("");
   untitledCount = $state(0);
@@ -93,7 +95,34 @@ export class FileStore {
         : DEMO_FILES;
     this.files = seed.map((f) => ({ ...f, saved: f.content }));
     this.activeId = seed[0]?.id ?? "main";
+    this.openTabs = this.activeId ? [this.activeId] : [];
     this.source = seed[0]?.content ?? "";
+  }
+
+  /**
+   * Files with an open tab, in order — always including the active file even if
+   * a rename/delete dropped its id, so the tab strip never loses the current
+   * file. Renamed/deleted ids fall out here without touching the many rename
+   * paths that already remap `activeId`.
+   */
+  readonly openTabFiles = $derived.by(() => {
+    const ids = [...this.openTabs];
+    if (this.activeId && !ids.includes(this.activeId)) ids.push(this.activeId);
+    return ids
+      .map((id) => this.files.find((f) => f.id === id))
+      .filter((f): f is GlyphFile => Boolean(f));
+  });
+
+  /** Close a tab, activating a neighbour; the last remaining tab stays open. */
+  closeTab(id: string): void {
+    const visible = this.openTabFiles.map((f) => f.id);
+    if (visible.length <= 1) return;
+    const at = visible.indexOf(id);
+    this.openTabs = this.openTabs.filter((t) => t !== id);
+    if (id === this.activeId) {
+      const next = visible[at + 1] ?? visible[at - 1];
+      if (next) void this.openFile(next);
+    }
   }
 
   get hasProject(): boolean {
@@ -225,6 +254,7 @@ export class FileStore {
     this.syncBuffer();
     if (settings.autoSave !== "off") await this.saveActive();
     this.activeId = id;
+    if (!this.openTabs.includes(id)) this.openTabs = [...this.openTabs, id];
     const f = this.files.find((x) => x.id === id);
     // Only editable kinds get a text buffer; images / PDFs / binaries are read
     // lazily as bytes by the AssetViewer, so we never read them as text here.

@@ -76,6 +76,13 @@
 				"beamerinnertheme*.sty",
 				"beameroutertheme*.sty"
 			]
+		},
+		{
+			"id": "fonts-latinmodern",
+			"label": "Latin Modern fonts (T1)",
+			"description": "Type1 outlines for the default font family, needed to embed glyphs under \\usepackage[T1]{fontenc}. Core carries the definitions and metrics; these are the outlines.",
+			"packages": ["lm"],
+			"include": ["lm*.pfb", "lm*.vf", "lm*.enc"]
 		}
 	]
 }

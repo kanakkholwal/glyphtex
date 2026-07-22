@@ -4,6 +4,7 @@
 </script>
 
 <script lang="ts">
+  import { IconCurrentLocation } from "@glyphx/ui/icons";
   import { settings } from "@glyphx/ui/settings";
   import { Toaster } from "@glyphx/ui/sonner";
   import { onDestroy, onMount } from "svelte";
@@ -179,6 +180,17 @@
                 ? 'bg-primary'
                 : 'bg-border group-hover:bg-primary/60'}"
             ></span>
+            <!-- SyncTeX: jump from the cursor's line to that spot in the PDF.
+                 Reverse (PDF→source) is a double-click in the preview. -->
+            <button
+              class="bg-card text-muted-foreground hover:bg-primary hover:text-primary-foreground border-border absolute grid size-6 place-items-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+              title="Jump to this line in the PDF (⌘/Ctrl+J)"
+              aria-label="Jump to this line in the PDF"
+              onpointerdown={(e) => e.stopPropagation()}
+              onclick={() => compile.syncToPdf()}
+            >
+              <IconCurrentLocation size={13} />
+            </button>
           </div>
         {/if}
 

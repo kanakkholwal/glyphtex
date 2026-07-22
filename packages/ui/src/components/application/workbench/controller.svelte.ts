@@ -254,6 +254,11 @@ export class WorkbenchController {
           run: () => this.layout.selectView("files"),
         },
         {
+          label: "Outline",
+          checked: !this.layout.panelCollapsed && this.layout.activeView === "outline",
+          run: () => this.layout.selectView("outline"),
+        },
+        {
           label: "Search",
           checked: !this.layout.panelCollapsed && this.layout.activeView === "search",
           run: () => this.layout.selectView("search"),

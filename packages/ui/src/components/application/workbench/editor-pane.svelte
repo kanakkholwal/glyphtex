@@ -1,10 +1,10 @@
 <script lang="ts">
+  import { Button } from "@glyphx/ui/button";
   import { settings } from "@glyphx/ui/settings";
   import {
     IconArrowBackUp,
     IconArrowForwardUp,
     IconBaselineDensityMedium,
-    IconDeviceFloppy,
     IconFolderShare,
     IconLayoutColumns,
     IconRefresh,
@@ -18,6 +18,7 @@
   import CodeEditor from "../code-editor.svelte";
   import DiffView from "../diff-view.svelte";
   import EditorFindBar from "../editor-find-bar.svelte";
+  import EditorTabs from "./editor-tabs.svelte";
   import FormatToolbar from "../format-toolbar.svelte";
   import type { WorkbenchController } from "./controller.svelte";
   import { baseName } from "./paths";
@@ -74,48 +75,46 @@
           — {layout.diffTarget.staged ? "Staged changes" : "Working tree"}
         </span>
       </span>
-      <div class="ml-auto flex shrink-0 items-center gap-1 pl-1">
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors {settings.diffView ===
-          'side'
-            ? 'bg-muted text-foreground'
-            : ''}"
+      <div class="ml-auto flex shrink-0 items-center gap-0.5 pl-1">
+        <Button
+          variant={settings.diffView === "side" ? "secondary" : "ghost"}
+          size="icon-sm"
           title="Side by side"
           aria-label="Side by side"
           aria-pressed={settings.diffView === "side"}
           onclick={() => (settings.diffView = "side")}
         >
-          <IconLayoutColumns size={15} />
-        </button>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors {settings.diffView ===
-          'inline'
-            ? 'bg-muted text-foreground'
-            : ''}"
+          <IconLayoutColumns />
+        </Button>
+        <Button
+          variant={settings.diffView === "inline" ? "secondary" : "ghost"}
+          size="icon-sm"
           title="Inline"
           aria-label="Inline"
           aria-pressed={settings.diffView === "inline"}
           onclick={() => (settings.diffView = "inline")}
         >
-          <IconBaselineDensityMedium size={15} />
-        </button>
+          <IconBaselineDensityMedium />
+        </Button>
         <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
+        <Button
+          variant="ghost"
+          size="icon-sm"
           title="Refresh diff"
           aria-label="Refresh diff"
           onclick={() => layout.refreshDiff()}
         >
-          <IconRefresh size={15} />
-        </button>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors"
+          <IconRefresh />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
           title="Close diff"
           aria-label="Close diff"
           onclick={() => layout.closeDiff()}
         >
-          <IconX size={15} />
-        </button>
+          <IconX />
+        </Button>
       </div>
     </div>
     <div class="min-h-0 flex-1">
@@ -138,69 +137,50 @@
       {/if}
     </div>
   {:else if files.activeEditable}
+    <EditorTabs {files} />
+    <!-- Action + format row. The LaTeX format toolbar is only meaningful for TeX
+         *source*; other editable files get just the history/find actions. -->
     <div
-      class="text-muted-foreground border-border flex h-9 shrink-0 items-center gap-2 border-b px-2 text-xs"
+      class="text-muted-foreground border-border flex h-9 shrink-0 items-center gap-1 border-b px-1.5 text-xs"
     >
-      <!-- The LaTeX format toolbar is only meaningful for TeX *source*; aux
-           files, markdown and code just get a kind label. -->
       {#if files.activeHasToolbar}
         <FormatToolbar
           wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
           insert={(t) => layout.editor?.insertText(t)}
         />
-      {:else}
-        <span class="text-muted-foreground/60 pl-1">
-          {files.activeKind === "markdown" ? "Markdown" : "Plain text"}
-        </span>
       {/if}
-
-      <!-- Right cluster: save, history, find. -->
-      <div class="ml-auto flex shrink-0 items-center gap-1 pl-1">
-        <button
-          class="hover:bg-muted hover:text-foreground relative grid size-7 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
-          title={files.activeDirty ? "Save (⌘/Ctrl+S)" : "Saved"}
-          aria-label="Save"
-          disabled={!files.activeDirty}
-          onclick={() => void files.saveActive()}
-        >
-          <IconDeviceFloppy size={15} />
-          {#if files.activeDirty}
-            <span
-              class="bg-brand absolute top-0.5 right-0.5 size-1.5 rounded-full"
-            ></span>
-          {/if}
-        </button>
-        <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
+      <div class="ml-auto flex shrink-0 items-center gap-0.5">
+        <Button
+          variant="ghost"
+          size="icon-sm"
           title="Undo (⌘/Ctrl+Z)"
           aria-label="Undo"
           disabled={!layout.canUndo}
           onclick={() => layout.editor?.undo()}
         >
-          <IconArrowBackUp size={15} />
-        </button>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors disabled:pointer-events-none disabled:opacity-40"
+          <IconArrowBackUp />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
           title="Redo (⌘/Ctrl+Shift+Z)"
           aria-label="Redo"
           disabled={!layout.canRedo}
           onclick={() => layout.editor?.redo()}
         >
-          <IconArrowForwardUp size={15} />
-        </button>
+          <IconArrowForwardUp />
+        </Button>
         <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-7 place-items-center rounded transition-colors {search.showFind
-            ? 'bg-muted text-foreground'
-            : ''}"
+        <Button
+          variant={search.showFind ? "secondary" : "ghost"}
+          size="icon-sm"
           title="Find / replace (⌘/Ctrl+F)"
           aria-label="Find in document"
           aria-pressed={search.showFind}
           onclick={() => (search.showFind ? search.closeFind() : search.openFind())}
         >
-          <IconSearch size={15} />
-        </button>
+          <IconSearch />
+        </Button>
       </div>
     </div>
     <div class="min-h-0 flex-1">
@@ -242,14 +222,16 @@
         {baseName(files.activeFile?.name ?? "")}
       </span>
       {#if files.project?.revealInOS && files.activeFile?.path}
-        <button
-          class="hover:bg-muted hover:text-foreground grid size-6 shrink-0 place-items-center rounded transition-colors"
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          class="shrink-0"
           title="Reveal in folder"
           aria-label="Reveal in folder"
           onclick={() => files.revealActiveFile()}
         >
-          <IconFolderShare size={15} />
-        </button>
+          <IconFolderShare />
+        </Button>
       {/if}
     </div>
     <div class="min-h-0 flex-1">

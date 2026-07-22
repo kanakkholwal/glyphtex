@@ -127,5 +127,19 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
   \begin{itemize}\item One\item Two\end{itemize}
 \end{frame}
 \end{document}`
+	},
+	{
+		// Exercises the T1 Type1 path — roman, sans, mono, bold, italic — so the
+		// PDF must embed lmodern outlines. The `include` glob (applied before this
+		// compiles) supplies the .pfb the font loader needs.
+		id: 'fonts-latinmodern',
+		source: String.raw`\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\begin{document}
+\rmfamily Roman \textbf{bold} \textit{italic}.
+\sffamily Sans \textbf{bold}.
+\ttfamily Mono.
+\end{document}`
 	}
 ];

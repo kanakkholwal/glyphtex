@@ -6,6 +6,7 @@
   import type { EngineManager } from "./engine-settings.svelte";
   import GitPanel, { type GitProvider } from "./git-panel.svelte";
   import ExplorerView from "./side-panel/explorer-view.svelte";
+  import OutlineView from "./side-panel/outline-view.svelte";
   import PanelHeader from "./side-panel/panel-header.svelte";
   import SearchView from "./side-panel/search-view.svelte";
   import SettingsView from "./side-panel/settings-view.svelte";
@@ -175,7 +176,6 @@
         {dirtyIds}
         {gitStatus}
         {hasProject}
-        {ongotoline}
         {onrenamefile}
         {ondeletefile}
         {onsetmain}
@@ -184,6 +184,8 @@
         {onrenamefolder}
         {ondeletefolder}
       />
+    {:else if view === "outline"}
+      <OutlineView {store} {ongotoline} />
     {:else if view === "search"}
       <SearchView
         {store}

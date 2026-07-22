@@ -103,6 +103,17 @@ for (const pack of config.packs) {
 	/** Packs whose files this one turned out to need. */
 	const requires = new Set();
 
+	// Wholesale additions the fixture cannot pull via `missingFiles` — beamer's
+	// themes, lmodern's outlines. Applied BEFORE convergence so the fixture
+	// compiles against them (a fonts pack cannot embed glyphs without its .pfb).
+	let included = 0;
+	for (const [name, path] of globTexmf(pack.include ?? [])) {
+		if (!core.has(name) && !extra.has(name) && !provides[name] && isBareName(name)) {
+			extra.set(name, new Uint8Array(readFileSync(path)));
+			included++;
+		}
+	}
+
 	function add(name) {
 		if (core.has(name) || extra.has(name)) return false;
 		if (!isBareName(name)) return false;
@@ -181,15 +192,6 @@ for (const pack of config.packs) {
 			console.error('Install the packages providing them:  tlmgr install <package>');
 		}
 		process.exit(1);
-	}
-
-	// Wholesale additions for enumerable sets the fixture cannot reach — a user
-	// picks any beamer theme, but no one document loads all 77.
-	let included = 0;
-	for (const [name, path] of globTexmf(pack.include ?? [])) {
-		if (core.has(name) || extra.has(name) || provides[name]) continue;
-		extra.set(name, new Uint8Array(readFileSync(path)));
-		included++;
 	}
 
 	const { gz, raw, count } = packTarGz(extra);

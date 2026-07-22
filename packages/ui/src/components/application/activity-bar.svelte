@@ -1,10 +1,10 @@
 <script lang="ts" module>
-	export type ActivityView = 'files' | 'search' | 'git' | 'settings';
+	export type ActivityView = 'files' | 'outline' | 'search' | 'git' | 'settings';
 </script>
 
 <script lang="ts">
 	import { Button } from '@glyphx/ui/button';
-	import { IconFiles, IconGitBranch, IconSearch, IconSettings } from '@glyphx/ui/icons';
+	import { IconFiles, IconGitBranch, IconList, IconSearch, IconSettings } from '@glyphx/ui/icons';
 
 	/**
 	 * Rail — the left mode switcher (Explorer / Search / Source Control / Settings).
@@ -24,6 +24,7 @@
 
 	const top: { id: ActivityView; label: string; icon: typeof IconFiles }[] = [
 		{ id: 'files', label: 'Explorer', icon: IconFiles },
+		{ id: 'outline', label: 'Outline', icon: IconList },
 		{ id: 'search', label: 'Search', icon: IconSearch },
 		{ id: 'git', label: 'Source Control', icon: IconGitBranch }
 	];

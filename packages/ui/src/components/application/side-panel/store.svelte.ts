@@ -78,13 +78,16 @@ export class SidePanelStore {
   // `#d`, so the views that read it are getters (not `$derived` fields) to avoid
   // referencing `#d` before its initialization. They still read reactive props.
   get heading(): string {
-    return this.#d.getView() === "files"
+    const view = this.#d.getView();
+    return view === "files"
       ? "Explorer"
-      : this.#d.getView() === "search"
-        ? "Search"
-        : this.#d.getView() === "git"
-          ? "Source Control"
-          : "Settings";
+      : view === "outline"
+        ? "Outline"
+        : view === "search"
+          ? "Search"
+          : view === "git"
+            ? "Source Control"
+            : "Settings";
   }
 
   get rootNodes(): TreeNode[] {

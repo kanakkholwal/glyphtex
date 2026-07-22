@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Button } from "@glyphx/ui/button";
+  import { ButtonGroup } from "@glyphx/ui/button-group";
   import { Logo } from "@glyphx/ui/logo";
   import { settings } from "@glyphx/ui/settings";
   import { Spinner } from "@glyphx/ui/spinner";
@@ -10,18 +11,22 @@
     IconDownload,
     IconLoader2,
     IconMinus,
+    IconPlayerPlayFilled,
     IconPlus,
     IconSearch,
   } from '@glyphx/ui/icons';
   import {
     DropdownMenu,
+    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
+    DropdownMenuShortcut,
     DropdownMenuTrigger,
   } from "@glyphx/ui/dropdown-menu";
 
   import PdfView from "../pdf-view.svelte";
+  import { shortcutLabel } from "../shortcuts";
   import type { WorkbenchController } from "./controller.svelte";
   import { ZOOM_PRESETS } from "./types";
 
@@ -37,8 +42,57 @@
 
 <section class="bg-muted/40 flex min-h-0 min-w-0 flex-1 flex-col">
   <div
-    class="text-muted-foreground border-border flex h-9 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
+    class="text-muted-foreground border-border flex h-9 shrink-0 items-center gap-1.5 border-b px-1.5 text-xs"
   >
+    <!-- Primary compile lives with its output (the PDF and errors), not in the
+         global header. Split-button: run + a ▾ menu for live-compile / sync. -->
+    <ButtonGroup
+      class="[&>[data-slot]:first-child]:!rounded-l-md [&>[data-slot]:last-child]:!rounded-r-md"
+    >
+      <Button
+        onclick={() => compile.runCompile(true)}
+        disabled={compile.compiling}
+        size="xs"
+        class="pl-2.5"
+      >
+        {#if compile.compiling}
+          <IconLoader2 class="animate-spin" />
+        {:else}
+          <IconPlayerPlayFilled />
+        {/if}
+        {compile.compiling ? "Compiling…" : "Compile"}
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          {#snippet child({ props })}
+            <Button {...props} size="icon-xs" title="Compile options" aria-label="Compile options">
+              <IconChevronDown />
+            </Button>
+          {/snippet}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" class="w-52">
+          <DropdownMenuCheckboxItem
+            checked={settings.autoCompile}
+            onCheckedChange={(v) => (settings.autoCompile = v)}
+          >
+            Live compile
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuItem
+            disabled={!compile.canCompile}
+            onclick={() => compile.runCompile(true)}
+          >
+            Compile once
+            <DropdownMenuShortcut>{shortcutLabel("compile")}</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onclick={() => compile.syncToPdf()}>
+            Sync to PDF
+            <DropdownMenuShortcut>{shortcutLabel("sync-pdf")}</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </ButtonGroup>
+
     <Button
       variant="ghost"
       size="icon-xs"
@@ -48,9 +102,8 @@
     >
       <IconCurrentLocation />
     </Button>
-    <!-- Status + recompile -->
     <span
-      class="inline-flex min-w-0 items-center gap-1.5 truncate pl-1 {compile.compileStatus ===
+      class="inline-flex min-w-0 items-center gap-1.5 truncate {compile.compileStatus ===
       'error'
         ? 'text-destructive'
         : 'text-muted-foreground/80'}"

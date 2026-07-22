@@ -1,13 +1,9 @@
 <script lang="ts">
   import { Button } from "@glyphx/ui/button";
-  import { ButtonGroup } from "@glyphx/ui/button-group";
   import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuShortcut,
     DropdownMenuTrigger,
   } from "@glyphx/ui/dropdown-menu";
   import { Logo } from "@glyphx/ui/logo";
@@ -17,24 +13,19 @@
     SelectItem,
     SelectTrigger,
   } from "@glyphx/ui/select";
-  import { settings } from "@glyphx/ui/settings";
   import {
     IconArrowLeft,
-    IconChevronDown,
     IconEye,
     IconFilePlus,
     IconLayoutColumns,
-    IconLoader2,
     IconPencil,
     IconPhotoPlus,
-    IconPlayerPlayFilled,
     IconTargetArrow,
   } from "@glyphx/ui/icons";
 
   import CommandPalette from "../command-palette.svelte";
   import ExportMenu from "../export-menu.svelte";
   import MenuBar from "../menu-bar.svelte";
-  import { shortcutLabel } from "../shortcuts";
   import type { WorkbenchController } from "./controller.svelte";
   import type { SaveFileFn } from "./types";
 
@@ -198,58 +189,5 @@
       canExportZip={Boolean(ctrl.onExportProject) || Boolean(files.projectRoot)}
       size="xs"
     />
-
-    <!-- Compile split-button: run + a ▾ menu for live-compile / sync. -->
-    <ButtonGroup
-      class="[&>[data-slot]:first-child]:!rounded-l-full [&>[data-slot]:last-child]:!rounded-r-full"
-    >
-      <Button
-        onclick={() => compile.runCompile(true)}
-        disabled={compile.compiling}
-        size="sm"
-        class="pl-3.5"
-      >
-        {#if compile.compiling}
-          <IconLoader2 class="animate-spin" />
-        {:else}
-          <IconPlayerPlayFilled />
-        {/if}
-        {compile.compiling ? "Compiling…" : "Compile"}
-      </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          {#snippet child({ props })}
-            <Button
-              {...props}
-              size="icon-sm"
-              title="Compile options"
-              aria-label="Compile options"
-            >
-              <IconChevronDown />
-            </Button>
-          {/snippet}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="w-52">
-          <DropdownMenuCheckboxItem
-            checked={settings.autoCompile}
-            onCheckedChange={(v) => (settings.autoCompile = v)}
-          >
-            Live compile
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuItem
-            disabled={!compile.canCompile}
-            onclick={() => compile.runCompile(true)}
-          >
-            Compile once
-            <DropdownMenuShortcut>{shortcutLabel("compile")}</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onclick={() => compile.syncToPdf()}>
-            Sync to PDF
-            <DropdownMenuShortcut>{shortcutLabel("sync-pdf")}</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </ButtonGroup>
   </div>
 </header>
