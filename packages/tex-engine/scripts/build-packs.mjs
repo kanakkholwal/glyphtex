@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { TexEngine } from '../dist/index.js';
 import { PACK_FIXTURES } from '../test/fixtures/packs.mjs';
 import { packTarGz } from './lib/targz.mjs';
+import { globTexmf } from './lib/texmf.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = resolve(here, '..');
@@ -66,22 +67,6 @@ function isBareName(name) {
 	return name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.';
 }
 
-// Files whose set no single fixture can exercise — beamer's 77 themes, say. The
-// fixture still proves the pack compiles; this fills in the rest by basename glob.
-const TEXMF = execFileSync('kpsewhich', ['-var-value=TEXMFDIST'], { encoding: 'utf8' }).trim();
-function globTexmf(patterns) {
-	const res = patterns.map((p) => new RegExp('^' + p.replace(/[.]/g, '\\$&').replace(/\*/g, '.*') + '$'));
-	const out = new Map();
-	const walk = (dir) => {
-		for (const entry of readdirSync(dir, { withFileTypes: true })) {
-			const full = join(dir, entry.name);
-			if (entry.isDirectory()) walk(full);
-			else if (res.some((r) => r.test(entry.name))) out.set(entry.name, full);
-		}
-	};
-	walk(join(TEXMF, 'tex'));
-	return out;
-}
 
 const WASM = new Uint8Array(readFileSync(wasmPath));
 

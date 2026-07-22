@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { TexEngine } from '../dist/index.js';
 import { ALL_SAMPLES } from '../test/fixtures/groups.mjs';
+import { globTexmf } from './lib/texmf.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = resolve(here, '..');
@@ -105,7 +106,19 @@ for (const name of OPTIONAL_SILENT_LOADS) {
 	}
 }
 
-console.log(`seeded ${files.size} files (format + its inputs + silent loads)`);
+// The full Latin Modern font set. XeTeX loads fonts internally, so a missing
+// .fd/.tfm never reaches `missingFiles` — convergence pulled only 7 of ~110 and
+// left out t1lmss.fd, so `\usepackage[T1]{fontenc}` with sans fell back to CM
+// and failed. lmodern is the default family, and [T1]{fontenc} is in most real
+// preambles, so the whole set (154 KB) belongs in core.
+let fontCount = 0;
+for (const [name, path] of globTexmf(['lm*.tfm', 'lm*.pfb', 'lm*.vf', 'lm*.enc', '*lm*.fd'])) {
+	if (!files.has(name) && isBareName(name)) {
+		files.set(name, new Uint8Array(readFileSync(path)));
+		fontCount++;
+	}
+}
+console.log(`seeded ${files.size} files (format + inputs + silent loads + ${fontCount} lmodern fonts)`);
 
 // Fresh instance per document: an aborted compile tears down the wasm stack
 // without unwinding Rust, so a shared instance stays locked and poisons the rest.

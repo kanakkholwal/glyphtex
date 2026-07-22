@@ -35,13 +35,14 @@ Body text with fancy headers and custom section formatting.
 	{
 		id: 'figures',
 		source: String.raw`\documentclass{article}
-\usepackage{graphicx,float,wrapfig,subfig,rotating,placeins}
+\usepackage{graphicx,float,wrapfig,subfig,rotating,placeins,adjustbox}
 \begin{document}
 \begin{figure}[H]\centering\rule{2cm}{1cm}\caption{Held in place.}\end{figure}
 \begin{wrapfigure}{r}{3cm}\centering\rule{2cm}{1cm}\caption{Wrapped.}\end{wrapfigure}
 Text flowing beside the wrapped figure, with enough words to actually wrap
 around it rather than simply sitting above.
 \FloatBarrier
+\adjustbox{max width=\linewidth}{\rule{20cm}{1cm}}
 \begin{figure}[H]\centering
   \subfloat[Left]{\rule{1cm}{1cm}}\qquad\subfloat[Right]{\rule{1cm}{1cm}}
   \caption{Two subfigures.}
