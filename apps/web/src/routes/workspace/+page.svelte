@@ -19,9 +19,10 @@
 		duplicateProject,
 		listProjects,
 		renameProject,
+		setStarred,
 		type StoredProject
 	} from '$lib/storage/projects';
-	import { requestPersistence } from '$lib/storage/quota';
+	import { requestPersistence, storageStatus } from '$lib/storage/quota';
 	import { starterFiles } from '$lib/storage/template';
 	import { Logo } from '@glyphtex/ui/logo';
 
@@ -38,8 +39,18 @@
 		console.error('[GlyphTeX]', error);
 	}
 
+	// Origin-level usage, for the sidebar meter. The browser reports the whole
+	// origin (engine cache included), not just documents — that is the number
+	// that actually predicts eviction, so it is the honest one to show.
+	let storage = $state<{ used: number; total: number } | undefined>(undefined);
+
 	async function refresh(): Promise<void> {
 		stored = await listProjects();
+		const status = await storageStatus();
+		storage =
+			status.unknown || status.quota === 0
+				? undefined
+				: { used: status.usage, total: status.quota };
 	}
 
 	onMount(async () => {
@@ -124,7 +135,7 @@
 	}
 
 	function open(id: string): void {
-		void goto(resolve(`/projects/${id}` as `/projects/${string}`));
+		void goto(resolve(`/workspace/projects/${id}` as `/workspace/projects/${string}`));
 	}
 
 	async function rename(id: string, name: string): Promise<void> {
@@ -142,6 +153,15 @@
 			await refresh();
 		} catch (error) {
 			report(error, 'Could not duplicate the document.');
+		}
+	}
+
+	async function star(id: string, starred: boolean): Promise<void> {
+		try {
+			await setStarred(id, starred);
+			await refresh();
+		} catch (error) {
+			report(error, 'Could not update the star.');
 		}
 	}
 
@@ -192,6 +212,9 @@
 			onrename={rename}
 			onduplicate={duplicate}
 			ondelete={remove}
+			onstar={star}
+			{storage}
+			helpHref={resolve('/download')}
 			onsettings={() => (storageOpen = true)}
 			onimport={() => zipInput?.click()}
 		/>

@@ -146,114 +146,110 @@
         />
       {/if}
     </div>
-  {:else if files.activeEditable}
+  {:else}
+    <!-- One tab strip for every file kind. An image or PDF is a tab like any
+         other; only the body below it changes. -->
     <EditorTabs {files}>
       {#snippet actions()}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title="Undo (⌘/Ctrl+Z)"
-          aria-label="Undo"
-          disabled={!layout.canUndo}
-          onclick={() => layout.editor?.undo()}
-        >
-          <IconArrowBackUp />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title="Redo (⌘/Ctrl+Shift+Z)"
-          aria-label="Redo"
-          disabled={!layout.canRedo}
-          onclick={() => layout.editor?.redo()}
-        >
-          <IconArrowForwardUp />
-        </Button>
-        <span class="bg-border/60 mx-1 h-5 w-px"></span>
-        <Button
-          variant={search.showFind ? "secondary" : "ghost"}
-          size="icon-sm"
-          title="Find / replace (⌘/Ctrl+F)"
-          aria-label="Find in document"
-          aria-pressed={search.showFind}
-          onclick={() => (search.showFind ? search.closeFind() : search.openFind())}
-        >
-          <IconSearch />
-        </Button>
+        {#if files.activeEditable}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title="Undo (⌘/Ctrl+Z)"
+            aria-label="Undo"
+            disabled={!layout.canUndo}
+            onclick={() => layout.editor?.undo()}
+          >
+            <IconArrowBackUp />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title="Redo (⌘/Ctrl+Shift+Z)"
+            aria-label="Redo"
+            disabled={!layout.canRedo}
+            onclick={() => layout.editor?.redo()}
+          >
+            <IconArrowForwardUp />
+          </Button>
+          <span class="bg-border/60 mx-1 h-5 w-px"></span>
+          <Button
+            variant={search.showFind ? "secondary" : "ghost"}
+            size="icon-sm"
+            title="Find / replace (⌘/Ctrl+F)"
+            aria-label="Find in document"
+            aria-pressed={search.showFind}
+            onclick={() => (search.showFind ? search.closeFind() : search.openFind())}
+          >
+            <IconSearch />
+          </Button>
+        {:else if files.project?.revealInOS && files.activeFile?.path}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            title="Reveal in folder"
+            aria-label="Reveal in folder"
+            onclick={() => files.revealActiveFile()}
+          >
+            <IconFolderShare />
+          </Button>
+        {/if}
       {/snippet}
     </EditorTabs>
-    <!-- The LaTeX format toolbar is only meaningful for TeX *source*. -->
-    {#if files.activeHasToolbar}
-      <div
-        class="border-border bg-card flex h-9 shrink-0 items-center border-b px-1.5"
-      >
-        <FormatToolbar
-          wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
-          insert={(t) => layout.editor?.insertText(t)}
+
+    {#if files.activeEditable}
+      <!-- The LaTeX format toolbar is only meaningful for TeX *source*. -->
+      {#if files.activeHasToolbar}
+        <div
+          class="border-border bg-card flex h-9 shrink-0 items-center border-b px-1.5"
+        >
+          <FormatToolbar
+            wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
+            insert={(t) => layout.editor?.insertText(t)}
+          />
+        </div>
+      {/if}
+      <div class="min-h-0 flex-1">
+        <CodeEditor
+          bind:this={layout.editor}
+          bind:value={files.source}
+          bind:canUndo={layout.canUndo}
+          bind:canRedo={layout.canRedo}
+          docKey={files.activeId}
+          theme={settings.resolved}
+          language={files.activeLanguage}
+          fontSize={settings.fontSize}
+          fontFamily={settings.fontStack}
+          lineWrapping={settings.lineWrapping}
+          oncursor={(p) => (layout.cursor = p)}
+        />
+      </div>
+      {#if search.showFind}
+        <EditorFindBar
+          bind:this={search.findBar}
+          initial={search.searchOpts}
+          resultCount={search.searchResults.length}
+          activeIndex={search.searchActive}
+          onsearch={(o) => search.runSearch(o)}
+          onnext={() => search.searchNext()}
+          onprev={() => search.searchPrev()}
+          onreplacecurrent={(r) => search.replaceCurrent(r)}
+          onreplaceall={(r) => search.replaceAll(r)}
+          onclose={() => search.closeFind()}
+        />
+      {/if}
+    {:else}
+      <div class="min-h-0 flex-1">
+        <AssetViewer
+          kind={files.activeKind}
+          name={files.activeFile?.name ?? ""}
+          {assetKey}
+          readBytes={ctrl.readFileBytes}
+          onreveal={files.project?.revealInOS && files.activeFile?.path
+            ? () => files.revealActiveFile()
+            : undefined}
         />
       </div>
     {/if}
-    <div class="min-h-0 flex-1">
-      <CodeEditor
-        bind:this={layout.editor}
-        bind:value={files.source}
-        bind:canUndo={layout.canUndo}
-        bind:canRedo={layout.canRedo}
-        docKey={files.activeId}
-        theme={settings.resolved}
-        language={files.activeLanguage}
-        fontSize={settings.fontSize}
-        fontFamily={settings.fontStack}
-        lineWrapping={settings.lineWrapping}
-        oncursor={(p) => (layout.cursor = p)}
-      />
-    </div>
-    {#if search.showFind}
-      <EditorFindBar
-        bind:this={search.findBar}
-        initial={search.searchOpts}
-        resultCount={search.searchResults.length}
-        activeIndex={search.searchActive}
-        onsearch={(o) => search.runSearch(o)}
-        onnext={() => search.searchNext()}
-        onprev={() => search.searchPrev()}
-        onreplacecurrent={(r) => search.replaceCurrent(r)}
-        onreplaceall={(r) => search.replaceAll(r)}
-        onclose={() => search.closeFind()}
-      />
-    {/if}
-  {:else}
-    <!-- Non-text file (image / PDF / unsupported): a slim header with a reveal
-         action, then the AssetViewer renders it directly. -->
-    <div
-      class="text-muted-foreground border-border bg-card flex h-9 shrink-0 items-center justify-between gap-2 border-b px-1.5 text-xs"
-    >
-      <span class="truncate pl-1" title={files.activeFile?.name}>
-        {baseName(files.activeFile?.name ?? "")}
-      </span>
-      {#if files.project?.revealInOS && files.activeFile?.path}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          class="shrink-0"
-          title="Reveal in folder"
-          aria-label="Reveal in folder"
-          onclick={() => files.revealActiveFile()}
-        >
-          <IconFolderShare />
-        </Button>
-      {/if}
-    </div>
-    <div class="min-h-0 flex-1">
-      <AssetViewer
-        kind={files.activeKind}
-        name={files.activeFile?.name ?? ""}
-        {assetKey}
-        readBytes={ctrl.readFileBytes}
-        onreveal={files.project?.revealInOS && files.activeFile?.path
-          ? () => files.revealActiveFile()
-          : undefined}
-      />
-    </div>
   {/if}
 </section>

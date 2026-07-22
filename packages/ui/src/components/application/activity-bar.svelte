@@ -29,7 +29,8 @@
 		onselect,
 		position = 'left',
 		menus = [],
-		homeHref = '/projects',
+		homeHref = '/',
+		homeLabel = 'Home',
 		onnewfile,
 		onopenproject
 	}: {
@@ -39,8 +40,10 @@
 		position?: 'left' | 'right';
 		/** Application menus, shown under the rail's menu button. */
 		menus?: Menu[];
-		/** Where the logo goes — the document list, not the marketing home. */
+		/** Where the logo links. Hosts pass their document list; '/' is the fallback. */
 		homeHref?: string;
+		/** Hover label for the logo, e.g. "Documents". */
+		homeLabel?: string;
 		onnewfile?: () => void;
 		/** Absent on web, where there is no folder picker. */
 		onopenproject?: () => void;
@@ -63,7 +66,11 @@
 		: 'border-r'}"
 	aria-label="Views"
 >
-	<Logo href={homeHref} text={false} size="md" viewTransitionName="app-logo" />
+	<!-- The logo is the way back to the document list, which is not guessable from
+	     the mark alone — hence the label on hover. -->
+	<span title={homeLabel}>
+		<Logo href={homeHref} text={false} size="md" viewTransitionName="app-logo" />
+	</span>
 
 	<div class="bg-border my-1.5 h-px w-6"></div>
 

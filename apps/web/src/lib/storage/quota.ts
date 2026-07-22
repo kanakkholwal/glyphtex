@@ -1,9 +1,9 @@
 /** Per-document ceiling. Not a browser limit — it keeps one document from
  *  eating the whole origin quota and getting everything evicted. */
-export const PER_PROJECT_BYTES = 50 * 1024 * 1024;
+export const PER_PROJECT_BYTES = 100 * 1024 * 1024;
 
 /** Single-file ceiling, so one pasted image cannot fill a document. */
-export const PER_FILE_BYTES = 10 * 1024 * 1024;
+export const PER_FILE_BYTES = 20 * 1024 * 1024;
 
 /** Fraction of the granted quota above which the UI warns. */
 export const WARN_AT = 0.8;

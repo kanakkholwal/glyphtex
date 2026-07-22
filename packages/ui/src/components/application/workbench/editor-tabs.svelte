@@ -43,7 +43,7 @@
       role="presentation"
     >
       {#if active}
-        <span class="bg-brand absolute inset-x-0 top-0 h-0.5" aria-hidden="true"></span>
+        <span class="bg-brand absolute inset-x-0 bottom-0 h-0.25" aria-hidden="true"></span>
       {/if}
       <button
         class="flex min-w-0 items-center gap-1.5 py-0 pr-1"

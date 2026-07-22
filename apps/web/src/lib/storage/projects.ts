@@ -13,6 +13,8 @@ export type StoredProject = {
 	createdAt: number;
 	updatedAt: number;
 	bytes: number;
+	/** Pinned by the user. Absent on documents saved before starring existed. */
+	starred?: boolean;
 };
 
 /** One file. Exactly one of `text` / `data` is set — `data` carries images. */
@@ -172,6 +174,21 @@ async function patch(id: string, change: Partial<StoredProject>): Promise<Stored
 		const project = await get<StoredProject>(store, id);
 		if (!project) throw new StorageError('That document no longer exists.');
 		const next = { ...project, ...change, updatedAt: Date.now() };
+		await put(store, next);
+		return next;
+	});
+}
+
+/**
+ * Deliberately not `patch`: starring is not an edit, so it must not bump
+ * `updatedAt` — that would reshuffle "Newest first" and fake activity in Recent.
+ */
+export function setStarred(id: string, starred: boolean): Promise<StoredProject> {
+	return tx(PROJECTS, 'readwrite', async (t) => {
+		const store = t.objectStore(PROJECTS);
+		const project = await get<StoredProject>(store, id);
+		if (!project) throw new StorageError('That document no longer exists.');
+		const next = { ...project, starred };
 		await put(store, next);
 		return next;
 	});

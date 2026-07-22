@@ -5,6 +5,7 @@
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuGroupHeading,
     DropdownMenuItem,
     DropdownMenuSeparator,
@@ -186,22 +187,28 @@
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
-            <DropdownMenuGroupHeading>Main file</DropdownMenuGroupHeading>
-            {#if texFiles.length > 1}
-              {#each texFiles as file (file.id)}
-                <DropdownMenuItem onclick={() => files.setMain(file.id)}>
-                  <IconTargetArrow
-                    class={file.id === files.mainId ? "text-brand" : "opacity-0"}
-                  />
-                  <span class="truncate font-mono text-xs">{file.name}</span>
+            <!-- GroupHeading throws outside a Group, which takes the whole menu
+                 down with it — keep the two together. -->
+            <DropdownMenuGroup>
+              <DropdownMenuGroupHeading class="text-faint text-xs font-medium">
+                Main file
+              </DropdownMenuGroupHeading>
+              {#if texFiles.length > 1}
+                {#each texFiles as file (file.id)}
+                  <DropdownMenuItem onclick={() => files.setMain(file.id)}>
+                    <IconTargetArrow
+                      class={file.id === files.mainId ? "text-brand" : "opacity-0"}
+                    />
+                    <span class="truncate font-mono text-xs">{file.name}</span>
+                  </DropdownMenuItem>
+                {/each}
+              {:else}
+                <DropdownMenuItem disabled>
+                  <IconTargetArrow class="text-brand" />
+                  <span class="truncate font-mono text-xs">{mainName ?? "—"}</span>
                 </DropdownMenuItem>
-              {/each}
-            {:else}
-              <DropdownMenuItem disabled>
-                <IconTargetArrow class="text-brand" />
-                <span class="truncate font-mono text-xs">{mainName ?? "—"}</span>
-              </DropdownMenuItem>
-            {/if}
+              {/if}
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </ButtonGroup>

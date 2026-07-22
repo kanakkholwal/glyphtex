@@ -148,17 +148,22 @@
 		</div>
 	{:else if kind === "image" && imgUrl}
 		<!-- Checkered mat so transparent PNGs/SVGs read correctly. -->
-		<div class="glyphtex-checker flex flex-1 items-center justify-center overflow-auto p-6">
+		<div
+			class="glyphtex-checker flex min-h-0 flex-1 items-center justify-center overflow-auto p-6"
+		>
 			{#if imgSize.w > 0}
-				<!-- `objectFit` must be a prop: unpic writes it inline, beating any class. -->
+				<!-- unpic's `constrained` layout writes `width:100%` inline, which in a
+				     short, wide pane (a stacked split) scales the image up until it
+				     overflows. Its `style` prop is appended last, so these win: let the
+				     intrinsic size stand and cap it on BOTH axes. -->
 				<Image
 					src={imgUrl}
 					width={imgSize.w}
 					height={imgSize.h}
 					layout="constrained"
-					objectFit="contain"
 					alt={leaf}
-					class="max-h-full shadow-craft-lg"
+					class="shadow-craft-lg"
+					style="width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain"
 				/>
 			{:else}
 				<!-- No intrinsic size (typically a viewBox-only SVG) — unpic needs one. -->

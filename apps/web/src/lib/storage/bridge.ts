@@ -13,7 +13,8 @@ export function toProjectCard(p: StoredProject): Project {
 		name: p.name,
 		files: p.paths.map((path) => ({ id: path, name: path, content: '' })),
 		createdAt: p.createdAt,
-		updatedAt: p.updatedAt
+		updatedAt: p.updatedAt,
+		starred: p.starred
 	};
 }
 

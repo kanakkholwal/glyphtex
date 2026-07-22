@@ -15,6 +15,7 @@
 	} from '@glyphtex/ui/dialog';
 	import {
 	  DropdownMenu,
+	  DropdownMenuCheckboxItem,
 	  DropdownMenuContent,
 	  DropdownMenuItem,
 	  DropdownMenuSeparator,
@@ -24,18 +25,28 @@
 	import { projectViewTransitionName } from '@glyphtex/ui/projects';
 	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
 	import {
+	  IconArrowsSort,
 	  IconChevronDown,
+	  IconClock,
 	  IconCloudDownload,
 	  IconCopy,
+	  IconCloud,
 	  IconDotsVertical,
 	  IconFileImport,
 	  IconFolderOpen,
 	  IconFolderShare,
+	  IconHelpCircle,
 	  IconInfoCircle,
+	  IconHome,
+	  IconLayoutGrid,
+	  IconLayoutList,
 	  IconPencil,
 	  IconPlus,
 	  IconSearch,
 	  IconSettings,
+	  IconStar,
+	  IconStarFilled,
+	  IconTemplate,
 	  IconTrash
 	} from '@tabler/icons-svelte';
 	import { tick } from 'svelte';
@@ -63,7 +74,10 @@
 		onduplicate,
 		ondelete,
 		onreveal,
-		onsettings
+		onsettings,
+		onstar,
+		storage,
+		helpHref
 	}: {
 		/** Drives the About dialog's platform line. */
 		platform?: 'web' | 'desktop';
@@ -85,8 +99,22 @@
 		onreveal?: (id: string) => void;
 		/** Open the app settings page (desktop). */
 		onsettings?: () => void;
+		/** Toggle a project's star. Absent hides the star action. */
+		onstar?: (id: string, starred: boolean) => void;
+		/** Local-storage meter for the sidebar. Absent hides the card. */
+		storage?: { used: number; total: number };
+		/** Docs link target for the sidebar. */
+		helpHref?: string;
 	} = $props();
 
+	type Scope = 'all' | 'recent' | 'starred' | 'templates';
+	type Sort = 'newest' | 'oldest' | 'name';
+
+	const RECENT_MS = 7 * 24 * 60 * 60 * 1000;
+
+	let scope = $state<Scope>('all');
+	let sort = $state<Sort>('newest');
+	let dense = $state(false);
 	let query = $state('');
 	let renaming = $state<string | null>(null);
 	let renameValue = $state('');
@@ -134,9 +162,55 @@
 		}
 	}
 
-	const filtered = $derived(
-		projects.filter((p) => p.name.toLowerCase().includes(query.trim().toLowerCase()))
+	const recent = $derived(projects.filter((p) => Date.now() - p.updatedAt < RECENT_MS));
+	const starred = $derived(projects.filter((p) => p.starred));
+
+	const scoped = $derived(
+		scope === 'starred'
+			? starred
+			: scope === 'recent'
+				? recent
+				: scope === 'templates'
+					? []
+					: projects
 	);
+
+	const filtered = $derived(
+		scoped
+			.filter((p) => p.name.toLowerCase().includes(query.trim().toLowerCase()))
+			.toSorted((a, b) =>
+				sort === 'name'
+					? a.name.localeCompare(b.name)
+					: sort === 'oldest'
+						? a.updatedAt - b.updatedAt
+						: b.updatedAt - a.updatedAt
+			)
+	);
+
+	const scopes: { id: Scope; label: string; icon: typeof IconPlus }[] = [
+		{ id: 'all', label: 'Workspace', icon: IconHome },
+		{ id: 'recent', label: 'Recent', icon: IconClock },
+		{ id: 'starred', label: 'Starred', icon: IconStar },
+		{ id: 'templates', label: 'Templates', icon: IconTemplate }
+	];
+
+	const sorts: { id: Sort; label: string }[] = [
+		{ id: 'newest', label: 'Newest first' },
+		{ id: 'oldest', label: 'Oldest first' },
+		{ id: 'name', label: 'Name (A–Z)' }
+	];
+
+	const storagePct = $derived(
+		storage && storage.total > 0 ? Math.min(100, (storage.used / storage.total) * 100) : 0
+	);
+
+	function formatBytes(bytes: number): string {
+		if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+		const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+		const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+		const value = bytes / 1024 ** i;
+		return `${value >= 10 || i === 0 ? Math.round(value) : value.toFixed(1)} ${units[i]}`;
+	}
 
 	function relativeTime(ts: number): string {
 		const diff = Date.now() - ts;
@@ -179,47 +253,115 @@
 
 </script>
 
-<div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
+<div class="bg-background text-foreground flex h-dvh overflow-hidden">
+	<!-- Workspace rail: identity, scopes, and the local-storage meter. Everything
+	     here is real — no placeholder destinations. -->
+	<aside class="border-border bg-card hidden w-64 shrink-0 flex-col border-r md:flex">
+		<div class="border-border flex h-14 shrink-0 items-center border-b px-4">
+			<Logo size={28} badge viewTransitionName="app-logo" class="text-base tracking-tight" />
+		</div>
+
+		<nav class="flex flex-col gap-0.5 p-3" aria-label="Project scopes">
+			{#each scopes as item (item.id)}
+				{@const Icon = item.icon}
+				{@const active = scope === item.id}
+				<button
+					class="ease-craft flex h-10 items-center gap-3 rounded-lg px-3 text-md transition-colors {active
+						? 'bg-brand-subtle text-brand font-medium'
+						: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+					aria-current={active}
+					onclick={() => (scope = item.id)}
+				>
+					<Icon size={18} class="shrink-0" />
+					<span class="truncate">{item.label}</span>
+				</button>
+			{/each}
+		</nav>
+
+		<div class="mt-auto p-3">
+			<div class="bg-border mx-1 mb-3 h-px"></div>
+
+			<div class="flex flex-col gap-0.5">
+				{#if onsettings}
+					<button
+						class="text-muted-foreground hover:bg-muted hover:text-foreground ease-craft flex h-10 items-center gap-3 rounded-lg px-3 text-md transition-colors"
+						onclick={() => onsettings?.()}
+					>
+						<IconSettings size={18} class="shrink-0" /> Settings
+					</button>
+				{/if}
+				{#if helpHref}
+					<a
+						class="text-muted-foreground hover:bg-muted hover:text-foreground ease-craft flex h-10 items-center gap-3 rounded-lg px-3 text-md transition-colors"
+						href={helpHref}
+					>
+						<IconHelpCircle size={18} class="shrink-0" /> Help &amp; Docs
+					</a>
+				{/if}
+				<button
+					class="text-muted-foreground hover:bg-muted hover:text-foreground ease-craft flex h-10 items-center gap-3 rounded-lg px-3 text-md transition-colors"
+					onclick={() => (aboutOpen = true)}
+				>
+					<IconInfoCircle size={18} class="shrink-0" /> About GlyphTeX
+				</button>
+			</div>
+
+			{#if storage}
+				<!-- Turns amber past 80%: the browser evicts under pressure, so the
+				     meter has to be able to raise its voice. -->
+				{@const tight = storagePct >= 80}
+				<div class="border-border bg-background mt-3 rounded-xl border p-3">
+					<div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+						<IconCloud size={16} class="shrink-0" /> Local storage
+					</div>
+					<div class="bg-muted mt-2.5 h-1.5 overflow-hidden rounded-full">
+						<div
+							class="h-full rounded-full transition-[width] duration-500 {tight
+								? 'bg-warning'
+								: 'bg-brand'}"
+							style:width={`${Math.max(storagePct, 2)}%`}
+						></div>
+					</div>
+					<p class="text-faint mt-2 text-xs">
+						{formatBytes(storage.used)} of {formatBytes(storage.total)} used
+					</p>
+				</div>
+			{/if}
+		</div>
+	</aside>
+
 	<!-- Scroll surface. The toolbar lives *inside* it and floats translucently;
 	     content slides under it and a hairline + blur settle in only once scrolled
 	     — the macOS unified-toolbar feel, no hard web-style border at rest. -->
-	<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 flex-1 overflow-auto">
-		<!-- Toolbar — brand + global controls. -->
+	<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
+		<!-- Toolbar — global controls. Identity lives in the rail. -->
 		<header
-			class="ease-craft sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b px-6 transition-[background-color,border-color,box-shadow] duration-300 {scrolled
+			class="ease-craft sticky top-0 z-20 flex h-14 items-center justify-end gap-3 border-b px-6 transition-[background-color,border-color,box-shadow] duration-300 {scrolled
 				? 'border-border bg-background/75 shadow-craft-sm backdrop-blur-xl'
 				: 'border-transparent bg-transparent'}"
 		>
-			<Logo size={26} viewTransitionName="app-logo" class="text-base tracking-tight" />
-			<div class="flex items-center gap-0.5">
-			<ThemeToggle size="icon-sm" />
-			<Button
-				size="icon-sm"
-				variant="ghost"
-				title="About GlyphTeX"
-				aria-label="About GlyphTeX"
-				onclick={() => (aboutOpen = true)}
-			>
-				<IconInfoCircle size={16} />
-			</Button>
-			{#if onsettings}
-				<div class="bg-border mx-1 h-5 w-px"></div>
+			<div class="flex items-center gap-0.5 md:hidden">
+				<Logo size={24} class="text-sm tracking-tight" />
+			</div>
+			<div class="flex flex-1 items-center justify-end gap-0.5">
+				<ThemeToggle size="icon-sm" />
 				<Button
-					size="sm"
+					size="icon-sm"
 					variant="ghost"
-					onclick={() => onsettings?.()}
+					title="About GlyphTeX"
+					aria-label="About GlyphTeX"
+					onclick={() => (aboutOpen = true)}
 				>
-					<IconSettings size={15} /> Settings
+					<IconInfoCircle />
 				</Button>
-			{/if}
-		</div>
+			</div>
 		</header>
 
 		<div class="mx-auto w-full max-w-[1140px] px-6 pt-6 pb-12">
 			<!-- Hero: title + the project actions (create / open / import / clone). -->
 			<div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
 				<div>
-					<h1 class="font-display text-3xl font-semibold tracking-tight">Your projects</h1>
+					<h1 class="font-display text-2xl font-semibold tracking-tight">Your projects</h1>
 					<p class="text-muted-foreground mt-1.5 text-sm">
 						{projects.length}
 						{projects.length === 1 ? 'project' : 'projects'} · stored on this device
@@ -233,8 +375,8 @@
 							<DropdownMenuTrigger>
 								{#snippet child({ props })}
 									<Button {...props} size="sm" variant="outline">
-										<IconFolderOpen size={15} /> Open
-										<IconChevronDown size={14} class="opacity-60" />
+										<IconFileImport /> Import
+										<IconChevronDown class="size-3.5 opacity-60" />
 									</Button>
 								{/snippet}
 							</DropdownMenuTrigger>
@@ -263,7 +405,7 @@
 						</DropdownMenu>
 					{/if}
 					<Button size="sm" onclick={handleCreate}>
-						<IconPlus size={15} /> New project
+						<IconPlus /> New project
 					</Button>
 				</div>
 			</div>
@@ -296,19 +438,67 @@
 				</div>
 			{/if}
 
-			<!-- Search -->
-			<div class="relative mt-6">
-				<IconSearch
-					size={16}
-					class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
-				/>
-				<input
-					bind:value={query}
-					class="bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/30 shadow-craft-sm ease-craft h-11 w-full rounded-2xl border py-2 pr-3 pl-10 text-sm outline-none transition-[box-shadow,border-color] duration-200 focus-visible:ring-2"
-					placeholder="Search projects"
-					spellcheck="false"
-					aria-label="Search projects"
-				/>
+			<!-- Search + sort + density. One row, so the controls that shape the grid
+			     sit together rather than being scattered around it. -->
+			<div class="mt-6 flex flex-wrap items-center gap-2">
+				<div class="relative min-w-56 flex-1">
+					<IconSearch
+						size={16}
+						class="text-faint pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
+					/>
+					<input
+						bind:value={query}
+						class="bg-card border-border text-foreground placeholder:text-faint focus-visible:border-ring focus-visible:ring-ring/30 ease-craft h-10 w-full rounded-xl border py-2 pr-3 pl-9 text-sm outline-none transition-[box-shadow,border-color] duration-200 focus-visible:ring-2"
+						placeholder="Search projects…"
+						spellcheck="false"
+						aria-label="Search projects"
+					/>
+				</div>
+
+				<DropdownMenu>
+					<DropdownMenuTrigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="sm" class="h-10 gap-1.5">
+								<IconArrowsSort />
+								{sorts.find((s) => s.id === sort)?.label}
+								<IconChevronDown class="size-3.5 opacity-60" />
+							</Button>
+						{/snippet}
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" class="w-44">
+						{#each sorts as option (option.id)}
+							<DropdownMenuCheckboxItem
+								checked={sort === option.id}
+								onCheckedChange={() => (sort = option.id)}
+							>
+								{option.label}
+							</DropdownMenuCheckboxItem>
+						{/each}
+					</DropdownMenuContent>
+				</DropdownMenu>
+
+				<div class="border-border flex h-10 items-center gap-0.5 rounded-xl border p-1">
+					<Button
+						variant={dense ? 'ghost' : 'secondary'}
+						size="icon-sm"
+						title="Comfortable grid"
+						aria-label="Comfortable grid"
+						aria-pressed={!dense}
+						onclick={() => (dense = false)}
+					>
+						<IconLayoutGrid />
+					</Button>
+					<Button
+						variant={dense ? 'secondary' : 'ghost'}
+						size="icon-sm"
+						title="Dense grid"
+						aria-label="Dense grid"
+						aria-pressed={dense}
+						onclick={() => (dense = true)}
+					>
+						<IconLayoutList />
+					</Button>
+				</div>
 			</div>
 
 			{#if filtered.length === 0}
@@ -322,15 +512,36 @@
 							Create your first project — everything stays on this device.
 						</p>
 						<Button size="sm" class="mt-1" onclick={handleCreate}>
-							<IconPlus size={15} /> New project
+							<IconPlus /> New project
 						</Button>
-					{:else}
+					{:else if query.trim()}
 						<p class="text-sm">No projects match “{query}”.</p>
+					{:else if scope === 'templates'}
+						<p class="text-foreground text-sm font-medium">No templates yet</p>
+						<p class="max-w-xs text-xs leading-relaxed">
+							Starter documents will live here. For now, New project begins from a blank
+							article.
+						</p>
+						<Button size="sm" variant="outline" class="mt-1" onclick={handleCreate}>
+							<IconPlus /> New project
+						</Button>
+					{:else if scope === 'starred'}
+						<p class="text-foreground text-sm font-medium">Nothing starred yet</p>
+						<p class="max-w-xs text-xs leading-relaxed">
+							Star a project from its ⋯ menu to keep it here.
+						</p>
+					{:else}
+						<p class="text-foreground text-sm font-medium">Nothing edited this week</p>
+						<p class="max-w-xs text-xs leading-relaxed">
+							Recent shows projects you have touched in the last 7 days.
+						</p>
 					{/if}
 				</div>
 			{:else}
 				<div
-					class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-5 gap-y-7"
+					class="mt-7 grid gap-x-5 gap-y-7 {dense
+						? 'grid-cols-[repeat(auto-fill,minmax(150px,1fr))]'
+						: 'grid-cols-[repeat(auto-fill,minmax(190px,1fr))]'}"
 					role="list"
 					aria-label="Projects"
 				>
@@ -456,6 +667,16 @@
 										{/snippet}
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end" class="w-50">
+										{#if onstar}
+											<DropdownMenuItem onclick={() => onstar?.(p.id, !p.starred)}>
+												{#if p.starred}
+													<IconStarFilled class="text-warning" /> Unstar
+												{:else}
+													<IconStar class="text-muted-foreground" /> Star
+												{/if}
+											</DropdownMenuItem>
+											<DropdownMenuSeparator />
+										{/if}
 										<DropdownMenuItem onclick={() => startRename(p)}>
 											<IconPencil class="text-muted-foreground" /> Rename
 										</DropdownMenuItem>

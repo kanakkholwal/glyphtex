@@ -83,7 +83,8 @@
     onselect={(v) => layout.selectView(v)}
     position={settings.sidebarPosition}
     menus={ctrl.menus}
-    homeHref={ctrl.backHref ?? '/projects'}
+    homeHref={ctrl.backHref}
+    homeLabel={ctrl.backLabel}
     onnewfile={() => files.newFile()}
     onopenproject={files.project ? () => files.openFolder() : undefined}
   />

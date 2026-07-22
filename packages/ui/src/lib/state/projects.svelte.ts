@@ -20,6 +20,8 @@ export type Project = {
 	files: ProjectFile[];
 	createdAt: number;
 	updatedAt: number;
+	/** Pinned by the user; drives the Starred scope on the home screen. */
+	starred?: boolean;
 };
 
 const STARTER_TEX = String.raw`% ${''}New document
