@@ -100,6 +100,30 @@ export class FileStore {
     return Boolean(this.project);
   }
 
+  /**
+   * Insert or replace files by relative path, without touching the rest of the
+   * tree. The host uses this to add imported or uploaded files to a live
+   * session; binary members carry a placeholder body it re-injects on save.
+   */
+  addFiles(entries: { name: string; content: string }[]): void {
+    for (const entry of entries) {
+      const existing = this.files.find((f) => f.name === entry.name);
+      if (existing) {
+        existing.content = entry.content;
+        existing.saved = entry.content;
+        existing.loaded = true;
+      } else {
+        this.files.push({
+          id: entry.name,
+          name: entry.name,
+          content: entry.content,
+          saved: entry.content,
+          loaded: true,
+        });
+      }
+    }
+  }
+
   // --- Derived view of the active file --------------------------------------
   readonly activeFile = $derived(
     this.files.find((f) => f.id === this.activeId) ?? this.files[0],

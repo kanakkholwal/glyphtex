@@ -52,7 +52,10 @@
   $effect(() => compile.armAutoCompile());
 
   // Open a folder/file routed by a file-association launch; listen for more.
-  onMount(() => ctrl.mountFileAssociation());
+  onMount(() => {
+    props.onready?.(ctrl);
+    return ctrl.mountFileAssociation();
+  });
   onDestroy(() => compile.disposePdf());
 </script>
 

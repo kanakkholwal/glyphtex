@@ -7,6 +7,7 @@
 
 	import StoragePanel from '$lib/StoragePanel.svelte';
 	import { toProjectCard } from '$lib/storage/bridge';
+	import { importFolder, importZipFile, type ImportResult } from '$lib/storage/import';
 	import {
 		createProject,
 		deleteProject,
@@ -48,6 +49,48 @@
 			loading = false;
 		}
 	});
+
+	let zipInput = $state<HTMLInputElement>();
+	let folderInput = $state<HTMLInputElement>();
+	let importing = $state(false);
+
+	async function runImport(load: () => Promise<ImportResult>): Promise<void> {
+		importing = true;
+		try {
+			const { files, name, skipped } = await load();
+			if (files.length === 0) {
+				toast.error('Nothing in there could be imported.');
+				return;
+			}
+			const project = await createProject(name, files);
+			await refresh();
+			void requestPersistence();
+			if (skipped.length > 0) {
+				toast.warning(
+					`Imported ${files.length} files. Skipped ${skipped.length}: ${skipped.slice(0, 3).join(', ')}${skipped.length > 3 ? '…' : ''}`
+				);
+			} else {
+				toast.success(`Imported ${files.length} files.`);
+			}
+			open(project.id);
+		} catch (error) {
+			report(error, 'Could not import that.');
+		} finally {
+			importing = false;
+		}
+	}
+
+	function pickZip(event: Event): void {
+		const file = (event.currentTarget as HTMLInputElement).files?.[0];
+		if (file) void runImport(() => importZipFile(file));
+		if (zipInput) zipInput.value = '';
+	}
+
+	function pickFolder(event: Event): void {
+		const list = (event.currentTarget as HTMLInputElement).files;
+		if (list && list.length > 0) void runImport(() => importFolder(list));
+		if (folderInput) folderInput.value = '';
+	}
 
 	async function handleCreate(): Promise<string | void> {
 		try {
@@ -123,7 +166,28 @@
 		onduplicate={duplicate}
 		ondelete={remove}
 		onsettings={() => (storageOpen = true)}
+		onimport={() => zipInput?.click()}
+		onopenfolder={() => folderInput?.click()}
 	/>
+{/if}
+
+<!-- Kept out of the tree above so a re-render never drops a pending pick. -->
+<input
+	bind:this={zipInput}
+	type="file"
+	accept=".zip,application/zip"
+	class="hidden"
+	onchange={pickZip}
+/>
+<input bind:this={folderInput} type="file" webkitdirectory class="hidden" onchange={pickFolder} />
+
+{#if importing}
+	<div
+		class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+		role="status"
+	>
+		<p class="text-sm font-medium">Importing…</p>
+	</div>
 {/if}
 
 <StoragePanel bind:open={storageOpen} />

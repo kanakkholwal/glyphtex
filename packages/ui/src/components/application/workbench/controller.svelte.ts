@@ -42,6 +42,8 @@ export type WorkbenchProps = {
   onpersist?: (files: GlyphFile[]) => void;
   /** Small free-text note shown in the status bar (e.g. web package server). */
   statusNote?: string;
+  /** Handed the controller once, so a host can drive the file store directly. */
+  onready?: (ctrl: WorkbenchController) => void;
 };
 
 export class WorkbenchController {

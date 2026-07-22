@@ -74,7 +74,7 @@
       onselectfolder={(path) => store.selectFolder(path)}
       onrename={(id, name) => onrenamefile?.(id, name)}
       ondelete={(id) => ondeletefile?.(id)}
-      onsetmain={hasProject ? (id) => onsetmain?.(id) : undefined}
+      onsetmain={(id) => onsetmain?.(id)}
       {onmovefile}
       {onmovefolder}
       {onrenamefolder}

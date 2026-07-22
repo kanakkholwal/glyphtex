@@ -19,7 +19,7 @@ export default defineConfig({
 			// where it intercepts HMR traffic and then serves stale modules.
 			serviceWorker: { register: false }
 		})
-	],
+	]
 	// optimizeDeps: {
 	// 	include:["monaco-editor","bits-ui","pdfjs-dist"]
 	// }
