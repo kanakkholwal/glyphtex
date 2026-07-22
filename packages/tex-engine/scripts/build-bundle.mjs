@@ -114,13 +114,25 @@ for (const name of OPTIONAL_SILENT_LOADS) {
 //                        document whose metrics are absent typesets into
 //                        nullfont. The whole set is 0.93 MB gzipped, so take it
 //                        all. (The 8.6 MB .pfb outlines ride in a pack.)
+//   lm*.otf            — the OpenType outlines XeTeX uses by default (TU
+//                        encoding). Only the design sizes a fixture happened to
+//                        request were present, so a 9pt beamer sans failed on a
+//                        missing lmsans9-regular.otf. This is the default
+//                        typesetting path, so core has to be self-sufficient for
+//                        it; the Type1 .pfb for the legacy T1 path stay in a pack.
 //   caption-*.sto      — caption's per-class overrides; caption under beamer
 //                        halted on a missing caption-beamer.sto.
 //   *.tec              — XeTeX font mappings (mapping=tex-text). Filed under a
 //                        format kpsewhich will not resolve by bare name, so only
 //                        a glob reaches them.
 let seeded = 0;
-for (const [name, path] of globTexmf(['*lm*.tfm', '*lm*.fd', 'caption-*.sto', '*.tec'])) {
+for (const [name, path] of globTexmf([
+	'*lm*.tfm',
+	'*lm*.fd',
+	'lm*.otf',
+	'caption-*.sto',
+	'*.tec'
+])) {
 	if (!files.has(name) && isBareName(name)) {
 		files.set(name, new Uint8Array(readFileSync(path)));
 		seeded++;

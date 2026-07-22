@@ -92,7 +92,8 @@ floor for the AppImage/.deb).
 9. **Design tokens only — no hardcoded colors.** No hex / named CSS colors. Use the semantic
    tokens from `@glyphx/design` (e.g. `var(--color-primary)`, `bg-muted`, `color-mix(... var(--color-destructive) ...)`).
    **@tabler/icons-svelte only** (not Lucide, no Iconify layer — import icons
-   directly). The editor stays **JetBrains Mono**.
+   directly). Raster images render through **`@unpic/svelte`**'s `Image`, never a
+   bare `<img>`. The editor stays **JetBrains Mono**.
 10. **Import via aliases — `@glyphx/ui/*`, `@glyphx/design`, `$lib`.** Never deep `../../..` climbs
     across package or app boundaries.
 11. **Leave the gates green.** `fmt`/`format:rust`, `clippy`, `svelte-check`, and `cargo test` must

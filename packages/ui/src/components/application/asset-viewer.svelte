@@ -150,14 +150,15 @@
 		<!-- Checkered mat so transparent PNGs/SVGs read correctly. -->
 		<div class="glyphx-checker flex flex-1 items-center justify-center overflow-auto p-6">
 			{#if imgSize.w > 0}
+				<!-- `objectFit` must be a prop: unpic writes it inline, beating any class. -->
 				<Image
 					src={imgUrl}
 					width={imgSize.w}
 					height={imgSize.h}
 					layout="constrained"
+					objectFit="contain"
 					alt={leaf}
-					background="none"
-					class="max-h-full max-w-full object-contain shadow-craft-lg"
+					class="max-h-full shadow-craft-lg"
 				/>
 			{:else}
 				<!-- No intrinsic size (typically a viewBox-only SVG) — unpic needs one. -->

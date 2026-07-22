@@ -69,12 +69,12 @@
       <Button
         variant="ghost"
         size="sm"
-        class="h-7 gap-1.5 px-2"
+        class="gap-1.5 px-2"
         href={ctrl.backHref}
         title={ctrl.backLabel ?? "Back"}
       >
-        <IconArrowLeft size={15} />
-        <span class="hidden text-xs sm:inline">{ctrl.backLabel ?? "Back"}</span>
+        <IconArrowLeft />
+        <span class="hidden sm:inline">{ctrl.backLabel ?? "Back"}</span>
       </Button>
     {/if}
     <MenuBar menus={ctrl.menus} />
@@ -103,10 +103,10 @@
               {...props}
               variant="ghost"
               size="sm"
-              class="h-7 gap-1.5 px-2 text-xs"
+              class="gap-1.5 px-2"
               title="The file compiled as the document root"
             >
-              <IconTargetArrow size={15} class="text-brand" />
+              <IconTargetArrow class="text-brand" />
               <span class="hidden max-w-32 truncate font-mono md:inline"
                 >{mainName ?? "Set main"}</span
               >
@@ -117,7 +117,6 @@
           {#each texFiles as file (file.id)}
             <DropdownMenuItem onclick={() => files.setMain(file.id)}>
               <IconTargetArrow
-                size={14}
                 class={file.id === files.mainId ? "text-brand" : "opacity-0"}
               />
               <span class="truncate font-mono text-xs">{file.name}</span>
@@ -130,12 +129,12 @@
     <Select bind:value={layout.viewMode} type="single" name="viewMode">
       <SelectTrigger
         size="sm"
-        class="h-7 w-auto min-w-0 border-0 text-xs font-normal focus:ring-0"
+        class="h-8 w-auto min-w-0 border-0 text-xs font-normal focus:ring-0"
         aria-label="Select view mode"
       >
         {@const Icon = viewOptions.find((o) => o.value === layout.viewMode)?.icon}
         {#if Icon}
-          <Icon class="inline-block size-[18px]" />
+          <Icon class="inline-block size-4" />
         {/if}
         <span class="hidden lg:inline">
           {layout.viewMode === "editor"
@@ -160,20 +159,19 @@
               {...props}
               variant="ghost"
               size="icon-sm"
-              class="size-7"
               title="Add files"
               aria-label="Add files"
             >
-              <IconFilePlus size={16} />
+              <IconFilePlus />
             </Button>
           {/snippet}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" class="w-44">
           <DropdownMenuItem onclick={() => ctrl.onAddFiles?.("")}>
-            <IconFilePlus size={15} /> Add files…
+            <IconFilePlus /> Add files…
           </DropdownMenuItem>
           <DropdownMenuItem onclick={() => ctrl.onAddFiles?.("image/*")}>
-            <IconPhotoPlus size={15} /> Add images…
+            <IconPhotoPlus /> Add images…
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -187,7 +185,7 @@
       onExportZip={ctrl.onExportProject ??
         (files.project ? () => files.exportProject() : undefined)}
       canExportZip={Boolean(ctrl.onExportProject) || Boolean(files.projectRoot)}
-      size="xs"
+      size="sm"
     />
   </div>
 </header>

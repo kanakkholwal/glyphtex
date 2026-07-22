@@ -17,8 +17,8 @@
 			],
 			"requires": [],
 			"optional": false,
-			"bytes": 92657,
-			"hash": "ff60a200d15882e1"
+			"bytes": 34415,
+			"hash": "6b56b638e4cf2911"
 		},
 		{
 			"id": "figures",
@@ -84,17 +84,18 @@
 		{
 			"id": "tables-plus",
 			"label": "Advanced tables",
-			"description": "Matrix-style and modern table layouts beyond the core table support.",
+			"description": "Row shading, matrix-style and modern table layouts beyond the core table support.",
 			"packages": [
 				"nicematrix",
-				"tabularray"
+				"tabularray",
+				"colortbl"
 			],
 			"requires": [
 				"science"
 			],
 			"optional": false,
-			"bytes": 112104,
-			"hash": "c5b8e3529eb84a7a"
+			"bytes": 115456,
+			"hash": "c57bbbbe62b7b7a2"
 		},
 		{
 			"id": "references",
@@ -161,7 +162,6 @@
 		"lastpagemodern.sty": "writing",
 		"appendix.sty": "writing",
 		"abstract.sty": "writing",
-		"lmroman9-bold.otf": "writing",
 		"float.sty": "figures",
 		"wrapfig.sty": "figures",
 		"subfig.sty": "figures",
@@ -210,6 +210,7 @@
 		"cmbx5.tfm": "science",
 		"cmbx7.tfm": "science",
 		"cmbx10.pfb": "science",
+		"colortbl.sty": "tables-plus",
 		"nicematrix.sty": "tables-plus",
 		"tabularray.sty": "tables-plus",
 		"ninecolors.sty": "tables-plus",

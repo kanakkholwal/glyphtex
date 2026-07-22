@@ -39,7 +39,12 @@ describe('mountDocument', () => {
 	// The reported bug: opening a second project showed the first one's warnings.
 	test('switching documents unmounts the previous files', () => {
 		const engine = fakeEngine();
-		let state = mountDocument(engine, emptyMount(), 'a', doc('main.tex', 'chapters.tex', 'refs.bib'));
+		let state = mountDocument(
+			engine,
+			emptyMount(),
+			'a',
+			doc('main.tex', 'chapters.tex', 'refs.bib')
+		);
 
 		state = mountDocument(engine, state, 'b', doc('main.tex'));
 

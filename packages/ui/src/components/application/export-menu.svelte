@@ -180,10 +180,10 @@
 <DropdownMenu>
   <DropdownMenuTrigger>
     {#snippet child({ props })}
-      <Button {...props} size="xs" variant="default_soft" class="rounded-full px-3">
+      <Button {...props} {size} variant="default_soft" class="gap-1.5 px-2.5">
         <IconDownload />
         Export
-        <IconChevronDown />
+        <IconChevronDown class="size-3.5 opacity-60" />
       </Button>
     {/snippet}
   </DropdownMenuTrigger>
@@ -194,7 +194,7 @@
       {:else}
         {@const Icon = item.icon}
         <DropdownMenuItem disabled={item.disabled} onclick={item.run}>
-          <Icon size={16} class="text-muted-foreground" />
+          <Icon class="text-muted-foreground" />
           <span class="flex-1">{item.label}</span>
           {#if item.hint}
             <DropdownMenuShortcut>{item.hint}</DropdownMenuShortcut>
