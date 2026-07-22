@@ -7,6 +7,8 @@
     IconBaselineDensityMedium,
     IconFolderShare,
     IconLayoutColumns,
+    IconLoader2,
+    IconPlayerPlayFilled,
     IconRefresh,
     IconSearch,
     IconX,
@@ -32,6 +34,7 @@
   const files = $derived(ctrl.files);
   const layout = $derived(ctrl.layout);
   const search = $derived(ctrl.search);
+  const compile = $derived(ctrl.compile);
 
   // Publish the project to the language providers, which otherwise only ever
   // see the one file Monaco has a model for. This is what lets `\cite{` read a
@@ -137,19 +140,25 @@
       {/if}
     </div>
   {:else if files.activeEditable}
-    <EditorTabs {files} />
-    <!-- Action + format row. The LaTeX format toolbar is only meaningful for TeX
-         *source*; other editable files get just the history/find actions. -->
-    <div
-      class="text-muted-foreground border-border flex h-9 shrink-0 items-center gap-1 border-b px-1.5 text-xs"
-    >
-      {#if files.activeHasToolbar}
-        <FormatToolbar
-          wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
-          insert={(t) => layout.editor?.insertText(t)}
-        />
-      {/if}
-      <div class="ml-auto flex shrink-0 items-center gap-0.5">
+    <EditorTabs {files}>
+      {#snippet actions()}
+        <!-- Compile lives on the preview toolbar; surface it here only when the
+             preview is hidden, so it is never absent yet never duplicated. -->
+        {#if layout.viewMode === "editor" && compile.canCompile}
+          <Button
+            size="xs"
+            class="mr-1 pl-2.5"
+            disabled={compile.compiling}
+            onclick={() => compile.runCompile(true)}
+          >
+            {#if compile.compiling}
+              <IconLoader2 class="animate-spin" />
+            {:else}
+              <IconPlayerPlayFilled />
+            {/if}
+            {compile.compiling ? "Compiling…" : "Compile"}
+          </Button>
+        {/if}
         <Button
           variant="ghost"
           size="icon-sm"
@@ -181,8 +190,19 @@
         >
           <IconSearch />
         </Button>
+      {/snippet}
+    </EditorTabs>
+    <!-- The LaTeX format toolbar is only meaningful for TeX *source*. -->
+    {#if files.activeHasToolbar}
+      <div
+        class="border-border flex h-9 shrink-0 items-center border-b px-1.5"
+      >
+        <FormatToolbar
+          wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
+          insert={(t) => layout.editor?.insertText(t)}
+        />
       </div>
-    </div>
+    {/if}
     <div class="min-h-0 flex-1">
       <CodeEditor
         bind:this={layout.editor}

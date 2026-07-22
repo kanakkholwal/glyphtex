@@ -1,11 +1,13 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   import { IconFile, IconFileText, IconFileTypePdf, IconPhotoPlus, IconX } from "@glyphx/ui/icons";
 
   import { classifyFile, type FileKind } from "../file-kinds";
   import type { FileStore } from "./files.svelte";
   import { baseName, parentDir } from "./paths";
 
-  let { files }: { files: FileStore } = $props();
+  let { files, actions }: { files: FileStore; actions?: Snippet } = $props();
 
   const icons: Record<FileKind, typeof IconFile> = {
     latex: IconFileText,
@@ -25,11 +27,8 @@
   }
 </script>
 
-<div
-  class="border-border bg-card flex h-9 shrink-0 items-stretch overflow-x-auto border-b"
-  role="tablist"
-  aria-label="Open files"
->
+<div class="border-border bg-card flex h-9 shrink-0 items-stretch border-b">
+  <div class="flex min-w-0 flex-1 items-stretch overflow-x-auto" role="tablist" aria-label="Open files">
   {#each files.openTabFiles as file (file.id)}
     {@const active = file.id === files.activeId}
     {@const dirty = files.dirtyIds.has(file.id)}
@@ -78,4 +77,10 @@
       </button>
     </div>
   {/each}
+  </div>
+  {#if actions}
+    <div class="border-border/70 flex shrink-0 items-center gap-0.5 border-l px-1.5">
+      {@render actions()}
+    </div>
+  {/if}
 </div>

@@ -55,6 +55,7 @@ export { default as IconKeyboard } from "./generated/IconKeyboard.svelte";
 export { default as IconLayoutColumns } from "./generated/IconLayoutColumns.svelte";
 export { default as IconLayoutSidebar } from "./generated/IconLayoutSidebar.svelte";
 export { default as IconList } from "./generated/IconList.svelte";
+export { default as IconListTree } from "./generated/IconListTree.svelte";
 export { default as IconLoader } from "./generated/IconLoader.svelte";
 export { default as IconLoader2 } from "./generated/IconLoader2.svelte";
 export { default as IconMath } from "./generated/IconMath.svelte";

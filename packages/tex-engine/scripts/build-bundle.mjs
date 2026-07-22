@@ -106,19 +106,21 @@ for (const name of OPTIONAL_SILENT_LOADS) {
 	}
 }
 
-// Latin Modern font definitions and metrics (~26 KB). XeTeX loads fonts
-// internally, so these never reach `missingFiles`; without t1lmss.fd,
-// `\usepackage[T1]{fontenc}` with sans fell back to CM and broke. The heavy
-// Type1 outlines (.pfb, 8.6 MB) that actually embed the glyphs ride in the
-// default-on `fonts-latinmodern` pack, keeping the core download lean.
-let fontCount = 0;
-for (const [name, path] of globTexmf(['lm*.tfm', '*lm*.fd'])) {
+// File sets loaded conditionally (by document class or internal font machinery),
+// so a fixture never triggers the missing ones and convergence can't see them:
+//   lm*.tfm / *lm*.fd  — Latin Modern metrics + defs; without t1lmss.fd,
+//                        [T1]{fontenc} sans fell back to CM and broke. (The 8.6 MB
+//                        .pfb outlines ride in the fonts-latinmodern pack.)
+//   caption-*.sto      — caption's per-class overrides; caption under beamer
+//                        halted on a missing caption-beamer.sto.
+let seeded = 0;
+for (const [name, path] of globTexmf(['lm*.tfm', '*lm*.fd', 'caption-*.sto'])) {
 	if (!files.has(name) && isBareName(name)) {
 		files.set(name, new Uint8Array(readFileSync(path)));
-		fontCount++;
+		seeded++;
 	}
 }
-console.log(`seeded ${files.size} files (format + inputs + silent loads + ${fontCount} font metrics)`);
+console.log(`seeded ${files.size} files (format + inputs + silent loads + ${seeded} conditional)`);
 
 // Fresh instance per document: an aborted compile tears down the wasm stack
 // without unwinding Rust, so a shared instance stays locked and poisons the rest.

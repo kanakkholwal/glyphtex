@@ -57,6 +57,7 @@ export const ICON_MAP = {
 	IconLayoutColumns: "layout-columns",
 	IconLayoutSidebar: "layout-sidebar",
 	IconList: "list",
+	IconListTree: "list-tree",
 	IconLoader: "loader",
 	IconLoader2: "loader-2",
 	IconMath: "math",

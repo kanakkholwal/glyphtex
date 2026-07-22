@@ -233,10 +233,10 @@ importers:
         specifier: ^5.2.8
         version: 5.2.8
       '@tabler/icons-svelte':
-        specifier: ^3.41.1
+        specifier: ^3.44.0
         version: 3.44.0(svelte@5.56.3(@typescript-eslint/types@8.61.0))
       bits-ui:
-        specifier: ^2.16.3
+        specifier: ^2.18.1
         version: 2.18.1(@internationalized/date@3.12.2)(@sveltejs/kit@2.65.0(@sveltejs/vite-plugin-svelte@7.1.2(svelte@5.56.3(@typescript-eslint/types@8.61.0))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.3(@typescript-eslint/types@8.61.0))(typescript@6.0.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(jiti@2.7.0)))(svelte@5.56.3(@typescript-eslint/types@8.61.0))
       clsx:
         specifier: ^2.1.1

@@ -138,14 +138,16 @@
 										/>
 									{/if}
 								</span>
+								{#if p.line != null}
+									<span
+										class="bg-muted text-muted-foreground mt-px shrink-0 rounded px-1 font-mono text-[11px] tabular-nums"
+									>
+										L{p.line}
+									</span>
+								{/if}
 								<span class="text-foreground/90 min-w-0 flex-1 font-mono text-xs leading-relaxed break-words">
 									{p.message}
 								</span>
-								{#if p.line != null}
-									<span class="text-muted-foreground/70 shrink-0 font-mono text-[11px] tabular-nums">
-										:{p.line}
-									</span>
-								{/if}
 							</button>
 						</li>
 					{/each}

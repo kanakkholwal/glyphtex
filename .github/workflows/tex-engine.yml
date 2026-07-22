@@ -2,11 +2,8 @@ name: TeX engine
 
 # Builds the Tectonic WASM engine, tests it end to end, and on a tag publishes
 # both a GitHub Release and the @glyphx/tex-engine npm package.
-#
-# WebAssembly is architecture-neutral, so unlike a native binary this needs no
-# per-platform build matrix and no optionalDependencies platform packages — one
-# artifact runs in browsers, Node, Bun and Deno alike.
-
+# The engine is a single .wasm file, and the bundle is a tarball of the
+# preloaded LaTeX format and all the packages it needs. 
 on:
   push:
     branches: [main]
@@ -135,46 +132,12 @@ jobs:
         run: ./scripts/build-wasm.sh
         working-directory: crates/tectonic-wasm
 
-      # Budgets are enforced, not just reported: the whole point of the number is
-      # that someone notices before users download it. A warning in a job summary
-      # nobody opens is indistinguishable from no check at all.
-      #
-      # Limits are deliberately above today's figures (engine ~1.1 MB brotli,
-      # bundle ~8.6 MB gz, ~9.7 MB total) — headroom for normal growth, tripping
-      # only on a step change. Raise them consciously, with the reason.
-      #
-      # awk, not bc: bc is not part of the ubuntu-24.04 runner image.
+      # Enforced, not just reported: a warning in a summary nobody opens is no
+      # check at all. Logic + limits live in the script so this file stays legible.
       - name: Check size budget
-        run: |
-          ENGINE_LIMIT=$((3 * 1024 * 1024))    # brotli engine
-          TOTAL_LIMIT=$((20 * 1024 * 1024))    # engine + bundle, first-run download
-          WASM=crates/tectonic-wasm/output/tectonic_wasm.wasm
-          BUNDLE=crates/tectonic-wasm/output/tectonic-bundle.tar.gz
-          RAW=$(stat -c%s "$WASM")
-          BR=$(brotli -q 11 -c "$WASM" | wc -c)
-          BUN=$(stat -c%s "$BUNDLE")
-          TOTAL=$((BR + BUN))
-          mb() { awk -v b="$1" 'BEGIN { printf "%.2f", b/1048576 }'; }
-          {
-            echo "### Engine size"
-            echo "| | bytes | MB | limit |"
-            echo "|---|---:|---:|---:|"
-            echo "| engine raw | $RAW | $(mb "$RAW") | — |"
-            echo "| engine brotli -q11 | $BR | $(mb "$BR") | $(mb "$ENGINE_LIMIT") |"
-            echo "| bundle gz | $BUN | $(mb "$BUN") | — |"
-            echo "| **first-run download** | $TOTAL | $(mb "$TOTAL") | $(mb "$TOTAL_LIMIT") |"
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: ./scripts/check-size-budget.sh
+        working-directory: crates/tectonic-wasm
 
-          fail=0
-          if [ "$BR" -gt "$ENGINE_LIMIT" ]; then
-            echo "::error::Compressed engine is $(mb "$BR") MB, over the $(mb "$ENGINE_LIMIT") MB budget."
-            fail=1
-          fi
-          if [ "$TOTAL" -gt "$TOTAL_LIMIT" ]; then
-            echo "::error::First-run download is $(mb "$TOTAL") MB, over the $(mb "$TOTAL_LIMIT") MB budget."
-            fail=1
-          fi
-          exit $fail
 
       - uses: actions/upload-artifact@v4
         with:
