@@ -96,6 +96,18 @@ describe('resolveMissing', () => {
 		assert.deepEqual(unsupported, []);
 	});
 
+	test('ignores dotted-stem config probes (geometry.cfg family)', () => {
+		// A successful geometry compile reports these; none is an installable package.
+		const { packs, unsupported } = resolveMissing(INDEX, [
+			'geometry.cfg',
+			'geometry.cfg.sty',
+			'geometry.cfg.cls',
+			'geometry.cfg.def',
+		]);
+		assert.deepEqual(packs, []);
+		assert.deepEqual(unsupported, []);
+	});
+
 	test('ignores the bounding-box probes graphicx makes beside an image', () => {
 		// Observed from a real multi-file compile of \includegraphics{figures/fig.png}:
 		// graphics probes figures/fig.bb with every package extension appended.

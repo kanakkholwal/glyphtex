@@ -80,7 +80,7 @@
 			<div class="grid gap-10 sm:grid-cols-3 md:col-span-7">
 				{#each footerCols as col (col.title)}
 					<div>
-						<h4 class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+						<h4 class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 							{col.title}
 						</h4>
 						<ul class="mt-5 space-y-3.5">

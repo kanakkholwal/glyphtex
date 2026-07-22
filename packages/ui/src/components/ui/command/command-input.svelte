@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from "@glyphx/ui/utils";
-	import { IconSearch } from "@tabler/icons-svelte";
+	import { IconSearch } from '@tabler/icons-svelte';
 	import { Command as CommandPrimitive } from "bits-ui";
 	import * as InputGroup from "../input-group";
 
@@ -18,7 +18,7 @@
 <div data-slot="command-input-wrapper" class="p-1 pb-0">
 	<InputGroup.Root
 		class={cn(
-			"bg-input/30 border-input/30 h-8! rounded-lg! shadow-none! *:data-[slot=input-group-addon]:pl-2!",
+			"bg-input/30 border-border/60 h-8! rounded-md! shadow-none! *:data-[slot=input-group-addon]:pl-2!",
 			wrapperClass,
 		)}
 	>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@glyphx/ui/dialog";
 	import { Kbd } from "@glyphx/ui/kbd";
-	import { IconKeyboard } from "@tabler/icons-svelte";
+	import { IconKeyboard } from '@tabler/icons-svelte';
 
 	import {
 		isMacPlatform,
@@ -48,7 +48,7 @@
 			<div class="gap-4 sm:columns-2 lg:columns-3 [&>section]:mb-4 [&>section]:break-inside-avoid">
 				{#each categories as category (category)}
 					<section class="border-border bg-card/40 rounded-lg border p-3">
-						<h3 class="text-muted-foreground mb-2 text-[11px] font-semibold tracking-wide uppercase">
+						<h3 class="text-faint mb-2 text-xs font-semibold tracking-wide uppercase">
 							{category}
 						</h3>
 						<ul class="flex flex-col gap-1.5">
@@ -58,7 +58,7 @@
 									<span class="flex shrink-0 items-center gap-1">
 										{#each s.combos as combo, i (combo)}
 											{#if i > 0}
-												<span class="text-muted-foreground/50 text-[10px]">or</span>
+												<span class="text-muted-foreground/50 text-xs">or</span>
 											{/if}
 											{#each caps(combo) as cap (cap)}
 												<Kbd>{cap}</Kbd>

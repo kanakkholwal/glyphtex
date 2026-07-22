@@ -5,6 +5,10 @@ dist/
 # It is a build output of crates/tectonic-wasm, not a source file.
 wasm/*.wasm
 
+# Scratch dir for `pnpm refresh`: cached format + reconverged core, both transient.
+.engine-work/
+.bundle-work/
+
 # src/generated/ is deliberately tracked: it is produced from the Rust types by
 # `pnpm generate`, and committing it means consumers and CI can build this
 # package without a Rust toolchain.

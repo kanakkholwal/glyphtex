@@ -130,14 +130,22 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 /** Single-file compile; the multi-file path with one `main.tex` mounted. */
 export function compileLatex(source: string): Promise<CompileOutcome> {
-	return compileFiles([{ name: 'main.tex', text: source }], 'main.tex');
+	return compileFiles([{ name: 'main.tex', text: source }], 'main.tex', 'scratch');
 }
 
 /**
  * Compile `entry` with every file mounted, so `\input` and `\includegraphics`
  * resolve. Binary members carry `data`; text members carry `text`.
+ *
+ * `docId` identifies the document across calls. Two documents can share a file
+ * name — `main.tex` is the usual one — so the worker needs this to know when to
+ * unmount the previous one rather than compile against its leftovers.
  */
-export async function compileFiles(files: CompileFile[], entry: string): Promise<CompileOutcome> {
+export async function compileFiles(
+	files: CompileFile[],
+	entry: string,
+	docId: string
+): Promise<CompileOutcome> {
 	if (typeof window === 'undefined') {
 		return { error: 'Compilation runs in the browser.' };
 	}
@@ -147,7 +155,7 @@ export async function compileFiles(files: CompileFile[], entry: string): Promise
 
 	let response: WorkerResponse;
 	try {
-		response = await send({ type: 'compile', files, entry });
+		response = await send({ type: 'compile', files, entry, docId });
 	} catch (e) {
 		// Plain-language message for the user; raw detail goes in the log (AGENTS.md rule #5).
 		return {

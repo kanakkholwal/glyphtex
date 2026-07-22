@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { TexEngine } from '../dist/index.js';
 import { PACK_FIXTURES } from '../test/fixtures/packs.mjs';
 import { packTarGz } from './lib/targz.mjs';
+import { globTexmf } from './lib/texmf.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = resolve(here, '..');
@@ -66,6 +67,7 @@ function isBareName(name) {
 	return name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.';
 }
 
+
 const WASM = new Uint8Array(readFileSync(wasmPath));
 
 /** The core bundle: loaded into every engine, never written into a pack. */
@@ -100,6 +102,17 @@ for (const pack of config.packs) {
 	const extra = new Map();
 	/** Packs whose files this one turned out to need. */
 	const requires = new Set();
+
+	// Wholesale additions the fixture cannot pull via `missingFiles` — beamer's
+	// themes, lmodern's outlines. Applied BEFORE convergence so the fixture
+	// compiles against them (a fonts pack cannot embed glyphs without its .pfb).
+	let included = 0;
+	for (const [name, path] of globTexmf(pack.include ?? [])) {
+		if (!core.has(name) && !extra.has(name) && !provides[name] && isBareName(name)) {
+			extra.set(name, new Uint8Array(readFileSync(path)));
+			included++;
+		}
+	}
 
 	function add(name) {
 		if (core.has(name) || extra.has(name)) return false;
@@ -211,9 +224,10 @@ for (const pack of config.packs) {
 	});
 
 	const deps = requires.size > 0 ? `  requires ${[...requires].join(', ')}` : '';
+	const inc = included > 0 ? `  +${included} included` : '';
 	console.log(
-		`  ${pack.id.padEnd(12)} ${String(count).padStart(4)} files  ` +
-			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz${deps}`
+		`  ${pack.id.padEnd(13)} ${String(count).padStart(4)} files  ` +
+			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz${deps}${inc}`
 	);
 }
 

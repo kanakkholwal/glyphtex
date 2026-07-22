@@ -105,7 +105,7 @@
             Could not display the PDF.
           </p>
           <pre
-            class="text-muted-foreground mt-2 overflow-auto font-mono text-[11px] whitespace-pre-wrap">{ctrl.errorMsg}</pre>
+            class="text-muted-foreground mt-2 overflow-auto font-mono text-xs whitespace-pre-wrap">{ctrl.errorMsg}</pre>
         </div>
       </div>
     {/if}

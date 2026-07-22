@@ -20,6 +20,23 @@ Plain text, \emph{emphasis}, and a footnote.\footnote{Like this.}
 \end{document}`
 			},
 			{
+				// The base/near-universal packages that open most real preambles.
+				// A bare fixture left these out of core, so documents failed on
+				// inputenc/fontenc — files present in every TeX install but not ours.
+				label: 'essential preamble',
+				source: String.raw`\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{textcomp,latexsym,verbatim,multicol}
+\begin{document}
+Text with \texttrademark{} and \S symbols.
+\begin{multicols}{2}
+\verb|verbatim| and \begin{verbatim}literal\end{verbatim}
+\end{multicols}
+\end{document}`
+			},
+			{
 				label: 'report',
 				source: String.raw`\documentclass{report}
 \begin{document}
@@ -180,6 +197,34 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
 \end{frame}
 \begin{frame}{Maths on a slide}
   $\displaystyle \sum_{i=1}^{n} i = \frac{n(n+1)}{2}$
+\end{frame}
+\end{document}`
+			},
+			{
+				// A real deck's preamble. The small sizes are the point: beamer's sans
+				// at \tiny asks for ec-lmss8, whose T1 metrics the plain lm* glob missed,
+				// and the whole document then typeset into nullfont.
+				label: 'beamer + T1 sans at small sizes',
+				source: String.raw`\documentclass[11pt]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\title{Report}
+\author{An Author}
+\institute{An Institute}
+\date{2026}
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+\begin{frame}{Sizes}
+  {\tiny Tiny sans text.}
+
+  {\scriptsize Script size text.}
+
+  {\footnotesize Footnote size text.}
+
+  \textbf{Bold} and \textit{italic} and \texttt{mono}.
 \end{frame}
 \end{document}`
 			}

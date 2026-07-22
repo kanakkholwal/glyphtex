@@ -89,9 +89,15 @@ floor for the AppImage/.deb).
    on both sides, in the same change.
 8. **Heavy work never blocks the UI/event loop.** Rust: `async fn` + `spawn_blocking` (the macOS
    rule, §4). Frontend: no synchronous heavy work on render; debounce compile-as-you-type.
-9. **Design tokens only — no hardcoded colors.** No hex / named CSS colors. Use the semantic
-   tokens from `@glyphx/design` (e.g. `var(--color-primary)`, `bg-muted`, `color-mix(... var(--color-destructive) ...)`).
-   **@tabler/icons-svelte only** (not Lucide). The editor stays **JetBrains Mono**.
+9. **Design tokens only — no hardcoded colors.** No hex / named CSS colors in components. Use the
+   semantic tokens from `packages/ui/src/app.css` — the single live token file, imported by both
+   apps (e.g. `bg-muted`, `text-faint`, `color-mix(... var(--destructive) ...)`). Text hierarchy is
+   `foreground` → `muted-foreground` → `faint`; radii are `rounded-md` (8, controls) → `rounded-xl`
+   (12, menus) → `rounded-2xl` (16, cards) → `rounded-pill` (CTAs); type is `text-xs`/`sm`/`md` =
+   12/13/14 with `text-2xl` = 24. `@glyphx/design` is unused — do not add tokens there.
+   **@tabler/icons-svelte only** (not Lucide, no Iconify layer — import icons
+   directly). Raster images render through **`@unpic/svelte`**'s `Image`, never a
+   bare `<img>`. The editor stays **JetBrains Mono**.
 10. **Import via aliases — `@glyphx/ui/*`, `@glyphx/design`, `$lib`.** Never deep `../../..` climbs
     across package or app boundaries.
 11. **Leave the gates green.** `fmt`/`format:rust`, `clippy`, `svelte-check`, and `cargo test` must

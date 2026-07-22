@@ -4,6 +4,7 @@
 </script>
 
 <script lang="ts">
+  import { IconCurrentLocation } from '@tabler/icons-svelte';
   import { settings } from "@glyphx/ui/settings";
   import { Toaster } from "@glyphx/ui/sonner";
   import { onDestroy, onMount } from "svelte";
@@ -52,7 +53,10 @@
   $effect(() => compile.armAutoCompile());
 
   // Open a folder/file routed by a file-association launch; listen for more.
-  onMount(() => ctrl.mountFileAssociation());
+  onMount(() => {
+    props.onready?.(ctrl);
+    return ctrl.mountFileAssociation();
+  });
   onDestroy(() => compile.disposePdf());
 </script>
 
@@ -63,8 +67,8 @@
   onblur={() => ctrl.onWindowBlur()}
 />
 
-<div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
-  <TopBar {ctrl} saveFile={props.saveFile} />
+<div class="bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden">
+  <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
 
   <!-- Body — `flex-row-reverse` docks the rail + side panel on the right edge
        (VS Code's "move primary side bar right"); the editor keeps the rest. -->
@@ -119,6 +123,8 @@
         ondeletefolder={(p) => files.deleteFolder(p)}
         onnewfilein={(dir) => files.newFile(dir)}
         onnewfolderin={(dir) => files.newFolder(dir)}
+        ondownloadfile={ctrl.onDownload ? (id) => ctrl.downloadFile(id) : undefined}
+        ondownloadfolder={ctrl.onDownload ? (p) => ctrl.downloadFolder(p) : undefined}
         dirtyIds={files.dirtyIds}
         gitStatus={files.gitStatus}
         ongotoline={(n) => layout.editor?.goToLine(n)}
@@ -176,6 +182,17 @@
                 ? 'bg-primary'
                 : 'bg-border group-hover:bg-primary/60'}"
             ></span>
+            <!-- SyncTeX: jump from the cursor's line to that spot in the PDF.
+                 Reverse (PDF→source) is a double-click in the preview. -->
+            <button
+              class="bg-card text-muted-foreground hover:bg-primary hover:text-primary-foreground border-border absolute grid size-6 place-items-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+              title="Jump to this line in the PDF (⌘/Ctrl+J)"
+              aria-label="Jump to this line in the PDF"
+              onpointerdown={(e) => e.stopPropagation()}
+              onclick={() => compile.syncToPdf()}
+            >
+              <IconCurrentLocation size={13} />
+            </button>
           </div>
         {/if}
 

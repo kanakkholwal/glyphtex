@@ -44,7 +44,7 @@
 <div class={cn('flex h-full min-h-[22rem] gap-3 p-4', className)}>
 	<!-- Faux file tree -->
 	<div
-		class="flex w-44 shrink-0 flex-col gap-0.5 rounded-xl border border-hairline/70 bg-card/70 p-2.5 font-mono text-[12px]"
+		class="flex w-44 shrink-0 flex-col gap-0.5 rounded-xl border border-hairline/70 bg-card/70 p-2.5 font-mono text-xs"
 	>
 		{#each tree as entry, i (entry.name)}
 			{@const isSelected = i === selected}
@@ -68,9 +68,9 @@
 
 	<!-- Faux editor pane -->
 	<div
-		class="flex min-w-0 flex-1 flex-col gap-2 rounded-xl border border-hairline/70 bg-card/70 p-4 font-mono text-[12px]"
+		class="flex min-w-0 flex-1 flex-col gap-2 rounded-xl border border-hairline/70 bg-card/70 p-4 font-mono text-xs"
 	>
-		<div class="flex items-center justify-between text-[11px] text-muted-foreground">
+		<div class="flex items-center justify-between text-xs text-muted-foreground">
 			<span>main.tex</span>
 			<span class="inline-flex items-center gap-1.5">
 				<span class="size-1.5 rounded-full bg-success"></span>

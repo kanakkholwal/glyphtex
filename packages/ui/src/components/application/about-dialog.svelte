@@ -9,7 +9,7 @@
 	import { Button } from "@glyphx/ui/button";
 	import { Dialog, DialogContent } from "@glyphx/ui/dialog";
 	import { Logo } from "@glyphx/ui/logo";
-	import { IconBrandGithub, IconWorld } from "@tabler/icons-svelte";
+	import { IconBrandGithub, IconWorld } from '@tabler/icons-svelte';
 
 	/**
 	 * AboutDialog — a compact "About GlyphX" card: the brand lockup, a one-line
@@ -70,7 +70,7 @@
 				</Button>
 			</div>
 
-			<p class="text-muted-foreground/60 text-[11px]">
+			<p class="text-muted-foreground/60 text-xs">
 				Built by <a href="https://x.com/kanakkholwal" target="_blank" rel="noreferrer noopener" class="underline hover:no-underline">@kanakkholwal</a>. Open source under the project license.
 			</p>
 		</div>

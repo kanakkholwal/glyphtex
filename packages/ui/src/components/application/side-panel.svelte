@@ -1,11 +1,12 @@
 <script lang="ts">
   import { settings } from "@glyphx/ui/settings";
-  import { IconGitBranch } from "@tabler/icons-svelte";
+  import { IconGitBranch } from '@tabler/icons-svelte';
 
   import type { ActivityView } from "./activity-bar.svelte";
   import type { EngineManager } from "./engine-settings.svelte";
   import GitPanel, { type GitProvider } from "./git-panel.svelte";
   import ExplorerView from "./side-panel/explorer-view.svelte";
+  import OutlineView from "./side-panel/outline-view.svelte";
   import PanelHeader from "./side-panel/panel-header.svelte";
   import SearchView from "./side-panel/search-view.svelte";
   import SettingsView from "./side-panel/settings-view.svelte";
@@ -49,6 +50,8 @@
     ondeletefolder,
     onnewfilein,
     onnewfolderin,
+    ondownloadfile,
+    ondownloadfolder,
     ongotoline,
     onregistershell,
     searchResults = [],
@@ -106,6 +109,10 @@
     onnewfilein?: (dir: string) => void;
     /** Create a new subfolder inside `dir`. */
     onnewfolderin?: (dir: string) => void;
+    /** Save one file to disk. Omitted hides the Explorer's Download item. */
+    ondownloadfile?: (id: string) => void;
+    /** Save a folder as a .zip. Omitted hides the Explorer's Download item. */
+    ondownloadfolder?: (path: string) => void;
     /** Jump the editor to a 1-based line (Outline click). */
     ongotoline?: (line: number) => void;
     /** Register the OS "Open with GlyphX" folder integration (desktop). */
@@ -164,7 +171,7 @@
   />
 
   <div
-    class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1.5 pb-2 text-[13px]"
+    class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1.5 pb-2 text-sm"
   >
     {#if view === "files"}
       <ExplorerView
@@ -175,7 +182,6 @@
         {dirtyIds}
         {gitStatus}
         {hasProject}
-        {ongotoline}
         {onrenamefile}
         {ondeletefile}
         {onsetmain}
@@ -183,7 +189,11 @@
         {onmovefolder}
         {onrenamefolder}
         {ondeletefolder}
+        {ondownloadfile}
+        {ondownloadfolder}
       />
+    {:else if view === "outline"}
+      <OutlineView {store} {ongotoline} />
     {:else if view === "search"}
       <SearchView
         {store}

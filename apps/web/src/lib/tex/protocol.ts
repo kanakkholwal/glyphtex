@@ -14,8 +14,12 @@ export type CompileFile = { name: string; text?: string; data?: Uint8Array };
 export type WorkerRequest =
 	/** Download, cache and boot the engine, reporting progress. */
 	| { id: number; type: 'install' }
-	/** Compile `entry` with `files` mounted, booting the engine first if necessary. */
-	| { id: number; type: 'compile'; files: CompileFile[]; entry: string }
+	/**
+	 * Compile `entry` with `files` mounted, booting the engine first if necessary.
+	 * `docId` identifies the document: when it changes the worker unmounts the
+	 * previous one, so its files and `.aux` cannot leak into this compile.
+	 */
+	| { id: number; type: 'compile'; files: CompileFile[]; entry: string; docId: string }
 	/** Download the named packs and load them into the running engine. */
 	| { id: number; type: 'installPacks'; packIds: string[] };
 

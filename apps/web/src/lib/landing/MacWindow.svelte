@@ -41,7 +41,7 @@
 			{/each}
 		</div>
 		{#if url || title}
-			<div class="ml-3 flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+			<div class="ml-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
 				{#if url}
 					<span class="hidden sm:inline">{url}</span>
 				{/if}

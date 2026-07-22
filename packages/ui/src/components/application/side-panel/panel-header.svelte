@@ -12,7 +12,7 @@
     IconRefresh,
     IconSearchOff,
     IconTrash,
-  } from "@tabler/icons-svelte";
+  } from '@tabler/icons-svelte';
 
   import type { ActivityView } from "../activity-bar.svelte";
   import type { SidePanelStore } from "./store.svelte";
@@ -47,14 +47,14 @@
 </script>
 
 <div
-  class="text-muted-foreground flex h-9 shrink-0 items-center justify-between px-3 text-xs font-medium tracking-wider uppercase"
+  class="text-faint flex h-9 shrink-0 items-center justify-between px-3 text-xs font-medium tracking-wider uppercase"
 >
   <span>{store.heading}</span>
   {#if view === "files"}
     <div class="-mr-1 flex items-center gap-0.5">
       <Button
         variant="ghost"
-        size="icon-xs"
+        size="icon-sm"
         title={store.targetDir ? `New file in ${store.targetDir}` : "New file"}
         aria-label="New file"
         onclick={() => store.createFileHere()}
@@ -64,7 +64,7 @@
       {#if hasNewFolder}
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           title={store.targetDir ? `New folder in ${store.targetDir}` : "New folder"}
           aria-label="New folder"
           onclick={() => store.createFolderHere()}
@@ -75,7 +75,7 @@
       {#if hasDelete}
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           title={store.effectiveSel
             ? store.effectiveSel.type === "folder"
               ? "Delete selected folder"
@@ -91,7 +91,7 @@
       {#if store.folderPaths.length}
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           title={store.anyFolderOpen ? "Collapse all folders" : "Expand all folders"}
           aria-label={store.anyFolderOpen ? "Collapse all folders" : "Expand all folders"}
           onclick={() => store.toggleCollapseAll()}
@@ -103,7 +103,7 @@
         <!-- A project is open: reveal it in the OS file manager. -->
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           title="Reveal in file explorer"
           aria-label="Reveal in file explorer"
           onclick={() => onreveal?.()}
@@ -113,7 +113,7 @@
       {:else if hasProject}
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           title="Open folder (⌘/Ctrl+O)"
           aria-label="Open folder"
           onclick={() => onopenfolder?.()}
@@ -126,7 +126,7 @@
     <div class="-mr-1 flex items-center gap-0.5">
       <Button
         variant="ghost"
-        size="icon-xs"
+        size="icon-sm"
         title="Refresh results"
         aria-label="Refresh results"
         disabled={!store.query}
@@ -136,7 +136,7 @@
       </Button>
       <Button
         variant="ghost"
-        size="icon-xs"
+        size="icon-sm"
         title="Clear search"
         aria-label="Clear search"
         disabled={!store.query}
@@ -146,7 +146,7 @@
       </Button>
       <Button
         variant="ghost"
-        size="icon-xs"
+        size="icon-sm"
         title={store.resultsCollapsed ? "Expand results" : "Collapse results"}
         aria-label={store.resultsCollapsed ? "Expand results" : "Collapse results"}
         aria-pressed={store.resultsCollapsed}
@@ -160,7 +160,7 @@
     <div class="-mr-1 flex items-center gap-0.5">
       <Button
         variant="ghost"
-        size="icon-xs"
+        size="icon-sm"
         title={settings.gitView === "tree" ? "View as list" : "View as tree"}
         aria-label={settings.gitView === "tree" ? "View as list" : "View as tree"}
         onclick={() => (settings.gitView = settings.gitView === "tree" ? "list" : "tree")}
@@ -169,7 +169,7 @@
       </Button>
       <Button
         variant="ghost"
-        size="icon-xs"
+        size="icon-sm"
         title="Refresh"
         aria-label="Refresh"
         disabled={store.gitState.loading}

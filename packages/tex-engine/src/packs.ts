@@ -109,14 +109,13 @@ export function parsePackIndex(value: unknown): PackIndex {
 	return index;
 }
 
-// A healthy compile still reports probes: fonts by name, `tex-text.tec`, and
-// `foo.sty.aux`/`.bbl` cascades. Only .sty/.cls names are installable.
-//
-// Path-qualified names are never packages: kpathsea finds those by bare name,
-// so `figures/fig.bb.sty` is graphics probing next to the user's own image.
+// A real package is a single bare token like `fancyhdr.sty`. A healthy compile
+// also reports probes that are NOT packages: fonts by name, `tex-text.tec`,
+// `foo.sty.aux` cascades, and dotted-stem config lookups (`geometry.cfg.sty`).
+// kpathsea finds packages by bare name, so anything with a path separator or a
+// dot in its stem is a probe — matching only `^token.(sty|cls)$` excludes them.
 function isInstallable(file: string): boolean {
-	if (file.includes('/')) return false;
-	return /\.(sty|cls)$/.test(file) && !/\.(sty|cls|def)\.[a-z]+$/.test(file);
+	return /^[^./]+\.(sty|cls)$/.test(file);
 }
 
 // Returns both halves: the packs drive the install prompt, and `unsupported`

@@ -73,13 +73,27 @@ Adding a pack is a data change plus a rebuild — no new code paths.
 
 1. Add an entry to `packs.config.json`: `id`, `label`, `description`, and the
    TeX Live `packages` it covers.
-2. Add a fixture using it to `test/fixtures/packs/<id>.tex`. This is not
-   optional — it is what proves the pack actually compiles, and it is the same
-   discipline that caught `siunitx` shipping listed-but-broken.
+2. Add a fixture to `test/fixtures/packs.mjs`. This is not optional — it proves
+   the pack actually compiles, the discipline that caught `siunitx` shipping
+   listed-but-broken.
 3. Run `pnpm bundle:packs`. Each pack converges by the same `missingFiles` loop
    as the core bundle, **minus whatever core already provides**, so packs never
    duplicate core or each other.
 4. Commit the built `.tar.gz` and the regenerated index.
+
+### Enumerable sets a fixture cannot reach
+
+Some packages expose a large set of runtime-selectable files that no single
+document loads — beamer has 77 theme files, and a fixture using `\usetheme{Madrid}`
+converges only Madrid's chain. Listing an `include` of basename globs adds the
+whole set wholesale:
+
+```json
+{ "id": "beamer-themes", "include": ["beamertheme*.sty", "beamercolortheme*.sty"] }
+```
+
+The fixture still has to compile (it proves the machinery works); `include` fills
+in the rest. A user then gets any `\usetheme{…}`, not just the one the fixture used.
 
 ## Invariants
 

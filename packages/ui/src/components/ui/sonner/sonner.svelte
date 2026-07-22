@@ -7,7 +7,7 @@
 		IconInfoCircle,
 		IconLoader2,
 		IconX,
-	} from "@tabler/icons-svelte";
+	} from '@tabler/icons-svelte';
 	import {
 		Toaster as Sonner,
 		type ToasterProps as SonnerProps,

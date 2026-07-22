@@ -8,7 +8,7 @@
 // typeset anything — it has no format, no classes, no fonts — so publishing
 // just the binary would give consumers something that instantiates fine and
 // then fails on the first \documentclass. The engine is the pair.
-import { copyFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
+import { copyFileSync, mkdirSync, existsSync, statSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -42,4 +42,31 @@ for (const { name, dest } of ARTIFACTS) {
 	console.log(`  ${name.padEnd(26)} ${(bytes / 1048576).toFixed(2)} MB -> ${dest}/`);
 }
 
-console.log(`synced ${ARTIFACTS.length} artifacts (${(total / 1048576).toFixed(2)} MB total)`);
+// Default packs ship too, for the same reason the bundle does: they are not
+// extras. Every pack is non-optional, the worker loads them all on boot, and a
+// consumer without them gets a quietly lesser engine — \usetheme and \rowcolor
+// fail on a package that otherwise looks complete.
+const packsSrc = resolve(outputDir, 'packs');
+if (existsSync(packsSrc)) {
+	const packsDest = resolve(pkgRoot, 'wasm', 'packs');
+	mkdirSync(packsDest, { recursive: true });
+
+	let packBytes = 0;
+	const names = readdirSync(packsSrc).filter((n) => n.endsWith('.tar.gz') || n.endsWith('.json'));
+	for (const name of names) {
+		copyFileSync(resolve(packsSrc, name), resolve(packsDest, name));
+		packBytes += statSync(resolve(packsDest, name)).size;
+	}
+	total += packBytes;
+
+	const index = JSON.parse(readFileSync(resolve(packsDest, 'packs-index.json'), 'utf8'));
+	const defaults = index.packs.filter((p) => !p.optional).length;
+	console.log(
+		`  ${'packs'.padEnd(26)} ${(packBytes / 1048576).toFixed(2)} MB -> wasm/packs/ ` +
+			`(${index.packs.length} packs, ${defaults} default)`
+	);
+} else {
+	console.warn(`  no packs at ${packsSrc} — run: pnpm engine:bundle:packs`);
+}
+
+console.log(`synced ${(total / 1048576).toFixed(2)} MB total`);

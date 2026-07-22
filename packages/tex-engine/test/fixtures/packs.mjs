@@ -35,13 +35,14 @@ Body text with fancy headers and custom section formatting.
 	{
 		id: 'figures',
 		source: String.raw`\documentclass{article}
-\usepackage{graphicx,float,wrapfig,subfig,rotating,placeins}
+\usepackage{graphicx,float,wrapfig,subfig,rotating,placeins,adjustbox}
 \begin{document}
 \begin{figure}[H]\centering\rule{2cm}{1cm}\caption{Held in place.}\end{figure}
 \begin{wrapfigure}{r}{3cm}\centering\rule{2cm}{1cm}\caption{Wrapped.}\end{wrapfigure}
 Text flowing beside the wrapped figure, with enough words to actually wrap
 around it rather than simply sitting above.
 \FloatBarrier
+\adjustbox{max width=\linewidth}{\rule{20cm}{1cm}}
 \begin{figure}[H]\centering
   \subfloat[Left]{\rule{1cm}{1cm}}\qquad\subfloat[Right]{\rule{1cm}{1cm}}
   \caption{Two subfigures.}
@@ -83,7 +84,10 @@ $\vb{a} \cdot \vb{b}$, $\dv{f}{x}$, $\pdv{f}{y}$.
 	},
 	{
 		id: 'tables-plus',
+		// Striped tables come from xcolor's `table` option, which loads colortbl —
+		// absent it, \rowcolor and \rowcolors are both undefined.
 		source: String.raw`\documentclass{article}
+\usepackage[table]{xcolor}
 \usepackage{amsmath,nicematrix,tabularray}
 \begin{document}
 $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
@@ -91,6 +95,12 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
   A & B & C \\
   1 & 2 & 3 \\
 \end{tblr}
+\rowcolors{2}{gray!10}{white}
+\begin{tabular}{ll}
+  \rowcolor{gray!30} Header & Value \\
+  A & 1 \\
+  B & 2 \\
+\end{tabular}
 \end{document}`
 	},
 	{
@@ -113,6 +123,32 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
 \begin{document}
 \lipsum[1]
 \blindtext
+\end{document}`
+	},
+	{
+		// Madrid pulls a chain (whale, orchid, rounded, infolines); the `include`
+		// glob then adds the other themes the fixture never touches.
+		id: 'beamer-themes',
+		source: String.raw`\documentclass{beamer}
+\usetheme{Madrid}
+\begin{document}
+\begin{frame}{Title}
+  \begin{itemize}\item One\item Two\end{itemize}
+\end{frame}
+\end{document}`
+	},
+	{
+		// Exercises the T1 Type1 path — roman, sans, mono, bold, italic — so the
+		// PDF must embed lmodern outlines. The `include` glob (applied before this
+		// compiles) supplies the .pfb the font loader needs.
+		id: 'fonts-latinmodern',
+		source: String.raw`\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\begin{document}
+\rmfamily Roman \textbf{bold} \textit{italic}.
+\sffamily Sans \textbf{bold}.
+\ttfamily Mono.
 \end{document}`
 	}
 ];

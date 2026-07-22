@@ -6,7 +6,7 @@
     IconArrowUp,
     IconGitCommit,
     IconRefresh,
-  } from "@tabler/icons-svelte";
+  } from '@tabler/icons-svelte';
 
   import type { GitPanelStore } from "./store.svelte";
 
@@ -55,7 +55,7 @@
     {store.busy ? "Syncing…" : "Sync Changes"}
   </Button>
 {:else}
-  <p class="text-muted-foreground/70 px-0.5 py-1 text-center text-[11px]">
+  <p class="text-muted-foreground/70 px-0.5 py-1 text-center text-xs">
     {store.head?.unborn
       ? "No commits yet."
       : "Nothing to commit — working tree clean."}

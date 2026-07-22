@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronRight, IconList } from "@tabler/icons-svelte";
+  import { IconChevronRight } from '@tabler/icons-svelte';
   import { cubicOut } from "svelte/easing";
   import { slide } from "svelte/transition";
 
@@ -14,7 +14,6 @@
     dirtyIds,
     gitStatus,
     hasProject,
-    ongotoline,
     onrenamefile,
     ondeletefile,
     onsetmain,
@@ -22,6 +21,8 @@
     onmovefolder,
     onrenamefolder,
     ondeletefolder,
+    ondownloadfile,
+    ondownloadfolder,
   }: {
     store: SidePanelStore;
     projectName: string;
@@ -30,7 +31,6 @@
     dirtyIds: Set<string>;
     gitStatus: Record<string, string>;
     hasProject: boolean;
-    ongotoline?: (line: number) => void;
     onrenamefile?: (id: string, name: string) => void;
     ondeletefile?: (id: string) => void;
     onsetmain?: (id: string) => void;
@@ -38,6 +38,8 @@
     onmovefolder?: (path: string, targetDir: string) => void;
     onrenamefolder?: (path: string, name: string) => void;
     ondeletefolder?: (path: string) => void;
+    ondownloadfile?: (id: string) => void;
+    ondownloadfolder?: (path: string) => void;
   } = $props();
 </script>
 
@@ -74,57 +76,16 @@
       onselectfolder={(path) => store.selectFolder(path)}
       onrename={(id, name) => onrenamefile?.(id, name)}
       ondelete={(id) => ondeletefile?.(id)}
-      onsetmain={hasProject ? (id) => onsetmain?.(id) : undefined}
+      onsetmain={(id) => onsetmain?.(id)}
       {onmovefile}
       {onmovefolder}
       {onrenamefolder}
       {ondeletefolder}
+      {ondownloadfile}
+      {ondownloadfolder}
       onnewfilein={(dir) => store.newFileIn(dir)}
       onnewfolderin={(dir) => store.newFolderIn(dir)}
     />
   </div>
 {/if}
 
-<div class="border-border/60 mt-2 border-t pt-1.5">
-  <button
-    class="text-muted-foreground hover:text-foreground flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold tracking-wide uppercase transition-colors"
-    aria-expanded={store.outlineExpanded}
-    onclick={() => (store.outlineExpanded = !store.outlineExpanded)}
-  >
-    <IconChevronRight
-      size={13}
-      class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {store.outlineExpanded
-        ? 'rotate-90'
-        : ''}"
-    />
-    <IconList size={14} class="shrink-0 opacity-70" />
-    <span class="truncate">Outline</span>
-  </button>
-  {#if store.outlineExpanded}
-    <div transition:slide={{ duration: 200, easing: cubicOut }}>
-      {#if store.outline.length}
-        <ul class="flex flex-col pb-1">
-          {#each store.outline as item, i (i)}
-            <li>
-              <button
-                class="text-muted-foreground hover:bg-muted hover:text-foreground flex w-full items-center gap-1.5 rounded py-0.5 pr-2 text-left transition-colors"
-                style:padding-left={`${(item.level - store.outlineBase) * 12 + 12}px`}
-                title={item.title}
-                onclick={() => ongotoline?.(item.line)}
-              >
-                <span class="bg-muted-foreground/30 size-1 shrink-0 rounded-full"
-                ></span>
-                <span class="truncate text-[13px]">{item.title}</span>
-              </button>
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="text-muted-foreground/60 px-3 py-1.5 text-[11px]">
-          No sections found. Add <span class="font-mono">\section&#123;…&#125;</span
-          > headings to build an outline.
-        </p>
-      {/if}
-    </div>
-  {/if}
-</div>

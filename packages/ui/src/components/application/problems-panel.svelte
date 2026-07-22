@@ -138,14 +138,16 @@
 										/>
 									{/if}
 								</span>
+								{#if p.line != null}
+									<span
+										class="bg-muted text-muted-foreground mt-px shrink-0 rounded px-1 font-mono text-xs tabular-nums"
+									>
+										L{p.line}
+									</span>
+								{/if}
 								<span class="text-foreground/90 min-w-0 flex-1 font-mono text-xs leading-relaxed break-words">
 									{p.message}
 								</span>
-								{#if p.line != null}
-									<span class="text-muted-foreground/70 shrink-0 font-mono text-[11px] tabular-nums">
-										:{p.line}
-									</span>
-								{/if}
 							</button>
 						</li>
 					{/each}
@@ -153,7 +155,7 @@
 			{/if}
 		{:else if log.trim()}
 			<pre
-				class="text-muted-foreground px-3 py-2 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">{log}</pre>
+				class="text-muted-foreground px-3 py-2 font-mono text-xs leading-relaxed whitespace-pre-wrap">{log}</pre>
 		{:else}
 			<p class="text-muted-foreground px-3 py-6 text-center text-xs">No log output.</p>
 		{/if}

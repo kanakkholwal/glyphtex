@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Menubar as MenubarPrimitive } from "bits-ui";
-	import { IconCheck } from "@tabler/icons-svelte";
+	import { IconCheck } from '@tabler/icons-svelte';
 	import { cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
 	import type { Snippet } from "svelte";
 

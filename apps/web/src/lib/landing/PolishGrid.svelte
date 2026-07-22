@@ -67,10 +67,10 @@
 					</span>
 				</div>
 				<div>
-					<div class="text-[15px] font-semibold tracking-tight text-foreground">
+					<div class="text-md font-semibold tracking-tight text-foreground">
 						{feature.title}
 					</div>
-					<div class="mt-2 text-[14px] leading-relaxed text-muted-foreground">
+					<div class="mt-2 text-md leading-relaxed text-muted-foreground">
 						{feature.description}
 					</div>
 				</div>

@@ -16,18 +16,24 @@
 	import { slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import {
+		IconFile,
+		IconFileCode,
 		IconFilePlus,
 		IconFileText,
+		IconFileTypePdf,
 		IconFolder,
 		IconFolderOpen,
 		IconFolderPlus,
 		IconChevronRight,
 		IconDots,
+		IconDownload,
 		IconPencil,
+		IconPhoto,
 		IconTrash,
 		IconTargetArrow
 	} from '@tabler/icons-svelte';
 	import { canDropInto, getDrag, setDrag } from './file-dnd';
+	import { classifyFile, type FileKind } from './file-kinds';
 
 	let {
 		nodes,
@@ -48,7 +54,9 @@
 		onrenamefolder,
 		ondeletefolder,
 		onnewfilein,
-		onnewfolderin
+		onnewfolderin,
+		ondownloadfile,
+		ondownloadfolder
 	}: {
 		nodes: TreeNode[];
 		activeId?: string;
@@ -77,9 +85,22 @@
 		ondeletefolder?: (path: string) => void;
 		onnewfilein?: (dir: string) => void;
 		onnewfolderin?: (dir: string) => void;
+		/** Save one file to disk. Omitted (web-only host seam) hides the item. */
+		ondownloadfile?: (id: string) => void;
+		/** Save a folder as a .zip. Omitted hides the item. */
+		ondownloadfolder?: (path: string) => void;
 	} = $props();
 
 	const isTex = (name: string) => /\.tex$/i.test(name);
+
+	const KIND_ICON: Record<FileKind, typeof IconFile> = {
+		latex: IconFileText,
+		markdown: IconFileText,
+		text: IconFileCode,
+		image: IconPhoto,
+		pdf: IconFileTypePdf,
+		binary: IconFile
+	};
 
 	const isOpen = (path: string) => open[path] ?? true;
 	const toggle = (path: string) => (open[path] = !isOpen(path));
@@ -171,7 +192,7 @@
 					<!-- svelte-ignore a11y_autofocus -->
 					<input
 						bind:value={renameValue}
-						class="bg-background border-ring text-foreground min-w-0 flex-1 rounded border px-1 py-0 text-[13px] outline-none"
+						class="bg-background border-ring text-foreground min-w-0 flex-1 rounded border px-1 py-0 text-sm outline-none"
 						autofocus
 						spellcheck="false"
 						onclick={(e) => e.stopPropagation()}
@@ -205,7 +226,7 @@
 					}}
 				>
 					<IconChevronRight
-						size={13}
+						size={15}
 						class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {isOpen(
 							node.path
 						)
@@ -239,7 +260,7 @@
 								aria-label="Folder actions"
 								onclick={(e: MouseEvent) => e.stopPropagation()}
 							>
-								<IconDots size={14} />
+								<IconDots size={16} />
 							</button>
 						{/snippet}
 					</DropdownMenuTrigger>
@@ -250,6 +271,12 @@
 						<DropdownMenuItem onSelect={() => onnewfolderin?.(node.path)}>
 							<IconFolderPlus class="text-muted-foreground" /> New folder
 						</DropdownMenuItem>
+						{#if ondownloadfolder}
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onSelect={() => ondownloadfolder?.(node.path)}>
+								<IconDownload class="text-muted-foreground" /> Download as .zip
+							</DropdownMenuItem>
+						{/if}
 						<DropdownMenuSeparator />
 						<DropdownMenuItem onSelect={() => startRenameFolder(node)}>
 							<IconPencil class="text-muted-foreground" /> Rename
@@ -283,12 +310,15 @@
 					{ondeletefolder}
 					{onnewfilein}
 					{onnewfolderin}
+					{ondownloadfile}
+					{ondownloadfolder}
 				/>
 			</div>
 		{/if}
 	{:else}
 		{@const dirty = dirtyIds.has(node.id)}
 		{@const status = gitStatus[node.id]}
+		{@const FileIcon = KIND_ICON[classifyFile(node.name)]}
 		<div class="group/row relative flex items-center">
 			{#if renamingId === node.id}
 				<div class="flex w-full items-center gap-1 py-1 pr-2" style:padding-left={indent(depth)}>
@@ -297,7 +327,7 @@
 					<!-- svelte-ignore a11y_autofocus -->
 					<input
 						bind:value={renameValue}
-						class="bg-background border-ring text-foreground min-w-0 flex-1 rounded border px-1 py-0 text-[13px] outline-none"
+						class="bg-background border-ring text-foreground min-w-0 flex-1 rounded border px-1 py-0 text-sm outline-none"
 						autofocus
 						spellcheck="false"
 						onclick={(e) => e.stopPropagation()}
@@ -326,7 +356,7 @@
 					ondblclick={() => startRename(node)}
 				>
 					<span class="w-[13px] shrink-0"></span>
-					<IconFileText size={15} class="shrink-0 {node.id === activeId ? 'text-brand' : ''}" />
+					<FileIcon size={15} class="shrink-0 {node.id === activeId ? 'text-brand' : ''}" />
 					<span class="truncate">{node.name}</span>
 					{#if node.id === mainId}
 						<span
@@ -346,7 +376,7 @@
 						{#if dirty}
 							<span class="bg-brand block size-1.5 rounded-full"></span>
 						{:else}
-							<span class="font-mono text-[10px] leading-none {STATUS_CLASS[status] ?? ''}"
+							<span class="font-mono text-xs leading-none {STATUS_CLASS[status] ?? ''}"
 								>{STATUS_LABEL[status] ?? '?'}</span
 							>
 						{/if}
@@ -363,7 +393,7 @@
 								aria-label="File actions"
 								onclick={(e: MouseEvent) => e.stopPropagation()}
 							>
-								<IconDots size={14} />
+								<IconDots size={16} />
 							</button>
 						{/snippet}
 					</DropdownMenuTrigger>
@@ -371,6 +401,11 @@
 						{#if onsetmain && isTex(node.name) && node.id !== mainId}
 							<DropdownMenuItem onSelect={() => onsetmain?.(node.id)}>
 								<IconTargetArrow class="text-muted-foreground" /> Set as main
+							</DropdownMenuItem>
+						{/if}
+						{#if ondownloadfile}
+							<DropdownMenuItem onSelect={() => ondownloadfile?.(node.id)}>
+								<IconDownload class="text-muted-foreground" /> Download
 							</DropdownMenuItem>
 						{/if}
 						<DropdownMenuItem onSelect={() => startRename(node)}>

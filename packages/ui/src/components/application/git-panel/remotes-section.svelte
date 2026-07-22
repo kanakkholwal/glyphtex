@@ -7,7 +7,7 @@
     IconPlus,
     IconTrash,
     IconX,
-  } from "@tabler/icons-svelte";
+  } from '@tabler/icons-svelte';
   import { cubicOut } from "svelte/easing";
   import { slide } from "svelte/transition";
 
@@ -119,7 +119,7 @@
             {/if}
             <div class="min-w-0 flex-1">
               <p class="text-foreground/90 truncate font-medium">{r.name}</p>
-              <p class="text-muted-foreground/70 truncate text-[10px]" title={r.url}>
+              <p class="text-muted-foreground/70 truncate text-xs" title={r.url}>
                 {r.url}
               </p>
             </div>
@@ -152,14 +152,14 @@
       {#if store.hasRemote}
         <div class="flex items-center gap-1 px-0.5">
           {#if store.activeRemote}
-            <span class="text-muted-foreground/70 text-[10px]">
+            <span class="text-muted-foreground/70 text-xs">
               Using <span class="text-foreground/80 font-medium"
                 >{store.activeRemote.name}</span
               >
             </span>
           {/if}
           <button
-            class="text-muted-foreground hover:text-foreground ml-auto text-[10px]"
+            class="text-muted-foreground hover:text-foreground ml-auto text-xs"
             onclick={() => (store.showToken = !store.showToken)}
           >
             {store.showToken ? "Hide token" : "Token"}
@@ -179,12 +179,12 @@
           <Button variant="outline" size="xs" disabled={store.busy} onclick={() => store.doPush()}>Push</Button>
         </div>
         {#if store.remoteMsg}
-          <p class="text-muted-foreground/80 px-0.5 text-[11px] leading-snug break-words">
+          <p class="text-muted-foreground/80 px-0.5 text-xs leading-snug break-words">
             {store.remoteMsg}
           </p>
         {/if}
       {:else if !store.addingRemote}
-        <p class="text-muted-foreground/70 px-0.5 text-[11px]">
+        <p class="text-muted-foreground/70 px-0.5 text-xs">
           No remotes. Add one to push or pull.
         </p>
       {/if}

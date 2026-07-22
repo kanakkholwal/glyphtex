@@ -6,7 +6,7 @@
     IconFileText,
     IconReplace,
     IconReplaceFilled,
-  } from "@tabler/icons-svelte";
+  } from '@tabler/icons-svelte';
 
   import {
     SEARCH_BTN,
@@ -197,7 +197,7 @@
             : 'rotate-90'}"
         />
         <IconFileText size={14} class="shrink-0" />
-        <span class="text-foreground truncate text-[13px] font-medium"
+        <span class="text-foreground truncate text-sm font-medium"
           >{store.activeFileName}</span
         >
       </button>
@@ -214,11 +214,11 @@
                 title={`Line ${m.line}`}
               >
                 <span
-                  class="text-muted-foreground/50 w-7 shrink-0 text-right font-mono text-[10px] tabular-nums"
+                  class="text-muted-foreground/50 w-7 shrink-0 text-right font-mono text-xs tabular-nums"
                 >
                   {m.line}
                 </span>
-                <span class="truncate font-mono text-[11px]"
+                <span class="truncate font-mono text-xs"
                   >{m.text.trim() || " "}</span
                 >
               </button>
@@ -226,14 +226,14 @@
           {/each}
         </ul>
         {#if searchResults.length > 500}
-          <p class="text-muted-foreground/60 px-2 text-[11px]">
+          <p class="text-muted-foreground/60 px-2 text-xs">
             Showing first 500 of {searchResults.length}.
           </p>
         {/if}
       {/if}
     </div>
   {:else if !store.query}
-    <p class="text-muted-foreground/70 mt-1 px-1.5 text-[11px]">
+    <p class="text-muted-foreground/70 mt-1 px-1.5 text-xs">
       Find &amp; replace in the active file.
     </p>
   {/if}

@@ -212,12 +212,12 @@
 					{@const Icon = a.icon}
 					<Button
 						variant="outline"
-						size="icon-xs"
+						size="icon-sm"
 						title={a.label}
 						aria-label={a.label}
 						onclick={a.run}
 					>
-						<Icon />
+						<Icon class="size-4" />
 					</Button>
 				{/each}
 			</ButtonGroup>
@@ -229,13 +229,13 @@
 						<Button
 							{...props}
 							variant="outline"
-							size="xs"
-							class="gap-1 px-1.5"
+							size="sm"
+							class="gap-1 px-2"
 							title={cluster.label}
 							aria-label={cluster.label}
 						>
-							<Icon />
-							<IconChevronDown class="size-3 opacity-50" />
+							<Icon class="size-4" />
+							<IconChevronDown class="size-3.5 opacity-50" />
 						</Button>
 					{/snippet}
 				</DropdownMenuTrigger>

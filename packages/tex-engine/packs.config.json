@@ -25,8 +25,8 @@
 		{
 			"id": "figures",
 			"label": "Figures & placement",
-			"description": "Figure positioning, text wrapping, subfigures and PDF inclusion.",
-			"packages": ["float", "wrapfig", "subfig", "rotating", "pdfpages", "placeins"]
+			"description": "Figure positioning, text wrapping, subfigures, resizing and PDF inclusion.",
+			"packages": ["float", "wrapfig", "subfig", "rotating", "pdfpages", "placeins", "adjustbox"]
 		},
 		{
 			"id": "boxes",
@@ -49,8 +49,8 @@
 		{
 			"id": "tables-plus",
 			"label": "Advanced tables",
-			"description": "Matrix-style and modern table layouts beyond the core table support.",
-			"packages": ["nicematrix", "tabularray"]
+			"description": "Row shading, matrix-style and modern table layouts beyond the core table support.",
+			"packages": ["nicematrix", "tabularray", "colortbl"]
 		},
 		{
 			"id": "references",
@@ -63,6 +63,26 @@
 			"label": "Drafting helpers",
 			"description": "Placeholder text and flexible list customisation for drafts.",
 			"packages": ["lipsum", "blindtext", "xstring"]
+		},
+		{
+			"id": "beamer-themes",
+			"label": "Beamer themes",
+			"description": "Every built-in beamer theme (Madrid, Berlin, Warsaw, …) plus their colour, font, inner and outer variants. Core ships only the default theme.",
+			"packages": ["beamer"],
+			"include": [
+				"beamertheme*.sty",
+				"beamercolortheme*.sty",
+				"beamerfonttheme*.sty",
+				"beamerinnertheme*.sty",
+				"beameroutertheme*.sty"
+			]
+		},
+		{
+			"id": "fonts-latinmodern",
+			"label": "Latin Modern fonts (T1)",
+			"description": "Type1 outlines for the default font family, needed to embed glyphs under \\usepackage[T1]{fontenc}. Core carries the definitions and metrics; these are the outlines.",
+			"packages": ["lm"],
+			"include": ["lm*.pfb", "lm*.vf", "lm*.enc"]
 		}
 	]
 }

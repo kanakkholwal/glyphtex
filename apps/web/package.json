@@ -16,7 +16,7 @@
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"pretest": "esbuild src/lib/tex/tar.ts src/lib/citations.ts src/lib/storage/projects.ts src/lib/storage/bridge.ts --bundle --format=esm --outdir=test/.build --outbase=src/lib --out-extension:.js=.mjs --log-level=error",
+		"pretest": "esbuild src/lib/tex/tar.ts src/lib/tex/mount.ts src/lib/citations.ts src/lib/storage/projects.ts src/lib/storage/bridge.ts src/lib/storage/zip.ts src/lib/storage/import.ts --bundle --format=esm --outdir=test/.build --outbase=src/lib --out-extension:.js=.mjs --log-level=error",
 		"test": "node --test test/*.test.mjs"
 	},
 	"dependencies": {

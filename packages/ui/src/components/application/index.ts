@@ -24,6 +24,10 @@ export {
 } from "./git-panel.svelte";
 export type { ProjectHost, ProjectFile } from "./project";
 export type {
+	WorkbenchController,
+	DownloadRequest,
+} from "./workbench/controller.svelte";
+export type {
   GlyphFile,
   CompileFn,
   CompileFilesFn,

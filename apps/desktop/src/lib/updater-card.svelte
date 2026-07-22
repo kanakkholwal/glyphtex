@@ -81,7 +81,7 @@
 							style="width: {pct}%"
 						></div>
 					</div>
-					<span class="text-muted-foreground mt-1 block text-[10px] font-medium tabular-nums">
+					<span class="text-muted-foreground mt-1 block text-xs font-medium tabular-nums">
 						{pct}%
 					</span>
 				</div>

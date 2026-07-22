@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { TexEngine } from '../dist/index.js';
 import { ALL_SAMPLES } from '../test/fixtures/groups.mjs';
+import { globTexmf } from './lib/texmf.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const pkgRoot = resolve(here, '..');
@@ -95,7 +96,49 @@ for (const name of KERNEL_SILENT_LOADS) {
 	}
 }
 
-console.log(`seeded ${files.size} files (format + its inputs + kernel silent loads)`);
+// Packages other packages load via `\IfFileExists` — a silent probe, so absent
+// ones never reach `missingFiles`. scrlfile: beamer's sansmathaccent uses it to
+// avoid wasting a mathgroup, and without it every beamer deck warns.
+const OPTIONAL_SILENT_LOADS = ['scrlfile.sty'];
+for (const name of OPTIONAL_SILENT_LOADS) {
+	if (!addFromTexLive(name) && !files.has(name)) {
+		console.warn(`note: ${name} not in this TeX Live — a cosmetic warning may remain`);
+	}
+}
+
+// File sets loaded conditionally (by document class or internal font machinery),
+// so a fixture never triggers the missing ones and convergence can't see them:
+//   *lm*.tfm / *lm*.fd — Latin Modern metrics + defs. One prefix per encoding
+//                        (ec- is T1, rm- is OT1, ts1-, qx-, t5- …), and a glob
+//                        narrower than this has now missed a prefix twice: a
+//                        document whose metrics are absent typesets into
+//                        nullfont. The whole set is 0.93 MB gzipped, so take it
+//                        all. (The 8.6 MB .pfb outlines ride in a pack.)
+//   lm*.otf            — the OpenType outlines XeTeX uses by default (TU
+//                        encoding). Only the design sizes a fixture happened to
+//                        request were present, so a 9pt beamer sans failed on a
+//                        missing lmsans9-regular.otf. This is the default
+//                        typesetting path, so core has to be self-sufficient for
+//                        it; the Type1 .pfb for the legacy T1 path stay in a pack.
+//   caption-*.sto      — caption's per-class overrides; caption under beamer
+//                        halted on a missing caption-beamer.sto.
+//   *.tec              — XeTeX font mappings (mapping=tex-text). Filed under a
+//                        format kpsewhich will not resolve by bare name, so only
+//                        a glob reaches them.
+let seeded = 0;
+for (const [name, path] of globTexmf([
+	'*lm*.tfm',
+	'*lm*.fd',
+	'lm*.otf',
+	'caption-*.sto',
+	'*.tec'
+])) {
+	if (!files.has(name) && isBareName(name)) {
+		files.set(name, new Uint8Array(readFileSync(path)));
+		seeded++;
+	}
+}
+console.log(`seeded ${files.size} files (format + inputs + silent loads + ${seeded} conditional)`);
 
 // Fresh instance per document: an aborted compile tears down the wasm stack
 // without unwinding Rust, so a shared instance stays locked and poisons the rest.

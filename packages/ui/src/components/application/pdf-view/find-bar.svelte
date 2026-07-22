@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronDown, IconChevronUp, IconX } from "@tabler/icons-svelte";
+  import { IconChevronDown, IconChevronUp, IconX } from '@tabler/icons-svelte';
 
   import {
     SEARCH_BTN,
