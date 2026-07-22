@@ -41,6 +41,7 @@
     onnewfolder,
     onopenfolder,
     onreveal,
+    onaddfiles,
     onrenamefile,
     ondeletefile,
     onsetmain,
@@ -95,6 +96,8 @@
     onopenfolder?: () => void;
     /** Reveal the open project folder in the OS file manager. Absent = unavailable. */
     onreveal?: () => void;
+    /** Import files from disk into the open document (web projects). */
+    onaddfiles?: (accept: string) => void;
     onrenamefile?: (id: string, name: string) => void;
     ondeletefile?: (id: string) => void;
     onsetmain?: (id: string) => void;
@@ -168,6 +171,7 @@
     searchResultCount={searchResults.length}
     {onreveal}
     {onopenfolder}
+    {onaddfiles}
   />
 
   <div

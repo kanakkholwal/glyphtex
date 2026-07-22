@@ -83,6 +83,7 @@
     onselect={(v) => layout.selectView(v)}
     position={settings.sidebarPosition}
     menus={ctrl.menus}
+    homeHref={ctrl.backHref ?? '/projects'}
     onnewfile={() => files.newFile()}
     onopenproject={files.project ? () => files.openFolder() : undefined}
   />
@@ -119,6 +120,7 @@
         onreveal={files.project?.revealInOS && files.projectRoot
           ? () => files.revealProject()
           : undefined}
+        onaddfiles={ctrl.onAddFiles}
         onrenamefile={(id, name) => files.renameFile(id, name)}
         ondeletefile={(id) => files.deleteFile(id)}
         onsetmain={(id) => files.setMain(id)}
@@ -170,22 +172,33 @@
     <main class="flex min-h-0 min-w-0 flex-1 flex-col">
       <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
 
-      <div bind:this={layout.bodyEl} class="flex min-h-0 min-w-0 flex-1">
+      <div
+        bind:this={layout.bodyEl}
+        class="flex min-h-0 min-w-0 flex-1 {layout.viewMode === 'split' &&
+        layout.splitDir === 'vertical'
+          ? 'flex-col'
+          : ''}"
+      >
         {#if layout.viewMode !== "preview"}
           <EditorPane {ctrl} />
         {/if}
 
         {#if layout.viewMode === "split"}
+          {@const stacked = layout.splitDir === "vertical"}
           <div
-            class="group relative z-10 flex w-1 shrink-0 cursor-col-resize touch-none items-center justify-center"
+            class="group relative z-10 flex shrink-0 touch-none items-center justify-center {stacked
+              ? 'h-1 w-full cursor-row-resize'
+              : 'w-1 cursor-col-resize'}"
             role="separator"
-            aria-orientation="vertical"
+            aria-orientation={stacked ? "horizontal" : "vertical"}
             aria-valuenow={Math.round(layout.splitPct)}
             tabindex="-1"
             onpointerdown={() => layout.startResize()}
           >
             <span
-              class="h-10 w-0.5 rounded-full transition-colors {layout.dragging
+              class="rounded-full transition-colors {stacked
+                ? 'h-0.5 w-10'
+                : 'h-10 w-0.5'} {layout.dragging
                 ? 'bg-primary'
                 : 'bg-border group-hover:bg-primary/60'}"
             ></span>

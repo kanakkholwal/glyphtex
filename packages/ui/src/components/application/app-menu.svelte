@@ -44,7 +44,8 @@
 			{@render trigger({ props })}
 		{/snippet}
 	</DropdownMenuTrigger>
-	<DropdownMenuContent align="start" side="right" class="w-44">
+	<!-- `align="end"` so it grows upward: the trigger sits at the foot of the rail. -->
+	<DropdownMenuContent align="end" side="right" class="w-44">
 		{#each menus as menu (menu.label)}
 			<DropdownMenuSub>
 				<DropdownMenuSubTrigger>{menu.label}</DropdownMenuSubTrigger>

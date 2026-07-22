@@ -7,6 +7,9 @@
 
 export type ViewMode = "editor" | "split" | "preview";
 
+/** Split axis: side by side, or editor above preview. */
+export type SplitDirection = "horizontal" | "vertical";
+
 /** Result returned by the host's compile bridges (single-file or project). */
 export type CompileResult = {
   pdf?: string;

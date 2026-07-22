@@ -58,14 +58,20 @@
   });
 </script>
 
+<!-- In a split the pane is sized along the split axis and draws the divider edge
+     on that side; otherwise it fills the body. -->
 <section
-  class="flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden {layout.viewMode ===
+  class="flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden {layout.viewMode !==
   'split'
-    ? 'border-border border-r'
-    : ''}"
-  style={layout.viewMode === "split"
-    ? `width:${layout.splitPct}%`
-    : "width:100%"}
+    ? ''
+    : layout.splitDir === 'vertical'
+      ? 'border-border w-full border-b'
+      : 'border-border h-full border-r'}"
+  style={layout.viewMode !== "split"
+    ? "width:100%;height:100%"
+    : layout.splitDir === "vertical"
+      ? `height:${layout.splitPct}%`
+      : `width:${layout.splitPct}%`}
 >
   {#if layout.diffTarget}
     <!-- Diff view (VS Code-style): file name + side-by-side / inline toggle +

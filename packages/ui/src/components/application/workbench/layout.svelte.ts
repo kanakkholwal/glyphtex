@@ -16,7 +16,7 @@ import type { GitProvider } from "../git-panel.svelte";
 import { settings } from "@glyphtex/ui/settings";
 import { toast } from "@glyphtex/ui/sonner";
 
-import type { DiffTarget, EditorApi, ViewMode } from "./types";
+import type { DiffTarget, EditorApi, SplitDirection, ViewMode } from "./types";
 
 export type LayoutDeps = {
   git?: GitProvider;
@@ -50,7 +50,10 @@ export class LayoutStore {
   diffTarget = $state<DiffTarget | null>(null);
 
   // --- Resizable split ------------------------------------------------------
+  /** Size of the editor pane, as a % of the split axis. */
   splitPct = $state(52);
+  /** `horizontal` = side by side; `vertical` = editor above, preview below. */
+  splitDir = $state<SplitDirection>("horizontal");
   dragging = $state(false);
   bodyEl = $state<HTMLElement>();
 
@@ -106,7 +109,10 @@ export class LayoutStore {
     }
     if (!this.dragging || this.viewMode !== "split" || !this.bodyEl) return;
     const rect = this.bodyEl.getBoundingClientRect();
-    const pct = ((e.clientX - rect.left) / rect.width) * 100;
+    const pct =
+      this.splitDir === "vertical"
+        ? ((e.clientY - rect.top) / rect.height) * 100
+        : ((e.clientX - rect.left) / rect.width) * 100;
     this.splitPct = Math.min(72, Math.max(28, pct));
   }
   stopResize(): void {

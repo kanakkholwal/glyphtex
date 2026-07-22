@@ -11,6 +11,7 @@
   import {
     IconDots,
     IconFilePlus,
+    IconPhotoPlus,
     IconFold,
     IconFolderOpen,
     IconFolderPlus,
@@ -40,6 +41,7 @@
     searchResultCount,
     onreveal,
     onopenfolder,
+    onaddfiles,
   }: {
     store: SidePanelStore;
     view: ActivityView;
@@ -50,6 +52,8 @@
     searchResultCount: number;
     onreveal?: () => void;
     onopenfolder?: () => void;
+    /** Import files from disk into the open document (web projects). */
+    onaddfiles?: (accept: string) => void;
   } = $props();
 
 </script>
@@ -91,6 +95,15 @@
               <IconFolderPlus class="text-muted-foreground" />
               {store.targetDir ? `New folder in ${store.targetDir}` : "New folder"}
             </DropdownMenuItem>
+          {/if}
+          {#if onaddfiles}
+            <DropdownMenuItem onSelect={() => onaddfiles?.("")}>
+              <IconFilePlus class="text-muted-foreground" /> Add files…
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onaddfiles?.("image/*")}>
+              <IconPhotoPlus class="text-muted-foreground" /> Add images…
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
           {/if}
           {#if store.folderPaths.length}
             <DropdownMenuItem onSelect={() => store.toggleCollapseAll()}>

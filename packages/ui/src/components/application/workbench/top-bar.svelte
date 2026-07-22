@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Button } from "@glyphtex/ui/button";
+  import { ButtonGroup } from "@glyphtex/ui/button-group";
   import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -8,20 +9,21 @@
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuShortcut,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
   } from "@glyphtex/ui/dropdown-menu";
   import { settings } from "@glyphtex/ui/settings";
   import {
-    IconArrowLeft,
     IconCheck,
-    IconDots,
+    IconChevronDown,
     IconEye,
-    IconFilePlus,
     IconInfoCircle,
     IconLayoutColumns,
+    IconLayoutRows,
     IconLoader2,
     IconPencil,
-    IconPhotoPlus,
     IconPlayerPlayFilled,
     IconTargetArrow,
   } from '@tabler/icons-svelte';
@@ -79,20 +81,8 @@
 <header
   class="border-border bg-card flex h-12 shrink-0 items-center gap-2 border-b px-2.5"
 >
-  <!-- Left: back + breadcrumb -->
+  <!-- Left: breadcrumb. Getting back to the document list is the rail logo's job. -->
   <div class="flex min-w-0 flex-1 items-center gap-1">
-    {#if ctrl.backHref}
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        href={ctrl.backHref}
-        title={ctrl.backLabel ?? "Back"}
-        aria-label={ctrl.backLabel ?? "Back"}
-      >
-        <IconArrowLeft />
-      </Button>
-    {/if}
-
     <nav class="flex min-w-0 items-center gap-1.5 text-sm" aria-label="Breadcrumb">
       {#if renaming}
         <!-- svelte-ignore a11y_autofocus -->
@@ -150,19 +140,71 @@
     {/if}
 
     {#if compile.canCompile}
-      <Button
-        size="sm"
-        class="pl-2.5"
-        disabled={compile.compiling}
-        onclick={() => compile.runCompile(true)}
+      <ButtonGroup
+        class="[&>[data-slot]:first-child]:!rounded-l-md [&>[data-slot]:last-child]:!rounded-r-md"
       >
-        {#if compile.compiling}
-          <IconLoader2 class="animate-spin" />
-        {:else}
-          <IconPlayerPlayFilled />
-        {/if}
-        {compile.compiling ? "Compiling…" : "Compile"}
-      </Button>
+        <Button
+          size="sm"
+          class="pl-2.5"
+          disabled={compile.compiling}
+          onclick={() => compile.runCompile(true)}
+        >
+          {#if compile.compiling}
+            <IconLoader2 class="animate-spin" />
+          {:else}
+            <IconPlayerPlayFilled />
+          {/if}
+          {compile.compiling ? "Compiling…" : "Compile"}
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            {#snippet child({ props })}
+              <Button
+                {...props}
+                size="icon-sm"
+                title="Compile options"
+                aria-label="Compile options"
+              >
+                <IconChevronDown class="size-4" />
+              </Button>
+            {/snippet}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-56">
+            <DropdownMenuCheckboxItem
+              checked={settings.autoCompile}
+              onCheckedChange={(v) => (settings.autoCompile = v)}
+            >
+              Live compile
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuItem onclick={() => compile.runCompile(true)}>
+              Compile once
+              <DropdownMenuShortcut>{shortcutLabel("compile")}</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem onclick={() => compile.syncToPdf()}>
+              Sync to PDF
+              <DropdownMenuShortcut>{shortcutLabel("sync-pdf")}</DropdownMenuShortcut>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+            <DropdownMenuGroupHeading>Main file</DropdownMenuGroupHeading>
+            {#if texFiles.length > 1}
+              {#each texFiles as file (file.id)}
+                <DropdownMenuItem onclick={() => files.setMain(file.id)}>
+                  <IconTargetArrow
+                    class={file.id === files.mainId ? "text-brand" : "opacity-0"}
+                  />
+                  <span class="truncate font-mono text-xs">{file.name}</span>
+                </DropdownMenuItem>
+              {/each}
+            {:else}
+              <DropdownMenuItem disabled>
+                <IconTargetArrow class="text-brand" />
+                <span class="truncate font-mono text-xs">{mainName ?? "—"}</span>
+              </DropdownMenuItem>
+            {/if}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ButtonGroup>
     {/if}
 
     <Button
@@ -176,22 +218,32 @@
       <IconInfoCircle />
     </Button>
 
+    <!-- View controller: which panes are visible, and how a split is arranged. -->
     <DropdownMenu>
       <DropdownMenuTrigger>
         {#snippet child({ props })}
           <Button
             {...props}
             variant="ghost"
-            size="icon-sm"
-            title="More"
-            aria-label="More document actions"
+            size="sm"
+            class="gap-1.5 px-2"
+            title="View layout"
+            aria-label="View layout"
           >
-            <IconDots />
+            {@const Active = viewOptions.find((o) => o.value === layout.viewMode)}
+            {#if Active}
+              {@const Icon =
+                Active.value === "split" && layout.splitDir === "vertical"
+                  ? IconLayoutRows
+                  : Active.icon}
+              <Icon />
+              <span class="hidden lg:inline">{Active.label}</span>
+            {/if}
+            <IconChevronDown class="size-3.5 opacity-60" />
           </Button>
         {/snippet}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" class="w-56">
-        <DropdownMenuGroupHeading>View</DropdownMenuGroupHeading>
+      <DropdownMenuContent align="end" class="w-52">
         {#each viewOptions as option (option.value)}
           {@const Icon = option.icon}
           <DropdownMenuCheckboxItem
@@ -204,45 +256,28 @@
         {/each}
 
         <DropdownMenuSeparator />
-        <DropdownMenuCheckboxItem
-          checked={settings.autoCompile}
-          onCheckedChange={(v) => (settings.autoCompile = v)}
-        >
-          Live compile
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuItem onclick={() => compile.syncToPdf()}>
-          Sync to PDF
-          <DropdownMenuShortcut>{shortcutLabel("sync-pdf")}</DropdownMenuShortcut>
-        </DropdownMenuItem>
-
-        {#if texFiles.length > 1}
-          <DropdownMenuSeparator />
-          <DropdownMenuGroupHeading>Main file</DropdownMenuGroupHeading>
-          {#each texFiles as file (file.id)}
-            <DropdownMenuItem onclick={() => files.setMain(file.id)}>
-              <IconTargetArrow
-                class={file.id === files.mainId ? "text-brand" : "opacity-0"}
-              />
-              <span class="truncate font-mono text-xs">{file.name}</span>
-            </DropdownMenuItem>
-          {/each}
-        {:else if mainName}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled>
-            <IconTargetArrow class="text-brand" />
-            <span class="truncate font-mono text-xs">{mainName}</span>
-          </DropdownMenuItem>
-        {/if}
-
-        {#if ctrl.onAddFiles}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onclick={() => ctrl.onAddFiles?.("")}>
-            <IconFilePlus class="text-muted-foreground" /> Add files…
-          </DropdownMenuItem>
-          <DropdownMenuItem onclick={() => ctrl.onAddFiles?.("image/*")}>
-            <IconPhotoPlus class="text-muted-foreground" /> Add images…
-          </DropdownMenuItem>
-        {/if}
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger disabled={layout.viewMode !== "split"}>
+            <IconLayoutColumns class="text-muted-foreground" />
+            Split direction
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent class="w-48">
+            <DropdownMenuCheckboxItem
+              checked={layout.splitDir === "horizontal"}
+              onCheckedChange={() => (layout.splitDir = "horizontal")}
+            >
+              <IconLayoutColumns class="text-muted-foreground" />
+              Side by side
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={layout.splitDir === "vertical"}
+              onCheckedChange={() => (layout.splitDir = "vertical")}
+            >
+              <IconLayoutRows class="text-muted-foreground" />
+              Stacked
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
 

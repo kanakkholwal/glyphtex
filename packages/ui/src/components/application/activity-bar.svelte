@@ -7,11 +7,11 @@
 	import { Logo } from '@glyphtex/ui/logo';
 	import { Tooltip, TooltipContent, TooltipTrigger } from '@glyphtex/ui/tooltip';
 	import {
+		IconCommand,
 		IconFiles,
 		IconFolderOpen,
 		IconGitBranch,
 		IconListTree,
-		IconMenu2,
 		IconPlus,
 		IconSearch,
 		IconSettings
@@ -29,6 +29,7 @@
 		onselect,
 		position = 'left',
 		menus = [],
+		homeHref = '/projects',
 		onnewfile,
 		onopenproject
 	}: {
@@ -38,6 +39,8 @@
 		position?: 'left' | 'right';
 		/** Application menus, shown under the rail's menu button. */
 		menus?: Menu[];
+		/** Where the logo goes — the document list, not the marketing home. */
+		homeHref?: string;
 		onnewfile?: () => void;
 		/** Absent on web, where there is no folder picker. */
 		onopenproject?: () => void;
@@ -60,15 +63,7 @@
 		: 'border-r'}"
 	aria-label="Views"
 >
-	<Logo href="/" text={false} size="md" viewTransitionName="app-logo" />
-
-	<AppMenu {menus}>
-		{#snippet trigger({ props })}
-			<Button {...props} variant="ghost" size="icon-sm" aria-label="Application menu">
-				<IconMenu2 class="size-5" />
-			</Button>
-		{/snippet}
-	</AppMenu>
+	<Logo href={homeHref} text={false} size="md" viewTransitionName="app-logo" />
 
 	<div class="bg-border my-1.5 h-px w-6"></div>
 
@@ -131,6 +126,23 @@
 				<TooltipContent side="right">Open project</TooltipContent>
 			</Tooltip>
 		{/if}
+		<!-- Native `title`, not the styled Tooltip: this button is already a
+		     DropdownMenu trigger, and merging both triggers' props onto one element
+		     lets one set of handlers clobber the other. -->
+		<AppMenu {menus}>
+			{#snippet trigger({ props })}
+				<Button
+					{...props}
+					variant="ghost"
+					size="icon-sm"
+					title="Menu"
+					aria-label="Application menu"
+				>
+					<IconCommand class="size-5" />
+				</Button>
+			{/snippet}
+		</AppMenu>
+
 		<Tooltip delayDuration={300}>
 			<TooltipTrigger>
 				{#snippet child({ props })}
