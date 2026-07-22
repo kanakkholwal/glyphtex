@@ -23,7 +23,10 @@ export {
 	type GitRemote,
 } from "./git-panel.svelte";
 export type { ProjectHost, ProjectFile } from "./project";
-export type { WorkbenchController } from "./workbench/controller.svelte";
+export type {
+	WorkbenchController,
+	DownloadRequest,
+} from "./workbench/controller.svelte";
 export type {
   GlyphFile,
   CompileFn,

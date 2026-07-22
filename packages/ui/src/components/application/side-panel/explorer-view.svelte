@@ -21,6 +21,8 @@
     onmovefolder,
     onrenamefolder,
     ondeletefolder,
+    ondownloadfile,
+    ondownloadfolder,
   }: {
     store: SidePanelStore;
     projectName: string;
@@ -36,6 +38,8 @@
     onmovefolder?: (path: string, targetDir: string) => void;
     onrenamefolder?: (path: string, name: string) => void;
     ondeletefolder?: (path: string) => void;
+    ondownloadfile?: (id: string) => void;
+    ondownloadfolder?: (path: string) => void;
   } = $props();
 </script>
 
@@ -77,6 +81,8 @@
       {onmovefolder}
       {onrenamefolder}
       {ondeletefolder}
+      {ondownloadfile}
+      {ondownloadfolder}
       onnewfilein={(dir) => store.newFileIn(dir)}
       onnewfolderin={(dir) => store.newFolderIn(dir)}
     />

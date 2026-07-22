@@ -49,8 +49,8 @@
 		{
 			"id": "tables-plus",
 			"label": "Advanced tables",
-			"description": "Matrix-style and modern table layouts beyond the core table support.",
-			"packages": ["nicematrix", "tabularray"]
+			"description": "Row shading, matrix-style and modern table layouts beyond the core table support.",
+			"packages": ["nicematrix", "tabularray", "colortbl"]
 		},
 		{
 			"id": "references",

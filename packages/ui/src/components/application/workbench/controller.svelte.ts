@@ -17,6 +17,17 @@ import type {
   SaveFileFn,
 } from "./types";
 
+/** A file or folder the user asked to save out of the workbench. */
+export type DownloadRequest = {
+  kind: "file" | "folder";
+  /** Suggested download name — the leaf; a folder arrives zipped. */
+  name: string;
+  /** Project-relative paths to include. */
+  paths: string[];
+  /** Folder requests only: the folder's path, so the host can re-root the zip. */
+  root?: string;
+};
+
 export type WorkbenchProps = {
   platform?: "web" | "desktop";
   compile?: CompileFn;
@@ -55,6 +66,11 @@ export type WorkbenchProps = {
   onAddFiles?: (accept: string) => void;
   /** Export the whole document as a .zip (web projects). */
   onExportProject?: () => void;
+  /** Read a file's bytes for the asset viewer — keyed by `path` on desktop and
+   *  by the project-relative name on web. Absent = assets can't be previewed. */
+  readFileBytes?: (key: string) => Promise<Uint8Array>;
+  /** Save a file / folder out of the Explorer. Absent hides the menu item. */
+  onDownload?: (req: DownloadRequest) => void;
 };
 
 export class WorkbenchController {
@@ -66,6 +82,8 @@ export class WorkbenchController {
   readonly onRenameProject?: (name: string) => void;
   readonly onAddFiles?: (accept: string) => void;
   readonly onExportProject?: () => void;
+  readonly readFileBytes?: (key: string) => Promise<Uint8Array>;
+  readonly onDownload?: (req: DownloadRequest) => void;
 
   readonly files: FileStore;
   readonly layout: LayoutStore;
@@ -84,6 +102,8 @@ export class WorkbenchController {
     this.onRenameProject = props.onRenameProject;
     this.onAddFiles = props.onAddFiles;
     this.onExportProject = props.onExportProject;
+    this.readFileBytes = props.readFileBytes ?? props.project?.readFileBytes;
+    this.onDownload = props.onDownload;
     this.#onpersist = props.onpersist;
     this.#openPathOnMount = props.openPathOnMount;
 
@@ -114,6 +134,38 @@ export class WorkbenchController {
 
     // Opening a project closes any diff left over from the previous one.
     this.files.onProjectLoaded = () => this.layout.closeDiff();
+  }
+
+  // --- Download (Explorer "…" menu) ---
+  /** Hand one file to the host to save. Saves first, so the download is current. */
+  async downloadFile(id: string): Promise<void> {
+    const file = this.files.files.find((f) => f.id === id);
+    if (!file || !this.onDownload) return;
+    this.files.syncBuffer();
+    await this.files.saveActive();
+    this.onDownload({
+      kind: "file",
+      name: file.name.slice(file.name.lastIndexOf("/") + 1),
+      paths: [file.name],
+    });
+  }
+
+  /** Hand a folder (zipped by the host) to save, including everything under it. */
+  async downloadFolder(path: string): Promise<void> {
+    if (!this.onDownload) return;
+    this.files.syncBuffer();
+    await this.files.saveActive();
+    const prefix = `${path}/`;
+    const paths = this.files.files
+      .map((f) => f.name)
+      .filter((n) => n.startsWith(prefix));
+    if (paths.length === 0) return;
+    this.onDownload({
+      kind: "folder",
+      name: path.slice(path.lastIndexOf("/") + 1),
+      paths,
+      root: path,
+    });
   }
 
   // --- Application menu ---

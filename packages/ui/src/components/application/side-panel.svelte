@@ -50,6 +50,8 @@
     ondeletefolder,
     onnewfilein,
     onnewfolderin,
+    ondownloadfile,
+    ondownloadfolder,
     ongotoline,
     onregistershell,
     searchResults = [],
@@ -107,6 +109,10 @@
     onnewfilein?: (dir: string) => void;
     /** Create a new subfolder inside `dir`. */
     onnewfolderin?: (dir: string) => void;
+    /** Save one file to disk. Omitted hides the Explorer's Download item. */
+    ondownloadfile?: (id: string) => void;
+    /** Save a folder as a .zip. Omitted hides the Explorer's Download item. */
+    ondownloadfolder?: (path: string) => void;
     /** Jump the editor to a 1-based line (Outline click). */
     ongotoline?: (line: number) => void;
     /** Register the OS "Open with GlyphX" folder integration (desktop). */
@@ -183,6 +189,8 @@
         {onmovefolder}
         {onrenamefolder}
         {ondeletefolder}
+        {ondownloadfile}
+        {ondownloadfolder}
       />
     {:else if view === "outline"}
       <OutlineView {store} {ongotoline} />

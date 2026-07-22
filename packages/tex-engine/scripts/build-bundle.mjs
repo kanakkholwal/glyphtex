@@ -108,13 +108,19 @@ for (const name of OPTIONAL_SILENT_LOADS) {
 
 // File sets loaded conditionally (by document class or internal font machinery),
 // so a fixture never triggers the missing ones and convergence can't see them:
-//   lm*.tfm / *lm*.fd  — Latin Modern metrics + defs; without t1lmss.fd,
-//                        [T1]{fontenc} sans fell back to CM and broke. (The 8.6 MB
-//                        .pfb outlines ride in the fonts-latinmodern pack.)
+//   *lm*.tfm / *lm*.fd — Latin Modern metrics + defs. One prefix per encoding
+//                        (ec- is T1, rm- is OT1, ts1-, qx-, t5- …), and a glob
+//                        narrower than this has now missed a prefix twice: a
+//                        document whose metrics are absent typesets into
+//                        nullfont. The whole set is 0.93 MB gzipped, so take it
+//                        all. (The 8.6 MB .pfb outlines ride in a pack.)
 //   caption-*.sto      — caption's per-class overrides; caption under beamer
 //                        halted on a missing caption-beamer.sto.
+//   *.tec              — XeTeX font mappings (mapping=tex-text). Filed under a
+//                        format kpsewhich will not resolve by bare name, so only
+//                        a glob reaches them.
 let seeded = 0;
-for (const [name, path] of globTexmf(['lm*.tfm', '*lm*.fd', 'caption-*.sto'])) {
+for (const [name, path] of globTexmf(['*lm*.tfm', '*lm*.fd', 'caption-*.sto', '*.tec'])) {
 	if (!files.has(name) && isBareName(name)) {
 		files.set(name, new Uint8Array(readFileSync(path)));
 		seeded++;

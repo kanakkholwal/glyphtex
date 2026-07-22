@@ -199,6 +199,34 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
   $\displaystyle \sum_{i=1}^{n} i = \frac{n(n+1)}{2}$
 \end{frame}
 \end{document}`
+			},
+			{
+				// A real deck's preamble. The small sizes are the point: beamer's sans
+				// at \tiny asks for ec-lmss8, whose T1 metrics the plain lm* glob missed,
+				// and the whole document then typeset into nullfont.
+				label: 'beamer + T1 sans at small sizes',
+				source: String.raw`\documentclass[11pt]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\title{Report}
+\author{An Author}
+\institute{An Institute}
+\date{2026}
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+\begin{frame}{Sizes}
+  {\tiny Tiny sans text.}
+
+  {\scriptsize Script size text.}
+
+  {\footnotesize Footnote size text.}
+
+  \textbf{Bold} and \textit{italic} and \texttt{mono}.
+\end{frame}
+\end{document}`
 			}
 		]
 	},

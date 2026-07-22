@@ -146,8 +146,8 @@
 			],
 			"requires": [],
 			"optional": false,
-			"bytes": 8482463,
-			"hash": "0ba1df773ce8a2a4"
+			"bytes": 7881728,
+			"hash": "924c9519391c8488"
 		}
 	],
 	"provides": {
@@ -368,16 +368,10 @@
 		"lmro17.pfb": "fonts-latinmodern",
 		"lmro8.pfb": "fonts-latinmodern",
 		"lmro9.pfb": "fonts-latinmodern",
-		"lmss10.pfb": "fonts-latinmodern",
-		"lmss12.pfb": "fonts-latinmodern",
 		"lmss17.pfb": "fonts-latinmodern",
-		"lmss8.pfb": "fonts-latinmodern",
-		"lmss9.pfb": "fonts-latinmodern",
 		"lmssbo10.pfb": "fonts-latinmodern",
-		"lmssbx10.pfb": "fonts-latinmodern",
 		"lmssdc10.pfb": "fonts-latinmodern",
 		"lmssdo10.pfb": "fonts-latinmodern",
-		"lmsso10.pfb": "fonts-latinmodern",
 		"lmsso12.pfb": "fonts-latinmodern",
 		"lmsso17.pfb": "fonts-latinmodern",
 		"lmsso8.pfb": "fonts-latinmodern",
@@ -410,10 +404,6 @@
 		"lmvtl10.pfb": "fonts-latinmodern",
 		"lmvtlo10.pfb": "fonts-latinmodern",
 		"lmvtt10.pfb": "fonts-latinmodern",
-		"lmvtto10.pfb": "fonts-latinmodern",
-		"ec-lmbx10.tfm": "fonts-latinmodern",
-		"ec-lmri10.tfm": "fonts-latinmodern",
-		"ec-lmss10.tfm": "fonts-latinmodern",
-		"ec-lmssbx10.tfm": "fonts-latinmodern"
+		"lmvtto10.pfb": "fonts-latinmodern"
 	}
 }

@@ -2,31 +2,33 @@
 	import { Button } from "@glyphx/ui/button";
 	import { Spinner } from "@glyphx/ui/spinner";
 	import { IconFileOff, IconFolderShare } from '@tabler/icons-svelte';
+	import { Image } from "@unpic/svelte";
 
 	import type { FileKind } from "./file-kinds";
 	import PdfView from "./pdf-view.svelte";
 
 	/**
 	 * AssetViewer — renders a non-text file in the editor pane:
-	 *  - images load straight into an <img> (object-contained, checkered mat),
+	 *  - images render through `@unpic/svelte` (object-contained, checkered mat),
 	 *  - PDFs reuse the project's PdfView,
 	 *  - anything we can't show without a heavy library falls back to a clear
 	 *    "can't preview here" card with a "Reveal in folder" action.
-	 * Bytes are read lazily through the host (desktop = Tauri fs). On the web,
-	 * where there's no file host, everything degrades to the fallback card.
+	 * Bytes are read lazily through the host: an absolute path on desktop, the
+	 * project-relative path on web (IndexedDB). Without a reader everything
+	 * degrades to the fallback card.
 	 */
 	let {
 		kind,
 		name,
-		path,
+		assetKey,
 		readBytes,
 		onreveal,
 	}: {
 		kind: FileKind;
 		name: string;
-		/** Absolute path (desktop). Drives lazy byte loading + reveal. */
-		path?: string;
-		readBytes?: (abs: string) => Promise<Uint8Array>;
+		/** Key handed to `readBytes` — absolute path (desktop) or relative (web). */
+		assetKey?: string;
+		readBytes?: (key: string) => Promise<Uint8Array>;
 		onreveal?: () => void;
 	} = $props();
 
@@ -44,16 +46,30 @@
 
 	let bytes = $state<Uint8Array | undefined>(undefined);
 	let imgUrl = $state<string | undefined>(undefined);
+	// Intrinsic size, so the image reserves its space instead of reflowing in.
+	// 0 for an SVG with no width/height, which then falls back to a plain <img>.
+	let imgSize = $state({ w: 0, h: 0 });
 	let loading = $state(false);
 	let error = $state<string | undefined>(undefined);
 
+	async function measure(url: string): Promise<{ w: number; h: number }> {
+		const probe = new window.Image();
+		probe.src = url;
+		try {
+			await probe.decode();
+		} catch {
+			return { w: 0, h: 0 };
+		}
+		return { w: probe.naturalWidth, h: probe.naturalHeight };
+	}
+
 	// Load the file's bytes whenever the target or its kind changes. IMPORTANT:
-	// this effect must only *read* `path` / `kind` / `readBytes` and never read
+	// this effect must only *read* `assetKey` / `kind` / `readBytes` and never read
 	// the state it writes (bytes / imgUrl / error / loading) — reading a written
 	// signal here would re-trigger the effect on every write and spin forever.
 	// The previous object URL is revoked in the cleanup, not by reading `imgUrl`.
 	$effect(() => {
-		const p = path;
+		const p = assetKey;
 		const k = kind;
 		const reader = readBytes;
 		const mime = IMG_MIME[ext] ?? `image/${ext}`;
@@ -62,6 +78,7 @@
 		bytes = undefined;
 		error = undefined;
 		imgUrl = undefined;
+		imgSize = { w: 0, h: 0 };
 
 		if (k === "binary" || !p || !reader) {
 			loading = false;
@@ -77,6 +94,9 @@
 				bytes = b;
 				if (k === "image") {
 					createdUrl = URL.createObjectURL(new Blob([b as BlobPart], { type: mime }));
+					const size = await measure(createdUrl);
+					if (cancelled) return;
+					imgSize = size;
 					imgUrl = createdUrl;
 				}
 			} catch (e) {
@@ -92,7 +112,7 @@
 	});
 
 	const unsupported = $derived(
-		kind === "binary" || !path || !readBytes || !!error,
+		kind === "binary" || !assetKey || !readBytes || !!error,
 	);
 </script>
 
@@ -129,8 +149,28 @@
 	{:else if kind === "image" && imgUrl}
 		<!-- Checkered mat so transparent PNGs/SVGs read correctly. -->
 		<div class="glyphx-checker flex flex-1 items-center justify-center overflow-auto p-6">
-			<img src={imgUrl} alt={leaf} class="max-h-full max-w-full object-contain shadow-craft-lg" />
+			{#if imgSize.w > 0}
+				<Image
+					src={imgUrl}
+					width={imgSize.w}
+					height={imgSize.h}
+					layout="constrained"
+					alt={leaf}
+					background="none"
+					class="max-h-full max-w-full object-contain shadow-craft-lg"
+				/>
+			{:else}
+				<!-- No intrinsic size (typically a viewBox-only SVG) — unpic needs one. -->
+				<img src={imgUrl} alt={leaf} class="max-h-full max-w-full object-contain shadow-craft-lg" />
+			{/if}
 		</div>
+		{#if imgSize.w > 0}
+			<div
+				class="text-muted-foreground/70 border-border shrink-0 border-t px-3 py-1 text-center font-mono text-[11px] tabular-nums"
+			>
+				{imgSize.w} × {imgSize.h}
+			</div>
+		{/if}
 	{:else if kind === "pdf" && bytes}
 		<PdfView data={bytes} />
 	{/if}

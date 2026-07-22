@@ -220,6 +220,7 @@
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@tabler/icons-svelte": "^3.44.0",
+    "@unpic/svelte": "^1.0.1",
     "bits-ui": "^2.18.1",
     "clsx": "^2.1.1",
     "mode-watcher": "^1.1.0",

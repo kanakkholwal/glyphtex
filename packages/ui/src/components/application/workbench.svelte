@@ -123,6 +123,8 @@
         ondeletefolder={(p) => files.deleteFolder(p)}
         onnewfilein={(dir) => files.newFile(dir)}
         onnewfolderin={(dir) => files.newFolder(dir)}
+        ondownloadfile={ctrl.onDownload ? (id) => ctrl.downloadFile(id) : undefined}
+        ondownloadfolder={ctrl.onDownload ? (p) => ctrl.downloadFolder(p) : undefined}
         dirtyIds={files.dirtyIds}
         gitStatus={files.gitStatus}
         ongotoline={(n) => layout.editor?.goToLine(n)}

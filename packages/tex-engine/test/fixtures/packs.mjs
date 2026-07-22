@@ -84,7 +84,10 @@ $\vb{a} \cdot \vb{b}$, $\dv{f}{x}$, $\pdv{f}{y}$.
 	},
 	{
 		id: 'tables-plus',
+		// Striped tables come from xcolor's `table` option, which loads colortbl —
+		// absent it, \rowcolor and \rowcolors are both undefined.
 		source: String.raw`\documentclass{article}
+\usepackage[table]{xcolor}
 \usepackage{amsmath,nicematrix,tabularray}
 \begin{document}
 $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
@@ -92,6 +95,12 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
   A & B & C \\
   1 & 2 & 3 \\
 \end{tblr}
+\rowcolors{2}{gray!10}{white}
+\begin{tabular}{ll}
+  \rowcolor{gray!30} Header & Value \\
+  A & 1 \\
+  B & 2 \\
+\end{tabular}
 \end{document}`
 	},
 	{

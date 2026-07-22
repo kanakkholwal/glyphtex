@@ -2,7 +2,12 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import type { PackDefinition } from '@glyphx/tex-engine';
-	import { Workbench, type GlyphFile, type WorkbenchController } from '@glyphx/ui/application';
+	import {
+		Workbench,
+		type DownloadRequest,
+		type GlyphFile,
+		type WorkbenchController
+	} from '@glyphx/ui/application';
 	import { toast } from '@glyphx/ui/sonner';
 	import { onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -160,26 +165,69 @@
 		}
 	}
 
+	function saveBlob(blob: Blob, filename: string): void {
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = filename;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
+	/** Current bytes for a project-relative path — stored image/PDF data, else text. */
+	function bytesOf(path: string, files: GlyphFile[]): Uint8Array {
+		const data = binary.get(path);
+		if (data) return data;
+		const file = files.find((f) => f.name === path);
+		return new TextEncoder().encode(file?.content ?? file?.saved ?? '');
+	}
+
 	async function exportZip(): Promise<void> {
 		if (!project) return;
 		try {
 			const files = ctrl?.files.snapshotFiles() ?? latest;
-			const encoder = new TextEncoder();
 			const zip = await writeZip(
-				files.map((f) => ({
-					path: f.name,
-					data: binary.get(f.name) ?? encoder.encode(f.saved ?? f.content)
-				}))
+				files.map((f) => ({ path: f.name, data: bytesOf(f.name, files) }))
 			);
-			const url = URL.createObjectURL(new Blob([zip as BlobPart], { type: 'application/zip' }));
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = `${project.name.replace(/[^\w.-]+/g, '-') || 'document'}.zip`;
-			link.click();
-			URL.revokeObjectURL(url);
+			saveBlob(
+				new Blob([zip as BlobPart], { type: 'application/zip' }),
+				`${project.name.replace(/[^\w.-]+/g, '-') || 'document'}.zip`
+			);
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not export.');
 		}
+	}
+
+	// Explorer "…" → Download. A single file saves as itself; a folder is zipped
+	// re-rooted at its own name, so unzipping never scatters files into the CWD.
+	async function download(request: DownloadRequest): Promise<void> {
+		const files = ctrl?.files.snapshotFiles() ?? latest;
+		try {
+			if (request.kind === 'file') {
+				const path = request.paths[0];
+				if (!path) return;
+				saveBlob(new Blob([bytesOf(path, files) as BlobPart]), request.name);
+				return;
+			}
+			const root = request.root ?? '';
+			const cut = root.lastIndexOf('/') + 1;
+			const zip = await writeZip(
+				request.paths.map((path) => ({ path: path.slice(cut), data: bytesOf(path, files) }))
+			);
+			saveBlob(
+				new Blob([zip as BlobPart], { type: 'application/zip' }),
+				`${request.name.replace(/[^\w.-]+/g, '-') || 'folder'}.zip`
+			);
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Could not download.');
+		}
+	}
+
+	// The asset viewer reads images / PDFs by project-relative path.
+	async function readFileBytes(path: string): Promise<Uint8Array> {
+		const data = binary.get(path);
+		if (!data) throw new Error(`${path} is not stored in this document.`);
+		return data;
 	}
 
 	async function onDrop(event: DragEvent): Promise<void> {
@@ -283,6 +331,8 @@
 				onRenameProject={rename}
 				onAddFiles={pickFiles}
 				onExportProject={exportZip}
+				onDownload={download}
+				{readFileBytes}
 				onpersist={persist}
 				onready={onReady}
 				compileFiles={ready ? runCompile : undefined}

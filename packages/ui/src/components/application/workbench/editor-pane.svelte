@@ -36,6 +36,10 @@
   const search = $derived(ctrl.search);
   const compile = $derived(ctrl.compile);
 
+  // Assets are read by absolute path on desktop and by project-relative name on
+  // web (IndexedDB), so the viewer takes whichever the host can resolve.
+  const assetKey = $derived(files.activeFile?.path ?? files.activeFile?.name);
+
   // Publish the project to the language providers, which otherwise only ever
   // see the one file Monaco has a model for. This is what lets `\cite{` read a
   // sibling .bib and `\ref{` reach a label in another chapter.
@@ -70,7 +74,7 @@
     <!-- Diff view (VS Code-style): file name + side-by-side / inline toggle +
          refresh + close. Read-only comparison of the change. -->
     <div
-      class="text-muted-foreground border-border flex h-9 shrink-0 items-center gap-2 border-b px-2 text-xs"
+      class="text-muted-foreground border-border bg-card flex h-9 shrink-0 items-center gap-2 border-b px-1.5 text-xs"
     >
       <span class="truncate pl-1" title={layout.diffTarget.path}>
         {baseName(layout.diffTarget.path)}
@@ -78,7 +82,7 @@
           — {layout.diffTarget.staged ? "Staged changes" : "Working tree"}
         </span>
       </span>
-      <div class="ml-auto flex shrink-0 items-center gap-0.5 pl-1">
+      <div class="ml-auto flex shrink-0 items-center gap-0.5">
         <Button
           variant={settings.diffView === "side" ? "secondary" : "ghost"}
           size="icon-sm"
@@ -99,7 +103,7 @@
         >
           <IconBaselineDensityMedium />
         </Button>
-        <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
+        <span class="bg-border/60 mx-1 h-5 w-px"></span>
         <Button
           variant="ghost"
           size="icon-sm"
@@ -146,7 +150,7 @@
              preview is hidden, so it is never absent yet never duplicated. -->
         {#if layout.viewMode === "editor" && compile.canCompile}
           <Button
-            size="xs"
+            size="sm"
             class="mr-1 pl-2.5"
             disabled={compile.compiling}
             onclick={() => compile.runCompile(true)}
@@ -179,7 +183,7 @@
         >
           <IconArrowForwardUp />
         </Button>
-        <div class="bg-border/70 mx-0.5 h-5 w-px"></div>
+        <span class="bg-border/60 mx-1 h-5 w-px"></span>
         <Button
           variant={search.showFind ? "secondary" : "ghost"}
           size="icon-sm"
@@ -195,7 +199,7 @@
     <!-- The LaTeX format toolbar is only meaningful for TeX *source*. -->
     {#if files.activeHasToolbar}
       <div
-        class="border-border flex h-9 shrink-0 items-center border-b px-1.5"
+        class="border-border bg-card flex h-9 shrink-0 items-center border-b px-1.5"
       >
         <FormatToolbar
           wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
@@ -236,7 +240,7 @@
     <!-- Non-text file (image / PDF / unsupported): a slim header with a reveal
          action, then the AssetViewer renders it directly. -->
     <div
-      class="text-muted-foreground border-border flex h-9 shrink-0 items-center justify-between gap-2 border-b px-2 text-xs"
+      class="text-muted-foreground border-border bg-card flex h-9 shrink-0 items-center justify-between gap-2 border-b px-1.5 text-xs"
     >
       <span class="truncate pl-1" title={files.activeFile?.name}>
         {baseName(files.activeFile?.name ?? "")}
@@ -258,8 +262,8 @@
       <AssetViewer
         kind={files.activeKind}
         name={files.activeFile?.name ?? ""}
-        path={files.activeFile?.path}
-        readBytes={files.project?.readFileBytes}
+        {assetKey}
+        readBytes={ctrl.readFileBytes}
         onreveal={files.project?.revealInOS && files.activeFile?.path
           ? () => files.revealActiveFile()
           : undefined}

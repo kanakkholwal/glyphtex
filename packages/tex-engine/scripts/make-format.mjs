@@ -91,12 +91,40 @@ for (const seed of ['latex2e-first-aid-for-external-files.ltx']) {
 	}
 }
 
+/*
+ * The format reports LaTeX 2026, so packages take their modern branches, but
+ * Tectonic's XeTeX predates `\partokencontext` — microtype's tagging branch then
+ * expands an undefined control sequence and every beamer frame collapses into
+ * "Missing number"/"Illegal unit of measure". As a count register the assignment
+ * `\partokencontext\z@` is a well-formed no-op, which is what "tagging off" means
+ * for an engine that emits no tagged PDF.
+ *
+ * It has to be defined before `\dump`, and latex.ltx dumps at its own end, so
+ * nothing after `\input latex.ltx` would run. Neutralising `\dump` and calling it
+ * ourselves adds the shim without editing an upstream file. No `@` in the saved
+ * name: it is catcode 12 until latex.ltx runs.
+ */
+const ENTRY = 'glyphx-format.ini';
+inputs.set(
+	ENTRY,
+	new TextEncoder().encode(
+		[
+			'\\let\\glyphxdump\\dump',
+			'\\let\\dump\\relax',
+			'\\input xelatex.ini',
+			'\\ifdefined\\partokencontext\\else \\newcount\\partokencontext \\fi',
+			'\\glyphxdump',
+			''
+		].join('\n')
+	)
+);
+
 // Fresh instance per attempt: a failed INITEX aborts through C without unwinding
 // Rust, so reuse leaks TeX arrays and later fails as "xmalloc request failed".
 async function attempt() {
 	const engine = await TexEngine.load(WASM);
 	for (const [name, bytes] of inputs) engine.addFile(name, bytes);
-	const result = engine.compile({ entry: 'xelatex.ini', jobname: 'latex', initex: true });
+	const result = engine.compile({ entry: ENTRY, jobname: 'latex', initex: true });
 	return { engine, result };
 }
 
@@ -150,7 +178,11 @@ writeFileSync(resolve(outDir, 'latex.fmt'), dumped);
 // alongside the format, from the same snapshot, or version skew returns.
 writeFileSync(
 	resolve(outDir, 'format-inputs.json'),
-	JSON.stringify([...inputs.keys()].sort(), null, '\t') + '\n'
+	JSON.stringify(
+		[...inputs.keys()].filter((n) => n !== ENTRY).sort(),
+		null,
+		'\t'
+	) + '\n'
 );
 
 console.log(`wrote ${outDir}/latex.fmt from ${inputs.size} input files`);
