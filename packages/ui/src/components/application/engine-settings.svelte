@@ -47,7 +47,7 @@
 	import { SettingsSection } from '@glyphx/ui/settings-section';
 	import { toast } from '@glyphx/ui/sonner';
 	import { Spinner } from '@glyphx/ui/spinner';
-	import { IconRefresh } from '@tabler/icons-svelte';
+	import { IconRefresh } from '@glyphx/ui/icons';
 
 	/**
 	 * EngineSettings — pick the compile engine (bundled Tectonic or a local

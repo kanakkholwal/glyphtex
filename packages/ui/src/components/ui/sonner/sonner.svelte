@@ -7,7 +7,7 @@
 		IconInfoCircle,
 		IconLoader2,
 		IconX,
-	} from "@tabler/icons-svelte";
+	} from '@glyphx/ui/icons';
 	import {
 		Toaster as Sonner,
 		type ToasterProps as SonnerProps,
@@ -29,7 +29,7 @@
   the bottom, so toasts naturally pile on top of any persistent corner
   notification without forcing a layout coordination layer.
 
-  Icons are @tabler/icons-svelte (the app's icon set; AGENTS.md rule #9).
+  Icons are @glyphx/ui/icons (Tabler via Iconify; AGENTS.md rule #9).
   Sonner renders our snippet inside its `[data-icon]` element, so
   `classes.icon` styles the *badge* and the snippet just supplies the
   glyph that sits inside it. Theme is read from the settings store — the

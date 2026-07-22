@@ -11,7 +11,7 @@
 		CommandItem,
 		CommandList
 	} from '@glyphx/ui/command';
-	import { IconChevronDown, IconCornerDownLeft, IconFile, IconStack2 } from '@tabler/icons-svelte';
+	import { IconChevronDown, IconCornerDownLeft, IconFile, IconStack2 } from '@glyphx/ui/icons';
 
 	/**
 	 * CommandPalette — the centre of the top bar. Shows the workspace name as a
@@ -24,14 +24,37 @@
 		files = [],
 		activeId = '',
 		projectName = 'Project',
-		onopen
+		onopen,
+		onrename,
+		saving
 	}: {
 		open?: boolean;
 		files?: PaletteFile[];
 		activeId?: string;
 		projectName?: string;
 		onopen?: (id: string) => void;
+		/** When set, the name pill becomes editable (double-click). */
+		onrename?: (name: string) => void;
+		/** When set, a persistence indicator sits beside the name. */
+		saving?: boolean;
 	} = $props();
+
+	let editing = $state(false);
+	let draft = $state('');
+	let field = $state<HTMLInputElement>();
+
+	function startRename(): void {
+		if (!onrename) return;
+		draft = projectName;
+		editing = true;
+		queueMicrotask(() => field?.select());
+	}
+
+	function commitRename(): void {
+		editing = false;
+		const next = draft.trim();
+		if (next && next !== projectName) onrename?.(next);
+	}
 
 	function choose(id: string) {
 		onopen?.(id);
@@ -47,17 +70,45 @@
 	}
 </script>
 
-<!-- Centre trigger: the workspace name (VS Code's command-centre slot). -->
-<button
-	class="text-muted-foreground hover:bg-muted/60 hover:text-foreground border-border/60 bg-muted/30 flex h-7 w-72 max-w-[40vw] items-center justify-center gap-2 rounded-md border px-3 text-[13px] transition-colors"
-	title="Search files (⌘/Ctrl+P)"
-	aria-haspopup="dialog"
-	onclick={() => (open = true)}
+<!-- Centre: the workspace name (VS Code's command-centre slot). Doubles as a
+     rename field on web, and opens quick-open (⌘P) otherwise. -->
+<div
+	class="border-border/60 bg-muted/30 flex h-7 w-72 max-w-[40vw] items-center gap-2 rounded-md border px-2.5 text-[13px]"
 >
-	<IconStack2 size={14} class="shrink-0 opacity-70" />
-	<span class="text-foreground truncate font-medium">{projectName}</span>
-	<IconChevronDown size={13} class="shrink-0 opacity-50" />
-</button>
+	<IconStack2 size={14} class="text-muted-foreground shrink-0 opacity-70" />
+	{#if editing}
+		<!-- svelte-ignore a11y_autofocus -->
+		<input
+			bind:this={field}
+			bind:value={draft}
+			autofocus
+			class="text-foreground min-w-0 flex-1 bg-transparent font-medium focus:outline-none"
+			onblur={commitRename}
+			onkeydown={(e) => {
+				if (e.key === 'Enter') commitRename();
+				else if (e.key === 'Escape') editing = false;
+			}}
+			aria-label="Document name"
+		/>
+	{:else}
+		<button
+			class="text-foreground hover:text-foreground min-w-0 flex-1 truncate text-left font-medium"
+			title={onrename ? 'Search files (⌘/Ctrl+P) · double-click to rename' : 'Search files (⌘/Ctrl+P)'}
+			aria-haspopup="dialog"
+			onclick={() => (open = true)}
+			ondblclick={startRename}
+		>
+			{projectName}
+		</button>
+		{#if saving !== undefined}
+			<span class="text-muted-foreground shrink-0 text-[11px]" aria-live="polite">
+				{saving ? 'Saving…' : 'Saved'}
+			</span>
+		{:else}
+			<IconChevronDown size={13} class="text-muted-foreground shrink-0 opacity-50" />
+		{/if}
+	{/if}
+</div>
 
 <CommandDialog
 	bind:open

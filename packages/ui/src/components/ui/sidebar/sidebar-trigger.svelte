@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { cn } from "@glyphx/ui/utils";
-	import { IconLayoutSidebar } from '@tabler/icons-svelte';
+	import { IconLayoutSidebar } from '@glyphx/ui/icons';
 	import type { ComponentProps } from "svelte";
 	import { Button } from "../button";
 	import { useSidebar } from "./context.svelte";

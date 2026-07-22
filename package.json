@@ -27,6 +27,7 @@
 		"engine:build": "bash crates/tectonic-wasm/scripts/build-wasm.sh",
 		"engine:package": "pnpm --filter @glyphx/tex-engine build",
 		"engine:sync": "pnpm --filter @glyphx/tex-engine sync:wasm && pnpm --filter @glyphx/web sync:engine",
+		"engine:refresh": "pnpm --filter @glyphx/tex-engine refresh",
 		"engine:bundle": "pnpm --filter @glyphx/tex-engine bundle",
 		"engine:bundle:verify": "pnpm --filter @glyphx/tex-engine bundle:verify",
 		"engine:check": "cargo test --manifest-path crates/glyphx-tex-api/Cargo.toml && pnpm --filter @glyphx/tex-engine check",

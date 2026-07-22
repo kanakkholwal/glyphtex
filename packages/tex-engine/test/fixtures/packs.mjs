@@ -114,5 +114,17 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
 \lipsum[1]
 \blindtext
 \end{document}`
+	},
+	{
+		// Madrid pulls a chain (whale, orchid, rounded, infolines); the `include`
+		// glob then adds the other themes the fixture never touches.
+		id: 'beamer-themes',
+		source: String.raw`\documentclass{beamer}
+\usetheme{Madrid}
+\begin{document}
+\begin{frame}{Title}
+  \begin{itemize}\item One\item Two\end{itemize}
+\end{frame}
+\end{document}`
 	}
 ];

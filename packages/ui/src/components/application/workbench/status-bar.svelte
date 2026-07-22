@@ -1,6 +1,6 @@
 <script lang="ts">
   import { settings } from "@glyphx/ui/settings";
-  import { IconAlertTriangle } from "@tabler/icons-svelte";
+  import { IconAlertTriangle } from '@glyphx/ui/icons';
 
   import type { WorkbenchController } from "./controller.svelte";
 
@@ -15,7 +15,7 @@
 </script>
 
 <footer
-  class="border-border bg-card text-muted-foreground flex h-6 shrink-0 items-center gap-3 border-t px-3 text-[11px]"
+  class="border-border bg-card text-muted-foreground flex h-7 shrink-0 items-center gap-3 border-t px-3 text-[11px]"
 >
   <span
     class="flex items-center gap-1.5 {compile.compileStatus === 'error'
@@ -67,7 +67,7 @@
     aria-pressed={compile.showProblems}
     onclick={() => (compile.showProblems = !compile.showProblems)}
   >
-    <IconAlertTriangle size={12} />
+    <IconAlertTriangle size={14} />
     <span class="tabular-nums"
       >{compile.problemSummary.errors}/{compile.problemSummary.warnings}</span
     >

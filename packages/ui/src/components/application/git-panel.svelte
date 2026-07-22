@@ -16,7 +16,7 @@
     IconArrowDown,
     IconArrowUp,
     IconGitBranch,
-  } from "@tabler/icons-svelte";
+  } from '@glyphx/ui/icons';
   import { cubicOut } from "svelte/easing";
   import { slide } from "svelte/transition";
 

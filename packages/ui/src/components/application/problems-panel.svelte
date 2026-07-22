@@ -8,7 +8,7 @@
 		IconClipboardText,
 		IconClipboardCheck,
 		IconBulb
-	} from '@tabler/icons-svelte';
+	} from '@glyphx/ui/icons';
 
 	/**
 	 * ProblemsPanel — Overleaf-style log surface. Two tabs: parsed **Problems**

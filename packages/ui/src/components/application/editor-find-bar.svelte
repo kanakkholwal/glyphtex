@@ -10,7 +10,7 @@
 </script>
 
 <script lang="ts">
-	import { IconChevronDown, IconChevronRight, IconChevronUp, IconReplace, IconX } from '@tabler/icons-svelte';
+	import { IconChevronDown, IconChevronRight, IconChevronUp, IconReplace, IconX } from '@glyphx/ui/icons';
 	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from './search-ui';
 
 	/**

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Command as CommandPrimitive } from "bits-ui";
 	import { cn } from "@glyphx/ui/utils";
-	import { IconCheck } from '@tabler/icons-svelte';
+	import { IconCheck } from '@glyphx/ui/icons';
 
 	let {
 		ref = $bindable(null),

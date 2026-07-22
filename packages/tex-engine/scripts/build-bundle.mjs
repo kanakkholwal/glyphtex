@@ -95,7 +95,17 @@ for (const name of KERNEL_SILENT_LOADS) {
 	}
 }
 
-console.log(`seeded ${files.size} files (format + its inputs + kernel silent loads)`);
+// Packages other packages load via `\IfFileExists` — a silent probe, so absent
+// ones never reach `missingFiles`. scrlfile: beamer's sansmathaccent uses it to
+// avoid wasting a mathgroup, and without it every beamer deck warns.
+const OPTIONAL_SILENT_LOADS = ['scrlfile.sty'];
+for (const name of OPTIONAL_SILENT_LOADS) {
+	if (!addFromTexLive(name) && !files.has(name)) {
+		console.warn(`note: ${name} not in this TeX Live — a cosmetic warning may remain`);
+	}
+}
+
+console.log(`seeded ${files.size} files (format + its inputs + silent loads)`);
 
 // Fresh instance per document: an aborted compile tears down the wasm stack
 // without unwinding Rust, so a shared instance stays locked and poisons the rest.

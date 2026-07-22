@@ -63,6 +63,19 @@
 			"label": "Drafting helpers",
 			"description": "Placeholder text and flexible list customisation for drafts.",
 			"packages": ["lipsum", "blindtext", "xstring"]
+		},
+		{
+			"id": "beamer-themes",
+			"label": "Beamer themes",
+			"description": "Every built-in beamer theme (Madrid, Berlin, Warsaw, …) plus their colour, font, inner and outer variants. Core ships only the default theme.",
+			"packages": ["beamer"],
+			"include": [
+				"beamertheme*.sty",
+				"beamercolortheme*.sty",
+				"beamerfonttheme*.sty",
+				"beamerinnertheme*.sty",
+				"beameroutertheme*.sty"
+			]
 		}
 	]
 }

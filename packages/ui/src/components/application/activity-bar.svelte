@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import { Button } from '@glyphx/ui/button';
-	import { IconFiles, IconGitBranch, IconSearch, IconSettings } from '@tabler/icons-svelte';
+	import { IconFiles, IconGitBranch, IconSearch, IconSettings } from '@glyphx/ui/icons';
 
 	/**
 	 * Rail — the left mode switcher (Explorer / Search / Source Control / Settings).
@@ -46,7 +46,7 @@
 			aria-pressed={active === item.id}
 			onclick={() => onselect?.(item.id)}
 		>
-			<Icon />
+			<Icon class="size-5" />
 		</Button>
 	{/each}
 
@@ -59,7 +59,7 @@
 			aria-pressed={active === 'settings'}
 			onclick={() => onselect?.('settings')}
 		>
-			<IconSettings />
+			<IconSettings class="size-5" />
 		</Button>
 	</div>
 </nav>

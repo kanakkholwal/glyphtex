@@ -47,9 +47,13 @@ function stripCommonRoot(paths: string[]): (path: string) => string {
 	return (p) => (p.startsWith(root) ? p.slice(root.length) : p);
 }
 
-function collect(raw: { path: string; bytes: Uint8Array }[], fallbackName: string): ImportResult {
+function collect(
+	raw: { path: string; bytes: Uint8Array }[],
+	fallbackName: string,
+	stripRoot = true
+): ImportResult {
 	const usable = raw.filter((f) => f.path && !JUNK.test(f.path));
-	const strip = stripCommonRoot(usable.map((f) => f.path));
+	const strip = stripRoot ? stripCommonRoot(usable.map((f) => f.path)) : (p: string) => p;
 	const suggested = raw.length ? raw[0].path.split('/')[0] : fallbackName;
 
 	const files: NewFile[] = [];
@@ -97,14 +101,13 @@ export async function importZipFile(file: File): Promise<ImportResult> {
 	);
 }
 
-/** Folder pick via `<input webkitdirectory>`; paths come from webkitRelativePath. */
-export async function importFolder(list: FileList): Promise<ImportResult> {
-	const picked = Array.from(list);
-	if (picked.length === 0) throw new Error('That folder is empty.');
+/** A dropped folder's files (from `filesFromDataTransfer`), imported as a project. */
+export async function importFolder(files: File[]): Promise<ImportResult> {
+	if (files.length === 0) throw new Error('That folder is empty.');
 
 	const raw = await Promise.all(
-		picked.map(async (file) => ({
-			path: (file.webkitRelativePath || file.name).replace(/\\/g, '/'),
+		files.map(async (file) => ({
+			path: droppedPath(file).replace(/\\/g, '/'),
 			bytes: new Uint8Array(await file.arrayBuffer())
 		}))
 	);
@@ -112,19 +115,86 @@ export async function importFolder(list: FileList): Promise<ImportResult> {
 	return collect(raw, root);
 }
 
-/** Loose files dropped into an open document (images, .tex, .bib). */
+type FsEntry = {
+	isFile: boolean;
+	isDirectory: boolean;
+	fullPath: string;
+	file?: (cb: (f: File) => void, err: (e: unknown) => void) => void;
+	createReader?: () => {
+		readEntries: (cb: (e: FsEntry[]) => void, err: (e: unknown) => void) => void;
+	};
+};
+
+const readFile = (entry: FsEntry) =>
+	new Promise<File>((resolve, reject) => entry.file!(resolve, reject));
+
+const readDir = (reader: ReturnType<NonNullable<FsEntry['createReader']>>) =>
+	new Promise<FsEntry[]>((resolve, reject) => reader.readEntries(resolve, reject));
+
+/** Recurse a dropped directory entry, keeping each file's path within it. */
+async function walkEntry(entry: FsEntry, out: File[]): Promise<void> {
+	if (entry.isFile && entry.file) {
+		const file = await readFile(entry);
+		// fullPath starts with '/'; the relative path drives the stored tree.
+		Object.defineProperty(file, '_glyphxPath', { value: entry.fullPath.replace(/^\//, '') });
+		out.push(file);
+		return;
+	}
+	if (entry.isDirectory && entry.createReader) {
+		const reader = entry.createReader();
+		// readEntries returns at most ~100 per call, so drain until empty.
+		for (;;) {
+			const batch = await readDir(reader);
+			if (batch.length === 0) break;
+			for (const child of batch) await walkEntry(child, out);
+		}
+	}
+}
+
+/**
+ * Files from a drop, descending into any dropped folders via webkitGetAsEntry
+ * (supported in Firefox, Chrome, Safari, Edge). Falls back to the flat list.
+ */
+export async function filesFromDataTransfer(dt: DataTransfer): Promise<File[]> {
+	const items = Array.from(dt.items).filter((i) => i.kind === 'file');
+	const getEntry = (item: DataTransferItem): FsEntry | null =>
+		(item as unknown as { webkitGetAsEntry?: () => FsEntry | null }).webkitGetAsEntry?.() ?? null;
+
+	if (items.length === 0 || !getEntry(items[0])) return Array.from(dt.files);
+
+	const out: File[] = [];
+	for (const item of items) {
+		const entry = getEntry(item);
+		if (entry) await walkEntry(entry, out);
+		else {
+			const file = item.getAsFile();
+			if (file) out.push(file);
+		}
+	}
+	return out;
+}
+
+/** The relative path a dropped folder walk stashed on each file, if any. */
+const droppedPath = (file: File): string =>
+	(file as unknown as { _glyphxPath?: string })._glyphxPath ?? file.name;
+
+/** Loose files dropped or picked into an open document (images, .tex, folders). */
 export async function importLooseFiles(
 	list: FileList | File[],
 	intoDir = ''
 ): Promise<ImportResult> {
 	const picked = Array.from(list);
 	const raw = await Promise.all(
-		picked.map(async (file) => ({
-			path: intoDir ? `${intoDir}/${file.name}` : file.name,
-			bytes: new Uint8Array(await file.arrayBuffer())
-		}))
+		picked.map(async (file) => {
+			const rel = droppedPath(file);
+			return {
+				path: intoDir ? `${intoDir}/${rel}` : rel,
+				bytes: new Uint8Array(await file.arrayBuffer())
+			};
+		})
 	);
-	// No common root to strip for loose files — they land where the user aimed.
-	const result = collect(raw, 'Imported');
+	// Keep folder structure as dropped — a `figures/` folder stays `figures/*`
+	// inside the document rather than being flattened to the root.
+	const result = collect(raw, 'Imported', false);
 	return { ...result, name: 'Imported' };
 }

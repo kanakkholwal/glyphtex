@@ -20,6 +20,23 @@ Plain text, \emph{emphasis}, and a footnote.\footnote{Like this.}
 \end{document}`
 			},
 			{
+				// The base/near-universal packages that open most real preambles.
+				// A bare fixture left these out of core, so documents failed on
+				// inputenc/fontenc — files present in every TeX install but not ours.
+				label: 'essential preamble',
+				source: String.raw`\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{textcomp,latexsym,verbatim,multicol}
+\begin{document}
+Text with \texttrademark{} and \S symbols.
+\begin{multicols}{2}
+\verb|verbatim| and \begin{verbatim}literal\end{verbatim}
+\end{multicols}
+\end{document}`
+			},
+			{
 				label: 'report',
 				source: String.raw`\documentclass{report}
 \begin{document}

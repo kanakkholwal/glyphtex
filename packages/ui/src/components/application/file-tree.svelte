@@ -26,7 +26,7 @@
 		IconPencil,
 		IconTrash,
 		IconTargetArrow
-	} from '@tabler/icons-svelte';
+	} from '@glyphx/ui/icons';
 	import { canDropInto, getDrag, setDrag } from './file-dnd';
 
 	let {
@@ -205,7 +205,7 @@
 					}}
 				>
 					<IconChevronRight
-						size={13}
+						size={15}
 						class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {isOpen(
 							node.path
 						)
@@ -239,7 +239,7 @@
 								aria-label="Folder actions"
 								onclick={(e: MouseEvent) => e.stopPropagation()}
 							>
-								<IconDots size={14} />
+								<IconDots size={16} />
 							</button>
 						{/snippet}
 					</DropdownMenuTrigger>
@@ -363,7 +363,7 @@
 								aria-label="File actions"
 								onclick={(e: MouseEvent) => e.stopPropagation()}
 							>
-								<IconDots size={14} />
+								<IconDots size={16} />
 							</button>
 						{/snippet}
 					</DropdownMenuTrigger>

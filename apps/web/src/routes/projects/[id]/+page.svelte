@@ -11,9 +11,8 @@
 	import { compileFiles, engineReady, installPacks, warmEngine } from '$lib/compile';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
 	import EngineNotices from '$lib/EngineNotices.svelte';
-	import WorkspaceBar from '$lib/WorkspaceBar.svelte';
 	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from '$lib/storage/bridge';
-	import { importLooseFiles } from '$lib/storage/import';
+	import { filesFromDataTransfer, importLooseFiles } from '$lib/storage/import';
 	import {
 		getProject,
 		readFiles,
@@ -51,13 +50,6 @@
 	let packError = $state<string | undefined>(undefined);
 
 	let lastCompiled: { files: GlyphFile[]; entry: string } | undefined;
-
-	const texFiles = $derived(
-		(ctrl?.files.files ?? initialFiles ?? [])
-			.map((f) => f.name)
-			.filter((n) => n.endsWith('.tex'))
-			.sort()
-	);
 
 	onMount(async () => {
 		try {
@@ -134,11 +126,6 @@
 		}
 	}
 
-	function chooseEntry(path: string): void {
-		const match = ctrl?.files.files.find((f) => f.name === path);
-		if (match) void ctrl?.files.setMain(match.id);
-	}
-
 	function pickFiles(want: string): void {
 		accept = want;
 		// Let `accept` land on the input before it opens the picker.
@@ -195,11 +182,14 @@
 		}
 	}
 
-	function onDrop(event: DragEvent): void {
+	async function onDrop(event: DragEvent): Promise<void> {
 		event.preventDefault();
 		dragging = false;
-		const list = event.dataTransfer?.files;
-		if (list && list.length > 0) void addFiles(list);
+		if (!event.dataTransfer) return;
+		// Reads dropped folders recursively (works in Firefox/Chrome/Safari), so a
+		// whole project directory can be dragged in, not just loose files.
+		const files = await filesFromDataTransfer(event.dataTransfer);
+		if (files.length > 0) void addFiles(files);
 	}
 
 	function onDragOver(event: DragEvent): void {
@@ -273,17 +263,6 @@
 		role="application"
 		aria-label="{project.name} workspace"
 	>
-		<WorkspaceBar
-			name={project.name}
-			entry={project.entry}
-			{texFiles}
-			{saving}
-			onrename={rename}
-			onsetentry={chooseEntry}
-			onaddfiles={pickFiles}
-			onexport={exportZip}
-		/>
-
 		<EngineNotices
 			{missingPacks}
 			{unsupportedFiles}
@@ -298,6 +277,12 @@
 				platform="web"
 				projectName={project.name}
 				{initialFiles}
+				{saving}
+				backHref={resolve('/projects')}
+				backLabel="Documents"
+				onRenameProject={rename}
+				onAddFiles={pickFiles}
+				onExportProject={exportZip}
 				onpersist={persist}
 				onready={onReady}
 				compileFiles={ready ? runCompile : undefined}

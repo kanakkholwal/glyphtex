@@ -12,7 +12,7 @@
     IconMinus,
     IconPlus,
     IconSearch,
-  } from "@tabler/icons-svelte";
+  } from '@glyphx/ui/icons';
   import {
     DropdownMenu,
     DropdownMenuContent,

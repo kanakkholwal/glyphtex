@@ -79,15 +79,23 @@
 	<title>GlyphX — Editor</title>
 </svelte:head>
 
-<EngineNotices
-	{missingPacks}
-	{unsupportedFiles}
-	{unsupportedCitations}
-	installing={installingPacks}
-	error={packError}
-	onadd={addMissingPacks}
-/>
+<div class="flex h-dvh flex-col">
+	<EngineNotices
+		{missingPacks}
+		{unsupportedFiles}
+		{unsupportedCitations}
+		installing={installingPacks}
+		error={packError}
+		onadd={addMissingPacks}
+	/>
 
-<Workbench platform="web" compile={ready ? compileWithNotice : undefined} statusNote={serverNote} />
+	<div class="min-h-0 flex-1">
+		<Workbench
+			platform="web"
+			compile={ready ? compileWithNotice : undefined}
+			statusNote={serverNote}
+		/>
+	</div>
+</div>
 
 <EngineInstallDialog bind:open={showInstall} ondone={onInstalled} />

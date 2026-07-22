@@ -7,7 +7,12 @@
 
 	import StoragePanel from '$lib/StoragePanel.svelte';
 	import { toProjectCard } from '$lib/storage/bridge';
-	import { importFolder, importZipFile, type ImportResult } from '$lib/storage/import';
+	import {
+		filesFromDataTransfer,
+		importFolder,
+		importZipFile,
+		type ImportResult
+	} from '$lib/storage/import';
 	import {
 		createProject,
 		deleteProject,
@@ -51,8 +56,8 @@
 	});
 
 	let zipInput = $state<HTMLInputElement>();
-	let folderInput = $state<HTMLInputElement>();
 	let importing = $state(false);
+	let dragging = $state(false);
 
 	async function runImport(load: () => Promise<ImportResult>): Promise<void> {
 		importing = true;
@@ -86,10 +91,25 @@
 		if (zipInput) zipInput.value = '';
 	}
 
-	function pickFolder(event: Event): void {
-		const list = (event.currentTarget as HTMLInputElement).files;
-		if (list && list.length > 0) void runImport(() => importFolder(list));
-		if (folderInput) folderInput.value = '';
+	async function onDrop(event: DragEvent): Promise<void> {
+		event.preventDefault();
+		dragging = false;
+		if (!event.dataTransfer) return;
+		const dropped = Array.from(event.dataTransfer.files);
+		// A single .zip imports as an archive; anything else (incl. a whole folder,
+		// read recursively) imports as loose files preserving structure.
+		if (dropped.length === 1 && /\.zip$/i.test(dropped[0].name)) {
+			void runImport(() => importZipFile(dropped[0]));
+			return;
+		}
+		const files = await filesFromDataTransfer(event.dataTransfer);
+		if (files.length > 0) void runImport(() => importFolder(files));
+	}
+
+	function onDragOver(event: DragEvent): void {
+		if (!event.dataTransfer?.types.includes('Files')) return;
+		event.preventDefault();
+		dragging = true;
 	}
 
 	async function handleCreate(): Promise<string | void> {
@@ -157,18 +177,25 @@
 		</p>
 	</div>
 {:else}
-	<ProjectsHome
-		platform="web"
-		{projects}
-		oncreate={handleCreate}
-		onopen={open}
-		onrename={rename}
-		onduplicate={duplicate}
-		ondelete={remove}
-		onsettings={() => (storageOpen = true)}
-		onimport={() => zipInput?.click()}
-		onopenfolder={() => folderInput?.click()}
-	/>
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="min-h-dvh"
+		ondragover={onDragOver}
+		ondragleave={() => (dragging = false)}
+		ondrop={onDrop}
+	>
+		<ProjectsHome
+			platform="web"
+			{projects}
+			oncreate={handleCreate}
+			onopen={open}
+			onrename={rename}
+			onduplicate={duplicate}
+			ondelete={remove}
+			onsettings={() => (storageOpen = true)}
+			onimport={() => zipInput?.click()}
+		/>
+	</div>
 {/if}
 
 <!-- Kept out of the tree above so a re-render never drops a pending pick. -->
@@ -179,7 +206,15 @@
 	class="hidden"
 	onchange={pickZip}
 />
-<input bind:this={folderInput} type="file" webkitdirectory class="hidden" onchange={pickFolder} />
+
+{#if dragging}
+	<div
+		class="border-brand bg-background/80 pointer-events-none fixed inset-4 z-50 flex items-center justify-center rounded-2xl border-2 border-dashed backdrop-blur-sm"
+		role="status"
+	>
+		<p class="text-base font-medium">Drop a folder or .zip to import a document</p>
+	</div>
+{/if}
 
 {#if importing}
 	<div

@@ -20,7 +20,7 @@
   import { SliderControl } from "@glyphx/ui/slider-control";
   import { Spinner } from "@glyphx/ui/spinner";
   import { Switch } from "@glyphx/ui/switch";
-  import { IconCheck } from "@tabler/icons-svelte";
+  import { IconCheck } from '@glyphx/ui/icons';
 
   import type { EngineManager } from "../engine-settings.svelte";
   import EngineSettings from "../engine-settings.svelte";

@@ -32,7 +32,8 @@ packages/
 ```
 
 Shared frontend: **Svelte 5.56**, **SvelteKit 2.63**, **Vite 8**, **Tailwind 4.3**,
-**@tabler/icons-svelte**, **shadcn-svelte**, **bits-ui**, **pdf.js** (preview). Key backend
+**Tabler icons** (codegen'd from `@iconify-json/tabler` into `@glyphx/ui/icons`),
+**shadcn-svelte**, **bits-ui**, **pdf.js** (preview). Key backend
 crates: **tauri 2.x**, **gix 0.70** (pure-Rust Git), plus the pinned **Tectonic 0.16.9** sidecar.
 Tests: **`cargo test`** (Rust logic) + **`svelte-check`** (types). There is no JS unit runner yet —
 don't invent imports for one.
@@ -91,7 +92,10 @@ floor for the AppImage/.deb).
    rule, §4). Frontend: no synchronous heavy work on render; debounce compile-as-you-type.
 9. **Design tokens only — no hardcoded colors.** No hex / named CSS colors. Use the semantic
    tokens from `@glyphx/design` (e.g. `var(--color-primary)`, `bg-muted`, `color-mix(... var(--color-destructive) ...)`).
-   **@tabler/icons-svelte only** (not Lucide). The editor stays **JetBrains Mono**.
+   **Icons from `@glyphx/ui/icons` only** (Tabler via Iconify, codegen'd from
+   `@iconify-json/tabler` — never `@tabler/icons-svelte` directly, never Lucide;
+   to add an icon, extend `packages/ui/scripts/icon-map.mjs` and run `gen:icons`).
+   The editor stays **JetBrains Mono**.
 10. **Import via aliases — `@glyphx/ui/*`, `@glyphx/design`, `$lib`.** Never deep `../../..` climbs
     across package or app boundaries.
 11. **Leave the gates green.** `fmt`/`format:rust`, `clippy`, `svelte-check`, and `cargo test` must

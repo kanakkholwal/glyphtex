@@ -42,14 +42,30 @@ export type WorkbenchProps = {
   onpersist?: (files: GlyphFile[]) => void;
   /** Small free-text note shown in the status bar (e.g. web package server). */
   statusNote?: string;
+  /** Persistence indicator shown beside the document name. */
+  saving?: boolean;
   /** Handed the controller once, so a host can drive the file store directly. */
   onready?: (ctrl: WorkbenchController) => void;
+  /** Back link in the header (web: the documents list). */
+  backHref?: string;
+  backLabel?: string;
+  /** Rename the open document from the header (web projects). */
+  onRenameProject?: (name: string) => void;
+  /** Add files/images from disk into the open document (web projects). */
+  onAddFiles?: (accept: string) => void;
+  /** Export the whole document as a .zip (web projects). */
+  onExportProject?: () => void;
 };
 
 export class WorkbenchController {
   readonly platform: "web" | "desktop";
   readonly statusNote?: string;
   readonly engine?: EngineManager;
+  readonly backHref?: string;
+  readonly backLabel?: string;
+  readonly onRenameProject?: (name: string) => void;
+  readonly onAddFiles?: (accept: string) => void;
+  readonly onExportProject?: () => void;
 
   readonly files: FileStore;
   readonly layout: LayoutStore;
@@ -63,6 +79,11 @@ export class WorkbenchController {
     this.platform = props.platform ?? "web";
     this.statusNote = props.statusNote;
     this.engine = props.engine;
+    this.backHref = props.backHref;
+    this.backLabel = props.backLabel;
+    this.onRenameProject = props.onRenameProject;
+    this.onAddFiles = props.onAddFiles;
+    this.onExportProject = props.onExportProject;
     this.#onpersist = props.onpersist;
     this.#openPathOnMount = props.openPathOnMount;
 
@@ -119,16 +140,34 @@ export class WorkbenchController {
           disabled: !this.files.project,
           run: () => this.files.openFolder(),
         },
-        { type: "separator" },
+        ...(this.onAddFiles
+          ? [
+              {
+                label: "Add Files…",
+                run: () => this.onAddFiles?.(""),
+              },
+              {
+                label: "Add Images…",
+                run: () => this.onAddFiles?.("image/*"),
+              },
+            ]
+          : []),
+        { type: "separator" as const },
         {
           label: "Import Project…",
           disabled: !this.files.project,
           run: () => this.files.importProject(),
         },
         {
+          // Web supplies its own in-memory zip export; desktop writes to disk.
           label: "Export as Zip",
-          disabled: !this.files.project || !this.files.projectRoot,
-          run: () => this.files.exportProject(),
+          disabled: this.onExportProject
+            ? false
+            : !this.files.project || !this.files.projectRoot,
+          run: () =>
+            this.onExportProject
+              ? this.onExportProject()
+              : this.files.exportProject(),
         },
         { type: "separator" },
         {

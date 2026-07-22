@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronRight, IconList } from "@tabler/icons-svelte";
+  import { IconChevronRight, IconList } from '@glyphx/ui/icons';
   import { cubicOut } from "svelte/easing";
   import { slide } from "svelte/transition";
 

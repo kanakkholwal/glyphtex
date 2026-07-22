@@ -66,6 +66,23 @@ function isBareName(name) {
 	return name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.';
 }
 
+// Files whose set no single fixture can exercise — beamer's 77 themes, say. The
+// fixture still proves the pack compiles; this fills in the rest by basename glob.
+const TEXMF = execFileSync('kpsewhich', ['-var-value=TEXMFDIST'], { encoding: 'utf8' }).trim();
+function globTexmf(patterns) {
+	const res = patterns.map((p) => new RegExp('^' + p.replace(/[.]/g, '\\$&').replace(/\*/g, '.*') + '$'));
+	const out = new Map();
+	const walk = (dir) => {
+		for (const entry of readdirSync(dir, { withFileTypes: true })) {
+			const full = join(dir, entry.name);
+			if (entry.isDirectory()) walk(full);
+			else if (res.some((r) => r.test(entry.name))) out.set(entry.name, full);
+		}
+	};
+	walk(join(TEXMF, 'tex'));
+	return out;
+}
+
 const WASM = new Uint8Array(readFileSync(wasmPath));
 
 /** The core bundle: loaded into every engine, never written into a pack. */
@@ -181,6 +198,15 @@ for (const pack of config.packs) {
 		process.exit(1);
 	}
 
+	// Wholesale additions for enumerable sets the fixture cannot reach — a user
+	// picks any beamer theme, but no one document loads all 77.
+	let included = 0;
+	for (const [name, path] of globTexmf(pack.include ?? [])) {
+		if (core.has(name) || extra.has(name) || provides[name]) continue;
+		extra.set(name, new Uint8Array(readFileSync(path)));
+		included++;
+	}
+
 	const { gz, raw, count } = packTarGz(extra);
 	const hash = createHash('sha256').update(gz).digest('hex').slice(0, 16);
 	writeFileSync(resolve(outDir, `pack-${pack.id}.tar.gz`), gz);
@@ -211,9 +237,10 @@ for (const pack of config.packs) {
 	});
 
 	const deps = requires.size > 0 ? `  requires ${[...requires].join(', ')}` : '';
+	const inc = included > 0 ? `  +${included} included` : '';
 	console.log(
-		`  ${pack.id.padEnd(12)} ${String(count).padStart(4)} files  ` +
-			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz${deps}`
+		`  ${pack.id.padEnd(13)} ${String(count).padStart(4)} files  ` +
+			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz${deps}${inc}`
 	);
 }
 

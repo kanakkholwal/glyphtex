@@ -66,8 +66,8 @@
   onblur={() => ctrl.onWindowBlur()}
 />
 
-<div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
-  <TopBar {ctrl} saveFile={props.saveFile} />
+<div class="bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden">
+  <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
 
   <!-- Body — `flex-row-reverse` docks the rail + side panel on the right edge
        (VS Code's "move primary side bar right"); the editor keeps the rest. -->

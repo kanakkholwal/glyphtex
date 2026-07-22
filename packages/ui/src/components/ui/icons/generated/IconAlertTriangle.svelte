@@ -1,0 +1,18 @@
+<script lang="ts">
+  import type { SVGAttributes } from "svelte/elements";
+  let {
+    size = 18,
+    class: className = undefined,
+    ...rest
+  }: { size?: number | string; class?: string } & SVGAttributes<SVGSVGElement> = $props();
+</script>
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  class={className}
+  aria-hidden="true"
+  {...rest}
+><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m-1.637-9.409L2.257 17.125a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.87L13.637 3.59a1.914 1.914 0 0 0-3.274 0M12 16h.01"/></svg>

@@ -8,7 +8,7 @@
     DialogHeader,
     DialogTitle,
   } from "@glyphx/ui/dialog";
-  import { IconAlertTriangle, IconChevronRight } from "@tabler/icons-svelte";
+  import { IconAlertTriangle, IconChevronRight } from '@glyphx/ui/icons';
 
   import type { GitPanelStore } from "./store.svelte";
 
