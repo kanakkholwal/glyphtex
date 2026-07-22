@@ -299,10 +299,9 @@ it gets its own per-area `AGENTS.md`.
   pipeline with a 404 on `/engine/manifest.json`.
 
 ### Service worker & caching
-- Registered **in production only**, by hand from `src/routes/+layout.svelte` (`serviceWorker.register`
-  is off in `vite.config.ts`). In dev it intercepts Vite's module and HMR traffic for no benefit, and
-  a stale registration then serves yesterday's modules — so dev actively *unregisters* any worker it
-  finds.
+- Registered by **SvelteKit's default automatic registration** — there is no hand-rolled
+  `navigator.serviceWorker.register` call, and `serviceWorker.register` is left at its default in
+  `vite.config.ts`. Don't reintroduce manual registration.
 - `src/service-worker.ts` precaches `build + files` but **excludes `/engine/*`**: that is ~12 MB
   only compile users need, and the install dialog exists precisely to ask first.
 - The downloaded compiler lives in a **separate, deploy-independent cache (`glyphtex-engine`)** that

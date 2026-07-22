@@ -43,7 +43,7 @@
 </script>
 
 {#snippet fileRow(c: GitChange, label: string, depth: number, tree: boolean)}
-  {@const open = activeDiffPath === c.path}
+  {const open = activeDiffPath === c.path}
   <div
     class="hover:bg-muted/60 group flex items-center gap-1 rounded py-0.5 pr-1 text-xs {open
       ? 'bg-accent/60'
@@ -101,7 +101,7 @@
     {#if n.isFile && n.change}
       {@render fileRow(n.change, n.name, depth, true)}
     {:else if !n.isFile}
-      {@const expanded = !store.collapsed.has(n.path)}
+      {const expanded = !store.collapsed.has(n.path)}
       <button
         class="hover:bg-muted hover:text-foreground text-muted-foreground flex w-full items-center gap-1 rounded py-0.5 pr-1 text-left text-xs transition-colors"
         style:padding-left={indent(depth)}

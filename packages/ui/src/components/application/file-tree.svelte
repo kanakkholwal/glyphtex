@@ -316,9 +316,9 @@
 			</div>
 		{/if}
 	{:else}
-		{@const dirty = dirtyIds.has(node.id)}
-		{@const status = gitStatus[node.id]}
-		{@const FileIcon = KIND_ICON[classifyFile(node.name)]}
+		{const dirty = dirtyIds.has(node.id)}
+		{const status = gitStatus[node.id]}
+		{const FileIcon = KIND_ICON[classifyFile(node.name)]}
 		<div class="group/row relative flex items-center">
 			{#if renamingId === node.id}
 				<div class="flex w-full items-center gap-1 py-1 pr-2" style:padding-left={indent(depth)}>

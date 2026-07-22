@@ -237,9 +237,9 @@
             title="View layout"
             aria-label="View layout"
           >
-            {@const Active = viewOptions.find((o) => o.value === layout.viewMode)}
+            {const Active = viewOptions.find((o) => o.value === layout.viewMode)}
             {#if Active}
-              {@const Icon =
+              {const Icon =
                 Active.value === "split" && layout.splitDir === "vertical"
                   ? IconLayoutRows
                   : Active.icon}
@@ -252,7 +252,7 @@
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" class="w-52">
         {#each viewOptions as option (option.value)}
-          {@const Icon = option.icon}
+          {const Icon = option.icon}
           <DropdownMenuCheckboxItem
             checked={layout.viewMode === option.value}
             onCheckedChange={() => (layout.viewMode = option.value)}

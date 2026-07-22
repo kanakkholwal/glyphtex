@@ -13,14 +13,7 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 
-			adapter: adapter(),
-
-			// Registered by hand in src/routes/+layout.svelte so it stays out of dev,
-			// where it intercepts HMR traffic and then serves stale modules.
-			serviceWorker: { register: false }
+			adapter: adapter()
 		})
 	]
-	// optimizeDeps: {
-	// 	include:["monaco-editor","bits-ui","pdfjs-dist"]
-	// }
 });

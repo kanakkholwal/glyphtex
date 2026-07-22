@@ -192,7 +192,7 @@
       {#if item.separator}
         <DropdownMenuSeparator />
       {:else}
-        {@const Icon = item.icon}
+        {const Icon = item.icon}
         <DropdownMenuItem disabled={item.disabled} onclick={item.run}>
           <Icon class="text-muted-foreground" />
           <span class="flex-1">{item.label}</span>

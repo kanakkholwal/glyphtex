@@ -23,6 +23,7 @@
 	} from '@glyphtex/ui/dropdown-menu';
 	import { Logo } from '@glyphtex/ui/logo';
 	import { projectViewTransitionName } from '@glyphtex/ui/projects';
+	import * as Sidebar from '@glyphtex/ui/sidebar';
 	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
 	import {
 	  IconArrowsSort,
@@ -55,13 +56,8 @@
 	import { fade, fly } from 'svelte/transition';
 	import AboutDialog from './about-dialog.svelte';
 
-	/**
-	 * ProjectsHome — the application's home screen: every LaTeX project listed as
-	 * a document-style card. Calm monochrome chrome; the cards themselves read as
-	 * little pages. The host owns the data (the projects store) and the actions.
-	 * Folder actions (`onopenfolder` / `onimport`) appear only when the host
-	 * supports them (desktop); on web only `oncreate` is shown.
-	 */
+	/** Home screen listing every project as a card. The host owns the data and every
+	 *  action; an absent handler hides its control (folder actions are desktop-only). */
 	let {
 		platform = 'desktop',
 		projects = [],
@@ -119,21 +115,16 @@
 	let renaming = $state<string | null>(null);
 	let renameValue = $state('');
 	let aboutOpen = $state(false);
-	// The project pending a delete confirmation (null = dialog closed).
 	let pendingDelete = $state<Project | null>(null);
 
-	// Scroll-aware toolbar: borderless + transparent at the top, a translucent
-	// blur + hairline settle in once content scrolls beneath it.
 	let scrollEl = $state<HTMLElement>();
 	let scrolled = $state(false);
 	function onScroll() {
 		scrolled = (scrollEl?.scrollTop ?? 0) > 4;
 	}
 
-	// New project: create → let the freshly-inserted card fly in and settle →
-	// *then* open it, so the card→editor view-transition morphs from a finished
-	// card instead of one that's still mid-entrance. The card lands at index 0
-	// (newest first), so its `in:fly` is ~360ms; we wait a touch longer.
+	// Just longer than the new card's 360ms `in:fly`, so the card→editor view
+	// transition morphs from a settled card rather than one mid-entrance.
 	const NEW_CARD_REVEAL_MS = 400;
 	async function handleCreate() {
 		const id = await oncreate?.();
@@ -144,7 +135,6 @@
 		onopen?.(id);
 	}
 
-	// Inline clone bar (no custom dialog — a text field + native folder picker).
 	let cloning = $state(false);
 	let cloneUrl = $state('');
 	let cloneBusy = $state(false);
@@ -193,6 +183,11 @@
 		{ id: 'starred', label: 'Starred', icon: IconStar },
 		{ id: 'templates', label: 'Templates', icon: IconTemplate }
 	];
+
+	// Overrides on SidebarMenuButton: taller rows, 18px icons, and a brand-tinted
+	// active state instead of the default neutral accent fill.
+	const navRow =
+		'h-10 rounded-lg px-3 text-md data-active:bg-brand-subtle data-active:text-brand [&_svg]:size-[1.125rem]';
 
 	const sorts: { id: Sort; label: string }[] = [
 		{ id: 'newest', label: 'Newest first' },
@@ -253,64 +248,66 @@
 
 </script>
 
-<div class="bg-background text-foreground flex h-dvh overflow-hidden">
-	<!-- Workspace rail: identity, scopes, and the local-storage meter. Everything
-	     here is real — no placeholder destinations. -->
-	<aside class="border-border bg-card hidden w-64 shrink-0 flex-col border-r md:flex">
-		<div class="border-border flex h-14 shrink-0 items-center border-b px-4">
+<Sidebar.Provider class="text-foreground h-dvh min-h-0">
+	<Sidebar.Root variant="inset">
+		<Sidebar.Header class="h-14 justify-center px-3">
 			<Logo size={28} badge viewTransitionName="app-logo" class="text-base tracking-tight" />
-		</div>
+		</Sidebar.Header>
 
-		<nav class="flex flex-col gap-0.5 p-3" aria-label="Project scopes">
-			{#each scopes as item (item.id)}
-				{@const Icon = item.icon}
-				{@const active = scope === item.id}
-				<button
-					class="ease-craft flex h-10 items-center gap-3 rounded-lg px-3 text-md transition-colors {active
-						? 'bg-brand-subtle text-brand font-medium'
-						: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-					aria-current={active}
-					onclick={() => (scope = item.id)}
-				>
-					<Icon size={18} class="shrink-0" />
-					<span class="truncate">{item.label}</span>
-				</button>
-			{/each}
-		</nav>
+		<Sidebar.Content>
+			<Sidebar.Group class="px-2 py-1">
+				<Sidebar.GroupContent>
+					<Sidebar.Menu aria-label="Project scopes">
+						{#each scopes as item (item.id)}
+							{const Icon = item.icon}
+							<Sidebar.MenuItem>
+								<Sidebar.MenuButton
+									isActive={scope === item.id}
+									class={navRow}
+									onclick={() => (scope = item.id)}
+								>
+									<Icon /><span>{item.label}</span>
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
+						{/each}
+					</Sidebar.Menu>
+				</Sidebar.GroupContent>
+			</Sidebar.Group>
+		</Sidebar.Content>
 
-		<div class="mt-auto p-3">
-			<div class="bg-border mx-1 mb-3 h-px"></div>
+		<Sidebar.Footer class="gap-3">
+			<Sidebar.Separator class="mx-1" />
 
-			<div class="flex flex-col gap-0.5">
+			<Sidebar.Menu>
 				{#if onsettings}
-					<button
-						class="text-muted-foreground hover:bg-muted hover:text-foreground ease-craft flex h-10 items-center gap-3 rounded-lg px-3 text-md transition-colors"
-						onclick={() => onsettings?.()}
-					>
-						<IconSettings size={18} class="shrink-0" /> Settings
-					</button>
+					<Sidebar.MenuItem>
+						<Sidebar.MenuButton class={navRow} onclick={() => onsettings?.()}>
+							<IconSettings /><span>Settings</span>
+						</Sidebar.MenuButton>
+					</Sidebar.MenuItem>
 				{/if}
 				{#if helpHref}
-					<a
-						class="text-muted-foreground hover:bg-muted hover:text-foreground ease-craft flex h-10 items-center gap-3 rounded-lg px-3 text-md transition-colors"
-						href={helpHref}
-					>
-						<IconHelpCircle size={18} class="shrink-0" /> Help &amp; Docs
-					</a>
+					<Sidebar.MenuItem>
+						<Sidebar.MenuButton class={navRow}>
+							{#snippet child({ props })}
+								<a {...props} href={helpHref}>
+									<IconHelpCircle /><span>Help &amp; Docs</span>
+								</a>
+							{/snippet}
+						</Sidebar.MenuButton>
+					</Sidebar.MenuItem>
 				{/if}
-				<button
-					class="text-muted-foreground hover:bg-muted hover:text-foreground ease-craft flex h-10 items-center gap-3 rounded-lg px-3 text-md transition-colors"
-					onclick={() => (aboutOpen = true)}
-				>
-					<IconInfoCircle size={18} class="shrink-0" /> About GlyphTeX
-				</button>
-			</div>
+				<Sidebar.MenuItem>
+					<Sidebar.MenuButton class={navRow} onclick={() => (aboutOpen = true)}>
+						<IconInfoCircle /><span>About GlyphTeX</span>
+					</Sidebar.MenuButton>
+				</Sidebar.MenuItem>
+			</Sidebar.Menu>
 
 			{#if storage}
-				<!-- Turns amber past 80%: the browser evicts under pressure, so the
-				     meter has to be able to raise its voice. -->
-				{@const tight = storagePct >= 80}
-				<div class="border-border bg-background mt-3 rounded-xl border p-3">
+				<!-- Amber past 80%: the browser starts evicting under storage pressure. -->
+				{const tight = storagePct >= 80}
+				<div class="border-sidebar-border bg-card rounded-xl border p-3">
 					<div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
 						<IconCloud size={16} class="shrink-0" /> Local storage
 					</div>
@@ -327,20 +324,20 @@
 					</p>
 				</div>
 			{/if}
-		</div>
-	</aside>
+		</Sidebar.Footer>
+	</Sidebar.Root>
 
-	<!-- Scroll surface. The toolbar lives *inside* it and floats translucently;
-	     content slides under it and a hairline + blur settle in only once scrolled
-	     — the macOS unified-toolbar feel, no hard web-style border at rest. -->
-	<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
-		<!-- Toolbar — global controls. Identity lives in the rail. -->
+	<!-- `bg-card`, not the inset's default `bg-background`: in dark this panel is
+	     the layer that lifts off the rail's floor. -->
+	<Sidebar.Inset class="bg-card min-h-0 overflow-hidden">
+		<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
 		<header
 			class="ease-craft sticky top-0 z-20 flex h-14 items-center justify-end gap-3 border-b px-6 transition-[background-color,border-color,box-shadow] duration-300 {scrolled
-				? 'border-border bg-background/75 shadow-craft-sm backdrop-blur-xl'
+				? 'border-border bg-card/75 shadow-craft-sm backdrop-blur-xl'
 				: 'border-transparent bg-transparent'}"
 		>
-			<div class="flex items-center gap-0.5 md:hidden">
+			<div class="-ml-2 flex items-center gap-1 md:hidden">
+				<Sidebar.Trigger />
 				<Logo size={24} class="text-sm tracking-tight" />
 			</div>
 			<div class="flex flex-1 items-center justify-end gap-0.5">
@@ -358,7 +355,6 @@
 		</header>
 
 		<div class="mx-auto w-full max-w-[1140px] px-6 pt-6 pb-12">
-			<!-- Hero: title + the project actions (create / open / import / clone). -->
 			<div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
 				<div>
 					<h1 class="font-display text-2xl font-semibold tracking-tight">Your projects</h1>
@@ -368,8 +364,8 @@
 					</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
-					<!-- "Bring in an existing project" actions collapse into one Open menu
-					     so the primary New-project action stays unambiguous. -->
+					<!-- Every "bring in an existing project" action collapses into this one
+					     menu so the primary New-project button stays unambiguous. -->
 					{#if onopenfolder || onimport || onclone}
 						<DropdownMenu>
 							<DropdownMenuTrigger>
@@ -410,7 +406,6 @@
 				</div>
 			</div>
 
-			<!-- Clone bar (inline, contextually under the Clone action). -->
 			{#if onclone && cloning}
 				<div
 					class="border-border bg-card shadow-craft-sm mt-4 flex items-center gap-2 rounded-xl border p-2"
@@ -438,8 +433,6 @@
 				</div>
 			{/if}
 
-			<!-- Search + sort + density. One row, so the controls that shape the grid
-			     sit together rather than being scattered around it. -->
 			<div class="mt-6 flex flex-wrap items-center gap-2">
 				<div class="relative min-w-56 flex-1">
 					<IconSearch
@@ -700,8 +693,9 @@
 				</div>
 			{/if}
 		</div>
-	</div>
-</div>
+		</div>
+	</Sidebar.Inset>
+</Sidebar.Provider>
 
 <!-- About GlyphTeX — brand, version, and links out (GitHub / website). -->
 <AboutDialog bind:open={aboutOpen} {platform} />

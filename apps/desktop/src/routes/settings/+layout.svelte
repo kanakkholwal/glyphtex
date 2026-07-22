@@ -88,8 +88,8 @@
 			aria-label="Settings sections"
 		>
 			{#each nav as item (item.href)}
-				{@const active = isActive(item.href)}
-				{@const Icon = item.icon}
+				{const active = isActive(item.href)}
+				{const Icon = item.icon}
 				<a
 					href={resolve(item.href)}
 					data-active={String(active)}

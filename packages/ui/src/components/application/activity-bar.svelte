@@ -75,7 +75,7 @@
 	<div class="bg-border my-1.5 h-px w-6"></div>
 
 	{#each views as item (item.id)}
-		{@const Icon = item.icon}
+		{const Icon = item.icon}
 		<Tooltip delayDuration={300}>
 			<TooltipTrigger>
 				{#snippet child({ props })}

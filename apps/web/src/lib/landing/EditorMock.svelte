@@ -47,7 +47,7 @@
 		class="flex w-44 shrink-0 flex-col gap-0.5 rounded-xl border border-hairline/70 bg-card/70 p-2.5 font-mono text-xs"
 	>
 		{#each tree as entry, i (entry.name)}
-			{@const isSelected = i === selected}
+			{const isSelected = i === selected}
 			<div
 				class={cn(
 					'flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors duration-300',

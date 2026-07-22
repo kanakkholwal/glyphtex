@@ -395,9 +395,9 @@
 
 				<div class="grid gap-4 sm:grid-cols-3">
 					{#each platforms as p, i (p.id)}
-						{@const Icon = p.icon}
-						{@const isMine = detected === p.id}
-						{@const items = assets[p.id]}
+						{const Icon = p.icon}
+						{const isMine = detected === p.id}
+						{const items = assets[p.id]}
 						<Reveal
 							as="article"
 							variant="up"

@@ -675,7 +675,7 @@
 				<Reveal variant="blur">
 					<ul class="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-7 gap-y-3">
 						{#each openSourceClaims as claim (claim.label)}
-							{@const Icon = claim.icon}
+							{const Icon = claim.icon}
 							<li class="inline-flex items-center gap-2 text-[13px] font-medium text-foreground/70">
 								<Icon class="size-4 text-foreground/40" />
 								{claim.label}
@@ -884,7 +884,7 @@
 
 							<ul class="mt-12 space-y-6">
 								{#each [{ icon: IconFileText, title: 'Overleaf export', description: 'Drag the .zip from Overleaf into GlyphTeX. The folder structure stays intact.' }, { icon: IconGitBranch, title: 'Git repository', description: 'Point GlyphTeX at an existing repo. Pulls, pushes, and history work as expected.' }, { icon: IconFolders, title: 'Plain .tex folder', description: 'A directory of chapters, figures, and a .bib. Open it and start writing.' }] as item, i (item.title)}
-									{@const Icon = item.icon}
+									{const Icon = item.icon}
 									<Reveal as="li" variant="left" delay={i * 70} class="flex items-start gap-4">
 										<span
 											class="landing-glass-chip mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl text-foreground/70"
@@ -1135,7 +1135,7 @@
 
 							<ul class="mt-10 space-y-5">
 								{#each [{ icon: IconGitBranch, title: 'Built-in Git UI', description: 'Stage, commit, branch, and merge without leaving the editor.' }, { icon: IconLock, title: 'No proprietary history tier', description: 'Every revision, forever. The repository is the source of truth.' }, { icon: IconBrandGithub, title: 'Works with your remote', description: 'GitHub, GitLab, a self-hosted Gitea, or your university server.' }] as item, i (item.title)}
-									{@const Icon = item.icon}
+									{const Icon = item.icon}
 									<Reveal as="li" variant="left" delay={i * 70} class="flex items-start gap-4">
 										<span
 											class="landing-glass-chip mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl text-foreground/70"
@@ -1292,7 +1292,7 @@
 				-->
 				<div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
 					{#each audienceCards as card, i (card.title)}
-						{@const Icon = card.icon}
+						{const Icon = card.icon}
 						<div
 							in:fly={{
 								y: 20,
@@ -1419,7 +1419,7 @@
 					<div class="lg:col-span-8">
 						<ul class="space-y-3">
 							{#each faqs as faq, i (faq.q)}
-								{@const open = openFaq === i}
+								{const open = openFaq === i}
 								<li>
 									<!--
 									  Accordion card ported from the trace-mvp reference:

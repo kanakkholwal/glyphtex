@@ -56,7 +56,7 @@
 		<CommandEmpty>No matching files</CommandEmpty>
 		<CommandGroup heading={projectName}>
 			{#each files as f (f.id)}
-				{@const p = parts(f.name)}
+				{const p = parts(f.name)}
 				<CommandItem value={f.name} onSelect={() => choose(f.id)} class="gap-2.5 py-2">
 					<IconFile class="text-muted-foreground shrink-0" />
 					<span class="text-foreground truncate">{p.base}</span>
