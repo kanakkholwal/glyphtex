@@ -46,7 +46,7 @@ parsing, no C dependencies).
 cd crates/tectonic-wasm && ./scripts/build-wasm.sh
 ```
 
-3.36 MB (1.1 MB brotli), 13 `glyphx_*` exports, 24 imports, e2e suite 10/10.
+3.36 MB (1.1 MB brotli), 13 `glyphtex_*` exports, 24 imports, e2e suite 10/10.
 Requires Linux (WSL works) with emsdk activated.
 
 **Pinning was not the fix.** The previous version of this document said to retry

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Button } from "@glyphtex/ui/button";
-  import { ButtonGroup } from "@glyphtex/ui/button-group";
   import { Logo } from "@glyphtex/ui/logo";
   import { settings } from "@glyphtex/ui/settings";
   import { Spinner } from "@glyphtex/ui/spinner";
@@ -11,22 +10,18 @@
     IconDownload,
     IconLoader2,
     IconMinus,
-    IconPlayerPlayFilled,
     IconPlus,
     IconSearch,
   } from '@tabler/icons-svelte';
   import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
-    DropdownMenuShortcut,
     DropdownMenuTrigger,
   } from "@glyphtex/ui/dropdown-menu";
 
   import PdfView from "../pdf-view.svelte";
-  import { shortcutLabel } from "../shortcuts";
   import type { WorkbenchController } from "./controller.svelte";
   import { ZOOM_PRESETS } from "./types";
 

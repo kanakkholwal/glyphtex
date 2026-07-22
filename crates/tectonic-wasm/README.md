@@ -74,7 +74,7 @@ permanently red trains people to ignore failures.
 
 ### Output
 
-- `output/tectonic_wasm.wasm` — 3.36 MB (1.1 MB brotli), 13 `glyphx_*` exports
+- `output/tectonic_wasm.wasm` — 3.36 MB (1.1 MB brotli), 13 `glyphtex_*` exports
 - `output/tectonic-bundle.tar.gz` — 8.6 MB gzipped, 395 files, 35.4 MB raw
 
 ## API
@@ -99,21 +99,21 @@ if (result.status !== 'failed') console.log(engine.pdf());
 ### Raw ABI (version 2)
 
 A JSON control plane over a raw linear-memory data plane: arguments and results
-are JSON, file bytes are copied directly. `glyphx_compile` takes a JSON options
+are JSON, file bytes are copied directly. `glyphtex_compile` takes a JSON options
 blob and leaves a JSON `CompileResult` in a buffer the host then reads via
-`glyphx_result_ptr`/`glyphx_result_len`.
+`glyphtex_result_ptr`/`glyphtex_result_len`.
 
 | Function | Description |
 |---|---|
-| `glyphx_abi_version()` | ABI version. The binding refuses to load on a mismatch. |
-| `glyphx_alloc(len)` / `glyphx_dealloc(ptr, len)` | Buffers for host→module transfer |
-| `glyphx_add_file(name_ptr, name_len, data_ptr, data_len)` | Add a file to the VFS |
-| `glyphx_remove_file(name_ptr, name_len)` | Remove one file |
-| `glyphx_file_count()` | Files currently in the VFS |
-| `glyphx_clear_files()` / `glyphx_clear_outputs()` | Reset input / output state |
-| `glyphx_compile(opts_ptr, opts_len)` | Run the pass driver; result is JSON |
-| `glyphx_result_ptr()` / `glyphx_result_len()` | Where the last JSON result lives |
-| `glyphx_output_len(...)` / `glyphx_output_copy(...)` | Size and copy an output file |
+| `glyphtex_abi_version()` | ABI version. The binding refuses to load on a mismatch. |
+| `glyphtex_alloc(len)` / `glyphtex_dealloc(ptr, len)` | Buffers for host→module transfer |
+| `glyphtex_add_file(name_ptr, name_len, data_ptr, data_len)` | Add a file to the VFS |
+| `glyphtex_remove_file(name_ptr, name_len)` | Remove one file |
+| `glyphtex_file_count()` | Files currently in the VFS |
+| `glyphtex_clear_files()` / `glyphtex_clear_outputs()` | Reset input / output state |
+| `glyphtex_compile(opts_ptr, opts_len)` | Run the pass driver; result is JSON |
+| `glyphtex_result_ptr()` / `glyphtex_result_len()` | Where the last JSON result lives |
+| `glyphtex_output_len(...)` / `glyphtex_output_copy(...)` | Size and copy an output file |
 
 Every state-mutating call can return `-4` (`ERR_POISONED`). A compile that
 aborts inside the engine tears down the wasm stack without unwinding Rust, so

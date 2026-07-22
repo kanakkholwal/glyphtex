@@ -1,6 +1,6 @@
 import type { EngineManager } from "../engine-settings.svelte";
 import type { GitProvider } from "../git-panel.svelte";
-import type { Menu } from "../menu-bar.svelte";
+import type { Menu } from "../app-menu.svelte";
 import type { ProjectHost } from "../project";
 import { matchShortcut, shortcutLabel } from "../shortcuts";
 import { AUTO_SAVE_DELAY_MS, settings } from "@glyphtex/ui/settings";

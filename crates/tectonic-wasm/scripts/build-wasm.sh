@@ -175,7 +175,7 @@ EXPORTS='["_main","_malloc","_free"'
 for f in abi_version alloc dealloc add_file remove_file file_count \
          clear_files clear_outputs compile result_ptr result_len \
          output_len output_copy; do
-  EXPORTS="$EXPORTS,\"_glyphx_$f\""
+  EXPORTS="$EXPORTS,\"_glyphtex_$f\""
 done
 EXPORTS="$EXPORTS]"
 

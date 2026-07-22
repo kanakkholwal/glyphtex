@@ -1,3 +1,17 @@
+<script lang="ts" module>
+	export type MenuAction = {
+		type?: 'item';
+		label: string;
+		shortcut?: string;
+		checked?: boolean;
+		disabled?: boolean;
+		run?: () => void;
+	};
+	export type MenuSeparator = { type: 'separator' };
+	export type MenuEntry = MenuAction | MenuSeparator;
+	export type Menu = { label: string; items: MenuEntry[] };
+</script>
+
 <script lang="ts">
 	import {
 		DropdownMenu,
@@ -13,12 +27,10 @@
 	} from '@glyphtex/ui/dropdown-menu';
 	import type { Snippet } from 'svelte';
 
-	import type { Menu, MenuEntry, MenuSeparator } from './menu-bar.svelte';
-
 	/**
-	 * The File / Edit / View / … menus collapsed into one trigger, for chrome with
-	 * no room for a horizontal menubar (the icon rail). Same `menus` config as
-	 * {@link MenuBar}, so the two never drift.
+	 * The File / Edit / View / … menus collapsed behind one trigger, for chrome
+	 * with no room for a horizontal menubar (the icon rail). Driven by the same
+	 * `menus` config the controller builds, so the actions can't drift.
 	 */
 	let { menus, trigger }: { menus: Menu[]; trigger: Snippet<[{ props: Record<string, unknown> }]> } =
 		$props();

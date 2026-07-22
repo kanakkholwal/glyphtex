@@ -38,24 +38,24 @@ interface EngineExports {
 	__indirect_function_table: WebAssembly.Table;
 	setThrew(threw: number, value: number): void;
 	_start?(): void;
-	glyphx_abi_version(): number;
-	glyphx_alloc(len: number): number;
-	glyphx_dealloc(ptr: number, len: number): void;
-	glyphx_add_file(
+	glyphtex_abi_version(): number;
+	glyphtex_alloc(len: number): number;
+	glyphtex_dealloc(ptr: number, len: number): void;
+	glyphtex_add_file(
 		namePtr: number,
 		nameLen: number,
 		dataPtr: number,
 		dataLen: number
 	): number;
-	glyphx_remove_file(namePtr: number, nameLen: number): number;
-	glyphx_file_count(): number;
-	glyphx_clear_files(): number;
-	glyphx_clear_outputs(): number;
-	glyphx_compile(optionsPtr: number, optionsLen: number): number;
-	glyphx_result_ptr(): number;
-	glyphx_result_len(): number;
-	glyphx_output_len(namePtr: number, nameLen: number): number;
-	glyphx_output_copy(buf: number, bufLen: number): number;
+	glyphtex_remove_file(namePtr: number, nameLen: number): number;
+	glyphtex_file_count(): number;
+	glyphtex_clear_files(): number;
+	glyphtex_clear_outputs(): number;
+	glyphtex_compile(optionsPtr: number, optionsLen: number): number;
+	glyphtex_result_ptr(): number;
+	glyphtex_result_len(): number;
+	glyphtex_output_len(namePtr: number, nameLen: number): number;
+	glyphtex_output_copy(buf: number, bufLen: number): number;
 }
 
 /** Raised when the module rejects an argument outright. */
@@ -154,18 +154,18 @@ export class TexEngine {
 		// different source — nl5887's original, say, which exports tectonic_* —
 		// otherwise fails as "undefined is not a function" from deep inside
 		// load(), which says nothing about the actual mismatch.
-		if (typeof exports.glyphx_abi_version !== 'function') {
+		if (typeof exports.glyphtex_abi_version !== 'function') {
 			const found = Object.keys(instance.exports)
 				.filter((n) => !n.startsWith('__') && n !== 'memory')
 				.slice(0, 8);
 			throw new EngineError(
 				'this module does not export the GlyphTeX engine ABI ' +
-					`(glyphx_abi_version is missing; it exports ${found.join(', ')}). ` +
+					`(glyphtex_abi_version is missing; it exports ${found.join(', ')}). ` +
 					'It was built from different source than this wrapper.'
 			);
 		}
 
-		const abi = exports.glyphx_abi_version();
+		const abi = exports.glyphtex_abi_version();
 		if (abi !== SUPPORTED_ABI_VERSION) {
 			throw new EngineError(
 				`engine ABI ${abi} is not supported by this wrapper (expected ${SUPPORTED_ABI_VERSION})`
@@ -177,7 +177,7 @@ export class TexEngine {
 
 	/** How many files are currently in the virtual filesystem. */
 	get fileCount(): number {
-		return this.#check(this.#exports.glyphx_file_count(), 'read the file count');
+		return this.#check(this.#exports.glyphtex_file_count(), 'read the file count');
 	}
 
 	/** Add or replace a file. Accepts a string (encoded UTF-8) or raw bytes. */
@@ -186,7 +186,7 @@ export class TexEngine {
 		const namePtr = this.#write(this.#encoder.encode(name));
 		const dataPtr = this.#write(bytes);
 		try {
-			const rc = this.#exports.glyphx_add_file(
+			const rc = this.#exports.glyphtex_add_file(
 				namePtr.ptr,
 				namePtr.len,
 				dataPtr.ptr,
@@ -212,7 +212,7 @@ export class TexEngine {
 	removeFile(name: string): boolean {
 		const n = this.#write(this.#encoder.encode(name));
 		try {
-			const rc = this.#exports.glyphx_remove_file(n.ptr, n.len);
+			const rc = this.#exports.glyphtex_remove_file(n.ptr, n.len);
 			if (rc === POISONED) throw new EnginePoisonedError();
 			if (rc < 0) throw this.#error(`could not remove "${name}"`, rc);
 			return rc === 1;
@@ -223,12 +223,12 @@ export class TexEngine {
 
 	/** Drop every input file. */
 	clearFiles(): void {
-		this.#check(this.#exports.glyphx_clear_files(), 'clear the input files');
+		this.#check(this.#exports.glyphtex_clear_files(), 'clear the input files');
 	}
 
 	/** Discard the previous compile's auxiliary files, forcing a cold build. */
 	clearOutputs(): void {
-		this.#check(this.#exports.glyphx_clear_outputs(), 'clear the previous outputs');
+		this.#check(this.#exports.glyphtex_clear_outputs(), 'clear the previous outputs');
 	}
 
 	/**
@@ -242,7 +242,7 @@ export class TexEngine {
 		const payload = this.#encoder.encode(JSON.stringify(request));
 		const opts = this.#write(payload);
 		try {
-			const rc = this.#exports.glyphx_compile(opts.ptr, opts.len);
+			const rc = this.#exports.glyphtex_compile(opts.ptr, opts.len);
 			// Checked before reading the result: a poisoned session has no result
 			// to read, and the stale bytes from the previous compile would be
 			// reported as if they described this one.
@@ -271,20 +271,20 @@ export class TexEngine {
 	output(name: string): Uint8Array | undefined {
 		const n = this.#write(this.#encoder.encode(name));
 		try {
-			const size = this.#exports.glyphx_output_len(n.ptr, n.len);
+			const size = this.#exports.glyphtex_output_len(n.ptr, n.len);
 			if (size < 0) return undefined;
 			if (size === 0) return new Uint8Array(0);
 
-			const buf = this.#exports.glyphx_alloc(size);
+			const buf = this.#exports.glyphtex_alloc(size);
 			if (buf === 0) throw new EngineError(`could not allocate ${size} bytes for "${name}"`);
 			try {
-				const written = this.#exports.glyphx_output_copy(buf, size);
+				const written = this.#exports.glyphtex_output_copy(buf, size);
 				if (written < 0) throw new EngineError(`could not read "${name}"`);
 				// Copy out of linear memory before returning: the buffer is
 				// about to be freed, and memory growth can detach the view.
 				return new Uint8Array(this.#exports.memory.buffer, buf, written).slice();
 			} finally {
-				this.#exports.glyphx_dealloc(buf, size);
+				this.#exports.glyphtex_dealloc(buf, size);
 			}
 		} finally {
 			this.#release(n);
@@ -308,8 +308,8 @@ export class TexEngine {
 	}
 
 	#readResult(): CompileResult {
-		const ptr = this.#exports.glyphx_result_ptr();
-		const len = this.#exports.glyphx_result_len();
+		const ptr = this.#exports.glyphtex_result_ptr();
+		const len = this.#exports.glyphtex_result_len();
 		if (len === 0) {
 			throw new EngineError('engine returned an empty result');
 		}
@@ -322,7 +322,7 @@ export class TexEngine {
 
 	#write(bytes: Uint8Array): { ptr: number; len: number } {
 		if (bytes.length === 0) return { ptr: 0, len: 0 };
-		const ptr = this.#exports.glyphx_alloc(bytes.length);
+		const ptr = this.#exports.glyphtex_alloc(bytes.length);
 		if (ptr === 0) {
 			throw new EngineError(`could not allocate ${bytes.length} bytes`);
 		}
@@ -331,7 +331,7 @@ export class TexEngine {
 	}
 
 	#release({ ptr, len }: { ptr: number; len: number }): void {
-		if (ptr !== 0) this.#exports.glyphx_dealloc(ptr, len);
+		if (ptr !== 0) this.#exports.glyphtex_dealloc(ptr, len);
 	}
 
 	/**

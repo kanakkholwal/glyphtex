@@ -5,7 +5,7 @@ pkgconfig/
 # Deliberately NOT ignored: output/tectonic_wasm.wasm (3.5 MB).
 #
 # It IS reproducible now — scripts/build-wasm.sh links successfully (BACKLOG #1
-# is resolved), and this binary exports our `glyphx_*` ABI, so the e2e suite
+# is resolved), and this binary exports our `glyphtex_*` ABI, so the e2e suite
 # runs against it. It stays tracked for a different reason than before: the
 # build needs emsdk plus a `-Z build-std` nightly-equivalent toolchain and takes
 # tens of minutes, and deploy-web.yml runs `sync:engine` without building the

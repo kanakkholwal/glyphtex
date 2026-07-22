@@ -21,6 +21,7 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   PUBLIC_GA_ID: "G-X1BF4S5L5L"
+  
 
 jobs:
   deploy:
@@ -97,3 +98,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
           command: deploy
+          

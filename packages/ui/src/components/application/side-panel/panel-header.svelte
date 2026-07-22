@@ -1,7 +1,15 @@
 <script lang="ts">
   import { Button } from "@glyphtex/ui/button";
+  import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+  } from "@glyphtex/ui/dropdown-menu";
   import { settings } from "@glyphtex/ui/settings";
   import {
+    IconDots,
     IconFilePlus,
     IconFold,
     IconFolderOpen,
@@ -47,10 +55,12 @@
 </script>
 
 <div
-  class="text-faint flex h-9 shrink-0 items-center justify-between px-3 text-xs font-medium tracking-wider uppercase"
+  class="text-foreground flex h-9 shrink-0 items-center justify-between px-3 text-sm font-medium"
 >
   <span>{store.heading}</span>
   {#if view === "files"}
+    <!-- One visible primary action; everything else lives under the overflow so
+         the header doesn't become a five-icon toolbar. -->
     <div class="-mr-1 flex items-center gap-0.5">
       <Button
         variant="ghost"
@@ -61,66 +71,55 @@
       >
         <IconFilePlus />
       </Button>
-      {#if hasNewFolder}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title={store.targetDir ? `New folder in ${store.targetDir}` : "New folder"}
-          aria-label="New folder"
-          onclick={() => store.createFolderHere()}
-        >
-          <IconFolderPlus />
-        </Button>
-      {/if}
-      {#if hasDelete}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title={store.effectiveSel
-            ? store.effectiveSel.type === "folder"
-              ? "Delete selected folder"
-              : "Delete selected file"
-            : "Delete"}
-          aria-label="Delete selected"
-          disabled={!store.effectiveSel}
-          onclick={() => store.deleteSelected()}
-        >
-          <IconTrash />
-        </Button>
-      {/if}
-      {#if store.folderPaths.length}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title={store.anyFolderOpen ? "Collapse all folders" : "Expand all folders"}
-          aria-label={store.anyFolderOpen ? "Collapse all folders" : "Expand all folders"}
-          onclick={() => store.toggleCollapseAll()}
-        >
-          <IconFold />
-        </Button>
-      {/if}
-      {#if onreveal}
-        <!-- A project is open: reveal it in the OS file manager. -->
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title="Reveal in file explorer"
-          aria-label="Reveal in file explorer"
-          onclick={() => onreveal?.()}
-        >
-          <IconFolderShare />
-        </Button>
-      {:else if hasProject}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title="Open folder (⌘/Ctrl+O)"
-          aria-label="Open folder"
-          onclick={() => onopenfolder?.()}
-        >
-          <IconFolderOpen />
-        </Button>
-      {/if}
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          {#snippet child({ props })}
+            <Button
+              {...props}
+              variant="ghost"
+              size="icon-sm"
+              title="More"
+              aria-label="More file actions"
+            >
+              <IconDots />
+            </Button>
+          {/snippet}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" class="w-52">
+          {#if hasNewFolder}
+            <DropdownMenuItem onSelect={() => store.createFolderHere()}>
+              <IconFolderPlus class="text-muted-foreground" />
+              {store.targetDir ? `New folder in ${store.targetDir}` : "New folder"}
+            </DropdownMenuItem>
+          {/if}
+          {#if store.folderPaths.length}
+            <DropdownMenuItem onSelect={() => store.toggleCollapseAll()}>
+              <IconFold class="text-muted-foreground" />
+              {store.anyFolderOpen ? "Collapse all folders" : "Expand all folders"}
+            </DropdownMenuItem>
+          {/if}
+          {#if onreveal}
+            <DropdownMenuItem onSelect={() => onreveal?.()}>
+              <IconFolderShare class="text-muted-foreground" /> Reveal in file explorer
+            </DropdownMenuItem>
+          {:else if hasProject}
+            <DropdownMenuItem onSelect={() => onopenfolder?.()}>
+              <IconFolderOpen class="text-muted-foreground" /> Open folder…
+            </DropdownMenuItem>
+          {/if}
+          {#if hasDelete}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={!store.effectiveSel}
+              onSelect={() => store.deleteSelected()}
+            >
+              <IconTrash />
+              {store.effectiveSel?.type === "folder" ? "Delete folder" : "Delete file"}
+            </DropdownMenuItem>
+          {/if}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   {:else if view === "search"}
     <div class="-mr-1 flex items-center gap-0.5">

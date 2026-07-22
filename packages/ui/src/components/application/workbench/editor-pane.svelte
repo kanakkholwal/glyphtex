@@ -7,8 +7,6 @@
     IconBaselineDensityMedium,
     IconFolderShare,
     IconLayoutColumns,
-    IconLoader2,
-    IconPlayerPlayFilled,
     IconRefresh,
     IconSearch,
     IconX,
@@ -34,7 +32,6 @@
   const files = $derived(ctrl.files);
   const layout = $derived(ctrl.layout);
   const search = $derived(ctrl.search);
-  const compile = $derived(ctrl.compile);
 
   // Assets are read by absolute path on desktop and by project-relative name on
   // web (IndexedDB), so the viewer takes whichever the host can resolve.
@@ -146,23 +143,6 @@
   {:else if files.activeEditable}
     <EditorTabs {files}>
       {#snippet actions()}
-        <!-- Compile lives on the preview toolbar; surface it here only when the
-             preview is hidden, so it is never absent yet never duplicated. -->
-        {#if layout.viewMode === "editor" && compile.canCompile}
-          <Button
-            size="sm"
-            class="mr-1 pl-2.5"
-            disabled={compile.compiling}
-            onclick={() => compile.runCompile(true)}
-          >
-            {#if compile.compiling}
-              <IconLoader2 class="animate-spin" />
-            {:else}
-              <IconPlayerPlayFilled />
-            {/if}
-            {compile.compiling ? "Compiling…" : "Compile"}
-          </Button>
-        {/if}
         <Button
           variant="ghost"
           size="icon-sm"

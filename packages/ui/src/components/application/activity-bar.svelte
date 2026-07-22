@@ -17,8 +17,7 @@
 		IconSettings
 	} from '@tabler/icons-svelte';
 
-	import AppMenu from './app-menu.svelte';
-	import type { Menu } from './menu-bar.svelte';
+	import AppMenu, { type Menu } from './app-menu.svelte';
 
 	/**
 	 * Rail — the left mode switcher, icon-only with a tooltip per item. Also
@@ -75,7 +74,7 @@
 
 	{#each views as item (item.id)}
 		{@const Icon = item.icon}
-		<Tooltip>
+		<Tooltip delayDuration={300}>
 			<TooltipTrigger>
 				{#snippet child({ props })}
 					<Button
@@ -97,7 +96,7 @@
 	<!-- Bottom actions: create, open, configure. -->
 	<div class="mt-auto flex flex-col items-center gap-1">
 		{#if onnewfile}
-			<Tooltip>
+			<Tooltip delayDuration={300}>
 				<TooltipTrigger>
 					{#snippet child({ props })}
 						<Button
@@ -115,7 +114,7 @@
 			</Tooltip>
 		{/if}
 		{#if onopenproject}
-			<Tooltip>
+			<Tooltip delayDuration={300}>
 				<TooltipTrigger>
 					{#snippet child({ props })}
 						<Button
@@ -132,7 +131,7 @@
 				<TooltipContent side="right">Open project</TooltipContent>
 			</Tooltip>
 		{/if}
-		<Tooltip>
+		<Tooltip delayDuration={300}>
 			<TooltipTrigger>
 				{#snippet child({ props })}
 					<Button

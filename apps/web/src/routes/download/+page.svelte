@@ -591,8 +591,8 @@
 							</ol>
 
 							<p class="mt-6 text-xs leading-relaxed text-muted-foreground">
-								Prefer not to use Terminal? You can also right-click GlyphTeX in Applications, choose
-								Open, and confirm once in the dialog that appears.
+								Prefer not to use Terminal? You can also right-click GlyphTeX in Applications,
+								choose Open, and confirm once in the dialog that appears.
 							</p>
 						</div>
 					</details>

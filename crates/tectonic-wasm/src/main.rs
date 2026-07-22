@@ -7,7 +7,7 @@
 //! ports. A main module has no such requirement.
 //!
 //! `main` deliberately does nothing. The host drives everything through the
-//! exported `glyphx_*` functions after instantiation; running `_start` merely
+//! exported `glyphtex_*` functions after instantiation; running `_start` merely
 //! completes libc initialisation.
 
 use std::ffi::c_void;
@@ -19,7 +19,7 @@ fn main() {}
 /// Nothing inside the module calls these — the JavaScript host is the only
 /// caller — so Rust would otherwise not link the library objects that define
 /// them at all, and `-sEXPORTED_FUNCTIONS` would fail with
-/// `undefined exported symbol: "_glyphx_abi_version"`.
+/// `undefined exported symbol: "_glyphtex_abi_version"`.
 ///
 /// `#[used]` keeps the array itself from being dropped as dead code, and
 /// naming each function in it forces its defining object to be linked in.
@@ -32,17 +32,17 @@ unsafe impl Sync for Anchors {}
 
 #[used]
 static KEEP_FFI_EXPORTS: Anchors = Anchors([
-    glyphtex_tex::glyphx_abi_version as *const c_void,
-    glyphtex_tex::glyphx_alloc as *const c_void,
-    glyphtex_tex::glyphx_dealloc as *const c_void,
-    glyphtex_tex::glyphx_add_file as *const c_void,
-    glyphtex_tex::glyphx_remove_file as *const c_void,
-    glyphtex_tex::glyphx_file_count as *const c_void,
-    glyphtex_tex::glyphx_clear_files as *const c_void,
-    glyphtex_tex::glyphx_clear_outputs as *const c_void,
-    glyphtex_tex::glyphx_compile as *const c_void,
-    glyphtex_tex::glyphx_result_ptr as *const c_void,
-    glyphtex_tex::glyphx_result_len as *const c_void,
-    glyphtex_tex::glyphx_output_len as *const c_void,
-    glyphtex_tex::glyphx_output_copy as *const c_void,
+    glyphtex_tex::glyphtex_abi_version as *const c_void,
+    glyphtex_tex::glyphtex_alloc as *const c_void,
+    glyphtex_tex::glyphtex_dealloc as *const c_void,
+    glyphtex_tex::glyphtex_add_file as *const c_void,
+    glyphtex_tex::glyphtex_remove_file as *const c_void,
+    glyphtex_tex::glyphtex_file_count as *const c_void,
+    glyphtex_tex::glyphtex_clear_files as *const c_void,
+    glyphtex_tex::glyphtex_clear_outputs as *const c_void,
+    glyphtex_tex::glyphtex_compile as *const c_void,
+    glyphtex_tex::glyphtex_result_ptr as *const c_void,
+    glyphtex_tex::glyphtex_result_len as *const c_void,
+    glyphtex_tex::glyphtex_output_len as *const c_void,
+    glyphtex_tex::glyphtex_output_copy as *const c_void,
 ]);

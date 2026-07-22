@@ -878,8 +878,8 @@
 							<p
 								class="landing-text-pretty mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
 							>
-								A GlyphTeX project is a folder of plain .tex files. Bring an Overleaf export, a thesis
-								repo, or a fresh blank document. No reshaping, no proprietary format.
+								A GlyphTeX project is a folder of plain .tex files. Bring an Overleaf export, a
+								thesis repo, or a fresh blank document. No reshaping, no proprietary format.
 							</p>
 
 							<ul class="mt-12 space-y-6">
@@ -1129,8 +1129,8 @@
 							<p
 								class="landing-text-pretty mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg"
 							>
-								Diffs, commits, branches, and remotes live in your own repository. GlyphTeX helps with
-								the workflow; the archive still belongs to you and the tools you already trust.
+								Diffs, commits, branches, and remotes live in your own repository. GlyphTeX helps
+								with the workflow; the archive still belongs to you and the tools you already trust.
 							</p>
 
 							<ul class="mt-10 space-y-5">
