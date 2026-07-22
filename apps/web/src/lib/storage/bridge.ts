@@ -25,10 +25,8 @@ export function toGlyphFiles(files: StoredFile[]): GlyphFile[] {
 	});
 }
 
-/**
- * Workbench files back to storage. Binary members keep their stored bytes —
- * the editor only ever held a placeholder for them.
- */
+/** Workbench files back to storage. Binary members keep their stored bytes — the
+ *  editor only ever held a placeholder for them. */
 export function toNewFiles(files: GlyphFile[], binary: Map<string, Uint8Array>): NewFile[] {
 	return files.map((f) => {
 		const data = binary.get(f.name);

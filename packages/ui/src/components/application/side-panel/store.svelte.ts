@@ -1,14 +1,3 @@
-/**
- * SidePanelStore — local UI state + behaviour for the rail's side panel.
- *
- * Holds the Explorer tree state (open folders, selection, outline, collapse-all,
- * root drop target), the Source Control header state, the Settings shell-button
- * status, and the Search form state — plus the small actions that wrap the
- * host callbacks. Reactive inputs (files / folders / active file / source / view)
- * arrive as getters so the store always reads the parent's live props.
- *
- * No `$effect`: per-view components own their lifecycle (e.g. autofocus).
- */
 import { baseLevel, parseOutline } from "../outline";
 import { canDropInto, getDrag, setDrag } from "../file-dnd";
 import type { TreeNode } from "../file-tree.svelte";
@@ -37,6 +26,8 @@ export type SidePanelDeps = {
   onregistershell?: () => void | Promise<boolean>;
 };
 
+/** UI state for the side panel's views. Reactive inputs arrive as getters so the store
+ *  always reads the parent's live props. */
 export class SidePanelStore {
   readonly #d: SidePanelDeps;
 

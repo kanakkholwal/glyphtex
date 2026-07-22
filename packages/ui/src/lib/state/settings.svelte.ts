@@ -1,16 +1,3 @@
-/**
- * GlyphTeX settings — appearance (theme) + editor preferences.
- *
- * Built on {@link PersistedState}, so every setting is persisted to
- * localStorage and synced live across every Tauri window / browser tab that
- * shares the origin. Change the theme in one window and the others follow
- * within a tick — no `mode-watcher`, no flash.
- *
- * System-theme detection:
- *   - web: `matchMedia('(prefers-color-scheme: dark)')`
- *   - desktop: the Tauri app calls `settings.setSystemTheme()` from the
- *     native theme API (see apps/desktop). That overrides the media query.
- */
 import { PersistedState } from "./persisted-state.svelte";
 
 export type Appearance = "light" | "dark" | "system";
@@ -104,6 +91,8 @@ export const SIDEBAR_POSITION_KEY = "glyphtex:sidebar-position";
 
 const isBrowser = typeof window !== "undefined";
 
+/** Appearance and editor preferences, persisted and synced live across every window
+ *  on the origin — change the theme in one and the others follow within a tick. */
 class SettingsStore {
 	#appearance = new PersistedState<Appearance>(APPEARANCE_KEY, "system");
 	#editor = new PersistedState<EditorSettings>(EDITOR_KEY, EDITOR_DEFAULTS);

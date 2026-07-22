@@ -1,18 +1,5 @@
-/**
- * PdfViewController — owns the headless PDF.js engine (`PDFViewer` + link /
- * find controllers) and all preview behaviour: lazy engine init, document
- * (re)load with scroll preservation, zoom, double-click reverse-sync, forward
- * sync (scroll + flash), and find-in-PDF.
- *
- * The `.svelte` component is a thin shell: it binds DOM refs + props/effects to
- * these methods and re-exports the imperative API via `bind:this`. The DOM refs
- * and the reactive UI flags are `$state`; the pdf.js handles are plain fields.
- *
- * pdf.js' viewer entry points (`pdfjs-dist/web/pdf_viewer.mjs`) ship no
- * first-class types at this import path, so the dynamically-imported module and
- * engine handles are an untyped external boundary (AGENTS.md rule #7 — justified
- * scoped exception). Event payloads *are* narrowed where consumed.
- */
+// `pdfjs-dist/web/pdf_viewer.mjs` ships no types at this import path, so the module
+// and its engine handles are an untyped boundary (AGENTS.md rule #7 exception).
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export type ReverseLoc = { page: number; x: number; y: number };
@@ -34,6 +21,8 @@ export type PdfViewCallbacks = {
   onreverse?: (loc: ReverseLoc) => void;
 };
 
+/** Owns the headless PDF.js engine and all preview behaviour; the `.svelte` component
+ *  only binds DOM refs and re-exports this imperative API via `bind:this`. */
 export class PdfViewController {
   // DOM refs (bound from the component).
   containerEl = $state<HTMLDivElement>();

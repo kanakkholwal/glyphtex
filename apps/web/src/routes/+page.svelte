@@ -596,9 +596,14 @@
 								<IconDownload class="size-4" />
 								Download desktop app
 							</Button>
-							<Button href={resolve('/editor')} variant="outline" size="lg" class="group/cta gap-2">
+							<Button
+								href={resolve('/workspace')}
+								variant="outline"
+								size="lg"
+								class="group/cta gap-2"
+							>
 								<IconPlayerPlay class="size-4" />
-								Open browser editor
+								Open browser workspace
 								<IconArrowRight
 									class="size-4 transition-transform group-hover/cta:translate-x-0.5"
 								/>
@@ -955,8 +960,8 @@
 					</div>
 
 					<PolishGrid features={polishFeatures} />
-
-					<Reveal variant="up" class="mt-14">
+					<!-- hidden till proper screenshot -->
+					<Reveal variant="up" class="mt-14 hidden">
 						<figure class="mx-auto max-w-5xl">
 							<MacWindow title="GlyphTeX · Editor" class="shadow-craft-xl">
 								<div class="bg-linear-to-b from-muted/10 to-background p-1.5">
@@ -1524,9 +1529,9 @@
 								<IconDownload class="size-4" />
 								Download desktop app
 							</Button>
-							<Button href={resolve('/editor')} variant="outline" size="lg" class="gap-2">
+							<Button href={resolve('/workspace')} variant="outline" size="lg" class="gap-2">
 								<IconPlayerPlay class="size-4" />
-								Open browser editor
+								Open browser workspace
 							</Button>
 						</Reveal>
 

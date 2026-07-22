@@ -114,8 +114,8 @@
 		<div class="text-muted-foreground flex items-center gap-3 px-5 py-5 text-sm">
 			<IconCloud size={20} class="shrink-0 opacity-70" />
 			<p class="leading-relaxed">
-				Optional end-to-end encrypted sync across your devices. GlyphTeX stays local-first — this will
-				always be opt-in.
+				Optional end-to-end encrypted sync across your devices. GlyphTeX stays local-first — this
+				will always be opt-in.
 			</p>
 		</div>
 	</SettingsSection>

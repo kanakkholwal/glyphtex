@@ -311,9 +311,14 @@
 						class="mt-1 flex flex-col items-center gap-3 sm:flex-row"
 						in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
 					>
-						<Button href={resolve('/editor')} variant="outline" size="lg" class="group/cta gap-2">
+						<Button
+							href={resolve('/workspace')}
+							variant="outline"
+							size="lg"
+							class="group/cta gap-2"
+						>
 							<IconPlayerPlay class="size-4" />
-							Try in browser first
+							Try the browser workspace
 							<IconArrowRight class="size-4 transition-transform group-hover/cta:translate-x-0.5" />
 						</Button>
 					</div>
@@ -720,8 +725,8 @@
 							>
 								<IconBrandGithub class="size-4" /> Watch on GitHub
 							</Button>
-							<Button href={resolve('/editor')} variant="default" size="lg" class="gap-2">
-								Open the editor
+							<Button href={resolve('/workspace')} variant="default" size="lg" class="gap-2">
+								Open the browser workspace
 								<IconArrowRight class="size-4" />
 							</Button>
 						</div>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { ProjectsHome } from '@glyphtex/ui/application';
+	import { ProjectsHome, type Scope } from '@glyphtex/ui/application';
 	import { toast } from '@glyphtex/ui/sonner';
 	import { onMount } from 'svelte';
 
@@ -24,7 +24,22 @@
 	} from '$lib/storage/projects';
 	import { requestPersistence, storageStatus } from '$lib/storage/quota';
 	import { starterFiles } from '$lib/storage/template';
-	import { Logo } from '@glyphtex/ui/logo';
+
+	let { scope = 'all' }: { scope?: Scope } = $props();
+
+	const scopeHrefs: Record<Scope, string> = {
+		all: resolve('/workspace'),
+		recent: resolve('/workspace/recent'),
+		starred: resolve('/workspace/starred'),
+		templates: resolve('/workspace/templates')
+	};
+
+	const titles: Record<Scope, string> = {
+		all: 'Documents',
+		recent: 'Recent',
+		starred: 'Starred',
+		templates: 'Templates'
+	};
 
 	let stored = $state<StoredProject[]>([]);
 	let loading = $state(true);
@@ -39,9 +54,8 @@
 		console.error('[GlyphTeX]', error);
 	}
 
-	// Origin-level usage, for the sidebar meter. The browser reports the whole
-	// origin (engine cache included), not just documents — that is the number
-	// that actually predicts eviction, so it is the honest one to show.
+	// Whole-origin usage (engine cache included), not just documents: that is the
+	// number that actually predicts eviction.
 	let storage = $state<{ used: number; total: number } | undefined>(undefined);
 
 	async function refresh(): Promise<void> {
@@ -56,9 +70,6 @@
 	onMount(async () => {
 		try {
 			await refresh();
-			// Only ask once there is something worth keeping; a prompt on an empty
-			// app is noise, and Firefox shows a real permission dialog.
-			if (stored.length > 0) void requestPersistence();
 		} catch (error) {
 			failure = error instanceof Error ? error.message : 'Could not read saved documents.';
 		} finally {
@@ -176,16 +187,11 @@
 </script>
 
 <svelte:head>
-	<title>Documents · GlyphTeX</title>
+	<title>{titles[scope]} · GlyphTeX</title>
 	<meta name="description" content="Your GlyphTeX LaTeX documents, stored in this browser." />
 </svelte:head>
 
-{#if loading}
-	<div class="flex min-h-dvh items-center justify-center flex-col gap-4 text-center">
-		<Logo size="lg" />
-		<p class="text-sm text-muted-foreground" role="status">Loading your documents…</p>
-	</div>
-{:else if failure}
+{#if failure}
 	<div
 		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
 	>
@@ -206,6 +212,9 @@
 	>
 		<ProjectsHome
 			platform="web"
+			activeScope={scope}
+			{scopeHrefs}
+			{loading}
 			{projects}
 			oncreate={handleCreate}
 			onopen={open}

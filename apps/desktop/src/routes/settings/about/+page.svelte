@@ -90,8 +90,8 @@
 
 		<div class="text-muted-foreground flex flex-col gap-3 text-sm leading-relaxed">
 			<p>
-				GlyphTeX compiles real LaTeX on your machine with Tectonic — nothing is uploaded, and it works
-				fully offline. Your documents stay on disk, in plain files you own.
+				GlyphTeX compiles real LaTeX on your machine with Tectonic — nothing is uploaded, and it
+				works fully offline. Your documents stay on disk, in plain files you own.
 			</p>
 			<p>
 				Open any folder as a project, just like a normal LaTeX setup: a main file plus whatever you

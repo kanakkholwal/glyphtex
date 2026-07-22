@@ -1,12 +1,3 @@
-/**
- * GitPanelStore — all Source Control state + behaviour.
- *
- * Owns the working-tree status (staged / unstaged / conflicts), the commit
- * message, history, remotes (add / edit / switch / remove), and the remote
- * operations (fetch / pull / push / sync) with friendly error routing. Mirrors
- * the workbench pattern: reactive `$state` / `$derived` here, no `$effect` — the
- * component drives refresh / detection / state-reporting from its own effects.
- */
 import { describeError } from "./errors";
 import { buildTree } from "./tree";
 import type {
@@ -27,6 +18,8 @@ export type GitPanelDeps = {
   onopendiff?: (path: string, staged: boolean) => void;
 };
 
+/** All Source Control state and behaviour. Like the workbench stores it holds no
+ *  `$effect` — the component drives refresh and detection from its own. */
 export class GitPanelStore {
   readonly #git?: GitProvider;
   readonly #getRoot: () => string | null | undefined;

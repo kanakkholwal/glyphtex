@@ -1,15 +1,3 @@
-/**
- * FileStore — the Workbench's document + project model.
- *
- * Owns the open files, the active buffer (`source`), the save / dirty model,
- * Explorer operations (new / rename / move / delete, folders, conflict
- * resolution), folder-project loading (open / import / export / manifest), and
- * the Git working-tree status labels.
- *
- * Pure state + behaviour — no `$effect`s and no markup. The component drives the
- * reactive side-effects (auto-save, persist, git refresh) by reading the public
- * reactive fields here (notably {@link savedTick}) from its own `$effect`s.
- */
 import {
   classifyFile,
   editorLanguage,
@@ -45,6 +33,8 @@ export type FileStoreDeps = {
   projectName: string;
 };
 
+/** The Workbench's document + project model. State and behaviour only — the component
+ *  drives auto-save/persist/git-refresh from its own effects, keyed on {@link savedTick}. */
 export class FileStore {
   /** Folder-based project bridge (desktop = Tauri fs / zip). Absent on web. */
   readonly project?: ProjectHost;

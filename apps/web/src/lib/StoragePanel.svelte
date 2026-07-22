@@ -15,6 +15,7 @@
 		PER_PROJECT_BYTES,
 		WARN_AT,
 		formatBytes,
+		persistencePermission,
 		requestPersistence,
 		storageStatus,
 		type StorageStatus
@@ -25,6 +26,7 @@
 	let status = $state<StorageStatus | undefined>(undefined);
 	let documents = $state(0);
 	let asking = $state(false);
+	let refused = $state<string | undefined>(undefined);
 
 	const pct = $derived(status && status.quota > 0 ? Math.min(100, status.ratio * 100) : 0);
 	const low = $derived(Boolean(status && !status.unknown && status.ratio >= WARN_AT));
@@ -39,11 +41,20 @@
 		if (open) void refresh();
 	});
 
+	// Runs straight off the click — Firefox only prompts inside a user gesture.
+	// A refusal is silent in Chrome, so say what actually happened.
 	async function keepData(): Promise<void> {
 		asking = true;
+		refused = undefined;
 		try {
-			await requestPersistence();
+			const granted = await requestPersistence();
 			await refresh();
+			if (granted) return;
+			const permission = await persistencePermission();
+			refused =
+				permission === 'denied'
+					? 'Your browser blocked this permission for this site. Re-allow it in site settings, then try again.'
+					: 'The browser declined for now. Chrome grants this once a site is bookmarked or installed, or after you have used it a few times.';
 		} finally {
 			asking = false;
 		}
@@ -121,11 +132,20 @@
 							</p>
 						</div>
 						{#if !status.persisted}
-							<Button size="sm" variant="outline" onclick={keepData} disabled={asking}>
+							<Button
+								size="sm"
+								variant="outline"
+								class="shrink-0"
+								onclick={keepData}
+								disabled={asking}
+							>
 								{asking ? 'Asking…' : 'Protect'}
 							</Button>
 						{/if}
 					</div>
+					{#if refused && !status.persisted}
+						<p class="text-warning text-xs" role="status">{refused}</p>
+					{/if}
 				</div>
 			{/if}
 

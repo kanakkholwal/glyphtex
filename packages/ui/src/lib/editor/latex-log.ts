@@ -1,12 +1,3 @@
-/**
- * Parse a Tectonic / TeX log into structured problems for the UI.
- *
- * The desktop backend returns Tectonic's concise stderr plus the engine's
- * `main.log`, which carries the classic `! error` blocks (with `l.<n>` line
- * numbers) and `LaTeX Warning ... on input line <n>` lines. We surface those as
- * clickable diagnostics; the raw log stays available for deep debugging.
- */
-
 export type LatexSeverity = 'error' | 'warning' | 'info';
 
 export interface LatexProblem {
@@ -30,6 +21,8 @@ const TECTONIC = /^(error|warning):\s*(.*)$/;
 const WARNING_START = /^(?:LaTeX|LaTeX Font|Package \S+|Class \S+) Warning:\s*(.*)$/;
 const BADBOX = /^(?:Overfull|Underfull) \\[hv]box/;
 
+/** Extracts clickable diagnostics from a Tectonic/TeX log: `! error` blocks with
+ *  `l.<n>` lines, and `LaTeX Warning … on input line <n>`. */
 export function parseLatexLog(log: string | undefined, fallback?: string): LatexProblem[] {
 	const out: LatexProblem[] = [];
 	const seen = new Set<string>();

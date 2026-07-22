@@ -9,15 +9,15 @@ export const REPO_RELEASES_URL = `${REPO_URL}/releases`;
 export const CONTACT_EMAIL = 'mailto:hello@glyphtex.app';
 
 // In-page anchors live on the homepage. External routes hit /download and
-// /editor, which the web app already exposes. Other marketing routes that
-// trace-mvp has (pricing, blog, changelog, etc.) are not built in glyph-mvp
-// yet, so we link to the repo or skip them.
+// /workspace. Other marketing routes that trace-mvp has (pricing, blog,
+// changelog, etc.) are not built in glyph-mvp yet, so we link to the repo
+// or skip them.
 const FEATURES: NavLink = { label: 'Features', href: '/#features' };
 const WORKFLOW: NavLink = { label: 'Workflow', href: '/#workflow' };
 const COMPARE: NavLink = { label: 'Compare', href: '/#compare' };
 const FAQ: NavLink = { label: 'FAQ', href: '/#faq' };
 const DOWNLOAD: NavLink = { label: 'Download', href: '/download' };
-const EDITOR: NavLink = { label: 'Open editor', href: '/editor' };
+const WORKSPACE: NavLink = { label: 'Open browser workspace', href: '/workspace' };
 
 // Inline top-nav links, always visible on desktop. Kept short for a minimal
 // bar; everything else lives in the footer.
@@ -31,7 +31,7 @@ export const footerCols: { title: string; links: NavLink[] }[] = [
 	{
 		title: 'Resources',
 		links: [
-			EDITOR,
+			WORKSPACE,
 			{ label: 'GitHub', href: REPO_URL, external: true },
 			{ label: 'Releases', href: REPO_RELEASES_URL, external: true },
 			{ label: 'License (GPLv3)', href: `${REPO_URL}/blob/main/LICENSE`, external: true }

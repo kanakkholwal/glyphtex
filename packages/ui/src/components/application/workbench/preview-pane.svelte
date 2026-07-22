@@ -82,7 +82,7 @@
           <IconSearch />
         </Button>
         <span class="bg-border/60 mx-1 h-5 w-px"></span>
-        <span class="text-muted-foreground/70 px-1 tabular-nums">
+        <span class="text-muted-foreground/70 px-1 tabular-nums whitespace-nowrap">
           {compile.pdfNumPages || 1} page{(compile.pdfNumPages || 1) === 1
             ? ""
             : "s"}

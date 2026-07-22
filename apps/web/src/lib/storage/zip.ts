@@ -1,9 +1,5 @@
-/**
- * Minimal ZIP reader/writer over the platform's own compression streams, so
- * import/export needs no dependency. Stored (0) and deflate (8) only — the two
- * methods real-world .zip archives use.
- */
-
+// Built on the platform's own compression streams so import/export needs no
+// dependency. Stored (0) and deflate (8) only — what real-world archives use.
 const LOCAL_SIG = 0x04034b50;
 const CENTRAL_SIG = 0x02014b50;
 const EOCD_SIG = 0x06054b50;

@@ -25,7 +25,8 @@
 		"data-slot": "sidebar-menu-sub-button",
 		"data-sidebar": "menu-sub-button",
 		"data-size": size,
-		"data-active": isActive,
+		// Presence, not value — see the note in sidebar-menu-button.svelte.
+		"data-active": isActive ? "true" : undefined,
 		...restProps,
 	});
 </script>

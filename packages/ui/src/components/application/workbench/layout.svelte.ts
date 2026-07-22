@@ -1,15 +1,3 @@
-/**
- * LayoutStore — the Workbench's chrome + geometry.
- *
- * Owns the view mode (editor / split / preview), the activity bar selection and
- * side-panel collapse, the resizable split + sidebar, the read-only diff view
- * (Source Control → open a change over the editor pane), the help / quick-open
- * dialogs, the cursor position, and the editor `bind:this` handle shared with
- * the search + compile stores.
- *
- * Reactive state + behaviour only. The component sets up the lone
- * `ResizeObserver` `$effect` by calling {@link observeShell}.
- */
 import type { ActivityView } from "../activity-bar.svelte";
 import { classifyFile, editorLanguage } from "../file-kinds";
 import type { GitProvider } from "../git-panel.svelte";
@@ -25,6 +13,8 @@ export type LayoutDeps = {
 
 const ACTIVITY_BAR_PX = 48; // the w-12 rail beside the panel
 
+/** The Workbench's chrome + geometry, plus the editor `bind:this` handle shared with
+ *  the search and compile stores. The component calls {@link observeShell}. */
 export class LayoutStore {
   readonly #git?: GitProvider;
   readonly #getProjectRoot: () => string | null;

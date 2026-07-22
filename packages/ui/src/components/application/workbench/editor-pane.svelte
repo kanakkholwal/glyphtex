@@ -23,11 +23,8 @@
   import type { WorkbenchController } from "./controller.svelte";
   import { baseName } from "./paths";
 
-  /**
-   * Editor pane — the left/main column when not preview-only. Renders one of:
-   * a read-only diff (Source Control), the code editor with its format/save/find
-   * toolbar, or the asset viewer (image / PDF / unsupported binary).
-   */
+  /** The main editor column: a read-only diff, the code editor, or the asset viewer,
+   *  depending on what is active. */
   let { ctrl }: { ctrl: WorkbenchController } = $props();
   const files = $derived(ctrl.files);
   const layout = $derived(ctrl.layout);
@@ -37,14 +34,8 @@
   // web (IndexedDB), so the viewer takes whichever the host can resolve.
   const assetKey = $derived(files.activeFile?.path ?? files.activeFile?.name);
 
-  // Publish the project to the language providers, which otherwise only ever
-  // see the one file Monaco has a model for. This is what lets `\cite{` read a
-  // sibling .bib and `\ref{` reach a label in another chapter.
-  //
-  // Deliberately keyed on `savedTick` rather than on live buffers: reindexing
-  // every keystroke across every file would be wasteful, and a label only
-  // becomes referenceable once it is written down. The open file's own labels
-  // come from its live model inside the provider, so they stay instant.
+  // Publishes siblings to the language providers so `\cite{`/`\ref{` resolve across
+  // files. Keyed on `savedTick`, not live buffers — reindexing every keystroke is waste.
   $effect(() => {
     void files.savedTick;
     setWorkspaceFiles(
@@ -58,8 +49,6 @@
   });
 </script>
 
-<!-- In a split the pane is sized along the split axis and draws the divider edge
-     on that side; otherwise it fills the body. -->
 <section
   class="flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden {layout.viewMode !==
   'split'
@@ -74,8 +63,6 @@
       : `width:${layout.splitPct}%`}
 >
   {#if layout.diffTarget}
-    <!-- Diff view (VS Code-style): file name + side-by-side / inline toggle +
-         refresh + close. Read-only comparison of the change. -->
     <div
       class="text-muted-foreground border-border bg-card flex h-9 shrink-0 items-center gap-2 border-b px-1.5 text-xs"
     >
@@ -147,8 +134,6 @@
       {/if}
     </div>
   {:else}
-    <!-- One tab strip for every file kind. An image or PDF is a tab like any
-         other; only the body below it changes. -->
     <EditorTabs {files}>
       {#snippet actions()}
         {#if files.activeEditable}
@@ -198,7 +183,6 @@
     </EditorTabs>
 
     {#if files.activeEditable}
-      <!-- The LaTeX format toolbar is only meaningful for TeX *source*. -->
       {#if files.activeHasToolbar}
         <div
           class="border-border bg-card flex h-9 shrink-0 items-center border-b px-1.5"

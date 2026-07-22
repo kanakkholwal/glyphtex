@@ -1,14 +1,3 @@
-/**
- * Preserve-case replacement (VS Code's "Preserve Case" / AB toggle).
- *
- * Given the text that was matched and the raw replacement, return the
- * replacement recased to follow the match's pattern:
- *   FOO   + bar  -> BAR        (all upper)
- *   foo   + Bar  -> bar        (all lower)
- *   Foo   + bar  -> Bar        (capitalised)
- * Anything else (mixed / camelCase / no letters) is left untouched.
- */
-
 type Pattern = 'upper' | 'lower' | 'capital' | 'mixed';
 
 function classify(sample: string): Pattern {
@@ -22,6 +11,8 @@ function classify(sample: string): Pattern {
 	return 'mixed';
 }
 
+/** Recases `replacement` to follow `sample` (VS Code's Preserve Case). Mixed-case or
+ *  letterless samples pass the replacement through untouched. */
 export function applyCase(sample: string, replacement: string): string {
 	if (!replacement) return replacement;
 	switch (classify(sample)) {

@@ -1,16 +1,3 @@
-/**
- * OS-agnostic path string helpers for the Workbench.
- *
- * Two flavours live here:
- *  - **absolute** helpers (`sepOf` / `baseName` / `parentDir` / `joinPath` /
- *    `samePath`) infer the separator from the path, so the same code works for
- *    Windows (`\`) and POSIX (`/`) disk paths.
- *  - **relative** helpers (`leafOf` / `dirOf` / `splitExt`) operate on the
- *    forward-slash relative names used in the Explorer tree.
- *
- * Pure functions only — no Svelte, no I/O.
- */
-
 // --- Absolute paths (separator inferred from the value) ---------------------
 export function sepOf(p: string): string {
   return p.includes("\\") ? "\\" : "/";

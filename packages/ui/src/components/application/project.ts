@@ -1,17 +1,8 @@
-/**
- * ProjectHost — the host-provided bridge to a real, folder-based LaTeX project
- * on disk. The desktop app backs this with Tauri (native dialogs + Rust fs / zip
- * commands); the web build leaves it undefined and the workbench stays on its
- * in-memory demo document.
- *
- * A project is just a folder. The "main file" is the compile target; other
- * files (`\input`, `\includegraphics`, `\bibliography`, …) resolve relative to
- * it on disk, exactly like Overleaf / a normal local LaTeX project.
- */
-
 /** A file inside a project: stable absolute path + forward-slash relative path. */
 export type ProjectFile = { abs: string; rel: string };
 
+/** Host bridge to a folder-based project on disk. Desktop backs this with Tauri; web
+ *  leaves it undefined and the workbench stays on its in-memory document. */
 export type ProjectHost = {
 	/**
 	 * Create a new project folder in the app's own data directory (no location

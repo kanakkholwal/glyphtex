@@ -19,11 +19,8 @@
 
 	import AppMenu, { type Menu } from './app-menu.svelte';
 
-	/**
-	 * Rail — the left mode switcher, icon-only with a tooltip per item. Also
-	 * carries the app identity (logo + the File/Edit/View menus) and the bottom
-	 * actions, so the document header stays a document header.
-	 */
+	/** Icon-only mode switcher. Also carries app identity and menus, so the document
+	 *  header can stay a document header. */
 	let {
 		active = 'files',
 		onselect,
@@ -66,8 +63,7 @@
 		: 'border-r'}"
 	aria-label="Views"
 >
-	<!-- The logo is the way back to the document list, which is not guessable from
-	     the mark alone — hence the label on hover. -->
+	<!-- Labelled on hover: "the mark takes you home" isn't guessable from the mark. -->
 	<span title={homeLabel}>
 		<Logo href={homeHref} text={false} size="md" viewTransitionName="app-logo" />
 	</span>
@@ -95,7 +91,6 @@
 		</Tooltip>
 	{/each}
 
-	<!-- Bottom actions: create, open, configure. -->
 	<div class="mt-auto flex flex-col items-center gap-1">
 		{#if onnewfile}
 			<Tooltip delayDuration={300}>
@@ -133,9 +128,8 @@
 				<TooltipContent side="right">Open project</TooltipContent>
 			</Tooltip>
 		{/if}
-		<!-- Native `title`, not the styled Tooltip: this button is already a
-		     DropdownMenu trigger, and merging both triggers' props onto one element
-		     lets one set of handlers clobber the other. -->
+		<!-- Native `title`, not Tooltip: this is already a DropdownMenu trigger, and
+		     merging both triggers' props lets one set of handlers clobber the other. -->
 		<AppMenu {menus}>
 			{#snippet trigger({ props })}
 				<Button

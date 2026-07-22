@@ -25,13 +25,8 @@
   import StatusBar from "./workbench/status-bar.svelte";
   import TopBar from "./workbench/top-bar.svelte";
 
-  /**
-   * Workbench — the full editor experience. This component is now a thin shell:
-   * it owns the Svelte-specific glue (props, effects, lifecycle, window events)
-   * and the chrome layout, while all state + behaviour live in the
-   * {@link WorkbenchController} and its domain stores (files / layout / search /
-   * compile). The UI is split across `./workbench/*` panes.
-   */
+  /** Shell for the editor: Svelte glue and chrome layout only. State and behaviour
+   *  live in {@link WorkbenchController}; the panes live in `./workbench/*`. */
   let props: WorkbenchProps = $props();
   // The controller intentionally captures the initial (stable) host injections —
   // `compile`, `project`, `git`, … never change after mount.
@@ -39,21 +34,13 @@
   const ctrl = new WorkbenchController(props);
   const { files, layout, search, compile } = ctrl;
 
-  // --- Svelte side-effects (state + behaviour live in the controller) -------
-  // Persist in-memory projects back to the host (debounced).
   $effect(() => ctrl.armPersist());
-  // Refresh the Explorer's Git labels when the file set changes structurally.
   $effect(() => ctrl.refreshGitOnStructuralChange());
-  // "After delay" auto-save: persist a beat after typing stops.
   $effect(() => ctrl.armAutoSave());
-  // Track the shell width so the sidebar cap follows the window.
   $effect(() => layout.observeShell());
-  // Clear the editor highlight when neither Search view nor find bar is open.
   $effect(() => ctrl.clearSearchHighlight());
-  // Debounced live recompile when the saved content / main file changes.
   $effect(() => compile.armAutoCompile());
 
-  // Open a folder/file routed by a file-association launch; listen for more.
   onMount(() => {
     props.onready?.(ctrl);
     return ctrl.mountFileAssociation();
@@ -68,10 +55,8 @@
   onblur={() => ctrl.onWindowBlur()}
 />
 
-<!-- The rail and panel run full height; the header belongs to the editor column,
-     so it describes the open document rather than the whole app.
-     `flex-row-reverse` docks the rail + panel on the right edge (VS Code's
-     "move primary side bar right"); the editor keeps the rest. -->
+<!-- `flex-row-reverse` docks the rail + panel on the right edge (VS Code's
+     "move primary side bar right"); the editor column keeps the rest. -->
 <div
   bind:this={layout.shellEl}
   class="bg-background text-foreground flex h-full min-h-0 overflow-hidden {layout.sidebarRight
@@ -89,7 +74,7 @@
     onopenproject={files.project ? () => files.openFolder() : undefined}
   />
 
-    <!-- Smooth collapse + drag-to-resize (panel stays mounted; capped at 30%). -->
+    <!-- Collapses by width, not unmounting, so panel state survives a toggle. -->
     <div
       class="shrink-0 overflow-hidden {layout.resizingSidebar
         ? ''
@@ -167,9 +152,8 @@
       </div>
     {/if}
 
-    <!-- min-w-0 lets these flex children shrink below their content's intrinsic
-         width, so a wide PDF page / long log line can't push the layout past the
-         window edge (which would hide the preview toolbar + log copy button). -->
+    <!-- min-w-0: without it a wide PDF page or long log line pushes the layout past
+         the window edge, hiding the preview toolbar and log copy button. -->
     <main class="flex min-h-0 min-w-0 flex-1 flex-col">
       <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
 
@@ -239,7 +223,6 @@
     </main>
 </div>
 
-<!-- Quick-open (⌘/Ctrl+P). Dialog only — its trigger is the header breadcrumb. -->
 <CommandPalette
   bind:open={layout.paletteOpen}
   files={files.files}
@@ -248,14 +231,11 @@
   onopen={(id) => files.openFile(id)}
 />
 
-<!-- Explorer move/delete prompts: name-conflict resolution + destructive confirm. -->
 <ConflictDialog {files} />
 
-<!-- Help: About card + the keyboard-shortcuts reference (both registry-driven). -->
 <AboutDialog bind:open={layout.aboutOpen} platform={ctrl.platform} />
 <ShortcutsDialog bind:open={layout.shortcutsOpen} />
 
-<!-- Toast feedback (bottom-right; matches the app's corner-notification language). -->
 <Toaster />
 
 <style>

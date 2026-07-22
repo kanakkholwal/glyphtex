@@ -1,11 +1,3 @@
-/**
- * Typed wrapper around the GlyphTeX TeX engine WebAssembly module.
- *
- * The boundary is deliberately split: options and results cross as JSON (small,
- * once per compile, and typed by declarations generated from the Rust
- * definitions), while file bytes move through linear memory directly.
- */
-
 import { createImports, ExitStatus, type EngineIo } from './imports.js';
 import type { CompileOptions, CompileResult } from './generated/index.js';
 
@@ -102,6 +94,8 @@ export class EnginePoisonedError extends EngineError {
 	}
 }
 
+/** Typed wrapper around the TeX engine WASM module. Options and results cross as JSON;
+ *  file bytes move through linear memory directly. */
 export class TexEngine {
 	readonly #exports: EngineExports;
 	readonly #encoder = new TextEncoder();

@@ -1,12 +1,3 @@
-/**
- * Source Control types + small shared constants.
- *
- * Pure module (no runes / Svelte) so the store, the pure helpers, and the
- * markup components can all import it. The host-facing types (`GitProvider`,
- * `GitChange`, …) are re-exported from `git-panel.svelte` to keep the public
- * `@glyphtex/ui/application` surface unchanged.
- */
-
 export type GitChange = { path: string; status: string; staged: boolean };
 export type GitCommitEntry = {
   hash: string;

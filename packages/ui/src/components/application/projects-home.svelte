@@ -1,6 +1,9 @@
 <script lang="ts" module>
 	import type { Project } from '@glyphtex/ui/projects';
 	export type { Project };
+
+	/** A rail destination. Each one is a real route when the host supplies hrefs. */
+	export type Scope = 'all' | 'recent' | 'starred' | 'templates';
 </script>
 
 <script lang="ts">
@@ -33,6 +36,7 @@
 	  IconCopy,
 	  IconCloud,
 	  IconDotsVertical,
+	  IconExternalLink,
 	  IconFileImport,
 	  IconFolderOpen,
 	  IconFolderShare,
@@ -73,7 +77,10 @@
 		onsettings,
 		onstar,
 		storage,
-		helpHref
+		helpHref,
+		activeScope,
+		scopeHrefs,
+		loading = false
 	}: {
 		/** Drives the About dialog's platform line. */
 		platform?: 'web' | 'desktop';
@@ -99,16 +106,23 @@
 		onstar?: (id: string, starred: boolean) => void;
 		/** Local-storage meter for the sidebar. Absent hides the card. */
 		storage?: { used: number; total: number };
-		/** Docs link target for the sidebar. */
+		/** Docs link target for the sidebar. Opens outside the workspace. */
 		helpHref?: string;
+		/** Scope from the URL. Given, the rail is route-driven, not local state. */
+		activeScope?: Scope;
+		/** Per-scope routes. Given, the rail renders links instead of buttons. */
+		scopeHrefs?: Record<Scope, string>;
+		/** First read of the project store. The shell renders; the grid skeletons. */
+		loading?: boolean;
 	} = $props();
 
-	type Scope = 'all' | 'recent' | 'starred' | 'templates';
 	type Sort = 'newest' | 'oldest' | 'name';
 
 	const RECENT_MS = 7 * 24 * 60 * 60 * 1000;
 
-	let scope = $state<Scope>('all');
+	// Local fallback for hosts with no scope routes (desktop); `activeScope` wins.
+	let localScope = $state<Scope>('all');
+	const scope = $derived(activeScope ?? localScope);
 	let sort = $state<Sort>('newest');
 	let dense = $state(false);
 	let query = $state('');
@@ -188,6 +202,8 @@
 	// active state instead of the default neutral accent fill.
 	const navRow =
 		'h-10 rounded-lg px-3 text-md data-active:bg-brand-subtle data-active:text-brand [&_svg]:size-[1.125rem]';
+	/** Footer rows never take an active state — they are actions, not locations. */
+	const actionRow = `${navRow} text-muted-foreground hover:text-foreground`;
 
 	const sorts: { id: Sort; label: string }[] = [
 		{ id: 'newest', label: 'Newest first' },
@@ -249,9 +265,14 @@
 </script>
 
 <Sidebar.Provider class="text-foreground h-dvh min-h-0">
-	<Sidebar.Root variant="inset">
-		<Sidebar.Header class="h-14 justify-center px-3">
-			<Logo size={28} badge viewTransitionName="app-logo" class="text-base tracking-tight" />
+	<Sidebar.Root variant="inset" collapsible="icon">
+		<Sidebar.Header class="h-14 justify-center px-3 group-data-[collapsible=icon]:px-0">
+			<Logo
+				size={28}
+				badge
+				viewTransitionName="app-logo"
+				class="text-base tracking-tight group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:[&>span:last-child]:hidden"
+			/>
 		</Sidebar.Header>
 
 		<Sidebar.Content>
@@ -259,15 +280,31 @@
 				<Sidebar.GroupContent>
 					<Sidebar.Menu aria-label="Project scopes">
 						{#each scopes as item (item.id)}
-							{const Icon = item.icon}
+							{@const Icon = item.icon}
+							{@const href = scopeHrefs?.[item.id]}
 							<Sidebar.MenuItem>
-								<Sidebar.MenuButton
-									isActive={scope === item.id}
-									class={navRow}
-									onclick={() => (scope = item.id)}
-								>
-									<Icon /><span>{item.label}</span>
-								</Sidebar.MenuButton>
+								{#if href}
+									<Sidebar.MenuButton
+										isActive={scope === item.id}
+										class={navRow}
+										tooltipContent={item.label}
+									>
+										{#snippet child({ props })}
+											<a {href} {...props} aria-current={scope === item.id ? 'page' : undefined}>
+												<Icon /><span>{item.label}</span>
+											</a>
+										{/snippet}
+									</Sidebar.MenuButton>
+								{:else}
+									<Sidebar.MenuButton
+										isActive={scope === item.id}
+										class={navRow}
+										tooltipContent={item.label}
+										onclick={() => (localScope = item.id)}
+									>
+										<Icon /><span>{item.label}</span>
+									</Sidebar.MenuButton>
+								{/if}
 							</Sidebar.MenuItem>
 						{/each}
 					</Sidebar.Menu>
@@ -281,24 +318,37 @@
 			<Sidebar.Menu>
 				{#if onsettings}
 					<Sidebar.MenuItem>
-						<Sidebar.MenuButton class={navRow} onclick={() => onsettings?.()}>
+						<Sidebar.MenuButton
+							class={actionRow}
+							tooltipContent="Settings"
+							onclick={() => onsettings?.()}
+						>
 							<IconSettings /><span>Settings</span>
 						</Sidebar.MenuButton>
 					</Sidebar.MenuItem>
 				{/if}
 				{#if helpHref}
 					<Sidebar.MenuItem>
-						<Sidebar.MenuButton class={navRow}>
+						<!-- Trailing IconExternalLink is the rail's convention for a row that
+						     leaves the workspace; leading icons only ever name the thing. -->
+						<Sidebar.MenuButton class={actionRow} tooltipContent={'Help & Docs'}>
 							{#snippet child({ props })}
 								<a {...props} href={helpHref}>
 									<IconHelpCircle /><span>Help &amp; Docs</span>
+									<IconExternalLink
+										class="text-faint ml-auto !size-3.5 group-data-[collapsible=icon]:hidden"
+									/>
 								</a>
 							{/snippet}
 						</Sidebar.MenuButton>
 					</Sidebar.MenuItem>
 				{/if}
 				<Sidebar.MenuItem>
-					<Sidebar.MenuButton class={navRow} onclick={() => (aboutOpen = true)}>
+					<Sidebar.MenuButton
+						class={actionRow}
+						tooltipContent="About GlyphTeX"
+						onclick={() => (aboutOpen = true)}
+					>
 						<IconInfoCircle /><span>About GlyphTeX</span>
 					</Sidebar.MenuButton>
 				</Sidebar.MenuItem>
@@ -306,8 +356,10 @@
 
 			{#if storage}
 				<!-- Amber past 80%: the browser starts evicting under storage pressure. -->
-				{const tight = storagePct >= 80}
-				<div class="border-sidebar-border bg-card rounded-xl border p-3">
+				{@const tight = storagePct >= 80}
+				<div
+					class="border-sidebar-border bg-card rounded-xl border p-3 group-data-[collapsible=icon]:hidden"
+				>
 					<div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
 						<IconCloud size={16} class="shrink-0" /> Local storage
 					</div>
@@ -336,9 +388,9 @@
 				? 'border-border bg-card/75 shadow-craft-sm backdrop-blur-xl'
 				: 'border-transparent bg-transparent'}"
 		>
-			<div class="-ml-2 flex items-center gap-1 md:hidden">
-				<Sidebar.Trigger />
-				<Logo size={24} class="text-sm tracking-tight" />
+			<div class="-ml-2 flex items-center gap-1">
+				<Sidebar.Trigger title="Toggle sidebar (Ctrl/⌘ B)" />
+				<Logo size={24} class="text-sm tracking-tight md:hidden" />
 			</div>
 			<div class="flex flex-1 items-center justify-end gap-0.5">
 				<ThemeToggle size="icon-sm" />
@@ -359,8 +411,12 @@
 				<div>
 					<h1 class="font-display text-2xl font-semibold tracking-tight">Your projects</h1>
 					<p class="text-muted-foreground mt-1.5 text-sm">
-						{projects.length}
-						{projects.length === 1 ? 'project' : 'projects'} · stored on this device
+						{#if loading}
+							Reading local storage…
+						{:else}
+							{projects.length}
+							{projects.length === 1 ? 'project' : 'projects'} · stored on this device
+						{/if}
 					</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
@@ -494,7 +550,33 @@
 				</div>
 			</div>
 
-			{#if filtered.length === 0}
+			{#key scope}
+			<!-- Keyed on scope so switching rails replays the entrance rather than
+			     swapping content in place; local reads are instant, so without it the
+			     grid just blinks. -->
+			<div in:fade={{ duration: 180, easing: cubicOut }}>
+			{#if loading}
+				<!-- Skeletons, not a full-page spinner: the rail and toolbar are already
+				     correct, so only the unknown region should be in a loading state. -->
+				<div
+					class="mt-7 grid gap-x-5 gap-y-7 {dense
+						? 'grid-cols-[repeat(auto-fill,minmax(150px,1fr))]'
+						: 'grid-cols-[repeat(auto-fill,minmax(190px,1fr))]'}"
+					aria-busy="true"
+					aria-label="Loading projects"
+					role="status"
+				>
+					{#each { length: 6 } as _, i (i)}
+						<div class="animate-pulse" style:animation-delay={`${i * 70}ms`}>
+							<div class="bg-muted aspect-[4/5] rounded-xl"></div>
+							<div class="mt-2.5 space-y-1.5 px-0.5">
+								<div class="bg-muted h-3 w-3/5 rounded-full"></div>
+								<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{:else if filtered.length === 0}
 				<div
 					class="border-border text-muted-foreground mt-8 flex flex-col items-center gap-4 rounded-2xl border border-dashed py-20 text-center"
 				>
@@ -538,7 +620,6 @@
 					role="list"
 					aria-label="Projects"
 				>
-					<!-- New-project card -->
 					<button
 						class="group border-border hover:border-ring/50 hover:bg-muted/30 ease-craft flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition-all duration-300 hover:-translate-y-1 active:translate-y-0 active:scale-[0.99] motion-reduce:transform-none"
 						in:fly={{ y: 10, duration: 360, easing: cubicOut }}
@@ -562,20 +643,13 @@
 							out:fade={{ duration: 140, easing: cubicOut }}
 							animate:flip={{ duration: 320, easing: cubicOut }}
 						>
-							<!-- Open target: the document/stack. -->
 							<button
 								class="block w-full text-left"
 								onclick={() => onopen?.(p.id)}
 								aria-label={`Open ${p.name}`}
 							>
-								<!-- The "document" — a little page sitting in front of a fanned
-								     stack of pages. On hover the back cards rise and fan out from
-								     behind, like lifting a folder of papers. Shares a
-								     view-transition-name with the editor surface so it morphs in. -->
 								<div class="relative aspect-[4/5]">
-									<!-- Back-of-stack ghost pages (decorative). Hidden behind the
-									     front page at rest; they settle out on hover. One shared
-									     easing per DESIGN.md — they fade + rise, never bounce. -->
+									<!-- Ghost pages that fan out from behind the front page on hover. -->
 									<div
 										aria-hidden="true"
 										class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-xl border opacity-0 transition-all duration-300 group-hover:-translate-x-3 group-hover:-translate-y-1 group-hover:-rotate-[5deg] group-hover:scale-[0.97] group-hover:opacity-70 motion-reduce:hidden"
@@ -585,7 +659,8 @@
 										class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-xl border opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:-translate-y-2 group-hover:rotate-[5deg] group-hover:scale-[0.985] group-hover:opacity-100 motion-reduce:hidden"
 									></div>
 
-									<!-- The front page. -->
+									<!-- Shares its view-transition-name with the editor surface, so
+									     opening the project morphs this page into it. -->
 									<div
 										class="bg-card border-border shadow-craft-sm group-hover:shadow-craft-lg ease-craft absolute inset-0 z-10 overflow-hidden rounded-xl border transition-all duration-300 group-hover:-translate-y-1 group-active:translate-y-0 group-active:scale-[0.985] motion-reduce:transform-none"
 										style:view-transition-name={projectViewTransitionName(p.id)}
@@ -612,8 +687,6 @@
 								</div>
 							</button>
 
-							<!-- Footer: name + meta on the left, the ⋯ actions menu on the
-							     right (rename / duplicate / reveal / delete). -->
 							<div class="mt-2.5 flex items-start justify-between gap-1.5 px-0.5">
 								<div class="min-w-0 flex-1">
 									{#if renaming === p.id}
@@ -692,16 +765,16 @@
 					{/each}
 				</div>
 			{/if}
+			</div>
+			{/key}
 		</div>
 		</div>
 	</Sidebar.Inset>
 </Sidebar.Provider>
 
-<!-- About GlyphTeX — brand, version, and links out (GitHub / website). -->
 <AboutDialog bind:open={aboutOpen} {platform} />
 
-<!-- Delete confirmation. Disk-backed projects show their folder path, because
-     confirming removes the folder from disk (not just the list). -->
+<!-- Disk-backed projects show their path: confirming deletes the folder itself. -->
 <Dialog open={pendingDelete !== null} onOpenChange={(o) => (o ? null : (pendingDelete = null))}>
 	<DialogContent class="sm:max-w-md">
 		<DialogHeader>

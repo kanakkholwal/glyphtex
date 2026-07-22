@@ -61,7 +61,9 @@
 		"data-slot": "sidebar-menu-button",
 		"data-sidebar": "menu-button",
 		"data-size": size,
-		"data-active": isActive,
+		// Omitted, not `false`: Tailwind's `data-active:` variant tests attribute
+		// presence, so `data-active="false"` styles every row as active.
+		"data-active": isActive ? "true" : undefined,
 		...restProps,
 	});
 </script>

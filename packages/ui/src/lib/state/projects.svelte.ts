@@ -3,15 +3,8 @@ import { PersistedState } from './persisted-state.svelte';
 /** One file inside a project (matches the Workbench's internal file shape). */
 export type ProjectFile = { id: string; name: string; content: string };
 
-/**
- * A multi-file LaTeX project — the unit listed on the home page.
- *
- * Two flavours share one shape:
- *  - **disk-backed** (desktop): `root` is the absolute folder path and is the
- *    source of truth; `files` is just a cached snapshot (often empty — the
- *    editor reads the folder via the host's `ProjectHost`).
- *  - **in-memory** (web / demo): no `root`; `files` holds the content.
- */
+/** A multi-file LaTeX project. Disk-backed (desktop) if `root` is set, in which case
+ *  the folder is the source of truth and `files` is only a cached snapshot. */
 export type Project = {
 	id: string;
 	name: string;
@@ -102,11 +95,8 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
 	}
 ];
 
-/**
- * Stable, CSS-ident-safe `view-transition-name` for a project. The home card
- * and the editor surface use this same name so they morph into one another
- * (card → editor on open, editor → card on back).
- */
+/** CSS-ident-safe `view-transition-name` shared by a project's home card and its
+ *  editor surface, so the two morph into one another. */
 export function projectViewTransitionName(id: string): string {
 	return `proj-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 }
@@ -120,11 +110,8 @@ function uid(prefix = 'p'): string {
 	return `${prefix}-${Math.abs(Math.round(performance.now() * 1000)).toString(36)}`;
 }
 
-/**
- * ProjectsStore — the single source of truth for every project, persisted to
- * local storage and synced across windows (Tauri-friendly via PersistedState).
- * Reactive: read `projects.list` in templates/$derived; mutations write through.
- */
+/** Reactive source of truth for every project, persisted to local storage and
+ *  synced across windows. Read `projects.list`; mutations write through. */
 class ProjectsStore {
 	#store = new PersistedState<Project[]>('glyphtex:projects', SEED);
 
@@ -151,12 +138,8 @@ class ProjectsStore {
 		return project;
 	}
 
-	/**
-	 * Record (or refresh) a disk-backed project folder, returning it. Re-opening
-	 * a folder you've seen before reuses its entry (so the home list dedupes by
-	 * path); a new folder is added at the top. The folder is the source of truth
-	 * — `files` stays empty and the editor reads it through the host.
-	 */
+	/** Record (or refresh) a disk-backed folder, deduped by path so re-opening a known
+	 *  folder reuses its entry rather than listing it twice. */
 	remember(root: string, name?: string): Project {
 		const existing = this.#store.current.find((p) => p.root === root);
 		if (existing) {
@@ -177,13 +160,8 @@ class ProjectsStore {
 		return project;
 	}
 
-	/**
-	 * Ensure a disk-backed project is listed (used when scanning the app's own
-	 * projects directory). Unlike {@link remember}, it does NOT bump `updatedAt`
-	 * for an entry that's already known — so a scan never disturbs the last-access
-	 * order. A newly-discovered folder adopts its on-disk modified time, so it
-	 * sorts by real recency rather than jumping to the top.
-	 */
+	/** Lists a scanned folder without touching `updatedAt` (unlike {@link remember}), so
+	 *  a directory scan never disturbs last-access order. */
 	ensure(root: string, name: string, modified?: number): void {
 		if (this.#store.current.some((p) => p.root === root)) return;
 		const ts = modified && modified > 0 ? modified : Date.now();

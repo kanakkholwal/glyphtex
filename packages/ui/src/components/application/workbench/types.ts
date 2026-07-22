@@ -1,10 +1,3 @@
-/**
- * Shared types + constants for the Workbench.
- *
- * Pure module (no runes, no Svelte) so it can be imported by the stores
- * (`*.svelte.ts`), the markup components, and the orchestrator alike.
- */
-
 export type ViewMode = "editor" | "split" | "preview";
 
 /** Split axis: side by side, or editor above preview. */

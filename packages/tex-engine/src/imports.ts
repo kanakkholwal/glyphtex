@@ -1,13 +1,3 @@
-/**
- * Host imports for the Emscripten-built Tectonic module.
- *
- * The module needs 24 imports: 11 from `wasi_snapshot_preview1` and 13 from
- * `env`. That is a small enough surface to implement by hand, which is why this
- * package ships no Emscripten JS glue — the generated glue is large, version-
- * coupled to the exact emcc build, and mostly provides a POSIX filesystem the
- * engine never uses (Tectonic routes all I/O through its own Rust `IoProvider`).
- */
-
 /** Thrown by `proc_exit`; carries the process exit code. */
 export class ExitStatus extends Error {
 	constructor(readonly code: number) {
@@ -41,13 +31,8 @@ interface ShimTarget {
 
 const WASI_ESUCCESS = 0;
 
-/**
- * Build the import object.
- *
- * The instance is supplied lazily via the returned `bind` because the imports
- * must reference the module's memory and function table, which do not exist
- * until after instantiation — a circular dependency inherent to the ABI.
- */
+/** Hand-written host imports for the Emscripten-built Tectonic module (no emcc glue).
+ *  `bind` supplies the instance late: imports need a memory that instantiation creates. */
 export function createImports(io: EngineIo = {}): {
 	imports: WebAssembly.Imports;
 	bind(target: ShimTarget): void;

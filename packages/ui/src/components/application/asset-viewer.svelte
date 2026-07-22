@@ -7,16 +7,8 @@
 	import type { FileKind } from "./file-kinds";
 	import PdfView from "./pdf-view.svelte";
 
-	/**
-	 * AssetViewer — renders a non-text file in the editor pane:
-	 *  - images render through `@unpic/svelte` (object-contained, checkered mat),
-	 *  - PDFs reuse the project's PdfView,
-	 *  - anything we can't show without a heavy library falls back to a clear
-	 *    "can't preview here" card with a "Reveal in folder" action.
-	 * Bytes are read lazily through the host: an absolute path on desktop, the
-	 * project-relative path on web (IndexedDB). Without a reader everything
-	 * degrades to the fallback card.
-	 */
+	/** Renders a non-text file (image, PDF, or an unpreviewable fallback card). Bytes
+	 *  are read lazily through the host; without a reader everything falls back. */
 	let {
 		kind,
 		name,
@@ -63,18 +55,14 @@
 		return { w: probe.naturalWidth, h: probe.naturalHeight };
 	}
 
-	// Load the file's bytes whenever the target or its kind changes. IMPORTANT:
-	// this effect must only *read* `assetKey` / `kind` / `readBytes` and never read
-	// the state it writes (bytes / imgUrl / error / loading) — reading a written
-	// signal here would re-trigger the effect on every write and spin forever.
-	// The previous object URL is revoked in the cleanup, not by reading `imgUrl`.
+	// Must never read the state it writes (bytes/imgUrl/error/loading): a tracked read
+	// of a written signal re-triggers the effect on every write and spins forever.
 	$effect(() => {
 		const p = assetKey;
 		const k = kind;
 		const reader = readBytes;
 		const mime = IMG_MIME[ext] ?? `image/${ext}`;
 
-		// Reset for the new target (writes only — not tracked).
 		bytes = undefined;
 		error = undefined;
 		imgUrl = undefined;
@@ -152,10 +140,8 @@
 			class="glyphtex-checker flex min-h-0 flex-1 items-center justify-center overflow-auto p-6"
 		>
 			{#if imgSize.w > 0}
-				<!-- unpic's `constrained` layout writes `width:100%` inline, which in a
-				     short, wide pane (a stacked split) scales the image up until it
-				     overflows. Its `style` prop is appended last, so these win: let the
-				     intrinsic size stand and cap it on BOTH axes. -->
+				<!-- unpic's `constrained` layout writes `width:100%`, which overflows a short
+				     wide pane. `style` is appended last, so capping both axes here wins. -->
 				<Image
 					src={imgUrl}
 					width={imgSize.w}
@@ -183,7 +169,6 @@
 </div>
 
 <style>
-	/* Subtle checkerboard for transparent images. */
 	.glyphtex-checker {
 		background-image:
 			linear-gradient(45deg, var(--muted) 25%, transparent 25%),

@@ -35,11 +35,7 @@
   import { baseName } from "./paths";
   import type { SaveFileFn } from "./types";
 
-  /**
-   * Document header: back · project / file breadcrumb · save state · Compile ·
-   * document info · overflow. App identity (logo, File/Edit/View) lives in the
-   * rail, so this bar only ever describes the open document.
-   */
+  /** Header for the open document only — app identity and menus live in the rail. */
   let {
     ctrl,
     saveFile,
@@ -82,7 +78,6 @@
 <header
   class="border-border bg-card flex h-12 shrink-0 items-center gap-2 border-b px-2.5"
 >
-  <!-- Left: breadcrumb. Getting back to the document list is the rail logo's job. -->
   <div class="flex min-w-0 flex-1 items-center gap-1">
     <nav class="flex min-w-0 items-center gap-1.5 text-sm" aria-label="Breadcrumb">
       {#if renaming}
@@ -123,7 +118,6 @@
     </nav>
   </div>
 
-  <!-- Right: save state · Compile · info · overflow -->
   <div class="inline-flex shrink-0 items-center gap-1.5">
     {#if saving !== undefined}
       <span
@@ -225,7 +219,6 @@
       <IconInfoCircle />
     </Button>
 
-    <!-- View controller: which panes are visible, and how a split is arranged. -->
     <DropdownMenu>
       <DropdownMenuTrigger>
         {#snippet child({ props })}
