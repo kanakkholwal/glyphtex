@@ -4,6 +4,7 @@
 
 export { default as BeforeAfterSlider } from './BeforeAfterSlider.svelte';
 export { default as Container } from './Container.svelte';
+export { default as ContainerTextFlip } from './ContainerTextFlip.svelte';
 export { default as EditorMock } from './EditorMock.svelte';
 export { default as HeroBackdrop } from './HeroBackdrop.svelte';
 export { default as MacWindow } from './MacWindow.svelte';

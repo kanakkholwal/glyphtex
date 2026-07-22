@@ -19,6 +19,7 @@
 		IconInfoCircle,
 		IconPlayerPlay,
 		IconShieldCheck,
+		IconStar,
 		IconTerminal2
 	} from '@tabler/icons-svelte';
 	import { onMount } from 'svelte';
@@ -328,10 +329,12 @@
 							rel="noopener noreferrer"
 							variant="outline"
 							size="lg"
-							class="gap-2"
+							class="group/star gap-2"
 						>
-							<IconBrandGithub class="size-4" />
-							View the source
+							<IconStar
+								class="size-4 transition-colors group-hover/star:fill-warning group-hover/star:text-warning"
+							/>
+							Star the repo
 						</Button>
 					</div>
 

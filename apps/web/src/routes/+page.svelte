@@ -1,39 +1,47 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '@glyphtex/ui/button';
-	import { Logo } from '@glyphtex/ui/logo';
-	import { Reveal } from '@glyphtex/ui/reveal';
-	import { SectionHeader } from '@glyphtex/ui/section-header';
 	import { trackEvent } from '$lib/analytics';
-	import { Container, HeroBackdrop, MacWindow, Section, ShowcasePanel } from '$lib/landing';
+	import {
+		Container,
+		ContainerTextFlip,
+		HeroBackdrop,
+		MacWindow,
+		Section,
+		ShowcasePanel
+	} from '$lib/landing';
 	import EditorMock from '$lib/landing/EditorMock.svelte';
 	import PolishGrid from '$lib/landing/PolishGrid.svelte';
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
+	import { Button } from '@glyphtex/ui/button';
+	import { Logo } from '@glyphtex/ui/logo';
+	import { Reveal } from '@glyphtex/ui/reveal';
+	import { SectionHeader } from '@glyphtex/ui/section-header';
 	import {
 		IconArrowRight,
-		IconBolt,
-		IconLayout,
 		IconArrowUp,
+		IconBolt,
 		IconBook2,
 		IconBrandGithub,
 		IconBrowser,
 		IconCheck,
 		IconClock,
-		IconMinus,
 		IconCloudOff,
 		IconDeviceDesktop,
 		IconFileText,
 		IconFolders,
 		IconGitBranch,
 		IconHistory,
+		IconLayout,
 		IconLock,
+		IconMinus,
 		IconPlayerPlay,
 		IconPlus,
 		IconSchool,
 		IconSearch,
 		IconShield,
 		IconStack3,
+		IconStar,
 		IconUsersGroup,
 		IconWifiOff,
 		IconWriting
@@ -49,68 +57,10 @@
 	// the four nouns a researcher or lecturer cares about most.
 	const rotatingWords = ['thesis.', 'paper.', 'manuscript.', 'lecture notes.'];
 
-	const widestWord = rotatingWords.reduce((a, b) => (a.length >= b.length ? a : b), '');
-
+	// Drives the FAQ accordion's slide duration.
 	const reducedMotion =
 		typeof window !== 'undefined' &&
 		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-	let currentWord = $state('');
-	let wordIndex = $state(0);
-
-	$effect(() => {
-		// Reset the typed buffer whenever the target word changes; the bare
-		// reference is what registers the dependency.
-		// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-		wordIndex;
-		currentWord = '';
-	});
-
-	$effect(() => {
-		if (reducedMotion) {
-			currentWord = widestWord;
-			return;
-		}
-		if (typeof window === 'undefined') return;
-
-		let cancelled = false;
-		let timer: ReturnType<typeof setTimeout> | null = null;
-		let mode: 'typing' | 'holding' | 'clearing' = 'typing';
-
-		const tick = () => {
-			if (cancelled) return;
-			const word = rotatingWords[wordIndex];
-
-			if (mode === 'typing') {
-				if (currentWord.length < word.length) {
-					currentWord = word.slice(0, currentWord.length + 1);
-					timer = setTimeout(tick, 55);
-				} else {
-					mode = 'holding';
-					timer = setTimeout(tick, 1800);
-				}
-			} else if (mode === 'clearing') {
-				if (currentWord.length > 0) {
-					currentWord = currentWord.slice(0, -1);
-					timer = setTimeout(tick, 28);
-				} else {
-					wordIndex = (wordIndex + 1) % rotatingWords.length;
-					mode = 'typing';
-				}
-			} else {
-				// holding → start clearing
-				mode = 'clearing';
-				timer = setTimeout(tick, 28);
-			}
-		};
-
-		tick();
-
-		return () => {
-			cancelled = true;
-			if (timer) clearTimeout(timer);
-		};
-	});
 
 	// Open-source values that matter for academic writing (privacy,
 	// reproducibility, no per-seat licensing).
@@ -535,28 +485,12 @@
 								style="line-height: 1.15;"
 							>
 								Write your
-								<!--
-								  Typewriter artefact. The wrapper is sized by a single
-								  invisible placeholder (`widestWord`) so the line width
-								  stays constant as the typed buffer grows. The block
-								  cursor blinks next to the typed string; reduced motion
-								  pins the slot to the full word and disables the blink.
-								-->
-								<span class="relative inline-block align-baseline" aria-live="polite">
-									<span class="invisible whitespace-nowrap" aria-hidden="true">{widestWord}</span>
-									<span class="text-foreground/65">{currentWord}</span>
-									<span
-										class="typewriter-cursor inline-block w-[2px] -translate-y-[3px] bg-foreground/45 align-middle"
-										style="height: 0.95em;"
-										aria-hidden="true"
-									></span>
-								</span>
-								.
+								<ContainerTextFlip words={rotatingWords} interval={2600} />
 							</span>
 						</h1>
 
 						<p
-							class="landing-text-pretty mt-5 max-w-xl text-base font-medium leading-relaxed text-foreground/85 sm:text-lg"
+							class="landing-text-pretty mt-5 max-w-xl text-sm font-medium leading-relaxed text-foreground/85 sm:text-lg"
 							in:fly={{ y: 12, duration: 600, delay: 160, easing: cubicOut }}
 						>
 							A local-first LaTeX editor for academic writing. Open a thesis, a paper, or a set of
@@ -588,10 +522,12 @@
 								rel="noopener noreferrer"
 								variant="outline"
 								size="lg"
-								class="gap-2"
+								class="group/star gap-2"
 							>
-								<IconBrandGithub class="size-4" />
-								View the source
+								<IconStar
+									class="size-4 transition-colors group-hover/star:fill-warning group-hover/star:text-warning"
+								/>
+								Star the repo
 							</Button>
 						</div>
 
@@ -1561,21 +1497,6 @@
 	}
 
 	/*
-	 * Typewriter cursor. step-end snaps on/off cleanly so the blink reads
-	 * as a real terminal caret instead of a fade. Reduced motion keeps
-	 * the cursor visible at 40% so the slot still feels occupied.
-	 */
-	@keyframes typewriter-blink {
-		50% {
-			opacity: 0;
-		}
-	}
-
-	.typewriter-cursor {
-		animation: typewriter-blink 1s step-end infinite;
-	}
-
-	/*
 	 * How-it-works step cards. The animated border uses an SVG rect with
 	 * `pathLength="1"` so the dashoffset transition works regardless of
 	 * the card's actual perimeter. The badge fills from neutral to brand
@@ -1603,11 +1524,6 @@
 	@media (prefers-reduced-motion: reduce) {
 		.marquee-track {
 			animation: none;
-		}
-
-		.typewriter-cursor {
-			animation: none;
-			opacity: 0.4;
 		}
 
 		.how-step-border {
