@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Command as CommandPrimitive } from "bits-ui";
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 	import { IconCheck } from '@tabler/icons-svelte';
 
 	let {

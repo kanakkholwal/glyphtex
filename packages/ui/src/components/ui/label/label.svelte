@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 	import { Label as LabelPrimitive } from "bits-ui";
 
 	let {

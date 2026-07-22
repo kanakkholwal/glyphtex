@@ -8,11 +8,11 @@ import { build, files, version } from '$service-worker';
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
 // App-shell cache — keyed by build version, replaced on every deploy.
-const CACHE = `glyphx-cache-${version}`;
+const CACHE = `glyphtex-cache-${version}`;
 
 // Owned by src/lib/tex/worker.ts and deliberately not build-versioned: a deploy
 // must never wipe the ~15 MB compiler. Entries are keyed by engine content hash.
-const ENGINE_CACHE = 'glyphx-engine';
+const ENGINE_CACHE = 'glyphtex-engine';
 
 // `/engine/*` is excluded: ~15 MB the install dialog asks consent for first.
 const PRECACHE = [...build, ...files].filter((p) => !p.startsWith('/engine/'));

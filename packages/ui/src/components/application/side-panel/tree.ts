@@ -1,18 +1,9 @@
-/**
- * Pure helpers for the Explorer tree: build a nested folder tree from a flat
- * file list (folders sort before files, alphabetically) and walk it to collect
- * folder paths. No Svelte / runes.
- */
 import type { TreeNode } from "../file-tree.svelte";
 
 type FileMeta = { id: string; name: string };
 
-/**
- * Folder-based project tree — file names split on "/" nest into folders.
- * `extraFolders` injects folders that have no files yet (freshly created), so an
- * empty folder still appears. Root files live at the root (VS Code style); only
- * real subfolders nest.
- */
+/** Nests file names split on "/" into folders. `extraFolders` injects folders with no
+ *  files yet, so a freshly-created empty folder still appears. */
 export function buildTree(
   items: FileMeta[],
   extraFolders: string[] = [],

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '@glyphx/ui/select';
-	import { SettingsField } from '@glyphx/ui/settings-field';
-	import { SettingsSection } from '@glyphx/ui/settings-section';
-	import { settings, type Appearance, type SidebarPosition } from '@glyphx/ui/settings';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from '@glyphtex/ui/select';
+	import { SettingsField } from '@glyphtex/ui/settings-field';
+	import { SettingsSection } from '@glyphtex/ui/settings-section';
+	import { settings, type Appearance, type SidebarPosition } from '@glyphtex/ui/settings';
 
 	const appearanceOpts: { value: Appearance; label: string }[] = [
 		{ value: 'light', label: 'Light' },

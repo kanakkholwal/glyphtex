@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { Button } from "@glyphx/ui/button";
-  import { PanelSection } from "@glyphx/ui/panel-section";
+  import { Button } from "@glyphtex/ui/button";
+  import { PanelSection } from "@glyphtex/ui/panel-section";
   import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
-  } from "@glyphx/ui/select";
+  } from "@glyphtex/ui/select";
   import {
     AUTO_SAVE_LABELS,
     EDITOR_FONT_LABELS,
@@ -15,11 +15,11 @@
     type AutoSaveMode,
     type EditorFont,
     type SidebarPosition,
-  } from "@glyphx/ui/settings";
-  import { SettingsField } from "@glyphx/ui/settings-field";
-  import { SliderControl } from "@glyphx/ui/slider-control";
-  import { Spinner } from "@glyphx/ui/spinner";
-  import { Switch } from "@glyphx/ui/switch";
+  } from "@glyphtex/ui/settings";
+  import { SettingsField } from "@glyphtex/ui/settings-field";
+  import { SliderControl } from "@glyphtex/ui/slider-control";
+  import { Spinner } from "@glyphtex/ui/spinner";
+  import { Switch } from "@glyphtex/ui/switch";
   import { IconCheck } from '@tabler/icons-svelte';
 
   import type { EngineManager } from "../engine-settings.svelte";
@@ -157,7 +157,7 @@
           variant={store.shellStatus === "done" ? "success_soft" : "default_soft"}
           size="xs"
           disabled={store.shellStatus === "busy"}
-          title="Add an “Open with GlyphX” entry to the folder right-click menu"
+          title="Add an “Open with GlyphTeX” entry to the folder right-click menu"
           onclick={() => store.addShellIntegration()}
         >
           {#if store.shellStatus === "busy"}

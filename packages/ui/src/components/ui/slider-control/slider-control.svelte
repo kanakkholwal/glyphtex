@@ -46,7 +46,7 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { Spring } from "svelte/motion";
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 
 	let {
 		label,

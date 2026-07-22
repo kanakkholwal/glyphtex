@@ -13,6 +13,8 @@ export type StoredProject = {
 	createdAt: number;
 	updatedAt: number;
 	bytes: number;
+	/** Pinned by the user. Absent on documents saved before starring existed. */
+	starred?: boolean;
 };
 
 /** One file. Exactly one of `text` / `data` is set — `data` carries images. */
@@ -106,10 +108,8 @@ export async function readFiles(projectId: string): Promise<StoredFile[]> {
 	return files.sort((a, b) => a.path.localeCompare(b.path));
 }
 
-/**
- * Replaces the project's files wholesale, in one transaction, enforcing the
- * per-document cap. Files absent from `files` are deleted.
- */
+/** Replaces the project's files wholesale in one transaction, enforcing the
+ *  per-document cap. Files absent from `files` are deleted. */
 export async function writeFiles(projectId: string, files: NewFile[]): Promise<number> {
 	const now = Date.now();
 	const prepared = files.map((f) => ({ ...f, path: normalisePath(f.path) }));
@@ -166,16 +166,20 @@ export async function writeFiles(projectId: string, files: NewFile[]): Promise<n
 	return bytes;
 }
 
-async function patch(id: string, change: Partial<StoredProject>): Promise<StoredProject> {
+function patch(id: string, change: Partial<StoredProject>, touch = true): Promise<StoredProject> {
 	return tx(PROJECTS, 'readwrite', async (t) => {
 		const store = t.objectStore(PROJECTS);
 		const project = await get<StoredProject>(store, id);
 		if (!project) throw new StorageError('That document no longer exists.');
-		const next = { ...project, ...change, updatedAt: Date.now() };
+		const next = { ...project, ...change, ...(touch ? { updatedAt: Date.now() } : {}) };
 		await put(store, next);
 		return next;
 	});
 }
+
+// Starring is not an edit, so it must not bump `updatedAt` — that would reshuffle
+// "Newest first" and fake activity in Recent.
+export const setStarred = (id: string, starred: boolean) => patch(id, { starred }, false);
 
 export const renameProject = (id: string, name: string) =>
 	patch(id, { name: name.trim() || 'Untitled' });

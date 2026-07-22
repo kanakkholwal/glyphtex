@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "glyphx-web",
+	"name": "glyphtex-web",
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"compatibility_date": "2025-05-05",
 	"compatibility_flags": ["nodejs_compat"],
@@ -10,5 +10,8 @@
 	},
 	// Requires `nexonauts.com` to be a zone on the same account as
 	// CLOUDFLARE_ACCOUNT_ID; wrangler then provisions the DNS record and cert.
-	"routes": [{ "pattern": "glyphx.nexonauts.com", "custom_domain": true }]
+	"routes": [
+		{ "pattern": "glyphx.nexonauts.com", "custom_domain": true },
+		{ "pattern": "glyphtex.nexonauts.com", "custom_domain": true }
+	]
 }

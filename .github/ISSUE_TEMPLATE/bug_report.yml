@@ -20,7 +20,7 @@ body:
       label: Steps to reproduce
       description: Be specific. Include the project, the main `.tex` file, or the settings used if relevant.
       placeholder: |
-        1. Open GlyphX
+        1. Open GlyphTeX
         2. Click ...
         3. Observe ...
     validations:
@@ -40,7 +40,7 @@ body:
   - type: input
     id: app-version
     attributes:
-      label: GlyphX version
+      label: GlyphTeX version
       description: From the app's About screen, or the installer filename.
       placeholder: "v0.1.0"
     validations:
@@ -51,7 +51,7 @@ body:
       label: Where does this happen?
       options:
         - Desktop app
-        - Web (glyphx.nexonauts.com)
+        - Web (glyphtex.nexonauts.com)
         - Both
     validations:
       required: true
@@ -90,9 +90,9 @@ body:
       label: Logs, screenshots, or a sample document
       description: |
         Drag-and-drop attachments here. A minimal `.tex` that reproduces the issue helps a lot. App logs live at:
-        - Windows: `%APPDATA%\com.nexonauts.glyphx\logs`
-        - macOS: `~/Library/Logs/com.nexonauts.glyphx`
-        - Linux: `~/.config/com.nexonauts.glyphx/logs`
+        - Windows: `%APPDATA%\com.nexonauts.glyphtex\logs`
+        - macOS: `~/Library/Logs/com.nexonauts.glyphtex`
+        - Linux: `~/.config/com.nexonauts.glyphtex/logs`
   - type: checkboxes
     id: prereqs
     attributes:

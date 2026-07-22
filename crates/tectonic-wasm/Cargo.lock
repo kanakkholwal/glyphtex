@@ -183,7 +183,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "glyphx-tex-api"
+name = "glyphtex-tex-api"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -505,7 +505,7 @@ dependencies = [
 name = "tectonic-wasm"
 version = "0.1.0"
 dependencies = [
- "glyphx-tex-api",
+ "glyphtex-tex-api",
  "serde",
  "serde_json",
  "tectonic_bridge_core",

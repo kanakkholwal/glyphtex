@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from "@glyphx/ui/utils";
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
 	import type { HTMLInputAttributes, HTMLInputTypeAttribute } from "svelte/elements";
 
 	type InputType = Exclude<HTMLInputTypeAttribute, "file">;

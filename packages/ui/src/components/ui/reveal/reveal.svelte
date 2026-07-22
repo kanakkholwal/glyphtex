@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 
 	type Tag = "div" | "section" | "article" | "li" | "header" | "ol" | "ul";
 

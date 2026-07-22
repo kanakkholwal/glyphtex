@@ -27,9 +27,9 @@
 
 <script lang="ts">
 	import { tick } from "svelte";
-	import { ColorPicker } from "@glyphx/ui/color-picker";
-	import * as Popover from "@glyphx/ui/popover";
-	import { cn } from "@glyphx/ui/utils";
+	import { ColorPicker } from "@glyphtex/ui/color-picker";
+	import * as Popover from "@glyphtex/ui/popover";
+	import { cn } from "@glyphtex/ui/utils";
 
 	let {
 		label,

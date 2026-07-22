@@ -1,6 +1,6 @@
 import type * as Monaco from "monaco-editor";
 
-import { loadMonaco, type MonacoNamespace } from "@glyphx/ui/editor";
+import { loadMonaco, type MonacoNamespace } from "@glyphtex/ui/editor";
 
 import { applyCase } from "../case-preserve";
 import { buildRegex, expandReplacement } from "./search";
@@ -33,7 +33,7 @@ function languageId(lang: EditorLanguage): string {
 
 /** Theme name registered by `registerJetBrainsThemes`. */
 function themeName(theme: "light" | "dark"): string {
-  return theme === "dark" ? "glyphx-island-dark" : "glyphx-island-light";
+  return theme === "dark" ? "glyphtex-island-dark" : "glyphtex-island-light";
 }
 
 export class CodeEditorController {
@@ -64,7 +64,7 @@ export class CodeEditorController {
       .catch((error) => {
         // Nothing to fall back to, so surface it rather than leaving a blank
         // pane with no explanation.
-        console.error("[GlyphX] the code editor failed to load:", error);
+        console.error("[GlyphTeX] the code editor failed to load:", error);
       });
 
     return () => {
@@ -251,7 +251,7 @@ export class CodeEditorController {
     const selected = model.getValueInRange(selection);
     const start = model.getOffsetAt(selection.getStartPosition());
 
-    editor.executeEdits("glyphx", [
+    editor.executeEdits("glyphtex", [
       { range: selection, text: `${before}${selected}${after}`, forceMoveMarkers: true },
     ]);
     // Reselect just the original text, now sitting after the opening delimiter.
@@ -268,7 +268,7 @@ export class CodeEditorController {
     if (!selection) return;
     const start = model.getOffsetAt(selection.getStartPosition());
 
-    editor.executeEdits("glyphx", [{ range: selection, text, forceMoveMarkers: true }]);
+    editor.executeEdits("glyphtex", [{ range: selection, text, forceMoveMarkers: true }]);
     this.selectRange(start + text.length, start + text.length);
     editor.focus();
   }
@@ -288,14 +288,14 @@ export class CodeEditorController {
   undo(): void {
     const editor = this.editor;
     if (!editor) return;
-    editor.trigger("glyphx", "undo", null);
+    editor.trigger("glyphtex", "undo", null);
     editor.focus();
   }
 
   redo(): void {
     const editor = this.editor;
     if (!editor) return;
-    editor.trigger("glyphx", "redo", null);
+    editor.trigger("glyphtex", "redo", null);
     editor.focus();
   }
 
@@ -345,7 +345,7 @@ export class CodeEditorController {
     this.#decorations?.set(
       out.map((match) => ({
         range: this.#rangeOf(model, match.from, match.to),
-        options: { className: "glyphx-search-match" },
+        options: { className: "glyphtex-search-match" },
       })),
     );
 
@@ -368,7 +368,7 @@ export class CodeEditorController {
     const model = this.#model;
     if (!editor || !model) return;
 
-    editor.executeEdits("glyphx", [
+    editor.executeEdits("glyphtex", [
       { range: this.#rangeOf(model, from, to), text: insert, forceMoveMarkers: true },
     ]);
     this.selectRange(from + insert.length, from + insert.length);
@@ -404,7 +404,7 @@ export class CodeEditorController {
 
     // One edit over the whole document, so the whole replace-all undoes as a
     // single step rather than match by match.
-    editor.executeEdits("glyphx", [{ range: model.getFullModelRange(), text: next }]);
+    editor.executeEdits("glyphtex", [{ range: model.getFullModelRange(), text: next }]);
     return count;
   }
 

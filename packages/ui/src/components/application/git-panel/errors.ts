@@ -1,13 +1,7 @@
-/**
- * Turn a raw gix / system-git error into a plain-language title + message,
- * keeping the original text as collapsible details for the curious.
- *
- * Pure: pattern-matches the lowercased error text against known failure modes
- * (auth, network, non-fast-forward, missing remote, …) so the UI can explain
- * what happened and what to do next, rather than dumping a stack trace.
- */
 import type { GitErrorInfo } from "./types";
 
+/** Turns a raw gix / system-git error into a plain-language title and message, keeping
+ *  the original text as collapsible details. */
 export function describeError(raw: string, op: string): GitErrorInfo {
   const e = raw.toLowerCase();
   const details = raw.trim() || undefined;
@@ -15,7 +9,7 @@ export function describeError(raw: string, op: string): GitErrorInfo {
     return {
       title: "Git isn’t installed",
       message:
-        "Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphX and try again.",
+        "Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphTeX and try again.",
       details,
     };
   if (

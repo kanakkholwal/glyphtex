@@ -1,7 +1,3 @@
-/**
- * Holds the folder / `.tex` / `.glyx` path the OS asked GlyphX to open (via a
- * file association or "Open with GlyphX"). The root layout sets it and routes to
- * the folder-mode editor, which reads it once on mount. A plain mutable object
- * (not a rune) — it's read imperatively at mount, not tracked reactively.
- */
+/** The path the OS asked GlyphTeX to open (file association). Not a rune: the editor
+ *  reads it once at mount rather than tracking it. */
 export const launch: { path: string | null } = { path: null };

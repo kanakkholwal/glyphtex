@@ -22,7 +22,7 @@
 <script lang="ts">
 	import type { Component, Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn, type WithElementRef } from "@glyphx/ui/utils";
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
 
 	type Props = WithElementRef<HTMLAttributes<HTMLSpanElement>> & {
 		/** Leading icon — a @tabler/icons-svelte component (rendered at `size-3`). */

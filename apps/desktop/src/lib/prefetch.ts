@@ -1,4 +1,4 @@
-import { safeStorage } from '@glyphx/ui/persisted-state';
+import { safeStorage } from '@glyphtex/ui/persisted-state';
 import { engineManager } from './engine';
 
 /**
@@ -6,7 +6,7 @@ import { engineManager } from './engine';
  * so we can force a re-warm later if the bundled package set in
  * `prefetch_packages` (Rust) changes — bump the suffix to invalidate.
  */
-const PREFETCH_FLAG = 'glyphx:pkg-prefetch:v1';
+const PREFETCH_FLAG = 'glyphtex:pkg-prefetch:v1';
 
 /**
  * Warm the LaTeX package cache once, automatically, on first launch.

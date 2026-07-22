@@ -1,9 +1,6 @@
-/**
- * Pure helpers for the Source Control changes view: build a nested folder tree
- * from a flat change list (VS Code-style), plus small formatting utilities.
- */
 import type { GitChange, TreeNode } from "./types";
 
+/** Nests a flat change list into folders, VS Code-style. */
 export function buildTree(items: GitChange[]): TreeNode[] {
   const root: TreeNode = { name: "", path: "", isFile: false, children: [] };
   for (const c of items) {

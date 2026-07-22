@@ -1,22 +1,10 @@
-/**
- * LayoutStore — the Workbench's chrome + geometry.
- *
- * Owns the view mode (editor / split / preview), the activity bar selection and
- * side-panel collapse, the resizable split + sidebar, the read-only diff view
- * (Source Control → open a change over the editor pane), the help / quick-open
- * dialogs, the cursor position, and the editor `bind:this` handle shared with
- * the search + compile stores.
- *
- * Reactive state + behaviour only. The component sets up the lone
- * `ResizeObserver` `$effect` by calling {@link observeShell}.
- */
 import type { ActivityView } from "../activity-bar.svelte";
 import { classifyFile, editorLanguage } from "../file-kinds";
 import type { GitProvider } from "../git-panel.svelte";
-import { settings } from "@glyphx/ui/settings";
-import { toast } from "@glyphx/ui/sonner";
+import { settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
-import type { DiffTarget, EditorApi, ViewMode } from "./types";
+import type { DiffTarget, EditorApi, SplitDirection, ViewMode } from "./types";
 
 export type LayoutDeps = {
   git?: GitProvider;
@@ -25,6 +13,8 @@ export type LayoutDeps = {
 
 const ACTIVITY_BAR_PX = 48; // the w-12 rail beside the panel
 
+/** The Workbench's chrome + geometry, plus the editor `bind:this` handle shared with
+ *  the search and compile stores. The component calls {@link observeShell}. */
 export class LayoutStore {
   readonly #git?: GitProvider;
   readonly #getProjectRoot: () => string | null;
@@ -50,7 +40,10 @@ export class LayoutStore {
   diffTarget = $state<DiffTarget | null>(null);
 
   // --- Resizable split ------------------------------------------------------
+  /** Size of the editor pane, as a % of the split axis. */
   splitPct = $state(52);
+  /** `horizontal` = side by side; `vertical` = editor above, preview below. */
+  splitDir = $state<SplitDirection>("horizontal");
   dragging = $state(false);
   bodyEl = $state<HTMLElement>();
 
@@ -106,7 +99,10 @@ export class LayoutStore {
     }
     if (!this.dragging || this.viewMode !== "split" || !this.bodyEl) return;
     const rect = this.bodyEl.getBoundingClientRect();
-    const pct = ((e.clientX - rect.left) / rect.width) * 100;
+    const pct =
+      this.splitDir === "vertical"
+        ? ((e.clientY - rect.top) / rect.height) * 100
+        : ((e.clientX - rect.left) / rect.width) * 100;
     this.splitPct = Math.min(72, Math.max(28, pct));
   }
   stopResize(): void {

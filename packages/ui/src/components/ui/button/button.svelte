@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  import { cn, type WithElementRef } from "@glyphx/ui/utils";
+  import { cn, type WithElementRef } from "@glyphtex/ui/utils";
   import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
   import { tv, type VariantProps } from "tailwind-variants";
 

@@ -1,31 +1,3 @@
-/**
- * `PersistedState` — a Svelte 5 rune-module port of the React
- * `useSyncExternalStore`-backed `useStorage` hook. One reactive value, one
- * storage key, kept in sync across every Tauri window / browser tab that
- * shares the same storage origin.
- *
- * Usage (idiomatic Svelte — the value lives on `.current`, like `runed`):
- *
- *   const flags = new PersistedState("glyphx-experimental-flags", DEFAULTS);
- *   flags.current;            // reactive read (templates, $derived, $effect)
- *   flags.current = next;     // writes through to storage + broadcasts
- *   flags.reset();            // clear the key, revert to the initial value
- *
- * For non-reactive call sites (SDK bootstrap, install-id reads, one-shot
- * route reads) use the `safeStorage` helper at the bottom — same null /
- * parse / quota safety, no reactivity overhead.
- *
- * Robustness contract — every one of these is handled, none of them throw:
- *   - missing key / `null`        → the initial value
- *   - no `window` (SSR / preview) → the initial value, storage untouched
- *   - malformed JSON / bad data   → the initial value, `onError` fired
- *   - partial / stale object shape → shallow-merged over the initial, so a
- *                                    field added after the value was written
- *                                    keeps its default instead of going
- *                                    `undefined`
- *   - quota / private-mode writes  → swallowed best-effort
- */
-
 type StorageArea = "local" | "session";
 
 export interface Serializer<T> {
@@ -57,7 +29,7 @@ export interface PersistedStateOptions<T> {
 	onError?: (error: unknown, context: PersistedErrorContext, key: string) => void;
 }
 
-const SAME_DOC_EVENT = "glyphx:persisted-state";
+const SAME_DOC_EVENT = "glyphtex:persisted-state";
 
 interface SameDocDetail {
 	key: string;
@@ -128,6 +100,8 @@ export function inferSerializer<T>(initialValue: T): Serializer<T> {
 	};
 }
 
+/** One reactive value on `.current`, persisted and synced across every window/tab on
+ *  the origin. Never throws: missing, malformed, or over-quota storage falls back. */
 export class PersistedState<T> {
 	#key: string;
 	#initial: T;

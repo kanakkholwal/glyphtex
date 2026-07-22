@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { settings } from "@glyphx/ui/settings";
+  import { settings } from "@glyphtex/ui/settings";
   import { IconGitBranch } from '@tabler/icons-svelte';
 
   import type { ActivityView } from "./activity-bar.svelte";
@@ -41,6 +41,7 @@
     onnewfolder,
     onopenfolder,
     onreveal,
+    onaddfiles,
     onrenamefile,
     ondeletefile,
     onsetmain,
@@ -95,6 +96,8 @@
     onopenfolder?: () => void;
     /** Reveal the open project folder in the OS file manager. Absent = unavailable. */
     onreveal?: () => void;
+    /** Import files from disk into the open document (web projects). */
+    onaddfiles?: (accept: string) => void;
     onrenamefile?: (id: string, name: string) => void;
     ondeletefile?: (id: string) => void;
     onsetmain?: (id: string) => void;
@@ -115,7 +118,7 @@
     ondownloadfolder?: (path: string) => void;
     /** Jump the editor to a 1-based line (Outline click). */
     ongotoline?: (line: number) => void;
-    /** Register the OS "Open with GlyphX" folder integration (desktop). */
+    /** Register the OS "Open with GlyphTeX" folder integration (desktop). */
     onregistershell?: () => void | Promise<boolean>;
     searchResults?: SearchMatch[];
     searchActive?: number;
@@ -168,6 +171,7 @@
     searchResultCount={searchResults.length}
     {onreveal}
     {onopenfolder}
+    {onaddfiles}
   />
 
   <div

@@ -12,10 +12,10 @@ use tectonic_engine_xdvipdfmx::XdvipdfmxEngine;
 use tectonic_engine_xetex::{TexEngine, TexOutcome};
 use tectonic_status_base::NoopStatusBackend;
 
-use glyphx_tex_api::api::{
+use glyphtex_tex_api::api::{
     CompileOptions, CompileResult, CompileStatus, LogLevel, OutputFile, OutputFormat, OutputKind,
 };
-use glyphx_tex_api::logparse;
+use glyphtex_tex_api::logparse;
 
 use crate::io::MemoryIo;
 
@@ -163,7 +163,7 @@ impl Run {
 
         for pass in 1..=self.options.max_passes {
             if self.verbose() {
-                eprintln!("[glyphx] xetex pass {pass}/{}", self.options.max_passes);
+                eprintln!("[glyphtex] xetex pass {pass}/{}", self.options.max_passes);
             }
 
             passes_run = pass;
@@ -265,7 +265,7 @@ impl Run {
             ));
         }
         if self.verbose() {
-            eprintln!("[glyphx] xdvipdfmx");
+            eprintln!("[glyphtex] xdvipdfmx");
         }
 
         let mut driver = MinimalDriver::new(self.io());

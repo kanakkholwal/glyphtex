@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Engineering guidelines for **GlyphX** — a local-first, privacy-first **LaTeX editor**
+Engineering guidelines for **GlyphTeX** — a local-first, privacy-first **LaTeX editor**
 (Tauri v2 + Rust + Svelte 5 desktop app) plus a SvelteKit web app that compiles LaTeX in the
 browser. Desktop and web **share one UI**. This file is the contract every contributor follows,
 **human or AI agent**. It is intentionally tool-agnostic (works with any agent that reads
@@ -25,9 +25,9 @@ apps/
                   (crates/tectonic-wasm → packages/tex-engine). NO database, NO auth, NO server
                   user-state — local-first by design.
 packages/
-  ui/             @glyphx/ui — shared Svelte 5 components (shadcn-svelte + bits-ui), the shared
+  ui/             @glyphtex/ui — shared Svelte 5 components (shadcn-svelte + bits-ui), the shared
                   rune stores (settings, projects), and the Workbench used by both apps.
-  design/         @glyphx/design — design tokens / Tailwind 4 theme (./index.css). Tokens are
+  design/         @glyphtex/design — design tokens / Tailwind 4 theme (./index.css). Tokens are
                   owned by the design layer; consume them, don't hardcode values.
 ```
 
@@ -94,11 +94,11 @@ floor for the AppImage/.deb).
    apps (e.g. `bg-muted`, `text-faint`, `color-mix(... var(--destructive) ...)`). Text hierarchy is
    `foreground` → `muted-foreground` → `faint`; radii are `rounded-md` (8, controls) → `rounded-xl`
    (12, menus) → `rounded-2xl` (16, cards) → `rounded-pill` (CTAs); type is `text-xs`/`sm`/`md` =
-   12/13/14 with `text-2xl` = 24. `@glyphx/design` is unused — do not add tokens there.
+   12/13/14 with `text-2xl` = 24. `@glyphtex/design` is unused — do not add tokens there.
    **@tabler/icons-svelte only** (not Lucide, no Iconify layer — import icons
    directly). Raster images render through **`@unpic/svelte`**'s `Image`, never a
    bare `<img>`. The editor stays **JetBrains Mono**.
-10. **Import via aliases — `@glyphx/ui/*`, `@glyphx/design`, `$lib`.** Never deep `../../..` climbs
+10. **Import via aliases — `@glyphtex/ui/*`, `@glyphtex/design`, `$lib`.** Never deep `../../..` climbs
     across package or app boundaries.
 11. **Leave the gates green.** `fmt`/`format:rust`, `clippy`, `svelte-check`, and `cargo test` must
     pass before a change is "done." A red build is never a stopping point.
@@ -142,7 +142,7 @@ defined seams — never copied sideways into a parallel field that can fall out 
   or **Context** for per-tree state — not re-declared per component. Components read it; they don't
   mirror it into local `$state`.
 - **Persisted state has one home.** A persisted setting is owned by the settings store
-  (`glyphx:*` keys); don't also cache it in component locals.
+  (`glyphtex:*` keys); don't also cache it in component locals.
 
 **Rust:**
 - **Don't hold the same data in two owners.** If the index/HEAD/worktree is the source of truth,
@@ -161,9 +161,9 @@ processes; it is concurrency- and platform-sensitive.
 
 ### Subprocess & tooling
 - **Every external spawn goes through `subprocess::CommandExt::no_window()`** — on Windows a child
-  console flashes and steals focus, reading as "the app froze." This is the GlyphX equivalent of a
+  console flashes and steals focus, reading as "the app froze." This is the GlyphTeX equivalent of a
   silent-command helper; use it for `tectonic`, `latexmk`, `git`, `reg`, etc.
-- **Resolve the Tectonic binary in the defined order** (`GLYPHX_TECTONIC_BIN` → managed engine →
+- **Resolve the Tectonic binary in the defined order** (`GLYPHTEX_TECTONIC_BIN` → managed engine →
   bundled sidecar → PATH). The sidecar is an `externalBin`; `tauri::generate_context!` validates it
   exists per target triple at compile time — keep the per-triple names correct.
 - **The compile engine is pluggable** (`tectonic` | `system`/latexmk). Keep the dispatch in
@@ -201,7 +201,7 @@ processes; it is concurrency- and platform-sensitive.
 - **Commands are thin IPC adapters:** deserialize → call a domain function → map error → return.
   Keep arg-building / git plumbing / zip logic in `AppHandle`-free, unit-testable module functions
   (this is also what keeps the logic `cargo test`-able and automation-ready).
-- **Serialized IPC structs are a contract.** GlyphX mirrors them **field-for-field in the TS types**
+- **Serialized IPC structs are a contract.** GlyphTeX mirrors them **field-for-field in the TS types**
   (`CompileResult` ↔ `RawCompileResult`, snake_case on both sides). Tauri auto-converts *command
   argument* names (camelCase call ↔ snake_case param); **returned struct fields are NOT auto-renamed
   — keep the TS type identical.** Renaming a field means updating the TS side in the same change.
@@ -210,7 +210,7 @@ processes; it is concurrency- and platform-sensitive.
 
 ### Persistence & platform
 - **Atomic file writes:** write to a temp file in the same dir → flush → `rename` over the target.
-  Never truncate-then-write a file the app reads on next launch (`.glyphx` manifest, project files).
+  Never truncate-then-write a file the app reads on next launch (`.glyphtex` manifest, project files).
 - **New disk projects are created in the app data dir by default** (no save prompt); Import / Open-
   folder remain. Don't delete user-imported folders on "remove from list."
 - **`#[cfg(target_os)]` stays behind a boundary** (e.g. `shell_integration.rs` keeps the Windows
@@ -226,7 +226,7 @@ runs all three OSes.
 
 ## 5. Frontend — Svelte 5 + SvelteKit 2
 
-Runes era — no Svelte 4 idioms in new code. Shared by desktop and web via `@glyphx/ui`.
+Runes era — no Svelte 4 idioms in new code. Shared by desktop and web via `@glyphtex/ui`.
 
 ### Runes & reactivity
 - **`$state` only for genuinely reactive values**; plain `let` otherwise (proxies cost).
@@ -249,7 +249,7 @@ Runes era — no Svelte 4 idioms in new code. Shared by desktop and web via `@gl
 - **Local `$state` by default; shared logic → a `.svelte.ts` rune module** (export an object/class
   and mutate it — don't `export let x = $state()` and reassign across files). **Context** for
   per-tree shared state, not globals. (See §3 — one owner per fact.)
-- Settings live in the `@glyphx/ui` settings store (`glyphx:*` PersistedState keys: engine kind,
+- Settings live in the `@glyphtex/ui` settings store (`glyphtex:*` PersistedState keys: engine kind,
   tex program, shell-escape, auto-compile, git view, diff view, …). Read them; don't re-cache them.
 
 ### Desktop (Tauri, adapter-static SPA)
@@ -263,7 +263,7 @@ Runes era — no Svelte 4 idioms in new code. Shared by desktop and web via `@gl
   `ProjectHost`, not to `invoke` directly.
 
 ### Project conventions
-- **Design system:** shadcn-svelte components + `@glyphx/design` token CSS variables. **No
+- **Design system:** shadcn-svelte components + `@glyphtex/design` token CSS variables. **No
   hardcoded colors. @tabler/icons-svelte only. JetBrains Mono in the editor.**
 - **bits-ui wrappers** (Dialog/Sheet/Dropdown/Select/Popover) — match the existing wrappers'
   conventions (e.g. `showCloseButton`, `interactOutsideBehavior`) rather than re-styling inline.
@@ -294,25 +294,24 @@ it gets its own per-area `AGENTS.md`.
   caches only — never per-user data (it leaks across requests; see §3).
 - There is **no package-server route** any more. The engine and its TeX bundle are plain static
   assets under `static/engine/`, staged from `crates/tectonic-wasm/output/` by
-  `pnpm --filter @glyphx/web sync:engine`. That directory is **gitignored**, so the deploy workflow
+  `pnpm --filter @glyphtex/web sync:engine`. That directory is **gitignored**, so the deploy workflow
   must run the sync before building — a fresh checkout has no engine, and skipping it ships a green
   pipeline with a 404 on `/engine/manifest.json`.
 
 ### Service worker & caching
-- Registered **in production only**, by hand from `src/routes/+layout.svelte` (`serviceWorker.register`
-  is off in `vite.config.ts`). In dev it intercepts Vite's module and HMR traffic for no benefit, and
-  a stale registration then serves yesterday's modules — so dev actively *unregisters* any worker it
-  finds.
+- Registered by **SvelteKit's default automatic registration** — there is no hand-rolled
+  `navigator.serviceWorker.register` call, and `serviceWorker.register` is left at its default in
+  `vite.config.ts`. Don't reintroduce manual registration.
 - `src/service-worker.ts` precaches `build + files` but **excludes `/engine/*`**: that is ~12 MB
   only compile users need, and the install dialog exists precisely to ask first.
-- The downloaded compiler lives in a **separate, deploy-independent cache (`glyphx-engine`)** that
+- The downloaded compiler lives in a **separate, deploy-independent cache (`glyphtex-engine`)** that
   `activate` must NOT delete — updates never wipe the installed engine. App shell is network-first;
   immutable assets are cache-first.
 - **Every cache access is best-effort.** `caches.open` rejects in private windows, with site data
   blocked, and under disk pressure; a service worker that fails a request when its cache is
   unavailable takes down the app shell, every module and every worker script with it.
 
-### In-browser engine (GlyphX — Tectonic/XeTeX WASM)
+### In-browser engine (GlyphTeX — Tectonic/XeTeX WASM)
 - The engine is **ours**: Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly in
   `crates/tectonic-wasm`, wrapped by `packages/tex-engine`. SwiftLaTeX is **gone** — do not
   reintroduce it or `static/swiftlatex/`.
@@ -352,7 +351,7 @@ A change is done when, for every area it touched:
 - [ ] Gates green: `format:rust`/`clippy` (Rust), `svelte-check`, `cargo test`, `pnpm check`/`build`.
 - [ ] (Rust) all `target_os` trees compile; spawns go through `no_window()`; new threads/processes
       have RAII teardown; heavy commands are `async`/off the UI thread.
-- [ ] (Frontend) no banned Svelte 4 idioms; `@glyphx/design` tokens + Tabler icons only; JetBrains
+- [ ] (Frontend) no banned Svelte 4 idioms; `@glyphtex/design` tokens + Tabler icons only; JetBrains
       Mono preserved; `tauri build` tested if desktop runtime behaviour changed.
 - [ ] (Web) Workers-runtime-safe; no module-scope request state; dev-only/Node code stripped from
       the build; the persistent TeX cache not wiped on deploy.

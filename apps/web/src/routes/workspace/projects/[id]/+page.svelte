@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import type { PackDefinition } from '@glyphx/tex-engine';
+	import { Logo } from '@glyphtex/ui/logo';
+
+	import type { PackDefinition } from 'glyphtex-engine';
 	import {
 		Workbench,
 		type DownloadRequest,
 		type GlyphFile,
 		type WorkbenchController
-	} from '@glyphx/ui/application';
-	import { toast } from '@glyphx/ui/sonner';
+	} from '@glyphtex/ui/application';
+	import { toast } from '@glyphtex/ui/sonner';
 	import { onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
@@ -116,7 +118,7 @@
 			await writeFiles(project.id, toNewFiles(files, binary));
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not save.');
-			console.error('[GlyphX]', error);
+			console.error('[GlyphTeX]', error);
 		} finally {
 			saving = false;
 		}
@@ -153,7 +155,7 @@
 				files.map((f) => ({
 					name: f.path,
 					content: f.data
-						? '% Binary file — edited outside GlyphX, included as-is.\n'
+						? '% Binary file — edited outside GlyphTeX, included as-is.\n'
 						: (f.text ?? '')
 				}))
 			);
@@ -281,7 +283,7 @@
 </script>
 
 <svelte:head>
-	<title>{project ? `${project.name} · GlyphX` : 'GlyphX'}</title>
+	<title>{project ? `${project.name} · GlyphTeX` : 'GlyphTeX'}</title>
 </svelte:head>
 
 {#if missing}
@@ -292,7 +294,7 @@
 		<p class="text-muted-foreground text-sm">
 			It may have been deleted, or the browser cleared its storage.
 		</p>
-		<a class="text-sm underline" href={resolve('/projects')}>Back to documents</a>
+		<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
 	</div>
 {:else if loadError}
 	<div
@@ -300,7 +302,7 @@
 	>
 		<h1 class="text-lg font-semibold">Could not open this document</h1>
 		<p class="text-muted-foreground text-sm">{loadError}</p>
-		<a class="text-sm underline" href={resolve('/projects')}>Back to documents</a>
+		<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
 	</div>
 {:else if project && initialFiles}
 	<div
@@ -326,7 +328,7 @@
 				projectName={project.name}
 				{initialFiles}
 				{saving}
-				backHref={resolve('/projects')}
+				backHref={resolve('/workspace')}
 				backLabel="Documents"
 				onRenameProject={rename}
 				onAddFiles={pickFiles}
@@ -365,7 +367,8 @@
 
 	<EngineInstallDialog bind:open={showInstall} ondone={onInstalled} />
 {:else}
-	<div class="flex min-h-dvh items-center justify-center">
+	<div class="flex min-h-dvh items-center justify-center flex-col gap-4">
+		<Logo size="lg" />
 		<p class="text-muted-foreground text-sm" role="status">Opening document…</p>
 	</div>
 {/if}

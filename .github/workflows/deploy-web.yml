@@ -21,6 +21,7 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   PUBLIC_GA_ID: "G-X1BF4S5L5L"
+  
 
 jobs:
   deploy:
@@ -32,7 +33,7 @@ jobs:
       deployments: write
     environment:
       name: production
-      url: ${{ vars.WEB_DEPLOY_URL || 'https://glyphx.nexonauts.com' }}
+      url: ${{ vars.WEB_DEPLOY_URL || 'https://glyphtex.nexonauts.com' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,41 +52,41 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Format check (prettier)
-        run: pnpm --filter @glyphx/web format:check
+        run: pnpm --filter @glyphtex/web format:check
 
       - name: Lint (eslint)
-        run: pnpm --filter @glyphx/web lint:eslint
+        run: pnpm --filter @glyphtex/web lint:eslint
 
       # static/engine/ is gitignored, so without this every visitor 404s on
       # /engine/manifest.json — a broken editor from a green pipeline.
       - name: Stage the TeX engine into static assets
-        run: pnpm --filter @glyphx/web sync:engine
+        run: pnpm --filter @glyphtex/web sync:engine
 
       # tex-engine.yml only tests a freshly built engine, so it cannot catch the
       # committed wasm drifting from the TypeScript wrapper that loads it.
       - name: Verify the staged engine actually compiles
         run: |
-          pnpm --filter @glyphx/tex-engine build
+          pnpm --filter glyphtex-engine build
           mkdir -p /tmp/engine-bundle
           tar -xzf crates/tectonic-wasm/output/tectonic-bundle.tar.gz -C /tmp/engine-bundle
           cd packages/tex-engine && pnpm test
         env:
-          GLYPHX_WASM: ${{ github.workspace }}/apps/web/static/engine/tectonic_wasm.wasm
-          GLYPHX_BUNDLE: /tmp/engine-bundle
+          GLYPHTEX_WASM: ${{ github.workspace }}/apps/web/static/engine/tectonic_wasm.wasm
+          GLYPHTEX_BUNDLE: /tmp/engine-bundle
           # Without this the suite SKIPS when an artifact is missing and exits 0,
           # which is indistinguishable from passing.
-          GLYPHX_REQUIRE_ENGINE: '1'
+          GLYPHTEX_REQUIRE_ENGINE: '1'
 
       - name: Unit tests
         run: |
-          pnpm --filter @glyphx/ui test
-          pnpm --filter @glyphx/web test
+          pnpm --filter @glyphtex/ui test
+          pnpm --filter @glyphtex/web test
 
       - name: Typecheck (svelte-check)
-        run: pnpm --filter @glyphx/web check
+        run: pnpm --filter @glyphtex/web check
 
       - name: Build apps/web
-        run: pnpm --filter @glyphx/web build
+        run: pnpm --filter @glyphtex/web build
         env:
           NODE_ENV: production
           PUBLIC_GA_ID: ${{ env.PUBLIC_GA_ID }}
@@ -97,3 +98,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
           command: deploy
+          

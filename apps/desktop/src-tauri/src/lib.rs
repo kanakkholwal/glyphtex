@@ -10,8 +10,8 @@ use std::sync::Mutex;
 
 use tauri::{Emitter, Manager};
 
-/// The file / folder path GlyphX was launched to open (via a file association or
-/// "Open with GlyphX"), captured at startup and handed to the frontend once.
+/// The file / folder path GlyphTeX was launched to open (via a file association or
+/// "Open with GlyphTeX"), captured at startup and handed to the frontend once.
 #[derive(Default)]
 struct LaunchPath(Mutex<Option<String>>);
 
@@ -24,7 +24,7 @@ fn first_path_arg(args: &[String]) -> Option<String> {
         .cloned()
 }
 
-/// Return (and clear) the path GlyphX was launched with, if any. The frontend
+/// Return (and clear) the path GlyphTeX was launched with, if any. The frontend
 /// calls this once on startup to open an associated `.tex` / `.glyx` / folder.
 #[tauri::command]
 fn take_launch_path(state: tauri::State<'_, LaunchPath>) -> Option<String> {
@@ -39,7 +39,7 @@ pub fn run() {
         // forwards its path to the running window instead of opening a new app.
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             if let Some(path) = first_path_arg(&argv) {
-                let _ = app.emit("glyphx://open-path", path);
+                let _ = app.emit("glyphtex://open-path", path);
             }
             if let Some(win) = app.get_webview_window("main") {
                 let _ = win.set_focus();

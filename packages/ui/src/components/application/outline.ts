@@ -1,11 +1,5 @@
-/**
- * LaTeX document outline — a VS Code "Outline" / Overleaf "File outline" view of
- * the active file. Pure string parsing (no editor dependency): we scan the
- * source line-by-line for sectioning commands and return a flat, depth-tagged
- * list. Flat-with-depth (not a nested tree) is deliberate — it renders with a
- * single `{#each}` and carries zero risk of a recursive / reactive loop.
- */
-
+// Flat-with-depth rather than a nested tree: renders in one `{#each}`, with no
+// recursive component and no risk of a reactive loop.
 export type OutlineItem = {
 	/** 0 = part … 6 = subparagraph. Used for indentation, not absolute. */
 	level: number;

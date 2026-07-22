@@ -36,17 +36,17 @@
 </script>
 
 <script lang="ts">
-	import { Button } from '@glyphx/ui/button';
-	import { Segmented } from '@glyphx/ui/segmented';
+	import { Button } from '@glyphtex/ui/button';
+	import { Segmented } from '@glyphtex/ui/segmented';
 	import {
 	  settings,
 	  TEX_PROGRAM_LABELS,
 	  type EngineKind,
 	  type TexProgram
-	} from '@glyphx/ui/settings';
-	import { SettingsSection } from '@glyphx/ui/settings-section';
-	import { toast } from '@glyphx/ui/sonner';
-	import { Spinner } from '@glyphx/ui/spinner';
+	} from '@glyphtex/ui/settings';
+	import { SettingsSection } from '@glyphtex/ui/settings-section';
+	import { toast } from '@glyphtex/ui/sonner';
+	import { Spinner } from '@glyphtex/ui/spinner';
 	import { IconRefresh } from '@tabler/icons-svelte';
 
 	/**
@@ -315,7 +315,7 @@
 				{:else}
 					<div class="divide-border/60 divide-y">
 						{#each shown as v (v.version)}
-							{@const nightly = v.version === 'nightly'}
+							{const nightly = v.version === 'nightly'}
 							<div class="flex items-center gap-3 px-5 py-3.5">
 								<span
 									class="text-foreground shrink-0 text-sm {nightly ? 'capitalize' : 'tabular-nums'}"

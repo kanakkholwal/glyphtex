@@ -1,11 +1,5 @@
-/**
- * Shared drag payload for the Explorer tree. A plain module singleton (NOT a
- * rune) deliberately: the dragged item is read across many recursive FileTree
- * instances and the root drop zone during `dragover`/`drop`, where the native
- * DataTransfer is unreadable for security. Drop-target *highlighting* stays as
- * local component `$state`; only the identity lives here.
- */
-
+// A plain singleton, not a rune: the dragged item must be readable during
+// `dragover`/`drop`, where the native DataTransfer is blocked for security.
 export type DndItem =
 	| { kind: 'file'; id: string; name: string }
 	| { kind: 'folder'; path: string; name: string };

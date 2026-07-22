@@ -9,7 +9,7 @@
 	import SheetOverlay from "./sheet-overlay.svelte";
 	import { Button } from "../button";
 	import { IconX } from '@tabler/icons-svelte';
-	import { cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
+	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import type { ComponentProps } from "svelte";
 
 	let {

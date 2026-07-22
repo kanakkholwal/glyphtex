@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '@glyphx/ui/button';
-	import { Spinner } from '@glyphx/ui/spinner';
+	import { Button } from '@glyphtex/ui/button';
+	import { Spinner } from '@glyphtex/ui/spinner';
 	import { IconAlertTriangle, IconCircleCheck, IconDownload, IconX } from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { fly } from 'svelte/transition';
@@ -50,7 +50,7 @@
 						{#if updater.status === 'error'}
 							{updater.error ?? 'Could not download the latest version.'}
 						{:else}
-							GlyphX
+							GlyphTeX
 							{#if updater.version}<span class="font-mono">v{updater.version}</span>{/if}
 							{#if updater.status === 'ready'}
 								is ready.

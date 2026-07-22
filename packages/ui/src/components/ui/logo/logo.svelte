@@ -14,10 +14,10 @@
 </script>
 
 <script lang="ts">
-  import { cn } from "@glyphx/ui/utils";
+  import { cn } from "@glyphtex/ui/utils";
 
   /**
-   * Logo — the GlyphX brand lockup: a geometric "G" glyph mark plus an optional
+   * Logo — the GlyphTeX brand lockup: a geometric "G" glyph mark plus an optional
    * wordmark. Reusable everywhere (top bar, empty states, marketing).
    *
    * - `badge` (default) sets the mark in a filled rounded-square; turn it off
@@ -101,7 +101,7 @@
   {href}
   class={cn("inline-flex shrink-0 items-center gap-2", className)}
   style:view-transition-name={viewTransitionName}
-  aria-label="GlyphX"
+  aria-label="GlyphTeX"
 >
   {#if badge}
     <span
@@ -126,7 +126,7 @@
       class={cn(
         "font-display font-semibold leading-none tracking-tight",
         textCls,
-      )}>GlyphX</span
+      )}>GlyphTeX</span
     >
   {/if}
 </svelte:element>

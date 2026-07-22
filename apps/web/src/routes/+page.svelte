@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '@glyphx/ui/button';
-	import { Logo } from '@glyphx/ui/logo';
-	import { Reveal } from '@glyphx/ui/reveal';
-	import { SectionHeader } from '@glyphx/ui/section-header';
+	import { Button } from '@glyphtex/ui/button';
+	import { Logo } from '@glyphtex/ui/logo';
+	import { Reveal } from '@glyphtex/ui/reveal';
+	import { SectionHeader } from '@glyphtex/ui/section-header';
 	import { trackEvent } from '$lib/analytics';
 	import { Container, HeroBackdrop, MacWindow, Section, ShowcasePanel } from '$lib/landing';
 	import EditorMock from '$lib/landing/EditorMock.svelte';
@@ -23,7 +23,6 @@
 		IconMinus,
 		IconCloudOff,
 		IconDeviceDesktop,
-		IconDownload,
 		IconFileText,
 		IconFolders,
 		IconGitBranch,
@@ -42,38 +41,20 @@
 	import { cubicOut } from 'svelte/easing';
 	import { fly, slide } from 'svelte/transition';
 
-	const repo = 'https://github.com/kanakkholwal/glyphx';
+	const repo = 'https://github.com/kanakkholwal/glyphtex';
 
-	// Default editorial backdrop, reused from the trace-mvp hero. The user
-	// will swap in a more academic photograph later; for now the cloud +
-	// landscape composition gives the page a calm horizon line to anchor
-	// the centered headline.
 	const heroBackdrop = '/background-hero.webp';
 
 	// Concrete artifacts the committed audience actually writes. Narrowed to
 	// the four nouns a researcher or lecturer cares about most.
 	const rotatingWords = ['thesis.', 'paper.', 'manuscript.', 'lecture notes.'];
 
-	// The widest word in the cycle. Used to reserve the slot's width so
-	// shorter words don't shift the line as they rotate. Computed once
-	// so the JSX stays declarative.
 	const widestWord = rotatingWords.reduce((a, b) => (a.length >= b.length ? a : b), '');
 
-	// Index into `rotatingWords` that the hero should currently show. Driven
-	// by a setInterval so the rotation keeps ticking without re-rendering
-	// anything else on the page. Pauses when the tab is hidden so a
-	// backgrounded tab never advances through the cycle.
 	const reducedMotion =
 		typeof window !== 'undefined' &&
 		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-	// Typewriter state. `currentWord` grows one character at a time from
-	// the empty string up to the full target word, holds for a beat,
-	// then erases before advancing to the next word. `wordIndex` is the
-	// only thing the typing loop mutates; effect 1 picks up the index
-	// change and resets the typed buffer so the new word starts from
-	// scratch. Reduced motion pins `currentWord` to the widest word so
-	// the slot is filled and the typewriter doesn't run.
 	let currentWord = $state('');
 	let wordIndex = $state(0);
 
@@ -235,7 +216,7 @@
 		}
 	];
 
-	// GlyphX solutions. Consolidated to four answers (the pain points on
+	// GlyphTeX solutions. Consolidated to four answers (the pain points on
 	// the left are still six, since the friction list is the point; the
 	// solution card just needs to land the main beats). Plain wording:
 	// researchers care that the file compiles, not which engine compiles
@@ -410,9 +391,9 @@
 		{
 			label: 'For individuals',
 			price: 'Free',
-			body: 'GPLv3, full editor, full engine, no account, no telemetry. The same binary the lab uses, on your laptop.',
-			href: resolve('/download'),
-			cta: 'Download desktop app'
+			body: 'GPLv3, full editor, full engine, no account, no telemetry. Open it in the browser and start writing.',
+			href: resolve('/workspace'),
+			cta: 'Try the workspace'
 		},
 		{
 			label: 'For institutions',
@@ -428,11 +409,11 @@
 	type Faq = { q: string; a: string };
 	const faqs: Faq[] = [
 		{
-			q: 'Can I bring my Overleaf project into GlyphX?',
-			a: 'Yes. Export from Overleaf as a .zip (or pull the Git repo, if your project uses one) and open the folder in GlyphX. The source stays plain .tex and .bib files; nothing is reshaped.'
+			q: 'Can I bring my Overleaf project into GlyphTeX?',
+			a: 'Yes. Export from Overleaf as a .zip (or pull the Git repo, if your project uses one) and open the folder in GlyphTeX. The source stays plain .tex and .bib files; nothing is reshaped.'
 		},
 		{
-			q: 'Does GlyphX support biblatex and biber?',
+			q: 'Does GlyphTeX support biblatex and biber?',
 			a: 'Yes. The desktop app uses the bundled Tectonic engine by default, and you can point it at any system TeX installation that has biblatex and biber installed. The web build compiles a TeX Live set in the browser.'
 		},
 		{
@@ -441,7 +422,7 @@
 		},
 		{
 			q: 'Can my students use it without paying?',
-			a: 'Yes. GlyphX is GPLv3 open source with no paid tier. There is no seat to count and no licence server to phone home. Your department can deploy it on every lab machine.'
+			a: 'Yes. GlyphTeX is GPLv3 open source with no paid tier. There is no seat to count and no licence server to phone home. Your department can deploy it on every lab machine.'
 		},
 		{
 			q: 'Does it work offline?',
@@ -449,11 +430,11 @@
 		},
 		{
 			q: 'How do collaborators share a manuscript?',
-			a: 'Use any Git remote: GitHub, GitLab, a self-hosted Gitea, or your university server. GlyphX has a built-in Git UI, so commits, branches, and merges never need a separate tool.'
+			a: 'Use any Git remote: GitHub, GitLab, a self-hosted Gitea, or your university server. GlyphTeX has a built-in Git UI, so commits, branches, and merges never need a separate tool.'
 		},
 		{
 			q: 'Does SyncTeX work?',
-			a: 'Yes. Click anywhere in the rendered PDF and GlyphX jumps back to the line that produced it. The reverse works too: jump from a source line to the matching point in the preview.'
+			a: 'Yes. Click anywhere in the rendered PDF and GlyphTeX jumps back to the line that produced it. The reverse works too: jump from a source line to the matching point in the preview.'
 		},
 		{
 			q: 'Can I run it on a university-managed machine?',
@@ -466,10 +447,10 @@
 </script>
 
 <svelte:head>
-	<title>GlyphX · A local-first LaTeX editor for academic writing</title>
+	<title>GlyphTeX · A local-first LaTeX editor for academic writing</title>
 	<meta
 		name="description"
-		content="GlyphX is a local-first LaTeX editor for academic writing. Plain .tex projects, compiled on your machine, versioned with Git. GPLv3, free for individuals and institutions."
+		content="GlyphTeX is a local-first LaTeX editor for academic writing. Plain .tex projects, compiled on your machine, versioned with Git. GPLv3, free for individuals and institutions."
 	/>
 </svelte:head>
 
@@ -512,7 +493,7 @@
 			<div
 				class="relative mx-auto max-w-[1410px] overflow-hidden rounded-[2rem] border border-hairline"
 			>
-				<HeroBackdrop src={heroBackdrop} tone="default" />
+				<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
 
 				<!--
 				  Two-zone layout. The badge sits at the top of the card as its
@@ -586,22 +567,31 @@
 							class="mt-6 flex flex-col items-start gap-3 sm:flex-row"
 							in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
 						>
+							<!-- Desktop download is hidden until the app is no longer a prototype.
+							     Restore this button (and the /download nav entry) at release. -->
 							<Button
-								href={resolve('/download')}
+								href={resolve('/workspace')}
 								variant="default"
 								size="lg"
-								class="gap-2.5"
-								onclick={() => trackEvent('cta_download_click', { location: 'hero' })}
+								class="group/cta gap-2.5"
+								onclick={() => trackEvent('cta_workspace_click', { location: 'hero' })}
 							>
-								<IconDownload class="size-4" />
-								Download desktop app
-							</Button>
-							<Button href={resolve('/editor')} variant="outline" size="lg" class="group/cta gap-2">
 								<IconPlayerPlay class="size-4" />
-								Open browser editor
+								Try the workspace
 								<IconArrowRight
 									class="size-4 transition-transform group-hover/cta:translate-x-0.5"
 								/>
+							</Button>
+							<Button
+								href={repo}
+								target="_blank"
+								rel="noopener noreferrer"
+								variant="outline"
+								size="lg"
+								class="gap-2"
+							>
+								<IconBrandGithub class="size-4" />
+								View the source
 							</Button>
 						</div>
 
@@ -615,7 +605,7 @@
 								></span>
 								<span class="relative inline-flex size-1.5 rounded-full bg-brand"></span>
 							</span>
-							Free for individuals · Free for institutions · macOS · Windows · Linux
+							Free · No account · Runs in your browser · Files stay on your device
 						</div>
 					</div>
 				</div>
@@ -675,7 +665,7 @@
 				<Reveal variant="blur">
 					<ul class="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-7 gap-y-3">
 						{#each openSourceClaims as claim (claim.label)}
-							{@const Icon = claim.icon}
+							{const Icon = claim.icon}
 							<li class="inline-flex items-center gap-2 text-[13px] font-medium text-foreground/70">
 								<Icon class="size-4 text-foreground/40" />
 								{claim.label}
@@ -690,7 +680,7 @@
 		  Why-not section. Inspired by the feedback-board layout: a column
 		  of pain points on the left (the cloud-LaTeX friction researchers
 		  hit), a vertical connector with a sparkle anchor in the middle,
-		  and a compact "fixes shipped in GlyphX" card on the right. The
+		  and a compact "fixes shipped in GlyphTeX" card on the right. The
 		  two sides animate independently so the eye crosses the connector.
 		-->
 		<Section id="why" bordered>
@@ -749,7 +739,7 @@
 					</div>
 
 					<!--
-					  Center connector. A hairline column with the GlyphX logo
+					  Center connector. A hairline column with the GlyphTeX logo
 					  as the anchor. Hidden on mobile (the cards already
 					  stack vertically). The ping ring around the logo draws
 					  the eye across the seam.
@@ -796,7 +786,7 @@
 							</header>
 
 							<h3 class="text-xl font-semibold leading-[1.2] tracking-tight text-foreground">
-								Fixes that ship with GlyphX
+								Fixes that ship with GlyphTeX
 							</h3>
 
 							<ul class="flex flex-col gap-2 pt-1">
@@ -878,13 +868,13 @@
 							<p
 								class="landing-text-pretty mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
 							>
-								A GlyphX project is a folder of plain .tex files. Bring an Overleaf export, a thesis
-								repo, or a fresh blank document. No reshaping, no proprietary format.
+								A GlyphTeX project is a folder of plain .tex files. Bring an Overleaf export, a
+								thesis repo, or a fresh blank document. No reshaping, no proprietary format.
 							</p>
 
 							<ul class="mt-12 space-y-6">
-								{#each [{ icon: IconFileText, title: 'Overleaf export', description: 'Drag the .zip from Overleaf into GlyphX. The folder structure stays intact.' }, { icon: IconGitBranch, title: 'Git repository', description: 'Point GlyphX at an existing repo. Pulls, pushes, and history work as expected.' }, { icon: IconFolders, title: 'Plain .tex folder', description: 'A directory of chapters, figures, and a .bib. Open it and start writing.' }] as item, i (item.title)}
-									{@const Icon = item.icon}
+								{#each [{ icon: IconFileText, title: 'Overleaf export', description: 'Drag the .zip from Overleaf into GlyphTeX. The folder structure stays intact.' }, { icon: IconGitBranch, title: 'Git repository', description: 'Point GlyphTeX at an existing repo. Pulls, pushes, and history work as expected.' }, { icon: IconFolders, title: 'Plain .tex folder', description: 'A directory of chapters, figures, and a .bib. Open it and start writing.' }] as item, i (item.title)}
+									{const Icon = item.icon}
 									<Reveal as="li" variant="left" delay={i * 70} class="flex items-start gap-4">
 										<span
 											class="landing-glass-chip mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl text-foreground/70"
@@ -904,9 +894,9 @@
 							</ul>
 
 							<div class="mt-12 flex items-center gap-3">
-								<Button href={resolve('/download')} variant="default" class="gap-2">
-									<IconDownload class="size-4" />
-									Download free
+								<Button href={resolve('/workspace')} variant="default" class="gap-2">
+									<IconPlayerPlay class="size-4" />
+									Try the workspace
 								</Button>
 							</div>
 						</div>
@@ -914,7 +904,7 @@
 						<div class="lg:col-span-6">
 							<Reveal variant="morph">
 								<MacWindow
-									title="GlyphX"
+									title="GlyphTeX"
 									class="transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-craft-lg"
 								>
 									<EditorMock />
@@ -955,14 +945,14 @@
 					</div>
 
 					<PolishGrid features={polishFeatures} />
-
-					<Reveal variant="up" class="mt-14">
+					<!-- hidden till proper screenshot -->
+					<Reveal variant="up" class="mt-14 hidden">
 						<figure class="mx-auto max-w-5xl">
-							<MacWindow title="GlyphX · Editor" class="shadow-craft-xl">
+							<MacWindow title="GlyphTeX · Editor" class="shadow-craft-xl">
 								<div class="bg-linear-to-b from-muted/10 to-background p-1.5">
 									<img
 										src="/hero-editor.png"
-										alt="GlyphX editor with live PDF preview"
+										alt="GlyphTeX editor with live PDF preview"
 										width="1920"
 										height="1080"
 										loading="lazy"
@@ -1129,13 +1119,13 @@
 							<p
 								class="landing-text-pretty mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg"
 							>
-								Diffs, commits, branches, and remotes live in your own repository. GlyphX helps with
-								the workflow; the archive still belongs to you and the tools you already trust.
+								Diffs, commits, branches, and remotes live in your own repository. GlyphTeX helps
+								with the workflow; the archive still belongs to you and the tools you already trust.
 							</p>
 
 							<ul class="mt-10 space-y-5">
 								{#each [{ icon: IconGitBranch, title: 'Built-in Git UI', description: 'Stage, commit, branch, and merge without leaving the editor.' }, { icon: IconLock, title: 'No proprietary history tier', description: 'Every revision, forever. The repository is the source of truth.' }, { icon: IconBrandGithub, title: 'Works with your remote', description: 'GitHub, GitLab, a self-hosted Gitea, or your university server.' }] as item, i (item.title)}
-									{@const Icon = item.icon}
+									{const Icon = item.icon}
 									<Reveal as="li" variant="left" delay={i * 70} class="flex items-start gap-4">
 										<span
 											class="landing-glass-chip mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl text-foreground/70"
@@ -1279,7 +1269,7 @@
 						<p
 							class="landing-text-pretty mt-4 max-w-xl mx-auto text-base leading-relaxed text-foreground/70 sm:text-lg"
 						>
-							The workflow GlyphX is opinionated about is the one researchers already live in: a
+							The workflow GlyphTeX is opinionated about is the one researchers already live in: a
 							folder of .tex files, a bibliography, and a long revision history.
 						</p>
 					</Reveal>
@@ -1292,7 +1282,7 @@
 				-->
 				<div class="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
 					{#each audienceCards as card, i (card.title)}
-						{@const Icon = card.icon}
+						{const Icon = card.icon}
 						<div
 							in:fly={{
 								y: 20,
@@ -1419,7 +1409,7 @@
 					<div class="lg:col-span-8">
 						<ul class="space-y-3">
 							{#each faqs as faq, i (faq.q)}
-								{@const open = openFaq === i}
+								{const open = openFaq === i}
 								<li>
 									<!--
 									  Accordion card ported from the trace-mvp reference:
@@ -1515,18 +1505,14 @@
 							class="mt-10 flex flex-wrap items-center justify-center gap-3"
 						>
 							<Button
-								href={resolve('/download')}
+								href={resolve('/workspace')}
 								variant="default"
 								size="lg"
 								class="gap-2.5"
-								onclick={() => trackEvent('cta_download_click', { location: 'final_cta' })}
+								onclick={() => trackEvent('cta_workspace_click', { location: 'final_cta' })}
 							>
-								<IconDownload class="size-4" />
-								Download desktop app
-							</Button>
-							<Button href={resolve('/editor')} variant="outline" size="lg" class="gap-2">
 								<IconPlayerPlay class="size-4" />
-								Open browser editor
+								Try the workspace
 							</Button>
 						</Reveal>
 

@@ -2,10 +2,11 @@
 	import { resolve } from '$app/paths';
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
-	import { Button } from '@glyphx/ui/button';
-	import { Reveal } from '@glyphx/ui/reveal';
+	import { Button } from '@glyphtex/ui/button';
+	import { Reveal } from '@glyphtex/ui/reveal';
 	import { Container, HeroBackdrop, Section } from '$lib/landing';
 	import {
+		IconAlertTriangle,
 		IconArrowRight,
 		IconBrandApple,
 		IconBrandDebian,
@@ -26,7 +27,7 @@
 	import { trackEvent } from '$lib/analytics';
 
 	const owner = 'kanakkholwal';
-	const repoName = 'glyphx';
+	const repoName = 'glyphtex';
 	const repo = `https://github.com/${owner}/${repoName}`;
 	const releases = `${repo}/releases`;
 	// Default hero backdrop. Mirrors the home page's hero (rounded card,
@@ -149,10 +150,10 @@
 	// downloaded .dmg is Gatekeeper-blocked until the quarantine flag is cleared.
 	// Homebrew would clear it automatically, but the cask is not published yet,
 	// so the step is built and kept hidden behind this flag. Flip it to true once
-	// `brew tap kanakkholwal/glyphx` + the glyphx cask are live.
+	// `brew tap kanakkholwal/glyphtex` + the glyphtex cask are live.
 	const showHomebrew = false;
-	const brewCmd = 'brew install --cask kanakkholwal/glyphx/glyphx';
-	const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/GlyphX.app';
+	const brewCmd = 'brew install --cask kanakkholwal/glyphtex/glyphtex';
+	const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/GlyphTeX.app';
 
 	type MacStep = { title: string; body: string; code?: string; done?: string };
 	const macSteps: MacStep[] = [
@@ -171,16 +172,16 @@
 			body: 'Apple Silicon for M1, M2, M3, and M4 Macs. Intel for older models. Not sure which you have? Open the Apple menu, then About This Mac.'
 		},
 		{
-			title: 'Drag GlyphX into Applications',
-			body: 'Open the .dmg and drop GlyphX into your Applications folder, the same as any other Mac app.'
+			title: 'Drag GlyphTeX into Applications',
+			body: 'Open the .dmg and drop GlyphTeX into your Applications folder, the same as any other Mac app.'
 		},
 		{
 			title: 'Clear the Gatekeeper warning, once',
-			body: 'GlyphX is not notarized by Apple yet, so the first launch can show a "GlyphX is damaged" or "unidentified developer" message. Run this line in Terminal to clear it. It only removes the quarantine flag macOS adds to downloaded apps.',
+			body: 'GlyphTeX is not notarized by Apple yet, so the first launch can show a "GlyphTeX is damaged" or "unidentified developer" message. Run this line in Terminal to clear it. It only removes the quarantine flag macOS adds to downloaded apps.',
 			code: quarantineCmd
 		},
 		{
-			title: 'Open GlyphX',
+			title: 'Open GlyphTeX',
 			body: 'Launch it from Applications or Spotlight and you are in. macOS will not ask again. If you ever reinstall from a .dmg and the warning returns, run the same line once more.'
 		}
 	];
@@ -235,22 +236,24 @@
 		}
 	];
 
+	// Prototype scope, stated plainly. Nothing here is a promise about the current build.
 	const included = [
 		'The LaTeX engine, built in. No separate TeX distribution to install.',
-		'A full editor with live preview, file tree, search, and a command palette.',
-		'A built-in Git client: stage, commit, diff, history, clone, and push or pull.',
+		'An editor with live preview, file tree, search, and a command palette.',
+		'A Git client: stage, commit, diff, history, clone, and push or pull.',
 		'Everything runs locally, so projects stay on your disk and compile offline.',
-		'Automatic updates, so you stay on the latest build without reinstalling.',
-		'Free, with no account and no telemetry.'
+		'No account and no telemetry, same as the browser workspace.',
+		'Missing whatever has landed in the workspace since these builds were cut.'
 	];
 </script>
 
 <svelte:head>
-	<title>Download GlyphX: the local-first LaTeX editor</title>
+	<title>GlyphTeX desktop app: an archived prototype</title>
 	<meta
 		name="description"
-		content="Download GlyphX for macOS, Windows, and Linux. A local-first LaTeX editor that ships its own engine, compiles offline, and keeps your projects on your own disk. Free, no account."
+		content="The GlyphTeX desktop app is an unmaintained prototype. Any builds here are outdated and unsupported — use the browser workspace instead."
 	/>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div
@@ -275,27 +278,24 @@
 				<div
 					class="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-20 text-center md:py-28"
 				>
-					<a
-						href={repo}
-						target="_blank"
-						rel="noopener noreferrer"
-						class="landing-glass-chip inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:text-foreground"
+					<span
+						class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning"
 						in:fly={{ y: 8, duration: 500, delay: 0, easing: cubicOut }}
 					>
-						<IconBrandGithub class="size-3.5" />
-						Open source · GPLv3
-					</a>
+						<IconAlertTriangle class="size-3.5" />
+						Outdated prototype · not maintained
+					</span>
 
 					<h1
 						class="landing-text-balance text-[2.5rem] font-bold leading-[1.05] tracking-[-0.025em] text-foreground sm:text-5xl md:text-[3rem]"
 						in:fly={{ y: 12, duration: 600, delay: 80, easing: cubicOut }}
 					>
-						Download GlyphX.
+						The desktop app is on hold.
 						<span
 							class="mt-2 block font-serif text-xl font-medium italic text-foreground/65 sm:text-2xl md:text-3xl"
 							style="line-height: 1.15;"
 						>
-							Pick your platform.
+							Use the browser workspace.
 						</span>
 					</h1>
 
@@ -303,18 +303,35 @@
 						class="landing-text-pretty max-w-xl text-base font-medium leading-relaxed text-foreground/85 sm:text-lg"
 						in:fly={{ y: 12, duration: 600, delay: 160, easing: cubicOut }}
 					>
-						The desktop app puts the LaTeX engine on your machine. Write and compile fully offline,
-						with the built-in Git client alongside. It updates itself.
+						Any builds listed below are old prototypes, kept only for reference. They lag well
+						behind the current editor, get no updates, and are not supported. The browser workspace
+						is where GlyphTeX is actually being built.
 					</p>
 
 					<div
 						class="mt-1 flex flex-col items-center gap-3 sm:flex-row"
 						in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
 					>
-						<Button href={resolve('/editor')} variant="outline" size="lg" class="group/cta gap-2">
+						<Button
+							href={resolve('/workspace')}
+							variant="default"
+							size="lg"
+							class="group/cta gap-2"
+						>
 							<IconPlayerPlay class="size-4" />
-							Try in browser first
+							Try the workspace
 							<IconArrowRight class="size-4 transition-transform group-hover/cta:translate-x-0.5" />
+						</Button>
+						<Button
+							href={repo}
+							target="_blank"
+							rel="noopener noreferrer"
+							variant="outline"
+							size="lg"
+							class="gap-2"
+						>
+							<IconBrandGithub class="size-4" />
+							View the source
 						</Button>
 					</div>
 
@@ -328,7 +345,7 @@
 							></span>
 							<span class="relative inline-flex size-1.5 rounded-full bg-brand"></span>
 						</span>
-						Free forever · No account · No telemetry
+						Open source · GPLv3 · No account · No telemetry
 					</div>
 				</div>
 			</div>
@@ -345,19 +362,20 @@
 					<span
 						class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
 					>
-						<span class="size-1.5 rounded-full bg-brand"></span>
-						Pick your platform
+						<span class="size-1.5 rounded-full bg-warning"></span>
+						Archived builds
 					</span>
 					<h2
 						class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 					>
-						One download. <em class="font-serif italic font-medium text-foreground/65"
-							>Everything included.</em
+						Old prototypes. <em class="font-serif italic font-medium text-foreground/65"
+							>Kept for reference only.</em
 						>
 					</h2>
 					<p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-						Native builds for macOS, Windows, and Linux. Each one ships the LaTeX engine, the
-						editor, and the Git client in a single app. No separate TeX install, no account.
+						These builds predate most of the current editor and will not be updated. Expect missing
+						features and rough edges. Install one only if you want to see where the desktop shell
+						got to.
 					</p>
 				</Reveal>
 
@@ -376,7 +394,7 @@
 							<span
 								class="rounded-full border border-brand/30 bg-brand/10 px-2 py-0.5 font-semibold text-brand"
 							>
-								GlyphX {version}
+								GlyphTeX {version}
 							</span>
 							{#if releasedOn}<span>released {releasedOn}</span>{/if}
 						</span>
@@ -395,9 +413,9 @@
 
 				<div class="grid gap-4 sm:grid-cols-3">
 					{#each platforms as p, i (p.id)}
-						{@const Icon = p.icon}
-						{@const isMine = detected === p.id}
-						{@const items = assets[p.id]}
+						{const Icon = p.icon}
+						{const isMine = detected === p.id}
+						{const items = assets[p.id]}
 						<Reveal
 							as="article"
 							variant="up"
@@ -591,8 +609,8 @@
 							</ol>
 
 							<p class="mt-6 text-xs leading-relaxed text-muted-foreground">
-								Prefer not to use Terminal? You can also right-click GlyphX in Applications, choose
-								Open, and confirm once in the dialog that appears.
+								Prefer not to use Terminal? You can also right-click GlyphTeX in Applications,
+								choose Open, and confirm once in the dialog that appears.
 							</p>
 						</div>
 					</details>
@@ -613,13 +631,13 @@
 							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
 						>
 							<span class="size-1.5 rounded-full bg-brand"></span>
-							What is in the download
+							What the prototype had
 						</span>
 						<h2
 							class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl"
 						>
 							One app. <em class="font-serif italic font-medium text-foreground/65"
-								>Nothing else to set up.</em
+								>Frozen where it stopped.</em
 							>
 						</h2>
 						<ul class="mt-7 flex flex-col gap-3.5">
@@ -695,19 +713,20 @@
 							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
 						>
 							<span class="size-1.5 rounded-full bg-brand"></span>
-							Ready when you are
+							Where the work is
 						</span>
 						<h2
 							class="landing-text-balance mt-4 max-w-3xl mx-auto text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 						>
-							Builds are <em class="font-serif italic font-medium text-foreground/65">on the way</em
+							A real release <em class="font-serif italic font-medium text-foreground/65"
+								>comes later</em
 							>.
 						</h2>
 						<p
 							class="landing-text-pretty mt-5 max-w-md mx-auto text-base leading-relaxed text-muted-foreground sm:text-lg"
 						>
-							Desktop releases are published on GitHub. Watch the repository to hear about the first
-							one, or start writing in the browser today.
+							Development is happening in the browser workspace first. Watch the repository to hear
+							when the desktop app is picked back up.
 						</p>
 						<div class="mt-9 flex flex-wrap justify-center gap-3">
 							<Button
@@ -720,8 +739,8 @@
 							>
 								<IconBrandGithub class="size-4" /> Watch on GitHub
 							</Button>
-							<Button href={resolve('/editor')} variant="default" size="lg" class="gap-2">
-								Open the editor
+							<Button href={resolve('/workspace')} variant="default" size="lg" class="gap-2">
+								Open the browser workspace
 								<IconArrowRight class="size-4" />
 							</Button>
 						</div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Workbench } from '@glyphx/ui/application';
+	import { Workbench } from '@glyphtex/ui/application';
 	import { compileLatex, compileProject } from '$lib/compile';
 	import { engineManager } from '$lib/engine';
 	import { gitProvider } from '$lib/git';
@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-	<title>GlyphX</title>
+	<title>GlyphTeX</title>
 </svelte:head>
 
 <Workbench

@@ -1,5 +1,5 @@
 // Local-dev convenience: make the Tectonic sidecar available for the host so
-// `pnpm --filter @glyphx/desktop tauri dev`/`build` compiles.
+// `pnpm --filter @glyphtex/desktop tauri dev`/`build` compiles.
 //
 // With `externalBin: ["binaries/tectonic"]` in tauri.conf.json, Tauri requires
 // a `tectonic-<host-triple>[.exe]` file to exist before the Rust crate will
@@ -8,7 +8,7 @@
 // binaries dir (it just copies it to the triple-named path), and otherwise
 // downloads the pinned release.
 //
-// Run via: `pnpm --filter @glyphx/desktop tectonic:setup`
+// Run via: `pnpm --filter @glyphtex/desktop tectonic:setup`
 
 import { copyFileSync, existsSync } from 'node:fs';
 import { arch, platform } from 'node:os';

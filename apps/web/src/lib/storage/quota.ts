@@ -1,9 +1,9 @@
 /** Per-document ceiling. Not a browser limit — it keeps one document from
  *  eating the whole origin quota and getting everything evicted. */
-export const PER_PROJECT_BYTES = 50 * 1024 * 1024;
+export const PER_PROJECT_BYTES = 100 * 1024 * 1024;
 
 /** Single-file ceiling, so one pasted image cannot fill a document. */
-export const PER_FILE_BYTES = 10 * 1024 * 1024;
+export const PER_FILE_BYTES = 20 * 1024 * 1024;
 
 /** Fraction of the granted quota above which the UI warns. */
 export const WARN_AT = 0.8;
@@ -35,8 +35,9 @@ export async function storageStatus(): Promise<StorageStatus> {
 }
 
 /**
- * Ask the browser to exempt this origin from eviction. Chrome decides silently
- * on engagement heuristics; Firefox prompts. Returns the resulting state.
+ * Ask the browser to exempt this origin from eviction. **Call this from a click
+ * handler** — Firefox only shows its prompt during a user gesture, and a
+ * gesture-less call just resolves false without ever asking.
  */
 export async function requestPersistence(): Promise<boolean> {
 	if (typeof navigator === 'undefined' || !navigator.storage?.persist) return false;
@@ -45,6 +46,23 @@ export async function requestPersistence(): Promise<boolean> {
 		return await navigator.storage.persist();
 	} catch {
 		return false;
+	}
+}
+
+/**
+ * The `persistent-storage` permission as the browser sees it. Distinguishes a
+ * hard `denied` (asking again is pointless) from `prompt` (Chrome's engagement
+ * heuristics not met yet). `unsupported` in Safari/Firefox, which do not expose it.
+ */
+export async function persistencePermission(): Promise<PermissionState | 'unsupported'> {
+	if (typeof navigator === 'undefined' || !navigator.permissions?.query) return 'unsupported';
+	try {
+		const status = await navigator.permissions.query({
+			name: 'persistent-storage' as PermissionName
+		});
+		return status.state;
+	} catch {
+		return 'unsupported';
 	}
 }
 

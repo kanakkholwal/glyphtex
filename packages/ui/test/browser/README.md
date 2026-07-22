@@ -1,6 +1,6 @@
 # Browser smoke check
 
-`pnpm --filter @glyphx/ui test:browser`
+`pnpm --filter @glyphtex/ui test:browser`
 
 Drives a real Chrome over the DevTools Protocol and checks that the Monaco
 editor mounts, paints in the Islands theme, tokenizes LaTeX, and opens the
@@ -27,7 +27,7 @@ Two things must be up first:
 
 ```sh
 # 1. the web app
-pnpm --filter @glyphx/web dev --port 5199
+pnpm --filter @glyphtex/web dev --port 5199
 
 # 2. headless Chrome with a debugging port
 chrome --headless=new --remote-debugging-port=9333 --user-data-dir=/tmp/chrome-smoke about:blank

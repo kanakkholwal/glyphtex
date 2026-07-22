@@ -83,7 +83,7 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       bind:this={ctrl.containerEl}
-      class="glyphx-pdf-container absolute inset-0 overflow-auto"
+      class="glyphtex-pdf-container absolute inset-0 overflow-auto"
       tabindex="-1"
       ondblclick={(e) => ctrl.onDblClick(e)}
       onwheel={(e) => ctrl.onWheel(e)}
@@ -122,13 +122,13 @@
 
 <style>
   /* Reserve the scrollbar gutter so it never reflows the fit-width calc. */
-  .glyphx-pdf-container {
+  .glyphtex-pdf-container {
     scrollbar-gutter: stable;
     background: var(--color-muted, transparent);
   }
 
   /* Page chrome — we own it (PDFViewer renders borderless via removePageBorders). */
-  :global(.glyphx-pdf-container .pdfViewer .page) {
+  :global(.glyphtex-pdf-container .pdfViewer .page) {
     margin: 1.25rem auto;
     border: 1px solid var(--color-border);
     border-radius: 3px;
@@ -138,21 +138,21 @@
   }
 
   /* Selection tint via our brand token (not a hardcoded colour). */
-  :global(.glyphx-pdf-container .textLayer ::selection) {
+  :global(.glyphtex-pdf-container .textLayer ::selection) {
     background: color-mix(in srgb, var(--color-primary) 30%, transparent);
   }
 
   /* Forward-sync flash (source → PDF). */
-  :global(.glyphx-sync-flash) {
+  :global(.glyphtex-sync-flash) {
     position: absolute;
     z-index: 5;
     pointer-events: none;
     border-radius: 3px;
     background: color-mix(in srgb, var(--color-primary) 30%, transparent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 45%, transparent);
-    animation: glyphx-sync-fade 1.5s ease-out forwards;
+    animation: glyphtex-sync-fade 1.5s ease-out forwards;
   }
-  @keyframes -global-glyphx-sync-fade {
+  @keyframes -global-glyphtex-sync-fade {
     0% {
       opacity: 0;
     }

@@ -28,7 +28,7 @@
 
 <script lang="ts">
 	import * as Tooltip from "../tooltip";
-	import { cn, type WithElementRef, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
+	import { cn, type WithElementRef, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import { mergeProps } from "bits-ui";
 	import type { ComponentProps, Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
@@ -61,13 +61,15 @@
 		"data-slot": "sidebar-menu-button",
 		"data-sidebar": "menu-button",
 		"data-size": size,
-		"data-active": isActive,
+		// Omitted, not `false`: Tailwind's `data-active:` variant tests attribute
+		// presence, so `data-active="false"` styles every row as active.
+		"data-active": isActive ? "true" : undefined,
 		...restProps,
 	});
 </script>
 
 {#snippet Button({ props }: { props?: Record<string, unknown> })}
-	{@const mergedProps = mergeProps(buttonProps, props)}
+	{const mergedProps = mergeProps(buttonProps, props)}
 	{#if child}
 		{@render child({ props: mergedProps })}
 	{:else}

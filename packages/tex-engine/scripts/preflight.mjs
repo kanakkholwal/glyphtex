@@ -59,4 +59,5 @@ if (problems.length) {
 	process.exit(1);
 }
 
-console.log('\nReady to publish:  npm publish --access public\n');
+// Unscoped, so it is public by default and needs no --access flag.
+console.log(`\nReady to publish:  npm publish\n`);

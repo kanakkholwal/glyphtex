@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '@glyphx/ui/utils';
+	import { cn } from '@glyphtex/ui/utils';
 
 	// Draggable wipe comparison. The "raw" surface fills the base and the
 	// "polished" surface is clipped to the right of the handle, so dragging

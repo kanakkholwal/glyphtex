@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { ProjectsHome } from '@glyphx/ui/application';
-	import { toast } from '@glyphx/ui/sonner';
+	import { ProjectsHome, type Scope } from '@glyphtex/ui/application';
+	import { toast } from '@glyphtex/ui/sonner';
 	import { onMount } from 'svelte';
 
 	import StoragePanel from '$lib/StoragePanel.svelte';
@@ -19,11 +19,27 @@
 		duplicateProject,
 		listProjects,
 		renameProject,
+		setStarred,
 		type StoredProject
 	} from '$lib/storage/projects';
-	import { requestPersistence } from '$lib/storage/quota';
+	import { requestPersistence, storageStatus } from '$lib/storage/quota';
 	import { starterFiles } from '$lib/storage/template';
-	import { Logo } from '@glyphx/ui/logo';
+
+	let { scope = 'all' }: { scope?: Scope } = $props();
+
+	const scopeHrefs: Record<Scope, string> = {
+		all: resolve('/workspace'),
+		recent: resolve('/workspace/recent'),
+		starred: resolve('/workspace/starred'),
+		templates: resolve('/workspace/templates')
+	};
+
+	const titles: Record<Scope, string> = {
+		all: 'Documents',
+		recent: 'Recent',
+		starred: 'Starred',
+		templates: 'Templates'
+	};
 
 	let stored = $state<StoredProject[]>([]);
 	let loading = $state(true);
@@ -35,19 +51,25 @@
 	function report(error: unknown, fallback: string): void {
 		const message = error instanceof Error ? error.message : fallback;
 		toast.error(message);
-		console.error('[GlyphX]', error);
+		console.error('[GlyphTeX]', error);
 	}
+
+	// Whole-origin usage (engine cache included), not just documents: that is the
+	// number that actually predicts eviction.
+	let storage = $state<{ used: number; total: number } | undefined>(undefined);
 
 	async function refresh(): Promise<void> {
 		stored = await listProjects();
+		const status = await storageStatus();
+		storage =
+			status.unknown || status.quota === 0
+				? undefined
+				: { used: status.usage, total: status.quota };
 	}
 
 	onMount(async () => {
 		try {
 			await refresh();
-			// Only ask once there is something worth keeping; a prompt on an empty
-			// app is noise, and Firefox shows a real permission dialog.
-			if (stored.length > 0) void requestPersistence();
 		} catch (error) {
 			failure = error instanceof Error ? error.message : 'Could not read saved documents.';
 		} finally {
@@ -124,7 +146,7 @@
 	}
 
 	function open(id: string): void {
-		void goto(resolve(`/projects/${id}` as `/projects/${string}`));
+		void goto(resolve(`/workspace/projects/${id}` as `/workspace/projects/${string}`));
 	}
 
 	async function rename(id: string, name: string): Promise<void> {
@@ -145,6 +167,15 @@
 		}
 	}
 
+	async function star(id: string, starred: boolean): Promise<void> {
+		try {
+			await setStarred(id, starred);
+			await refresh();
+		} catch (error) {
+			report(error, 'Could not update the star.');
+		}
+	}
+
 	async function remove(id: string): Promise<void> {
 		try {
 			await deleteProject(id);
@@ -156,16 +187,11 @@
 </script>
 
 <svelte:head>
-	<title>Documents · GlyphX</title>
-	<meta name="description" content="Your GlyphX LaTeX documents, stored in this browser." />
+	<title>{titles[scope]} · GlyphTeX</title>
+	<meta name="description" content="Your GlyphTeX LaTeX documents, stored in this browser." />
 </svelte:head>
 
-{#if loading}
-	<div class="flex min-h-dvh items-center justify-center flex-col gap-4 text-center">
-		<Logo size="lg" />
-		<p class="text-sm text-muted-foreground" role="status">Loading your documents…</p>
-	</div>
-{:else if failure}
+{#if failure}
 	<div
 		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
 	>
@@ -186,12 +212,18 @@
 	>
 		<ProjectsHome
 			platform="web"
+			activeScope={scope}
+			{scopeHrefs}
+			{loading}
 			{projects}
 			oncreate={handleCreate}
 			onopen={open}
 			onrename={rename}
 			onduplicate={duplicate}
 			ondelete={remove}
+			onstar={star}
+			{storage}
+			helpHref="https://github.com/kanakkholwal/glyphtex#readme"
 			onsettings={() => (storageOpen = true)}
 			onimport={() => zipInput?.click()}
 		/>

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use tauri::Manager;
 
 const REPO: &str = "tectonic-typesetting/tectonic";
-const USER_AGENT: &str = "glyphx-editor";
+const USER_AGENT: &str = "glyphtex-editor";
 
 #[derive(Serialize, Clone)]
 pub struct EngineVersion {

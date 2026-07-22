@@ -1,10 +1,10 @@
-import type { GlyphFile } from '@glyphx/ui/application';
-import type { Project } from '@glyphx/ui/projects';
+import type { GlyphFile } from '@glyphtex/ui/application';
+import type { Project } from '@glyphtex/ui/projects';
 import type { CompileFile } from '$lib/compile';
 import { isBinaryPath, type NewFile, type StoredFile, type StoredProject } from './projects';
 
 /** Placeholder body for a binary file, which the text editor cannot represent. */
-const BINARY_NOTE = '% Binary file — edited outside GlyphX, included as-is.\n';
+const BINARY_NOTE = '% Binary file — edited outside GlyphTeX, included as-is.\n';
 
 /** Card metadata only: `files` carries paths so counts render without contents. */
 export function toProjectCard(p: StoredProject): Project {
@@ -13,7 +13,8 @@ export function toProjectCard(p: StoredProject): Project {
 		name: p.name,
 		files: p.paths.map((path) => ({ id: path, name: path, content: '' })),
 		createdAt: p.createdAt,
-		updatedAt: p.updatedAt
+		updatedAt: p.updatedAt,
+		starred: p.starred
 	};
 }
 
@@ -24,10 +25,8 @@ export function toGlyphFiles(files: StoredFile[]): GlyphFile[] {
 	});
 }
 
-/**
- * Workbench files back to storage. Binary members keep their stored bytes —
- * the editor only ever held a placeholder for them.
- */
+/** Workbench files back to storage. Binary members keep their stored bytes — the
+ *  editor only ever held a placeholder for them. */
 export function toNewFiles(files: GlyphFile[], binary: Map<string, Uint8Array>): NewFile[] {
 	return files.map((f) => {
 		const data = binary.get(f.name);

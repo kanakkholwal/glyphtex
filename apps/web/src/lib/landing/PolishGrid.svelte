@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Reveal } from '@glyphx/ui/reveal';
-	import { cn } from '@glyphx/ui/utils';
+	import { Reveal } from '@glyphtex/ui/reveal';
+	import { cn } from '@glyphtex/ui/utils';
 
 	// Step 2's auto-polish grid. A soft "Applied" highlight ticks through the
 	// cards one at a time so the section reads as features being applied live,
@@ -38,8 +38,8 @@
 
 <div class="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 	{#each features as feature, i (feature.title)}
-		{@const Icon = feature.icon}
-		{@const isApplied = i === applied}
+		{const Icon = feature.icon}
+		{const isApplied = i === applied}
 		<Reveal variant="up" delay={i * 70} class="h-full">
 			<div
 				class={cn(

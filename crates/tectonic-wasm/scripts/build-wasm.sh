@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Build the GlyphX TeX engine to wasm32-unknown-emscripten.
+# Build the GlyphTeX TeX engine to wasm32-unknown-emscripten.
 #
 # The single source of truth for how this is built: CI calls it, and so should
 # you. Requires a Linux environment with the Emscripten SDK activated (emcc on
@@ -46,7 +46,7 @@ step() { echo; echo "=== $* ==="; }
 #
 # So: everything uses the JS scheme. That is also the configuration the one
 # known-good build of this engine used — its module imports invoke_* and
-# emscripten_longjmp, which is what @glyphx/tex-engine's host shim implements.
+# emscripten_longjmp, which is what glyphtex-engine's host shim implements.
 #
 # Empty on purpose: the C is compiled with Emscripten's defaults, which is the
 # JS scheme, matching the ports.
@@ -74,10 +74,10 @@ step "Emscripten ports"
 # compile each port into its sysroot cache, which is what the real link needs.
 # Emscripten caches a separate variant per settings combination, so passing the
 # EH flags here is what produces wasm-EH builds of the ports.
-echo 'int main(){return 0;}' > /tmp/glyphx-probe.c
-emcc /tmp/glyphx-probe.c $EH_FLAGS \
+echo 'int main(){return 0;}' > /tmp/glyphtex-probe.c
+emcc /tmp/glyphtex-probe.c $EH_FLAGS \
   -sUSE_FREETYPE=1 -sUSE_HARFBUZZ=1 -sUSE_LIBPNG=1 -sUSE_ZLIB=1 -sUSE_ICU=1 \
-  -o /tmp/glyphx-probe.js
+  -o /tmp/glyphtex-probe.js
 
 step "graphite2"
 # Not optional, despite the engine never using Graphite shaping in practice:
@@ -88,7 +88,7 @@ if [ ! -f "$SYSROOT/lib/wasm32-emscripten/libgraphite2.a" ]; then
   # This tarball is compiled into the shipped engine, so verify it: it is the
   # one build input fetched from a third party at build time.
   GRAPHITE_SHA256=f99d1c13aa5fa296898a181dff9b82fb25f6cc0933dbaa7a475d8109bd54209d
-  WORK="${TMPDIR:-/tmp}/glyphx-graphite2"
+  WORK="${TMPDIR:-/tmp}/glyphtex-graphite2"
   mkdir -p "$WORK" && cd "$WORK"
   if [ ! -f "graphite2-$GRAPHITE_VERSION.tgz" ]; then
     curl -sSLO "https://github.com/silnrsi/graphite/releases/download/$GRAPHITE_VERSION/graphite2-$GRAPHITE_VERSION.tgz"
@@ -175,7 +175,7 @@ EXPORTS='["_main","_malloc","_free"'
 for f in abi_version alloc dealloc add_file remove_file file_count \
          clear_files clear_outputs compile result_ptr result_len \
          output_len output_copy; do
-  EXPORTS="$EXPORTS,\"_glyphx_$f\""
+  EXPORTS="$EXPORTS,\"_glyphtex_$f\""
 done
 EXPORTS="$EXPORTS]"
 
@@ -208,7 +208,7 @@ export RUSTFLAGS="-L $SYSROOT/lib/wasm32-emscripten $LIBS \
  -C link-args=-sUSE_ICU \
  -C link-args=-sERROR_ON_UNDEFINED_SYMBOLS=0 \
  -C link-args=-sALLOW_MEMORY_GROWTH=1 \
- -C link-args=-sINITIAL_MEMORY=${GLYPHX_INITIAL_MEMORY:-268435456} \
+ -C link-args=-sINITIAL_MEMORY=${GLYPHTEX_INITIAL_MEMORY:-268435456} \
  -C link-args=-sMAXIMUM_MEMORY=2147483648"
 
 cd "$REPO"
@@ -225,7 +225,7 @@ trap 'rm -f "$STAMP"' EXIT
 # Overridable, but the default has to be correct — the build does not link
 # without it, and a caller who has to know that is a trap.
 # shellcheck disable=SC2086
-cargo build --target "$TARGET" --release ${GLYPHX_BUILD_STD:--Z build-std=std,panic_abort}
+cargo build --target "$TARGET" --release ${GLYPHTEX_BUILD_STD:--Z build-std=std,panic_abort}
 
 ARTIFACT="${CARGO_TARGET_DIR:-$REPO/target}/$TARGET/release/tectonic_wasm.wasm"
 

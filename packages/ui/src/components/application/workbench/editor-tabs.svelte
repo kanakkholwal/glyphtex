@@ -32,10 +32,10 @@
 <div class="border-border bg-muted dark:bg-card flex h-9 shrink-0 items-stretch border-b">
   <div class="flex min-w-0 flex-1 items-stretch overflow-x-auto" role="tablist" aria-label="Open files">
   {#each files.openTabFiles as file (file.id)}
-    {@const active = file.id === files.activeId}
-    {@const dirty = files.dirtyIds.has(file.id)}
-    {@const Icon = icons[classifyFile(file.name)]}
-    {@const dir = /[\\/]/.test(file.name) ? parentDir(file.name) : ""}
+    {const active = file.id === files.activeId}
+    {const dirty = files.dirtyIds.has(file.id)}
+    {const Icon = icons[classifyFile(file.name)]}
+    {const dir = /[\\/]/.test(file.name) ? parentDir(file.name) : ""}
     <div
       class="group border-border/70 relative flex shrink-0 items-center gap-1.5 border-r pr-1 pl-3 text-xs transition-colors {active
         ? 'bg-background text-foreground'
@@ -43,7 +43,7 @@
       role="presentation"
     >
       {#if active}
-        <span class="bg-brand absolute inset-x-0 top-0 h-0.5" aria-hidden="true"></span>
+        <span class="bg-brand absolute inset-x-0 bottom-0 h-0.25" aria-hidden="true"></span>
       {/if}
       <button
         class="flex min-w-0 items-center gap-1.5 py-0 pr-1"

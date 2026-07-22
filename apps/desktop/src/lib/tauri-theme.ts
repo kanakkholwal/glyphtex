@@ -1,4 +1,4 @@
-import { settings } from '@glyphx/ui/settings';
+import { settings } from '@glyphtex/ui/settings';
 import { isTauriRuntime } from '$lib/runtime';
 
 /**

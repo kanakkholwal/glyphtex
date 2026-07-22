@@ -1,18 +1,5 @@
-/**
- * Minimal SyncTeX reader for **reverse search** (PDF → source).
- *
- * Tectonic emits `main.synctex.gz`; the desktop backend gunzips it and hands us
- * the text. We parse the `Content:` section into per-page positioned records,
- * each carrying the source line that produced it, then `locate()` maps a click
- * (page + PDF point) back to the nearest source line.
- *
- * Coordinate units — verified against real Tectonic output:
- *   - values are TeX **scaled points** (1 TeX pt = 65536 sp; 1 TeX pt = 1/72.27").
- *   - the PDF grid is **big points** (1 bp = 1/72"), so we convert with 72/72.27.
- *   - `v` is measured from the **top** of the page (matches PDF.js `yTop`).
- * (Confirmed: a record's `v - height` lands exactly on the 1-inch page margin.)
- */
-
+// SyncTeX stores TeX scaled points; the PDF grid is big points. Verified against real
+// Tectonic output: a record's `v - height` lands exactly on the 1-inch page margin.
 const TEX_PT_PER_SP = 1 / 65536;
 const BP_PER_TEX_PT = 72 / 72.27;
 

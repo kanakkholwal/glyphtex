@@ -5,7 +5,7 @@ import type {
 	EngineVersion,
 	PrefetchResult,
 	SystemTexInfo
-} from '@glyphx/ui/application';
+} from '@glyphtex/ui/application';
 
 /** Shape returned by the Rust `prefetch_packages` command (its own struct — not
  *  the compile result; see compile.ts for that contract). */

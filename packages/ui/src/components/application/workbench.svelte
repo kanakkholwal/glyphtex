@@ -1,16 +1,17 @@
 <script lang="ts" module>
-  // Public type kept stable for `@glyphx/ui/application` consumers.
+  // Public type kept stable for `@glyphtex/ui/application` consumers.
   export type { ViewMode } from "./workbench/types";
 </script>
 
 <script lang="ts">
   import { IconCurrentLocation } from '@tabler/icons-svelte';
-  import { settings } from "@glyphx/ui/settings";
-  import { Toaster } from "@glyphx/ui/sonner";
+  import { settings } from "@glyphtex/ui/settings";
+  import { Toaster } from "@glyphtex/ui/sonner";
   import { onDestroy, onMount } from "svelte";
 
   import AboutDialog from "./about-dialog.svelte";
   import ActivityBar from "./activity-bar.svelte";
+  import CommandPalette from "./command-palette.svelte";
   import ProblemsPanel from "./problems-panel.svelte";
   import ShortcutsDialog from "./shortcuts-dialog.svelte";
   import SidePanel from "./side-panel.svelte";
@@ -24,13 +25,8 @@
   import StatusBar from "./workbench/status-bar.svelte";
   import TopBar from "./workbench/top-bar.svelte";
 
-  /**
-   * Workbench — the full editor experience. This component is now a thin shell:
-   * it owns the Svelte-specific glue (props, effects, lifecycle, window events)
-   * and the chrome layout, while all state + behaviour live in the
-   * {@link WorkbenchController} and its domain stores (files / layout / search /
-   * compile). The UI is split across `./workbench/*` panes.
-   */
+  /** Shell for the editor: Svelte glue and chrome layout only. State and behaviour
+   *  live in {@link WorkbenchController}; the panes live in `./workbench/*`. */
   let props: WorkbenchProps = $props();
   // The controller intentionally captures the initial (stable) host injections —
   // `compile`, `project`, `git`, … never change after mount.
@@ -38,21 +34,13 @@
   const ctrl = new WorkbenchController(props);
   const { files, layout, search, compile } = ctrl;
 
-  // --- Svelte side-effects (state + behaviour live in the controller) -------
-  // Persist in-memory projects back to the host (debounced).
   $effect(() => ctrl.armPersist());
-  // Refresh the Explorer's Git labels when the file set changes structurally.
   $effect(() => ctrl.refreshGitOnStructuralChange());
-  // "After delay" auto-save: persist a beat after typing stops.
   $effect(() => ctrl.armAutoSave());
-  // Track the shell width so the sidebar cap follows the window.
   $effect(() => layout.observeShell());
-  // Clear the editor highlight when neither Search view nor find bar is open.
   $effect(() => ctrl.clearSearchHighlight());
-  // Debounced live recompile when the saved content / main file changes.
   $effect(() => compile.armAutoCompile());
 
-  // Open a folder/file routed by a file-association launch; listen for more.
   onMount(() => {
     props.onready?.(ctrl);
     return ctrl.mountFileAssociation();
@@ -67,22 +55,26 @@
   onblur={() => ctrl.onWindowBlur()}
 />
 
-<div class="bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden">
-  <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
+<!-- `flex-row-reverse` docks the rail + panel on the right edge (VS Code's
+     "move primary side bar right"); the editor column keeps the rest. -->
+<div
+  bind:this={layout.shellEl}
+  class="bg-background text-foreground flex h-full min-h-0 overflow-hidden {layout.sidebarRight
+    ? 'flex-row-reverse'
+    : ''}"
+>
+  <ActivityBar
+    active={layout.activeView}
+    onselect={(v) => layout.selectView(v)}
+    position={settings.sidebarPosition}
+    menus={ctrl.menus}
+    homeHref={ctrl.backHref}
+    homeLabel={ctrl.backLabel}
+    onnewfile={() => files.newFile()}
+    onopenproject={files.project ? () => files.openFolder() : undefined}
+  />
 
-  <!-- Body — `flex-row-reverse` docks the rail + side panel on the right edge
-       (VS Code's "move primary side bar right"); the editor keeps the rest. -->
-  <div
-    bind:this={layout.shellEl}
-    class="flex min-h-0 flex-1 {layout.sidebarRight ? 'flex-row-reverse' : ''}"
-  >
-    <ActivityBar
-      active={layout.activeView}
-      onselect={(v) => layout.selectView(v)}
-      position={settings.sidebarPosition}
-    />
-
-    <!-- Smooth collapse + drag-to-resize (panel stays mounted; capped at 30%). -->
+    <!-- Collapses by width, not unmounting, so panel state survives a toggle. -->
     <div
       class="shrink-0 overflow-hidden {layout.resizingSidebar
         ? ''
@@ -114,6 +106,7 @@
         onreveal={files.project?.revealInOS && files.projectRoot
           ? () => files.revealProject()
           : undefined}
+        onaddfiles={ctrl.onAddFiles}
         onrenamefile={(id, name) => files.renameFile(id, name)}
         ondeletefile={(id) => files.deleteFile(id)}
         onsetmain={(id) => files.setMain(id)}
@@ -159,26 +152,38 @@
       </div>
     {/if}
 
-    <!-- min-w-0 lets these flex children shrink below their content's intrinsic
-         width, so a wide PDF page / long log line can't push the layout past the
-         window edge (which would hide the preview toolbar + log copy button). -->
+    <!-- min-w-0: without it a wide PDF page or long log line pushes the layout past
+         the window edge, hiding the preview toolbar and log copy button. -->
     <main class="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div bind:this={layout.bodyEl} class="flex min-h-0 min-w-0 flex-1">
+      <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
+
+      <div
+        bind:this={layout.bodyEl}
+        class="flex min-h-0 min-w-0 flex-1 {layout.viewMode === 'split' &&
+        layout.splitDir === 'vertical'
+          ? 'flex-col'
+          : ''}"
+      >
         {#if layout.viewMode !== "preview"}
           <EditorPane {ctrl} />
         {/if}
 
         {#if layout.viewMode === "split"}
+          {const stacked = layout.splitDir === "vertical"}
           <div
-            class="group relative z-10 flex w-1 shrink-0 cursor-col-resize touch-none items-center justify-center"
+            class="group relative z-10 flex shrink-0 touch-none items-center justify-center {stacked
+              ? 'h-1 w-full cursor-row-resize'
+              : 'w-1 cursor-col-resize'}"
             role="separator"
-            aria-orientation="vertical"
+            aria-orientation={stacked ? "horizontal" : "vertical"}
             aria-valuenow={Math.round(layout.splitPct)}
             tabindex="-1"
             onpointerdown={() => layout.startResize()}
           >
             <span
-              class="h-10 w-0.5 rounded-full transition-colors {layout.dragging
+              class="rounded-full transition-colors {stacked
+                ? 'h-0.5 w-10'
+                : 'h-10 w-0.5'} {layout.dragging
                 ? 'bg-primary'
                 : 'bg-border group-hover:bg-primary/60'}"
             ></span>
@@ -216,17 +221,21 @@
 
       <StatusBar {ctrl} />
     </main>
-  </div>
 </div>
 
-<!-- Explorer move/delete prompts: name-conflict resolution + destructive confirm. -->
+<CommandPalette
+  bind:open={layout.paletteOpen}
+  files={files.files}
+  activeId={files.activeId}
+  projectName={files.displayName}
+  onopen={(id) => files.openFile(id)}
+/>
+
 <ConflictDialog {files} />
 
-<!-- Help: About card + the keyboard-shortcuts reference (both registry-driven). -->
 <AboutDialog bind:open={layout.aboutOpen} platform={ctrl.platform} />
 <ShortcutsDialog bind:open={layout.shortcutsOpen} />
 
-<!-- Toast feedback (bottom-right; matches the app's corner-notification language). -->
 <Toaster />
 
 <style>
@@ -235,11 +244,11 @@
     :global(body *) {
       visibility: hidden !important;
     }
-    :global(.glyphx-print-area),
-    :global(.glyphx-print-area *) {
+    :global(.glyphtex-print-area),
+    :global(.glyphtex-print-area *) {
       visibility: visible !important;
     }
-    :global(.glyphx-print-area) {
+    :global(.glyphtex-print-area) {
       position: fixed;
       inset: 0;
       max-width: none;

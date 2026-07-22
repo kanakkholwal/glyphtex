@@ -1,12 +1,5 @@
-/**
- * SearchStore — find / replace for the active document.
- *
- * Drives both the side-panel Search view and the docked bottom find bar
- * (Ctrl/Cmd+F). Delegates the actual text scanning / replacing to the editor's
- * imperative API (CodeMirror), held by the {@link LayoutStore}.
- */
 import { applyCase } from "../case-preserve";
-import { toast } from "@glyphx/ui/sonner";
+import { toast } from "@glyphtex/ui/sonner";
 
 import type { LayoutStore } from "./layout.svelte";
 import type { SearchMatch, SearchOptions } from "./types";
@@ -16,6 +9,8 @@ export type SearchDeps = {
   getSource: () => string;
 };
 
+/** Find/replace for the active document, shared by the Search view and the find bar.
+ *  Scanning itself is delegated to the editor handle on {@link LayoutStore}. */
 export class SearchStore {
   readonly #layout: LayoutStore;
   readonly #getSource: () => string;

@@ -33,7 +33,7 @@
 	import { Spring } from "svelte/motion";
 	import { slide } from "svelte/transition";
 	import { cubicOut } from "svelte/easing";
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 
 	let {
 		title,

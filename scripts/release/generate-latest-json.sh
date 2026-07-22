@@ -2,7 +2,7 @@
 # Assemble the Tauri updater manifest (`latest.json`) from the signed bundle
 # signatures produced across the release matrix.
 #
-# GlyphX builds each platform on its own runner so it can control the Tectonic
+# GlyphTeX builds each platform on its own runner so it can control the Tectonic
 # sidecar download + caching, so it does NOT use `tauri-action` — which is what
 # would normally emit this manifest. We build it here from the `.sig` files.
 #

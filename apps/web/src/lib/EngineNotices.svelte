@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { PackDefinition } from '@glyphx/tex-engine';
-	import { Button } from '@glyphx/ui/button';
+	import type { PackDefinition } from 'glyphtex-engine';
+	import { Button } from '@glyphtex/ui/button';
 
 	let {
 		missingPacks = [],

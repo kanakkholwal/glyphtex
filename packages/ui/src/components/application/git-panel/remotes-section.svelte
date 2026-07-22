@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button } from "@glyphx/ui/button";
+  import { Button } from "@glyphtex/ui/button";
   import {
     IconCheck,
     IconCloud,

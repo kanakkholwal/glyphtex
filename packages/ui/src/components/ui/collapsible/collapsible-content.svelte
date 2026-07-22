@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Collapsible as CollapsiblePrimitive } from "bits-ui";
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 	import { cubicOut } from "svelte/easing";
 	import { slide } from "svelte/transition";
 

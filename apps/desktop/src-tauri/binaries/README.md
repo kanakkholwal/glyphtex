@@ -1,12 +1,12 @@
 # Tectonic engine
 
-GlyphX compiles LaTeX → PDF by driving the [Tectonic](https://tectonic-typesetting.github.io)
+GlyphTeX compiles LaTeX → PDF by driving the [Tectonic](https://tectonic-typesetting.github.io)
 binary as a subprocess (the in-process crate needs vcpkg/native libs on Windows,
 so the binary keeps the build simple and cross-platform).
 
 The Rust command (`src/compile.rs`) resolves the binary in this order:
 
-1. **`GLYPHX_TECTONIC_BIN`** environment variable (absolute path), then
+1. **`GLYPHTEX_TECTONIC_BIN`** environment variable (absolute path), then
 2. a **managed engine** downloaded into the app-data dir (see `src/engine.rs`), then
 3. a **sidecar** next to the app executable, or a `binaries/` dir in any ancestor
    (`tectonic[.exe]` — the ancestor walk covers `tauri dev`, where the exe lives
@@ -23,7 +23,7 @@ The quickest path during development is to put it on `PATH`:
 
 …or download a release binary from
 <https://github.com/tectonic-typesetting/tectonic/releases> and either drop it
-in this folder, set `GLYPHX_TECTONIC_BIN` to its path, or add it to `PATH`.
+in this folder, set `GLYPHTEX_TECTONIC_BIN` to its path, or add it to `PATH`.
 
 > First compile downloads Tectonic's TeX bundle (~once, cached). After that it
 > works fully offline.
@@ -42,7 +42,7 @@ a binary here named `tectonic-<target-triple>[.exe]` (e.g.
 in the bundle. `tauri::generate_context!` validates that the file exists for the
 build target, so **it must be present before `tauri dev`/`build` will compile**.
 
-- **Local dev:** run `pnpm --filter @glyphx/desktop tectonic:setup`. It copies an
+- **Local dev:** run `pnpm --filter @glyphtex/desktop tectonic:setup`. It copies an
   existing `tectonic[.exe]` here into the triple-named sidecar, or downloads the
   pinned release if you don't have one yet.
 - **CI / release:** `scripts/release/download-tectonic.mjs` fetches the pinned

@@ -5,8 +5,8 @@
 		DialogHeader,
 		DialogTitle,
 		DialogDescription
-	} from '@glyphx/ui/dialog';
-	import { Button } from '@glyphx/ui/button';
+	} from '@glyphtex/ui/dialog';
+	import { Button } from '@glyphtex/ui/button';
 	import { IconCpu, IconLoader2, IconAlertTriangle, IconWifiOff } from '@tabler/icons-svelte';
 	import { installEngine, type InstallProgress } from '$lib/compile';
 
@@ -59,7 +59,7 @@
 				Set up the LaTeX compiler
 			</DialogTitle>
 			<DialogDescription class="leading-relaxed">
-				GlyphX compiles LaTeX right in your browser — the same engine the desktop app uses. It
+				GlyphTeX compiles LaTeX right in your browser — the same engine the desktop app uses. It
 				downloads once (~{totalMB} MB) and is cached on this device.
 			</DialogDescription>
 		</DialogHeader>

@@ -1,4 +1,4 @@
-import { parsePackIndex, type InstalledPack, type PackIndex } from '@glyphx/tex-engine';
+import { parsePackIndex, type InstalledPack, type PackIndex } from 'glyphtex-engine';
 import { openEngineCache } from './manifest';
 
 const INDEX_URL = '/engine/packs/packs-index.json';

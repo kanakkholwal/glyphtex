@@ -17,7 +17,7 @@ license = "MIT"
 # A binary links a normal main module, where non-PIC objects are fine. The FFI
 # entry points are kept alive by -sEXPORTED_FUNCTIONS in scripts/build-wasm.sh.
 [lib]
-name = "glyphx_tex"
+name = "glyphtex_tex"
 crate-type = ["rlib"]
 
 [[bin]]
@@ -34,7 +34,7 @@ tectonic_status_base = { path = "tectonic/crates/status_base", default-features 
 tectonic_errors = { path = "tectonic/crates/errors", default-features = false }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
-glyphx-tex-api = { version = "0.1.0", path = "../glyphx-tex-api" }
+glyphtex-tex-api = { version = "0.1.0", path = "../glyphtex-tex-api" }
 
 [profile.release]
 # panic = "abort" is load-bearing, not just a size optimisation.
@@ -47,7 +47,7 @@ glyphx-tex-api = { version = "0.1.0", path = "../glyphx-tex-api" }
 #   both disabled
 # Aborting on panic removes the need for unwinding, so the whole link stays in
 # the JS-based scheme the C already uses — which is also what the host shim in
-# @glyphx/tex-engine implements.
+# glyphtex-engine implements.
 #
 # Aborting is the right behaviour here regardless: a panic crossing the FFI
 # boundary back into JavaScript is undefined behaviour, so there is nothing to

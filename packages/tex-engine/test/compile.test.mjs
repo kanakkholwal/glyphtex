@@ -3,8 +3,8 @@
 // Skipped unless a wasm artifact and a TeX bundle are present, so the suite
 // stays runnable on a machine without the Emscripten toolchain:
 //
-//   GLYPHX_WASM=../../crates/tectonic-wasm/output/tectonic_wasm.wasm \
-//   GLYPHX_BUNDLE=/path/to/extracted/bundle \
+//   GLYPHTEX_WASM=../../crates/tectonic-wasm/output/tectonic_wasm.wasm \
+//   GLYPHTEX_BUNDLE=/path/to/extracted/bundle \
 //   node --test test/
 import { test, before, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,22 +15,22 @@ import { fileURLToPath } from 'node:url';
 import { TexEngine } from '../dist/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const wasmPath = process.env.GLYPHX_WASM
-	? resolve(process.env.GLYPHX_WASM)
+const wasmPath = process.env.GLYPHTEX_WASM
+	? resolve(process.env.GLYPHTEX_WASM)
 	: resolve(here, '../../../crates/tectonic-wasm/output/tectonic_wasm.wasm');
-const bundleDir = process.env.GLYPHX_BUNDLE ? resolve(process.env.GLYPHX_BUNDLE) : null;
+const bundleDir = process.env.GLYPHTEX_BUNDLE ? resolve(process.env.GLYPHTEX_BUNDLE) : null;
 
 const haveArtifacts = existsSync(wasmPath) && bundleDir && existsSync(bundleDir);
 
 // Skipping is right on a dev machine without the Emscripten toolchain, but in
 // CI it is indistinguishable from passing: node --test exits 0 having run
-// nothing. Anywhere the engine is supposed to exist, set GLYPHX_REQUIRE_ENGINE
+// nothing. Anywhere the engine is supposed to exist, set GLYPHTEX_REQUIRE_ENGINE
 // so a missing artifact fails loudly instead of reporting green.
-if (process.env.GLYPHX_REQUIRE_ENGINE && !haveArtifacts) {
+if (process.env.GLYPHTEX_REQUIRE_ENGINE && !haveArtifacts) {
 	throw new Error(
-		'GLYPHX_REQUIRE_ENGINE is set but the artifacts are missing:\n' +
+		'GLYPHTEX_REQUIRE_ENGINE is set but the artifacts are missing:\n' +
 			`  wasm:   ${wasmPath} ${existsSync(wasmPath) ? '(ok)' : '(MISSING)'}\n` +
-			`  bundle: ${bundleDir ?? '(GLYPHX_BUNDLE unset)'} ${
+			`  bundle: ${bundleDir ?? '(GLYPHTEX_BUNDLE unset)'} ${
 				bundleDir && existsSync(bundleDir) ? '(ok)' : '(MISSING)'
 			}`
 	);

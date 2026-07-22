@@ -1,9 +1,7 @@
-/**
- * Pure find/replace helpers for the editor: compile a `SearchOptions` into a
- * global RegExp, and expand `$&` / `$1`… back-references in a replacement.
- */
 import type { SearchOptions } from "./types";
 
+/** Compiles `SearchOptions` into a global RegExp, escaping the query unless
+ *  `regexp` is set. Returns null for an empty or invalid pattern. */
 export function buildRegex(o: SearchOptions): RegExp | null {
   if (!o.query) return null;
   let pat = o.regexp

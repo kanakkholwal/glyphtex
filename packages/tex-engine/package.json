@@ -1,16 +1,16 @@
 {
-	"name": "@glyphx/tex-engine",
+	"name": "glyphtex-engine",
 	"version": "0.1.0",
-	"description": "Typed TypeScript bindings for the GlyphX TeX engine (Tectonic compiled to WebAssembly)",
+	"description": "Typed TypeScript bindings for the GlyphTeX TeX engine (Tectonic compiled to WebAssembly)",
 	"license": "MIT",
 	"type": "module",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/kanakkholwal/glyph.git",
+		"url": "git+https://github.com/kanakkholwal/glyphtex.git",
 		"directory": "packages/tex-engine"
 	},
-	"homepage": "https://github.com/kanakkholwal/glyph/tree/main/packages/tex-engine#readme",
-	"bugs": "https://github.com/kanakkholwal/glyph/issues",
+	"homepage": "https://github.com/kanakkholwal/glyphtex/tree/main/packages/tex-engine#readme",
+	"bugs": "https://github.com/kanakkholwal/glyphtex/issues",
 	"files": ["dist", "src", "wasm"],
 	"exports": {
 		".": {

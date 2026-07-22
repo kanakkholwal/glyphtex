@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  // Public Source Control types kept stable for `@glyphx/ui/application` consumers.
+  // Public Source Control types kept stable for `@glyphtex/ui/application` consumers.
   export type {
     GitChange,
     GitCommitEntry,
@@ -10,7 +10,7 @@
 </script>
 
 <script lang="ts">
-  import { Button } from "@glyphx/ui/button";
+  import { Button } from "@glyphtex/ui/button";
   import {
     IconAlertTriangle,
     IconArrowDown,

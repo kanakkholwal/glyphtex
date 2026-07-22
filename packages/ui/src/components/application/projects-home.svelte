@@ -1,10 +1,13 @@
 <script lang="ts" module>
-	import type { Project } from '@glyphx/ui/projects';
+	import type { Project } from '@glyphtex/ui/projects';
 	export type { Project };
+
+	/** A rail destination. Each one is a real route when the host supplies hrefs. */
+	export type Scope = 'all' | 'recent' | 'starred' | 'templates';
 </script>
 
 <script lang="ts">
-	import { Button } from '@glyphx/ui/button';
+	import { Button } from '@glyphtex/ui/button';
 	import {
 	  Dialog,
 	  DialogContent,
@@ -12,30 +15,43 @@
 	  DialogFooter,
 	  DialogHeader,
 	  DialogTitle
-	} from '@glyphx/ui/dialog';
+	} from '@glyphtex/ui/dialog';
 	import {
 	  DropdownMenu,
+	  DropdownMenuCheckboxItem,
 	  DropdownMenuContent,
 	  DropdownMenuItem,
 	  DropdownMenuSeparator,
 	  DropdownMenuTrigger
-	} from '@glyphx/ui/dropdown-menu';
-	import { Logo } from '@glyphx/ui/logo';
-	import { projectViewTransitionName } from '@glyphx/ui/projects';
-	import { ThemeToggle } from '@glyphx/ui/theme-toggle';
+	} from '@glyphtex/ui/dropdown-menu';
+	import { Logo } from '@glyphtex/ui/logo';
+	import { projectViewTransitionName } from '@glyphtex/ui/projects';
+	import * as Sidebar from '@glyphtex/ui/sidebar';
+	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
 	import {
+	  IconArrowsSort,
 	  IconChevronDown,
+	  IconClock,
 	  IconCloudDownload,
 	  IconCopy,
+	  IconCloud,
 	  IconDotsVertical,
+	  IconExternalLink,
 	  IconFileImport,
 	  IconFolderOpen,
 	  IconFolderShare,
+	  IconHelpCircle,
 	  IconInfoCircle,
+	  IconHome,
+	  IconLayoutGrid,
+	  IconLayoutList,
 	  IconPencil,
 	  IconPlus,
 	  IconSearch,
 	  IconSettings,
+	  IconStar,
+	  IconStarFilled,
+	  IconTemplate,
 	  IconTrash
 	} from '@tabler/icons-svelte';
 	import { tick } from 'svelte';
@@ -44,13 +60,8 @@
 	import { fade, fly } from 'svelte/transition';
 	import AboutDialog from './about-dialog.svelte';
 
-	/**
-	 * ProjectsHome — the application's home screen: every LaTeX project listed as
-	 * a document-style card. Calm monochrome chrome; the cards themselves read as
-	 * little pages. The host owns the data (the projects store) and the actions.
-	 * Folder actions (`onopenfolder` / `onimport`) appear only when the host
-	 * supports them (desktop); on web only `oncreate` is shown.
-	 */
+	/** Home screen listing every project as a card. The host owns the data and every
+	 *  action; an absent handler hides its control (folder actions are desktop-only). */
 	let {
 		platform = 'desktop',
 		projects = [],
@@ -63,7 +74,13 @@
 		onduplicate,
 		ondelete,
 		onreveal,
-		onsettings
+		onsettings,
+		onstar,
+		storage,
+		helpHref,
+		activeScope = 'all',
+		scopeHrefs,
+		loading = false
 	}: {
 		/** Drives the About dialog's platform line. */
 		platform?: 'web' | 'desktop';
@@ -85,27 +102,42 @@
 		onreveal?: (id: string) => void;
 		/** Open the app settings page (desktop). */
 		onsettings?: () => void;
+		/** Toggle a project's star. Absent hides the star action. */
+		onstar?: (id: string, starred: boolean) => void;
+		/** Local-storage meter for the sidebar. Absent hides the card. */
+		storage?: { used: number; total: number };
+		/** Docs link target for the sidebar. Opens outside the workspace. */
+		helpHref?: string;
+		/** Which rail destination the host is currently rendering. */
+		activeScope?: Scope;
+		/** Route per destination. A scope with no href is not offered at all — a host
+		 *  that cannot back one (no starring on desktop yet) simply omits it. */
+		scopeHrefs?: Partial<Record<Scope, string>>;
+		/** First read of the project store. The shell renders; the grid skeletons. */
+		loading?: boolean;
 	} = $props();
 
+	type Sort = 'newest' | 'oldest' | 'name';
+
+	const RECENT_MS = 7 * 24 * 60 * 60 * 1000;
+
+	const scope = $derived(activeScope);
+	let sort = $state<Sort>('newest');
+	let dense = $state(false);
 	let query = $state('');
 	let renaming = $state<string | null>(null);
 	let renameValue = $state('');
 	let aboutOpen = $state(false);
-	// The project pending a delete confirmation (null = dialog closed).
 	let pendingDelete = $state<Project | null>(null);
 
-	// Scroll-aware toolbar: borderless + transparent at the top, a translucent
-	// blur + hairline settle in once content scrolls beneath it.
 	let scrollEl = $state<HTMLElement>();
 	let scrolled = $state(false);
 	function onScroll() {
 		scrolled = (scrollEl?.scrollTop ?? 0) > 4;
 	}
 
-	// New project: create → let the freshly-inserted card fly in and settle →
-	// *then* open it, so the card→editor view-transition morphs from a finished
-	// card instead of one that's still mid-entrance. The card lands at index 0
-	// (newest first), so its `in:fly` is ~360ms; we wait a touch longer.
+	// Just longer than the new card's 360ms `in:fly`, so the card→editor view
+	// transition morphs from a settled card rather than one mid-entrance.
 	const NEW_CARD_REVEAL_MS = 400;
 	async function handleCreate() {
 		const id = await oncreate?.();
@@ -116,7 +148,6 @@
 		onopen?.(id);
 	}
 
-	// Inline clone bar (no custom dialog — a text field + native folder picker).
 	let cloning = $state(false);
 	let cloneUrl = $state('');
 	let cloneBusy = $state(false);
@@ -134,9 +165,62 @@
 		}
 	}
 
-	const filtered = $derived(
-		projects.filter((p) => p.name.toLowerCase().includes(query.trim().toLowerCase()))
+	const recent = $derived(projects.filter((p) => Date.now() - p.updatedAt < RECENT_MS));
+	const starred = $derived(projects.filter((p) => p.starred));
+
+	const scoped = $derived(
+		scope === 'starred'
+			? starred
+			: scope === 'recent'
+				? recent
+				: scope === 'templates'
+					? []
+					: projects
 	);
+
+	const filtered = $derived(
+		scoped
+			.filter((p) => p.name.toLowerCase().includes(query.trim().toLowerCase()))
+			.toSorted((a, b) =>
+				sort === 'name'
+					? a.name.localeCompare(b.name)
+					: sort === 'oldest'
+						? a.updatedAt - b.updatedAt
+						: b.updatedAt - a.updatedAt
+			)
+	);
+
+	const scopes: { id: Scope; label: string; icon: typeof IconPlus }[] = [
+		{ id: 'all', label: 'Workspace', icon: IconHome },
+		{ id: 'recent', label: 'Recent', icon: IconClock },
+		{ id: 'starred', label: 'Starred', icon: IconStar },
+		{ id: 'templates', label: 'Templates', icon: IconTemplate }
+	];
+
+	// Overrides on SidebarMenuButton: taller rows, 18px icons, and a brand-tinted
+	// active state instead of the default neutral accent fill.
+	const navRow =
+		'h-10 rounded-lg px-3 text-md data-active:bg-brand-subtle data-active:text-brand [&_svg]:size-[1.125rem]';
+	/** Footer rows never take an active state — they are actions, not locations. */
+	const actionRow = `${navRow} text-muted-foreground hover:text-foreground`;
+
+	const sorts: { id: Sort; label: string }[] = [
+		{ id: 'newest', label: 'Newest first' },
+		{ id: 'oldest', label: 'Oldest first' },
+		{ id: 'name', label: 'Name (A–Z)' }
+	];
+
+	const storagePct = $derived(
+		storage && storage.total > 0 ? Math.min(100, (storage.used / storage.total) * 100) : 0
+	);
+
+	function formatBytes(bytes: number): string {
+		if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+		const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+		const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+		const value = bytes / 1024 ** i;
+		return `${value >= 10 || i === 0 ? Math.round(value) : value.toFixed(1)} ${units[i]}`;
+	}
 
 	function relativeTime(ts: number): string {
 		const diff = Date.now() - ts;
@@ -179,62 +263,166 @@
 
 </script>
 
-<div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
-	<!-- Scroll surface. The toolbar lives *inside* it and floats translucently;
-	     content slides under it and a hairline + blur settle in only once scrolled
-	     — the macOS unified-toolbar feel, no hard web-style border at rest. -->
-	<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 flex-1 overflow-auto">
-		<!-- Toolbar — brand + global controls. -->
+<Sidebar.Provider class="text-foreground h-dvh min-h-0">
+	<Sidebar.Root variant="inset" collapsible="icon">
+		<Sidebar.Header class="h-14 justify-center px-3 group-data-[collapsible=icon]:px-0">
+			<Logo
+				size={28}
+				badge
+				viewTransitionName="app-logo"
+				class="text-base tracking-tight group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:[&>span:last-child]:hidden"
+			/>
+		</Sidebar.Header>
+
+		<Sidebar.Content>
+			<Sidebar.Group class="px-2 py-1">
+				<Sidebar.GroupContent>
+					<Sidebar.Menu aria-label="Project scopes">
+						{#each scopes as item (item.id)}
+							{@const Icon = item.icon}
+							{@const href = scopeHrefs?.[item.id]}
+							{#if href}
+								<Sidebar.MenuItem>
+									<Sidebar.MenuButton
+										isActive={activeScope === item.id}
+										class={navRow}
+										tooltipContent={item.label}
+									>
+										{#snippet child({ props })}
+											<a
+												{href}
+												{...props}
+												aria-current={activeScope === item.id ? 'page' : undefined}
+											>
+												<Icon /><span>{item.label}</span>
+											</a>
+										{/snippet}
+									</Sidebar.MenuButton>
+								</Sidebar.MenuItem>
+							{/if}
+						{/each}
+					</Sidebar.Menu>
+				</Sidebar.GroupContent>
+			</Sidebar.Group>
+		</Sidebar.Content>
+
+		<Sidebar.Footer class="gap-3">
+			<Sidebar.Separator class="mx-1" />
+
+			<Sidebar.Menu>
+				{#if onsettings}
+					<Sidebar.MenuItem>
+						<Sidebar.MenuButton
+							class={actionRow}
+							tooltipContent="Settings"
+							onclick={() => onsettings?.()}
+						>
+							<IconSettings /><span>Settings</span>
+						</Sidebar.MenuButton>
+					</Sidebar.MenuItem>
+				{/if}
+				{#if helpHref}
+					<Sidebar.MenuItem>
+						<!-- Trailing IconExternalLink is the rail's convention for a row that
+						     leaves the workspace; leading icons only ever name the thing. -->
+						<Sidebar.MenuButton class={actionRow} tooltipContent={'Help & Docs'}>
+							{#snippet child({ props })}
+								<a {...props} href={helpHref}>
+									<IconHelpCircle /><span>Help &amp; Docs</span>
+									<IconExternalLink
+										class="text-faint ml-auto !size-3.5 group-data-[collapsible=icon]:hidden"
+									/>
+								</a>
+							{/snippet}
+						</Sidebar.MenuButton>
+					</Sidebar.MenuItem>
+				{/if}
+				<Sidebar.MenuItem>
+					<Sidebar.MenuButton
+						class={actionRow}
+						tooltipContent="About GlyphTeX"
+						onclick={() => (aboutOpen = true)}
+					>
+						<IconInfoCircle /><span>About GlyphTeX</span>
+					</Sidebar.MenuButton>
+				</Sidebar.MenuItem>
+			</Sidebar.Menu>
+
+			{#if storage}
+				<!-- Amber past 80%: the browser starts evicting under storage pressure. -->
+				{@const tight = storagePct >= 80}
+				<div
+					class="border-sidebar-border bg-card rounded-xl border p-3 group-data-[collapsible=icon]:hidden"
+				>
+					<div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+						<IconCloud size={16} class="shrink-0" /> Local storage
+					</div>
+					<div class="bg-muted mt-2.5 h-1.5 overflow-hidden rounded-full">
+						<div
+							class="h-full rounded-full transition-[width] duration-500 {tight
+								? 'bg-warning'
+								: 'bg-brand'}"
+							style:width={`${Math.max(storagePct, 2)}%`}
+						></div>
+					</div>
+					<p class="text-faint mt-2 text-xs">
+						{formatBytes(storage.used)} of {formatBytes(storage.total)} used
+					</p>
+				</div>
+			{/if}
+		</Sidebar.Footer>
+	</Sidebar.Root>
+
+	<!-- `bg-card`, not the inset's default `bg-background`: in dark this panel is
+	     the layer that lifts off the rail's floor. -->
+	<Sidebar.Inset class="bg-card min-h-0 overflow-hidden">
+		<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
 		<header
-			class="ease-craft sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b px-6 transition-[background-color,border-color,box-shadow] duration-300 {scrolled
-				? 'border-border bg-background/75 shadow-craft-sm backdrop-blur-xl'
+			class="ease-craft sticky top-0 z-20 flex h-14 items-center justify-end gap-3 border-b px-6 transition-[background-color,border-color,box-shadow] duration-300 {scrolled
+				? 'border-border bg-card/75 shadow-craft-sm backdrop-blur-xl'
 				: 'border-transparent bg-transparent'}"
 		>
-			<Logo size={26} viewTransitionName="app-logo" class="text-base tracking-tight" />
-			<div class="flex items-center gap-0.5">
-			<ThemeToggle size="icon-sm" />
-			<Button
-				size="icon-sm"
-				variant="ghost"
-				title="About GlyphX"
-				aria-label="About GlyphX"
-				onclick={() => (aboutOpen = true)}
-			>
-				<IconInfoCircle size={16} />
-			</Button>
-			{#if onsettings}
-				<div class="bg-border mx-1 h-5 w-px"></div>
+			<div class="-ml-2 flex items-center gap-1">
+				<Sidebar.Trigger title="Toggle sidebar (Ctrl/⌘ B)" />
+				<Logo size={24} class="text-sm tracking-tight md:hidden" />
+			</div>
+			<div class="flex flex-1 items-center justify-end gap-0.5">
+				<ThemeToggle size="icon-sm" />
 				<Button
-					size="sm"
+					size="icon-sm"
 					variant="ghost"
-					onclick={() => onsettings?.()}
+					title="About GlyphTeX"
+					aria-label="About GlyphTeX"
+					onclick={() => (aboutOpen = true)}
 				>
-					<IconSettings size={15} /> Settings
+					<IconInfoCircle />
 				</Button>
-			{/if}
-		</div>
+			</div>
 		</header>
 
 		<div class="mx-auto w-full max-w-[1140px] px-6 pt-6 pb-12">
-			<!-- Hero: title + the project actions (create / open / import / clone). -->
 			<div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
 				<div>
-					<h1 class="font-display text-3xl font-semibold tracking-tight">Your projects</h1>
+					<h1 class="font-display text-2xl font-semibold tracking-tight">Your projects</h1>
 					<p class="text-muted-foreground mt-1.5 text-sm">
-						{projects.length}
-						{projects.length === 1 ? 'project' : 'projects'} · stored on this device
+						{#if loading}
+							Reading local storage…
+						{:else}
+							{projects.length}
+							{projects.length === 1 ? 'project' : 'projects'} · stored on this device
+						{/if}
 					</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
-					<!-- "Bring in an existing project" actions collapse into one Open menu
-					     so the primary New-project action stays unambiguous. -->
+					<!-- Every "bring in an existing project" action collapses into this one
+					     menu so the primary New-project button stays unambiguous. -->
 					{#if onopenfolder || onimport || onclone}
 						<DropdownMenu>
 							<DropdownMenuTrigger>
 								{#snippet child({ props })}
 									<Button {...props} size="sm" variant="outline">
-										<IconFolderOpen size={15} /> Open
-										<IconChevronDown size={14} class="opacity-60" />
+										<IconFileImport /> Import
+										<IconChevronDown class="size-3.5 opacity-60" />
 									</Button>
 								{/snippet}
 							</DropdownMenuTrigger>
@@ -263,12 +451,11 @@
 						</DropdownMenu>
 					{/if}
 					<Button size="sm" onclick={handleCreate}>
-						<IconPlus size={15} /> New project
+						<IconPlus /> New project
 					</Button>
 				</div>
 			</div>
 
-			<!-- Clone bar (inline, contextually under the Clone action). -->
 			{#if onclone && cloning}
 				<div
 					class="border-border bg-card shadow-craft-sm mt-4 flex items-center gap-2 rounded-xl border p-2"
@@ -296,22 +483,94 @@
 				</div>
 			{/if}
 
-			<!-- Search -->
-			<div class="relative mt-6">
-				<IconSearch
-					size={16}
-					class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
-				/>
-				<input
-					bind:value={query}
-					class="bg-card border-border text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/30 shadow-craft-sm ease-craft h-11 w-full rounded-2xl border py-2 pr-3 pl-10 text-sm outline-none transition-[box-shadow,border-color] duration-200 focus-visible:ring-2"
-					placeholder="Search projects"
-					spellcheck="false"
-					aria-label="Search projects"
-				/>
+			<div class="mt-6 flex flex-wrap items-center gap-2">
+				<div class="relative min-w-56 flex-1">
+					<IconSearch
+						size={16}
+						class="text-faint pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
+					/>
+					<input
+						bind:value={query}
+						class="bg-card border-border text-foreground placeholder:text-faint focus-visible:border-ring focus-visible:ring-ring/30 ease-craft h-10 w-full rounded-xl border py-2 pr-3 pl-9 text-sm outline-none transition-[box-shadow,border-color] duration-200 focus-visible:ring-2"
+						placeholder="Search projects…"
+						spellcheck="false"
+						aria-label="Search projects"
+					/>
+				</div>
+
+				<DropdownMenu>
+					<DropdownMenuTrigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="sm" class="h-10 gap-1.5">
+								<IconArrowsSort />
+								{sorts.find((s) => s.id === sort)?.label}
+								<IconChevronDown class="size-3.5 opacity-60" />
+							</Button>
+						{/snippet}
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" class="w-44">
+						{#each sorts as option (option.id)}
+							<DropdownMenuCheckboxItem
+								checked={sort === option.id}
+								onCheckedChange={() => (sort = option.id)}
+							>
+								{option.label}
+							</DropdownMenuCheckboxItem>
+						{/each}
+					</DropdownMenuContent>
+				</DropdownMenu>
+
+				<div class="border-border flex h-10 items-center gap-0.5 rounded-xl border p-1">
+					<Button
+						variant={dense ? 'ghost' : 'secondary'}
+						size="icon-sm"
+						title="Comfortable grid"
+						aria-label="Comfortable grid"
+						aria-pressed={!dense}
+						onclick={() => (dense = false)}
+					>
+						<IconLayoutGrid />
+					</Button>
+					<Button
+						variant={dense ? 'secondary' : 'ghost'}
+						size="icon-sm"
+						title="Dense grid"
+						aria-label="Dense grid"
+						aria-pressed={dense}
+						onclick={() => (dense = true)}
+					>
+						<IconLayoutList />
+					</Button>
+				</div>
 			</div>
 
-			{#if filtered.length === 0}
+			{#key scope}
+			<!-- Keyed on scope so switching rails replays the entrance rather than
+			     swapping content in place; local reads are instant, so without it the
+			     grid just blinks. -->
+			<div in:fade={{ duration: 180, easing: cubicOut }}>
+			{#if loading}
+				<!-- Skeletons, not a full-page spinner: the rail and toolbar are already
+				     correct, so only the unknown region should be in a loading state. -->
+				<div
+					class="mt-7 grid gap-x-5 gap-y-7 {dense
+						? 'grid-cols-[repeat(auto-fill,minmax(150px,1fr))]'
+						: 'grid-cols-[repeat(auto-fill,minmax(190px,1fr))]'}"
+					aria-busy="true"
+					aria-label="Loading projects"
+					role="status"
+				>
+					{#each { length: 6 } as _, i (i)}
+						<div class="animate-pulse" style:animation-delay={`${i * 70}ms`}>
+							<div class="bg-muted aspect-[4/5] rounded-xl"></div>
+							<div class="mt-2.5 space-y-1.5 px-0.5">
+								<div class="bg-muted h-3 w-3/5 rounded-full"></div>
+								<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{:else if filtered.length === 0}
 				<div
 					class="border-border text-muted-foreground mt-8 flex flex-col items-center gap-4 rounded-2xl border border-dashed py-20 text-center"
 				>
@@ -322,19 +581,39 @@
 							Create your first project — everything stays on this device.
 						</p>
 						<Button size="sm" class="mt-1" onclick={handleCreate}>
-							<IconPlus size={15} /> New project
+							<IconPlus /> New project
 						</Button>
-					{:else}
+					{:else if query.trim()}
 						<p class="text-sm">No projects match “{query}”.</p>
+					{:else if scope === 'templates'}
+						<p class="text-foreground text-sm font-medium">No templates yet</p>
+						<p class="max-w-xs text-xs leading-relaxed">
+							Starter documents will live here. For now, New project begins from a blank
+							article.
+						</p>
+						<Button size="sm" variant="outline" class="mt-1" onclick={handleCreate}>
+							<IconPlus /> New project
+						</Button>
+					{:else if scope === 'starred'}
+						<p class="text-foreground text-sm font-medium">Nothing starred yet</p>
+						<p class="max-w-xs text-xs leading-relaxed">
+							Star a project from its ⋯ menu to keep it here.
+						</p>
+					{:else}
+						<p class="text-foreground text-sm font-medium">Nothing edited this week</p>
+						<p class="max-w-xs text-xs leading-relaxed">
+							Recent shows projects you have touched in the last 7 days.
+						</p>
 					{/if}
 				</div>
 			{:else}
 				<div
-					class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-5 gap-y-7"
+					class="mt-7 grid gap-x-5 gap-y-7 {dense
+						? 'grid-cols-[repeat(auto-fill,minmax(150px,1fr))]'
+						: 'grid-cols-[repeat(auto-fill,minmax(190px,1fr))]'}"
 					role="list"
 					aria-label="Projects"
 				>
-					<!-- New-project card -->
 					<button
 						class="group border-border hover:border-ring/50 hover:bg-muted/30 ease-craft flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition-all duration-300 hover:-translate-y-1 active:translate-y-0 active:scale-[0.99] motion-reduce:transform-none"
 						in:fly={{ y: 10, duration: 360, easing: cubicOut }}
@@ -358,20 +637,13 @@
 							out:fade={{ duration: 140, easing: cubicOut }}
 							animate:flip={{ duration: 320, easing: cubicOut }}
 						>
-							<!-- Open target: the document/stack. -->
 							<button
 								class="block w-full text-left"
 								onclick={() => onopen?.(p.id)}
 								aria-label={`Open ${p.name}`}
 							>
-								<!-- The "document" — a little page sitting in front of a fanned
-								     stack of pages. On hover the back cards rise and fan out from
-								     behind, like lifting a folder of papers. Shares a
-								     view-transition-name with the editor surface so it morphs in. -->
 								<div class="relative aspect-[4/5]">
-									<!-- Back-of-stack ghost pages (decorative). Hidden behind the
-									     front page at rest; they settle out on hover. One shared
-									     easing per DESIGN.md — they fade + rise, never bounce. -->
+									<!-- Ghost pages that fan out from behind the front page on hover. -->
 									<div
 										aria-hidden="true"
 										class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-xl border opacity-0 transition-all duration-300 group-hover:-translate-x-3 group-hover:-translate-y-1 group-hover:-rotate-[5deg] group-hover:scale-[0.97] group-hover:opacity-70 motion-reduce:hidden"
@@ -381,7 +653,8 @@
 										class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-xl border opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:-translate-y-2 group-hover:rotate-[5deg] group-hover:scale-[0.985] group-hover:opacity-100 motion-reduce:hidden"
 									></div>
 
-									<!-- The front page. -->
+									<!-- Shares its view-transition-name with the editor surface, so
+									     opening the project morphs this page into it. -->
 									<div
 										class="bg-card border-border shadow-craft-sm group-hover:shadow-craft-lg ease-craft absolute inset-0 z-10 overflow-hidden rounded-xl border transition-all duration-300 group-hover:-translate-y-1 group-active:translate-y-0 group-active:scale-[0.985] motion-reduce:transform-none"
 										style:view-transition-name={projectViewTransitionName(p.id)}
@@ -408,8 +681,6 @@
 								</div>
 							</button>
 
-							<!-- Footer: name + meta on the left, the ⋯ actions menu on the
-							     right (rename / duplicate / reveal / delete). -->
 							<div class="mt-2.5 flex items-start justify-between gap-1.5 px-0.5">
 								<div class="min-w-0 flex-1">
 									{#if renaming === p.id}
@@ -456,6 +727,16 @@
 										{/snippet}
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end" class="w-50">
+										{#if onstar}
+											<DropdownMenuItem onclick={() => onstar?.(p.id, !p.starred)}>
+												{#if p.starred}
+													<IconStarFilled class="text-warning" /> Unstar
+												{:else}
+													<IconStar class="text-muted-foreground" /> Star
+												{/if}
+											</DropdownMenuItem>
+											<DropdownMenuSeparator />
+										{/if}
 										<DropdownMenuItem onclick={() => startRename(p)}>
 											<IconPencil class="text-muted-foreground" /> Rename
 										</DropdownMenuItem>
@@ -478,15 +759,16 @@
 					{/each}
 				</div>
 			{/if}
+			</div>
+			{/key}
 		</div>
-	</div>
-</div>
+		</div>
+	</Sidebar.Inset>
+</Sidebar.Provider>
 
-<!-- About GlyphX — brand, version, and links out (GitHub / website). -->
 <AboutDialog bind:open={aboutOpen} {platform} />
 
-<!-- Delete confirmation. Disk-backed projects show their folder path, because
-     confirming removes the folder from disk (not just the list). -->
+<!-- Disk-backed projects show their path: confirming deletes the folder itself. -->
 <Dialog open={pendingDelete !== null} onOpenChange={(o) => (o ? null : (pendingDelete = null))}>
 	<DialogContent class="sm:max-w-md">
 		<DialogHeader>
@@ -496,7 +778,7 @@
 					This permanently deletes the project folder and all its files from your disk.
 					This cannot be undone.
 				{:else}
-					This removes the project from GlyphX. This cannot be undone.
+					This removes the project from GlyphTeX. This cannot be undone.
 				{/if}
 			</DialogDescription>
 		</DialogHeader>

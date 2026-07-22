@@ -2,8 +2,8 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { Button } from '@glyphx/ui/button';
-	import { Logo } from '@glyphx/ui/logo';
+	import { Button } from '@glyphtex/ui/button';
+	import { Logo } from '@glyphtex/ui/logo';
 	import {
 		IconAlertTriangle,
 		IconArrowLeft,
@@ -24,11 +24,11 @@
 	const desc = $derived(
 		isNotFound
 			? "We couldn't find the page you were looking for."
-			: 'GlyphX hit an unexpected error — your documents are safe on disk.'
+			: 'GlyphTeX hit an unexpected error — your documents are safe on disk.'
 	);
 </script>
 
-<svelte:head><title>{status} · GlyphX</title></svelte:head>
+<svelte:head><title>{status} · GlyphTeX</title></svelte:head>
 
 <div class="bg-background text-foreground flex h-dvh w-full items-center justify-center px-6">
 	<div class="flex w-full max-w-sm flex-col items-center gap-4 text-center">

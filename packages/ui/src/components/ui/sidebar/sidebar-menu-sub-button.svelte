@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from "@glyphx/ui/utils";
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
 	import type { HTMLAnchorAttributes } from "svelte/elements";
 
@@ -25,7 +25,8 @@
 		"data-slot": "sidebar-menu-sub-button",
 		"data-sidebar": "menu-sub-button",
 		"data-size": size,
-		"data-active": isActive,
+		// Presence, not value — see the note in sidebar-menu-button.svelte.
+		"data-active": isActive ? "true" : undefined,
 		...restProps,
 	});
 </script>

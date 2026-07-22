@@ -8,14 +8,14 @@ import { TexEngine } from '../dist/index.js';
 import { GROUP_FIXTURES } from './fixtures/groups.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const wasmPath = process.env.GLYPHX_WASM
-	? resolve(process.env.GLYPHX_WASM)
+const wasmPath = process.env.GLYPHTEX_WASM
+	? resolve(process.env.GLYPHTEX_WASM)
 	: resolve(here, '../../../crates/tectonic-wasm/output/tectonic_wasm.wasm');
-const bundleDir = process.env.GLYPHX_BUNDLE ? resolve(process.env.GLYPHX_BUNDLE) : null;
+const bundleDir = process.env.GLYPHTEX_BUNDLE ? resolve(process.env.GLYPHTEX_BUNDLE) : null;
 const haveArtifacts = existsSync(wasmPath) && bundleDir && existsSync(bundleDir);
 
-if (process.env.GLYPHX_REQUIRE_ENGINE && !haveArtifacts) {
-	throw new Error('GLYPHX_REQUIRE_ENGINE is set but the engine or bundle is missing.');
+if (process.env.GLYPHTEX_REQUIRE_ENGINE && !haveArtifacts) {
+	throw new Error('GLYPHTEX_REQUIRE_ENGINE is set but the engine or bundle is missing.');
 }
 
 describe('package groups', { skip: haveArtifacts ? false : 'wasm or bundle not available' }, () => {

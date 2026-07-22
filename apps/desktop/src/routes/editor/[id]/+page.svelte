@@ -2,8 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { Workbench } from '@glyphx/ui/application';
-	import { projects, projectViewTransitionName } from '@glyphx/ui/projects';
+	import { Workbench } from '@glyphtex/ui/application';
+	import { projects, projectViewTransitionName } from '@glyphtex/ui/projects';
 	import { compileLatex, compileProject } from '$lib/compile';
 	import { engineManager } from '$lib/engine';
 	import { gitProvider } from '$lib/git';
@@ -19,7 +19,7 @@
 </script>
 
 <svelte:head>
-	<title>{project ? `${project.name} — GlyphX` : 'GlyphX'}</title>
+	<title>{project ? `${project.name} — GlyphTeX` : 'GlyphTeX'}</title>
 </svelte:head>
 
 {#if project}

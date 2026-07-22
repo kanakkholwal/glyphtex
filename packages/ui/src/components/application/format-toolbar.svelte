@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '@glyphx/ui/button';
-	import { ButtonGroup } from '@glyphx/ui/button-group';
+	import { Button } from '@glyphtex/ui/button';
+	import { ButtonGroup } from '@glyphtex/ui/button-group';
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
@@ -8,7 +8,7 @@
 		DropdownMenuSeparator,
 		DropdownMenuShortcut,
 		DropdownMenuTrigger
-	} from '@glyphx/ui/dropdown-menu';
+	} from '@glyphtex/ui/dropdown-menu';
 	import {
 		IconBold,
 		IconChevronDown,
@@ -209,7 +209,7 @@
 		{#if cluster.kind === 'group'}
 			<ButtonGroup>
 				{#each cluster.actions as a (a.label)}
-					{@const Icon = a.icon}
+					{const Icon = a.icon}
 					<Button
 						variant="outline"
 						size="icon-sm"
@@ -222,7 +222,7 @@
 				{/each}
 			</ButtonGroup>
 		{:else}
-			{@const Icon = cluster.icon}
+			{const Icon = cluster.icon}
 			<DropdownMenu>
 				<DropdownMenuTrigger>
 					{#snippet child({ props })}

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Workbench } from '@glyphx/ui/application';
-	import type { PackDefinition } from '@glyphx/tex-engine';
+	import { Workbench } from '@glyphtex/ui/application';
+	import type { PackDefinition } from 'glyphtex-engine';
 	import { compileLatex, installPacks, warmEngine, engineReady } from '$lib/compile';
 	import { citationCommands } from '$lib/citations';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
@@ -76,7 +76,7 @@
 </script>
 
 <svelte:head>
-	<title>GlyphX — Editor</title>
+	<title>GlyphTeX — Editor</title>
 </svelte:head>
 
 <div class="flex h-dvh flex-col">

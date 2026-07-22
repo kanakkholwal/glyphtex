@@ -2,9 +2,9 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { Button } from '@glyphx/ui/button';
-	import { Logo } from '@glyphx/ui/logo';
-	import { Toaster } from '@glyphx/ui/sonner';
+	import { Button } from '@glyphtex/ui/button';
+	import { Logo } from '@glyphtex/ui/logo';
+	import { Toaster } from '@glyphtex/ui/sonner';
 	import {
 		IconArrowLeft,
 		IconBolt,
@@ -61,7 +61,7 @@
 	});
 </script>
 
-<svelte:head><title>Settings · GlyphX</title></svelte:head>
+<svelte:head><title>Settings · GlyphTeX</title></svelte:head>
 
 <div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
 	<!-- Top chrome: identity + the section tabs, both aligned to the centred
@@ -88,8 +88,8 @@
 			aria-label="Settings sections"
 		>
 			{#each nav as item (item.href)}
-				{@const active = isActive(item.href)}
-				{@const Icon = item.icon}
+				{const active = isActive(item.href)}
+				{const Icon = item.icon}
 				<a
 					href={resolve(item.href)}
 					data-active={String(active)}

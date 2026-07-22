@@ -1,4 +1,4 @@
-import type { Diagnostic, PackDefinition } from '@glyphx/tex-engine';
+import type { Diagnostic, PackDefinition } from 'glyphtex-engine';
 import { loadManifest, openEngineCache } from './tex/manifest';
 import type { CompileFile, UnsentRequest, WorkerRequest, WorkerResponse } from './tex/protocol';
 

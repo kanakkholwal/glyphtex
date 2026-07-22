@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
 	import { IconCheck } from '@tabler/icons-svelte';
-	import { cn, type WithoutChild } from "@glyphx/ui/utils";
+	import { cn, type WithoutChild } from "@glyphtex/ui/utils";
 
 	let {
 		ref = $bindable(null),

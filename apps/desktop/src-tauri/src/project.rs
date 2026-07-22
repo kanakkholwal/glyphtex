@@ -1,6 +1,6 @@
 //! Folder-based LaTeX projects: filesystem access, zip import, zip export.
 //!
-//! A GlyphX project is just a folder on disk (like Overleaf / a normal LaTeX
+//! A GlyphTeX project is just a folder on disk (like Overleaf / a normal LaTeX
 //! project). The frontend picks a folder via the native dialog, then drives
 //! these commands to read the file tree, load/save files, and create / rename /
 //! delete entries. Import accepts a `.zip` (extracted to a user-chosen folder);
@@ -19,7 +19,7 @@ use zip::write::SimpleFileOptions;
 
 /// Directories never shown in the Explorer or included in an export — version
 /// control, dependency caches, and build artifacts.
-const SKIP_DIRS: [&str; 5] = [".git", ".svn", "node_modules", ".glyphx-build", "_minted"];
+const SKIP_DIRS: [&str; 5] = [".git", ".svn", "node_modules", ".glyphtex-build", "_minted"];
 
 /// A file inside a project, with its absolute path (stable id) and a forward
 /// slash relative path (display name; the frontend nests folders by splitting on `/`).
@@ -237,7 +237,7 @@ pub struct LocalProject {
     pub modified: u64,
 }
 
-/// List the project folders GlyphX manages in its own data directory. Returns an
+/// List the project folders GlyphTeX manages in its own data directory. Returns an
 /// empty list when that directory doesn't exist yet (fresh install). Imported /
 /// externally-opened folders are tracked by the frontend, not here.
 #[tauri::command]

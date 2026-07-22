@@ -1,25 +1,34 @@
 <script lang="ts">
-	// The editorial backdrop pattern: full-bleed photo behind a hero, faded at
-	// top and bottom so the photo reads edge-to-edge while the page chrome
-	// (header / footer) stays on clean ground. Used by both the hero and the
-	// footer; the tone prop covers the three opacities they need:
-	//
-	//   - default (hero):   opacity-60 dark:opacity-40. Clear photo, room for content.
-	//   - strong (footer):  opacity-90 dark:opacity-60. Full bleed, photo-first.
-	//   - subtle (mid):     opacity-50 dark:opacity-30. Atmospheric, not the focus.
-
 	type Props = {
 		src: string;
 		tone?: 'default' | 'strong' | 'subtle';
+		/** Which edge the readability scrim ramps from: `left` for left-aligned
+		 *  copy, `bottom` for centered copy that sits low in the card. */
+		wash?: 'left' | 'bottom';
 		class?: string;
 	};
 
-	let { src, tone = 'default', class: className = '' }: Props = $props();
+	let { src, tone = 'default', wash = 'bottom', class: className = '' }: Props = $props();
 
 	const toneClass = {
-		default: 'opacity-60 dark:opacity-40',
-		strong: 'opacity-90 dark:opacity-60',
-		subtle: 'opacity-50 dark:opacity-30'
+		default: 'opacity-95 dark:opacity-60',
+		strong: 'opacity-100 dark:opacity-75',
+		subtle: 'opacity-70 dark:opacity-40'
+	} as const;
+
+	// The scrim carries readability on its own, so the photo underneath stays close
+	// to full strength instead of being flattened toward the canvas colour.
+	const washStyle = {
+		left: `background: linear-gradient(to right,
+			color-mix(in oklab, var(--canvas) 88%, transparent) 0%,
+			color-mix(in oklab, var(--canvas) 72%, transparent) 26%,
+			color-mix(in oklab, var(--canvas) 30%, transparent) 52%,
+			transparent 72%);`,
+		bottom: `background: linear-gradient(to bottom,
+			transparent 0%,
+			transparent 28%,
+			color-mix(in oklab, var(--canvas) 28%, transparent) 62%,
+			color-mix(in oklab, var(--canvas) 70%, transparent) 100%);`
 	} as const;
 </script>
 
@@ -29,19 +38,13 @@
 		style="background-image: url('{src}');"
 	></div>
 
-	<!--
-	  Soft bottom-up wash. The photo carries the top of the card with no
-	  overlay at all; the wash ramps in only toward the lower third where
-	  the headline + body sit, so dark text reads against the bright photo.
-	  Top stays fully transparent, bottom ramps to ~70% canvas so the
-	  body + CTAs land on a quieter reading surface.
-	-->
-	<div
-		class="absolute inset-0"
-		style="background: linear-gradient(to bottom,
-	      transparent 0%,
-	      transparent 28%,
-	      color-mix(in oklab, var(--canvas) 28%, transparent) 62%,
-	      color-mix(in oklab, var(--canvas) 70%, transparent) 100%);"
-	></div>
+	<div class="absolute inset-0" style={washStyle[wash]}></div>
+
+	{#if wash === 'left'}
+		<!-- Narrow bottom fade only, so the trust strip clears the photo's detail. -->
+		<div
+			class="absolute inset-x-0 bottom-0 h-32"
+			style="background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--canvas) 45%, transparent));"
+		></div>
+	{/if}
 </div>

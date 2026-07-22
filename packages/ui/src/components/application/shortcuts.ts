@@ -1,19 +1,3 @@
-/**
- * shortcuts.ts — the single registry for every keyboard shortcut in the editor.
- *
- * One place defines the combo, its human label, and the category it belongs to.
- * Everything else reads from here:
- *  - the application menu (File / Edit / …) pulls its `shortcut` hints via
- *    `shortcutLabel(id)`,
- *  - the global keydown handler matches events via `matchShortcut(e, id)`,
- *  - the "Keyboard Shortcuts" dialog renders the whole list grouped by category.
- *
- * Combos are written platform-neutral with the token `Mod` (⌘ on macOS, Ctrl
- * everywhere else); `Shift` / `Alt` and a final key follow. A shortcut may list
- * more than one combo (e.g. Redo is Mod+Shift+Z *or* Mod+Y). Save is Mod+S and
- * Compile is Mod+Enter — kept distinct so ⌘S never triggers a build.
- */
-
 export type ShortcutCategory =
 	| "Files & project"
 	| "Editing"
@@ -32,6 +16,8 @@ export type Shortcut = {
 };
 
 // Declared in display order; the dialog groups by `category` preserving this order.
+/** The one registry the menu, keydown handler, and shortcuts dialog all read from.
+ *  `Mod` is ⌘ on macOS and Ctrl everywhere else. */
 export const SHORTCUTS: Shortcut[] = [
 	{ id: "quick-open", label: "Go to file", category: "Files & project", combos: ["Mod+P"] },
 	{ id: "open-folder", label: "Open folder", category: "Files & project", combos: ["Mod+O"] },

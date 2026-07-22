@@ -20,8 +20,8 @@
 </script>
 
 <script lang="ts">
-	import { Label } from '@glyphx/ui/label';
-	import { cn } from '@glyphx/ui/utils';
+	import { Label } from '@glyphtex/ui/label';
+	import { cn } from '@glyphtex/ui/utils';
 
 	let {
 		label,

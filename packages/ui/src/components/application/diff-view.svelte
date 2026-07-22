@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type * as Monaco from 'monaco-editor';
-	import { loadMonaco, type MonacoNamespace } from '@glyphx/ui/editor';
+	import { loadMonaco, type MonacoNamespace } from '@glyphtex/ui/editor';
 
 	/**
 	 * DiffView — read-only diff of two texts, built on Monaco's diff editor.
@@ -61,7 +61,7 @@
 				});
 			})
 			.catch((error) => {
-				console.error('[GlyphX] the diff view failed to load:', error);
+				console.error('[GlyphTeX] the diff view failed to load:', error);
 			});
 
 		return () => {
@@ -104,7 +104,7 @@
 
 	$effect(() => {
 		void editor;
-		monaco?.editor.setTheme(theme === 'dark' ? 'glyphx-island-dark' : 'glyphx-island-light');
+		monaco?.editor.setTheme(theme === 'dark' ? 'glyphtex-island-dark' : 'glyphtex-island-light');
 	});
 
 	$effect(() => {

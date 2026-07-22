@@ -1,7 +1,7 @@
 //! Atomic file writes.
 //!
 //! Files the app re-reads on the next launch (project `.tex` files, the engine
-//! `active.txt` marker, the `.glyphx` manifest) must never be left half-written:
+//! `active.txt` marker, the `.glyphtex` manifest) must never be left half-written:
 //! a crash or power-loss between truncate and write corrupts the file. The fix is
 //! the standard temp-file dance — write a sibling temp file, flush + fsync, then
 //! `rename` it over the target. `rename` is atomic on the same filesystem (and on
@@ -29,7 +29,7 @@ pub fn atomic_write(path: &Path, contents: &[u8]) -> std::io::Result<()> {
     let file_name = path
         .file_name()
         .and_then(|n| n.to_str())
-        .unwrap_or("glyphx");
+        .unwrap_or("glyphtex");
     let seq = SEQ.fetch_add(1, Ordering::Relaxed);
     let tmp = dir.join(format!(".{file_name}.tmp-{}-{seq}", std::process::id()));
 

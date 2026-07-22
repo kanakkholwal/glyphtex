@@ -1,10 +1,3 @@
-/**
- * file-kinds.ts — classify a file by name so the workbench can render it the
- * right way: edit LaTeX/text in CodeMirror, show images and PDFs directly, and
- * offer a "reveal in folder" escape hatch for everything we can't display
- * without dragging in a heavy viewer.
- */
-
 export type FileKind = "latex" | "markdown" | "text" | "image" | "pdf" | "binary";
 
 /**
@@ -46,6 +39,8 @@ function extOf(name: string): string {
 	return dot <= 0 ? "" : leaf.slice(dot + 1).toLowerCase();
 }
 
+/** Classifies by name so the workbench knows how to render a file. `binary` means
+ *  "no preview without a heavy viewer" — the UI offers reveal-in-folder instead. */
 export function classifyFile(name: string): FileKind {
 	const ext = extOf(name);
 	if (!ext) return "text"; // no extension (Makefile, LICENSE, .gitignore) → editable text

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '@glyphx/ui/utils';
+	import { cn } from '@glyphtex/ui/utils';
 
 	// Step 1's "Open the project you already have" mock. A faux file-tree on
 	// the left and a tiny preview pane on the right, styled in the app's
@@ -47,7 +47,7 @@
 		class="flex w-44 shrink-0 flex-col gap-0.5 rounded-xl border border-hairline/70 bg-card/70 p-2.5 font-mono text-xs"
 	>
 		{#each tree as entry, i (entry.name)}
-			{@const isSelected = i === selected}
+			{const isSelected = i === selected}
 			<div
 				class={cn(
 					'flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors duration-300',

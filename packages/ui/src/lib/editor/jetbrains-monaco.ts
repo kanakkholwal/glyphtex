@@ -1,8 +1,8 @@
 import type * as Monaco from "monaco-editor";
 import type { MonacoNamespace } from "./monaco";
 
-export const ISLAND_DARK = "glyphx-island-dark";
-export const ISLAND_LIGHT = "glyphx-island-light";
+export const ISLAND_DARK = "glyphtex-island-dark";
+export const ISLAND_LIGHT = "glyphtex-island-light";
 
 // --- Islands Dark ---
 

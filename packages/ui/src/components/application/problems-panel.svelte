@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { LatexProblem } from '@glyphx/ui/editor';
-	import { toast } from '@glyphx/ui/sonner';
+	import type { LatexProblem } from '@glyphtex/ui/editor';
+	import { toast } from '@glyphtex/ui/sonner';
 	import {
 		IconAlertTriangleFilled,
 		IconInfoCircle,

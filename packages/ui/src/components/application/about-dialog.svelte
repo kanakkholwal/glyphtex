@@ -1,25 +1,25 @@
 <script lang="ts" module>
-	/** Where GlyphX lives — kept here so the About box and any future "Help"
+	/** Where GlyphTeX lives — kept here so the About box and any future "Help"
 	 * surface read the same canonical links. */
-	export const GLYPHX_REPO = "https://github.com/kanakkholwal/glyphx";
-	export const GLYPHX_SITE = "https://glyphx.nexonauts.com";
+	export const GLYPHTEX_REPO = "https://github.com/kanakkholwal/glyphtex";
+	export const GLYPHTEX_SITE = "https://glyphtex.nexonauts.com";
 </script>
 
 <script lang="ts">
-	import { Button } from "@glyphx/ui/button";
-	import { Dialog, DialogContent } from "@glyphx/ui/dialog";
-	import { Logo } from "@glyphx/ui/logo";
+	import { Button } from "@glyphtex/ui/button";
+	import { Dialog, DialogContent } from "@glyphtex/ui/dialog";
+	import { Logo } from "@glyphtex/ui/logo";
 	import { IconBrandGithub, IconWorld } from '@tabler/icons-svelte';
 
 	/**
-	 * AboutDialog — a compact "About GlyphX" card: the brand lockup, a one-line
+	 * AboutDialog — a compact "About GlyphTeX" card: the brand lockup, a one-line
 	 * description of what the app is, the build version, and links out to the
 	 * source and the website. Purely informational; no actions beyond the links.
 	 */
 	let {
 		open = $bindable(false),
 		platform = "desktop",
-		version = "0.0.1",
+		version = "0.1.0",
 	}: {
 		open?: boolean;
 		platform?: "web" | "desktop";
@@ -34,7 +34,7 @@
 
 			<div class="flex flex-col items-center gap-1.5">
 				<h2 class="font-display text-foreground text-xl font-semibold tracking-tight">
-					GlyphX
+					GlyphTeX
 				</h2>
 				<p class="text-muted-foreground text-sm leading-relaxed text-balance">
 					A local-first LaTeX editor
@@ -49,7 +49,7 @@
 
 			<div class="mt-1 flex w-full items-center justify-center gap-2">
 				<Button
-					href={GLYPHX_REPO}
+					href={GLYPHTEX_REPO}
 					target="_blank"
 					rel="noreferrer noopener"
 					variant="outline"
@@ -59,7 +59,7 @@
 					GitHub
 				</Button>
 				<Button
-					href={GLYPHX_SITE}
+					href={GLYPHTEX_SITE}
 					target="_blank"
 					rel="noreferrer noopener"
 					variant="outline"

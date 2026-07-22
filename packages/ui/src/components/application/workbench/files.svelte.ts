@@ -1,15 +1,3 @@
-/**
- * FileStore — the Workbench's document + project model.
- *
- * Owns the open files, the active buffer (`source`), the save / dirty model,
- * Explorer operations (new / rename / move / delete, folders, conflict
- * resolution), folder-project loading (open / import / export / manifest), and
- * the Git working-tree status labels.
- *
- * Pure state + behaviour — no `$effect`s and no markup. The component drives the
- * reactive side-effects (auto-save, persist, git refresh) by reading the public
- * reactive fields here (notably {@link savedTick}) from its own `$effect`s.
- */
 import {
   classifyFile,
   editorLanguage,
@@ -18,8 +6,8 @@ import {
 } from "../file-kinds";
 import type { GitProvider } from "../git-panel.svelte";
 import type { ProjectHost } from "../project";
-import { settings } from "@glyphx/ui/settings";
-import { toast } from "@glyphx/ui/sonner";
+import { settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
 import {
   baseName,
@@ -45,6 +33,8 @@ export type FileStoreDeps = {
   projectName: string;
 };
 
+/** The Workbench's document + project model. State and behaviour only — the component
+ *  drives auto-save/persist/git-refresh from its own effects, keyed on {@link savedTick}. */
 export class FileStore {
   /** Folder-based project bridge (desktop = Tauri fs / zip). Absent on web. */
   readonly project?: ProjectHost;
@@ -981,7 +971,7 @@ export class FileStore {
     }
   }
 
-  /** Register the OS "Open with GlyphX" folder integration (desktop, Windows).
+  /** Register the OS "Open with GlyphTeX" folder integration (desktop, Windows).
    *  Resolves `true` on success so the caller can show inline confirmation. */
   async registerShell(): Promise<boolean> {
     if (!this.project?.registerShellIntegration) return false;

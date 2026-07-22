@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { settings, type Appearance } from "@glyphx/ui/settings";
-	import { Button, type ButtonSize } from "@glyphx/ui/button";
+	import { settings, type Appearance } from "@glyphtex/ui/settings";
+	import { Button, type ButtonSize } from "@glyphtex/ui/button";
 	import { IconSun, IconMoon, IconDeviceDesktop } from '@tabler/icons-svelte';
 
 	/**

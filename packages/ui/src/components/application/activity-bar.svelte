@@ -3,69 +3,163 @@
 </script>
 
 <script lang="ts">
-	import { Button } from '@glyphx/ui/button';
-	import { IconFiles, IconGitBranch, IconListTree, IconSearch, IconSettings } from '@tabler/icons-svelte';
+	import { Button } from '@glyphtex/ui/button';
+	import { Logo } from '@glyphtex/ui/logo';
+	import { Tooltip, TooltipContent, TooltipTrigger } from '@glyphtex/ui/tooltip';
+	import {
+		IconCommand,
+		IconFiles,
+		IconFolderOpen,
+		IconGitBranch,
+		IconListTree,
+		IconPlus,
+		IconSearch,
+		IconSettings
+	} from '@tabler/icons-svelte';
 
-	/**
-	 * Rail — the left mode switcher (Explorer / Search / Source Control / Settings).
-	 * No logo here (it lives in the top bar). Selection uses the Button
-	 * `brand_soft` variant rather than a VS Code-style edge accent.
-	 */
+	import AppMenu, { type Menu } from './app-menu.svelte';
+
+	/** Icon-only mode switcher. Also carries app identity and menus, so the document
+	 *  header can stay a document header. */
 	let {
 		active = 'files',
 		onselect,
-		position = 'left'
+		position = 'left',
+		menus = [],
+		homeHref = '/',
+		homeLabel = 'Home',
+		onnewfile,
+		onopenproject
 	}: {
 		active?: ActivityView;
 		onselect?: (view: ActivityView) => void;
 		/** Which workbench edge the rail docks on — flips its divider border. */
 		position?: 'left' | 'right';
+		/** Application menus, shown under the rail's menu button. */
+		menus?: Menu[];
+		/** Where the logo links. Hosts pass their document list; '/' is the fallback. */
+		homeHref?: string;
+		/** Hover label for the logo, e.g. "Documents". */
+		homeLabel?: string;
+		onnewfile?: () => void;
+		/** Absent on web, where there is no folder picker. */
+		onopenproject?: () => void;
 	} = $props();
 
-	// `label` is the caption under the icon and must survive a 56px rail, so it is
-	// kept short; `title` carries the full name for the tooltip and screen reader.
-	type Item = { id: ActivityView; label: string; title: string; icon: typeof IconFiles };
+	type Item = { id: ActivityView; label: string; icon: typeof IconFiles };
 
-	const top: Item[] = [
-		{ id: 'files', label: 'Files', title: 'Explorer', icon: IconFiles },
-		{ id: 'outline', label: 'Outline', title: 'Outline', icon: IconListTree },
-		{ id: 'search', label: 'Search', title: 'Search', icon: IconSearch },
-		{ id: 'git', label: 'Git', title: 'Source Control', icon: IconGitBranch }
+	const views: Item[] = [
+		{ id: 'files', label: 'Files', icon: IconFiles },
+		{ id: 'outline', label: 'Outline', icon: IconListTree },
+		{ id: 'search', label: 'Search', icon: IconSearch },
+		{ id: 'git', label: 'Source Control', icon: IconGitBranch }
 	];
-	const bottom: Item = {
-		id: 'settings',
-		label: 'Settings',
-		title: 'Settings',
-		icon: IconSettings
-	};
-
-	const itemClass = 'h-auto w-full flex-col gap-1 rounded-md px-0.5 py-1.5';
 </script>
 
 <nav
-	class="bg-card border-border flex w-14 shrink-0 flex-col items-center gap-1 px-1 py-2 {position ===
+	class="bg-card border-border flex w-14 shrink-0 flex-col items-center gap-1 py-2 {position ===
 	'right'
 		? 'border-l'
 		: 'border-r'}"
 	aria-label="Views"
 >
-	{#each [...top, bottom] as item (item.id)}
-		{@const Icon = item.icon}
-		<div class="w-full {item.id === 'settings' ? 'mt-auto' : ''}">
-			<Button
-				variant={active === item.id ? 'brand_soft' : 'ghost'}
-				size="raw"
-				class={itemClass}
-				title={item.title}
-				aria-label={item.title}
-				aria-pressed={active === item.id}
-				onclick={() => onselect?.(item.id)}
-			>
-				<Icon class="size-5" />
-				<span class="w-full truncate text-center text-xs leading-none font-medium">
-					{item.label}
-				</span>
-			</Button>
-		</div>
+	<!-- Labelled on hover: "the mark takes you home" isn't guessable from the mark. -->
+	<span title={homeLabel}>
+		<Logo href={homeHref} text={false} size="md" viewTransitionName="app-logo" />
+	</span>
+
+	<div class="bg-border my-1.5 h-px w-6"></div>
+
+	{#each views as item (item.id)}
+		{const Icon = item.icon}
+		<Tooltip delayDuration={300}>
+			<TooltipTrigger>
+				{#snippet child({ props })}
+					<Button
+						{...props}
+						variant={active === item.id ? 'brand_soft' : 'ghost'}
+						size="icon-sm"
+						aria-label={item.label}
+						aria-pressed={active === item.id}
+						onclick={() => onselect?.(item.id)}
+					>
+						<Icon class="size-5" />
+					</Button>
+				{/snippet}
+			</TooltipTrigger>
+			<TooltipContent side="right">{item.label}</TooltipContent>
+		</Tooltip>
 	{/each}
+
+	<div class="mt-auto flex flex-col items-center gap-1">
+		{#if onnewfile}
+			<Tooltip delayDuration={300}>
+				<TooltipTrigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="ghost"
+							size="icon-sm"
+							aria-label="New file"
+							onclick={() => onnewfile?.()}
+						>
+							<IconPlus class="size-5" />
+						</Button>
+					{/snippet}
+				</TooltipTrigger>
+				<TooltipContent side="right">New file</TooltipContent>
+			</Tooltip>
+		{/if}
+		{#if onopenproject}
+			<Tooltip delayDuration={300}>
+				<TooltipTrigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="ghost"
+							size="icon-sm"
+							aria-label="Open project"
+							onclick={() => onopenproject?.()}
+						>
+							<IconFolderOpen class="size-5" />
+						</Button>
+					{/snippet}
+				</TooltipTrigger>
+				<TooltipContent side="right">Open project</TooltipContent>
+			</Tooltip>
+		{/if}
+		<!-- Native `title`, not Tooltip: this is already a DropdownMenu trigger, and
+		     merging both triggers' props lets one set of handlers clobber the other. -->
+		<AppMenu {menus}>
+			{#snippet trigger({ props })}
+				<Button
+					{...props}
+					variant="ghost"
+					size="icon-sm"
+					title="Menu"
+					aria-label="Application menu"
+				>
+					<IconCommand class="size-5" />
+				</Button>
+			{/snippet}
+		</AppMenu>
+
+		<Tooltip delayDuration={300}>
+			<TooltipTrigger>
+				{#snippet child({ props })}
+					<Button
+						{...props}
+						variant={active === 'settings' ? 'brand_soft' : 'ghost'}
+						size="icon-sm"
+						aria-label="Settings"
+						aria-pressed={active === 'settings'}
+						onclick={() => onselect?.('settings')}
+					>
+						<IconSettings class="size-5" />
+					</Button>
+				{/snippet}
+			</TooltipTrigger>
+			<TooltipContent side="right">Settings</TooltipContent>
+		</Tooltip>
+	</div>
 </nav>

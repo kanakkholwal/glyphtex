@@ -1,8 +1,8 @@
 [package]
-name = "glyphx-tex-api"
+name = "glyphtex-tex-api"
 version = "0.1.0"
 edition = "2021"
-description = "Typed API surface and TeX log parsing for the GlyphX TeX engine"
+description = "Typed API surface and TeX log parsing for the GlyphTeX TeX engine"
 license = "MIT"
 
 # Deliberately free of C dependencies and of the engine itself, so it builds and

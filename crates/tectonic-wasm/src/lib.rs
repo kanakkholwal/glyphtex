@@ -1,4 +1,4 @@
-//! GlyphX TeX engine — Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly.
+//! GlyphTeX TeX engine — Tectonic (XeTeX + xdvipdfmx) compiled to WebAssembly.
 //!
 //! # Boundary design
 //!
@@ -14,14 +14,14 @@
 //! # Calling sequence
 //!
 //! ```text
-//! glyphx_alloc(n)                        -> write bytes into linear memory
-//! glyphx_add_file(name, data)            -> repeat per project/bundle file
-//! glyphx_compile(options_json)           -> 0 on completion
-//! glyphx_result_ptr() / _len()           -> read the JSON CompileResult
-//! glyphx_output_len() / _copy()          -> pull out the PDF bytes
+//! glyphtex_alloc(n)                        -> write bytes into linear memory
+//! glyphtex_add_file(name, data)            -> repeat per project/bundle file
+//! glyphtex_compile(options_json)           -> 0 on completion
+//! glyphtex_result_ptr() / _len()           -> read the JSON CompileResult
+//! glyphtex_output_len() / _copy()          -> pull out the PDF bytes
 //! ```
 //!
-//! `glyphx_compile` returning 0 means *the call completed*, not that the
+//! `glyphtex_compile` returning 0 means *the call completed*, not that the
 //! document built — read `status` in the result for that. Only a negative
 //! return indicates the arguments themselves were unusable.
 //!
@@ -36,10 +36,10 @@
 mod io;
 mod session;
 
-/// The typed API surface, shared with the pure-Rust `glyphx-tex-api` crate that
+/// The typed API surface, shared with the pure-Rust `glyphtex-tex-api` crate that
 /// also generates the TypeScript declarations.
-pub use glyphx_tex_api::api;
-pub use glyphx_tex_api::{
+pub use glyphtex_tex_api::api;
+pub use glyphtex_tex_api::{
     CompileOptions, CompileResult, CompileStatus, Diagnostic, LogLevel, OutputFile, OutputFormat,
     OutputKind, Severity,
 };
@@ -60,7 +60,7 @@ const ERR_BAD_UTF8: i32 = -2;
 const ERR_BAD_JSON: i32 = -3;
 /// The session is still borrowed from an earlier call that never returned.
 ///
-/// This means a previous `glyphx_compile` trapped rather than returning: the
+/// This means a previous `glyphtex_compile` trapped rather than returning: the
 /// wasm stack was torn down without unwinding Rust, so the `RefCell` guard was
 /// never dropped. Every later call would otherwise panic on the borrow, and
 /// under `panic = "abort"` a panic is a trap — so one bad document would brick
@@ -92,7 +92,7 @@ thread_local! {
     /// JSON for the most recent compile, held so the caller can read it back
     /// without us leaking an allocation on every call.
     static LAST_RESULT: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
-    /// Bytes staged by the most recent [`glyphx_output_len`] call.
+    /// Bytes staged by the most recent [`glyphtex_output_len`] call.
     static STAGED_OUTPUT: RefCell<Vec<u8>> = const { RefCell::new(Vec::new()) };
 }
 
@@ -112,16 +112,16 @@ unsafe fn slice_from<'a>(ptr: *const u8, len: usize) -> Option<&'a [u8]> {
 
 /// The ABI version this module implements.
 #[no_mangle]
-pub extern "C" fn glyphx_abi_version() -> u32 {
+pub extern "C" fn glyphtex_abi_version() -> u32 {
     ABI_VERSION
 }
 
 /// Allocate `len` bytes for the caller to write into.
 ///
-/// Pair every call with [`glyphx_dealloc`] using the same length. Returns null
+/// Pair every call with [`glyphtex_dealloc`] using the same length. Returns null
 /// if `len` is zero or the allocation fails.
 #[no_mangle]
-pub extern "C" fn glyphx_alloc(len: usize) -> *mut u8 {
+pub extern "C" fn glyphtex_alloc(len: usize) -> *mut u8 {
     if len == 0 {
         return std::ptr::null_mut();
     }
@@ -132,13 +132,13 @@ pub extern "C" fn glyphx_alloc(len: usize) -> *mut u8 {
     unsafe { alloc(layout) }
 }
 
-/// Release memory obtained from [`glyphx_alloc`].
+/// Release memory obtained from [`glyphtex_alloc`].
 ///
 /// # Safety
-/// `ptr` must come from [`glyphx_alloc`] with the same `len`, and must not have
+/// `ptr` must come from [`glyphtex_alloc`] with the same `len`, and must not have
 /// been freed already.
 #[no_mangle]
-pub unsafe extern "C" fn glyphx_dealloc(ptr: *mut u8, len: usize) {
+pub unsafe extern "C" fn glyphtex_dealloc(ptr: *mut u8, len: usize) {
     if ptr.is_null() || len == 0 {
         return;
     }
@@ -155,7 +155,7 @@ pub unsafe extern "C" fn glyphx_dealloc(ptr: *mut u8, len: usize) {
 /// # Safety
 /// Both pointers must be valid for reads of their stated lengths.
 #[no_mangle]
-pub unsafe extern "C" fn glyphx_add_file(
+pub unsafe extern "C" fn glyphtex_add_file(
     name_ptr: *const u8,
     name_len: usize,
     data_ptr: *const u8,
@@ -183,7 +183,7 @@ pub unsafe extern "C" fn glyphx_add_file(
 /// # Safety
 /// `name_ptr` must be valid for reads of `name_len` bytes.
 #[no_mangle]
-pub unsafe extern "C" fn glyphx_remove_file(name_ptr: *const u8, name_len: usize) -> i32 {
+pub unsafe extern "C" fn glyphtex_remove_file(name_ptr: *const u8, name_len: usize) -> i32 {
     // SAFETY: delegated to the caller.
     let Some(bytes) = (unsafe { slice_from(name_ptr, name_len) }) else {
         return ERR_BAD_POINTER;
@@ -199,7 +199,7 @@ pub unsafe extern "C" fn glyphx_remove_file(name_ptr: *const u8, name_len: usize
 
 /// Number of files currently in the virtual filesystem.
 #[no_mangle]
-pub extern "C" fn glyphx_file_count() -> i32 {
+pub extern "C" fn glyphtex_file_count() -> i32 {
     match with_session(|s| s.file_count()) {
         Some(n) => i32::try_from(n).unwrap_or(i32::MAX),
         None => ERR_POISONED,
@@ -208,7 +208,7 @@ pub extern "C" fn glyphx_file_count() -> i32 {
 
 /// Drop every input file.
 #[no_mangle]
-pub extern "C" fn glyphx_clear_files() -> i32 {
+pub extern "C" fn glyphtex_clear_files() -> i32 {
     match with_session_mut(|s| s.clear_files()) {
         Some(()) => 0,
         None => ERR_POISONED,
@@ -217,7 +217,7 @@ pub extern "C" fn glyphx_clear_files() -> i32 {
 
 /// Discard auxiliary files from the previous compile, forcing a cold build.
 #[no_mangle]
-pub extern "C" fn glyphx_clear_outputs() -> i32 {
+pub extern "C" fn glyphtex_clear_outputs() -> i32 {
     match with_session_mut(|s| s.clear_outputs()) {
         Some(()) => 0,
         None => ERR_POISONED,
@@ -234,7 +234,7 @@ pub extern "C" fn glyphx_clear_outputs() -> i32 {
 /// # Safety
 /// `options_ptr` must be valid for reads of `options_len` bytes.
 #[no_mangle]
-pub unsafe extern "C" fn glyphx_compile(options_ptr: *const u8, options_len: usize) -> i32 {
+pub unsafe extern "C" fn glyphtex_compile(options_ptr: *const u8, options_len: usize) -> i32 {
     // SAFETY: delegated to the caller.
     let Some(bytes) = (unsafe { slice_from(options_ptr, options_len) }) else {
         return ERR_BAD_POINTER;
@@ -274,29 +274,29 @@ fn store_result(result: &CompileResult) {
     LAST_RESULT.with_borrow_mut(|slot| *slot = json);
 }
 
-/// Pointer to the JSON result of the last [`glyphx_compile`].
+/// Pointer to the JSON result of the last [`glyphtex_compile`].
 ///
-/// Valid until the next call to `glyphx_compile`.
+/// Valid until the next call to `glyphtex_compile`.
 #[no_mangle]
-pub extern "C" fn glyphx_result_ptr() -> *const u8 {
+pub extern "C" fn glyphtex_result_ptr() -> *const u8 {
     LAST_RESULT.with_borrow(|r| r.as_ptr())
 }
 
-/// Length in bytes of the JSON result of the last [`glyphx_compile`].
+/// Length in bytes of the JSON result of the last [`glyphtex_compile`].
 #[no_mangle]
-pub extern "C" fn glyphx_result_len() -> usize {
+pub extern "C" fn glyphtex_result_len() -> usize {
     LAST_RESULT.with_borrow(|r| r.len())
 }
 
 /// Stage an output file and return its size, or -1 if there is no such file.
 ///
-/// Staging copies the bytes once so a subsequent [`glyphx_output_copy`] cannot
+/// Staging copies the bytes once so a subsequent [`glyphtex_output_copy`] cannot
 /// observe a different file; call the two in sequence.
 ///
 /// # Safety
 /// `name_ptr` must be valid for reads of `name_len` bytes.
 #[no_mangle]
-pub unsafe extern "C" fn glyphx_output_len(name_ptr: *const u8, name_len: usize) -> isize {
+pub unsafe extern "C" fn glyphtex_output_len(name_ptr: *const u8, name_len: usize) -> isize {
     // SAFETY: delegated to the caller.
     let Some(bytes) = (unsafe { slice_from(name_ptr, name_len) }) else {
         return -1;
@@ -317,14 +317,14 @@ pub unsafe extern "C" fn glyphx_output_len(name_ptr: *const u8, name_len: usize)
     }
 }
 
-/// Copy the file staged by [`glyphx_output_len`] into `buf`.
+/// Copy the file staged by [`glyphtex_output_len`] into `buf`.
 ///
 /// Returns the number of bytes written, which is `min(staged, buf_len)`.
 ///
 /// # Safety
 /// `buf` must be valid for writes of `buf_len` bytes.
 #[no_mangle]
-pub unsafe extern "C" fn glyphx_output_copy(buf: *mut u8, buf_len: usize) -> isize {
+pub unsafe extern "C" fn glyphtex_output_copy(buf: *mut u8, buf_len: usize) -> isize {
     if buf.is_null() && buf_len != 0 {
         return -1;
     }
@@ -345,56 +345,56 @@ mod tests {
 
     fn add(name: &str, data: &[u8]) -> i32 {
         // SAFETY: pointers derive from live slices.
-        unsafe { glyphx_add_file(name.as_ptr(), name.len(), data.as_ptr(), data.len()) }
+        unsafe { glyphtex_add_file(name.as_ptr(), name.len(), data.as_ptr(), data.len()) }
     }
 
     #[test]
     fn abi_version_is_exposed() {
-        assert_eq!(glyphx_abi_version(), ABI_VERSION);
+        assert_eq!(glyphtex_abi_version(), ABI_VERSION);
     }
 
     #[test]
     fn alloc_of_zero_returns_null() {
-        assert!(glyphx_alloc(0).is_null());
+        assert!(glyphtex_alloc(0).is_null());
     }
 
     #[test]
     fn alloc_then_dealloc_round_trips() {
-        let p = glyphx_alloc(64);
+        let p = glyphtex_alloc(64);
         assert!(!p.is_null());
-        // SAFETY: p came from glyphx_alloc with this length.
-        unsafe { glyphx_dealloc(p, 64) };
+        // SAFETY: p came from glyphtex_alloc with this length.
+        unsafe { glyphtex_dealloc(p, 64) };
     }
 
     #[test]
     fn add_file_rejects_invalid_utf8_names() {
         let bad = [0xff_u8, 0xfe];
         // SAFETY: pointers derive from live slices.
-        let rc = unsafe { glyphx_add_file(bad.as_ptr(), bad.len(), b"x".as_ptr(), 1) };
+        let rc = unsafe { glyphtex_add_file(bad.as_ptr(), bad.len(), b"x".as_ptr(), 1) };
         assert_eq!(rc, ERR_BAD_UTF8);
     }
 
     #[test]
     fn add_file_rejects_null_pointers() {
         // SAFETY: deliberately passing null with a non-zero length.
-        let rc = unsafe { glyphx_add_file(std::ptr::null(), 4, b"x".as_ptr(), 1) };
+        let rc = unsafe { glyphtex_add_file(std::ptr::null(), 4, b"x".as_ptr(), 1) };
         assert_eq!(rc, ERR_BAD_POINTER);
     }
 
     #[test]
     fn added_file_can_be_removed() {
-        glyphx_clear_files();
+        glyphtex_clear_files();
         assert_eq!(add("a.tex", b"hello"), 0);
         // SAFETY: pointer derives from a live slice.
-        let removed = unsafe { glyphx_remove_file("a.tex".as_ptr(), 5) };
+        let removed = unsafe { glyphtex_remove_file("a.tex".as_ptr(), 5) };
         assert_eq!(removed, 1);
     }
 
     #[test]
     fn removing_an_absent_file_reports_zero() {
-        glyphx_clear_files();
+        glyphtex_clear_files();
         // SAFETY: pointer derives from a live slice.
-        let removed = unsafe { glyphx_remove_file("ghost.tex".as_ptr(), 9) };
+        let removed = unsafe { glyphtex_remove_file("ghost.tex".as_ptr(), 9) };
         assert_eq!(removed, 0);
     }
 
@@ -402,14 +402,14 @@ mod tests {
     fn compile_with_malformed_json_reports_bad_json() {
         let bad = b"{not json";
         // SAFETY: pointer derives from a live slice.
-        let rc = unsafe { glyphx_compile(bad.as_ptr(), bad.len()) };
+        let rc = unsafe { glyphtex_compile(bad.as_ptr(), bad.len()) };
         assert_eq!(rc, ERR_BAD_JSON);
     }
 
     #[test]
     fn output_len_of_absent_file_is_negative_one() {
         // SAFETY: pointer derives from a live slice.
-        let n = unsafe { glyphx_output_len("nope.pdf".as_ptr(), 8) };
+        let n = unsafe { glyphtex_output_len("nope.pdf".as_ptr(), 8) };
         assert_eq!(n, -1);
     }
 }

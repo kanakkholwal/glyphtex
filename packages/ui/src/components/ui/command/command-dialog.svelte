@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn, type WithoutChildrenOrChild } from "@glyphx/ui/utils";
+	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import type { Command as CommandPrimitive, Dialog as DialogPrimitive } from "bits-ui";
 	import type { Snippet } from "svelte";
 	import * as Dialog from "../dialog";

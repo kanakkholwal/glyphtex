@@ -26,7 +26,7 @@
 </script>
 
 <script lang="ts" generics="T extends string">
-	import { cn } from "@glyphx/ui/utils";
+	import { cn } from "@glyphtex/ui/utils";
 
 	let {
 		options,
@@ -126,7 +126,7 @@
 	{/if}
 
 	{#each options as option (option.value)}
-		{@const active = option.value === value}
+		{const active = option.value === value}
 		<button
 			type="button"
 			role="radio"

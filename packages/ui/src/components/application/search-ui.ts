@@ -1,9 +1,5 @@
-/**
- * Shared class strings for every search surface in the app: the editor find
- * bar, the sidebar Search view, and the find bar in the PDF preview. Keeping the
- * control chrome in one place means the three always read as the same component
- * family (same field, same Aa/W/.* pills, same nav buttons, same match count).
- */
+// Shared by the editor find bar, the sidebar Search view, and the PDF find bar, so
+// the three always read as one component family.
 
 /** Text field. Add a width (`w-full` / `w-44`) and trailing `pr-*` for any
  * in-field toggles at the call site. */
