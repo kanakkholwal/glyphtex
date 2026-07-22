@@ -12,6 +12,7 @@ import type { FileStore } from "./files.svelte";
 import type { LayoutStore } from "./layout.svelte";
 import { baseName } from "./paths";
 import type {
+  CompileFilesFn,
   CompileFn,
   CompileProjectFn,
   CompileStatus,
@@ -29,6 +30,8 @@ export type CompileDeps = {
   /** Must be a getter, not a captured value: the host can install an engine after
    *  mount, and a stored value froze `canCompile` at "Compiler not ready" forever. */
   getCompile: () => CompileFn | undefined;
+  /** Same live-getter requirement as `getCompile`. */
+  getCompileFiles?: () => CompileFilesFn | undefined;
   compileProject?: CompileProjectFn;
   saveFile?: SaveFileFn;
 };
@@ -37,6 +40,7 @@ export class CompileStore {
   readonly #files: FileStore;
   readonly #layout: LayoutStore;
   readonly #getCompile: () => CompileFn | undefined;
+  readonly #getCompileFiles?: () => CompileFilesFn | undefined;
   readonly #compileProject?: CompileProjectFn;
   readonly #saveFile?: SaveFileFn;
 
@@ -74,6 +78,7 @@ export class CompileStore {
     this.#files = deps.files;
     this.#layout = deps.layout;
     this.#getCompile = deps.getCompile;
+    this.#getCompileFiles = deps.getCompileFiles;
     this.#compileProject = deps.compileProject;
     this.#saveFile = deps.saveFile;
   }
@@ -91,7 +96,11 @@ export class CompileStore {
     );
   }
   get canCompile(): boolean {
-    return Boolean(this.#getCompile()) || this.projectCompile;
+    return (
+      Boolean(this.#getCompile()) ||
+      Boolean(this.#getCompileFiles?.()) ||
+      this.projectCompile
+    );
   }
 
   readonly compileLabel = $derived(
@@ -200,9 +209,11 @@ export class CompileStore {
         this.#pendingRecompile = false;
         const snapshot = this.#compileSource();
         const useProject = this.projectCompile;
-        // Single-file only: in a project, editing a non-active file doesn't
-        // change `source`, so skipping there would miss real changes.
-        if (!manual && !useProject && snapshot === this.#lastCompiledSource)
+        const compileFiles = this.#getCompileFiles?.();
+        // Single-file only: with several files, editing a non-active one leaves
+        // `source` untouched, so skipping there would miss real changes.
+        const singleFile = !useProject && !compileFiles;
+        if (!manual && singleFile && snapshot === this.#lastCompiledSource)
           break;
         this.compileStatus = "compiling";
         const started = performance.now();
@@ -210,16 +221,16 @@ export class CompileStore {
         // Resolved per run, not captured: the host can supply a compiler after
         // mount (the web app does, once the engine is installed).
         const compileFn = this.#getCompile();
+        const entry =
+          this.#files.files.find((f) => f.id === this.#files.mainId)?.name ?? "";
         const out =
           useProject && this.#compileProject && root
-            ? await this.#compileProject(
-                root,
-                this.#files.files.find((f) => f.id === this.#files.mainId)
-                  ?.name ?? "",
-              )
-            : compileFn
-              ? await compileFn(snapshot)
-              : { error: "No compiler available." };
+            ? await this.#compileProject(root, entry)
+            : compileFiles
+              ? await compileFiles(this.#files.files, entry)
+              : compileFn
+                ? await compileFn(snapshot)
+                : { error: "No compiler available." };
         this.lastCompileMs = Math.round(performance.now() - started);
         this.compileLog = out.log ?? "";
         this.compileHint = out.hint;

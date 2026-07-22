@@ -85,11 +85,19 @@ step "graphite2"
 # that #includes <graphite2/Font.h>.
 if [ ! -f "$SYSROOT/lib/wasm32-emscripten/libgraphite2.a" ]; then
   GRAPHITE_VERSION=1.3.14
+  # This tarball is compiled into the shipped engine, so verify it: it is the
+  # one build input fetched from a third party at build time.
+  GRAPHITE_SHA256=f99d1c13aa5fa296898a181dff9b82fb25f6cc0933dbaa7a475d8109bd54209d
   WORK="${TMPDIR:-/tmp}/glyphx-graphite2"
   mkdir -p "$WORK" && cd "$WORK"
   if [ ! -f "graphite2-$GRAPHITE_VERSION.tgz" ]; then
     curl -sSLO "https://github.com/silnrsi/graphite/releases/download/$GRAPHITE_VERSION/graphite2-$GRAPHITE_VERSION.tgz"
   fi
+  echo "$GRAPHITE_SHA256  graphite2-$GRAPHITE_VERSION.tgz" | sha256sum -c - || {
+    echo "error: graphite2 tarball failed checksum; refusing to build it." >&2
+    rm -f "graphite2-$GRAPHITE_VERSION.tgz"
+    exit 1
+  }
   tar xzf "graphite2-$GRAPHITE_VERSION.tgz"
   SRC="$WORK/graphite2-$GRAPHITE_VERSION"
   mkdir -p "$SRC/build-wasm" && cd "$SRC/build-wasm"

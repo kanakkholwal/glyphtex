@@ -20,6 +20,15 @@ export type CompileResult = {
 export type CompileFn = (source: string) => Promise<CompileResult>;
 
 /**
+ * In-memory multi-file compile bridge (web projects). The host receives every
+ * text file plus the entry path, and supplies binary assets itself.
+ */
+export type CompileFilesFn = (
+  files: GlyphFile[],
+  entry: string,
+) => Promise<CompileResult>;
+
+/**
  * Multi-file project compile bridge (desktop). Given the project root and the
  * main file's path relative to it, runs the engine so `\input` /
  * `\includegraphics` / `\bibliography` resolve against the real folder.

@@ -1,6 +1,6 @@
-import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-cloudflare';
 import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -19,5 +19,8 @@ export default defineConfig({
 			// where it intercepts HMR traffic and then serves stale modules.
 			serviceWorker: { register: false }
 		})
-	]
+	],
+	// optimizeDeps: {
+	// 	include:["monaco-editor","bits-ui","pdfjs-dist"]
+	// }
 });

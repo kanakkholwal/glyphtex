@@ -96,6 +96,20 @@ describe('resolveMissing', () => {
 		assert.deepEqual(unsupported, []);
 	});
 
+	test('ignores the bounding-box probes graphicx makes beside an image', () => {
+		// Observed from a real multi-file compile of \includegraphics{figures/fig.png}:
+		// graphics probes figures/fig.bb with every package extension appended.
+		const { packs, unsupported } = resolveMissing(INDEX, [
+			'figures/fig.bb',
+			'figures/fig.bb.sty',
+			'figures/fig.bb.cls',
+			'figures/fig.bb.tex',
+			'sections/notes'
+		]);
+		assert.deepEqual(packs, []);
+		assert.deepEqual(unsupported, []);
+	});
+
 	test('ignores engine-internal probes from a healthy compile', () => {
 		// A document that compiles perfectly still reports these. Surfacing them
 		// would put an "unavailable packages" warning on a successful build.
