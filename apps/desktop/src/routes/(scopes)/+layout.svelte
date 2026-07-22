@@ -2,14 +2,14 @@
 	import { page } from '$app/state';
 	import type { Scope } from '@glyphtex/ui/application';
 
-	import WorkspaceHome from '$lib/workspace/WorkspaceHome.svelte';
+	import ProjectsPage from '$lib/workspace/ProjectsPage.svelte';
 
-	// The layout renders the whole workspace so the rail, its collapsed state, and
-	// the loaded project list survive scope navigation; the pages are route markers.
+	// The layout renders the home so the rail and its collapsed state survive
+	// navigation between destinations; the pages below are route markers.
 	const segment = $derived(page.url.pathname.split('/').filter(Boolean).at(-1) ?? '');
 	const scope = $derived<Scope>(
 		segment === 'recent' || segment === 'starred' || segment === 'templates' ? segment : 'all'
 	);
 </script>
 
-<WorkspaceHome {scope} />
+<ProjectsPage {scope} />

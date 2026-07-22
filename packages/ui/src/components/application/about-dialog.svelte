@@ -19,7 +19,7 @@
 	let {
 		open = $bindable(false),
 		platform = "desktop",
-		version = "0.0.1",
+		version = "0.1.0",
 	}: {
 		open?: boolean;
 		platform?: "web" | "desktop";

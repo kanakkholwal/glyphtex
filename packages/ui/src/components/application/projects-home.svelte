@@ -78,7 +78,7 @@
 		onstar,
 		storage,
 		helpHref,
-		activeScope,
+		activeScope = 'all',
 		scopeHrefs,
 		loading = false
 	}: {
@@ -108,10 +108,11 @@
 		storage?: { used: number; total: number };
 		/** Docs link target for the sidebar. Opens outside the workspace. */
 		helpHref?: string;
-		/** Scope from the URL. Given, the rail is route-driven, not local state. */
+		/** Which rail destination the host is currently rendering. */
 		activeScope?: Scope;
-		/** Per-scope routes. Given, the rail renders links instead of buttons. */
-		scopeHrefs?: Record<Scope, string>;
+		/** Route per destination. A scope with no href is not offered at all — a host
+		 *  that cannot back one (no starring on desktop yet) simply omits it. */
+		scopeHrefs?: Partial<Record<Scope, string>>;
 		/** First read of the project store. The shell renders; the grid skeletons. */
 		loading?: boolean;
 	} = $props();
@@ -120,9 +121,7 @@
 
 	const RECENT_MS = 7 * 24 * 60 * 60 * 1000;
 
-	// Local fallback for hosts with no scope routes (desktop); `activeScope` wins.
-	let localScope = $state<Scope>('all');
-	const scope = $derived(activeScope ?? localScope);
+	const scope = $derived(activeScope);
 	let sort = $state<Sort>('newest');
 	let dense = $state(false);
 	let query = $state('');
@@ -282,30 +281,25 @@
 						{#each scopes as item (item.id)}
 							{@const Icon = item.icon}
 							{@const href = scopeHrefs?.[item.id]}
-							<Sidebar.MenuItem>
-								{#if href}
+							{#if href}
+								<Sidebar.MenuItem>
 									<Sidebar.MenuButton
-										isActive={scope === item.id}
+										isActive={activeScope === item.id}
 										class={navRow}
 										tooltipContent={item.label}
 									>
 										{#snippet child({ props })}
-											<a {href} {...props} aria-current={scope === item.id ? 'page' : undefined}>
+											<a
+												{href}
+												{...props}
+												aria-current={activeScope === item.id ? 'page' : undefined}
+											>
 												<Icon /><span>{item.label}</span>
 											</a>
 										{/snippet}
 									</Sidebar.MenuButton>
-								{:else}
-									<Sidebar.MenuButton
-										isActive={scope === item.id}
-										class={navRow}
-										tooltipContent={item.label}
-										onclick={() => (localScope = item.id)}
-									>
-										<Icon /><span>{item.label}</span>
-									</Sidebar.MenuButton>
-								{/if}
-							</Sidebar.MenuItem>
+								</Sidebar.MenuItem>
+							{/if}
 						{/each}
 					</Sidebar.Menu>
 				</Sidebar.GroupContent>

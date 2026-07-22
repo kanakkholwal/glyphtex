@@ -189,6 +189,12 @@ class ProjectsStore {
 		);
 	}
 
+	/** Deliberately leaves `updatedAt` alone: starring is not an edit, and bumping
+	 *  it would reshuffle "Newest first" and fake activity in Recent. */
+	setStarred(id: string, starred: boolean): void {
+		this.#store.current = this.#store.current.map((p) => (p.id === id ? { ...p, starred } : p));
+	}
+
 	/** Replace a project's files (called as the editor persists). */
 	save(id: string, files: ProjectFile[]): void {
 		this.#store.current = this.#store.current.map((p) =>

@@ -223,7 +223,7 @@
 			ondelete={remove}
 			onstar={star}
 			{storage}
-			helpHref={resolve('/download')}
+			helpHref="https://github.com/kanakkholwal/glyphtex#readme"
 			onsettings={() => (storageOpen = true)}
 			onimport={() => zipInput?.click()}
 		/>

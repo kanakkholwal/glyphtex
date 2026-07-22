@@ -16,7 +16,9 @@ const FEATURES: NavLink = { label: 'Features', href: '/#features' };
 const WORKFLOW: NavLink = { label: 'Workflow', href: '/#workflow' };
 const COMPARE: NavLink = { label: 'Compare', href: '/#compare' };
 const FAQ: NavLink = { label: 'FAQ', href: '/#faq' };
-const DOWNLOAD: NavLink = { label: 'Download', href: '/download' };
+// Labelled as a prototype rather than "Download": the desktop build is not
+// released yet, so this must not read as a shipping product.
+const DOWNLOAD: NavLink = { label: 'Desktop app (prototype)', href: '/download' };
 const WORKSPACE: NavLink = { label: 'Open browser workspace', href: '/workspace' };
 
 // Inline top-nav links, always visible on desktop. Kept short for a minimal

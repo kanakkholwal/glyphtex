@@ -103,8 +103,10 @@
 				<IconBrandGithub class="size-4" />
 			</a>
 			<ThemeToggle size="icon-sm" />
-			<Button href={resolve('/download')} size="sm" variant="default" class="gap-1.5">
-				Download
+			<!-- Was "Download". The desktop app is still a prototype, so the header
+			     points at the workspace until there is a release worth shipping. -->
+			<Button href={resolve('/workspace')} size="sm" variant="default" class="gap-1.5">
+				Open workspace
 			</Button>
 			<button
 				type="button"

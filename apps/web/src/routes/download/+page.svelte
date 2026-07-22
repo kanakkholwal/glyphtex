@@ -6,6 +6,7 @@
 	import { Reveal } from '@glyphtex/ui/reveal';
 	import { Container, HeroBackdrop, Section } from '$lib/landing';
 	import {
+		IconAlertTriangle,
 		IconArrowRight,
 		IconBrandApple,
 		IconBrandDebian,
@@ -235,22 +236,24 @@
 		}
 	];
 
+	// Prototype scope, stated plainly. Nothing here is a promise about the current build.
 	const included = [
 		'The LaTeX engine, built in. No separate TeX distribution to install.',
-		'A full editor with live preview, file tree, search, and a command palette.',
-		'A built-in Git client: stage, commit, diff, history, clone, and push or pull.',
+		'An editor with live preview, file tree, search, and a command palette.',
+		'A Git client: stage, commit, diff, history, clone, and push or pull.',
 		'Everything runs locally, so projects stay on your disk and compile offline.',
-		'Automatic updates, so you stay on the latest build without reinstalling.',
-		'Free, with no account and no telemetry.'
+		'No account and no telemetry, same as the browser workspace.',
+		'Missing whatever has landed in the workspace since these builds were cut.'
 	];
 </script>
 
 <svelte:head>
-	<title>Download GlyphTeX: the local-first LaTeX editor</title>
+	<title>GlyphTeX desktop app: an archived prototype</title>
 	<meta
 		name="description"
-		content="Download GlyphTeX for macOS, Windows, and Linux. A local-first LaTeX editor that ships its own engine, compiles offline, and keeps your projects on your own disk. Free, no account."
+		content="The GlyphTeX desktop app is an unmaintained prototype. Any builds here are outdated and unsupported — use the browser workspace instead."
 	/>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div
@@ -275,27 +278,24 @@
 				<div
 					class="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-20 text-center md:py-28"
 				>
-					<a
-						href={repo}
-						target="_blank"
-						rel="noopener noreferrer"
-						class="landing-glass-chip inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:text-foreground"
+					<span
+						class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning"
 						in:fly={{ y: 8, duration: 500, delay: 0, easing: cubicOut }}
 					>
-						<IconBrandGithub class="size-3.5" />
-						Open source · GPLv3
-					</a>
+						<IconAlertTriangle class="size-3.5" />
+						Outdated prototype · not maintained
+					</span>
 
 					<h1
 						class="landing-text-balance text-[2.5rem] font-bold leading-[1.05] tracking-[-0.025em] text-foreground sm:text-5xl md:text-[3rem]"
 						in:fly={{ y: 12, duration: 600, delay: 80, easing: cubicOut }}
 					>
-						Download GlyphTeX.
+						The desktop app is on hold.
 						<span
 							class="mt-2 block font-serif text-xl font-medium italic text-foreground/65 sm:text-2xl md:text-3xl"
 							style="line-height: 1.15;"
 						>
-							Pick your platform.
+							Use the browser workspace.
 						</span>
 					</h1>
 
@@ -303,8 +303,9 @@
 						class="landing-text-pretty max-w-xl text-base font-medium leading-relaxed text-foreground/85 sm:text-lg"
 						in:fly={{ y: 12, duration: 600, delay: 160, easing: cubicOut }}
 					>
-						The desktop app puts the LaTeX engine on your machine. Write and compile fully offline,
-						with the built-in Git client alongside. It updates itself.
+						Any builds listed below are old prototypes, kept only for reference. They lag well
+						behind the current editor, get no updates, and are not supported. The browser workspace
+						is where GlyphTeX is actually being built.
 					</p>
 
 					<div
@@ -313,13 +314,24 @@
 					>
 						<Button
 							href={resolve('/workspace')}
-							variant="outline"
+							variant="default"
 							size="lg"
 							class="group/cta gap-2"
 						>
 							<IconPlayerPlay class="size-4" />
-							Try the browser workspace
+							Try the workspace
 							<IconArrowRight class="size-4 transition-transform group-hover/cta:translate-x-0.5" />
+						</Button>
+						<Button
+							href={repo}
+							target="_blank"
+							rel="noopener noreferrer"
+							variant="outline"
+							size="lg"
+							class="gap-2"
+						>
+							<IconBrandGithub class="size-4" />
+							View the source
 						</Button>
 					</div>
 
@@ -333,7 +345,7 @@
 							></span>
 							<span class="relative inline-flex size-1.5 rounded-full bg-brand"></span>
 						</span>
-						Free forever · No account · No telemetry
+						Open source · GPLv3 · No account · No telemetry
 					</div>
 				</div>
 			</div>
@@ -350,19 +362,20 @@
 					<span
 						class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
 					>
-						<span class="size-1.5 rounded-full bg-brand"></span>
-						Pick your platform
+						<span class="size-1.5 rounded-full bg-warning"></span>
+						Archived builds
 					</span>
 					<h2
 						class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 					>
-						One download. <em class="font-serif italic font-medium text-foreground/65"
-							>Everything included.</em
+						Old prototypes. <em class="font-serif italic font-medium text-foreground/65"
+							>Kept for reference only.</em
 						>
 					</h2>
 					<p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-						Native builds for macOS, Windows, and Linux. Each one ships the LaTeX engine, the
-						editor, and the Git client in a single app. No separate TeX install, no account.
+						These builds predate most of the current editor and will not be updated. Expect missing
+						features and rough edges. Install one only if you want to see where the desktop shell
+						got to.
 					</p>
 				</Reveal>
 
@@ -618,13 +631,13 @@
 							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
 						>
 							<span class="size-1.5 rounded-full bg-brand"></span>
-							What is in the download
+							What the prototype had
 						</span>
 						<h2
 							class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl"
 						>
 							One app. <em class="font-serif italic font-medium text-foreground/65"
-								>Nothing else to set up.</em
+								>Frozen where it stopped.</em
 							>
 						</h2>
 						<ul class="mt-7 flex flex-col gap-3.5">
@@ -700,19 +713,20 @@
 							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
 						>
 							<span class="size-1.5 rounded-full bg-brand"></span>
-							Ready when you are
+							Where the work is
 						</span>
 						<h2
 							class="landing-text-balance mt-4 max-w-3xl mx-auto text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 						>
-							Builds are <em class="font-serif italic font-medium text-foreground/65">on the way</em
+							A real release <em class="font-serif italic font-medium text-foreground/65"
+								>comes later</em
 							>.
 						</h2>
 						<p
 							class="landing-text-pretty mt-5 max-w-md mx-auto text-base leading-relaxed text-muted-foreground sm:text-lg"
 						>
-							Desktop releases are published on GitHub. Watch the repository to hear about the first
-							one, or start writing in the browser today.
+							Development is happening in the browser workspace first. Watch the repository to hear
+							when the desktop app is picked back up.
 						</p>
 						<div class="mt-9 flex flex-wrap justify-center gap-3">
 							<Button

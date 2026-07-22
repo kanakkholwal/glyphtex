@@ -23,7 +23,6 @@
 		IconMinus,
 		IconCloudOff,
 		IconDeviceDesktop,
-		IconDownload,
 		IconFileText,
 		IconFolders,
 		IconGitBranch,
@@ -44,36 +43,18 @@
 
 	const repo = 'https://github.com/kanakkholwal/glyphtex';
 
-	// Default editorial backdrop, reused from the trace-mvp hero. The user
-	// will swap in a more academic photograph later; for now the cloud +
-	// landscape composition gives the page a calm horizon line to anchor
-	// the centered headline.
 	const heroBackdrop = '/background-hero.webp';
 
 	// Concrete artifacts the committed audience actually writes. Narrowed to
 	// the four nouns a researcher or lecturer cares about most.
 	const rotatingWords = ['thesis.', 'paper.', 'manuscript.', 'lecture notes.'];
 
-	// The widest word in the cycle. Used to reserve the slot's width so
-	// shorter words don't shift the line as they rotate. Computed once
-	// so the JSX stays declarative.
 	const widestWord = rotatingWords.reduce((a, b) => (a.length >= b.length ? a : b), '');
 
-	// Index into `rotatingWords` that the hero should currently show. Driven
-	// by a setInterval so the rotation keeps ticking without re-rendering
-	// anything else on the page. Pauses when the tab is hidden so a
-	// backgrounded tab never advances through the cycle.
 	const reducedMotion =
 		typeof window !== 'undefined' &&
 		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-	// Typewriter state. `currentWord` grows one character at a time from
-	// the empty string up to the full target word, holds for a beat,
-	// then erases before advancing to the next word. `wordIndex` is the
-	// only thing the typing loop mutates; effect 1 picks up the index
-	// change and resets the typed buffer so the new word starts from
-	// scratch. Reduced motion pins `currentWord` to the widest word so
-	// the slot is filled and the typewriter doesn't run.
 	let currentWord = $state('');
 	let wordIndex = $state(0);
 
@@ -410,9 +391,9 @@
 		{
 			label: 'For individuals',
 			price: 'Free',
-			body: 'GPLv3, full editor, full engine, no account, no telemetry. The same binary the lab uses, on your laptop.',
-			href: resolve('/download'),
-			cta: 'Download desktop app'
+			body: 'GPLv3, full editor, full engine, no account, no telemetry. Open it in the browser and start writing.',
+			href: resolve('/workspace'),
+			cta: 'Try the workspace'
 		},
 		{
 			label: 'For institutions',
@@ -512,7 +493,7 @@
 			<div
 				class="relative mx-auto max-w-[1410px] overflow-hidden rounded-[2rem] border border-hairline"
 			>
-				<HeroBackdrop src={heroBackdrop} tone="default" />
+				<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
 
 				<!--
 				  Two-zone layout. The badge sits at the top of the card as its
@@ -586,27 +567,31 @@
 							class="mt-6 flex flex-col items-start gap-3 sm:flex-row"
 							in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
 						>
-							<Button
-								href={resolve('/download')}
-								variant="default"
-								size="lg"
-								class="gap-2.5"
-								onclick={() => trackEvent('cta_download_click', { location: 'hero' })}
-							>
-								<IconDownload class="size-4" />
-								Download desktop app
-							</Button>
+							<!-- Desktop download is hidden until the app is no longer a prototype.
+							     Restore this button (and the /download nav entry) at release. -->
 							<Button
 								href={resolve('/workspace')}
-								variant="outline"
+								variant="default"
 								size="lg"
-								class="group/cta gap-2"
+								class="group/cta gap-2.5"
+								onclick={() => trackEvent('cta_workspace_click', { location: 'hero' })}
 							>
 								<IconPlayerPlay class="size-4" />
-								Open browser workspace
+								Try the workspace
 								<IconArrowRight
 									class="size-4 transition-transform group-hover/cta:translate-x-0.5"
 								/>
+							</Button>
+							<Button
+								href={repo}
+								target="_blank"
+								rel="noopener noreferrer"
+								variant="outline"
+								size="lg"
+								class="gap-2"
+							>
+								<IconBrandGithub class="size-4" />
+								View the source
 							</Button>
 						</div>
 
@@ -620,7 +605,7 @@
 								></span>
 								<span class="relative inline-flex size-1.5 rounded-full bg-brand"></span>
 							</span>
-							Free for individuals · Free for institutions · macOS · Windows · Linux
+							Free · No account · Runs in your browser · Files stay on your device
 						</div>
 					</div>
 				</div>
@@ -909,9 +894,9 @@
 							</ul>
 
 							<div class="mt-12 flex items-center gap-3">
-								<Button href={resolve('/download')} variant="default" class="gap-2">
-									<IconDownload class="size-4" />
-									Download free
+								<Button href={resolve('/workspace')} variant="default" class="gap-2">
+									<IconPlayerPlay class="size-4" />
+									Try the workspace
 								</Button>
 							</div>
 						</div>
@@ -1520,18 +1505,14 @@
 							class="mt-10 flex flex-wrap items-center justify-center gap-3"
 						>
 							<Button
-								href={resolve('/download')}
+								href={resolve('/workspace')}
 								variant="default"
 								size="lg"
 								class="gap-2.5"
-								onclick={() => trackEvent('cta_download_click', { location: 'final_cta' })}
+								onclick={() => trackEvent('cta_workspace_click', { location: 'final_cta' })}
 							>
-								<IconDownload class="size-4" />
-								Download desktop app
-							</Button>
-							<Button href={resolve('/workspace')} variant="outline" size="lg" class="gap-2">
 								<IconPlayerPlay class="size-4" />
-								Open browser workspace
+								Try the workspace
 							</Button>
 						</Reveal>
 
