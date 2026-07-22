@@ -21,6 +21,7 @@ export {
 	type GitCommitEntry,
 	type GitHeadInfo,
 	type GitRemote,
+	type GitSettings,
 } from "./git-panel.svelte";
 export type { ProjectHost, ProjectFile } from "./project";
 export type {

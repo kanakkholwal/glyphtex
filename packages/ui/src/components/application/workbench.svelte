@@ -95,7 +95,7 @@
         hasProject={files.hasProject}
         engine={ctrl.engine}
         git={files.git}
-        projectRoot={files.projectRoot}
+        gitRoot={files.scmRoot}
         onopendiff={(path, staged) => layout.openDiff(path, staged)}
         activeDiffPath={layout.diffTarget?.path ?? null}
         widthPx={layout.sidebarWidth}

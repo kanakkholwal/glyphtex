@@ -31,7 +31,7 @@
     source = "",
     engine,
     git,
-    projectRoot = null,
+    gitRoot = null,
     onopendiff,
     activeDiffPath = null,
     dirtyIds = new Set(),
@@ -78,10 +78,11 @@
     /** Active file's text — drives the Outline (sectioning) view. */
     source?: string;
     engine?: EngineManager;
-    /** Host-injected Git backend (desktop). Enables the Source Control view. */
+    /** Host-injected Git backend. Enables the Source Control view. */
     git?: GitProvider;
-    /** Absolute path of the open project folder, for Git operations. */
-    projectRoot?: string | null;
+    /** Repository root the Git backend operates on — the open folder on desktop,
+     *  a virtual working-tree path on web. */
+    gitRoot?: string | null;
     /** Open a changed file's diff in the editor pane (Source Control click). */
     onopendiff?: (path: string, staged: boolean) => void;
     /** Path currently shown in the editor's diff view, to highlight its row. */
@@ -167,7 +168,7 @@
     {hasProject}
     hasNewFolder={Boolean(onnewfolder || onnewfolderin)}
     hasDelete={Boolean(ondeletefile || ondeletefolder)}
-    gitReady={Boolean(git && projectRoot)}
+    gitReady={Boolean(git && gitRoot)}
     searchResultCount={searchResults.length}
     {onreveal}
     {onopenfolder}
@@ -213,7 +214,7 @@
       {#if git}
         <GitPanel
           {git}
-          root={projectRoot}
+          root={gitRoot}
           refreshKey={store.gitRefreshKey}
           onstatechange={(s) => (store.gitState = s)}
           {onopendiff}

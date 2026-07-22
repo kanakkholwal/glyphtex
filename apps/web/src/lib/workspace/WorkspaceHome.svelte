@@ -5,6 +5,7 @@
 	import { toast } from '@glyphtex/ui/sonner';
 	import { onMount } from 'svelte';
 
+	import { cloneToProject } from '$lib/git';
 	import StoragePanel from '$lib/StoragePanel.svelte';
 	import { toProjectCard } from '$lib/storage/bridge';
 	import {
@@ -78,26 +79,34 @@
 	});
 
 	let zipInput = $state<HTMLInputElement>();
+	let folderInput = $state<HTMLInputElement>();
 	let importing = $state(false);
 	let dragging = $state(false);
 
 	async function runImport(load: () => Promise<ImportResult>): Promise<void> {
 		importing = true;
 		try {
-			const { files, name, skipped } = await load();
+			const { files, name, skipped, ignored } = await load();
 			if (files.length === 0) {
-				toast.error('Nothing in there could be imported.');
+				toast.error(
+					ignored > 0
+						? 'Everything in there was build output or ignored by .gitignore.'
+						: 'Nothing in there could be imported.'
+				);
 				return;
 			}
 			const project = await createProject(name, files);
 			await refresh();
 			void requestPersistence();
+			// Ignored files are expected (node_modules, build output), so they get a
+			// count; skipped ones hit a real limit and are named.
+			const aside = ignored > 0 ? ` Ignored ${ignored} build/ignored files.` : '';
 			if (skipped.length > 0) {
 				toast.warning(
-					`Imported ${files.length} files. Skipped ${skipped.length}: ${skipped.slice(0, 3).join(', ')}${skipped.length > 3 ? '…' : ''}`
+					`Imported ${files.length} files. Skipped ${skipped.length}: ${skipped.slice(0, 3).join(', ')}${skipped.length > 3 ? '…' : ''}${aside}`
 				);
 			} else {
-				toast.success(`Imported ${files.length} files.`);
+				toast.success(`Imported ${files.length} files.${aside}`);
 			}
 			open(project.id);
 		} catch (error) {
@@ -111,6 +120,12 @@
 		const file = (event.currentTarget as HTMLInputElement).files?.[0];
 		if (file) void runImport(() => importZipFile(file));
 		if (zipInput) zipInput.value = '';
+	}
+
+	function pickFolder(event: Event): void {
+		const picked = Array.from((event.currentTarget as HTMLInputElement).files ?? []);
+		if (picked.length > 0) void runImport(() => importFolder(picked));
+		if (folderInput) folderInput.value = '';
 	}
 
 	async function onDrop(event: DragEvent): Promise<void> {
@@ -142,6 +157,17 @@
 			return project.id;
 		} catch (error) {
 			report(error, 'Could not create the document.');
+		}
+	}
+
+	/** Clone straight into a new document; the repo lands in browser storage. */
+	async function cloneRepo(url: string): Promise<void> {
+		try {
+			const project = await cloneToProject(url);
+			await requestPersistence();
+			open(project.id);
+		} catch (error) {
+			report(error, 'Could not clone that repository.');
 		}
 	}
 
@@ -226,6 +252,8 @@
 			helpHref="https://github.com/kanakkholwal/glyphtex#readme"
 			onsettings={() => (storageOpen = true)}
 			onimport={() => zipInput?.click()}
+			onimportfolder={() => folderInput?.click()}
+			onclone={cloneRepo}
 		/>
 	</div>
 {/if}
@@ -237,6 +265,16 @@
 	accept=".zip,application/zip"
 	class="hidden"
 	onchange={pickZip}
+/>
+<!-- `webkitdirectory` is the only way to pick a folder; every current browser
+     supports it, and each File carries `webkitRelativePath` for the tree. -->
+<input
+	bind:this={folderInput}
+	type="file"
+	webkitdirectory
+	multiple
+	class="hidden"
+	onchange={pickFolder}
 />
 
 {#if dragging}

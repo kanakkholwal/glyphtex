@@ -1,3 +1,4 @@
+import { importIgnore } from './ignore';
 import { PER_FILE_BYTES, PER_PROJECT_BYTES, formatBytes } from './quota';
 import { normalisePath, type NewFile } from './projects';
 import { readZip } from './zip';
@@ -26,8 +27,6 @@ const TEXT_EXTENSIONS = new Set([
 	'gitignore'
 ]);
 
-const JUNK = /(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db|\.git|\.svn|node_modules|\.svelte-kit)(\/|$)/;
-
 export const isTextPath = (path: string) =>
 	TEXT_EXTENSIONS.has(path.split('.').pop()?.toLowerCase() ?? '');
 
@@ -37,6 +36,9 @@ export type ImportResult = {
 	name: string;
 	/** Files left out, with why — reported rather than silently dropped. */
 	skipped: string[];
+	/** How many entries the blacklist / .gitignore dropped. Counted separately from
+	 *  `skipped`: these are expected, not problems worth listing one by one. */
+	ignored: number;
 };
 
 /** Drops a single shared top-level folder, which most archives wrap everything in. */
@@ -52,9 +54,22 @@ function collect(
 	fallbackName: string,
 	stripRoot = true
 ): ImportResult {
-	const usable = raw.filter((f) => f.path && !JUNK.test(f.path));
-	const strip = stripRoot ? stripCommonRoot(usable.map((f) => f.path)) : (p: string) => p;
+	const named = raw.filter((f) => f.path);
+	const strip = stripRoot ? stripCommonRoot(named.map((f) => f.path)) : (p: string) => p;
 	const suggested = raw.length ? raw[0].path.split('/')[0] : fallbackName;
+
+	// The project's own .gitignore is read after root-stripping, so a `/build` rule
+	// anchors to the project root rather than the archive's wrapper folder.
+	const decoderForRules = new TextDecoder('utf-8', { fatal: false });
+	const gitignore = named.find((f) => strip(f.path) === '.gitignore');
+	const ignores = importIgnore(gitignore && decoderForRules.decode(gitignore.bytes));
+
+	let ignored = 0;
+	const usable = named.filter((f) => {
+		if (!ignores(strip(f.path))) return true;
+		ignored++;
+		return false;
+	});
 
 	const files: NewFile[] = [];
 	const skipped: string[] = [];
@@ -89,7 +104,7 @@ function collect(
 		.replace(/\.zip$/i, '')
 		.trim();
 
-	return { files, name: name || 'Imported', skipped };
+	return { files, name: name || 'Imported', skipped, ignored };
 }
 
 export async function importZipFile(file: File): Promise<ImportResult> {
@@ -174,9 +189,16 @@ export async function filesFromDataTransfer(dt: DataTransfer): Promise<File[]> {
 	return out;
 }
 
-/** The relative path a dropped folder walk stashed on each file, if any. */
-const droppedPath = (file: File): string =>
-	(file as unknown as { _glyphtexPath?: string })._glyphtexPath ?? file.name;
+/**
+ * The file's path within the folder it came from. Drops carry `_glyphtexPath` from
+ * the entry walk; `<input webkitdirectory>` sets `webkitRelativePath` instead.
+ */
+const droppedPath = (file: File): string => {
+	const walked = (file as unknown as { _glyphtexPath?: string })._glyphtexPath;
+	if (walked) return walked;
+	const relative = (file as unknown as { webkitRelativePath?: string }).webkitRelativePath;
+	return relative || file.name;
+};
 
 /** Loose files dropped or picked into an open document (images, .tex, folders). */
 export async function importLooseFiles(

@@ -37,8 +37,12 @@ export type WorkbenchProps = {
   /** In-memory multi-file compile (web projects); same resolution, no disk. */
   compileFiles?: CompileFilesFn;
   engine?: EngineManager;
-  /** Host-injected Git backend (desktop = gitoxide). Enables Source Control. */
+  /** Host-injected Git backend (desktop = gitoxide, web = isomorphic-git). Enables
+   *  Source Control. */
   git?: GitProvider;
+  /** Repository root when there is no folder project — web passes its virtual
+   *  working-tree path so Source Control works without a folder on disk. */
+  gitRoot?: string | null;
   /** Host-injected file save (desktop = Tauri dialog + fs). Browser download on web. */
   saveFile?: SaveFileFn;
   /** Folder-based project bridge (desktop = Tauri fs / zip). Absent on web. */
@@ -110,12 +114,13 @@ export class WorkbenchController {
     this.files = new FileStore({
       project: props.project,
       git: props.git,
+      gitRoot: props.gitRoot,
       initialFiles: props.initialFiles,
       projectName: props.projectName ?? "glyphtex-project",
     });
     this.layout = new LayoutStore({
       git: props.git,
-      getProjectRoot: () => this.files.projectRoot,
+      getProjectRoot: () => this.files.scmRoot,
     });
     this.search = new SearchStore({
       layout: this.layout,
@@ -454,8 +459,7 @@ export class WorkbenchController {
   /** Refresh Explorer Git labels on structural change (add / remove / rename). */
   refreshGitOnStructuralChange(): void {
     void this.files.files;
-    if (this.files.git && this.files.projectRoot)
-      void this.files.refreshGitStatus();
+    if (this.files.git && this.files.scmRoot) void this.files.refreshGitStatus();
   }
 
   /** "After delay" auto-save: persist the active file a beat after typing stops. */

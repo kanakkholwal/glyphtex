@@ -7,6 +7,7 @@ import type {
   GitHeadInfo,
   GitProvider,
   GitRemote,
+  GitSettings,
   SectionKey,
   SyncAction,
 } from "./types";
@@ -54,6 +55,13 @@ export class GitPanelStore {
   newRemoteName = $state("origin");
   newRemoteUrl = $state("");
 
+  // Commit identity + relay, when the host lets the panel edit them.
+  settings = $state<GitSettings | undefined>(undefined);
+  showSettings = $state(false);
+  authorName = $state("");
+  authorEmail = $state("");
+  proxyUrl = $state("");
+
   // Changes view: which folders are collapsed (tree mode).
   collapsed = $state(new Set<string>());
 
@@ -98,6 +106,16 @@ export class GitPanelStore {
       this.staged.length > 0 &&
       // During a merge an empty message is fine (we fill a default).
       (this.message.trim().length > 0 || !!this.head?.merging),
+  );
+
+  readonly canEditSettings = $derived(Boolean(this.#git?.settings));
+  /** The host is still falling back to a placeholder author, so commits would be
+   *  attributed to nobody. */
+  readonly needsIdentity = $derived(
+    Boolean(this.settings && !this.settings.chosen),
+  );
+  readonly relayApplies = $derived(
+    this.settings?.corsProxy !== undefined && this.settings?.corsProxy !== null,
   );
 
   readonly hasChanges = $derived(
@@ -182,6 +200,7 @@ export class GitPanelStore {
       } catch {
         this.remotes = [];
       }
+      if (git.settings) this.settings = await git.settings.get();
     } catch (e) {
       this.error = String(e);
     } finally {
@@ -380,6 +399,30 @@ export class GitPanelStore {
       this.addingRemote = false;
       this.newRemoteName = "origin";
       this.newRemoteUrl = "";
+    });
+  }
+
+  // --- Identity / relay -----------------------------------------------------
+  /** Open the editor seeded from the host's current values. */
+  startEditSettings(): void {
+    this.authorName = this.settings?.chosen ? this.settings.name : "";
+    this.authorEmail = this.settings?.chosen ? this.settings.email : "";
+    this.proxyUrl = this.settings?.corsProxy ?? "";
+    this.showSettings = true;
+  }
+
+  saveSettings(): void {
+    const name = this.authorName.trim();
+    const email = this.authorEmail.trim();
+    if (!name || !email) return;
+    void this.#run(async () => {
+      await this.#git!.settings!.save({
+        name,
+        email,
+        ...(this.relayApplies ? { corsProxy: this.proxyUrl.trim() } : {}),
+      });
+      this.settings = await this.#git!.settings!.get();
+      this.showSettings = false;
     });
   }
 

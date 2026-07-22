@@ -34,8 +34,17 @@ export function describeError(raw: string, op: string): GitErrorInfo {
         "You can’t push to this repository — it isn’t yours to write to. Fork it to your own account, then point the remote at your fork (Remote → edit) and push there.",
       details,
     };
+  // Browser hosts relay remote traffic through a CORS proxy; when it's off or
+  // unreachable the failure surfaces as an opaque network error, not a git one.
+  if (/cors|failed to fetch|networkerror when attempting|blocked by/.test(e))
+    return {
+      title: "The relay didn’t answer",
+      message:
+        "Browsers can’t reach Git servers directly, so this went through a relay that didn’t respond. Check the relay address under the author settings, or try again.",
+      details,
+    };
   if (
-    /authentication|could not read username|could not read password|\b401\b|\b403\b|invalid username or password|bad credentials|support for password authentication/.test(
+    /authentication|usercanceled|could not read username|could not read password|\b401\b|\b403\b|invalid username or password|bad credentials|support for password authentication/.test(
       e,
     )
   )
