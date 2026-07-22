@@ -19,6 +19,8 @@
 		},
 		"./wasm": "./wasm/tectonic_wasm.wasm",
 		"./bundle": "./wasm/tectonic-bundle.tar.gz",
+		"./packs/index.json": "./wasm/packs/packs-index.json",
+		"./packs/*": "./wasm/packs/*",
 		"./package.json": "./package.json"
 	},
 	"main": "./dist/index.js",
@@ -35,7 +37,9 @@
 		"bundle:packs": "node ./scripts/build-packs.mjs",
 		"build": "tsc -p tsconfig.json",
 		"check": "tsc -p tsconfig.json --noEmit",
-		"test": "node --test test/*.test.mjs"
+		"test": "node --test test/*.test.mjs",
+		"release:prepare": "pnpm build && pnpm sync:wasm && node ./scripts/preflight.mjs",
+		"prepublishOnly": "pnpm release:prepare"
 	},
 	"devDependencies": {
 		"typescript": "^5.9.3"

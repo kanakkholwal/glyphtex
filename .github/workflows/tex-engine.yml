@@ -39,6 +39,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # git stores the exec bit, but core.filemode=false (the usual Windows
+      # setting) drops it silently, and the job then dies on a bare
+      # "Permission denied" far from the cause.
+      - name: Shell scripts are executable
+        run: |
+          if git ls-files -s '*.sh' | awk '$1 != "100755" { print "  " $4; found = 1 } END { exit !found }'; then
+            echo "::error::The shell scripts above are not executable. Fix: git update-index --chmod=+x <file>"
+            exit 1
+          fi
+
       # Pinned, not @stable. Clippy gains lints every six weeks and this job
       # runs with -D warnings, so @stable turns an unrelated PR red whenever a
       # new lint fires on existing code. Bump this deliberately.
@@ -231,10 +241,11 @@ jobs:
       # No `pnpm generate` here: it shells out to `cargo test`, which would pull
       # an unpinned Rust into the release job to regenerate files that are
       # already committed and already drift-checked by the `api` job above.
-      # sync:wasm stages BOTH the engine and the TeX bundle. Copying the wasm
-      # alone would publish a package whose `./bundle` export points at nothing,
-      # and an engine with no format or classes cannot typeset a document — it
-      # instantiates cleanly and then fails on the first \documentclass.
+      # sync:wasm stages the engine, the TeX bundle and the default packs.
+      # Copying the wasm alone would publish a package whose `./bundle` export
+      # points at nothing, and an engine with no format or classes cannot
+      # typeset — it instantiates cleanly and fails on the first \documentclass.
+      # prepublishOnly re-runs this and refuses to publish if anything is absent.
       - name: Build and stage package
         run: |
           cd packages/tex-engine
