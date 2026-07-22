@@ -38,8 +38,8 @@
 
 <div class="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 	{#each features as feature, i (feature.title)}
-		{const Icon = feature.icon}
-		{const isApplied = i === applied}
+		{@const Icon = feature.icon}
+		{@const isApplied = i === applied}
 		<Reveal variant="up" delay={i * 70} class="h-full">
 			<div
 				class={cn(

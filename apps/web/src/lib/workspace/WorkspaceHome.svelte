@@ -198,8 +198,8 @@
 		<h1 class="text-lg font-semibold">Local storage is unavailable</h1>
 		<p class="text-sm text-muted-foreground">{failure}</p>
 		<p class="text-sm text-muted-foreground">
-			Private windows and blocked site data both prevent saving. The
-			<a class="underline" href={resolve('/editor')}>scratch editor</a> still works.
+			Private windows and blocked site data both prevent saving. Allow site data for this origin, or
+			reopen GlyphTeX in a normal window.
 		</p>
 	</div>
 {:else}

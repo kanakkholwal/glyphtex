@@ -31,14 +31,14 @@
 >
 	{#if eyebrow}
 		<span
-			class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+			class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
 		>
-			<span class="size-1.5 rounded-full bg-primary"></span>
+			<span class="size-1.5 rounded-full bg-brand"></span>
 			{eyebrow}
 		</span>
 	{/if}
 	<h2
-		class="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl"
+		class="text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 	>
 		{title}
 	</h2>

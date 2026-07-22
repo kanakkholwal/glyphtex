@@ -31,10 +31,6 @@
 	const repoName = 'glyphtex';
 	const repo = `https://github.com/${owner}/${repoName}`;
 	const releases = `${repo}/releases`;
-	// Default hero backdrop. Mirrors the home page's hero (rounded card,
-	// wash-faded photo, centered headline) so the two routes read as the
-	// same product. The image is the same /background-download.png that
-	// the page was built around.
 	const heroBackdrop = '/background-download.webp';
 
 	type OS = 'mac' | 'windows' | 'linux' | null;
@@ -257,43 +253,40 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div
-	class="min-h-screen bg-background font-sans text-foreground antialiased selection:bg-brand-subtle"
->
+<div class="min-h-screen bg-canvas font-sans text-ink antialiased selection:bg-brand-subtle">
+	<div
+		aria-hidden="true"
+		class="landing-bg-grid landing-bg-grid-fade pointer-events-none fixed inset-0 -z-10 opacity-30"
+	></div>
+
 	<SiteHeader />
 
 	<main>
-		<!--
-		  Hero. Same pattern as the home page: rounded card with
-		  HeroBackdrop (soft bottom-up wash) on /background-download.png,
-		  badge top-left, headline + tagline + body + CTA stacked left.
-		  Vertically centered on desktop, so the headline reads as the
-		  optical anchor of the card.
-		-->
-		<section class="relative px-4 pt-20 pb-12 md:px-10 md:pt-24 md:pb-16">
+		<!-- Full-bleed hero, same shape as the home page: photo to the viewport edges,
+		     the fixed nav sitting transparently on top, copy left-aligned in the nav's
+		     own gutters. `min-h-dvh` so mobile chrome can't crop the CTAs. -->
+		<section class="relative min-h-dvh w-full overflow-hidden">
+			<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
+
 			<div
-				class="relative mx-auto max-w-[1410px] overflow-hidden rounded-[2rem] border border-hairline"
+				class="relative z-10 mx-auto flex min-h-dvh max-w-7xl flex-col justify-center px-6 pt-28 pb-16 lg:px-10"
 			>
-				<HeroBackdrop src={heroBackdrop} tone="default" />
-
-				<div
-					class="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 py-20 text-center md:py-28"
+				<span
+					class="border-warning/40 bg-warning/10 text-warning mb-8 inline-flex w-fit items-center gap-1.5 self-start rounded-full border px-3 py-1.5 text-xs font-semibold"
+					in:fly={{ y: 8, duration: 500, delay: 0, easing: cubicOut }}
 				>
-					<span
-						class="inline-flex items-center gap-1.5 rounded-full border border-warning/40 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning"
-						in:fly={{ y: 8, duration: 500, delay: 0, easing: cubicOut }}
-					>
-						<IconAlertTriangle class="size-3.5" />
-						Outdated prototype · not maintained
-					</span>
+					<IconAlertTriangle class="size-3.5" />
+					Outdated prototype · not maintained
+				</span>
 
+				<div class="flex max-w-2xl flex-col items-start text-left">
 					<h1
-						class="landing-text-balance text-[2.5rem] font-bold leading-[1.05] tracking-[-0.025em] text-foreground sm:text-5xl md:text-[3rem]"
+						class="landing-text-balance text-[2.5rem] leading-[1.05] font-bold tracking-[-0.025em] text-foreground sm:text-5xl md:text-[3rem]"
 						in:fly={{ y: 12, duration: 600, delay: 80, easing: cubicOut }}
 					>
 						The desktop app is on hold.
 						<span
-							class="mt-2 block font-serif text-xl font-medium italic text-foreground/65 sm:text-2xl md:text-3xl"
+							class="mt-2 block font-serif text-xl font-medium text-foreground/65 italic sm:text-2xl md:text-3xl"
 							style="line-height: 1.15;"
 						>
 							Use the browser workspace.
@@ -301,7 +294,7 @@
 					</h1>
 
 					<p
-						class="landing-text-pretty max-w-xl text-base font-medium leading-relaxed text-foreground/85 sm:text-lg"
+						class="landing-text-pretty mt-5 max-w-xl text-base leading-relaxed font-medium text-foreground/85 sm:text-lg"
 						in:fly={{ y: 12, duration: 600, delay: 160, easing: cubicOut }}
 					>
 						Any builds listed below are old prototypes, kept only for reference. They lag well
@@ -310,14 +303,14 @@
 					</p>
 
 					<div
-						class="mt-1 flex flex-col items-center gap-3 sm:flex-row"
+						class="mt-6 flex flex-col items-start gap-3 sm:flex-row"
 						in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
 					>
 						<Button
 							href={resolve('/workspace')}
 							variant="default"
 							size="lg"
-							class="group/cta gap-2"
+							class="group/cta gap-2.5"
 						>
 							<IconPlayerPlay class="size-4" />
 							Try the workspace
@@ -331,22 +324,23 @@
 							size="lg"
 							class="group/star gap-2"
 						>
-							<IconStar
-								class="size-4 transition-colors group-hover/star:fill-warning group-hover/star:text-warning"
-							/>
+							<IconBrandGithub class="size-4" />
 							Star the repo
+							<IconStar
+								class="size-3.5 opacity-55 transition-[color,fill,opacity] group-hover/star:fill-warning group-hover/star:text-warning group-hover/star:opacity-100"
+							/>
 						</Button>
 					</div>
 
 					<div
-						class="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] font-medium tracking-wide text-foreground/70"
+						class="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium tracking-wide text-foreground/70"
 						in:fly={{ y: 8, duration: 500, delay: 320, easing: cubicOut }}
 					>
 						<span class="relative flex size-1.5">
 							<span
-								class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand/60 opacity-70"
+								class="bg-brand/60 absolute inline-flex h-full w-full animate-ping rounded-full opacity-70"
 							></span>
-							<span class="relative inline-flex size-1.5 rounded-full bg-brand"></span>
+							<span class="bg-brand relative inline-flex size-1.5 rounded-full"></span>
 						</span>
 						Open source · GPLv3 · No account · No telemetry
 					</div>
@@ -369,7 +363,7 @@
 						Archived builds
 					</span>
 					<h2
-						class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl md:text-5xl"
+						class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 					>
 						Old prototypes. <em class="font-serif italic font-medium text-foreground/65"
 							>Kept for reference only.</em
@@ -416,9 +410,9 @@
 
 				<div class="grid gap-4 sm:grid-cols-3">
 					{#each platforms as p, i (p.id)}
-						{const Icon = p.icon}
-						{const isMine = detected === p.id}
-						{const items = assets[p.id]}
+						{@const Icon = p.icon}
+						{@const isMine = detected === p.id}
+						{@const items = assets[p.id]}
 						<Reveal
 							as="article"
 							variant="up"
@@ -502,7 +496,7 @@
 						macOS · one-time step
 					</span>
 					<h2
-						class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl md:text-5xl"
+						class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 					>
 						Clearing the <em class="font-serif italic font-medium text-foreground/65">Gatekeeper</em
 						> warning.
@@ -637,7 +631,7 @@
 							What the prototype had
 						</span>
 						<h2
-							class="landing-text-balance mt-4 text-3xl font-semibold leading-[1.04] tracking-tight text-foreground sm:text-4xl"
+							class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl"
 						>
 							One app. <em class="font-serif italic font-medium text-foreground/65"
 								>Frozen where it stopped.</em

@@ -79,17 +79,20 @@
 			0 4px 8px color-mix(in oklab, var(--border) 55%, transparent);
 	}
 
+	/* `backwards`, not `both`: the resting state below is the visible one, so a
+	   dropped or unsupported animation can never leave a letter stuck invisible. */
 	.container-flip-letter {
 		display: inline-block;
+		opacity: 1;
 		animation-name: container-flip-in;
-		animation-fill-mode: both;
+		animation-fill-mode: backwards;
 		animation-timing-function: ease-in-out;
 	}
 
 	@keyframes container-flip-in {
 		from {
 			opacity: 0;
-			filter: blur(10px);
+			filter: blur(8px);
 		}
 		to {
 			opacity: 1;

@@ -126,7 +126,7 @@
 	{/if}
 
 	{#each options as option (option.value)}
-		{const active = option.value === value}
+		{@const active = option.value === value}
 		<button
 			type="button"
 			role="radio"

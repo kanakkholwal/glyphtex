@@ -41,7 +41,12 @@
 	<div class="absolute inset-0" style={washStyle[wash]}></div>
 
 	{#if wash === 'left'}
-		<!-- Narrow bottom fade only, so the trust strip clears the photo's detail. -->
+		<!-- The nav sits transparently on this photo, so the top edge needs its own
+		     scrim — the left wash alone leaves the centred links over open sky. -->
+		<div
+			class="absolute inset-x-0 top-0 h-28"
+			style="background: linear-gradient(to bottom, color-mix(in oklab, var(--canvas) 60%, transparent), transparent);"
+		></div>
 		<div
 			class="absolute inset-x-0 bottom-0 h-32"
 			style="background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--canvas) 45%, transparent));"

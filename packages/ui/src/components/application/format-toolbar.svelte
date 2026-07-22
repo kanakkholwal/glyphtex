@@ -209,7 +209,7 @@
 		{#if cluster.kind === 'group'}
 			<ButtonGroup>
 				{#each cluster.actions as a (a.label)}
-					{const Icon = a.icon}
+					{@const Icon = a.icon}
 					<Button
 						variant="outline"
 						size="icon-sm"
@@ -222,7 +222,7 @@
 				{/each}
 			</ButtonGroup>
 		{:else}
-			{const Icon = cluster.icon}
+			{@const Icon = cluster.icon}
 			<DropdownMenu>
 				<DropdownMenuTrigger>
 					{#snippet child({ props })}
