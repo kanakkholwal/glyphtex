@@ -14,7 +14,7 @@
 	import { onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
-	import { citationCommands } from '$lib/citations';
+	import { needsBiber } from '$lib/citations';
 	import { compileFiles, engineReady, installPacks, warmEngine } from '$lib/compile';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
 	import EngineNotices from '$lib/EngineNotices.svelte';
@@ -53,7 +53,7 @@
 
 	let missingPacks = $state<PackDefinition[]>([]);
 	let unsupportedFiles = $state<string[]>([]);
-	let unsupportedCitations = $state<string[]>([]);
+	let requiresBiber = $state(false);
 	let installingPacks = $state(false);
 	let packError = $state<string | undefined>(undefined);
 
@@ -273,7 +273,7 @@
 		lastCompiled = { files, entry: main };
 
 		const source = files.find((f) => f.name === main);
-		unsupportedCitations = citationCommands(source?.saved ?? source?.content ?? '');
+		requiresBiber = needsBiber(source?.saved ?? source?.content ?? '');
 
 		const outcome = await compileFiles(toCompileFiles(files, binary), main, id);
 		missingPacks = outcome.missingPacks ?? [];
@@ -335,7 +335,7 @@
 		<EngineNotices
 			{missingPacks}
 			{unsupportedFiles}
-			{unsupportedCitations}
+			{requiresBiber}
 			installing={installingPacks}
 			error={packError}
 			onadd={addMissingPacks}

@@ -1,12 +1,12 @@
 import { strict as assert } from 'node:assert';
 import { test, describe } from 'node:test';
 
-import { citationCommands, needsBibliographyProcessor } from './.build/citations.mjs';
+import { needsBiber, needsBibliographyProcessor } from './.build/citations.mjs';
 
-describe('needsBibliographyProcessor', () => {
-	test('a manual thebibliography document does NOT warn', () => {
-		// This compiles correctly today — no external processor is involved, and
-		// warning about it would be wrong for anyone writing references by hand.
+// The engine runs BibTeX itself, so the only unsupported case left is biblatex
+// on its default backend — Biber is Perl and has no wasm build.
+describe('needsBiber', () => {
+	test('a manual thebibliography document needs nothing', () => {
 		const source = String.raw`\documentclass{article}
 \begin{document}
 See \cite{knuth}.
@@ -14,50 +14,65 @@ See \cite{knuth}.
   \bibitem{knuth} Knuth, \emph{The TeXbook}.
 \end{thebibliography}
 \end{document}`;
-		assert.equal(needsBibliographyProcessor(source), false);
+		assert.equal(needsBiber(source), false);
 	});
 
-	test('plain \\cite alone does not warn', () => {
-		assert.equal(needsBibliographyProcessor(String.raw`\cite{a} \citep{b} \citet{c}`), false);
+	test('plain \\cite alone needs nothing', () => {
+		assert.equal(needsBiber(String.raw`\cite{a} \citep{b} \citet{c}`), false);
 	});
 
-	test('BibTeX commands warn', () => {
+	test('classic BibTeX is supported, so no notice', () => {
 		const source = String.raw`\bibliographystyle{plain}
 \bibliography{refs}`;
-		assert.deepEqual(citationCommands(source).sort(), ['\\bibliography', '\\bibliographystyle']);
+		assert.equal(needsBiber(source), false);
 	});
 
-	test('biblatex commands warn', () => {
-		const source = String.raw`\addbibresource{refs.bib}
+	test('natbib is supported, so no notice', () => {
+		assert.equal(needsBiber(String.raw`\usepackage{natbib}\bibliography{refs}`), false);
+	});
+
+	test('biblatex on its default backend needs Biber', () => {
+		const source = String.raw`\usepackage{biblatex}
+\addbibresource{refs.bib}
 \printbibliography`;
-		assert.deepEqual(citationCommands(source).sort(), ['\\addbibresource', '\\printbibliography']);
+		assert.equal(needsBiber(source), true);
 	});
 
-	test('bare \\printbibliography is detected', () => {
-		// It takes no argument, so a detector keyed on a following `{` misses the
-		// most common biblatex usage entirely.
-		assert.equal(needsBibliographyProcessor(String.raw`\printbibliography`), true);
+	test('biblatex with unrelated options still needs Biber', () => {
+		assert.equal(needsBiber(String.raw`\usepackage[style=authoryear]{biblatex}`), true);
 	});
 
-	test('\\bibliographystyle is not mistaken for \\bibliography', () => {
-		assert.deepEqual(citationCommands(String.raw`\bibliographystyle{plain}`), [
-			'\\bibliographystyle'
-		]);
+	test('backend=bibtex is supported, so no notice', () => {
+		assert.equal(needsBiber(String.raw`\usepackage[backend=bibtex]{biblatex}`), false);
 	});
 
-	test('commented-out commands are ignored', () => {
-		assert.equal(needsBibliographyProcessor('% \\bibliography{refs}'), false);
-		assert.equal(needsBibliographyProcessor('  %\\addbibresource{refs.bib}'), false);
+	test('backend=bibtex among other options is recognised', () => {
+		assert.equal(needsBiber(String.raw`\usepackage[style=numeric,backend=bibtex]{biblatex}`), false);
+	});
+
+	test('the backend may be passed ahead of the package', () => {
+		const source = String.raw`\PassOptionsToPackage{backend=bibtex}{biblatex}
+\usepackage{biblatex}`;
+		assert.equal(needsBiber(source), false);
+	});
+
+	// \addbibresource and \printbibliography are biblatex's own commands, but on
+	// their own they say nothing about the backend — the \usepackage line does.
+	test('biblatex commands without the package load are not a Biber signal', () => {
+		assert.equal(needsBiber(String.raw`\addbibresource{refs.bib}\printbibliography`), false);
+	});
+
+	test('commented-out package loads are ignored', () => {
+		assert.equal(needsBiber('% \\usepackage{biblatex}'), false);
+		assert.equal(needsBiber('  %\\usepackage{biblatex}'), false);
 	});
 
 	test('an escaped percent does not start a comment', () => {
-		// `\%` is a literal percent, so what follows is still live code.
-		assert.equal(needsBibliographyProcessor(String.raw`100\% \bibliography{refs}`), true);
+		assert.equal(needsBiber(String.raw`100\% \usepackage{biblatex}`), true);
 	});
 
-	test('a clean document warns about nothing', () => {
-		const source = String.raw`\documentclass{article}
-\begin{document}Hello\end{document}`;
-		assert.deepEqual(citationCommands(source), []);
+	test('needsBibliographyProcessor tracks needsBiber', () => {
+		assert.equal(needsBibliographyProcessor(String.raw`\usepackage{biblatex}`), true);
+		assert.equal(needsBibliographyProcessor(String.raw`\bibliography{refs}`), false);
 	});
 });

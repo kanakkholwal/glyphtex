@@ -1,19 +1,20 @@
 <script lang="ts">
 	import type { PackDefinition } from 'glyphtex-engine';
 	import { Button } from '@glyphtex/ui/button';
+	import { BIBTEX_BACKEND_FIX } from '$lib/citations';
 
 	let {
 		missingPacks = [],
 		unsupportedFiles = [],
-		unsupportedCitations = [],
+		requiresBiber = false,
 		installing = false,
 		error,
 		onadd
 	}: {
 		missingPacks?: PackDefinition[];
 		unsupportedFiles?: string[];
-		/** Citation commands found in the source; BibTeX cannot run in the browser. */
-		unsupportedCitations?: string[];
+		/** biblatex left on its default backend; Biber is Perl and cannot run here. */
+		requiresBiber?: boolean;
 		installing?: boolean;
 		error?: string;
 		onadd?: () => void;
@@ -60,15 +61,16 @@
 	</div>
 {/if}
 
-{#if unsupportedCitations.length > 0}
+{#if requiresBiber}
 	<div
 		role="status"
 		class="border-border bg-muted/40 text-muted-foreground flex items-center gap-2 border-b px-3 py-1.5 text-xs"
 	>
 		<span class="text-foreground/70 font-medium">Bibliography not generated</span>
 		<span>
-			{unsupportedCitations.join(', ')} needs BibTeX or Biber, which cannot run in the browser yet. The
-			document still compiles; citations will show as [?].
+			biblatex is set to Biber, which cannot run in the browser. Use
+			<code class="bg-muted rounded px-1 py-0.5">{BIBTEX_BACKEND_FIX}</code>
+			to build the bibliography here. Citations show as [?] until then.
 		</span>
 	</div>
 {/if}

@@ -1,50 +1,52 @@
-// Detect documents that need a bibliography processor the web engine cannot run.
+// Detect documents whose bibliography the browser engine cannot produce.
 //
-// BibTeX and Biber are separate programs. The browser engine is XeTeX +
-// xdvipdfmx only — there is no bibtex binary in the bundle and no wasm build of
-// biber exists (it is Perl) — so a document that depends on either silently
-// loses its bibliography and every \cite renders as [?].
+// The engine runs BibTeX itself, so `\bibliography` + `\bibliographystyle` and
+// biblatex under `backend=bibtex` both resolve fully offline. What it cannot do
+// is run Biber: Biber is a Perl program, there is no wasm build, and biblatex
+// defaults to it. That single case is what this reports.
 //
-// `\cite` on its own is NOT the signal. A manual `thebibliography` environment
-// with `\bibitem` is pure LaTeX and compiles correctly here, and warning about
-// it would be wrong for anyone who writes their references by hand. What cannot
-// work is the *external processor* step, so that is what this looks for.
-//
-// Desktop is unaffected: it drives a real TeX installation and runs bibtex.
+// `\cite` on its own is NOT a signal, and neither is a hand-written
+// `thebibliography` — both are ordinary LaTeX that has always worked here.
 
-/** Commands that require BibTeX or Biber to run between LaTeX passes. */
-const PROCESSOR_COMMANDS = [
-	'bibliography', // \bibliography{refs}     — BibTeX
-	'bibliographystyle', // \bibliographystyle{plain} — BibTeX
-	'addbibresource', // \addbibresource{refs.bib} — biblatex
-	'printbibliography' // \printbibliography       — biblatex
-];
+/** Does the document load biblatex, whatever the backend? */
+function usesBiblatex(text: string): boolean {
+	return /\\usepackage\s*(\[[^\]]*\])?\s*\{[^}]*\bbiblatex\b[^}]*\}/.test(text);
+}
 
 /**
- * Strip TeX comments so a commented-out `\bibliography` does not trigger the
- * warning. A `%` is only a comment when unescaped; `\%` is a literal percent.
+ * biblatex only avoids Biber when told to. The option can arrive on the package
+ * or be passed ahead of it, so both spellings count.
+ */
+function selectsBibtexBackend(text: string): boolean {
+	return (
+		/\\usepackage\s*\[[^\]]*backend\s*=\s*bibtex[^\]]*\]\s*\{[^}]*biblatex/.test(text) ||
+		/\\PassOptionsToPackage\s*\{[^}]*backend\s*=\s*bibtex[^}]*\}\s*\{\s*biblatex\s*\}/.test(text) ||
+		/\\ExecuteBibliographyOptions\s*\{[^}]*backend\s*=\s*bibtex/.test(text)
+	);
+}
+
+/**
+ * Strip TeX comments so a commented-out directive does not trigger the notice.
+ * A `%` is only a comment when unescaped; `\%` is a literal percent.
  */
 function stripComments(source: string): string {
 	return source.replace(/(^|[^\\])%.*$/gm, '$1');
 }
 
 /**
- * Does this document depend on BibTeX or Biber?
+ * Does this document need Biber, which cannot run in the browser?
  *
- * Returns the commands found, so the notice can name them rather than making
- * the user guess which line is the problem.
+ * True only for biblatex left on its default backend. Everything else —
+ * classic BibTeX, natbib, biblatex with `backend=bibtex` — compiles here.
  */
-export function citationCommands(source: string): string[] {
+export function needsBiber(source: string): boolean {
 	const text = stripComments(source);
-	// Match the control sequence itself, not an argument: `\printbibliography`
-	// usually appears bare, so requiring a following `{` misses the single most
-	// common biblatex usage. The lookahead ends the name, which also stops
-	// `\bibliography` matching the leading part of `\bibliographystyle`.
-	return PROCESSOR_COMMANDS.filter((name) =>
-		new RegExp(String.raw`\\${name}(?![a-zA-Z])`).test(text)
-	).map((name) => `\\${name}`);
+	return usesBiblatex(text) && !selectsBibtexBackend(text);
 }
 
+/** The one-line edit that makes a Biber document compile in the browser. */
+export const BIBTEX_BACKEND_FIX = '\\usepackage[backend=bibtex]{biblatex}';
+
 export function needsBibliographyProcessor(source: string): boolean {
-	return citationCommands(source).length > 0;
+	return needsBiber(source);
 }

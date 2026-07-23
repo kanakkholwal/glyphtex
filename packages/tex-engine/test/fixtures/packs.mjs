@@ -8,7 +8,12 @@
 // `String.raw` throughout: these are TeX sources full of backslashes, and
 // ordinary escaping turns \b into a backspace and \u into a syntax error.
 
-/** @typedef {{ id: string, source: string }} PackFixture */
+/**
+ * `files` carries companions the document reads — a `.bib` database is the
+ * reason it exists, since a bibliography cannot be exercised from one file.
+ *
+ * @typedef {{ id: string, source: string, files?: Record<string, string> }} PackFixture
+ */
 
 /** @type {PackFixture[]} */
 export const PACK_FIXTURES = [
@@ -104,16 +109,26 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
 \end{document}`
 	},
 	{
+		// biblatex, not natbib, because the two cannot share a document and this
+		// is the route with the deeper dependency closure — it is what drags in
+		// logreq and the blx-* internals that a glob would have to guess at.
+		// natbib is a single file the pack's include list carries instead.
 		id: 'references',
+		files: {
+			'refs.bib': String.raw`@book{knuth1984,
+  author    = {Donald E. Knuth},
+  title     = {The {\TeX}book},
+  publisher = {Addison-Wesley},
+  year      = {1984}
+}`
+		},
 		source: String.raw`\documentclass{article}
-\usepackage{natbib,csquotes}
+\usepackage{csquotes}
+\usepackage[backend=bibtex]{biblatex}
+\addbibresource{refs.bib}
 \begin{document}
-\enquote{A quoted phrase.}
-% A manual bibliography needs no BibTeX, so this compiles fully offline.
-\citep{knuth1984} and \citet{knuth1984}.
-\begin{thebibliography}{9}
-  \bibitem[Knuth(1984)]{knuth1984} Knuth, D. \emph{The \TeX book}. 1984.
-\end{thebibliography}
+\enquote{A quoted phrase} from \cite{knuth1984}.
+\printbibliography
 \end{document}`
 	},
 	{

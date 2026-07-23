@@ -9,8 +9,9 @@ import { join } from 'node:path';
 
 const TEXMF = execFileSync('kpsewhich', ['-var-value=TEXMFDIST'], { encoding: 'utf8' }).trim();
 
-// Fonts live under fonts/, macros and .fd files under tex/, so cover both.
-export function globTexmf(patterns, subdirs = ['tex', 'fonts']) {
+// Macros and .fd files live under tex/, fonts under fonts/, and BibTeX's .bst
+// styles under bibtex/ — a tree of its own that neither of the others reaches.
+export function globTexmf(patterns, subdirs = ['tex', 'fonts', 'bibtex']) {
 	if (!patterns || patterns.length === 0) return new Map();
 	const res = patterns.map(
 		(p) => new RegExp('^' + p.replace(/[.]/g, '\\$&').replace(/\*/g, '.*') + '$')

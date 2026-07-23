@@ -85,7 +85,6 @@
 		{ name: 'TypeScript', slug: 'typescript', href: 'https://www.typescriptlang.org' },
 		{ name: 'Vite', slug: 'vite', href: 'https://vitejs.dev' },
 		{ name: 'Git', slug: 'git', href: 'https://git-scm.com' },
-		{ name: 'Wasmer', slug: 'wasm', href: 'https://webassembly.org' },
 		{ name: 'TeX', slug: 'latex', href: 'https://www.latex-project.org' }
 	];
 
@@ -103,9 +102,9 @@
 	const painPoints: PainPoint[] = [
 		{
 			id: 'queue',
-			title: 'Compile queue times out before the bibliography is done.',
+			title: 'Compile queue times out before the document is done.',
 			description:
-				'A 30-second biber run becomes a 4-minute wait when the shared queue is busy. The deadline does not care.',
+				'A 30-second build becomes a 4-minute wait when the shared queue is busy. The deadline does not care.',
 			icon: IconClock,
 			iconBg: 'bg-amber-500/10',
 			iconColor: 'text-amber-500'
@@ -190,9 +189,9 @@
 		},
 		{
 			icon: IconFileText,
-			title: 'Bibliography aware',
+			title: 'Bibliographies that build',
 			description:
-				'biber and biblatex just work. References resolve in the editor and the PDF stays in sync.'
+				'BibTeX runs inside the engine, so \\bibliography and biblatex resolve into a real reference list offline. Only Biber needs the desktop app.'
 		},
 		{
 			icon: IconSearch,
@@ -342,7 +341,7 @@
 		},
 		{
 			q: 'Does GlyphTeX support biblatex and biber?',
-			a: 'Yes. GlyphTeX bundles the Tectonic engine with a TeX Live package set and pulls what your document asks for, biblatex and biber included. Nothing to install separately.'
+			a: 'BibTeX is compiled into the engine, so \\bibliography and \\bibliographystyle build a real bibliography in the browser, offline. biblatex works too, with \\usepackage[backend=bibtex]{biblatex}. Biber is the exception: it is a Perl program with no WebAssembly build, so biblatex left on its default backend needs the desktop app — and the browser tells you which one-line change fixes it rather than rendering every citation as [?]. A manual thebibliography list compiles fine in either.'
 		},
 		{
 			q: 'Will it handle a 300-page thesis?',
@@ -358,7 +357,7 @@
 		},
 		{
 			q: 'How do collaborators share a manuscript?',
-			a: 'Export the project folder and push it to any Git remote you already use: GitHub, GitLab, a self-hosted Gitea, or a university server. A built-in Git client exists in the desktop shell, which is paused for now.'
+			a: 'Through Git. Source control is built into both the desktop app and the browser workspace: stage, commit, browse history, and push to GitHub, GitLab, a self-hosted Gitea, or a university server. Because browsers cannot reach Git servers directly, the workspace relays fetch and push through a proxy you can point at your own host. You can also just export the folder.'
 		},
 		{
 			q: 'Does SyncTeX work?',

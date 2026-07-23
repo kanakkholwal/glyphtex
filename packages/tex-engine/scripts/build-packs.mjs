@@ -78,7 +78,7 @@ for (const name of readdirSync(bundleDir)) {
 }
 console.log(`core bundle: ${core.size} files`);
 
-const fixtures = new Map(PACK_FIXTURES.map((f) => [f.id, f.source]));
+const fixtures = new Map(PACK_FIXTURES.map((f) => [f.id, f]));
 for (const pack of config.packs) {
 	if (!fixtures.has(pack.id)) {
 		console.error(`pack "${pack.id}" has no fixture in test/fixtures/packs.mjs.`);
@@ -97,7 +97,7 @@ const provides = {};
 const packFiles = new Map();
 
 for (const pack of config.packs) {
-	const source = fixtures.get(pack.id);
+	const { source, files: companions = {} } = fixtures.get(pack.id);
 	/** Files this pack adds on top of core and its dependencies. */
 	const extra = new Map();
 	/** Packs whose files this one turned out to need. */
@@ -150,6 +150,9 @@ for (const pack of config.packs) {
 			for (const [name, bytes] of packFiles.get(id) ?? []) engine.addFile(name, bytes);
 		}
 		for (const [name, bytes] of extra) engine.addFile(name, bytes);
+		// Companions are the fixture's own inputs, never pack content: a .bib
+		// belongs to the document, so it must not be collected into the tarball.
+		for (const [name, text] of Object.entries(companions)) engine.addFile(name, text);
 		engine.addFile('main.tex', source);
 
 		let result;

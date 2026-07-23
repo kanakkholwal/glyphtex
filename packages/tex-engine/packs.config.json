@@ -54,9 +54,20 @@
 		},
 		{
 			"id": "references",
-			"label": "Citation styles",
-			"description": "natbib author-year citations and csquotes context-sensitive quoting. Note: generating a bibliography still needs BibTeX or Biber, which cannot run in the browser.",
-			"packages": ["natbib", "csquotes"]
+			"label": "Bibliographies & citations",
+			"description": "BibTeX bibliographies end to end: the standard .bst styles, natbib author-year citations, csquotes quoting, and biblatex. biblatex needs \\usepackage[backend=bibtex]{biblatex} — Biber is a Perl program and cannot run in the browser.",
+			"packages": ["natbib", "csquotes", "biblatex"],
+			"include": [
+				"*.bst",
+				"*.bbx",
+				"*.cbx",
+				"*.lbx",
+				"blx-*",
+				"biblatex.sty",
+				"biblatex.def",
+				"biblatex.cfg",
+				"natbib.sty"
+			]
 		},
 		{
 			"id": "drafting",

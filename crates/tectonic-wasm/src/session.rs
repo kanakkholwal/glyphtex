@@ -8,6 +8,7 @@ use std::rc::Rc;
 use std::time::{Duration, SystemTime};
 
 use tectonic_bridge_core::{CoreBridgeLauncher, MinimalDriver};
+use tectonic_engine_bibtex::{BibtexEngine, BibtexOutcome};
 use tectonic_engine_xdvipdfmx::XdvipdfmxEngine;
 use tectonic_engine_xetex::{TexEngine, TexOutcome};
 use tectonic_status_base::NoopStatusBackend;
@@ -160,6 +161,8 @@ impl Run {
         let mut passes_run = 0;
         let mut outcome = TexOutcome::Spotless;
         let mut prior = signature(&self.outputs.borrow());
+        let mut bibtex_ran = false;
+        let mut bibtex_message = None;
 
         for pass in 1..=self.options.max_passes {
             if self.verbose() {
@@ -172,6 +175,15 @@ impl Run {
                 Err(message) => {
                     return self.finish(CompileStatus::Failed, passes_run, Some(message))
                 }
+            }
+
+            // Once, and only after a pass has written the .aux it reads. The
+            // .bbl this produces changes the signature below, so the loop runs
+            // the further pass that pulls the bibliography into the document
+            // without needing a special case here.
+            if !bibtex_ran && self.wants_bibtex() {
+                bibtex_ran = true;
+                bibtex_message = self.bibtex_pass();
             }
 
             let current = signature(&self.outputs.borrow());
@@ -199,7 +211,7 @@ impl Run {
             TexOutcome::Warnings => CompileStatus::Warnings,
             TexOutcome::Errors => CompileStatus::Errors,
         };
-        self.finish(status, passes_run, None)
+        self.finish(status, passes_run, bibtex_message)
     }
 
     /// One INITEX run, dumping `<jobname>.fmt`.
@@ -254,6 +266,53 @@ impl Run {
         drop(driver);
 
         result.map_err(|e| format!("XeTeX failed: {e}"))
+    }
+
+    /// Whether the last pass asked for BibTeX.
+    ///
+    /// `\bibdata` is the signal because both routes write it: `\bibliography`
+    /// directly, and biblatex's `backend=bibtex` via its own `.bst`. biblatex
+    /// left on its default backend writes a `.bcf` for Biber and no `\bibdata`
+    /// at all, which is exactly the case BibTeX cannot serve — so keying on
+    /// `\bibdata` admits what works and skips what does not.
+    fn wants_bibtex(&self) -> bool {
+        let aux = format!("{}.aux", self.jobname);
+        self.outputs
+            .borrow()
+            .get(&aux)
+            .is_some_and(|bytes| String::from_utf8_lossy(bytes).contains("\\bibdata"))
+    }
+
+    /// One BibTeX run over `<jobname>.aux`. Returns a message worth surfacing.
+    ///
+    /// Never fatal. An unresolved entry should still produce a PDF with `[?]`
+    /// marks, the way a local latexmk run does; the reason lands in the `.blg`,
+    /// which ships with the outputs.
+    fn bibtex_pass(&self) -> Option<String> {
+        let aux = format!("{}.aux", self.jobname);
+        if self.verbose() {
+            eprintln!("[glyphtex] bibtex {aux}");
+        }
+
+        let mut driver = MinimalDriver::new(self.io());
+        let mut status = NoopStatusBackend::default();
+        let mut launcher = CoreBridgeLauncher::new(&mut driver, &mut status);
+
+        let mut engine = BibtexEngine::default();
+        let result = engine.process(&mut launcher, &aux);
+
+        // Output handles publish on drop, so the .bbl is not readable by the
+        // next pass until these are gone.
+        drop(launcher);
+        drop(driver);
+
+        match result {
+            Ok(BibtexOutcome::Spotless | BibtexOutcome::Warnings) => None,
+            Ok(BibtexOutcome::Errors) => {
+                Some(format!("BibTeX reported errors; see {}.blg", self.jobname))
+            }
+            Err(e) => Some(format!("BibTeX failed: {e}")),
+        }
     }
 
     /// Convert `<jobname>.xdv` to PDF. Returns a message on failure.
