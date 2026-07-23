@@ -7,8 +7,10 @@
 		IconX,
 		IconClipboardText,
 		IconClipboardCheck,
+		IconBug,
 		IconBulb
 	} from '@tabler/icons-svelte';
+	import { GLYPHTEX_REPO } from './about-dialog.svelte';
 
 	/**
 	 * ProblemsPanel — Overleaf-style log surface. Two tabs: parsed **Problems**
@@ -32,6 +34,10 @@
 
 	let tab = $state<'problems' | 'log'>('problems');
 	let copied = $state(false);
+
+	// No log or file contents are put in the URL — a compile log carries the
+	// document's own text. The user copies and pastes what they choose to share.
+	const ISSUES_URL = `${GLYPHTEX_REPO}/issues`;
 
 	const errors = $derived(problems.filter((p) => p.severity === 'error').length);
 	const warnings = $derived(problems.filter((p) => p.severity === 'warning').length);
@@ -77,6 +83,16 @@
 		</button>
 
 		<div class="ml-auto flex items-center gap-0.5">
+			<a
+				class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+				href={ISSUES_URL}
+				target="_blank"
+				rel="noreferrer noopener"
+				title="Report an issue on GitHub"
+				aria-label="Report an issue on GitHub"
+			>
+				<IconBug size={15} />
+			</a>
 			<button
 				class="hover:bg-muted grid size-6 place-items-center rounded transition-colors {copied
 					? 'text-success'
@@ -152,6 +168,25 @@
 						</li>
 					{/each}
 				</ul>
+
+				{#if errors}
+					<!-- Offered where the failure is, not buried in a help menu. Copy the
+					     log first — the button is in this panel's header. -->
+					<p
+						class="border-border/60 text-muted-foreground mt-1 border-t px-3 py-2 text-xs leading-relaxed"
+					>
+						Think this is a bug in GlyphTeX rather than your document?
+						<a
+							class="text-brand font-medium hover:underline"
+							href={ISSUES_URL}
+							target="_blank"
+							rel="noreferrer noopener"
+						>
+							Report it on GitHub
+						</a>
+						, copy the log first so you can paste it in.
+					</p>
+				{/if}
 			{/if}
 		{:else if log.trim()}
 			<pre

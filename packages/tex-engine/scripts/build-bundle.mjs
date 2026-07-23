@@ -130,6 +130,12 @@ for (const name of OPTIONAL_SILENT_LOADS) {
 //                        leqno), so fixtures only ever reach the default 10pt
 //                        and \documentclass[12pt]{report} halted on a missing
 //                        size12.clo. Eleven files, 74 KB.
+//   cm*.tfm / cm*.pfb  — Computer Modern, the default family for a document that
+//                        loads no font package. The design size follows the class
+//                        option, so 10pt fixtures reached cmr10 and never cmr12,
+//                        and 12pt died on the metrics. Metrics alone are not
+//                        enough: the outlines are needed to embed. 180 files,
+//                        2.4 MB gz, and it covers every size option at once.
 let seeded = 0;
 for (const [name, path] of globTexmf([
 	'*lm*.tfm',
@@ -137,7 +143,9 @@ for (const [name, path] of globTexmf([
 	'lm*.otf',
 	'caption-*.sto',
 	'*.tec',
-	'*.clo'
+	'*.clo',
+	'cm*.tfm',
+	'cm*.pfb'
 ])) {
 	if (!files.has(name) && isBareName(name)) {
 		files.set(name, new Uint8Array(readFileSync(path)));
