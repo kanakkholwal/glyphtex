@@ -28,7 +28,7 @@
 		"glyphtex-engine": "workspace:*",
 		"gsap": "^3.15.0",
 		"isomorphic-git": "^1.38.10",
-		"pdfjs-dist": "6.0.227",
+		"pdfjs-dist": "6.1.200",
 		"tailwind-merge": "^3.6.0"
 	},
 	"devDependencies": {
@@ -39,12 +39,12 @@
 		"@tailwindcss/typography": "^0.5.19",
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/gsap": "^3.0.0",
-		"@types/node": "^25",
+		"@types/node": "^26",
 		"esbuild": "^0.28.1",
 		"eslint": "^10.4.1",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.19.0",
-		"globals": "^17.6.0",
+		"globals": "^17.7.0",
 		"prettier": "^3.8.3",
 		"prettier-plugin-svelte": "^4.1.0",
 		"prettier-plugin-tailwindcss": "^0.8.0",
