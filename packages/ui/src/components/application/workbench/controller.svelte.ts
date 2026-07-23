@@ -45,6 +45,12 @@ export type WorkbenchProps = {
   gitRoot?: string | null;
   /** Host-injected file save (desktop = Tauri dialog + fs). Browser download on web. */
   saveFile?: SaveFileFn;
+  /** Switch documents. Desktop opens a folder; web routes to its document list. */
+  onOpenProject?: () => void;
+  /** Open a folder as a document. Falls back to the ProjectHost picker (desktop). */
+  onOpenFolder?: () => void;
+  /** Import an archive as a new document. Falls back to the ProjectHost (desktop). */
+  onImportProject?: () => void;
   /** Folder-based project bridge (desktop = Tauri fs / zip). Absent on web. */
   project?: ProjectHost;
   /** A folder / `.tex` / `.glyx` path to open on mount (file-association launch). */
@@ -86,6 +92,9 @@ export class WorkbenchController {
   readonly onRenameProject?: (name: string) => void;
   readonly onAddFiles?: (accept: string) => void;
   readonly onExportProject?: () => void;
+  readonly onOpenProject?: () => void;
+  readonly #onOpenFolder?: () => void;
+  readonly #onImportProject?: () => void;
   readonly readFileBytes?: (key: string) => Promise<Uint8Array>;
   readonly onDownload?: (req: DownloadRequest) => void;
 
@@ -106,6 +115,9 @@ export class WorkbenchController {
     this.onRenameProject = props.onRenameProject;
     this.onAddFiles = props.onAddFiles;
     this.onExportProject = props.onExportProject;
+    this.onOpenProject = props.onOpenProject;
+    this.#onOpenFolder = props.onOpenFolder;
+    this.#onImportProject = props.onImportProject;
     this.readFileBytes = props.readFileBytes ?? props.project?.readFileBytes;
     this.onDownload = props.onDownload;
     this.#onpersist = props.onpersist;
@@ -139,6 +151,23 @@ export class WorkbenchController {
 
     // Opening a project closes any diff left over from the previous one.
     this.files.onProjectLoaded = () => this.layout.closeDiff();
+  }
+
+  // --- Open / import (host hook, else the desktop ProjectHost) ---
+  get canOpenFolder(): boolean {
+    return Boolean(this.#onOpenFolder || this.files.project);
+  }
+  get canImportProject(): boolean {
+    return Boolean(this.#onImportProject || this.files.project);
+  }
+
+  openFolder(): void {
+    if (this.#onOpenFolder) this.#onOpenFolder();
+    else void this.files.openFolder();
+  }
+  importProject(): void {
+    if (this.#onImportProject) this.#onImportProject();
+    else void this.files.importProject();
   }
 
   // --- Download (Explorer "…" menu) ---
@@ -191,11 +220,19 @@ export class WorkbenchController {
           shortcut: shortcutLabel("quick-open"),
           run: () => (this.layout.paletteOpen = true),
         },
+        ...(this.onOpenProject
+          ? [
+              {
+                label: "Open Project…",
+                run: () => this.onOpenProject?.(),
+              },
+            ]
+          : []),
         {
           label: "Open Folder…",
           shortcut: shortcutLabel("open-folder"),
-          disabled: !this.files.project,
-          run: () => this.files.openFolder(),
+          disabled: !this.canOpenFolder,
+          run: () => this.openFolder(),
         },
         ...(this.onAddFiles
           ? [
@@ -212,8 +249,8 @@ export class WorkbenchController {
         { type: "separator" as const },
         {
           label: "Import Project…",
-          disabled: !this.files.project,
-          run: () => this.files.importProject(),
+          disabled: !this.canImportProject,
+          run: () => this.importProject(),
         },
         {
           // Web supplies its own in-memory zip export; desktop writes to disk.
@@ -454,12 +491,6 @@ export class WorkbenchController {
     const persist = this.#onpersist;
     const t = setTimeout(() => persist(this.files.snapshotFiles()), 500);
     return () => clearTimeout(t);
-  }
-
-  /** Refresh Explorer Git labels on structural change (add / remove / rename). */
-  refreshGitOnStructuralChange(): void {
-    void this.files.files;
-    if (this.files.git && this.files.scmRoot) void this.files.refreshGitStatus();
   }
 
   /** "After delay" auto-save: persist the active file a beat after typing stops. */

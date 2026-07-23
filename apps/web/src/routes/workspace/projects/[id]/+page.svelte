@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { Button } from '@glyphtex/ui/button';
 	import { Logo } from '@glyphtex/ui/logo';
 
 	import type { PackDefinition } from 'glyphtex-engine';
@@ -14,15 +16,22 @@
 	import { onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
-	import { bucket, track } from '$lib/analytics';
+	import { bucket, track, type DocumentSource } from '$lib/analytics';
 	import { needsBiber } from '$lib/citations';
 	import { compileFiles, engineReady, installPacks, warmEngine } from '$lib/compile';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
 	import EngineNotices from '$lib/EngineNotices.svelte';
 	import { gitProvider, gitRootFor, onWorkingTreeChanged } from '$lib/git';
 	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from '$lib/storage/bridge';
-	import { filesFromDataTransfer, importLooseFiles } from '$lib/storage/import';
 	import {
+		filesFromDataTransfer,
+		importFolder,
+		importLooseFiles,
+		importZipFile,
+		type ImportResult
+	} from '$lib/storage/import';
+	import {
+		createProject,
 		getProject,
 		readFiles,
 		renameProject,
@@ -34,10 +43,15 @@
 
 	const id = $derived(page.params.id ?? '');
 
+	// One explicit status rather than a set of flags with loading as the fallback:
+	// any combination the flags didn't anticipate used to render as "loading" forever.
+	type LoadStatus = 'loading' | 'ready' | 'missing' | 'error';
+
 	let project = $state<StoredProject | undefined>(undefined);
 	let initialFiles = $state<GlyphFile[] | undefined>(undefined);
-	let missing = $state(false);
-	let loadError = $state<string | undefined>(undefined);
+	let status = $state<LoadStatus>('loading');
+	let loadError = $state('');
+	let reloadToken = $state(0);
 	let saving = $state(false);
 
 	// Bytes for binary assets, keyed by path. The editor holds only a placeholder
@@ -50,6 +64,8 @@
 	let showInstall = $state(false);
 	let dragging = $state(false);
 	let fileInput = $state<HTMLInputElement>();
+	let zipInput = $state<HTMLInputElement>();
+	let folderInput = $state<HTMLInputElement>();
 	let accept = $state('');
 
 	let missingPacks = $state<PackDefinition[]>([]);
@@ -60,24 +76,48 @@
 
 	let lastCompiled: { files: GlyphFile[]; entry: string } | undefined;
 
-	onMount(async () => {
-		try {
-			const found = await getProject(id);
-			if (!found) {
-				missing = true;
-				return;
-			}
-			const files = await readFiles(id);
-			binary = new SvelteMap(binaryMap(files));
-			project = found;
-			initialFiles = toGlyphFiles(files);
-			latest = initialFiles;
-			track('document_opened', { files: bucket(files.length) });
-		} catch (error) {
-			loadError = error instanceof Error ? error.message : 'Could not open this document.';
-			return;
-		}
+	// Keyed on `id`, not mounted once: SvelteKit reuses this component when moving
+	// between documents, so a mount-only load would keep showing the previous one.
+	$effect(() => {
+		const wanted = id;
+		void reloadToken;
+		let stale = false;
 
+		void (async () => {
+			status = 'loading';
+			loadError = '';
+			try {
+				const found = await getProject(wanted);
+				if (stale) return;
+				if (!found) {
+					status = 'missing';
+					return;
+				}
+				const files = await readFiles(wanted);
+				if (stale) return;
+				binary = new SvelteMap(binaryMap(files));
+				project = found;
+				initialFiles = toGlyphFiles(files);
+				latest = initialFiles;
+				status = 'ready';
+				track('document_opened', { files: bucket(files.length) });
+			} catch (error) {
+				if (stale) return;
+				// An Error with an empty message would otherwise read as "no error".
+				loadError = (error instanceof Error && error.message) || 'Could not open this document.';
+				status = 'error';
+			}
+		})();
+
+		// A slower response for the document we just navigated away from must not
+		// overwrite the one we are now showing.
+		return () => {
+			stale = true;
+		};
+	});
+
+	// The engine is global, not per-document, so this stays a one-time check.
+	onMount(async () => {
 		try {
 			const installed = await engineReady();
 			ready = installed;
@@ -151,6 +191,32 @@
 			project = await renameProject(project.id, name);
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not rename.');
+		}
+	}
+
+	/** Leave for the documents list, where opening another document belongs. */
+	function openProject(): void {
+		void goto(resolve('/workspace'));
+	}
+
+	// "Open folder" / "Import project" make a NEW document rather than replacing the
+	// open one — on web a document is browser storage, not a folder we can swap.
+	async function importAsNewProject(
+		load: () => Promise<ImportResult>,
+		source: DocumentSource
+	): Promise<void> {
+		try {
+			const { files, name, skipped } = await load();
+			if (files.length === 0) {
+				toast.error('Nothing in there could be imported.');
+				return;
+			}
+			const created = await createProject(name, files);
+			track('document_created', { source, files: bucket(files.length) });
+			if (skipped.length > 0) toast.warning(`Skipped ${skipped.length} files.`);
+			void goto(resolve(`/workspace/projects/${created.id}` as `/workspace/projects/${string}`));
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Could not import that.');
 		}
 	}
 
@@ -317,7 +383,7 @@
 	<title>{project ? `${project.name} · GlyphTeX` : 'GlyphTeX'}</title>
 </svelte:head>
 
-{#if missing}
+{#if status === 'missing'}
 	<div
 		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
 	>
@@ -327,13 +393,21 @@
 		</p>
 		<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
 	</div>
-{:else if loadError}
+{:else if status === 'error'}
 	<div
 		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
 	>
 		<h1 class="text-lg font-semibold">Could not open this document</h1>
 		<p class="text-muted-foreground text-sm">{loadError}</p>
-		<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
+		<div class="mt-1 flex items-center gap-3">
+			<Button variant="outline" size="sm" onclick={() => (reloadToken += 1)}>Try again</Button>
+			<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
+		</div>
+	</div>
+{:else if status === 'loading'}
+	<div class="flex min-h-dvh flex-col items-center justify-center gap-4">
+		<Logo size="lg" />
+		<p class="text-muted-foreground text-sm" role="status">Opening document…</p>
 	</div>
 {:else if project && initialFiles}
 	<div
@@ -354,25 +428,32 @@
 		/>
 
 		<div class="min-h-0 flex-1">
-			<Workbench
-				platform="web"
-				projectName={project.name}
-				{initialFiles}
-				{saving}
-				git={gitProvider}
-				gitRoot={gitRootFor(project.id)}
-				backHref={resolve('/workspace')}
-				backLabel="Documents"
-				onRenameProject={rename}
-				onAddFiles={pickFiles}
-				onExportProject={exportZip}
-				onDownload={download}
-				{readFileBytes}
-				onpersist={persist}
-				onready={onReady}
-				compileFiles={ready ? runCompile : undefined}
-				statusNote="Engine: on-device"
-			/>
+			<!-- Remount per document: the Workbench captures `initialFiles` when it is
+			     constructed, so navigating between documents must rebuild it. -->
+			{#key id}
+				<Workbench
+					platform="web"
+					projectName={project.name}
+					{initialFiles}
+					{saving}
+					git={gitProvider}
+					gitRoot={gitRootFor(project.id)}
+					backHref={resolve('/workspace')}
+					backLabel="Documents"
+					onRenameProject={rename}
+					onAddFiles={pickFiles}
+					onOpenProject={openProject}
+					onOpenFolder={() => folderInput?.click()}
+					onImportProject={() => zipInput?.click()}
+					onExportProject={exportZip}
+					onDownload={download}
+					{readFileBytes}
+					onpersist={persist}
+					onready={onReady}
+					compileFiles={ready ? runCompile : undefined}
+					statusNote="Engine: on-device"
+				/>
+			{/key}
 		</div>
 
 		{#if dragging}
@@ -398,10 +479,43 @@
 		}}
 	/>
 
+	<input
+		bind:this={zipInput}
+		type="file"
+		accept=".zip,application/zip"
+		class="hidden"
+		onchange={(e) => {
+			const file = e.currentTarget.files?.[0];
+			if (file) void importAsNewProject(() => importZipFile(file), 'import_zip');
+			e.currentTarget.value = '';
+		}}
+	/>
+
+	<input
+		bind:this={folderInput}
+		type="file"
+		webkitdirectory
+		multiple
+		class="hidden"
+		onchange={(e) => {
+			const picked = Array.from(e.currentTarget.files ?? []);
+			if (picked.length > 0) void importAsNewProject(() => importFolder(picked), 'import_folder');
+			e.currentTarget.value = '';
+		}}
+	/>
+
 	<EngineInstallDialog bind:open={showInstall} ondone={onInstalled} />
 {:else}
-	<div class="flex min-h-dvh items-center justify-center flex-col gap-4">
-		<Logo size="lg" />
-		<p class="text-muted-foreground text-sm" role="status">Opening document…</p>
+	<div
+		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
+	>
+		<h1 class="text-lg font-semibold">Could not open this document</h1>
+		<p class="text-muted-foreground text-sm">
+			It loaded without any content, which shouldn’t happen.
+		</p>
+		<div class="mt-1 flex items-center gap-3">
+			<Button variant="outline" size="sm" onclick={() => (reloadToken += 1)}>Try again</Button>
+			<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
+		</div>
 	</div>
 {/if}

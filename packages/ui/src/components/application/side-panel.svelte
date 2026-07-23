@@ -35,11 +35,11 @@
     onopendiff,
     activeDiffPath = null,
     dirtyIds = new Set(),
-    gitStatus = {},
     onopen,
     onnew,
     onnewfolder,
     onopenfolder,
+    onopenproject,
     onreveal,
     onaddfiles,
     onrenamefile,
@@ -89,12 +89,12 @@
     activeDiffPath?: string | null;
     /** Ids of files with unsaved edits (shown as "modified" dots in the tree). */
     dirtyIds?: Set<string>;
-    /** File id → Git working-tree status word ("modified" / "untracked" / …). */
-    gitStatus?: Record<string, string>;
     onopen?: (id: string) => void;
     onnew?: () => void;
     onnewfolder?: () => void;
     onopenfolder?: () => void;
+    /** Switch to another document (web routes to its list). Absent hides the item. */
+    onopenproject?: () => void;
     /** Reveal the open project folder in the OS file manager. Absent = unavailable. */
     onreveal?: () => void;
     /** Import files from disk into the open document (web projects). */
@@ -172,6 +172,7 @@
     searchResultCount={searchResults.length}
     {onreveal}
     {onopenfolder}
+    {onopenproject}
     {onaddfiles}
   />
 
@@ -185,7 +186,6 @@
         {activeId}
         {mainId}
         {dirtyIds}
-        {gitStatus}
         {hasProject}
         {onrenamefile}
         {ondeletefile}

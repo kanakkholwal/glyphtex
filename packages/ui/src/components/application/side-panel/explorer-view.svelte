@@ -13,7 +13,6 @@
     activeId,
     mainId,
     dirtyIds,
-    gitStatus,
     hasProject,
     onrenamefile,
     ondeletefile,
@@ -30,7 +29,6 @@
     activeId: string;
     mainId: string | null;
     dirtyIds: Set<string>;
-    gitStatus: Record<string, string>;
     hasProject: boolean;
     onrenamefile?: (id: string, name: string) => void;
     ondeletefile?: (id: string) => void;
@@ -87,7 +85,6 @@
       {activeId}
       {mainId}
       {dirtyIds}
-      {gitStatus}
       selectedPath={store.selectedFolderPath}
       open={store.treeOpen}
       onopen={(id) => store.selectFile(id)}

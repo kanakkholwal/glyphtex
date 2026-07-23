@@ -33,7 +33,7 @@
 			data: 'Path, page title, referrer.'
 		},
 		{
-			name: 'cta_workspace_click / download_click / engine_cta_*',
+			name: 'cta_* / download_click / engine_cta_*',
 			when: 'You click a call-to-action or a download link.',
 			data: 'Which button, and for downloads the platform and release version.'
 		},

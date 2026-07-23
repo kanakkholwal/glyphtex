@@ -41,7 +41,6 @@
 		mainId = null,
 		selectedPath = null,
 		dirtyIds = new Set(),
-		gitStatus = {},
 		depth = 0,
 		open = $bindable({}),
 		onopen,
@@ -65,8 +64,6 @@
 		/** Path of the currently-selected folder. */
 		selectedPath?: string | null;
 		dirtyIds?: Set<string>;
-		/** File id → Git status word ("modified" / "untracked" / …). */
-		gitStatus?: Record<string, string>;
 		depth?: number;
 		open?: Record<string, boolean>;
 		onopen?: (id: string) => void;
@@ -162,22 +159,10 @@
 	}
 
 	// --- Change indicators ---
-	const STATUS_LABEL: Record<string, string> = {
-		modified: 'M',
-		deleted: 'D',
-		untracked: 'U',
-		added: 'A',
-		renamed: 'R'
-	};
-	const STATUS_CLASS: Record<string, string> = {
-		modified: 'text-warning',
-		deleted: 'text-destructive',
-		untracked: 'text-success',
-		added: 'text-success',
-		renamed: 'text-brand'
-	};
+	// Unsaved edits only. Git working-tree state belongs to the Source Control
+	// panel, so the Explorer never mirrors it.
 	function folderChanged(n: TreeNode): boolean {
-		if (n.type === 'file') return dirtyIds.has(n.id) || !!gitStatus[n.id];
+		if (n.type === 'file') return dirtyIds.has(n.id);
 		return n.children.some(folderChanged);
 	}
 </script>
@@ -296,7 +281,6 @@
 					{mainId}
 					{selectedPath}
 					{dirtyIds}
-					{gitStatus}
 					depth={depth + 1}
 					{open}
 					{onopen}
@@ -317,7 +301,6 @@
 		{/if}
 	{:else}
 		{@const dirty = dirtyIds.has(node.id)}
-		{@const status = gitStatus[node.id]}
 		{@const FileIcon = KIND_ICON[classifyFile(node.name)]}
 		<div class="group/row relative flex items-center">
 			{#if renamingId === node.id}
@@ -343,7 +326,7 @@
 					class="flex w-full items-center gap-1 rounded py-1 pr-7 text-left transition-colors {node.id ===
 					activeId
 						? 'bg-accent text-accent-foreground'
-						: dirty || status
+						: dirty
 							? 'text-foreground hover:bg-muted'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 					style:padding-left={indent(depth)}
@@ -368,18 +351,12 @@
 					{/if}
 				</button>
 
-				{#if dirty || status}
+				{#if dirty}
 					<span
 						class="pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center transition-opacity group-hover/row:opacity-0"
-						title={dirty ? 'Unsaved changes' : 'Modified'}
+						title="Unsaved changes"
 					>
-						{#if dirty}
-							<span class="bg-brand block size-1.5 rounded-full"></span>
-						{:else}
-							<span class="font-mono text-xs leading-none {STATUS_CLASS[status] ?? ''}"
-								>{STATUS_LABEL[status] ?? '?'}</span
-							>
-						{/if}
+						<span class="bg-brand block size-1.5 rounded-full"></span>
 					</span>
 				{/if}
 

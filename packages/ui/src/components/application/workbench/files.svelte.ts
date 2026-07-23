@@ -76,9 +76,6 @@ export class FileStore {
   // Bumped whenever a save lands, so the auto-compile effect can key off it.
   savedTick = $state(0);
 
-  // Keyed by file id → git status word ("modified" / "untracked" / …).
-  gitStatus = $state<Record<string, string>>({});
-
   // --- Explorer conflict / confirm modal ------------------------------------
   pending = $state<Pending | null>(null);
   conflictName = $state("");
@@ -243,7 +240,6 @@ export class FileStore {
     if (!f || !this.fileDirty(f)) return false;
     const ok = await this.persistFile(f);
     if (ok) {
-      void this.refreshGitStatus();
       if (bumpCompile) this.savedTick += 1;
     }
     return ok;
@@ -256,7 +252,6 @@ export class FileStore {
     for (const f of this.files)
       if (this.fileDirty(f)) any = (await this.persistFile(f)) || any;
     if (any) {
-      void this.refreshGitStatus();
       this.savedTick += 1;
     }
   }
@@ -289,27 +284,6 @@ export class FileStore {
       f && editable && !this.unreadableIds.has(f.id) ? (f.content ?? "") : "";
   }
 
-  // --- Git working-tree status (for the Explorer "M / U / A" labels) --------
-  async refreshGitStatus(): Promise<void> {
-    const root = this.scmRoot;
-    if (!this.git || !root) {
-      this.gitStatus = {};
-      return;
-    }
-    try {
-      const changes = await this.git.status(root);
-      const byPath = new Map(changes.map((c) => [c.path, c.status]));
-      const next: Record<string, string> = {};
-      for (const f of this.files) {
-        const st = byPath.get(f.name);
-        if (st) next[f.id] = st;
-      }
-      this.gitStatus = next;
-    } catch {
-      this.gitStatus = {};
-    }
-  }
-
   // --- New file / folder ----------------------------------------------------
   async newFile(dir = ""): Promise<void> {
     this.syncBuffer();
@@ -337,7 +311,6 @@ export class FileStore {
       ];
       this.activeId = abs;
       this.source = "";
-      void this.refreshGitStatus();
       return;
     }
     this.untitledCount += 1;
@@ -921,7 +894,6 @@ export class FileStore {
       this.activeId = "";
       if (first) await this.openFile(first, true);
       else this.source = "";
-      void this.refreshGitStatus();
       toast.success(`Opened ${baseName(root)}`);
     } catch (e) {
       toast.error(`Could not open project — ${e}`);

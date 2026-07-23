@@ -41,6 +41,7 @@
     searchResultCount,
     onreveal,
     onopenfolder,
+    onopenproject,
     onaddfiles,
   }: {
     store: SidePanelStore;
@@ -52,6 +53,8 @@
     searchResultCount: number;
     onreveal?: () => void;
     onopenfolder?: () => void;
+    /** Switch to another document (web routes to its list). Absent hides the item. */
+    onopenproject?: () => void;
     /** Import files from disk into the open document (web projects). */
     onaddfiles?: (accept: string) => void;
   } = $props();
@@ -115,9 +118,14 @@
             <DropdownMenuItem onSelect={() => onreveal?.()}>
               <IconFolderShare class="text-muted-foreground" /> Reveal in file explorer
             </DropdownMenuItem>
-          {:else if hasProject}
+          {:else if onopenfolder}
             <DropdownMenuItem onSelect={() => onopenfolder?.()}>
               <IconFolderOpen class="text-muted-foreground" /> Open folder…
+            </DropdownMenuItem>
+          {/if}
+          {#if onopenproject}
+            <DropdownMenuItem onSelect={() => onopenproject?.()}>
+              <IconFolders class="text-muted-foreground" /> Open project…
             </DropdownMenuItem>
           {/if}
           {#if hasDelete}

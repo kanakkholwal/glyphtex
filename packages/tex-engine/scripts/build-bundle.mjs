@@ -125,13 +125,19 @@ for (const name of OPTIONAL_SILENT_LOADS) {
 //   *.tec              — XeTeX font mappings (mapping=tex-text). Filed under a
 //                        format kpsewhich will not resolve by bare name, so only
 //                        a glob reaches them.
+//   *.clo              — class option files. A class loads exactly the one its
+//                        options select (size12.clo for 12pt, bk11.clo, fleqn,
+//                        leqno), so fixtures only ever reach the default 10pt
+//                        and \documentclass[12pt]{report} halted on a missing
+//                        size12.clo. Eleven files, 74 KB.
 let seeded = 0;
 for (const [name, path] of globTexmf([
 	'*lm*.tfm',
 	'*lm*.fd',
 	'lm*.otf',
 	'caption-*.sto',
-	'*.tec'
+	'*.tec',
+	'*.clo'
 ])) {
 	if (!files.has(name) && isBareName(name)) {
 		files.set(name, new Uint8Array(readFileSync(path)));

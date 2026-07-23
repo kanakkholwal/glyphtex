@@ -35,7 +35,6 @@
   const { files, layout, search, compile } = ctrl;
 
   $effect(() => ctrl.armPersist());
-  $effect(() => ctrl.refreshGitOnStructuralChange());
   $effect(() => ctrl.armAutoSave());
   $effect(() => layout.observeShell());
   $effect(() => ctrl.clearSearchHighlight());
@@ -71,7 +70,8 @@
     homeHref={ctrl.backHref}
     homeLabel={ctrl.backLabel}
     onnewfile={() => files.newFile()}
-    onopenproject={files.project ? () => files.openFolder() : undefined}
+    onopenproject={ctrl.onOpenProject ??
+      (ctrl.canOpenFolder ? () => ctrl.openFolder() : undefined)}
   />
 
     <!-- Collapses by width, not unmounting, so panel state survives a toggle. -->
@@ -102,7 +102,8 @@
         onopen={(id) => files.openFile(id)}
         onnew={() => files.newFile()}
         onnewfolder={() => files.newFolder()}
-        onopenfolder={() => files.openFolder()}
+        onopenfolder={ctrl.canOpenFolder ? () => ctrl.openFolder() : undefined}
+        onopenproject={ctrl.onOpenProject}
         onreveal={files.project?.revealInOS && files.projectRoot
           ? () => files.revealProject()
           : undefined}
@@ -119,7 +120,6 @@
         ondownloadfile={ctrl.onDownload ? (id) => ctrl.downloadFile(id) : undefined}
         ondownloadfolder={ctrl.onDownload ? (p) => ctrl.downloadFolder(p) : undefined}
         dirtyIds={files.dirtyIds}
-        gitStatus={files.gitStatus}
         ongotoline={(n) => layout.editor?.goToLine(n)}
         onregistershell={files.project?.registerShellIntegration
           ? () => files.registerShell()
