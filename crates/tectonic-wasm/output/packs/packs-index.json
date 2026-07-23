@@ -78,8 +78,8 @@
 			],
 			"requires": [],
 			"optional": false,
-			"bytes": 70490,
-			"hash": "d17e9b51c8ec9f98"
+			"bytes": 33860,
+			"hash": "3a6668c88d2b3f56"
 		},
 		{
 			"id": "tables-plus",
@@ -209,10 +209,6 @@
 		"mhchem.sty": "science",
 		"l3keys2e.sty": "science",
 		"chemgreek.sty": "science",
-		"cmbx10.tfm": "science",
-		"cmbx5.tfm": "science",
-		"cmbx7.tfm": "science",
-		"cmbx10.pfb": "science",
 		"colortbl.sty": "tables-plus",
 		"nicematrix.sty": "tables-plus",
 		"tabularray.sty": "tables-plus",

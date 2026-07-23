@@ -20,6 +20,7 @@
 	import { needsBiber } from '$lib/citations';
 	import { compileFiles, engineReady, installPacks, warmEngine } from '$lib/compile';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
+	import MainFileDialog from '$lib/MainFileDialog.svelte';
 	import EngineNotices from '$lib/EngineNotices.svelte';
 	import { gitProvider, gitRootFor, onWorkingTreeChanged } from '$lib/git';
 	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from '$lib/storage/bridge';
@@ -155,6 +156,26 @@
 		const entry = project?.entry;
 		const match = controller.files.files.find((f) => f.name === entry);
 		if (match) void controller.files.setMain(match.id);
+	}
+
+	// Asked once per project, before the first compile can build the wrong file.
+	// A settled choice or a single candidate never opens this.
+	let showMainFile = $state(false);
+	$effect(() => {
+		if (!project || project.entryConfirmed) return;
+		if ((project.entryCandidates?.length ?? 0) < 2) return;
+		showMainFile = true;
+	});
+
+	function chooseMain(path: string): void {
+		if (!project) return;
+		void setEntry(project.id, path)
+			.then((next) => {
+				project = next;
+				const match = ctrl?.files.files.find((f) => f.name === path);
+				if (match) void ctrl?.files.setMain(match.id);
+			})
+			.catch(() => toast.error('Could not set the main file.'));
 	}
 
 	// `setMain` is also reachable from the Explorer, so the store is the source of
@@ -505,6 +526,13 @@
 	/>
 
 	<EngineInstallDialog bind:open={showInstall} ondone={onInstalled} />
+
+	<MainFileDialog
+		bind:open={showMainFile}
+		candidates={project.entryCandidates ?? []}
+		current={project.entry}
+		onchoose={chooseMain}
+	/>
 {:else}
 	<div
 		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"

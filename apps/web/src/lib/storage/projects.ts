@@ -1,4 +1,5 @@
 import { BY_PROJECT, FILES, PROJECTS, StorageError, del, get, getAll, put, tx } from './db';
+import { keepOrPickEntry, pickEntry } from './entry';
 import { PER_FILE_BYTES, PER_PROJECT_BYTES, formatBytes } from './quota';
 
 /** A stored document. `entry` is the file compiled as the root. */
@@ -15,6 +16,14 @@ export type StoredProject = {
 	bytes: number;
 	/** Pinned by the user. Absent on documents saved before starring existed. */
 	starred?: boolean;
+	/**
+	 * The user has settled which file is the root, so stop offering the choice.
+	 * Absent on documents stored before the prompt existed, and on imports whose
+	 * root was unambiguous.
+	 */
+	entryConfirmed?: boolean;
+	/** Other plausible roots, for the prompt. Empty once the choice is settled. */
+	entryCandidates?: string[];
 };
 
 /** One file. Exactly one of `text` / `data` is set — `data` carries images. */
@@ -72,15 +81,18 @@ export async function createProject(name: string, files: NewFile[]): Promise<Sto
 		throw new StorageError(`That document is over the ${formatBytes(PER_PROJECT_BYTES)} limit.`);
 	}
 
+	const chosen = pickEntry(prepared);
 	const project: StoredProject = {
 		id: newId(),
 		name: name.trim() || 'Untitled',
-		entry: prepared.find((f) => f.path.endsWith('.tex'))?.path ?? prepared[0]?.path ?? 'main.tex',
+		entry: chosen.entry,
 		paths: prepared.map((f) => f.path),
 		folders: [],
 		createdAt: now,
 		updatedAt: now,
-		bytes
+		bytes,
+		entryConfirmed: chosen.confident,
+		entryCandidates: chosen.confident ? [] : chosen.candidates
 	};
 
 	await tx([PROJECTS, FILES], 'readwrite', async (t) => {
@@ -152,12 +164,12 @@ export async function writeFiles(projectId: string, files: NewFile[]): Promise<n
 			} satisfies StoredFile);
 		}
 
-		const entry = keep.has(project.entry)
-			? project.entry
-			: (prepared.find((f) => f.path.endsWith('.tex'))?.path ?? project.entry);
+		// Only re-pick when the chosen root is gone. Adding a file must never
+		// reassign a root the user settled on.
+		const chosen = keepOrPickEntry(prepared, project.entry);
 		await put(projects, {
 			...project,
-			entry,
+			entry: chosen.entry,
 			paths: prepared.map((f) => f.path),
 			bytes,
 			updatedAt: now
@@ -183,7 +195,10 @@ export const setStarred = (id: string, starred: boolean) => patch(id, { starred 
 
 export const renameProject = (id: string, name: string) =>
 	patch(id, { name: name.trim() || 'Untitled' });
-export const setEntry = (id: string, entry: string) => patch(id, { entry: normalisePath(entry) });
+// Choosing a root settles the question, whether the pick came from the prompt
+// or from the Explorer's "set as main".
+export const setEntry = (id: string, entry: string) =>
+	patch(id, { entry: normalisePath(entry), entryConfirmed: true, entryCandidates: [] });
 export const setFolders = (id: string, folders: string[]) => patch(id, { folders });
 
 export async function deleteProject(id: string): Promise<void> {
