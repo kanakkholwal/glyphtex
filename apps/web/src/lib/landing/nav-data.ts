@@ -14,6 +14,9 @@ export const CONTACT_EMAIL = 'mailto:hello@glyphtex.app';
 // or skip them.
 const FEATURES: NavLink = { label: 'Features', href: '/#features' };
 const WORKFLOW: NavLink = { label: 'Workflow', href: '/#workflow' };
+// A route, not an anchor: the engineering story is the differentiator and needs
+// somewhere to link to from outside the site.
+const ENGINE: NavLink = { label: 'The engine', href: '/engine' };
 // #compare is the free-for-individuals / free-for-institutions section, so the
 // label says Pricing — "Compare" promised a comparison table that isn't there.
 const COMPARE: NavLink = { label: 'Pricing', href: '/#compare' };
@@ -25,12 +28,12 @@ const WORKSPACE: NavLink = { label: 'Open browser workspace', href: '/workspace'
 
 // Inline top-nav links, always visible on desktop. Kept short for a minimal
 // bar; everything else lives in the footer.
-export const navLinks: NavLink[] = [FEATURES, WORKFLOW, COMPARE, FAQ];
+export const navLinks: NavLink[] = [FEATURES, ENGINE, WORKFLOW, COMPARE, FAQ];
 
 export const footerCols: { title: string; links: NavLink[] }[] = [
 	{
 		title: 'Product',
-		links: [FEATURES, WORKFLOW, COMPARE, FAQ, DOWNLOAD]
+		links: [FEATURES, ENGINE, WORKFLOW, COMPARE, FAQ, DOWNLOAD]
 	},
 	{
 		title: 'Resources',
@@ -45,6 +48,7 @@ export const footerCols: { title: string; links: NavLink[] }[] = [
 		title: 'Company',
 		links: [
 			{ label: 'Contact', href: CONTACT_EMAIL },
+			{ label: 'Privacy', href: '/privacy' },
 			{ label: 'Source code', href: REPO_URL, external: true }
 		]
 	}

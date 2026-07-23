@@ -20,8 +20,6 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  PUBLIC_GA_ID: "G-X1BF4S5L5L"
-  
 
 jobs:
   deploy:
@@ -85,11 +83,12 @@ jobs:
       - name: Typecheck (svelte-check)
         run: pnpm --filter @glyphtex/web check
 
+      # PUBLIC_GA_ID is deliberately not passed here: it is read at request time
+      # via `$env/dynamic/public`, so it comes from wrangler.jsonc `vars` instead.
       - name: Build apps/web
         run: pnpm --filter @glyphtex/web build
         env:
           NODE_ENV: production
-          PUBLIC_GA_ID: ${{ env.PUBLIC_GA_ID }}
 
       - name: Deploy via Wrangler
         uses: cloudflare/wrangler-action@v3

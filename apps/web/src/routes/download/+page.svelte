@@ -25,7 +25,7 @@
 	import { onMount } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { fly } from 'svelte/transition';
-	import { trackEvent } from '$lib/analytics';
+	import { track } from '$lib/analytics';
 
 	const owner = 'kanakkholwal';
 	const repoName = 'glyphtex';
@@ -140,7 +140,7 @@
 	}
 
 	function trackDownload(platform: string, asset: string) {
-		trackEvent('download_click', { platform, asset, version: version || 'unknown' });
+		track('download_click', { platform, asset, version: version || 'unknown' });
 	}
 
 	// macOS install helper. The build is not Apple-notarized yet, so a freshly
@@ -239,7 +239,7 @@
 		'An editor with live preview, file tree, search, and a command palette.',
 		'A Git client: stage, commit, diff, history, clone, and push or pull.',
 		'Everything runs locally, so projects stay on your disk and compile offline.',
-		'No account and no telemetry, same as the browser workspace.',
+		'No account, and the app itself sends no analytics of any kind.',
 		'Missing whatever has landed in the workspace since these builds were cut.'
 	];
 </script>
@@ -342,7 +342,7 @@
 							></span>
 							<span class="bg-brand relative inline-flex size-1.5 rounded-full"></span>
 						</span>
-						Open source · GPLv3 · No account · No telemetry
+						Open source · GPLv3 · No account · No telemetry in the app
 					</div>
 				</div>
 			</div>

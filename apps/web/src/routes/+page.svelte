@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { trackEvent } from '$lib/analytics';
+	import { track } from '$lib/analytics';
 	import {
 		Container,
 		ContainerTextFlip,
@@ -26,6 +26,7 @@
 		IconCheck,
 		IconClock,
 		IconCloudOff,
+		IconCpu,
 		IconDeviceDesktop,
 		IconFileText,
 		IconFolders,
@@ -70,7 +71,7 @@
 	const openSourceClaims: OpenSourceClaim[] = [
 		{ icon: IconBrandGithub, label: 'GPLv3 open source' },
 		{ icon: IconLock, label: 'Files stay on your machine' },
-		{ icon: IconCloudOff, label: 'No account, no telemetry' },
+		{ icon: IconCloudOff, label: 'No account, works fully offline' },
 		{ icon: IconGitBranch, label: 'Plain Git history' },
 		{ icon: IconDeviceDesktop, label: 'Runs offline, on the lab machine' }
 	];
@@ -318,7 +319,7 @@
 		{
 			label: 'For individuals',
 			price: 'Free',
-			body: 'GPLv3, full editor, full engine, no account, no telemetry. Open it in the browser and start writing.',
+			body: 'GPLv3, full editor, full engine, no account. Your documents never leave your device. Open it in the browser and start writing.',
 			href: resolve('/workspace'),
 			cta: 'Try the workspace'
 		},
@@ -465,22 +466,24 @@
 							variant="default"
 							size="lg"
 							class="group/cta gap-2.5"
-							onclick={() => trackEvent('cta_workspace_click', { location: 'hero' })}
+							onclick={() => track('cta_workspace_click', { location: 'hero' })}
 						>
 							<IconPlayerPlay class="size-4" />
 							Try the workspace
 							<IconArrowRight class="size-4 transition-transform group-hover/cta:translate-x-0.5" />
 						</Button>
 						<Button
-							href={repo}
-							target="_blank"
-							rel="noopener noreferrer"
+							href={resolve('/engine')}
 							variant="outline"
 							size="lg"
-							class="group/star gap-2"
+							class="group/engine gap-2.5"
+							onclick={() => track('cta_engine_click', { location: 'hero' })}
 						>
-							<IconBrandGithub class="size-4" />
-							Star the repo
+							<IconCpu class="size-4" />
+							How the engine works
+							<IconArrowRight
+								class="size-4 transition-transform group-hover/engine:translate-x-0.5"
+							/>
 						</Button>
 					</div>
 
@@ -532,7 +535,7 @@
 		<!--
 		  Open-source values strip. The tech-stack logos already scroll
 		  inside the hero, so this section keeps the values-only row (GPLv3,
-		  files on disk, no telemetry, plain Git history, runs offline). Same
+		  files on disk, no account, plain Git history, runs offline). Same
 		  quiet editorial cadence as the trace-mvp placement.
 		-->
 		<Section spacing="tight" bordered>
@@ -691,7 +694,7 @@
 								<p class="text-[12px] text-foreground/65">
 									<span class="text-foreground/85 font-medium">Read it before you trust it</span>
 									<br class="sm:hidden" />
-									<span class="text-foreground/55"> GPLv3 · No account · No telemetry</span>
+									<span class="text-foreground/55"> GPLv3 · No account · Runs offline</span>
 								</p>
 							</footer>
 						</article>
@@ -1373,7 +1376,7 @@
 								variant="default"
 								size="lg"
 								class="gap-2.5"
-								onclick={() => trackEvent('cta_workspace_click', { location: 'final_cta' })}
+								onclick={() => track('cta_workspace_click', { location: 'final_cta' })}
 							>
 								<IconPlayerPlay class="size-4" />
 								Try the workspace

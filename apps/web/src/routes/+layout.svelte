@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { settings } from '@glyphtex/ui/settings';
-	import { loadAnalytics, trackPageview } from '$lib/analytics';
+	import { initAnalytics, trackPageview } from '$lib/analytics';
 	import './layout.css';
 
 	let { children } = $props();
@@ -12,11 +12,12 @@
 		settings.apply();
 	});
 
-	// No-op unless PUBLIC_GA_ID is set; gtag.js sends the initial page_view itself.
-	onMount(() => loadAnalytics());
+	// No-op unless a backend is configured and the visitor hasn't opted out.
+	onMount(() => initAnalytics());
 
+	// Every view is reported here, including the first — backends are configured
+	// not to send their own, so this is the single source of page counts.
 	afterNavigate((nav) => {
-		if (nav.type === 'enter') return; // initial load already counted by gtag config
 		trackPageview(nav.to?.url.pathname ?? location.pathname);
 	});
 </script>

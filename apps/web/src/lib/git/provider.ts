@@ -6,6 +6,7 @@ import type {
 	GitRemote
 } from '@glyphtex/ui/application';
 
+import { track } from '$lib/analytics';
 import { unifiedDiff } from './diff';
 import {
 	exists,
@@ -171,6 +172,7 @@ export const gitProvider: GitProvider = {
 		await mkdirp(r.fs, r.dir);
 		await r.git.init({ fs: await fsClient(), dir: r.dir, defaultBranch: 'main' });
 		await toWorkingTree(r.projectId);
+		track('git_action', { action: 'init' });
 	},
 
 	async head(root) {
@@ -310,6 +312,7 @@ export const gitProvider: GitProvider = {
 			author: author()
 		});
 		await writeConflicts(r.fs, r.dir, []);
+		track('git_action', { action: 'commit' });
 		return oid.slice(0, 7);
 	},
 
@@ -393,6 +396,7 @@ export const gitProvider: GitProvider = {
 	async pull(root, url) {
 		const r = await repo(root);
 		const result = await pullInto(r, url);
+		track('git_action', { action: 'pull', conflicts: result.conflicts });
 		if (result.conflicts) throw new Error(result.message);
 		return result.message;
 	},
@@ -412,6 +416,7 @@ export const gitProvider: GitProvider = {
 		if (!result.ok) throw new Error(result.error || 'The remote rejected this push.');
 		const rejected = Object.entries(result.refs ?? {}).find(([, s]) => !s.ok);
 		if (rejected) throw new Error(rejected[1].error || `The remote rejected ${rejected[0]}.`);
+		track('git_action', { action: 'push' });
 		return 'Pushed.';
 	},
 

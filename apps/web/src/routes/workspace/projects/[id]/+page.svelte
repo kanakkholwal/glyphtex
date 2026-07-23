@@ -14,6 +14,7 @@
 	import { onMount } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 
+	import { bucket, track } from '$lib/analytics';
 	import { needsBiber } from '$lib/citations';
 	import { compileFiles, engineReady, installPacks, warmEngine } from '$lib/compile';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
@@ -71,6 +72,7 @@
 			project = found;
 			initialFiles = toGlyphFiles(files);
 			latest = initialFiles;
+			track('document_opened', { files: bucket(files.length) });
 		} catch (error) {
 			loadError = error instanceof Error ? error.message : 'Could not open this document.';
 			return;
@@ -214,6 +216,7 @@
 				new Blob([zip as BlobPart], { type: 'application/zip' }),
 				`${project.name.replace(/[^\w.-]+/g, '-') || 'document'}.zip`
 			);
+			track('document_exported', { files: bucket(files.length) });
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Could not export.');
 		}
@@ -275,9 +278,17 @@
 		const source = files.find((f) => f.name === main);
 		requiresBiber = needsBiber(source?.saved ?? source?.content ?? '');
 
+		const startedAt = performance.now();
 		const outcome = await compileFiles(toCompileFiles(files, binary), main, id);
 		missingPacks = outcome.missingPacks ?? [];
 		unsupportedFiles = outcome.unsupportedFiles ?? [];
+		track('compile_finished', {
+			ok: Boolean(outcome.pdf),
+			duration_ms: Math.round(performance.now() - startedAt),
+			files: bucket(files.length),
+			missing_packs: missingPacks.length,
+			diagnostics: outcome.diagnostics?.length ?? 0
+		});
 		return outcome;
 	}
 
@@ -298,6 +309,7 @@
 	function onInstalled(): void {
 		ready = true;
 		showInstall = false;
+		track('engine_installed');
 	}
 </script>
 

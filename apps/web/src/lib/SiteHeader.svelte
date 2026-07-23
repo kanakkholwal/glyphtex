@@ -93,15 +93,17 @@
 		</ul>
 
 		<div class="ml-auto flex items-center gap-1.5 md:ml-0">
-			<a
+			<Button
 				href={repo}
 				target="_blank"
 				rel="noopener noreferrer"
-				aria-label="GlyphTeX on GitHub"
-				class="hidden size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground md:grid"
+				size="sm"
+				variant="ghost"
+				class="hidden gap-1.5 text-muted-foreground hover:text-foreground md:inline-flex"
 			>
 				<IconBrandGithub class="size-4" />
-			</a>
+				Star the repo
+			</Button>
 			<ThemeToggle size="icon-sm" />
 			<!-- Was "Download". The desktop app is still a prototype, so the header
 			     points at the workspace until there is a release worth shipping. -->
@@ -157,9 +159,10 @@
 					target="_blank"
 					rel="noopener noreferrer"
 					onclick={close}
-					class="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-foreground"
+					class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground/80 transition-colors hover:bg-foreground/5 hover:text-foreground"
 				>
-					GitHub
+					<IconBrandGithub class="size-4" />
+					Star the repo
 				</a>
 			</li>
 		</ul>

@@ -8,6 +8,11 @@
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
 	},
+	// `$env/dynamic/public` reads at request time, not build time, so a build-step
+	// env var never reaches the worker. A GA measurement ID is public by design.
+	"vars": {
+		"PUBLIC_GA_ID": "G-X1BF4S5L5L"
+	},
 	// Requires `nexonauts.com` to be a zone on the same account as
 	// CLOUDFLARE_ACCOUNT_ID; wrangler then provisions the DNS record and cert.
 	"routes": [

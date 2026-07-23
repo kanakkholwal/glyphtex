@@ -5,6 +5,7 @@
 	import { toast } from '@glyphtex/ui/sonner';
 	import { onMount } from 'svelte';
 
+	import { bucket, track, type DocumentSource } from '$lib/analytics';
 	import { cloneToProject } from '$lib/git';
 	import StoragePanel from '$lib/StoragePanel.svelte';
 	import { toProjectCard } from '$lib/storage/bridge';
@@ -83,7 +84,10 @@
 	let importing = $state(false);
 	let dragging = $state(false);
 
-	async function runImport(load: () => Promise<ImportResult>): Promise<void> {
+	async function runImport(
+		load: () => Promise<ImportResult>,
+		source: DocumentSource
+	): Promise<void> {
 		importing = true;
 		try {
 			const { files, name, skipped, ignored } = await load();
@@ -96,6 +100,7 @@
 				return;
 			}
 			const project = await createProject(name, files);
+			track('document_created', { source, files: bucket(files.length) });
 			await refresh();
 			void requestPersistence();
 			// Ignored files are expected (node_modules, build output), so they get a
@@ -118,13 +123,13 @@
 
 	function pickZip(event: Event): void {
 		const file = (event.currentTarget as HTMLInputElement).files?.[0];
-		if (file) void runImport(() => importZipFile(file));
+		if (file) void runImport(() => importZipFile(file), 'import_zip');
 		if (zipInput) zipInput.value = '';
 	}
 
 	function pickFolder(event: Event): void {
 		const picked = Array.from((event.currentTarget as HTMLInputElement).files ?? []);
-		if (picked.length > 0) void runImport(() => importFolder(picked));
+		if (picked.length > 0) void runImport(() => importFolder(picked), 'import_folder');
 		if (folderInput) folderInput.value = '';
 	}
 
@@ -136,11 +141,11 @@
 		// A single .zip imports as an archive; anything else (incl. a whole folder,
 		// read recursively) imports as loose files preserving structure.
 		if (dropped.length === 1 && /\.zip$/i.test(dropped[0].name)) {
-			void runImport(() => importZipFile(dropped[0]));
+			void runImport(() => importZipFile(dropped[0]), 'import_zip');
 			return;
 		}
 		const files = await filesFromDataTransfer(event.dataTransfer);
-		if (files.length > 0) void runImport(() => importFolder(files));
+		if (files.length > 0) void runImport(() => importFolder(files), 'import_folder');
 	}
 
 	function onDragOver(event: DragEvent): void {
@@ -152,6 +157,7 @@
 	async function handleCreate(): Promise<string | void> {
 		try {
 			const project = await createProject('Untitled', starterFiles());
+			track('document_created', { source: 'blank' });
 			await refresh();
 			void requestPersistence();
 			return project.id;
@@ -164,6 +170,8 @@
 	async function cloneRepo(url: string): Promise<void> {
 		try {
 			const project = await cloneToProject(url);
+			track('document_created', { source: 'git_clone' });
+			track('git_action', { action: 'clone' });
 			await requestPersistence();
 			open(project.id);
 		} catch (error) {
@@ -178,6 +186,7 @@
 	async function rename(id: string, name: string): Promise<void> {
 		try {
 			await renameProject(id, name);
+			track('document_renamed');
 			await refresh();
 		} catch (error) {
 			report(error, 'Could not rename the document.');
@@ -187,6 +196,7 @@
 	async function duplicate(id: string): Promise<void> {
 		try {
 			await duplicateProject(id);
+			track('document_duplicated');
 			await refresh();
 		} catch (error) {
 			report(error, 'Could not duplicate the document.');
@@ -196,6 +206,7 @@
 	async function star(id: string, starred: boolean): Promise<void> {
 		try {
 			await setStarred(id, starred);
+			track('document_starred', { starred });
 			await refresh();
 		} catch (error) {
 			report(error, 'Could not update the star.');
@@ -205,6 +216,7 @@
 	async function remove(id: string): Promise<void> {
 		try {
 			await deleteProject(id);
+			track('document_deleted');
 			await refresh();
 		} catch (error) {
 			report(error, 'Could not delete the document.');
