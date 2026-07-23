@@ -47,7 +47,10 @@ See \cite{knuth}.
 	});
 
 	test('backend=bibtex among other options is recognised', () => {
-		assert.equal(needsBiber(String.raw`\usepackage[style=numeric,backend=bibtex]{biblatex}`), false);
+		assert.equal(
+			needsBiber(String.raw`\usepackage[style=numeric,backend=bibtex]{biblatex}`),
+			false
+		);
 	});
 
 	test('the backend may be passed ahead of the package', () => {

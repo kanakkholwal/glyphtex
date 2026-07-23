@@ -1,9 +1,14 @@
 name: TeX engine
 
-# Builds the Tectonic WASM engine, tests it end to end, and on a tag publishes
-# both a GitHub Release and the glyphtex-engine npm package.
+# Builds the Tectonic WASM engine, tests it end to end, and on a tag publishes a
+# GitHub Release, the glyphtex-engine npm package and the glyphtex-tex-api crate.
 # The engine is a single .wasm file, and the bundle is a tarball of the
-# preloaded LaTeX format and all the packages it needs. 
+# preloaded LaTeX format and all the packages it needs.
+#
+# Only glyphtex-tex-api goes to crates.io. tectonic-wasm depends on the vendored
+# Tectonic submodule through version-less `path` entries, which cargo refuses to
+# publish; shipping it would mean publishing the whole of Tectonic under our own
+# name. The npm package is how the engine itself is distributed.
 on:
   push:
     branches: [main]
@@ -210,6 +215,80 @@ jobs:
           # `node --test` still exits 0 — a green job that ran zero tests.
           GLYPHTEX_REQUIRE_ENGINE: '1'
         run: cd packages/tex-engine && pnpm test
+
+  # Gated on the engine and the end-to-end tests even though the crate does not
+  # depend on either. A crates.io version can be yanked but never replaced, so
+  # publishing it while the engine build is red would pin a release that the
+  # rest of the tag never completed.
+  crate:
+    name: Publish crate to crates.io
+    needs: [api, engine, test]
+    if: startsWith(github.ref, 'refs/tags/tex-engine-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.94'
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/glyphtex-tex-api
+
+      - name: Derive version from tag
+        id: version
+        run: echo "value=${GITHUB_REF_NAME#tex-engine-v}" >> "$GITHUB_OUTPUT"
+
+      # Anchored to the line start so it only rewrites the [package] version;
+      # dependency versions are inline inside braces and never begin a line.
+      # No `$` anchor: Cargo.toml is stored with CRLF, so `"$` matches nothing
+      # and the substitution silently does nothing, publishing whatever version
+      # happens to be committed. Matching the quoted value explicitly is
+      # end-of-line agnostic, and the assertion below catches any future no-op.
+      - name: Set crate version from tag
+        working-directory: crates/glyphtex-tex-api
+        run: |
+          v='${{ steps.version.outputs.value }}'
+          sed -i -E '0,/^version *= *"[^"]*"/ s//version = "'"$v"'"/' Cargo.toml
+          got=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          if [ "$got" != "$v" ]; then
+            echo "::error::Cargo.toml version is $got, expected $v — the version bump did not apply."
+            exit 1
+          fi
+          echo "glyphtex-tex-api $got"
+
+      # Versions on crates.io are immutable, so re-running a release job would
+      # otherwise fail on the publish step alone. Checking first makes the job
+      # idempotent without letting a genuine failure pass as success.
+      - name: Is this version already published?
+        id: published
+        run: |
+          v='${{ steps.version.outputs.value }}'
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            "https://crates.io/api/v1/crates/glyphtex-tex-api/$v")
+          if [ "$code" = 200 ]; then
+            echo "::notice::glyphtex-tex-api $v is already on crates.io; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # --allow-dirty: the version bump above is intentionally uncommitted, so
+      # the tag stays the single source of truth for what gets released.
+      - name: Package (dry run)
+        if: steps.published.outputs.skip == 'false'
+        working-directory: crates/glyphtex-tex-api
+        run: cargo publish --dry-run --allow-dirty
+
+      # --no-verify: the dry run above already did the verification build from
+      # the packaged tarball, and repeating it doubles the job for nothing.
+      - name: Publish
+        if: steps.published.outputs.skip == 'false'
+        working-directory: crates/glyphtex-tex-api
+        run: cargo publish --allow-dirty --no-verify
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   release:
     name: Release + publish

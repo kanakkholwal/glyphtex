@@ -1,6 +1,6 @@
 {
 	"name": "glyphtex-engine",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Typed TypeScript bindings for the GlyphTeX TeX engine (Tectonic compiled to WebAssembly)",
 	"license": "MIT",
 	"type": "module",
