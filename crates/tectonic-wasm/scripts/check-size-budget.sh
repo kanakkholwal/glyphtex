@@ -5,7 +5,7 @@
 set -euo pipefail
 
 ENGINE_LIMIT=$((3 * 1024 * 1024))     # brotli engine
-TOTAL_LIMIT=$((25 * 1024 * 1024))     # engine + core + default packs
+TOTAL_LIMIT=$((30 * 1024 * 1024))     # engine + core + default packs
 # Relative to this script, not the caller: a missing artifact must fail the
 # budget, never pass it silently because CWD made the path resolve to nothing.
 OUT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../output" && pwd)"

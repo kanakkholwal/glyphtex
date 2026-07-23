@@ -10,7 +10,7 @@
 		{
 			"id": "writing",
 			"label": "Writing & page layout",
-			"description": "Headers, footers, section styling, line spacing and title pages.",
+			"description": "Headers, footers, section styling, line spacing, contents lists, nomenclature and title pages. What a thesis front matter needs.",
 			"packages": [
 				"fancyhdr",
 				"titlesec",
@@ -19,14 +19,32 @@
 				"parskip",
 				"lastpage",
 				"appendix",
-				"abstract"
+				"abstract",
+				"titletoc",
+				"tocloft",
+				"emptypage",
+				"ragged2e",
+				"nomencl",
+				"secdot"
 			]
 		},
 		{
 			"id": "figures",
 			"label": "Figures & placement",
-			"description": "Figure positioning, text wrapping, subfigures, resizing and PDF inclusion.",
-			"packages": ["float", "wrapfig", "subfig", "rotating", "pdfpages", "placeins", "adjustbox"]
+			"description": "Figure positioning, text wrapping, subfigures, resizing, landscape pages and PDF inclusion.",
+			"packages": [
+				"float",
+				"wrapfig",
+				"subfig",
+				"rotating",
+				"pdfpages",
+				"placeins",
+				"adjustbox",
+				"lscape",
+				"pdflscape",
+				"afterpage",
+				"eso-pic"
+			]
 		},
 		{
 			"id": "boxes",
@@ -66,14 +84,28 @@
 				"biblatex.sty",
 				"biblatex.def",
 				"biblatex.cfg",
-				"natbib.sty"
+				"natbib.sty",
+				"cite.sty"
 			]
 		},
 		{
 			"id": "drafting",
 			"label": "Drafting helpers",
 			"description": "Placeholder text and flexible list customisation for drafts.",
-			"packages": ["lipsum", "blindtext", "xstring"]
+			"packages": ["lipsum", "blindtext", "xstring", "paralist", "enumitem"]
+		},
+		{
+			"id": "algorithms",
+			"label": "Algorithm pseudocode",
+			"description": "Floating algorithm environments and the algorithmicx pseudocode syntax (\\State, \\While, \\Procedure). Core ships algorithm2e, which is a different, incompatible syntax.",
+			"packages": ["algorithm", "algorithmicx", "algpseudocode"]
+		},
+		{
+			"id": "journal-classes",
+			"label": "Journal & conference classes",
+			"description": "IEEE and Elsevier submission classes. Many templates carry their own copy; these are for the ones that assume the class is installed.",
+			"packages": ["IEEEtran", "IEEEtrantools", "elsarticle"],
+			"include": ["IEEEtran.cls", "IEEEtrantools.sty", "elsarticle.cls", "elsarticle-*.bst"]
 		},
 		{
 			"id": "beamer-themes",

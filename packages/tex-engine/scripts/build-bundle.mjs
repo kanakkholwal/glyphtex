@@ -136,6 +136,12 @@ for (const name of OPTIONAL_SILENT_LOADS) {
 //                        and 12pt died on the metrics. Metrics alone are not
 //                        enough: the outlines are needed to embed. 180 files,
 //                        2.4 MB gz, and it covers every size option at once.
+//   tikzlibrary*  /     — `\usetikzlibrary{arrows}` loads by name, so a fixture
+//   pgflibrary*.code.tex  reaches only the libraries it happens to name. Core
+//                        ships tikz, so core has to ship what tikz can load:
+//                        152 files, 0.39 MB gz.
+//   mt-*.cfg           — microtype's per-font-family configs, selected by the
+//                        font in use rather than by an option. 21 files, 30 KB.
 let seeded = 0;
 for (const [name, path] of globTexmf([
 	'*lm*.tfm',
@@ -145,7 +151,10 @@ for (const [name, path] of globTexmf([
 	'*.tec',
 	'*.clo',
 	'cm*.tfm',
-	'cm*.pfb'
+	'cm*.pfb',
+	'tikzlibrary*.code.tex',
+	'pgflibrary*.code.tex',
+	'mt-*.cfg'
 ])) {
 	if (!files.has(name) && isBareName(name)) {
 		files.set(name, new Uint8Array(readFileSync(path)));

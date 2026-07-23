@@ -4,7 +4,7 @@
 		{
 			"id": "writing",
 			"label": "Writing & page layout",
-			"description": "Headers, footers, section styling, line spacing and title pages.",
+			"description": "Headers, footers, section styling, line spacing, contents lists, nomenclature and title pages. What a thesis front matter needs.",
 			"packages": [
 				"fancyhdr",
 				"titlesec",
@@ -13,17 +13,23 @@
 				"parskip",
 				"lastpage",
 				"appendix",
-				"abstract"
+				"abstract",
+				"titletoc",
+				"tocloft",
+				"emptypage",
+				"ragged2e",
+				"nomencl",
+				"secdot"
 			],
 			"requires": [],
 			"optional": false,
-			"bytes": 34415,
-			"hash": "6b56b638e4cf2911"
+			"bytes": 88424,
+			"hash": "8665c5fa8fb1bdca"
 		},
 		{
 			"id": "figures",
 			"label": "Figures & placement",
-			"description": "Figure positioning, text wrapping, subfigures, resizing and PDF inclusion.",
+			"description": "Figure positioning, text wrapping, subfigures, resizing, landscape pages and PDF inclusion.",
 			"packages": [
 				"float",
 				"wrapfig",
@@ -31,12 +37,18 @@
 				"rotating",
 				"pdfpages",
 				"placeins",
-				"adjustbox"
+				"adjustbox",
+				"lscape",
+				"pdflscape",
+				"afterpage",
+				"eso-pic"
 			],
-			"requires": [],
+			"requires": [
+				"writing"
+			],
 			"optional": false,
-			"bytes": 45078,
-			"hash": "a1e480090484b830"
+			"bytes": 57374,
+			"hash": "286358a75c9b3fba"
 		},
 		{
 			"id": "boxes",
@@ -48,8 +60,8 @@
 			],
 			"requires": [],
 			"optional": false,
-			"bytes": 49044,
-			"hash": "575af1dc9c8e3362"
+			"bytes": 47733,
+			"hash": "5a183415d5b46476"
 		},
 		{
 			"id": "review",
@@ -62,11 +74,11 @@
 				"cancel"
 			],
 			"requires": [
-				"figures"
+				"writing"
 			],
 			"optional": false,
-			"bytes": 36402,
-			"hash": "1f6aeb504f6991ca"
+			"bytes": 35385,
+			"hash": "3adabe1fd2b8b325"
 		},
 		{
 			"id": "science",
@@ -110,8 +122,8 @@
 				"science"
 			],
 			"optional": false,
-			"bytes": 446351,
-			"hash": "8c97237baa5c227f"
+			"bytes": 537013,
+			"hash": "d4c9288be89f65ae"
 		},
 		{
 			"id": "drafting",
@@ -120,14 +132,46 @@
 			"packages": [
 				"lipsum",
 				"blindtext",
-				"xstring"
+				"xstring",
+				"paralist",
+				"enumitem"
 			],
 			"requires": [
 				"science"
 			],
 			"optional": false,
-			"bytes": 77318,
-			"hash": "aa7b19a76ca9888b"
+			"bytes": 80513,
+			"hash": "d1fbf8a1fc848773"
+		},
+		{
+			"id": "algorithms",
+			"label": "Algorithm pseudocode",
+			"description": "Floating algorithm environments and the algorithmicx pseudocode syntax (\\State, \\While, \\Procedure). Core ships algorithm2e, which is a different, incompatible syntax.",
+			"packages": [
+				"algorithm",
+				"algorithmicx",
+				"algpseudocode"
+			],
+			"requires": [
+				"figures"
+			],
+			"optional": false,
+			"bytes": 7353,
+			"hash": "58d10d0766b5439c"
+		},
+		{
+			"id": "journal-classes",
+			"label": "Journal & conference classes",
+			"description": "IEEE and Elsevier submission classes. Many templates carry their own copy; these are for the ones that assume the class is installed.",
+			"packages": [
+				"IEEEtran",
+				"IEEEtrantools",
+				"elsarticle"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 106476,
+			"hash": "54609e41270e4255"
 		},
 		{
 			"id": "beamer-themes",
@@ -165,37 +209,50 @@
 		"lastpagemodern.sty": "writing",
 		"appendix.sty": "writing",
 		"abstract.sty": "writing",
+		"titletoc.sty": "writing",
+		"tocloft.sty": "writing",
+		"emptypage.sty": "writing",
+		"ragged2e.sty": "writing",
+		"secdot.sty": "writing",
+		"nomencl.sty": "writing",
+		"xkeyval.sty": "writing",
+		"xkeyval": "writing",
+		"xkeyval.tex": "writing",
+		"xkvutils": "writing",
+		"xkvutils.tex": "writing",
+		"tocbasic.sty": "writing",
+		"scrbase.sty": "writing",
 		"float.sty": "figures",
 		"wrapfig.sty": "figures",
 		"subfig.sty": "figures",
 		"rotating.sty": "figures",
 		"placeins.sty": "figures",
 		"adjustbox.sty": "figures",
-		"xkeyval.sty": "figures",
-		"xkeyval": "figures",
-		"xkeyval.tex": "figures",
-		"xkvutils": "figures",
-		"xkvutils.tex": "figures",
 		"adjcalc.sty": "figures",
 		"trimclip.sty": "figures",
 		"collectbox.sty": "figures",
 		"tc-pgf.def": "figures",
 		"tc-xetex.def": "figures",
+		"pdflscape.sty": "figures",
 		"varwidth.sty": "figures",
+		"pdflscape-nometadata.sty": "figures",
+		"lscape.sty": "figures",
+		"afterpage.sty": "figures",
+		"pdfpages.sty": "figures",
+		"eso-pic.sty": "figures",
+		"ppxetex.def": "figures",
 		"tcolorbox.sty": "boxes",
 		"environ.sty": "boxes",
 		"trimspaces.sty": "boxes",
 		"tcbskins.code.tex": "boxes",
 		"tikzfill.image.sty": "boxes",
 		"tcbskinsjigsaw.code.tex": "boxes",
-		"tikzlibraryfill.image.code.tex": "boxes",
 		"tcbbreakable.code.tex": "boxes",
 		"pdfcol.sty": "boxes",
 		"todonotes.sty": "review",
 		"keyval": "review",
 		"keyval.tex": "review",
 		"soul.sty": "review",
-		"tikzlibrarypositioning.code.tex": "review",
 		"soul-ori.sty": "review",
 		"ectt1000.tfm": "review",
 		"etexcmds.sty": "review",
@@ -328,6 +385,7 @@
 		"swissgerman.lbx": "references",
 		"turkish.lbx": "references",
 		"ukrainian.lbx": "references",
+		"cite.sty": "references",
 		"natbib.sty": "references",
 		"amsalpha.bst": "references",
 		"amsplain.bst": "references",
@@ -359,6 +417,14 @@
 		"siam.bst": "references",
 		"unsrt.bst": "references",
 		"biblatex.bst": "references",
+		"elsarticle-harv.bst": "references",
+		"elsarticle-num-names.bst": "references",
+		"elsarticle-num.bst": "references",
+		"IEEEtran.bst": "references",
+		"IEEEtranN.bst": "references",
+		"IEEEtranS.bst": "references",
+		"IEEEtranSA.bst": "references",
+		"IEEEtranSN.bst": "references",
 		"abbrvnat.bst": "references",
 		"plainnat.bst": "references",
 		"unsrtnat.bst": "references",
@@ -373,6 +439,13 @@
 		"lipsum.ltd.tex": "drafting",
 		"xstring.sty": "drafting",
 		"xstring.tex": "drafting",
+		"paralist.sty": "drafting",
+		"algorithm.sty": "algorithms",
+		"algpseudocode.sty": "algorithms",
+		"algorithmicx.sty": "algorithms",
+		"elsarticle.cls": "journal-classes",
+		"IEEEtran.cls": "journal-classes",
+		"IEEEtrantools.sty": "journal-classes",
 		"beamercolorthemealbatross.sty": "beamer-themes",
 		"beamercolorthemebeaver.sty": "beamer-themes",
 		"beamercolorthemebeetle.sty": "beamer-themes",

@@ -197,6 +197,24 @@ for (const pack of config.packs) {
 		process.exit(1);
 	}
 
+	// `packages` is advertised in the index and drives "which pack provides this?".
+	// Contents come only from convergence, so a package the fixture never loads is
+	// promised and never shipped — pdfpages sat in this list unshipped because the
+	// figures fixture had no \usepackage for it. Make the fixture prove each claim.
+	const shipped = (name) =>
+		core.has(name) || extra.has(name) || [...requires].some((id) => packFiles.get(id)?.has(name));
+	const unshipped = (pack.packages ?? []).filter((p) => {
+		if (shipped(`${p}.sty`) || shipped(`${p}.cls`)) return false;
+		// A font package ("lm") has no .sty to ship, so absence proves nothing.
+		// Only claim a gap where TeX Live actually has the file we skipped.
+		return kpse(`${p}.sty`) !== null || kpse(`${p}.cls`) !== null;
+	});
+	if (unshipped.length) {
+		console.error(`\npack "${pack.id}" lists ${unshipped.join(', ')} but ships neither .sty nor .cls.`);
+		console.error(`Add them to test/fixtures/packs.mjs (${pack.id}) so convergence collects them.`);
+		process.exit(1);
+	}
+
 	const { gz, raw, count } = packTarGz(extra);
 	const hash = createHash('sha256').update(gz).digest('hex').slice(0, 16);
 	writeFileSync(resolve(outDir, `pack-${pack.id}.tar.gz`), gz);

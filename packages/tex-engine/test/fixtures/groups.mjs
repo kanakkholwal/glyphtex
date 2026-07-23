@@ -55,6 +55,17 @@ Report class uses chapters.
 \chapter{Opening}
 Book class distinguishes front and main matter.
 \end{document}`
+			},
+			{
+				// A size option pulls a different size*.clo and a different Computer
+				// Modern design size. Every other fixture takes the 10pt default, so
+				// 12pt shipped broken: size12.clo and cmr12 were never requested.
+				label: 'class size options',
+				source: String.raw`\documentclass[12pt,fleqn]{report}
+\begin{document}
+\chapter{Twelve point}
+Body text at a size no other fixture asks for, with maths $\sum_{i=1}^{n} x_i^2$.
+\end{document}`
 			}
 		]
 	},
@@ -100,9 +111,11 @@ Symbols: $\alpha\beta\gamma \in \mathbb{R}, \forall x \leq \aleph_0$.
 		label: 'Tables',
 		documents: [
 			{
-				label: 'booktabs + tabularx + array + longtable + multirow',
+				// caption alongside longtable on purpose: caption loads ltcaption.sty
+				// only when longtable is present, so neither package alone reaches it.
+				label: 'booktabs + tabularx + array + longtable + multirow + caption',
 				source: String.raw`\documentclass{article}
-\usepackage{booktabs,tabularx,array,longtable,multirow}
+\usepackage{booktabs,tabularx,array,longtable,multirow,caption}
 \begin{document}
 \begin{tabularx}{\linewidth}{lXr}
   \toprule
@@ -113,6 +126,7 @@ Symbols: $\alpha\beta\gamma \in \mathbb{R}, \forall x \leq \aleph_0$.
   \bottomrule
 \end{tabularx}
 \begin{longtable}{ll}
+  \caption{A table that spans pages.}\\
   A & 1 \\ B & 2 \\
 \end{longtable}
 \end{document}`
@@ -163,14 +177,20 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
 		label: 'Diagrams & plots',
 		documents: [
 			{
-				label: 'tikz + pgfplots',
+				// The libraries are loaded by name, so this names the ones real
+				// diagrams reach for. The bundle globs the whole set; this proves
+				// the set is usable rather than merely present.
+				label: 'tikz + pgfplots + libraries',
 				source: String.raw`\documentclass{article}
 \usepackage{tikz,pgfplots}
+\usetikzlibrary{arrows.meta,calc,fit,backgrounds,positioning,shapes.geometric}
 \pgfplotsset{compat=1.18}
 \begin{document}
-\begin{tikzpicture}
-  \draw[thick,->] (0,0) -- (2,1);
-  \node[draw,circle] at (3,0) {n};
+\begin{tikzpicture}[background rectangle/.style={fill=white},show background rectangle]
+  \node[draw,rectangle] (a) at (0,0) {a};
+  \node[draw,ellipse,right=1cm of a] (b) {b};
+  \draw[-{Stealth}] (a) -- ($(b)+(0,0)$);
+  \node[draw,dashed,fit=(a)(b)] {};
 \end{tikzpicture}
 \begin{tikzpicture}
   \begin{axis}[width=6cm,height=4cm]

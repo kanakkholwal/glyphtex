@@ -19,21 +19,29 @@
 export const PACK_FIXTURES = [
 	{
 		id: 'writing',
-		source: String.raw`\documentclass{article}
+		source: String.raw`\documentclass{report}
 \usepackage{fancyhdr,titlesec,titling,setspace,parskip,lastpage,appendix,abstract}
+\usepackage{titletoc,tocloft,emptypage,ragged2e,secdot}
+\usepackage[intoc]{nomencl}
+\makenomenclature
 \pagestyle{fancy}
 \fancyhf{}
 \rhead{Page \thepage\ of \pageref{LastPage}}
 \titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\sectiondot{section}
 \title{A Title}\author{An Author}
 \begin{document}
 \maketitle
 \begin{abstract}A short abstract.\end{abstract}
+\tableofcontents
+\printnomenclature
 \onehalfspacing
+\chapter{Chapter}
 \section{Section}
-Body text with fancy headers and custom section formatting.
+\nomenclature{$c$}{speed of light}
+\Centering Body text with fancy headers and custom section formatting.
 \begin{appendices}
-\section{An appendix}
+\chapter{An appendix}
 \end{appendices}
 \end{document}`
 	},
@@ -41,7 +49,12 @@ Body text with fancy headers and custom section formatting.
 		id: 'figures',
 		source: String.raw`\documentclass{article}
 \usepackage{graphicx,float,wrapfig,subfig,rotating,placeins,adjustbox}
+\usepackage{pdflscape,afterpage,pdfpages,eso-pic}
+\AddToShipoutPictureBG*{}
 \begin{document}
+\afterpage{\begin{landscape}
+  \begin{figure}\centering\rule{6cm}{2cm}\caption{Turned sideways.}\end{figure}
+\end{landscape}}
 \begin{figure}[H]\centering\rule{2cm}{1cm}\caption{Held in place.}\end{figure}
 \begin{wrapfigure}{r}{3cm}\centering\rule{2cm}{1cm}\caption{Wrapped.}\end{wrapfigure}
 Text flowing beside the wrapped figure, with enough words to actually wrap
@@ -135,9 +148,50 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
 		id: 'drafting',
 		source: String.raw`\documentclass{article}
 \usepackage{lipsum,blindtext,xstring}
+\usepackage{paralist,enumitem}
 \begin{document}
 \lipsum[1]
 \blindtext
+\begin{compactitem}\item Tight\item List\end{compactitem}
+\begin{itemize}[nosep,label=\textbullet]\item Spaced by enumitem\end{itemize}
+\end{document}`
+	},
+	{
+		id: 'algorithms',
+		source: String.raw`\documentclass{article}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\begin{document}
+\begin{algorithm}
+\caption{Sum a list}
+\begin{algorithmic}[1]
+\Procedure{Sum}{$xs$}
+  \State $s \gets 0$
+  \For{$x \in xs$}
+    \State $s \gets s + x$
+  \EndFor
+  \State \Return $s$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+\end{document}`
+	},
+	{
+		// The classes are `include`d rather than converged: a fixture can only ever
+		// set \documentclass once, so one document cannot exercise three of them.
+		// IEEEtrantools is deliberately not loaded here — it refuses to run under
+		// IEEEtran, which already provides the same environments.
+		id: 'journal-classes',
+		source: String.raw`\documentclass[conference]{IEEEtran}
+\begin{document}
+\title{A Conference Paper}
+\author{\IEEEauthorblockN{An Author}\IEEEauthorblockA{An Institution}}
+\maketitle
+\begin{abstract}
+A short abstract for a conference submission.
+\end{abstract}
+\section{Introduction}
+Body text set in the IEEE conference class.
 \end{document}`
 	},
 	{
