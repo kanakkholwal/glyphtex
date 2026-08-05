@@ -30,6 +30,7 @@
     fontFamily = "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace",
     lineWrapping = false,
     readonly = false,
+    minimap = true,
     class: className = "",
     oncursor,
   }: {
@@ -48,6 +49,7 @@
     fontFamily?: string;
     lineWrapping?: boolean;
     readonly?: boolean;
+    minimap?: boolean;
     class?: string;
     /** Fires with the 1-based caret position whenever the selection moves. */
     oncursor?: (pos: { line: number; column: number }) => void;
@@ -78,6 +80,7 @@
       fontFamily,
       lineWrapping,
       readonly,
+      minimap,
     }));
     return ctrl.mount(parent, init);
   });
@@ -102,6 +105,10 @@
   $effect(() => {
     void ctrl.editor;
     ctrl.reconfigureReadonly(readonly);
+  });
+  $effect(() => {
+    void ctrl.editor;
+    ctrl.reconfigureMinimap(minimap);
   });
   $effect(() => {
     void ctrl.editor;

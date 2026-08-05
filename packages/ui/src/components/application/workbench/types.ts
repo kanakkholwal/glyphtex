@@ -101,6 +101,15 @@ export type EditorApi = {
 // --- Compilation ------------------------------------------------------------
 export type CompileStatus = "idle" | "compiling" | "success" | "error";
 
+/** One finished compile, kept for the build-stats sparkline. */
+export type BuildRecord = { ms: number; ok: boolean; bytes: number; at: number };
+
+/** How many builds the stats card charts. */
+export const BUILD_HISTORY_LIMIT = 24;
+
+// --- Bottom dock ------------------------------------------------------------
+export type DockTab = "problems" | "logs" | "history";
+
 // --- Explorer move / folder conflict prompts --------------------------------
 export type ConflictAction = "replace" | "rename" | "skip" | "merge";
 export type ConflictChoice = {

@@ -28,12 +28,20 @@
 	import type { Snippet } from 'svelte';
 
 	/**
-	 * The File / Edit / View / … menus collapsed behind one trigger, for chrome
-	 * with no room for a horizontal menubar (the icon rail). Driven by the same
-	 * `menus` config the controller builds, so the actions can't drift.
+	 * The File / Edit / View / … menus collapsed behind one trigger. Driven by the
+	 * same `menus` config the controller builds, so the actions can't drift.
 	 */
-	let { menus, trigger }: { menus: Menu[]; trigger: Snippet<[{ props: Record<string, unknown> }]> } =
-		$props();
+	let {
+		menus,
+		trigger,
+		align = 'start',
+		side = 'bottom'
+	}: {
+		menus: Menu[];
+		trigger: Snippet<[{ props: Record<string, unknown> }]>;
+		align?: 'start' | 'center' | 'end';
+		side?: 'top' | 'right' | 'bottom' | 'left';
+	} = $props();
 
 	const isSep = (e: MenuEntry): e is MenuSeparator => e.type === 'separator';
 </script>
@@ -44,8 +52,7 @@
 			{@render trigger({ props })}
 		{/snippet}
 	</DropdownMenuTrigger>
-	<!-- `align="end"` so it grows upward: the trigger sits at the foot of the rail. -->
-	<DropdownMenuContent align="end" side="right" class="w-44">
+	<DropdownMenuContent {align} {side} class="w-44">
 		{#each menus as menu (menu.label)}
 			<DropdownMenuSub>
 				<DropdownMenuSubTrigger>{menu.label}</DropdownMenuSubTrigger>

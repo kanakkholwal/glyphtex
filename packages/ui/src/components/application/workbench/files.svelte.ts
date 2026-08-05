@@ -4,7 +4,7 @@ import {
   isEditable,
   type FileKind,
 } from "../file-kinds";
-import type { GitProvider } from "../git-panel.svelte";
+import type { GitHeadInfo, GitProvider } from "../git-panel.svelte";
 import type { ProjectHost } from "../project";
 import { settings } from "@glyphtex/ui/settings";
 import { toast } from "@glyphtex/ui/sonner";
@@ -48,6 +48,8 @@ export class FileStore {
   activeId = $state("main");
   /** Ids of files with an open editor tab, in tab order. */
   openTabs = $state<string[]>([]);
+  /** Ids of recently opened files, newest first — drives the Recent section. */
+  recentIds = $state<string[]>([]);
   /** Live buffer for the active file. */
   source = $state("");
   untitledCount = $state(0);
@@ -75,6 +77,33 @@ export class FileStore {
 
   // Bumped whenever a save lands, so the auto-compile effect can key off it.
   savedTick = $state(0);
+
+  // Where HEAD is, for the title bar and the panel footer. Null when there is no
+  // repository (or no Git backend at all).
+  head = $state<GitHeadInfo | null>(null);
+
+  /** Read HEAD for the current repo. Call from a `$effect`; returns its cleanup. */
+  watchHead(): (() => void) | void {
+    void this.savedTick; // a save may have been followed by a commit
+    const provider = this.git;
+    const root = this.scmRoot;
+    if (!provider || !root) {
+      this.head = null;
+      return;
+    }
+    let stale = false;
+    void (async () => {
+      try {
+        const next = (await provider.isRepo(root)) ? await provider.head(root) : null;
+        if (!stale) this.head = next;
+      } catch {
+        if (!stale) this.head = null; // backend unavailable, or not a repo
+      }
+    })();
+    return () => {
+      stale = true;
+    };
+  }
 
   // --- Explorer conflict / confirm modal ------------------------------------
   pending = $state<Pending | null>(null);
@@ -108,6 +137,16 @@ export class FileStore {
     return ids
       .map((id) => this.files.find((f) => f.id === id))
       .filter((f): f is GlyphFile => Boolean(f));
+  });
+
+  /** Recently opened files that no longer have a tab — reopening them is one click. */
+  readonly recentFiles = $derived.by(() => {
+    const open = new Set(this.openTabFiles.map((f) => f.id));
+    return this.recentIds
+      .filter((id) => !open.has(id))
+      .map((id) => this.files.find((f) => f.id === id))
+      .filter((f): f is GlyphFile => Boolean(f))
+      .slice(0, 6);
   });
 
   /** Close a tab, activating a neighbour; the last remaining tab stays open. */
@@ -263,6 +302,7 @@ export class FileStore {
     this.syncBuffer();
     if (settings.autoSave !== "off") await this.saveActive();
     this.activeId = id;
+    this.recentIds = [id, ...this.recentIds.filter((r) => r !== id)].slice(0, 12);
     if (!this.openTabs.includes(id)) this.openTabs = [...this.openTabs, id];
     const f = this.files.find((x) => x.id === id);
     // Only editable kinds get a text buffer; images / PDFs / binaries are read

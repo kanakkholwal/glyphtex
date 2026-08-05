@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
-	import { ButtonGroup } from '@glyphtex/ui/button-group';
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
@@ -204,14 +203,19 @@
 	const isSep = (x: Cmd | 'sep'): x is 'sep' => x === 'sep';
 </script>
 
-<div class="flex items-center gap-1.5" role="toolbar" aria-label="Formatting">
+<!-- Ghost throughout: bordered chips here read as a second, competing toolbar next
+     to the pane's own ghost controls. Clusters are separated by hairlines. -->
+<div class="flex items-center gap-0.5" role="toolbar" aria-label="Formatting">
 	{#each clusters as cluster, ci (ci)}
+		{#if ci > 0}
+			<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
+		{/if}
 		{#if cluster.kind === 'group'}
-			<ButtonGroup>
+			<div class="flex shrink-0 items-center gap-0.5">
 				{#each cluster.actions as a (a.label)}
 					{@const Icon = a.icon}
 					<Button
-						variant="outline"
+						variant="ghost"
 						size="icon-sm"
 						title={a.label}
 						aria-label={a.label}
@@ -220,7 +224,7 @@
 						<Icon class="size-4" />
 					</Button>
 				{/each}
-			</ButtonGroup>
+			</div>
 		{:else}
 			{@const Icon = cluster.icon}
 			<DropdownMenu>
@@ -228,14 +232,14 @@
 					{#snippet child({ props })}
 						<Button
 							{...props}
-							variant="outline"
+							variant="ghost"
 							size="sm"
-							class="gap-1 px-2"
+							class="shrink-0 gap-0.5 px-1.5"
 							title={cluster.label}
 							aria-label={cluster.label}
 						>
 							<Icon class="size-4" />
-							<IconChevronDown class="size-3.5 opacity-50" />
+							<IconChevronDown class="size-3 opacity-50" />
 						</Button>
 					{/snippet}
 				</DropdownMenuTrigger>

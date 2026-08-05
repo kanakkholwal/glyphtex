@@ -1268,9 +1268,9 @@
 		</Section>
 
 		<!--
-		  Institutional conversion block. The one section on the page that
-		  carries a brand-tinted surface: it is the ask, so it gets the
-		  signal colour and the only non-workspace CTA on the page.
+		  Institutional conversion block. Same neutral showcase panel as the
+		  rest of the page; the brand colour stays on the type, icons, and
+		  the only non-workspace CTA on the site.
 		-->
 		<Section id="institutions" spacing="tight" bordered>
 			<Container size="wide">
@@ -1298,8 +1298,8 @@
 									class="landing-text-pretty text-muted-foreground mt-5 max-w-lg text-base leading-relaxed sm:text-lg"
 								>
 									One department, one faculty, or every lab machine on campus. There is no seat
-									count, no licence server to run, and no contract to renew. The editor your students
-									use for a thesis is the one they keep after they graduate.
+									count, no licence server to run, and no contract to renew. The editor your
+									students use for a thesis is the one they keep after they graduate.
 								</p>
 							</Reveal>
 
@@ -1347,8 +1347,8 @@
 
 							<Reveal variant="up" delay={320}>
 								<p class="text-muted-foreground mt-5 max-w-md text-[12.5px] leading-relaxed">
-									Tell us the department, the rough number of writers, and what your IT team needs to
-									sign off on. Pilots usually start with one lab.
+									Tell us the department, the rough number of writers, and what your IT team needs
+									to sign off on. Pilots usually start with one lab.
 								</p>
 							</Reveal>
 						</div>
@@ -1366,9 +1366,7 @@
 											>
 												<Icon class="size-4.5" stroke-width={1.75} />
 											</span>
-											<h3
-												class="mt-4 text-[15px] font-semibold tracking-tight text-foreground"
-											>
+											<h3 class="mt-4 text-[15px] font-semibold tracking-tight text-foreground">
 												{card.title}
 											</h3>
 											<p class="text-muted-foreground mt-2 text-[13px] leading-relaxed">

@@ -16,6 +16,7 @@ export type EditorInit = {
   fontFamily: string;
   lineWrapping: boolean;
   readonly: boolean;
+  minimap: boolean;
 };
 
 export type CodeEditorCallbacks = {
@@ -88,7 +89,14 @@ export class CodeEditorController {
       // every splitter drag; the panes here are resizable.
       automaticLayout: true,
       lineHeight: 1.6,
-      minimap: { enabled: false },
+      // Characters off: at LaTeX line lengths the glyph render is noise, and the
+      // block render is what makes a 40-page chapter navigable.
+      minimap: {
+        enabled: init.minimap,
+        renderCharacters: false,
+        showSlider: "mouseover",
+        maxColumn: 80,
+      },
       scrollBeyondLastLine: false,
       renderLineHighlight: "all",
       smoothScrolling: true,
@@ -205,6 +213,10 @@ export class CodeEditorController {
 
   reconfigureReadonly(ro: boolean): void {
     this.editor?.updateOptions({ readOnly: ro });
+  }
+
+  reconfigureMinimap(on: boolean): void {
+    this.editor?.updateOptions({ minimap: { enabled: on } });
   }
 
   /** Reset undo history on document switch, so undo can't reach another file's edits.

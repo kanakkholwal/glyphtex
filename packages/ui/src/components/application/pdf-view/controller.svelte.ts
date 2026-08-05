@@ -18,6 +18,8 @@ export type PdfViewCallbacks = {
   getFitMode: () => boolean;
   setFitMode: (b: boolean) => void;
   setNumPages: (n: number) => void;
+  /** Reports the page the viewport is on, so the toolbar and thumbnails follow. */
+  setPage: (n: number) => void;
   onreverse?: (loc: ReverseLoc) => void;
 };
 
@@ -33,6 +35,8 @@ export class PdfViewController {
   hasRendered = $state(false); // first document painted
   loading = $state(false);
   errorMsg = $state<string | undefined>(undefined);
+  /** Bumped on every successful load, so thumbnails know to re-render. */
+  docVersion = $state(0);
 
   // Find-in-PDF state.
   findOpen = $state(false);
@@ -107,8 +111,12 @@ export class PdfViewController {
         this.#restoreRatio = null;
       }
       this.#cb.setNumPages(this.#pdfViewer.pagesCount ?? 0);
+      this.#cb.setPage(this.#pdfViewer.currentPageNumber ?? 1);
       this.hasRendered = true;
       this.loading = false;
+    });
+    this.#eventBus.on("pagechanging", (e: { pageNumber?: number }) => {
+      if (typeof e?.pageNumber === "number") this.#cb.setPage(e.pageNumber);
     });
     this.#eventBus.on("scalechanging", (e: { scale?: number }) => {
       if (typeof e?.scale === "number")
@@ -214,6 +222,7 @@ export class PdfViewController {
           /* ignore */
         }
       }
+      this.docVersion += 1;
     } catch (e) {
       if (token === this.#loadToken) {
         this.errorMsg = String(e);
@@ -279,6 +288,35 @@ export class PdfViewController {
       top: Math.max(0, pageDiv.offsetTop + topPx - 100),
       behavior: "smooth",
     });
+  }
+
+  // --- Pages ----------------------------------------------------------------
+  goToPage(n: number): void {
+    if (!this.#pdfViewer) return;
+    const max = this.#pdfViewer.pagesCount ?? 1;
+    this.#pdfViewer.currentPageNumber = Math.min(Math.max(1, Math.round(n)), max);
+  }
+
+  /** Paint one page into a thumbnail canvas, sized to `cssWidth` CSS pixels. */
+  async renderThumbnail(
+    pageNumber: number,
+    canvas: HTMLCanvasElement,
+    cssWidth = 104,
+  ): Promise<void> {
+    const doc = this.#doc;
+    const ctx = canvas.getContext("2d");
+    if (!doc || !ctx) return;
+    const token = this.#loadToken;
+    const page = await doc.getPage(pageNumber);
+    // The document was swapped out from under us (a recompile landed).
+    if (token !== this.#loadToken) return;
+    const base = page.getViewport({ scale: 1 });
+    const dpr = Math.min(2, globalThis.devicePixelRatio || 1);
+    const viewport = page.getViewport({ scale: (cssWidth / base.width) * dpr });
+    canvas.width = Math.max(1, Math.floor(viewport.width));
+    canvas.height = Math.max(1, Math.floor(viewport.height));
+    canvas.style.height = `${Math.round(viewport.height / dpr)}px`;
+    await page.render({ canvasContext: ctx, viewport }).promise;
   }
 
   // --- Zoom -----------------------------------------------------------------

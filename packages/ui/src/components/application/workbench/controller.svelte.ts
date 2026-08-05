@@ -8,6 +8,7 @@ import { AUTO_SAVE_DELAY_MS, settings } from "@glyphtex/ui/settings";
 import { CompileStore } from "./compile.svelte";
 import { FileStore } from "./files.svelte";
 import { LayoutStore } from "./layout.svelte";
+import { NotesStore } from "./notes.svelte";
 import { SearchStore } from "./search.svelte";
 import type {
   CompileFilesFn,
@@ -57,6 +58,9 @@ export type WorkbenchProps = {
   openPathOnMount?: string;
   /** Workspace name shown in the command centre / explorer. */
   projectName?: string;
+  /** Stable id for per-document local state (notes). Falls back to the folder /
+   *  display name, which moves if the document is renamed. */
+  documentId?: string;
   /** Files to open with (a project's files). Defaults to a demo document. */
   initialFiles?: GlyphFile[];
   /** Called (debounced) whenever files change, so the host can persist. */
@@ -102,6 +106,7 @@ export class WorkbenchController {
   readonly layout: LayoutStore;
   readonly search: SearchStore;
   readonly compile: CompileStore;
+  readonly notes: NotesStore;
 
   readonly #onpersist?: (files: GlyphFile[]) => void;
   readonly #openPathOnMount?: string;
@@ -148,6 +153,11 @@ export class WorkbenchController {
       compileProject: props.compileProject,
       saveFile: props.saveFile,
     });
+
+    this.notes = new NotesStore(
+      () =>
+        props.documentId ?? this.files.projectRoot ?? this.files.displayName,
+    );
 
     // Opening a project closes any diff left over from the previous one.
     this.files.onProjectLoaded = () => this.layout.closeDiff();
@@ -348,11 +358,6 @@ export class WorkbenchController {
           run: () => this.layout.selectView("files"),
         },
         {
-          label: "Outline",
-          checked: !this.layout.panelCollapsed && this.layout.activeView === "outline",
-          run: () => this.layout.selectView("outline"),
-        },
-        {
           label: "Search",
           checked: !this.layout.panelCollapsed && this.layout.activeView === "search",
           run: () => this.layout.selectView("search"),
@@ -380,15 +385,39 @@ export class WorkbenchController {
         },
         { type: "separator" },
         {
+          label: "Split Side by Side",
+          checked: this.layout.splitDir === "horizontal",
+          disabled: this.layout.viewMode !== "split",
+          run: () => (this.layout.splitDir = "horizontal"),
+        },
+        {
+          label: "Split Stacked",
+          checked: this.layout.splitDir === "vertical",
+          disabled: this.layout.viewMode !== "split",
+          run: () => (this.layout.splitDir = "vertical"),
+        },
+        { type: "separator" },
+        {
           label: "Toggle Sidebar",
           shortcut: shortcutLabel("toggle-sidebar"),
           checked: !this.layout.panelCollapsed,
           run: () => (this.layout.panelCollapsed = !this.layout.panelCollapsed),
         },
         {
-          label: "Problems",
+          label: "Toggle Panel",
           checked: this.compile.showProblems,
           run: () => (this.compile.showProblems = !this.compile.showProblems),
+        },
+        {
+          label: "Notes",
+          checked: this.layout.notesOpen,
+          run: () => (this.layout.notesOpen = !this.layout.notesOpen),
+        },
+        {
+          label: "PDF Thumbnails",
+          checked: this.layout.thumbsOpen,
+          disabled: this.layout.viewMode === "editor",
+          run: () => (this.layout.thumbsOpen = !this.layout.thumbsOpen),
         },
       ],
     },
@@ -464,6 +493,8 @@ export class WorkbenchController {
       ["find", () => this.search.openFind()],
       ["new-file", () => void this.files.newFile()],
       ["toggle-sidebar", () => (this.layout.panelCollapsed = !this.layout.panelCollapsed)],
+      ["toggle-panel", () => (this.compile.showProblems = !this.compile.showProblems)],
+      ["toggle-notes", () => (this.layout.notesOpen = !this.layout.notesOpen)],
     ];
     if (this.files.project)
       actions.push(["open-folder", () => void this.files.openFolder()]);

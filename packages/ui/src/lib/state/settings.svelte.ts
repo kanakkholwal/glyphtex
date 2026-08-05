@@ -50,6 +50,8 @@ export interface EditorSettings {
 	font: EditorFont;
 	fontSize: number;
 	lineWrapping: boolean;
+	/** Monaco's minimap — the block overview down the editor's right edge. */
+	minimap: boolean;
 	/** Recompile automatically when the saved content changes (debounced). */
 	autoCompile: boolean;
 	/** When edits are persisted to disk. See {@link AutoSaveMode}. */
@@ -70,6 +72,7 @@ export const EDITOR_DEFAULTS: EditorSettings = {
 	font: "jetbrains",
 	fontSize: 13,
 	lineWrapping: false,
+	minimap: true,
 	autoCompile: true,
 	autoSave: "afterDelay",
 	shellEscape: false,
@@ -196,6 +199,13 @@ class SettingsStore {
 	}
 	set lineWrapping(value: boolean) {
 		this.patchEditor({ lineWrapping: value });
+	}
+
+	get minimap(): boolean {
+		return this.#editor.current.minimap ?? true;
+	}
+	set minimap(value: boolean) {
+		this.patchEditor({ minimap: value });
 	}
 
 	get autoCompile(): boolean {

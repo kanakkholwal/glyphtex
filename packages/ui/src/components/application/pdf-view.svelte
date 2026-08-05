@@ -12,6 +12,7 @@
     type ReverseLoc,
   } from "./pdf-view/controller.svelte";
   import FindBar from "./pdf-view/find-bar.svelte";
+  import ThumbnailRail from "./pdf-view/thumbnail-rail.svelte";
 
   /**
    * PdfView — headless PDF preview built on PDF.js' `PDFViewer` component, the
@@ -26,6 +27,8 @@
     scalePct = $bindable(100),
     fitMode = $bindable(true),
     numPages = $bindable(0),
+    page = $bindable(1),
+    showThumbnails = false,
   }: {
     data?: Uint8Array;
     onreverse?: (loc: ReverseLoc) => void;
@@ -35,6 +38,9 @@
     fitMode?: boolean;
     /** Page count of the rendered document. */
     numPages?: number;
+    /** Page the viewport is currently on (1-based). */
+    page?: number;
+    showThumbnails?: boolean;
   } = $props();
 
   // svelte-ignore state_referenced_locally
@@ -44,6 +50,7 @@
     getFitMode: () => fitMode,
     setFitMode: (b) => (fitMode = b),
     setNumPages: (n) => (numPages = n),
+    setPage: (n) => (page = n),
     onreverse,
   });
 
@@ -76,10 +83,16 @@
   export function openFind() {
     ctrl.openFind();
   }
+  export function setPage(n: number) {
+    ctrl.goToPage(n);
+  }
+  export function renderThumbnail(n: number, canvas: HTMLCanvasElement) {
+    return ctrl.renderThumbnail(n, canvas);
+  }
 </script>
 
-<div class="relative flex h-full min-h-0 flex-col">
-  <div class="relative min-h-0 flex-1">
+<div class="relative flex h-full min-h-0">
+  <div class="relative min-h-0 min-w-0 flex-1">
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       bind:this={ctrl.containerEl}
@@ -118,6 +131,24 @@
       </div>
     {/if}
   </div>
+
+  {#if ctrl.hasRendered && numPages > 1}
+    <!-- Same collapse-by-width curve as the workbench's other panels. -->
+    <div
+      class="shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none"
+      style:width={showThumbnails ? "120px" : "0px"}
+      aria-hidden={!showThumbnails}
+    >
+      <div class="h-full w-30">
+        <ThumbnailRail
+          {ctrl}
+          current={page}
+          count={numPages}
+          ongoto={(n) => ctrl.goToPage(n)}
+        />
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>

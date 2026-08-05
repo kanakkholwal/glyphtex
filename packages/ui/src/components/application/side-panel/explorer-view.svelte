@@ -10,6 +10,7 @@
   let {
     store,
     projectName,
+    projectPath = null,
     activeId,
     mainId,
     dirtyIds,
@@ -26,6 +27,8 @@
   }: {
     store: SidePanelStore;
     projectName: string;
+    /** Absolute folder backing the document (desktop). Absent on web. */
+    projectPath?: string | null;
     activeId: string;
     mainId: string | null;
     dirtyIds: Set<string>;
@@ -62,6 +65,11 @@
     />
     <span class="truncate">{projectName}</span>
   </button>
+  {#if projectPath}
+    <p class="text-faint truncate px-1.5 pb-1 pl-6 text-xs" title={projectPath}>
+      {projectPath}
+    </p>
+  {/if}
 {/if}
 {#if store.rootNodes.length === 0}
   <div class="flex flex-col items-center gap-3 px-4 py-10 text-center">

@@ -42,6 +42,7 @@ export class SidePanelStore {
   treeOpen = $state<Record<string, boolean>>({});
   rootExpanded = $state(true);
   outlineExpanded = $state(true);
+  recentExpanded = $state(true);
   // One thing is "selected" at a time (file or folder); header actions act on it.
   selected = $state<Sel | null>(null);
   rootDragOver = $state(false);
@@ -71,14 +72,12 @@ export class SidePanelStore {
   get heading(): string {
     const view = this.#d.getView();
     return view === "files"
-      ? "Explorer"
-      : view === "outline"
-        ? "Outline"
-        : view === "search"
-          ? "Search"
-          : view === "git"
-            ? "Source Control"
-            : "Settings";
+      ? "Project"
+      : view === "search"
+        ? "Search"
+        : view === "git"
+          ? "Source Control"
+          : "Settings";
   }
 
   get rootNodes(): TreeNode[] {

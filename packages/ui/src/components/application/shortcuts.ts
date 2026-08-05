@@ -19,7 +19,12 @@ export type Shortcut = {
 /** The one registry the menu, keydown handler, and shortcuts dialog all read from.
  *  `Mod` is ⌘ on macOS and Ctrl everywhere else. */
 export const SHORTCUTS: Shortcut[] = [
-	{ id: "quick-open", label: "Go to file", category: "Files & project", combos: ["Mod+P"] },
+	{
+		id: "quick-open",
+		label: "Go to file",
+		category: "Files & project",
+		combos: ["Mod+K", "Mod+P"],
+	},
 	{ id: "open-folder", label: "Open folder", category: "Files & project", combos: ["Mod+O"] },
 	{ id: "new-file", label: "New file", category: "Files & project", combos: ["Mod+N"] },
 	{ id: "save", label: "Save", category: "Files & project", combos: ["Mod+S"] },
@@ -34,6 +39,8 @@ export const SHORTCUTS: Shortcut[] = [
 	{ id: "sync-pdf", label: "Sync editor to PDF", category: "Compile & preview", combos: ["Mod+J"] },
 
 	{ id: "toggle-sidebar", label: "Toggle sidebar", category: "View", combos: ["Mod+B"] },
+	{ id: "toggle-panel", label: "Toggle bottom panel", category: "View", combos: ["Mod+Shift+M"] },
+	{ id: "toggle-notes", label: "Toggle notes", category: "View", combos: ["Mod+Shift+N"] },
 ];
 
 const byId = new Map(SHORTCUTS.map((s) => [s.id, s] as const));

@@ -12,18 +12,19 @@
   import AboutDialog from "./about-dialog.svelte";
   import ActivityBar from "./activity-bar.svelte";
   import CommandPalette from "./command-palette.svelte";
-  import ProblemsPanel from "./problems-panel.svelte";
   import ShortcutsDialog from "./shortcuts-dialog.svelte";
   import SidePanel from "./side-panel.svelte";
+  import BottomDock from "./workbench/bottom-dock.svelte";
   import {
     WorkbenchController,
     type WorkbenchProps,
   } from "./workbench/controller.svelte";
   import ConflictDialog from "./workbench/conflict-dialog.svelte";
   import EditorPane from "./workbench/editor-pane.svelte";
+  import NotesPanel from "./workbench/notes-panel.svelte";
   import PreviewPane from "./workbench/preview-pane.svelte";
-  import StatusBar from "./workbench/status-bar.svelte";
-  import TopBar from "./workbench/top-bar.svelte";
+  import TitleBar from "./workbench/title-bar.svelte";
+  import Toolbar from "./workbench/toolbar.svelte";
 
   /** Shell for the editor: Svelte glue and chrome layout only. State and behaviour
    *  live in {@link WorkbenchController}; the panes live in `./workbench/*`. */
@@ -32,19 +33,25 @@
   // `compile`, `project`, `git`, … never change after mount.
   // svelte-ignore state_referenced_locally
   const ctrl = new WorkbenchController(props);
-  const { files, layout, search, compile } = ctrl;
+  const { files, layout, search, compile, notes } = ctrl;
 
   $effect(() => ctrl.armPersist());
   $effect(() => ctrl.armAutoSave());
   $effect(() => layout.observeShell());
   $effect(() => ctrl.clearSearchHighlight());
   $effect(() => compile.armAutoCompile());
+  $effect(() => files.watchHead());
+  $effect(() => notes.sync());
 
   onMount(() => {
     props.onready?.(ctrl);
     return ctrl.mountFileAssociation();
   });
   onDestroy(() => compile.disposePdf());
+
+  /** One curve for every panel that opens or closes, so the chrome moves as a set. */
+  const PANEL_EASE =
+    "duration-300 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none";
 </script>
 
 <svelte:window
@@ -54,33 +61,31 @@
   onblur={() => ctrl.onWindowBlur()}
 />
 
-<!-- `flex-row-reverse` docks the rail + panel on the right edge (VS Code's
-     "move primary side bar right"); the editor column keeps the rest. -->
-<div
-  bind:this={layout.shellEl}
-  class="bg-background text-foreground flex h-full min-h-0 overflow-hidden {layout.sidebarRight
-    ? 'flex-row-reverse'
-    : ''}"
->
-  <ActivityBar
-    active={layout.activeView}
-    onselect={(v) => layout.selectView(v)}
-    position={settings.sidebarPosition}
-    menus={ctrl.menus}
-    homeHref={ctrl.backHref}
-    homeLabel={ctrl.backLabel}
-    onnewfile={() => files.newFile()}
-    onopenproject={ctrl.onOpenProject ??
-      (ctrl.canOpenFolder ? () => ctrl.openFolder() : undefined)}
-  />
+<div class="bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden">
+  <TitleBar {ctrl} saving={props.saving} />
+
+  <!-- `flex-row-reverse` docks the rail + panel on the right edge (VS Code's
+       "move primary side bar right"); the editor column keeps the rest. -->
+  <div
+    bind:this={layout.shellEl}
+    class="flex min-h-0 flex-1 {layout.sidebarRight ? 'flex-row-reverse' : ''}"
+  >
+    <ActivityBar
+      active={layout.activeView}
+      onselect={(v) => layout.selectView(v)}
+      position={settings.sidebarPosition}
+      notesOpen={layout.notesOpen}
+      ontogglenotes={() => (layout.notesOpen = !layout.notesOpen)}
+      onnewfile={() => files.newFile()}
+      onopenproject={ctrl.onOpenProject ??
+        (ctrl.canOpenFolder ? () => ctrl.openFolder() : undefined)}
+    />
 
     <!-- Collapses by width, not unmounting, so panel state survives a toggle. -->
     <div
-      class="shrink-0 overflow-hidden {layout.resizingSidebar
-        ? ''
-        : 'transition-[width] duration-300 ease-[cubic-bezier(0.625,0.05,0,1)]'} {layout.panelCollapsed
-        ? 'pointer-events-none'
-        : ''}"
+      class="shrink-0 overflow-hidden {PANEL_EASE} {layout.resizingSidebar
+        ? 'transition-none'
+        : 'transition-[width]'} {layout.panelCollapsed ? 'pointer-events-none' : ''}"
       style:width={layout.panelCollapsed ? "0px" : `${layout.sidebarWidth}px`}
       aria-hidden={layout.panelCollapsed}
     >
@@ -88,10 +93,13 @@
         view={layout.activeView}
         files={files.files}
         folders={files.extraFolders}
+        recent={files.recentFiles}
         activeId={files.activeId}
         mainId={files.mainId}
         source={files.source}
         projectName={files.displayName}
+        projectPath={files.projectRoot}
+        head={files.head}
         hasProject={files.hasProject}
         engine={ctrl.engine}
         git={files.git}
@@ -104,6 +112,7 @@
         onnewfolder={() => files.newFolder()}
         onopenfolder={ctrl.canOpenFolder ? () => ctrl.openFolder() : undefined}
         onopenproject={ctrl.onOpenProject}
+        onopensourcecontrol={() => layout.selectView("git")}
         onreveal={files.project?.revealInOS && files.projectRoot
           ? () => files.revealProject()
           : undefined}
@@ -154,9 +163,11 @@
 
     <!-- min-w-0: without it a wide PDF page or long log line pushes the layout past
          the window edge, hiding the preview toolbar and log copy button. -->
-    <main class="flex min-h-0 min-w-0 flex-1 flex-col">
-      <TopBar {ctrl} saveFile={props.saveFile} saving={props.saving} />
+    <main bind:this={layout.mainEl} class="flex min-h-0 min-w-0 flex-1 flex-col">
+      <Toolbar {ctrl} saveFile={props.saveFile} />
 
+      <div class="flex min-h-0 min-w-0 flex-1">
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col">
       <div
         bind:this={layout.bodyEl}
         class="flex min-h-0 min-w-0 flex-1 {layout.viewMode === 'split' &&
@@ -207,20 +218,69 @@
       </div>
 
       {#if compile.showProblems}
-        <ProblemsPanel
-          problems={compile.problems}
-          log={compile.compileLog}
-          hint={compile.compileHint}
-          ongoto={(l) => {
-            layout.editor?.goToLine(l);
-            if (layout.viewMode === "preview") layout.viewMode = "split";
-          }}
-          onclose={() => (compile.showProblems = false)}
-        />
+        <div
+          class="group border-border relative z-10 flex h-1 shrink-0 cursor-row-resize touch-none items-center justify-center border-t"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize panel"
+          tabindex="-1"
+          onpointerdown={() => layout.startDockResize()}
+        >
+          <span
+            class="h-0.5 w-10 rounded-full transition-colors {layout.resizingDock
+              ? 'bg-primary'
+              : 'bg-transparent group-hover:bg-primary/60'}"
+          ></span>
+        </div>
       {/if}
+      <!-- Collapses by height, not unmounting, so the dock animates and keeps its
+           tab + scroll position across a toggle. The inner box holds the real
+           height so the content doesn't reflow while the outer one animates. -->
+      <div
+        class="shrink-0 overflow-hidden {PANEL_EASE} {layout.resizingDock
+          ? 'transition-none'
+          : 'transition-[height]'} {compile.showProblems ? '' : 'pointer-events-none'}"
+        style:height={compile.showProblems ? `${layout.dockH}px` : "0px"}
+        aria-hidden={!compile.showProblems}
+      >
+        <div class="flex" style:height={`${layout.dockH}px`}>
+          <BottomDock {ctrl} />
+        </div>
+      </div>
+      </div>
 
-      <StatusBar {ctrl} />
+      <!-- Notes runs the full height of the pane column rather than only the dock
+           band: at dock width the input and the tag row have nowhere to go. -->
+      {#if layout.notesOpen}
+        <div
+          class="group relative z-10 flex w-1 shrink-0 cursor-col-resize touch-none items-center justify-center"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize notes"
+          tabindex="-1"
+          onpointerdown={() => layout.startNotesResize()}
+        >
+          <span
+            class="h-10 w-0.5 rounded-full transition-colors {layout.resizingNotes
+              ? 'bg-primary'
+              : 'bg-border group-hover:bg-primary/60'}"
+          ></span>
+        </div>
+      {/if}
+      <div
+        class="shrink-0 overflow-hidden {PANEL_EASE} {layout.resizingNotes
+          ? 'transition-none'
+          : 'transition-[width]'} {layout.notesOpen ? '' : 'pointer-events-none'}"
+        style:width={layout.notesOpen ? `${layout.notesWidth}px` : "0px"}
+        aria-hidden={!layout.notesOpen}
+      >
+        <div class="h-full" style:width={`${layout.notesWidth}px`}>
+          <NotesPanel {notes} onclose={() => (layout.notesOpen = false)} />
+        </div>
+      </div>
+      </div>
     </main>
+  </div>
 </div>
 
 <CommandPalette

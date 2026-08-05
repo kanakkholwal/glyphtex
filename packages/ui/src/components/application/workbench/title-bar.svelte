@@ -1,0 +1,275 @@
+<script lang="ts">
+  import { Button } from "@glyphtex/ui/button";
+  import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+  } from "@glyphtex/ui/dropdown-menu";
+  import { Logo } from "@glyphtex/ui/logo";
+  import { settings } from "@glyphtex/ui/settings";
+  import { Tooltip, TooltipContent, TooltipTrigger } from "@glyphtex/ui/tooltip";
+  import {
+    IconCheck,
+    IconChevronDown,
+    IconDeviceDesktop,
+    IconFolderOpen,
+    IconFolderShare,
+    IconLayoutBottombar,
+    IconLayoutSidebar,
+    IconLayoutSidebarRight,
+    IconLoader2,
+    IconMoon,
+    IconPackageExport,
+    IconPencil,
+    IconSearch,
+    IconSettings,
+    IconSun,
+  } from "@tabler/icons-svelte";
+
+  import AppMenu from "../app-menu.svelte";
+  import { shortcutLabel } from "../shortcuts";
+  import BranchMenu from "./branch-menu.svelte";
+  import type { WorkbenchController } from "./controller.svelte";
+
+  /** The workbench's one full-width bar: identity, application menus, which
+   *  document is open, where HEAD is, quick-open, and the chrome toggles. */
+  let {
+    ctrl,
+    saving,
+  }: { ctrl: WorkbenchController; saving?: boolean } = $props();
+
+  const files = $derived(ctrl.files);
+  const layout = $derived(ctrl.layout);
+  const compile = $derived(ctrl.compile);
+
+  let renaming = $state(false);
+  let draft = $state("");
+  let field = $state<HTMLInputElement>();
+
+  function startRename(): void {
+    if (!ctrl.onRenameProject) return;
+    draft = files.displayName;
+    renaming = true;
+    queueMicrotask(() => field?.select());
+  }
+
+  function commitRename(): void {
+    renaming = false;
+    const next = draft.trim();
+    if (next && next !== files.displayName) ctrl.onRenameProject?.(next);
+  }
+
+  const AppearanceIcon = $derived(
+    settings.appearance === "system"
+      ? IconDeviceDesktop
+      : settings.appearance === "dark"
+        ? IconMoon
+        : IconSun,
+  );
+</script>
+
+<header
+  class="border-border bg-card flex h-11 shrink-0 items-center gap-1 border-b px-2"
+>
+  <!-- Identity: the mark goes home, the wordmark opens the application menus. -->
+  <Tooltip delayDuration={400}>
+    <TooltipTrigger>
+      {#snippet child({ props })}
+        <a
+          {...props}
+          href={ctrl.backHref ?? "/"}
+          class="hover:bg-muted grid size-8 shrink-0 place-items-center rounded-md transition-colors"
+          aria-label={ctrl.backLabel ?? "Home"}
+        >
+          <Logo text={false} size="sm" viewTransitionName="app-logo" />
+        </a>
+      {/snippet}
+    </TooltipTrigger>
+    <TooltipContent side="bottom">{ctrl.backLabel ?? "Home"}</TooltipContent>
+  </Tooltip>
+
+  <AppMenu menus={ctrl.menus}>
+    {#snippet trigger({ props })}
+      <Button
+        {...props}
+        variant="ghost"
+        size="sm"
+        class="gap-1 px-2 font-semibold"
+        aria-label="Application menu"
+      >
+        GlyphTeX
+        <IconChevronDown class="size-3 opacity-50" />
+      </Button>
+    {/snippet}
+  </AppMenu>
+
+  <span class="bg-border mx-1 h-4 w-px shrink-0" aria-hidden="true"></span>
+
+  <!-- Open document -->
+  {#if renaming}
+    <!-- svelte-ignore a11y_autofocus -->
+    <input
+      bind:this={field}
+      bind:value={draft}
+      autofocus
+      class="border-border bg-input text-foreground h-8 min-w-0 max-w-56 rounded-md border px-2 text-sm font-medium outline-none"
+      onblur={commitRename}
+      onkeydown={(e) => {
+        if (e.key === "Enter") commitRename();
+        else if (e.key === "Escape") renaming = false;
+      }}
+      aria-label="Document name"
+    />
+  {:else}
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        {#snippet child({ props })}
+          <Button
+            {...props}
+            variant="ghost"
+            size="sm"
+            class="max-w-56 gap-1.5 px-2 font-medium"
+            title={files.displayName}
+          >
+            <span class="truncate">{files.displayName}</span>
+            <IconChevronDown class="size-3 shrink-0 opacity-50" />
+          </Button>
+        {/snippet}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" class="w-56">
+        {#if ctrl.onRenameProject}
+          <DropdownMenuItem onSelect={startRename}>
+            <IconPencil class="text-muted-foreground" /> Rename document
+          </DropdownMenuItem>
+        {/if}
+        {#if files.project?.revealInOS && files.projectRoot}
+          <DropdownMenuItem onSelect={() => files.revealProject()}>
+            <IconFolderShare class="text-muted-foreground" /> Reveal in file explorer
+          </DropdownMenuItem>
+        {/if}
+        {#if ctrl.canOpenFolder}
+          <DropdownMenuItem onSelect={() => ctrl.openFolder()}>
+            <IconFolderOpen class="text-muted-foreground" /> Open folder…
+          </DropdownMenuItem>
+        {/if}
+        {#if ctrl.onOpenProject}
+          <DropdownMenuItem onSelect={() => ctrl.onOpenProject?.()}>
+            <IconFolderOpen class="text-muted-foreground" /> Open another document…
+          </DropdownMenuItem>
+        {/if}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={!ctrl.onExportProject && !files.projectRoot}
+          onSelect={() =>
+            ctrl.onExportProject
+              ? ctrl.onExportProject()
+              : files.exportProject()}
+        >
+          <IconPackageExport class="text-muted-foreground" /> Export as .zip
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  {/if}
+
+  <BranchMenu head={files.head} onopenpanel={() => layout.selectView("git")} />
+
+  <!-- Quick open. Centred on wide screens, collapses to an icon when the
+       document / branch chips need the room. -->
+  <div class="mx-2 hidden min-w-0 flex-1 justify-center md:flex">
+    <button
+      class="border-border bg-input text-muted-foreground hover:bg-muted focus-visible:ring-ring/50 flex h-8 w-full max-w-md items-center gap-2 rounded-md border px-2.5 text-sm transition-colors outline-none focus-visible:ring-3"
+      onclick={() => (layout.paletteOpen = true)}
+    >
+      <IconSearch class="size-4 shrink-0 opacity-70" />
+      <span class="truncate">Search files…</span>
+      <kbd
+        class="text-faint border-border ml-auto shrink-0 rounded border px-1.5 py-0.5 font-sans text-xs"
+      >
+        {shortcutLabel("quick-open")}
+      </kbd>
+    </button>
+  </div>
+  <div class="flex-1 md:hidden"></div>
+
+  <div class="flex shrink-0 items-center gap-0.5">
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      class="md:hidden"
+      title="Search files ({shortcutLabel('quick-open')})"
+      aria-label="Search files"
+      onclick={() => (layout.paletteOpen = true)}
+    >
+      <IconSearch />
+    </Button>
+
+    {#if saving !== undefined}
+      <span
+        class="text-muted-foreground mr-1 inline-flex items-center gap-1 text-xs"
+        aria-live="polite"
+      >
+        {#if saving}
+          <IconLoader2 size={14} class="animate-spin" />
+          <span class="hidden lg:inline">Saving…</span>
+        {:else}
+          <IconCheck size={14} class="text-success" />
+          <span class="hidden lg:inline">Saved</span>
+        {/if}
+      </span>
+    {/if}
+
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      title="Toggle sidebar ({shortcutLabel('toggle-sidebar')})"
+      aria-label="Toggle sidebar"
+      aria-pressed={!layout.panelCollapsed}
+      onclick={() => (layout.panelCollapsed = !layout.panelCollapsed)}
+    >
+      {#if layout.sidebarRight}
+        <IconLayoutSidebarRight
+          class={layout.panelCollapsed ? "opacity-60" : ""}
+        />
+      {:else}
+        <IconLayoutSidebar class={layout.panelCollapsed ? "opacity-60" : ""} />
+      {/if}
+    </Button>
+
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      title="Toggle panel ({shortcutLabel('toggle-panel')})"
+      aria-label="Toggle bottom panel"
+      aria-pressed={compile.showProblems}
+      onclick={() => (compile.showProblems = !compile.showProblems)}
+    >
+      <IconLayoutBottombar
+        class={compile.showProblems ? "" : "opacity-60"}
+      />
+    </Button>
+
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      title="Appearance: {settings.appearance}"
+      aria-label="Change appearance"
+      onclick={() => settings.cycle()}
+    >
+      <AppearanceIcon />
+    </Button>
+
+    <Button
+      variant={layout.activeView === "settings" && !layout.panelCollapsed
+        ? "secondary"
+        : "ghost"}
+      size="icon-sm"
+      title="Settings"
+      aria-label="Settings"
+      onclick={() => layout.selectView("settings")}
+    >
+      <IconSettings />
+    </Button>
+  </div>
+</header>

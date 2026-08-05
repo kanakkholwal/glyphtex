@@ -4,28 +4,35 @@
 
   import type { ActivityView } from "./activity-bar.svelte";
   import type { EngineManager } from "./engine-settings.svelte";
-  import GitPanel, { type GitProvider } from "./git-panel.svelte";
+  import GitPanel, { type GitHeadInfo, type GitProvider } from "./git-panel.svelte";
   import ExplorerView from "./side-panel/explorer-view.svelte";
   import OutlineView from "./side-panel/outline-view.svelte";
   import PanelHeader from "./side-panel/panel-header.svelte";
+  import PanelSection from "./side-panel/panel-section.svelte";
+  import RecentView from "./side-panel/recent-view.svelte";
+  import ScmFooter from "./side-panel/scm-footer.svelte";
   import SearchView from "./side-panel/search-view.svelte";
   import SettingsView from "./side-panel/settings-view.svelte";
   import { SidePanelStore } from "./side-panel/store.svelte";
   import type { FileMeta, SearchMatch, SearchOptions } from "./side-panel/types";
 
   /**
-   * SidePanel — content for the active rail view. Explorer switches files;
-   * Settings edits the live preferences; Search is a full find/replace panel
-   * wired to the editor; Source Control is the Git view. Local UI state +
-   * behaviour live in {@link SidePanelStore}; each view is its own component.
+   * SidePanel — content for the active rail view. Explorer stacks the file tree,
+   * the document outline and recently closed files; Settings edits the live
+   * preferences; Search is a full find/replace panel wired to the editor; Source
+   * Control is the Git view. Local UI state + behaviour live in
+   * {@link SidePanelStore}; each view is its own component.
    */
   let {
     view = "files",
     files = [],
     folders = [],
+    recent = [],
     activeId = "",
     mainId = null,
     projectName = "Project",
+    projectPath = null,
+    head = null,
     hasProject = false,
     widthPx = 300,
     source = "",
@@ -63,15 +70,22 @@
     onsearchprev,
     onreplacecurrent,
     onreplaceall,
+    onopensourcecontrol,
   }: {
     view?: ActivityView;
     files?: FileMeta[];
     /** Extra (possibly empty) folder paths to show in the tree, forward-slashed. */
     folders?: string[];
+    /** Files opened earlier that no longer have a tab. */
+    recent?: FileMeta[];
     activeId?: string;
     /** Absolute path / id of the project's main (compile-target) file. */
     mainId?: string | null;
     projectName?: string;
+    /** Absolute folder backing the document (desktop); shown under the root row. */
+    projectPath?: string | null;
+    /** Where HEAD is, for the panel footer. Null hides it. */
+    head?: GitHeadInfo | null;
     /** Whether a folder-based project host is available (enables Open Folder). */
     hasProject?: boolean;
     widthPx?: number;
@@ -129,6 +143,8 @@
     onsearchprev?: () => void;
     onreplacecurrent?: (replace: string) => void;
     onreplaceall?: (replace: string) => void;
+    /** Footer click — switch the rail to Source Control. */
+    onopensourcecontrol?: () => void;
   } = $props();
 
   // The store reads the live props through getters and wraps the host callbacks.
@@ -183,6 +199,7 @@
       <ExplorerView
         {store}
         {projectName}
+        {projectPath}
         {activeId}
         {mainId}
         {dirtyIds}
@@ -197,8 +214,22 @@
         {ondownloadfile}
         {ondownloadfolder}
       />
-    {:else if view === "outline"}
-      <OutlineView {store} {ongotoline} />
+
+      <!-- Outline and Recent live under the tree rather than behind rail tabs:
+           in a thesis you navigate by section far more often than by file. -->
+      <PanelSection
+        title="Outline"
+        bind:open={store.outlineExpanded}
+        count={store.outline.length}
+      >
+        <OutlineView {store} {ongotoline} />
+      </PanelSection>
+
+      {#if recent.length}
+        <PanelSection title="Recent" bind:open={store.recentExpanded}>
+          <RecentView files={recent} onopen={(id) => store.selectFile(id)} />
+        </PanelSection>
+      {/if}
     {:else if view === "search"}
       <SearchView
         {store}
@@ -236,4 +267,8 @@
       />
     {/if}
   </div>
+
+  {#if view !== "git"}
+    <ScmFooter {head} onopen={() => onopensourcecontrol?.()} />
+  {/if}
 </aside>

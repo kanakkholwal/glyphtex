@@ -11,12 +11,14 @@ import { toast } from "@glyphtex/ui/sonner";
 import type { FileStore } from "./files.svelte";
 import type { LayoutStore } from "./layout.svelte";
 import { baseName } from "./paths";
-import type {
-  CompileFilesFn,
-  CompileFn,
-  CompileProjectFn,
-  CompileStatus,
-  SaveFileFn,
+import {
+  BUILD_HISTORY_LIMIT,
+  type BuildRecord,
+  type CompileFilesFn,
+  type CompileFn,
+  type CompileProjectFn,
+  type CompileStatus,
+  type SaveFileFn,
 } from "./types";
 
 /** Shown when a compile is attempted with no engine wired up yet. Named so the
@@ -57,10 +59,14 @@ export class CompileStore {
   compileHint = $state<string | undefined>(undefined);
   showProblems = $state(false);
 
+  // Finished compiles, oldest first — drives the build-stats sparkline.
+  builds = $state<BuildRecord[]>([]);
+
   // PDF preview zoom/page state — bound from PdfView, driven by the header.
   pdfScalePct = $state(100);
   pdfFitMode = $state(true);
   pdfNumPages = $state(0);
+  pdfPage = $state(1);
   pdfView = $state<{
     revealLocation: (loc: SyncTexLocation) => void;
     zoomIn: () => void;
@@ -68,6 +74,8 @@ export class CompileStore {
     setZoomPct: (pct: number) => void;
     fitWidth: () => void;
     openFind: () => void;
+    setPage: (n: number) => void;
+    renderThumbnail: (page: number, canvas: HTMLCanvasElement) => Promise<void>;
   }>();
 
   // Coalescing bookkeeping (plain fields — not reactive).
@@ -87,6 +95,16 @@ export class CompileStore {
     parseLatexLog(this.compileLog, this.compileError),
   );
   readonly problemSummary = $derived(summarizeProblems(this.problems));
+
+  /** Size of the rendered PDF, for the build-stats card. */
+  readonly outputBytes = $derived(this.pdfBytes?.byteLength ?? 0);
+
+  #record(ms: number, ok: boolean, bytes: number): void {
+    this.builds = [
+      ...this.builds.slice(-(BUILD_HISTORY_LIMIT - 1)),
+      { ms, ok, bytes, at: Date.now() },
+    ];
+  }
 
   // Getters, not `$derived`: they reference constructor-assigned deps, which a
   // field initializer would read before the constructor runs.
@@ -176,6 +194,13 @@ export class CompileStore {
     this.pdfView?.revealLocation(loc);
   }
 
+  /** Scroll the preview to a 1-based page, clamped to the document. */
+  goToPage(n: number): void {
+    const page = Math.min(Math.max(this.pdfNumPages, 1), Math.max(1, Math.round(n)));
+    this.pdfPage = page;
+    this.pdfView?.setPage(page);
+  }
+
   /** Content the engine compiles in single-file mode: the active file's last
    *  *saved* version (project mode compiles the saved files straight off disk). */
   #compileSource(): string {
@@ -257,6 +282,7 @@ export class CompileStore {
           this.compileError = undefined;
           this.compileStatus = "success";
           this.#lastCompiledSource = snapshot;
+          this.#record(this.lastCompileMs, true, bytes.byteLength);
           // A best-effort PDF can still carry errors (e.g. an undefined macro
           // that the engine recovered from). Surface them like Overleaf does.
           if (this.problemSummary.errors > 0) this.showProblems = true;
@@ -264,6 +290,7 @@ export class CompileStore {
           this.compileError = out.error ?? "Compilation failed.";
           this.compileStatus = "error";
           this.showProblems = true; // surface failures immediately
+          this.#record(this.lastCompileMs, false, 0);
         }
       } while (this.#pendingRecompile);
     } catch (e) {

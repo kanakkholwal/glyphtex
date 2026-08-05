@@ -463,6 +463,7 @@
 				<Workbench
 					platform="web"
 					projectName={project.name}
+					documentId={project.id}
 					{initialFiles}
 					{saving}
 					git={gitProvider}

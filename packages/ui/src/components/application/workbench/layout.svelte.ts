@@ -4,7 +4,13 @@ import type { GitProvider } from "../git-panel.svelte";
 import { settings } from "@glyphtex/ui/settings";
 import { toast } from "@glyphtex/ui/sonner";
 
-import type { DiffTarget, EditorApi, SplitDirection, ViewMode } from "./types";
+import type {
+  DiffTarget,
+  DockTab,
+  EditorApi,
+  SplitDirection,
+  ViewMode,
+} from "./types";
 
 export type LayoutDeps = {
   git?: GitProvider;
@@ -12,6 +18,9 @@ export type LayoutDeps = {
 };
 
 const ACTIVITY_BAR_PX = 48; // the w-12 rail beside the panel
+const DOCK_MIN_PX = 120;
+const NOTES_MIN_PX = 220;
+const NOTES_MAX_PX = 460;
 
 /** The Workbench's chrome + geometry, plus the editor `bind:this` handle shared with
  *  the search and compile stores. The component calls {@link observeShell}. */
@@ -53,6 +62,20 @@ export class LayoutStore {
   sidebarW = $state(300);
   resizingSidebar = $state(false);
 
+  // --- Bottom dock (Problems / Logs / History) ------------------------------
+  dockTab = $state<DockTab>("problems");
+  dockH = $state(224);
+  resizingDock = $state(false);
+  mainEl = $state<HTMLElement>();
+
+  // --- Notes, docked to the right of the bottom dock ------------------------
+  notesOpen = $state(false);
+  notesW = $state(300);
+  resizingNotes = $state(false);
+
+  /** PDF thumbnail rail, on the preview's outer edge. */
+  thumbsOpen = $state(true);
+
   constructor(deps: LayoutDeps) {
     this.#git = deps.git;
     this.#getProjectRoot = deps.getProjectRoot;
@@ -60,6 +83,9 @@ export class LayoutStore {
 
   readonly maxSidebar = $derived(Math.max(200, Math.round(this.shellW * 0.3)));
   readonly sidebarWidth = $derived(Math.min(this.sidebarW, this.maxSidebar));
+  readonly notesWidth = $derived(
+    Math.min(NOTES_MAX_PX, Math.max(NOTES_MIN_PX, this.notesW)),
+  );
   // VS Code-style: the activity bar + side panel can dock on either edge.
   readonly sidebarRight = $derived(settings.sidebarPosition === "right");
 
@@ -86,7 +112,28 @@ export class LayoutStore {
   startSidebarResize(): void {
     this.resizingSidebar = true;
   }
+  startDockResize(): void {
+    this.resizingDock = true;
+  }
+  startNotesResize(): void {
+    this.resizingNotes = true;
+  }
   onPointerMove(e: PointerEvent): void {
+    if (this.resizingDock && this.mainEl) {
+      const rect = this.mainEl.getBoundingClientRect();
+      // Leave room for the toolbar + a usable editor above the dock.
+      const max = Math.max(DOCK_MIN_PX, rect.height - 180);
+      this.dockH = Math.min(max, Math.max(DOCK_MIN_PX, rect.bottom - e.clientY));
+      return;
+    }
+    if (this.resizingNotes && this.mainEl) {
+      const rect = this.mainEl.getBoundingClientRect();
+      this.notesW = Math.min(
+        Math.min(NOTES_MAX_PX, Math.max(NOTES_MIN_PX, rect.width - 260)),
+        Math.max(NOTES_MIN_PX, rect.right - e.clientX),
+      );
+      return;
+    }
     if (this.resizingSidebar && this.shellEl) {
       const rect = this.shellEl.getBoundingClientRect();
       // Docked right, the panel grows as the cursor moves left, so measure from
@@ -108,6 +155,8 @@ export class LayoutStore {
   stopResize(): void {
     this.dragging = false;
     this.resizingSidebar = false;
+    this.resizingDock = false;
+    this.resizingNotes = false;
   }
 
   selectView(view: ActivityView): void {

@@ -41,6 +41,7 @@
 				openPathOnMount={project.root}
 				{saveFile}
 				projectName={project.name}
+				documentId={project.id}
 				initialFiles={project.files}
 				onpersist={(files) => projects.save(project.id, files)}
 			/>
