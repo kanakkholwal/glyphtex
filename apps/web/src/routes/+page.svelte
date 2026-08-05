@@ -10,6 +10,7 @@
 		ShowcasePanel
 	} from '$lib/landing';
 	import EditorMock from '$lib/landing/EditorMock.svelte';
+	import { CONTACT_EMAIL } from '$lib/landing/nav-data';
 	import PolishGrid from '$lib/landing/PolishGrid.svelte';
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
@@ -32,15 +33,22 @@
 		IconFolders,
 		IconGitBranch,
 		IconHistory,
+		IconInfinity,
 		IconLayout,
+		IconLicense,
 		IconLock,
+		IconMail,
 		IconMinus,
+		IconPackageExport,
 		IconPlayerPlay,
 		IconPlus,
 		IconSchool,
 		IconSearch,
+		IconServer,
 		IconShield,
+		IconShieldLock,
 		IconStack3,
+		IconUserOff,
 		IconUsersGroup,
 		IconWifiOff,
 		IconWriting
@@ -60,6 +68,15 @@
 	const reducedMotion =
 		typeof window !== 'undefined' &&
 		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+	// The four promises under the hero CTAs. Icons carry the brand colour so
+	// the signal hue reads all the way down the copy column.
+	const heroAssurances = [
+		{ icon: IconInfinity, label: 'Free forever' },
+		{ icon: IconUserOff, label: 'No account' },
+		{ icon: IconBrowser, label: 'Runs in your browser' },
+		{ icon: IconLock, label: 'Files stay on your device' }
+	];
 
 	// Open-source values that matter for academic writing (privacy,
 	// reproducibility, no per-seat licensing).
@@ -332,6 +349,60 @@
 		}
 	];
 
+	// Institutional pitch. Every card answers a question a department head or
+	// an IT reviewer actually asks before a tool reaches a lab machine.
+	type InstitutionCard = {
+		icon: typeof IconLicense;
+		title: string;
+		body: string;
+	};
+
+	const institutionCards: InstitutionCard[] = [
+		{
+			icon: IconLicense,
+			title: 'No licence server, no renewal',
+			body: 'GPLv3. Nothing to procure, no seats to reconcile at the end of term, and no renewal that lands mid-semester.'
+		},
+		{
+			icon: IconShieldLock,
+			title: 'Nothing leaves the device',
+			body: 'Grant applications, unpublished results, and student drafts compile locally. There is no vendor holding the data, so there is no processor to assess.'
+		},
+		{
+			icon: IconDeviceDesktop,
+			title: 'Runs on managed machines',
+			body: 'The browser workspace needs no install and no admin rights. Lab images stay exactly as IT built them.'
+		},
+		{
+			icon: IconSchool,
+			title: 'Ready for a whole cohort',
+			body: 'Hand out a template repo and students start writing. No accounts to provision, none to revoke when they graduate.'
+		},
+		{
+			icon: IconPackageExport,
+			title: 'Archival by default',
+			body: 'Plain .tex and .bib under Git. A thesis submitted this year still opens in ten, with or without GlyphTeX.'
+		},
+		{
+			icon: IconServer,
+			title: 'Self-host the moving parts',
+			body: 'Point the Git proxy at your own host so pushes stay inside the university network.'
+		}
+	];
+
+	const institutionStats = [
+		{ value: '$0', label: 'per seat, per year' },
+		{ value: '0', label: 'accounts to provision' },
+		{ value: 'GPLv3', label: 'licence review, once' }
+	];
+
+	// Prefilled so the first reply already carries the details we need to answer.
+	const institutionMailto = `${CONTACT_EMAIL}?subject=${encodeURIComponent(
+		'GlyphTeX for our department'
+	)}&body=${encodeURIComponent(
+		'Institution:\nDepartment:\nRough number of writers:\nWhat IT needs to sign off on:\n'
+	)}`;
+
 	// FAQ. Research-focused. Answers map to claims made elsewhere on the
 	// page so nothing here over-promises.
 	type Faq = { q: string; a: string };
@@ -418,6 +489,16 @@
 		<section class="relative min-h-dvh w-full overflow-hidden">
 			<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
 
+			<!-- Brand wash under the copy column. Sits above the photo's readability
+			     scrim so the left third carries the signal colour, not the sky. -->
+			<div
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-0"
+				style="background:
+					radial-gradient(ellipse 62% 58% at 6% 44%, color-mix(in oklab, var(--brand) 20%, transparent), transparent 64%),
+					radial-gradient(ellipse 46% 38% at 0% 104%, color-mix(in oklab, var(--brand) 12%, transparent), transparent 72%);"
+			></div>
+
 			<div
 				class="relative z-10 mx-auto flex min-h-dvh max-w-7xl flex-col justify-center px-6 pt-28 pb-16 lg:px-10"
 			>
@@ -425,7 +506,7 @@
 					href={repo}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="landing-glass-chip mb-8 inline-flex w-fit items-center gap-1.5 self-start rounded-full px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:text-foreground"
+					class="mb-8 inline-flex w-fit items-center gap-1.5 self-start rounded-full border border-brand/25 bg-brand/10 px-3 py-1.5 text-xs font-medium text-brand backdrop-blur-md transition-colors hover:bg-brand/15"
 					in:fly={{ y: 8, duration: 500, delay: 0, easing: cubicOut }}
 				>
 					<IconBrandGithub class="size-3.5" />
@@ -443,7 +524,7 @@
 							style="line-height: 1.15;"
 						>
 							Write your
-							<ContainerTextFlip words={rotatingWords} interval={2600} />
+							<ContainerTextFlip words={rotatingWords} interval={2600} tone="brand" />
 						</span>
 					</h1>
 
@@ -463,7 +544,7 @@
 							     Restore this button (and the /download nav entry) at release. -->
 						<Button
 							href={resolve('/workspace')}
-							variant="default"
+							variant="brand"
 							size="lg"
 							class="group/cta gap-2.5"
 							onclick={() => track('cta_workspace_click', { location: 'hero' })}
@@ -479,7 +560,7 @@
 							class="group/engine gap-2.5"
 							onclick={() => track('cta_engine_click', { location: 'hero' })}
 						>
-							<IconCpu class="size-4" />
+							<IconCpu class="size-4 text-brand" />
 							How the engine works
 							<IconArrowRight
 								class="size-4 transition-transform group-hover/engine:translate-x-0.5"
@@ -487,18 +568,18 @@
 						</Button>
 					</div>
 
-					<div
-						class="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium tracking-wide text-foreground/70"
+					<ul
+						class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-[12px] font-medium text-foreground/75"
 						in:fly={{ y: 8, duration: 500, delay: 320, easing: cubicOut }}
 					>
-						<span class="relative flex size-1.5">
-							<span
-								class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand/60 opacity-70"
-							></span>
-							<span class="relative inline-flex size-1.5 rounded-full bg-brand"></span>
-						</span>
-						Free · No account · Runs in your browser · Files stay on your device
-					</div>
+						{#each heroAssurances as item (item.label)}
+							{@const Icon = item.icon}
+							<li class="inline-flex items-center gap-1.5">
+								<Icon class="text-brand size-3.5 shrink-0" stroke-width={2} />
+								{item.label}
+							</li>
+						{/each}
+					</ul>
 				</div>
 			</div>
 		</section>
@@ -552,7 +633,7 @@
 									? 'before:bg-hairline before:mr-6 before:hidden before:h-4 before:w-px before:content-[""] sm:before:block'
 									: ''}"
 							>
-								<Icon class="text-foreground/45 size-4 shrink-0" stroke-width={1.75} />
+								<Icon class="text-brand/80 size-4 shrink-0" stroke-width={1.75} />
 								{claim.label}
 							</li>
 						{/each}
@@ -713,7 +794,7 @@
 					<div class="grid items-center gap-16 lg:grid-cols-12 lg:gap-24">
 						<div class="lg:col-span-6">
 							<span
-								class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
+								class="text-brand inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]"
 							>
 								<span class="size-1.5 rounded-full bg-brand"></span>
 								Step 1 · Open
@@ -753,7 +834,7 @@
 							</ul>
 
 							<div class="mt-12 flex items-center gap-3">
-								<Button href={resolve('/workspace')} variant="default" class="gap-2">
+								<Button href={resolve('/workspace')} variant="brand" class="gap-2">
 									<IconPlayerPlay class="size-4" />
 									Try the workspace
 								</Button>
@@ -784,7 +865,7 @@
 				<ShowcasePanel tone="neutral">
 					<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
 						<span
-							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
+							class="text-brand inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]"
 						>
 							<span class="size-1.5 rounded-full bg-brand"></span>
 							Step 2 · Compile
@@ -876,7 +957,7 @@
 				<div class="mt-12 text-center">
 					<Reveal variant="up" delay={420}>
 						<span
-							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
+							class="text-brand inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]"
 						>
 							<span class="size-1.5 rounded-full bg-brand"></span>
 							How it works
@@ -964,7 +1045,7 @@
 					<div class="grid items-start gap-14 lg:grid-cols-12 lg:gap-20">
 						<div class="lg:col-span-5">
 							<span
-								class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
+								class="text-brand inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]"
 							>
 								<span class="size-1.5 rounded-full bg-brand"></span>
 								Step 3 · Track
@@ -1111,7 +1192,7 @@
 				<div class="mt-12 text-center">
 					<Reveal variant="up" delay={420}>
 						<span
-							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
+							class="text-brand inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]"
 						>
 							<span class="size-1.5 rounded-full bg-brand"></span>
 							Built for academics
@@ -1187,6 +1268,123 @@
 		</Section>
 
 		<!--
+		  Institutional conversion block. The one section on the page that
+		  carries a brand-tinted surface: it is the ask, so it gets the
+		  signal colour and the only non-workspace CTA on the page.
+		-->
+		<Section id="institutions" spacing="tight" bordered>
+			<Container size="wide">
+				<ShowcasePanel tone="neutral">
+					<div class="grid gap-14 lg:grid-cols-12 lg:gap-16">
+						<div class="lg:col-span-5">
+							<Reveal variant="up">
+								<span
+									class="text-brand inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.18em] uppercase"
+								>
+									<span class="bg-brand size-1.5 rounded-full"></span>
+									For universities and institutes
+								</span>
+							</Reveal>
+							<Reveal variant="up" delay={70}>
+								<h2
+									class="landing-text-balance mt-5 text-3xl leading-[1.05] font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl"
+								>
+									Give the whole department LaTeX.
+									<span class="text-brand block font-medium italic">Pay nothing for it.</span>
+								</h2>
+							</Reveal>
+							<Reveal variant="up" delay={140}>
+								<p
+									class="landing-text-pretty text-muted-foreground mt-5 max-w-lg text-base leading-relaxed sm:text-lg"
+								>
+									One department, one faculty, or every lab machine on campus. There is no seat
+									count, no licence server to run, and no contract to renew. The editor your students
+									use for a thesis is the one they keep after they graduate.
+								</p>
+							</Reveal>
+
+							<Reveal variant="up" delay={200}>
+								<dl class="mt-10 grid grid-cols-3 gap-4">
+									{#each institutionStats as stat (stat.label)}
+										<div class="border-brand/20 border-l pl-4">
+											<dt class="text-brand text-2xl font-semibold tracking-tight sm:text-3xl">
+												{stat.value}
+											</dt>
+											<dd class="text-muted-foreground mt-1 text-[12px] leading-snug">
+												{stat.label}
+											</dd>
+										</div>
+									{/each}
+								</dl>
+							</Reveal>
+
+							<Reveal variant="up" delay={260} class="mt-10 flex flex-wrap items-center gap-3">
+								<Button
+									href={institutionMailto}
+									variant="brand"
+									size="lg"
+									class="group/inst gap-2.5"
+									onclick={() => track('cta_institution_click', { location: 'institutions' })}
+								>
+									<IconMail class="size-4" />
+									Talk to us about your campus
+									<IconArrowRight
+										class="size-4 transition-transform group-hover/inst:translate-x-0.5"
+									/>
+								</Button>
+								<Button
+									href="{repo}/blob/main/LICENSE"
+									target="_blank"
+									rel="noopener noreferrer"
+									variant="outline"
+									size="lg"
+									class="gap-2.5"
+								>
+									<IconLicense class="size-4 text-brand" />
+									Read the licence
+								</Button>
+							</Reveal>
+
+							<Reveal variant="up" delay={320}>
+								<p class="text-muted-foreground mt-5 max-w-md text-[12.5px] leading-relaxed">
+									Tell us the department, the rough number of writers, and what your IT team needs to
+									sign off on. Pilots usually start with one lab.
+								</p>
+							</Reveal>
+						</div>
+
+						<div class="lg:col-span-7">
+							<div class="grid gap-3 sm:grid-cols-2">
+								{#each institutionCards as card, i (card.title)}
+									{@const Icon = card.icon}
+									<Reveal variant="up" delay={i * 60}>
+										<article
+											class="h-full rounded-2xl border border-hairline bg-surface-card p-5 transition-colors duration-300 hover:border-brand/35 motion-reduce:transition-none"
+										>
+											<span
+												class="bg-brand/10 text-brand grid size-9 place-items-center rounded-lg"
+											>
+												<Icon class="size-4.5" stroke-width={1.75} />
+											</span>
+											<h3
+												class="mt-4 text-[15px] font-semibold tracking-tight text-foreground"
+											>
+												{card.title}
+											</h3>
+											<p class="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+												{card.body}
+											</p>
+										</article>
+									</Reveal>
+								{/each}
+							</div>
+						</div>
+					</div>
+				</ShowcasePanel>
+			</Container>
+		</Section>
+
+		<!--
 		  Institutions callout. Two-card row: free for individuals, free for
 		  institutions. Same placement as the trace-mvp pricing teaser.
 		-->
@@ -1218,7 +1416,7 @@
 								</div>
 								<p class="mt-3 text-sm leading-relaxed text-muted-foreground">{tier.body}</p>
 								<div class="mt-7">
-									<Button href={tier.href} variant={i === 0 ? 'default' : 'outline'} class="gap-2">
+									<Button href={tier.href} variant={i === 0 ? 'brand' : 'outline'} class="gap-2">
 										{tier.cta}
 										<IconArrowRight class="size-4" />
 									</Button>
@@ -1244,7 +1442,7 @@
 					<div class="lg:col-span-5">
 						<div class="lg:sticky lg:top-28">
 							<span
-								class="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.18em] text-foreground/70 uppercase"
+								class="text-brand inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.18em] uppercase"
 							>
 								<span class="bg-brand size-1.5 rounded-full"></span>
 								FAQ
@@ -1339,9 +1537,9 @@
 					<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
 						<Reveal variant="scale">
 							<div
-								class="landing-glass-chip inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/80"
+								class="text-brand inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em]"
 							>
-								<span class="size-1.5 rounded-full bg-foreground/40"></span>
+								<span class="bg-brand size-1.5 rounded-full"></span>
 								ready for early adopters
 							</div>
 						</Reveal>
@@ -1373,7 +1571,7 @@
 						>
 							<Button
 								href={resolve('/workspace')}
-								variant="default"
+								variant="brand"
 								size="lg"
 								class="gap-2.5"
 								onclick={() => track('cta_workspace_click', { location: 'final_cta' })}

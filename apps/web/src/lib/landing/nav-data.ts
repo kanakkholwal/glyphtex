@@ -20,6 +20,7 @@ const ENGINE: NavLink = { label: 'The engine', href: '/engine' };
 // #compare is the free-for-individuals / free-for-institutions section, so the
 // label says Pricing — "Compare" promised a comparison table that isn't there.
 const COMPARE: NavLink = { label: 'Pricing', href: '/#compare' };
+const INSTITUTIONS: NavLink = { label: 'Institutions', href: '/#institutions' };
 const FAQ: NavLink = { label: 'FAQ', href: '/#faq' };
 // Labelled as a prototype rather than "Download": the desktop build is not
 // released yet, so this must not read as a shipping product.
@@ -28,12 +29,12 @@ const WORKSPACE: NavLink = { label: 'Open browser workspace', href: '/workspace'
 
 // Inline top-nav links, always visible on desktop. Kept short for a minimal
 // bar; everything else lives in the footer.
-export const navLinks: NavLink[] = [FEATURES, ENGINE, WORKFLOW, COMPARE, FAQ];
+export const navLinks: NavLink[] = [FEATURES, ENGINE, WORKFLOW, INSTITUTIONS, COMPARE, FAQ];
 
 export const footerCols: { title: string; links: NavLink[] }[] = [
 	{
 		title: 'Product',
-		links: [FEATURES, ENGINE, WORKFLOW, COMPARE, FAQ, DOWNLOAD]
+		links: [FEATURES, ENGINE, WORKFLOW, INSTITUTIONS, COMPARE, FAQ, DOWNLOAD]
 	},
 	{
 		title: 'Resources',

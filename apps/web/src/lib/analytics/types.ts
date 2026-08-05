@@ -19,6 +19,7 @@ export type AnalyticsEvent =
 	// Marketing site
 	| 'cta_workspace_click'
 	| 'cta_engine_click'
+	| 'cta_institution_click'
 	| 'download_click'
 	| 'engine_cta_workspace'
 	| 'engine_cta_workspace_footer'

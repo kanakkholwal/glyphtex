@@ -9,6 +9,8 @@
 		animationDuration?: number;
 		class?: string;
 		textClass?: string;
+		/** `brand` tints the pill and its type with the signal colour. */
+		tone?: 'neutral' | 'brand';
 	};
 
 	let {
@@ -16,7 +18,8 @@
 		interval = 3000,
 		animationDuration = 700,
 		class: className = '',
-		textClass = ''
+		textClass = '',
+		tone = 'neutral'
 	}: Props = $props();
 
 	// A plain space collapses at the edge of an inline-block letter.
@@ -45,6 +48,7 @@
 <span
 	class={cn(
 		'container-flip relative inline-flex items-center justify-center overflow-hidden rounded-lg px-2.5 pt-0.5 pb-1 align-baseline',
+		tone === 'brand' && 'container-flip-brand',
 		className
 	)}
 	style:width={textWidth ? `${textWidth + 20}px` : 'auto'}
@@ -77,6 +81,19 @@
 			inset 0 -1px var(--border),
 			inset 0 0 0 1px var(--border),
 			0 4px 8px color-mix(in oklab, var(--border) 55%, transparent);
+	}
+
+	.container-flip-brand {
+		color: var(--brand);
+		background: linear-gradient(
+			to bottom,
+			color-mix(in oklab, var(--brand) 8%, var(--card)),
+			color-mix(in oklab, var(--brand) 16%, var(--card))
+		);
+		box-shadow:
+			inset 0 -1px color-mix(in oklab, var(--brand) 32%, transparent),
+			inset 0 0 0 1px color-mix(in oklab, var(--brand) 24%, transparent),
+			0 4px 12px color-mix(in oklab, var(--brand) 20%, transparent);
 	}
 
 	/* `backwards`, not `both`: the resting state below is the visible one, so a

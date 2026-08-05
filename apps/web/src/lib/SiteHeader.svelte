@@ -107,7 +107,7 @@
 			<ThemeToggle size="icon-sm" />
 			<!-- Was "Download". The desktop app is still a prototype, so the header
 			     points at the workspace until there is a release worth shipping. -->
-			<Button href={resolve('/workspace')} size="sm" variant="default" class="gap-1.5">
+			<Button href={resolve('/workspace')} size="sm" variant="brand" class="gap-1.5">
 				Open workspace
 			</Button>
 			<button

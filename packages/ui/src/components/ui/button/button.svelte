@@ -34,6 +34,9 @@
 				default: "bg-primary text-primary-foreground border-transparent shadow-craft-sm hover:bg-primary/95",
 				default_soft:
 					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
+				// Marketing CTAs only — in app chrome the emphasis colour is ink (`default`).
+				brand:
+					"bg-brand text-brand-foreground border-transparent shadow-craft-sm hover:bg-brand-hover",
 				brand_soft:
 					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
 				secondary:

@@ -17,6 +17,7 @@
 	import { SvelteMap } from 'svelte/reactivity';
 
 	import { bucket, track, type DocumentSource } from '$lib/analytics';
+	import { applyUpdate, watchForUpdate } from '$lib/app-update';
 	import { needsBiber } from '$lib/citations';
 	import { compileFiles, engineReady, installPacks, warmEngine } from '$lib/compile';
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
@@ -74,6 +75,7 @@
 	let requiresBiber = $state(false);
 	let installingPacks = $state(false);
 	let packError = $state<string | undefined>(undefined);
+	let updateAvailable = $state(false);
 
 	let lastCompiled: { files: GlyphFile[]; entry: string } | undefined;
 
@@ -130,6 +132,10 @@
 			showInstall = true;
 		}
 	});
+
+	// A long-lived editor tab can outlast a deploy; surface the update as a banner
+	// the user dismisses on their own schedule rather than reloading under them.
+	onMount(() => watchForUpdate(() => (updateAvailable = true)));
 
 	// Pull / clone / discard rewrite storage underneath the open session, so the
 	// editor has to re-read rather than keep serving (and later re-saving) stale text.
@@ -443,9 +449,11 @@
 			{missingPacks}
 			{unsupportedFiles}
 			{requiresBiber}
+			{updateAvailable}
 			installing={installingPacks}
 			error={packError}
 			onadd={addMissingPacks}
+			onupdate={applyUpdate}
 		/>
 
 		<div class="min-h-0 flex-1">

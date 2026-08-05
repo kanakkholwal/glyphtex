@@ -33,9 +33,19 @@ sw.addEventListener('install', (event) => {
 			const cache = await openCache(CACHE);
 			// Precaching is an optimisation; a failure must not stop activation.
 			await cache?.addAll(PRECACHE).catch(() => {});
-			await sw.skipWaiting();
+			// No skipWaiting here: an updated worker parks in "waiting" so the
+			// running editor keeps its code until the user clicks Update. The page
+			// asks us to take over via the SKIP_WAITING message below. First
+			// install has no active worker to wait behind, so it activates anyway.
 		})()
 	);
+});
+
+// The update banner clicks through to here: activate now, and `clients.claim`
+// in `activate` plus the page's controllerchange listener reload onto the new
+// build.
+sw.addEventListener('message', (event) => {
+	if (event.data === 'SKIP_WAITING') void sw.skipWaiting();
 });
 
 sw.addEventListener('activate', (event) => {

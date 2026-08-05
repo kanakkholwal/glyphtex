@@ -31,7 +31,7 @@
 >
 	{#if eyebrow}
 		<span
-			class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
+			class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand"
 		>
 			<span class="size-1.5 rounded-full bg-brand"></span>
 			{eyebrow}
