@@ -9,50 +9,50 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
 	import {
-	  Dialog,
-	  DialogContent,
-	  DialogDescription,
-	  DialogFooter,
-	  DialogHeader,
-	  DialogTitle
+		Dialog,
+		DialogContent,
+		DialogDescription,
+		DialogFooter,
+		DialogHeader,
+		DialogTitle
 	} from '@glyphtex/ui/dialog';
 	import {
-	  DropdownMenu,
-	  DropdownMenuCheckboxItem,
-	  DropdownMenuContent,
-	  DropdownMenuItem,
-	  DropdownMenuSeparator,
-	  DropdownMenuTrigger
+		DropdownMenu,
+		DropdownMenuCheckboxItem,
+		DropdownMenuContent,
+		DropdownMenuItem,
+		DropdownMenuSeparator,
+		DropdownMenuTrigger
 	} from '@glyphtex/ui/dropdown-menu';
 	import { Logo } from '@glyphtex/ui/logo';
 	import { projectViewTransitionName } from '@glyphtex/ui/projects';
 	import * as Sidebar from '@glyphtex/ui/sidebar';
 	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
 	import {
-	  IconArrowsSort,
-	  IconChevronDown,
-	  IconClock,
-	  IconCloudDownload,
-	  IconCopy,
-	  IconCloud,
-	  IconDotsVertical,
-	  IconExternalLink,
-	  IconFileImport,
-	  IconFolderOpen,
-	  IconFolderShare,
-	  IconHelpCircle,
-	  IconInfoCircle,
-	  IconHome,
-	  IconLayoutGrid,
-	  IconLayoutList,
-	  IconPencil,
-	  IconPlus,
-	  IconSearch,
-	  IconSettings,
-	  IconStar,
-	  IconStarFilled,
-	  IconTemplate,
-	  IconTrash
+		IconArrowsSort,
+		IconChevronDown,
+		IconClock,
+		IconCloudDownload,
+		IconCopy,
+		IconDotsVertical,
+		IconExternalLink,
+		IconFileImport,
+		IconFolderOpen,
+		IconFolderShare,
+		IconHelpCircle,
+		IconHome,
+		IconInfoCircle,
+		IconLayoutGrid,
+		IconLayoutList,
+		IconPencil,
+		IconPlus,
+		IconSearch,
+		IconSettings,
+		IconStar,
+		IconStarFilled,
+		IconTemplate,
+		IconTrash,
+		IconX
 	} from '@tabler/icons-svelte';
 	import { tick } from 'svelte';
 	import { flip } from 'svelte/animate';
@@ -133,21 +133,41 @@
 	let aboutOpen = $state(false);
 	let pendingDelete = $state<Project | null>(null);
 
+	let searchOpen = $state(false);
+	let searchEl = $state<HTMLInputElement>();
+
+	async function openSearch() {
+		searchOpen = true;
+		await tick();
+		searchEl?.focus();
+	}
+	function closeSearch() {
+		query = '';
+		searchOpen = false;
+	}
+	// "/" is the list's search shortcut. Ignored while the caret is in a field so
+	// it can still be typed into a project name.
+	function onWindowKeydown(e: KeyboardEvent) {
+		if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+		const t = e.target as HTMLElement | null;
+		if (t?.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t?.tagName ?? '')) return;
+		e.preventDefault();
+		openSearch();
+	}
+
 	let scrollEl = $state<HTMLElement>();
 	let scrolled = $state(false);
 	function onScroll() {
 		scrolled = (scrollEl?.scrollTop ?? 0) > 4;
 	}
 
-	// Just longer than the new card's 360ms `in:fly`, so the card→editor view
-	// transition morphs from a settled card rather than one mid-entrance.
-	const NEW_CARD_REVEAL_MS = 400;
 	async function handleCreate() {
 		const id = await oncreate?.();
 		// A host that returns no id navigates on its own (legacy) — nothing to do.
 		if (typeof id !== 'string') return;
-		await tick(); // flush the inserted card into the DOM so its entrance starts
-		await new Promise((resolve) => setTimeout(resolve, NEW_CARD_REVEAL_MS));
+		// Straight through. This used to sleep 400ms so the card→editor view
+		// transition could morph from a settled card; that put nearly half a second
+		// of dead air on the primary action to buy an animation nobody asked for.
 		onopen?.(id);
 	}
 
@@ -194,17 +214,21 @@
 	);
 
 	const scopes: { id: Scope; label: string; icon: typeof IconPlus }[] = [
-		{ id: 'all', label: 'Workspace', icon: IconHome },
+		{ id: 'all', label: 'All projects', icon: IconHome },
 		{ id: 'recent', label: 'Recent', icon: IconClock },
 		{ id: 'starred', label: 'Starred', icon: IconStar },
 		{ id: 'templates', label: 'Templates', icon: IconTemplate }
 	];
 
-	// Height, text size, and icon size all come from SidebarMenuButton's defaults so
-	// every row matches. Brand shows as the active label colour, not a filled block.
-	const navRow = 'rounded-lg px-3 data-active:text-brand';
-	/** Footer rows never take an active state — they are actions, not locations. */
-	const actionRow = 'rounded-lg px-3 text-muted-foreground hover:text-foreground';
+	// One row treatment for the whole rail. Height and text come from
+	// SidebarMenuButton's defaults; 28px matches Notion's sidebar density.
+	// Active state is the fill + weight the base already applies — not a brand
+	// colour, which would make every visited rail look like a link.
+	const railRow = 'h-7 rounded-md px-2';
+	const groupLabel = 'text-faint h-6 px-2 text-xs font-medium';
+
+	const scopeLabel = $derived(scopes.find((s) => s.id === scope)?.label ?? 'All projects');
+	const ScopeIcon = $derived(scopes.find((s) => s.id === scope)?.icon ?? IconHome);
 
 	const sorts: { id: Sort; label: string }[] = [
 		{ id: 'newest', label: 'Newest first' },
@@ -262,7 +286,6 @@
 			return 55 + ((h >> (i + 3)) % 42); // 55–96%
 		});
 	}
-
 </script>
 
 {#snippet projectTitle(p: Project)}
@@ -340,19 +363,33 @@
 	</DropdownMenu>
 {/snippet}
 
+<svelte:window onkeydown={onWindowKeydown} />
+
 <Sidebar.Provider class="text-foreground h-dvh min-h-0">
-	<Sidebar.Root variant="inset" collapsible="icon">
-		<Sidebar.Header class="h-14 justify-center px-3 group-data-[collapsible=icon]:px-0">
-			<Logo
-				size="md"
-				badge
-				viewTransitionName="app-logo"
-				class="tracking-tight group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:[&>span:last-child]:hidden"
-			/>
+	<Sidebar.Root variant="sidebar" collapsible="icon" class="border-sidebar-border">
+		<Sidebar.Header class="h-12 justify-center p-2">
+			<!-- Collapsed, this becomes a 32px square centred in the 48px rail, so the
+			     lockup lines up with the icon buttons below it instead of hanging off
+			     the left edge. `self-center` is the horizontal axis here: the header
+			     is a column. -->
+			<a
+				href={platform === 'web' ? '/' : '/workspace'}
+				class="hover:bg-sidebar-accent flex h-8 items-center gap-2 rounded-md px-1.5 transition-colors group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:px-0"
+			>
+				<Logo
+					size={20}
+					badge
+					viewTransitionName="app-logo"
+					class="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:[&>span:last-child]:hidden"
+				/>
+			</a>
 		</Sidebar.Header>
 
-		<Sidebar.Content>
-			<Sidebar.Group class="px-2 py-1">
+		<Sidebar.Content class="gap-1">
+			<Sidebar.Group class="px-2 py-0">
+				<Sidebar.GroupLabel class="{groupLabel} group-data-[collapsible=icon]:hidden">
+					Projects
+				</Sidebar.GroupLabel>
 				<Sidebar.GroupContent>
 					<Sidebar.Menu aria-label="Project scopes">
 						{#each scopes as item (item.id)}
@@ -362,7 +399,7 @@
 								<Sidebar.MenuItem>
 									<Sidebar.MenuButton
 										isActive={activeScope === item.id}
-										class={navRow}
+										class={railRow}
 										tooltipContent={item.label}
 									>
 										{#snippet child({ props })}
@@ -381,60 +418,65 @@
 					</Sidebar.Menu>
 				</Sidebar.GroupContent>
 			</Sidebar.Group>
+
+			<!-- Settings, docs and About sit at the foot of the scroll area rather than
+			     in the footer, which is reserved for the create action. -->
+			<Sidebar.Group class="mt-auto px-2 py-0">
+				<Sidebar.GroupContent>
+					<Sidebar.Menu>
+						{#if onsettings}
+							<Sidebar.MenuItem>
+								<Sidebar.MenuButton
+									class={railRow}
+									tooltipContent="Settings"
+									onclick={() => onsettings?.()}
+								>
+									<IconSettings /><span>Settings</span>
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
+						{/if}
+						{#if helpHref}
+							<Sidebar.MenuItem>
+								<!-- Trailing IconExternalLink is the rail's convention for a row that
+								     leaves the workspace; leading icons only ever name the thing. -->
+								<Sidebar.MenuButton class={railRow} tooltipContent={'Help & Docs'}>
+									{#snippet child({ props })}
+										<a {...props} href={helpHref}>
+											<IconHelpCircle /><span>Help &amp; Docs</span>
+											<IconExternalLink
+												class="text-faint ml-auto !size-3.5 group-data-[collapsible=icon]:hidden"
+											/>
+										</a>
+									{/snippet}
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
+						{/if}
+						<Sidebar.MenuItem>
+							<Sidebar.MenuButton
+								class={railRow}
+								tooltipContent="About GlyphTeX"
+								onclick={() => (aboutOpen = true)}
+							>
+								<IconInfoCircle /><span>About GlyphTeX</span>
+							</Sidebar.MenuButton>
+						</Sidebar.MenuItem>
+					</Sidebar.Menu>
+				</Sidebar.GroupContent>
+			</Sidebar.Group>
 		</Sidebar.Content>
 
-		<Sidebar.Footer class="gap-3">
-			<Sidebar.Separator class="mx-1" />
-
-			<Sidebar.Menu>
-				{#if onsettings}
-					<Sidebar.MenuItem>
-						<Sidebar.MenuButton
-							class={actionRow}
-							tooltipContent="Settings"
-							onclick={() => onsettings?.()}
-						>
-							<IconSettings /><span>Settings</span>
-						</Sidebar.MenuButton>
-					</Sidebar.MenuItem>
-				{/if}
-				{#if helpHref}
-					<Sidebar.MenuItem>
-						<!-- Trailing IconExternalLink is the rail's convention for a row that
-						     leaves the workspace; leading icons only ever name the thing. -->
-						<Sidebar.MenuButton class={actionRow} tooltipContent={'Help & Docs'}>
-							{#snippet child({ props })}
-								<a {...props} href={helpHref}>
-									<IconHelpCircle /><span>Help &amp; Docs</span>
-									<IconExternalLink
-										class="text-faint ml-auto !size-3.5 group-data-[collapsible=icon]:hidden"
-									/>
-								</a>
-							{/snippet}
-						</Sidebar.MenuButton>
-					</Sidebar.MenuItem>
-				{/if}
-				<Sidebar.MenuItem>
-					<Sidebar.MenuButton
-						class={actionRow}
-						tooltipContent="About GlyphTeX"
-						onclick={() => (aboutOpen = true)}
-					>
-						<IconInfoCircle /><span>About GlyphTeX</span>
-					</Sidebar.MenuButton>
-				</Sidebar.MenuItem>
-			</Sidebar.Menu>
-
+		<Sidebar.Footer class="gap-3 p-2">
 			{#if storage}
 				<!-- Amber past 80%: the browser starts evicting under storage pressure. -->
 				{@const tight = storagePct >= 80}
-				<div
-					class="border-sidebar-border bg-card rounded-xl border p-3 group-data-[collapsible=icon]:hidden"
-				>
-					<div class="text-muted-foreground flex items-center gap-2 text-xs font-medium">
-						<IconCloud size={14} class="shrink-0" /> Local storage
+				<div class="px-1 group-data-[collapsible=icon]:hidden">
+					<div class="text-faint flex items-center justify-between gap-2 text-xs">
+						<span>Local storage</span>
+						<span class="tabular-nums">
+							{formatBytes(storage.used)} / {formatBytes(storage.total)}
+						</span>
 					</div>
-					<div class="bg-muted mt-2 h-1 overflow-hidden rounded-full">
+					<div class="bg-sidebar-accent mt-1.5 h-1 overflow-hidden rounded-full">
 						<div
 							class="h-full rounded-full transition-[width] duration-500 {tight
 								? 'bg-warning'
@@ -442,11 +484,18 @@
 							style:width={`${Math.max(storagePct, 2)}%`}
 						></div>
 					</div>
-					<p class="text-faint mt-2 text-xs">
-						{formatBytes(storage.used)} of {formatBytes(storage.total)} used
-					</p>
 				</div>
 			{/if}
+
+			<Button
+				variant="secondary"
+				class="h-9 w-full justify-center gap-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:px-0"
+				title="New project"
+				onclick={handleCreate}
+			>
+				<IconPlus class="text-brand" />
+				<span class="group-data-[collapsible=icon]:hidden">New project</span>
+			</Button>
 		</Sidebar.Footer>
 
 		<!-- Drag-handle-looking strip on the sidebar's edge; clicking it toggles
@@ -454,54 +503,170 @@
 		<Sidebar.Rail />
 	</Sidebar.Root>
 
-	<!-- `bg-card`, not the inset's default `bg-background`: in dark this panel is
-	     the layer that lifts off the rail's floor. -->
-	<Sidebar.Inset class="bg-card min-h-0 overflow-hidden">
+	<Sidebar.Inset class="bg-background min-h-0 overflow-hidden">
 		<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
-		<header
-			class="ease-craft sticky top-0 z-20 flex h-14 items-center justify-end gap-3 border-b px-6 transition-[background-color,border-color,box-shadow] duration-300 {scrolled
-				? 'border-border bg-card/75 shadow-craft-sm backdrop-blur-xl'
-				: 'border-transparent bg-transparent'}"
-		>
-			<div class="-ml-2 flex items-center gap-1">
+			<header
+				class="sticky top-0 z-20 flex h-12 items-center gap-2 px-3 transition-colors duration-200 {scrolled
+					? 'bg-background border-border border-b'
+					: 'border-b border-transparent'}"
+			>
 				<Sidebar.Trigger title="Toggle sidebar (Ctrl/⌘ B)" />
-				<Logo size={24} class="text-sm tracking-tight md:hidden" />
-			</div>
-			<div class="flex flex-1 items-center justify-end gap-0.5">
-				<ThemeToggle size="icon-sm" />
-				<Button
-					size="icon-sm"
-					variant="ghost"
-					title="About GlyphTeX"
-					aria-label="About GlyphTeX"
-					onclick={() => (aboutOpen = true)}
-				>
-					<IconInfoCircle />
-				</Button>
-			</div>
-		</header>
+				<Logo size={20} class="text-sm tracking-tight md:hidden" />
+				<ScopeIcon size={15} class="text-muted-foreground ml-1 shrink-0" />
+				<span class="truncate text-sm font-medium">{scopeLabel}</span>
+				<div class="ml-auto flex items-center gap-0.5">
+					<ThemeToggle size="icon-sm" />
+				</div>
+			</header>
 
-		<div class="mx-auto w-full max-w-[1140px] px-6 pt-6 pb-12">
-			<div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-				<div>
-					<h1 class="font-display text-2xl font-semibold tracking-tight">Your projects</h1>
-					<p class="text-muted-foreground mt-1.5 text-sm">
+			<div class="mx-auto w-full max-w-[1100px] px-6 pt-8 pb-20 sm:px-10 lg:px-14">
+				<h1 class="font-display text-3xl font-semibold tracking-tight">
+					{scopeLabel}
+				</h1>
+
+				{#if onclone && cloning}
+					<div
+						class="border-border bg-background mt-4 flex items-center gap-2 rounded-lg border p-1.5"
+					>
+						<IconCloudDownload size={16} class="text-muted-foreground ml-1 shrink-0" />
+						<!-- svelte-ignore a11y_autofocus -->
+						<input
+							bind:value={cloneUrl}
+							class="text-foreground placeholder:text-muted-foreground h-8 min-w-0 flex-1 bg-transparent px-1 text-sm outline-none"
+							placeholder="Repository URL — https://github.com/owner/repo.git"
+							spellcheck="false"
+							autofocus
+							disabled={cloneBusy}
+							onkeydown={(e) => {
+								if (e.key === 'Enter') submitClone();
+								if (e.key === 'Escape') cloning = false;
+							}}
+						/>
+						<Button size="sm" disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
+							{cloneBusy ? 'Cloning…' : 'Clone'}
+						</Button>
+						<Button
+							size="sm"
+							variant="ghost"
+							disabled={cloneBusy}
+							onclick={() => (cloning = false)}
+						>
+							Cancel
+						</Button>
+					</div>
+				{/if}
+
+				<div class="mt-5 flex items-center gap-1">
+					<p class="text-muted-foreground mr-auto text-sm">
 						{#if loading}
 							Reading local storage…
+						{:else if query.trim()}
+							{filtered.length} of {scoped.length}
 						{:else}
-							{projects.length}
-							{projects.length === 1 ? 'project' : 'projects'} · stored on this device
+							{scoped.length}
+							{scoped.length === 1 ? 'project' : 'projects'}
 						{/if}
 					</p>
-				</div>
-				<div class="flex flex-wrap items-center gap-2">
+
+					{#if searchOpen || query}
+						<div class="relative w-56">
+							<IconSearch
+								size={15}
+								class="text-faint pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
+							/>
+							<input
+								bind:this={searchEl}
+								bind:value={query}
+								class="bg-muted text-foreground placeholder:text-faint focus-visible:ring-ring/40 h-8 w-full rounded-md py-1 pr-8 pl-8 text-sm outline-none focus-visible:ring-2"
+								placeholder="Search projects"
+								spellcheck="false"
+								aria-label="Search projects"
+								onkeydown={(e) => {
+									if (e.key === 'Escape') closeSearch();
+								}}
+								onblur={() => {
+									if (!query.trim()) searchOpen = false;
+								}}
+							/>
+							{#if query}
+								<button
+									class="text-faint hover:text-foreground absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-1"
+									onclick={closeSearch}
+									aria-label="Clear search"
+								>
+									<IconX size={14} />
+								</button>
+							{/if}
+						</div>
+					{:else}
+						<Button
+							variant="ghost"
+							size="icon-sm"
+							title="Search projects (/)"
+							aria-label="Search projects"
+							onclick={openSearch}
+						>
+							<IconSearch />
+						</Button>
+					{/if}
+
+					<DropdownMenu>
+						<DropdownMenuTrigger>
+							{#snippet child({ props })}
+								<Button
+									{...props}
+									variant="ghost"
+									size="icon-sm"
+									title="Sort — {sorts.find((o) => o.id === sort)?.label}"
+									aria-label="Sort projects"
+								>
+									<IconArrowsSort />
+								</Button>
+							{/snippet}
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" class="w-44">
+							{#each sorts as option (option.id)}
+								<DropdownMenuCheckboxItem
+									checked={sort === option.id}
+									onCheckedChange={() => (sort = option.id)}
+								>
+									{option.label}
+								</DropdownMenuCheckboxItem>
+							{/each}
+						</DropdownMenuContent>
+					</DropdownMenu>
+
+					<div class="flex items-center gap-0.5" role="group" aria-label="View mode">
+						<Button
+							variant={view === 'grid' ? 'secondary' : 'ghost'}
+							size="icon-sm"
+							title="Grid view"
+							aria-label="Grid view"
+							aria-pressed={view === 'grid'}
+							onclick={() => (view = 'grid')}
+						>
+							<IconLayoutGrid />
+						</Button>
+						<Button
+							variant={view === 'list' ? 'secondary' : 'ghost'}
+							size="icon-sm"
+							title="List view"
+							aria-label="List view"
+							aria-pressed={view === 'list'}
+							onclick={() => (view = 'list')}
+						>
+							<IconLayoutList />
+						</Button>
+					</div>
+
 					<!-- Every "bring in an existing project" action collapses into this one
-					     menu so the primary New-project button stays unambiguous. -->
+				     menu so the primary New-project button stays unambiguous. -->
 					{#if onopenfolder || onimport || onimportfolder || onclone}
+						<span class="bg-border mx-1 h-4 w-px" aria-hidden="true"></span>
 						<DropdownMenu>
 							<DropdownMenuTrigger>
 								{#snippet child({ props })}
-									<Button {...props} size="sm" variant="outline">
+									<Button {...props} size="sm" variant="ghost" class="h-8">
 										<IconFileImport /> Import
 										<IconChevronDown class="size-3.5 opacity-60" />
 									</Button>
@@ -536,317 +701,206 @@
 							</DropdownMenuContent>
 						</DropdownMenu>
 					{/if}
-					<Button size="sm" onclick={handleCreate}>
+
+					<Button size="sm" class="h-8" onclick={handleCreate}>
 						<IconPlus /> New project
 					</Button>
 				</div>
-			</div>
 
-			{#if onclone && cloning}
-				<div
-					class="border-border bg-card shadow-craft-sm mt-4 flex items-center gap-2 rounded-xl border p-2"
-				>
-					<IconCloudDownload size={16} class="text-muted-foreground ml-1 shrink-0" />
-					<!-- svelte-ignore a11y_autofocus -->
-					<input
-						bind:value={cloneUrl}
-						class="text-foreground placeholder:text-muted-foreground h-9 min-w-0 flex-1 bg-transparent px-1 text-sm outline-none"
-						placeholder="Repository URL — https://github.com/owner/repo.git"
-						spellcheck="false"
-						autofocus
-						disabled={cloneBusy}
-						onkeydown={(e) => {
-							if (e.key === 'Enter') submitClone();
-							if (e.key === 'Escape') cloning = false;
-						}}
-					/>
-					<Button size="sm" disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
-						{cloneBusy ? 'Cloning…' : 'Clone'}
-					</Button>
-					<Button size="sm" variant="ghost" disabled={cloneBusy} onclick={() => (cloning = false)}>
-						Cancel
-					</Button>
-				</div>
-			{/if}
-
-			<div class="mt-6 flex flex-wrap items-center gap-2">
-				<div class="relative min-w-56 flex-1">
-					<IconSearch
-						size={16}
-						class="text-faint pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
-					/>
-					<input
-						bind:value={query}
-						class="bg-card border-border text-foreground placeholder:text-faint focus-visible:border-ring focus-visible:ring-ring/30 ease-craft h-10 w-full rounded-xl border py-2 pr-3 pl-9 text-sm outline-none transition-[box-shadow,border-color] duration-200 focus-visible:ring-2"
-						placeholder="Search projects…"
-						spellcheck="false"
-						aria-label="Search projects"
-					/>
-				</div>
-
-				<DropdownMenu>
-					<DropdownMenuTrigger>
-						{#snippet child({ props })}
-							<Button {...props} variant="outline" size="sm" class="h-10 gap-1.5">
-								<IconArrowsSort />
-								{sorts.find((s) => s.id === sort)?.label}
-								<IconChevronDown class="size-3.5 opacity-60" />
-							</Button>
-						{/snippet}
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end" class="w-44">
-						{#each sorts as option (option.id)}
-							<DropdownMenuCheckboxItem
-								checked={sort === option.id}
-								onCheckedChange={() => (sort = option.id)}
-							>
-								{option.label}
-							</DropdownMenuCheckboxItem>
-						{/each}
-					</DropdownMenuContent>
-				</DropdownMenu>
-
-				<div
-					class="border-border flex h-10 items-center gap-0.5 rounded-xl border p-1"
-					role="group"
-					aria-label="View mode"
-				>
-					<Button
-						variant={view === 'grid' ? 'secondary' : 'ghost'}
-						size="icon-sm"
-						title="Grid view"
-						aria-label="Grid view"
-						aria-pressed={view === 'grid'}
-						onclick={() => (view = 'grid')}
-					>
-						<IconLayoutGrid />
-					</Button>
-					<Button
-						variant={view === 'list' ? 'secondary' : 'ghost'}
-						size="icon-sm"
-						title="List view"
-						aria-label="List view"
-						aria-pressed={view === 'list'}
-						onclick={() => (view = 'list')}
-					>
-						<IconLayoutList />
-					</Button>
-				</div>
-			</div>
-
-			{#key scope}
-			<!-- Keyed on scope so switching rails replays the entrance rather than
+				{#key scope}
+					<!-- Keyed on scope so switching rails replays the entrance rather than
 			     swapping content in place; local reads are instant, so without it the
 			     grid just blinks. -->
-			<div in:fade={{ duration: 180, easing: cubicOut }}>
-			{#if loading}
-				<!-- Skeletons, not a full-page spinner: the rail and toolbar are already
+					<div in:fade={{ duration: 180, easing: cubicOut }}>
+						{#if loading}
+							<!-- Skeletons, not a full-page spinner: the rail and toolbar are already
 				     correct, so only the unknown region should be in a loading state. -->
-				{#if view === 'list'}
-					<div class="mt-6 flex flex-col gap-1.5" aria-busy="true" aria-label="Loading projects" role="status">
-						{#each { length: 6 } as _, i (i)}
-							<div
-								class="border-border flex animate-pulse items-center gap-3 rounded-xl border px-3 py-2.5"
-								style:animation-delay={`${i * 70}ms`}
-							>
-								<div class="bg-muted size-9 shrink-0 rounded-lg"></div>
-								<div class="flex-1 space-y-1.5">
-									<div class="bg-muted h-3 w-1/4 rounded-full"></div>
-									<div class="bg-muted h-2.5 w-1/6 rounded-full"></div>
-								</div>
-							</div>
-						{/each}
-					</div>
-				{:else}
-					<div
-						class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-5 gap-y-7"
-						aria-busy="true"
-						aria-label="Loading projects"
-						role="status"
-					>
-						{#each { length: 6 } as _, i (i)}
-							<div class="animate-pulse" style:animation-delay={`${i * 70}ms`}>
-								<div class="bg-muted aspect-[4/5] rounded-xl"></div>
-								<div class="mt-2.5 space-y-1.5 px-0.5">
-									<div class="bg-muted h-3 w-3/5 rounded-full"></div>
-									<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
-			{:else if filtered.length === 0}
-				<div
-					class="border-border text-muted-foreground mt-8 flex flex-col items-center gap-4 rounded-2xl border border-dashed py-20 text-center"
-				>
-					<Logo text={false} badge={false} size={44} class="opacity-40" />
-					{#if projects.length === 0}
-						<p class="text-foreground text-sm font-medium">No projects yet</p>
-						<p class="max-w-xs text-xs leading-relaxed">
-							Create your first project — everything stays on this device.
-						</p>
-						<Button size="sm" class="mt-1" onclick={handleCreate}>
-							<IconPlus /> New project
-						</Button>
-					{:else if query.trim()}
-						<p class="text-sm">No projects match “{query}”.</p>
-					{:else if scope === 'templates'}
-						<p class="text-foreground text-sm font-medium">No templates yet</p>
-						<p class="max-w-xs text-xs leading-relaxed">
-							Starter documents will live here. For now, New project begins from a blank
-							article.
-						</p>
-						<Button size="sm" variant="outline" class="mt-1" onclick={handleCreate}>
-							<IconPlus /> New project
-						</Button>
-					{:else if scope === 'starred'}
-						<p class="text-foreground text-sm font-medium">Nothing starred yet</p>
-						<p class="max-w-xs text-xs leading-relaxed">
-							Star a project from its ⋯ menu to keep it here.
-						</p>
-					{:else}
-						<p class="text-foreground text-sm font-medium">Nothing edited this week</p>
-						<p class="max-w-xs text-xs leading-relaxed">
-							Recent shows projects you have touched in the last 7 days.
-						</p>
-					{/if}
-				</div>
-			{:else if view === 'list'}
-				<div class="mt-6 flex flex-col gap-1.5" role="list" aria-label="Projects">
-					<button
-						class="group border-border hover:border-ring/50 hover:bg-muted/30 ease-craft flex items-center gap-3 rounded-xl border border-dashed px-3 py-2.5 text-left transition-colors"
-						in:fly={{ y: 6, duration: 260, easing: cubicOut }}
-						onclick={handleCreate}
-					>
-						<span
-							class="bg-muted text-muted-foreground group-hover:bg-brand-subtle group-hover:text-brand ease-craft grid size-9 shrink-0 place-items-center rounded-lg transition-colors"
-						>
-							<IconPlus size={17} />
-						</span>
-						<span class="text-muted-foreground group-hover:text-foreground text-sm font-medium">
-							New project
-						</span>
-					</button>
-
-					{#each filtered as p, i (p.id)}
-						<div
-							class="group border-border hover:bg-muted/40 ease-craft flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors"
-							role="listitem"
-							in:fly={{ y: 6, duration: 260, delay: Math.min(i, 12) * 18, easing: cubicOut }}
-							out:fade={{ duration: 120, easing: cubicOut }}
-							animate:flip={{ duration: 280, easing: cubicOut }}
-						>
-							<button
-								class="border-border bg-card ease-craft grid size-9 shrink-0 place-items-center overflow-hidden rounded-lg border transition-shadow group-hover:shadow-craft-sm"
-								style:view-transition-name={projectViewTransitionName(p.id)}
-								style:view-transition-class="morph-surface"
-								onclick={() => onopen?.(p.id)}
-								aria-label={`Open ${p.name}`}
-							>
-								<span class="flex w-full flex-col gap-[3px] px-2" aria-hidden="true">
-									<span class="bg-foreground/70 h-[3px] w-3/5 rounded-full"></span>
-									<span class="bg-foreground/15 h-[2px] w-full rounded-full"></span>
-									<span class="bg-foreground/15 h-[2px] w-4/5 rounded-full"></span>
-								</span>
-							</button>
-
-							<div class="min-w-0 flex-1">
-								{@render projectTitle(p)}
-							</div>
-
-							{#if p.starred}
-								<IconStarFilled class="text-warning size-3.5 shrink-0" />
-							{/if}
-							{@render projectActions(p)}
-						</div>
-					{/each}
-				</div>
-			{:else}
-				<div
-					class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-5 gap-y-7"
-					role="list"
-					aria-label="Projects"
-				>
-					<button
-						class="group border-border hover:border-ring/50 hover:bg-muted/30 ease-craft flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition-all duration-300 hover:-translate-y-1 active:translate-y-0 active:scale-[0.99] motion-reduce:transform-none"
-						in:fly={{ y: 10, duration: 360, easing: cubicOut }}
-						onclick={handleCreate}
-					>
-						<span
-							class="bg-muted text-muted-foreground group-hover:bg-brand-subtle group-hover:text-brand ease-craft grid size-10 place-items-center rounded-full transition-all duration-300 group-hover:scale-110 motion-reduce:transform-none"
-						>
-							<IconPlus size={20} />
-						</span>
-						<span class="text-muted-foreground group-hover:text-foreground text-sm font-medium">
-							New project
-						</span>
-					</button>
-
-					{#each filtered as p, i (p.id)}
-						<div
-							class="group relative"
-							role="listitem"
-							in:fly={{ y: 10, duration: 360, delay: Math.min(i, 12) * 26, easing: cubicOut }}
-							out:fade={{ duration: 140, easing: cubicOut }}
-							animate:flip={{ duration: 320, easing: cubicOut }}
-						>
-							<button
-								class="block w-full text-left"
-								onclick={() => onopen?.(p.id)}
-								aria-label={`Open ${p.name}`}
-							>
-								<div class="relative aspect-[4/5]">
-									<!-- Ghost pages that fan out from behind the front page on hover. -->
-									<div
-										aria-hidden="true"
-										class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-xl border opacity-0 transition-all duration-300 group-hover:-translate-x-3 group-hover:-translate-y-1 group-hover:-rotate-[5deg] group-hover:scale-[0.97] group-hover:opacity-70 motion-reduce:hidden"
-									></div>
-									<div
-										aria-hidden="true"
-										class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-xl border opacity-0 transition-all duration-300 group-hover:translate-x-3 group-hover:-translate-y-2 group-hover:rotate-[5deg] group-hover:scale-[0.985] group-hover:opacity-100 motion-reduce:hidden"
-									></div>
-
-									<!-- Shares its view-transition-name with the editor surface, so
-									     opening the project morphs this page into it. -->
-									<div
-										class="bg-card border-border shadow-craft-sm group-hover:shadow-craft-lg ease-craft absolute inset-0 z-10 overflow-hidden rounded-xl border transition-all duration-300 group-hover:-translate-y-1 group-active:translate-y-0 group-active:scale-[0.985] motion-reduce:transform-none"
-										style:view-transition-name={projectViewTransitionName(p.id)}
-										style:view-transition-class="morph-surface"
-									>
-										<!-- folded corner -->
+							{#if view === 'list'}
+								<div
+									class="mt-4 flex flex-col"
+									aria-busy="true"
+									aria-label="Loading projects"
+									role="status"
+								>
+									{#each { length: 6 } as _, i (i)}
 										<div
-											class="border-border bg-muted/60 absolute top-0 right-0 size-6 border-b border-l"
-											style="clip-path: polygon(100% 0, 0 0, 100% 100%)"
-										></div>
-										<div class="flex h-full flex-col gap-2 p-5 pt-6">
-											<div class="bg-foreground/80 h-2 w-3/5 rounded-full"></div>
-											<div class="mt-2 flex flex-col gap-1.5">
-												{#each lineWidths(p.id) as w, i (i)}
-													<div class="bg-foreground/12 h-1.5 rounded-full" style:width={`${w}%`}></div>
-												{/each}
-											</div>
-											<div class="mt-auto flex items-center gap-1.5">
-												<span class="bg-brand/70 h-1.5 w-1.5 rounded-full"></span>
-												<div class="bg-foreground/12 h-1.5 w-2/5 rounded-full"></div>
+											class="border-border flex animate-pulse items-center gap-3 border-b py-3 last:border-b-0"
+											style:animation-delay={`${i * 70}ms`}
+										>
+											<div class="bg-muted size-9 shrink-0 rounded-md"></div>
+											<div class="flex-1 space-y-1.5">
+												<div class="bg-muted h-3 w-1/4 rounded-full"></div>
+												<div class="bg-muted h-2.5 w-1/6 rounded-full"></div>
 											</div>
 										</div>
-									</div>
+									{/each}
 								</div>
-							</button>
-
-							<div class="mt-2.5 flex items-start justify-between gap-1.5 px-0.5">
-								<div class="min-w-0 flex-1">
-									{@render projectTitle(p)}
+							{:else}
+								<div
+									class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-5 gap-y-7"
+									aria-busy="true"
+									aria-label="Loading projects"
+									role="status"
+								>
+									{#each { length: 6 } as _, i (i)}
+										<div class="animate-pulse" style:animation-delay={`${i * 70}ms`}>
+											<div class="bg-muted aspect-[4/5] rounded-lg"></div>
+											<div class="mt-2.5 space-y-1.5 px-0.5">
+												<div class="bg-muted h-3 w-3/5 rounded-full"></div>
+												<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
+											</div>
+										</div>
+									{/each}
 								</div>
-								{@render projectActions(p)}
+							{/if}
+						{:else if filtered.length === 0}
+							<div
+								class="text-muted-foreground mt-6 flex flex-col items-center gap-3 py-24 text-center"
+							>
+								<Logo text={false} badge={false} size={36} class="opacity-20" />
+								{#if projects.length === 0}
+									<p class="text-foreground text-sm font-medium">No projects yet</p>
+									<p class="max-w-xs text-xs leading-relaxed">
+										Create your first project — everything stays on this device.
+									</p>
+									<Button size="sm" class="mt-1" onclick={handleCreate}>
+										<IconPlus /> New project
+									</Button>
+								{:else if query.trim()}
+									<p class="text-sm">No projects match “{query}”.</p>
+								{:else if scope === 'templates'}
+									<p class="text-foreground text-sm font-medium">No templates yet</p>
+									<p class="max-w-xs text-xs leading-relaxed">
+										Starter documents will live here. For now, New project begins from a blank
+										article.
+									</p>
+									<Button size="sm" variant="outline" class="mt-1" onclick={handleCreate}>
+										<IconPlus /> New project
+									</Button>
+								{:else if scope === 'starred'}
+									<p class="text-foreground text-sm font-medium">Nothing starred yet</p>
+									<p class="max-w-xs text-xs leading-relaxed">
+										Star a project from its ⋯ menu to keep it here.
+									</p>
+								{:else}
+									<p class="text-foreground text-sm font-medium">Nothing edited this week</p>
+									<p class="max-w-xs text-xs leading-relaxed">
+										Recent shows projects you have touched in the last 7 days.
+									</p>
+								{/if}
 							</div>
-						</div>
-					{/each}
-				</div>
-			{/if}
+						{:else if view === 'list'}
+							<!-- Hairline-separated bands, not floating rounded rows: the divider
+                   does the grouping and the fill is left to hover. -->
+							<div class="mt-4 flex flex-col" role="list" aria-label="Projects">
+								{#each filtered as p, i (p.id)}
+									<div
+										class="group border-border hover:bg-accent/60 -mx-3 flex items-center gap-3 border-b px-3 py-2.5 transition-colors last:border-b-0"
+										role="listitem"
+										in:fly={{
+											y: 4,
+											duration: 200,
+											delay: Math.min(i, 8) * 14,
+											easing: cubicOut
+										}}
+										out:fade={{ duration: 120, easing: cubicOut }}
+										animate:flip={{ duration: 280, easing: cubicOut }}
+									>
+										<button
+											class="border-border bg-card grid size-9 shrink-0 place-items-center overflow-hidden rounded-md border"
+											style:view-transition-name={projectViewTransitionName(p.id)}
+											style:view-transition-class="morph-surface"
+											onclick={() => onopen?.(p.id)}
+											aria-label={`Open ${p.name}`}
+										>
+											<span class="flex w-full flex-col gap-[3px] px-2" aria-hidden="true">
+												<span class="bg-foreground/70 h-[3px] w-3/5 rounded-full"></span>
+												<span class="bg-foreground/15 h-[2px] w-full rounded-full"></span>
+												<span class="bg-foreground/15 h-[2px] w-4/5 rounded-full"></span>
+											</span>
+										</button>
+
+										<div class="min-w-0 flex-1">
+											{@render projectTitle(p)}
+										</div>
+
+										{#if p.starred}
+											<IconStarFilled class="text-warning size-3.5 shrink-0" />
+										{/if}
+										{@render projectActions(p)}
+									</div>
+								{/each}
+							</div>
+						{:else}
+							<div
+								class="mt-7 grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-x-5 gap-y-7"
+								role="list"
+								aria-label="Projects"
+							>
+								{#each filtered as p, i (p.id)}
+									<div
+										class="group relative"
+										role="listitem"
+										in:fly={{
+											y: 6,
+											duration: 240,
+											delay: Math.min(i, 8) * 15,
+											easing: cubicOut
+										}}
+										out:fade={{ duration: 140, easing: cubicOut }}
+										animate:flip={{ duration: 320, easing: cubicOut }}
+									>
+										<button
+											class="block w-full text-left"
+											onclick={() => onopen?.(p.id)}
+											aria-label={`Open ${p.name}`}
+										>
+											<!-- Shares its view-transition-name with the editor surface, so
+                           opening the project morphs this page into it. Two ghost pages
+                           used to fan out behind this one on hover; a three-layer
+                           rotate-and-lift is too much choreography for a gesture that
+                           fires every time the pointer crosses a tile. -->
+											<div
+												class="bg-card border-border group-hover:border-ring/40 group-hover:shadow-craft-sm relative aspect-[4/5] overflow-hidden rounded-lg border transition-[border-color,box-shadow] duration-200"
+												style:view-transition-name={projectViewTransitionName(p.id)}
+												style:view-transition-class="morph-surface"
+											>
+												<!-- folded corner -->
+												<div
+													class="border-border bg-muted/60 absolute top-0 right-0 size-6 border-b border-l"
+													style="clip-path: polygon(100% 0, 0 0, 100% 100%)"
+												></div>
+												<div class="flex h-full flex-col gap-2 p-5 pt-6">
+													<div class="bg-foreground/80 h-2 w-3/5 rounded-full"></div>
+													<div class="mt-2 flex flex-col gap-1.5">
+														{#each lineWidths(p.id) as w, i (i)}
+															<div
+																class="bg-foreground/12 h-1.5 rounded-full"
+																style:width={`${w}%`}
+															></div>
+														{/each}
+													</div>
+													<div class="mt-auto flex items-center gap-1.5">
+														<span class="bg-brand/70 h-1.5 w-1.5 rounded-full"></span>
+														<div class="bg-foreground/12 h-1.5 w-2/5 rounded-full"></div>
+													</div>
+												</div>
+											</div>
+										</button>
+
+										<div class="mt-2.5 flex items-start justify-between gap-1.5 px-0.5">
+											<div class="min-w-0 flex-1">
+												{@render projectTitle(p)}
+											</div>
+											{@render projectActions(p)}
+										</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{/key}
 			</div>
-			{/key}
-		</div>
 		</div>
 	</Sidebar.Inset>
 </Sidebar.Provider>
@@ -860,8 +914,8 @@
 			<DialogTitle>Delete “{pendingDelete?.name}”?</DialogTitle>
 			<DialogDescription>
 				{#if pendingDelete?.root}
-					This permanently deletes the project folder and all its files from your disk.
-					This cannot be undone.
+					This permanently deletes the project folder and all its files from your disk. This cannot
+					be undone.
 				{:else}
 					This removes the project from GlyphTeX. This cannot be undone.
 				{/if}

@@ -37,7 +37,7 @@
 	};
 
 	const titles: Record<Scope, string> = {
-		all: 'Documents',
+		all: 'All projects',
 		recent: 'Recent',
 		starred: 'Starred',
 		templates: 'Templates'
