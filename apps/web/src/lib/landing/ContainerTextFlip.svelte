@@ -5,7 +5,7 @@
 		words?: string[];
 		/** Milliseconds each word is held before the next one flips in. */
 		interval?: number;
-		/** Milliseconds for the letter reveal. The container resizes in half this. */
+		/** Milliseconds for the letter reveal. */
 		animationDuration?: number;
 		class?: string;
 		textClass?: string;
@@ -22,11 +22,7 @@
 		tone = 'neutral'
 	}: Props = $props();
 
-	// A plain space collapses at the edge of an inline-block letter.
-	const NBSP = ' ';
-
 	let index = $state(0);
-	let textWidth = $state(0);
 
 	const word = $derived(words[index] ?? '');
 
@@ -37,36 +33,57 @@
 	$effect(() => {
 		if (reducedMotion || words.length < 2) return;
 		const id = setInterval(() => {
+			// Off-screen tabs still run timers; skipping keeps the hero from
+			// burning frames nobody sees.
+			if (document.hidden) return;
 			index = (index + 1) % words.length;
 		}, interval);
 		return () => clearInterval(id);
 	});
 </script>
 
-<!-- The measured span stays `whitespace-nowrap` so its natural width never depends
-     on the width we set on the container — otherwise the two would feed back. -->
+<!--
+  Every word occupies the same grid cell, so the pill sizes to the widest one
+  once and never resizes. The previous version measured the active word and
+  animated `width`, which reflowed the surrounding H1 on every rotation.
+
+  Accessibility: the rotation is decorative. An `aria-live` region here would
+  announce a new word every few seconds for the whole session, so the animated
+  run is hidden from AT and the full list is exposed once, statically.
+-->
 <span
 	class={cn(
-		'container-flip relative inline-flex items-center justify-center overflow-hidden rounded-lg px-2.5 pt-0.5 pb-1 align-baseline',
+		'container-flip relative inline-grid overflow-hidden rounded-lg px-2.5 pt-0.5 pb-1 align-baseline',
 		tone === 'brand' && 'container-flip-brand',
 		className
 	)}
-	style:width={textWidth ? `${textWidth + 20}px` : 'auto'}
-	style:transition-duration={reducedMotion ? '0ms' : `${animationDuration / 2}ms`}
-	aria-label={word}
-	aria-live="polite"
 >
-	<span bind:offsetWidth={textWidth} class={cn('whitespace-nowrap', textClass)} aria-hidden="true">
-		{#key word}
-			{#each word.split('') as letter, i (i)}
-				<span
-					class="container-flip-letter"
-					style:animation-delay="{i * 20}ms"
-					style:animation-duration="{animationDuration}ms">{letter === ' ' ? NBSP : letter}</span
-				>
-			{/each}
-		{/key}
-	</span>
+	<span class="sr-only">{words.join(', ')}</span>
+
+	{#each words as w, i (w)}
+		<span
+			class={cn(
+				'container-flip-slot col-start-1 row-start-1 whitespace-nowrap',
+				i === index ? 'visible' : 'invisible',
+				textClass
+			)}
+			aria-hidden="true"
+		>
+			{#if i === index}
+				{#key word}
+					{#each w.split('') as letter, l (l)}
+						<span
+							class="container-flip-letter"
+							style:animation-delay="{l * 20}ms"
+							style:animation-duration="{animationDuration}ms">{letter === ' ' ? ' ' : letter}</span
+						>
+					{/each}
+				{/key}
+			{:else}
+				{w}
+			{/if}
+		</span>
+	{/each}
 </span>
 
 <style>
@@ -74,8 +91,8 @@
 	   style of the heading it sits in, so it never sets its own type scale. */
 	.container-flip {
 		font: inherit;
-		transition-property: width;
-		transition-timing-function: cubic-bezier(0.625, 0.05, 0, 1);
+		justify-items: center;
+		align-items: center;
 		background: linear-gradient(to bottom, var(--card), var(--muted));
 		box-shadow:
 			inset 0 -1px var(--border),
@@ -88,12 +105,12 @@
 		background: linear-gradient(
 			to bottom,
 			color-mix(in oklab, var(--brand) 8%, var(--card)),
-			color-mix(in oklab, var(--brand) 16%, var(--card))
+			color-mix(in oklab, var(--brand) 14%, var(--card))
 		);
 		box-shadow:
 			inset 0 -1px color-mix(in oklab, var(--brand) 32%, transparent),
 			inset 0 0 0 1px color-mix(in oklab, var(--brand) 24%, transparent),
-			0 4px 12px color-mix(in oklab, var(--brand) 20%, transparent);
+			0 4px 12px color-mix(in oklab, var(--brand) 18%, transparent);
 	}
 
 	/* `backwards`, not `both`: the resting state below is the visible one, so a
@@ -103,24 +120,21 @@
 		opacity: 1;
 		animation-name: container-flip-in;
 		animation-fill-mode: backwards;
-		animation-timing-function: ease-in-out;
+		animation-timing-function: ease-out;
 	}
 
 	@keyframes container-flip-in {
 		from {
 			opacity: 0;
-			filter: blur(8px);
+			transform: translateY(0.14em);
 		}
 		to {
 			opacity: 1;
-			filter: blur(0);
+			transform: translateY(0);
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.container-flip {
-			transition: none;
-		}
 		.container-flip-letter {
 			animation: none;
 		}

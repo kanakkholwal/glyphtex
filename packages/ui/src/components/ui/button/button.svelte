@@ -20,12 +20,16 @@
 	export const buttonVariants = tv({
 		base: [
 			"group/button inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap cursor-pointer user-select-none",
-			"rounded-md border border-border/40 bg-clip-padding font-medium outline-none transition-all duration-200 select-none",
+			"rounded-md border border-border/40 bg-clip-padding font-medium outline-none select-none",
+			// Never `transition-all`: it animates layout properties too, and on a
+			// pressed button that is a reflow per frame.
+			"transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out",
 			"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
 			"aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-3",
 			"dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-			// Press feedback only. Growing on hover makes dense toolbars twitch.
-			"active:scale-[0.99]",
+			// Press feedback only — growing on hover makes dense toolbars twitch.
+			// 0.97, not 0.99: on a 44px CTA the latter is 0.4px of travel.
+			"active:scale-[0.97] active:duration-100",
 			"disabled:pointer-events-none disabled:opacity-50",
 			"[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 		].join(" "),
@@ -42,7 +46,7 @@
 				secondary:
 					"border-secondary bg-secondary text-secondary-foreground border-border/30 shadow-craft-sm hover:bg-muted/50",
 				outline:
-					"border-border bg-card text-foreground",
+					"border-border bg-card text-foreground hover:bg-accent hover:border-border",
 				ghost:
 					"border-transparent hover:bg-muted/40 hover:text-accent-foreground dark:hover:bg-accent/50",
 				link: "text-primary underline-offset-4 hover:underline hover:scale-100",

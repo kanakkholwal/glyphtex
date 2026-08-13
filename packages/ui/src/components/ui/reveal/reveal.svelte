@@ -9,11 +9,8 @@
 	 * mount/destroy, so scroll-in motion is driven by an IntersectionObserver
 	 * toggling Tailwind utility classes through the shared `CRAFT_EASE` curve.
 	 *
-	 * Variants:
-	 * - `up` / `down` / `left` / `right` — directional slide + fade
-	 * - `blur` — focus-pull blur + fade
-	 * - `scale` — gentle scale + fade
-	 * - `morph` — combined blur + scale + slide (the "settle into place" feel)
+	 * Variants: `up` / `down` / `left` / `right` (directional slide + fade),
+	 * `blur` (focus pull), `scale`, `morph` (scale + slide).
 	 */
 	type Variant = "up" | "down" | "left" | "right" | "blur" | "scale" | "morph";
 
@@ -40,20 +37,24 @@
 	}: Props = $props();
 
 	let visible = $state(false);
+	// `will-change` promotes a compositor layer. Holding it after the reveal has
+	// finished pins one layer per instance for the life of the page.
+	let settled = $state(false);
 
 	const hidden: Record<Variant, string> = {
 		up: "opacity-0 translate-y-3",
 		down: "opacity-0 -translate-y-3",
-		left: "opacity-0 translate-x-5",
-		right: "opacity-0 -translate-x-5",
-		blur: "opacity-0 blur-md",
-		scale: "opacity-0 scale-[0.97]",
-		morph: "opacity-0 translate-y-3 scale-[0.98] blur-[6px]",
+		left: "opacity-0 translate-x-4",
+		right: "opacity-0 -translate-x-4",
+		blur: "opacity-0 blur-sm",
+		scale: "opacity-0 scale-[0.98]",
+		morph: "opacity-0 translate-y-3 scale-[0.99]",
 	};
 
 	function reveal(node: HTMLElement) {
 		if (typeof IntersectionObserver === "undefined") {
 			visible = true;
+			settled = true;
 			return {};
 		}
 
@@ -64,6 +65,7 @@
 					if (once) observer.disconnect();
 				} else if (!once) {
 					visible = false;
+					settled = false;
 				}
 			},
 			{ threshold, rootMargin },
@@ -78,9 +80,13 @@
 <svelte:element
 	this={Tag}
 	use:reveal
-	style={`transition-delay: ${delay}ms;`}
+	style={settled ? undefined : `transition-delay: ${delay}ms;`}
+	ontransitionend={() => {
+		if (visible) settled = true;
+	}}
 	class={cn(
-		"transition-[opacity,transform,filter] duration-700 ease-[cubic-bezier(0.625,0.05,0,1)] will-change-[opacity,transform,filter] motion-reduce:transition-none",
+		"transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none",
+		!settled && "will-change-[opacity,transform,filter]",
 		visible
 			? "opacity-100 translate-x-0 translate-y-0 scale-100 blur-0"
 			: cn(hidden[variant], "motion-reduce:translate-x-0 motion-reduce:translate-y-0 motion-reduce:scale-100 motion-reduce:blur-0 motion-reduce:opacity-100"),

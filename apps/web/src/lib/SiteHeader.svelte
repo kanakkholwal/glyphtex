@@ -10,7 +10,44 @@
 	const repo = REPO_URL;
 
 	let open = $state(false);
-	const close = () => (open = false);
+	let toggleRef = $state<HTMLButtonElement | null>(null);
+
+	function close() {
+		if (!open) return;
+		open = false;
+		// Without this, dismissing the menu drops focus to <body> and a keyboard
+		// user restarts the tab order from the top of the document.
+		toggleRef?.focus();
+	}
+
+	// The panel is a dismissible overlay, so focus moves into it and stays there
+	// until it closes.
+	function menuFocus(node: HTMLElement) {
+		const focusables = () =>
+			Array.from(node.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(
+				(el) => el.offsetParent !== null
+			);
+
+		focusables()[0]?.focus();
+
+		function onKeydown(event: KeyboardEvent) {
+			if (event.key !== 'Tab') return;
+			const items = focusables();
+			if (items.length === 0) return;
+			const first = items[0];
+			const last = items[items.length - 1];
+			if (event.shiftKey && document.activeElement === first) {
+				event.preventDefault();
+				last.focus();
+			} else if (!event.shiftKey && document.activeElement === last) {
+				event.preventDefault();
+				first.focus();
+			}
+		}
+
+		node.addEventListener('keydown', onKeydown);
+		return () => node.removeEventListener('keydown', onKeydown);
+	}
 
 	// The nav-data hrefs are typed as `string`. Internal routes need
 	// resolve() so the type-safe router is happy and the lint is silent;
@@ -58,18 +95,15 @@
 -->
 <header
 	class={[
-		'fixed inset-x-0 top-0 z-50 py-4 transition-[background-color,backdrop-filter,box-shadow,border-color,padding] duration-300 ease-out',
+		'fixed inset-x-0 top-0 z-50 py-4 transition-[background-color,box-shadow,border-color] duration-300 ease-out',
 		scrolled
-			? 'bg-canvas/75 backdrop-blur-xl border-b border-hairline/70 landing-glass-strong'
-			: 'bg-transparent border-b border-transparent '
+			? 'landing-glass-strong border-b border-hairline'
+			: 'border-b border-transparent bg-transparent'
 	]}
 >
-	<nav
-		aria-label="Primary"
-		class={[
-			'max-w-7xl px-6 lg:px-10 mx-auto flex items-center gap-2 transition-[max-width,padding,border-radius,background-color,box-shadow,border-color] duration-300 ease-out'
-		]}
-	>
+	<!-- No transition on `max-width`/`padding`: neither value changes between the
+	     two states, and animating layout properties is a reflow per frame. -->
+	<nav aria-label="Primary" class="mx-auto flex max-w-7xl items-center gap-2 px-6 lg:px-10">
 		<a
 			href={home}
 			class="group/logo flex items-center gap-2.5 rounded-xl px-2 py-1 transition-transform active:scale-[0.97]"
@@ -106,13 +140,16 @@
 			</Button>
 			<ThemeToggle size="icon-sm" />
 			<!-- Was "Download". The desktop app is still a prototype, so the header
-			     points at the workspace until there is a release worth shipping. -->
+			     points at the workspace until there is a release worth shipping.
+			     The label matches the page CTAs exactly — two names for one URL
+			     reads as two destinations. -->
 			<Button href={resolve('/workspace')} size="sm" variant="brand" class="gap-1.5">
-				Open workspace
+				Open the workspace
 			</Button>
 			<button
+				bind:this={toggleRef}
 				type="button"
-				onclick={() => (open = !open)}
+				onclick={() => (open ? close() : (open = true))}
 				aria-expanded={open}
 				aria-controls="mobile-nav"
 				aria-label={open ? 'Close menu' : 'Open menu'}
@@ -129,17 +166,17 @@
 </header>
 
 {#if open}
-	<!-- Click-away backdrop (mobile only). -->
-	<button
-		type="button"
-		class="fixed inset-0 z-40 md:hidden"
-		aria-label="Close menu"
-		tabindex="-1"
-		onclick={close}
-	></button>
+	<!--
+	  Click-away backdrop. Presentational, not a control: the previous version was
+	  a full-viewport <button aria-label="Close menu">, which reaches the
+	  accessibility tree as an interactive element covering the whole page.
+	  Escape and the toggle are the real dismissals; this is a pointer shortcut.
+	-->
+	<div class="fixed inset-0 z-40 bg-canvas/40 md:hidden" aria-hidden="true" onclick={close}></div>
 	<div
 		id="mobile-nav"
 		class="landing-glass-strong fixed inset-x-4 top-19 z-50 rounded-2xl p-2 md:hidden"
+		{@attach menuFocus}
 	>
 		<ul class="flex flex-col">
 			{#each navLinks as link (link.href)}

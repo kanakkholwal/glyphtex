@@ -18,12 +18,18 @@
 
 	// The scrim carries readability on its own, so the photo underneath stays close
 	// to full strength instead of being flattened toward the canvas colour.
+	//
+	// The `left` ramp holds >=82% canvas out to 56% of the width, because that is
+	// where the hero's `max-w-2xl` copy column actually ends. The previous ramp was
+	// down to 30% by 52%, which left the longest headline lines sitting on whatever
+	// the photograph happened to be — contrast that cannot be measured or tested.
 	const washStyle = {
 		left: `background: linear-gradient(to right,
-			color-mix(in oklab, var(--canvas) 88%, transparent) 0%,
-			color-mix(in oklab, var(--canvas) 72%, transparent) 26%,
-			color-mix(in oklab, var(--canvas) 30%, transparent) 52%,
-			transparent 72%);`,
+			color-mix(in oklab, var(--canvas) 92%, transparent) 0%,
+			color-mix(in oklab, var(--canvas) 88%, transparent) 38%,
+			color-mix(in oklab, var(--canvas) 82%, transparent) 56%,
+			color-mix(in oklab, var(--canvas) 40%, transparent) 74%,
+			transparent 92%);`,
 		bottom: `background: linear-gradient(to bottom,
 			transparent 0%,
 			transparent 28%,
