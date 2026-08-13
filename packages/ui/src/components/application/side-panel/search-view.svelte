@@ -175,7 +175,7 @@
 	{#if store.query && searchResults.length}
 		<div class="mt-1">
 			<button
-				class="text-muted-foreground hover:bg-muted/60 flex w-full items-center gap-1 rounded px-1 py-1 text-left transition-colors"
+				class="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-left transition-colors"
 				aria-expanded={!store.resultsCollapsed}
 				onclick={() => (store.resultsCollapsed = !store.resultsCollapsed)}
 			>
@@ -193,16 +193,14 @@
 					{#each searchResults.slice(0, 500) as m, i (i)}
 						<li>
 							<button
-								class="flex w-full items-baseline gap-1.5 rounded py-0.5 pr-2 pl-6 text-left transition-colors {i ===
+								class="flex h-7 w-full items-center gap-1.5 rounded-md pr-2 pl-6 text-left transition-colors {i ===
 								searchActive
 									? 'bg-accent text-accent-foreground'
-									: 'hover:bg-muted text-muted-foreground'}"
+									: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
 								onclick={() => ongotoresult?.(i)}
 								title={`Line ${m.line}`}
 							>
-								<span
-									class="text-muted-foreground/50 w-7 shrink-0 text-right font-mono text-xs tabular-nums"
-								>
+								<span class="text-faint w-7 shrink-0 text-right font-mono text-xs tabular-nums">
 									{m.line}
 								</span>
 								<span class="truncate font-mono text-xs">{m.text.trim() || ' '}</span>
@@ -211,15 +209,13 @@
 					{/each}
 				</ul>
 				{#if searchResults.length > 500}
-					<p class="text-muted-foreground/60 px-2 text-xs">
+					<p class="text-faint px-2 text-xs">
 						Showing first 500 of {searchResults.length}.
 					</p>
 				{/if}
 			{/if}
 		</div>
 	{:else if !store.query}
-		<p class="text-muted-foreground/70 mt-1 px-1.5 text-xs">
-			Find &amp; replace in the active file.
-		</p>
+		<p class="text-faint mt-1 px-1.5 text-xs">Find &amp; replace in the active file.</p>
 	{/if}
 </div>

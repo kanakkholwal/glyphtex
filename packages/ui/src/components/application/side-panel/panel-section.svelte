@@ -21,7 +21,7 @@
 
 <div class="border-border/70 mt-1 border-t pt-1">
 	<button
-		class="text-faint hover:bg-muted/60 flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold tracking-wide uppercase transition-colors"
+		class="text-faint hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-xs font-medium transition-colors"
 		aria-expanded={open}
 		onclick={() => (open = !open)}
 	>

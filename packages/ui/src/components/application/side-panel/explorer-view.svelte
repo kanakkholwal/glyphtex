@@ -47,10 +47,12 @@
 
 {#if store.rootNodes.length > 0}
 	<!-- Root header doubles as a drop target: dropping here moves items to the top level. -->
+	<!-- Sentence case, not the old uppercase eyebrow: this is the project's name,
+	     and a rail is not the place to shout it. -->
 	<button
-		class="text-faint flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold tracking-wide uppercase transition-colors {store.rootDragOver
+		class="text-faint flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-xs font-medium transition-colors {store.rootDragOver
 			? 'bg-brand-subtle ring-brand/40 ring-1 ring-inset'
-			: 'hover:bg-muted/60'}"
+			: 'hover:bg-accent hover:text-foreground'}"
 		aria-expanded={store.rootExpanded}
 		ondragover={(e) => store.rootDragOverHandler(e)}
 		ondragleave={() => (store.rootDragOver = false)}

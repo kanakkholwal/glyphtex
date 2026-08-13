@@ -190,12 +190,12 @@
 				</div>
 			{:else}
 				<button
-					class="flex w-full items-center gap-1 rounded py-1 pr-7 text-left transition-colors {dragOverPath ===
+					class="flex h-7 w-full items-center gap-1 rounded-md pr-7 text-left transition-colors {dragOverPath ===
 					node.path
 						? 'bg-brand-subtle ring-brand/40 ring-1 ring-inset'
 						: node.path === selectedPath
-							? 'bg-accent text-accent-foreground'
-							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							? 'bg-accent text-accent-foreground font-medium'
+							: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
 					style:padding-left={indent(depth)}
 					aria-expanded={isOpen(node.path)}
 					aria-current={node.path === selectedPath}
@@ -231,7 +231,7 @@
 						class="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 transition-opacity group-hover/row:opacity-0"
 						title="Contains changes"
 					>
-						<span class="bg-warning/80 block size-1.5 rounded-full"></span>
+						<span class="bg-foreground/50 block size-1.5 rounded-full"></span>
 					</span>
 				{/if}
 
@@ -240,7 +240,7 @@
 						{#snippet child({ props })}
 							<button
 								{...props}
-								class="text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1/2 right-1 grid size-5 -translate-y-1/2 place-items-center rounded opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+								class="text-muted-foreground hover:bg-accent hover:text-foreground absolute top-1/2 right-1 grid size-5 -translate-y-1/2 place-items-center rounded opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
 								title="Folder actions"
 								aria-label="Folder actions"
 								onclick={(e: MouseEvent) => e.stopPropagation()}
@@ -330,12 +330,12 @@
 				</div>
 			{:else}
 				<button
-					class="flex w-full items-center gap-1 rounded py-1 pr-7 text-left transition-colors {node.id ===
+					class="flex h-7 w-full items-center gap-1 rounded-md pr-7 text-left transition-colors {node.id ===
 					activeId
-						? 'bg-accent text-accent-foreground'
+						? 'bg-accent text-accent-foreground font-medium'
 						: dirty
-							? 'text-foreground hover:bg-muted'
-							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							? 'text-foreground hover:bg-accent'
+							: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
 					style:padding-left={indent(depth)}
 					aria-current={node.id === activeId}
 					title={dirty ? `${node.name} — unsaved` : node.name}
@@ -346,11 +346,11 @@
 					ondblclick={() => startRename(node)}
 				>
 					<span class="w-[13px] shrink-0"></span>
-					<FileIcon size={15} class="shrink-0 {node.id === activeId ? 'text-brand' : ''}" />
+					<FileIcon size={15} class="shrink-0" />
 					<span class="truncate">{node.name}</span>
 					{#if node.id === mainId}
 						<span
-							class="bg-brand-subtle text-brand ml-1 shrink-0 rounded px-1 text-[9px] font-semibold tracking-wide uppercase"
+							class="bg-brand-subtle text-brand ml-1 shrink-0 rounded px-1 text-[10px] font-medium"
 							title="Main file (compile target)"
 						>
 							main
@@ -363,7 +363,7 @@
 						class="pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center transition-opacity group-hover/row:opacity-0"
 						title="Unsaved changes"
 					>
-						<span class="bg-brand block size-1.5 rounded-full"></span>
+						<span class="bg-foreground/60 block size-1.5 rounded-full"></span>
 					</span>
 				{/if}
 
@@ -372,7 +372,7 @@
 						{#snippet child({ props })}
 							<button
 								{...props}
-								class="text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1/2 right-1 grid size-5 -translate-y-1/2 place-items-center rounded opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+								class="text-muted-foreground hover:bg-accent hover:text-foreground absolute top-1/2 right-1 grid size-5 -translate-y-1/2 place-items-center rounded opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
 								title="File actions"
 								aria-label="File actions"
 								onclick={(e: MouseEvent) => e.stopPropagation()}

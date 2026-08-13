@@ -1,24 +1,13 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
-	import {
-		DropdownMenu,
-		DropdownMenuCheckboxItem,
-		DropdownMenuContent,
-		DropdownMenuGroup,
-		DropdownMenuGroupHeading,
-		DropdownMenuSeparator,
-		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
-	import { AUTO_SAVE_LABELS, settings, type AutoSaveMode } from '@glyphtex/ui/settings';
+	import { settings } from '@glyphtex/ui/settings';
 	import {
 		IconArrowBackUp,
 		IconArrowForwardUp,
 		IconBaselineDensityMedium,
 		IconChevronDown,
-		IconDeviceFloppy,
 		IconFolderShare,
 		IconLayoutColumns,
-		IconMap2,
 		IconRefresh,
 		IconSearch,
 		IconX
@@ -46,8 +35,6 @@
 	// Assets are read by absolute path on desktop and by project-relative name on
 	// web (IndexedDB), so the viewer takes whichever the host can resolve.
 	const assetKey = $derived(files.activeFile?.path ?? files.activeFile?.name);
-
-	const AUTO_SAVE_MODES: AutoSaveMode[] = ['off', 'afterDelay', 'onFocusChange'];
 
 	// Publishes siblings to the language providers so `\cite{`/`\ref{` resolve across
 	// files. Keyed on `savedTick`, not live buffers — reindexing every keystroke is waste.
@@ -206,53 +193,8 @@
 				<div class="flex-1"></div>
 			{/if}
 
-			<DropdownMenu>
-				<DropdownMenuTrigger>
-					{#snippet child({ props })}
-						<Button
-							{...props}
-							variant="ghost"
-							size="sm"
-							class="text-muted-foreground shrink-0 gap-1.5 px-2"
-							title="Saving and editor options"
-						>
-							<IconDeviceFloppy class="size-3.5" />
-							<span class="hidden xl:inline">
-								{settings.autoSave === 'off' ? 'Manual save' : 'Auto save'}
-							</span>
-							<IconChevronDown class="size-3 opacity-50" />
-						</Button>
-					{/snippet}
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" class="w-56">
-					<DropdownMenuGroup>
-						<DropdownMenuGroupHeading class="text-faint text-xs font-medium">
-							Save
-						</DropdownMenuGroupHeading>
-						{#each AUTO_SAVE_MODES as mode (mode)}
-							<DropdownMenuCheckboxItem
-								checked={settings.autoSave === mode}
-								onCheckedChange={() => (settings.autoSave = mode)}
-							>
-								{AUTO_SAVE_LABELS[mode]}
-							</DropdownMenuCheckboxItem>
-						{/each}
-					</DropdownMenuGroup>
-					<DropdownMenuSeparator />
-					<DropdownMenuCheckboxItem
-						checked={settings.minimap}
-						onCheckedChange={(v) => (settings.minimap = v)}
-					>
-						<IconMap2 class="text-muted-foreground" /> Minimap
-					</DropdownMenuCheckboxItem>
-					<DropdownMenuCheckboxItem
-						checked={settings.lineWrapping}
-						onCheckedChange={(v) => (settings.lineWrapping = v)}
-					>
-						Word wrap
-					</DropdownMenuCheckboxItem>
-				</DropdownMenuContent>
-			</DropdownMenu>
+			<!-- Save mode, minimap and word wrap moved to the title bar's document
+			     menu: they are page-global, and this row is for the caret. -->
 		</div>
 
 		<div class="min-h-0 flex-1">

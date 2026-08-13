@@ -12,7 +12,7 @@
 
 {#if head}
 	<button
-		class="border-border text-muted-foreground hover:bg-muted hover:text-foreground flex h-7 shrink-0 items-center gap-1.5 border-t px-3 text-xs transition-colors"
+		class="border-border text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 shrink-0 items-center gap-1.5 border-t px-3 text-xs transition-colors"
 		title="Open Source Control"
 		onclick={() => onopen?.()}
 	>

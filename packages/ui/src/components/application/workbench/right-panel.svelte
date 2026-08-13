@@ -1,20 +1,20 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
 	import { IconTrash, IconX } from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { fly } from 'svelte/transition';
 
 	import SettingsView from '../side-panel/settings-view.svelte';
 	import type { WorkbenchController } from './controller.svelte';
 	import NotesPanel from './notes-panel.svelte';
 
-	/** Notes and Settings, overlaid on the right edge. Both are consulted and
-	 *  dismissed; docking either one made opening it reflow the editor and PDF. */
+	/** Notes and Settings share one docked column on the right edge, in both
+	 *  editors. Two rail entries and two layout columns became one of each. */
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 
 	const layout = $derived(ctrl.layout);
 	const files = $derived(ctrl.files);
+	const notes = $derived(ctrl.notes);
 
+	const open = $derived(layout.rightPanel !== 'none');
 	const title = $derived(layout.rightPanel === 'notes' ? 'Notes' : 'Settings');
 
 	let shellStatus = $state<'idle' | 'busy' | 'done'>('idle');
@@ -25,35 +25,44 @@
 		shellStatus = 'busy';
 		shellStatus = (await files.registerShell()) ? 'done' : 'idle';
 	}
+
+	const WIDTH_PX = 320;
 </script>
 
-<!-- Escape closes it; there is no scrim, because the panes underneath stay usable
-     while the panel is open. -->
 <svelte:window
 	onkeydown={(e) => {
-		if (e.key === 'Escape' && layout.rightPanel !== 'none') layout.rightPanel = 'none';
+		if (e.key === 'Escape' && open) layout.rightPanel = 'none';
 	}}
 />
 
-{#if layout.rightPanel !== 'none'}
+<!-- Collapses by width rather than unmounting, so the panel animates and keeps
+     its scroll position and draft note across a toggle. The inner box holds the
+     real width so the content doesn't reflow while the outer one animates. -->
+<div
+	class="shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none {open
+		? ''
+		: 'pointer-events-none'}"
+	style:width={open ? `${WIDTH_PX}px` : '0px'}
+	aria-hidden={!open}
+>
 	<aside
-		class="border-border bg-sidebar shadow-craft-lg absolute inset-y-0 right-0 z-30 flex w-[340px] max-w-[85vw] flex-col border-l"
+		class="border-border bg-sidebar flex h-full min-h-0 flex-col border-l"
+		style:width={`${WIDTH_PX}px`}
 		aria-label={title}
-		transition:fly={{ x: 24, duration: 200, easing: cubicOut }}
 	>
-		<header class="border-border flex h-11 shrink-0 items-center gap-2 border-b px-3">
-			<h2 class="text-foreground truncate text-sm font-medium">{title}</h2>
-			{#if layout.rightPanel === 'notes' && ctrl.notes.openCount}
-				<span class="text-faint text-xs tabular-nums">{ctrl.notes.openCount} open</span>
+		<header class="border-border flex h-9 shrink-0 items-center gap-2 border-b px-2 pl-3">
+			<h2 class="text-foreground truncate text-xs font-medium">{title}</h2>
+			{#if layout.rightPanel === 'notes' && notes.openCount}
+				<span class="text-faint text-xs tabular-nums">{notes.openCount} open</span>
 			{/if}
 			<div class="flex-1"></div>
-			{#if layout.rightPanel === 'notes' && ctrl.notes.doneCount}
+			{#if layout.rightPanel === 'notes' && notes.doneCount}
 				<Button
 					variant="ghost"
 					size="icon-sm"
-					title="Clear {ctrl.notes.doneCount} completed"
+					title="Clear {notes.doneCount} completed"
 					aria-label="Clear completed notes"
-					onclick={() => ctrl.notes.clearDone()}
+					onclick={() => notes.clearDone()}
 				>
 					<IconTrash />
 				</Button>
@@ -69,9 +78,7 @@
 			</Button>
 		</header>
 
-		{#if layout.rightPanel === 'notes'}
-			<NotesPanel notes={ctrl.notes} chromeless />
-		{:else}
+		{#if layout.rightPanel === 'settings'}
 			<div class="min-h-0 flex-1 overflow-y-auto px-1.5 pb-3 text-sm">
 				<SettingsView
 					engine={ctrl.engine}
@@ -80,6 +87,8 @@
 					onaddshell={addShellIntegration}
 				/>
 			</div>
+		{:else}
+			<NotesPanel {notes} chromeless />
 		{/if}
 	</aside>
-{/if}
+</div>

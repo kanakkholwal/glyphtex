@@ -10,7 +10,6 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	import AboutDialog from './about-dialog.svelte';
-	import ActivityBar from './activity-bar.svelte';
 	import CommandPalette from './command-palette.svelte';
 	import ShortcutsDialog from './shortcuts-dialog.svelte';
 	import SidePanel from './side-panel.svelte';
@@ -62,21 +61,12 @@
 <div class="bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden">
 	<TitleBar {ctrl} saving={props.saving} saveFile={props.saveFile} />
 
-	<!-- `flex-row-reverse` docks the rail + panel on the right edge (VS Code's
-       "move primary side bar right"); the editor column keeps the rest. -->
+	<!-- `flex-row-reverse` docks the panel on the right edge (VS Code's "move
+       primary side bar right"); the editor column keeps the rest. -->
 	<div
 		bind:this={layout.shellEl}
 		class="flex min-h-0 flex-1 {layout.sidebarRight ? 'flex-row-reverse' : ''}"
 	>
-		<ActivityBar
-			active={layout.activeView}
-			onselect={(v) => layout.selectView(v)}
-			position={settings.sidebarPosition}
-			onnewfile={() => files.newFile()}
-			onopenproject={ctrl.onOpenProject ??
-				(ctrl.canOpenFolder ? () => ctrl.openFolder() : undefined)}
-		/>
-
 		<!-- Collapses by width, not unmounting, so panel state survives a toggle. -->
 		<div
 			class="shrink-0 overflow-hidden {PANEL_EASE} {layout.resizingSidebar
@@ -109,6 +99,7 @@
 				onopenfolder={ctrl.canOpenFolder ? () => ctrl.openFolder() : undefined}
 				onopenproject={ctrl.onOpenProject}
 				onopensourcecontrol={() => layout.selectView('git')}
+				onselectview={(v) => layout.selectView(v)}
 				onreveal={files.project?.revealInOS && files.projectRoot
 					? () => files.revealProject()
 					: undefined}
@@ -159,9 +150,7 @@
 
 		<!-- min-w-0: without it a wide PDF page or long log line pushes the layout past
          the window edge, hiding the preview toolbar and log copy button. -->
-		<!-- `relative`: the right panel overlays the panes rather than taking a
-		     column off them. -->
-		<main bind:this={layout.mainEl} class="relative flex min-h-0 min-w-0 flex-1 flex-col">
+		<main bind:this={layout.mainEl} class="flex min-h-0 min-w-0 flex-1 flex-col">
 			<!-- No tab strip in Visual: it is one document, not a set of files. -->
 			{#if layout.docMode === 'latex'}
 				<Toolbar {ctrl} />
@@ -254,9 +243,9 @@
 						</div>
 					</div>
 				</div>
-			</div>
 
-			<RightPanel {ctrl} />
+				<RightPanel {ctrl} />
+			</div>
 		</main>
 	</div>
 </div>

@@ -19,7 +19,8 @@ const SECTION_LEVEL: Record<string, number> = {
 	subparagraph: 6
 };
 
-const SECTION_RE = /\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)\*?\s*\{/g;
+const SECTION_RE =
+	/\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)\*?\s*\{/g;
 
 /** Drop a trailing line comment (first unescaped `%`). */
 function stripComment(line: string): string {

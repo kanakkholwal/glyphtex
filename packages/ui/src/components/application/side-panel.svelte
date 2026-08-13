@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { settings } from '@glyphtex/ui/settings';
 	import { IconGitBranch } from '@tabler/icons-svelte';
+	import { cubicOut } from 'svelte/easing';
+	import { MediaQuery } from 'svelte/reactivity';
+	import { fly } from 'svelte/transition';
 
-	import type { ActivityView } from './activity-bar.svelte';
 	import type { EngineManager } from './engine-settings.svelte';
 	import GitPanel, { type GitHeadInfo, type GitProvider } from './git-panel.svelte';
 	import ExplorerView from './side-panel/explorer-view.svelte';
@@ -13,7 +15,7 @@
 	import ScmFooter from './side-panel/scm-footer.svelte';
 	import SearchView from './side-panel/search-view.svelte';
 	import { SidePanelStore } from './side-panel/store.svelte';
-	import type { FileMeta, SearchMatch, SearchOptions } from './side-panel/types';
+	import type { ActivityView, FileMeta, SearchMatch, SearchOptions } from './side-panel/types';
 
 	/**
 	 * SidePanel — content for the active rail view. Explorer stacks the file tree,
@@ -69,7 +71,8 @@
 		onsearchprev,
 		onreplacecurrent,
 		onreplaceall,
-		onopensourcecontrol
+		onopensourcecontrol,
+		onselectview
 	}: {
 		view?: ActivityView;
 		files?: FileMeta[];
@@ -142,9 +145,31 @@
 		onsearchprev?: () => void;
 		onreplacecurrent?: (replace: string) => void;
 		onreplaceall?: (replace: string) => void;
-		/** Footer click — switch the rail to Source Control. */
+		/** Footer click — switch the panel to Source Control. */
 		onopensourcecontrol?: () => void;
+		/** Change which view the panel shows (the header's tabs). */
+		onselectview?: (view: ActivityView) => void;
 	} = $props();
+
+	// Views slide toward the tab you picked, so the panel reads as one strip you
+	// are moving along rather than three unrelated screens.
+	const ORDER: ActivityView[] = ['files', 'search', 'git'];
+	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
+	let dir = $state(1);
+	// Deliberately the initial value: this only ever tracks the *previous* view so
+	// the next change knows which way to slide.
+	// svelte-ignore state_referenced_locally
+	let lastView: ActivityView = view;
+	$effect(() => {
+		const to = ORDER.indexOf(view);
+		const from = ORDER.indexOf(lastView);
+		if (to === from) return;
+		dir = to > from ? 1 : -1;
+		lastView = view;
+	});
+	const shift = $derived(reduced.current ? 0 : 14);
+	const enter = $derived(reduced.current ? 0 : 190);
+	const leave = $derived(reduced.current ? 0 : 90);
 
 	// The store reads the live props through getters and wraps the host callbacks.
 	// svelte-ignore state_referenced_locally
@@ -185,74 +210,89 @@
 		hasDelete={Boolean(ondeletefile || ondeletefolder)}
 		gitReady={Boolean(git && gitRoot)}
 		searchResultCount={searchResults.length}
+		{onselectview}
 		{onreveal}
 		{onopenfolder}
 		{onopenproject}
 		{onaddfiles}
 	/>
 
-	<div class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-1.5 pb-2 text-sm">
-		{#if view === 'files'}
-			<ExplorerView
-				{store}
-				{projectName}
-				{projectPath}
-				{activeId}
-				{mainId}
-				{dirtyIds}
-				{hasProject}
-				{onrenamefile}
-				{ondeletefile}
-				{onsetmain}
-				{onmovefile}
-				{onmovefolder}
-				{onrenamefolder}
-				{ondeletefolder}
-				{ondownloadfile}
-				{ondownloadfolder}
-			/>
+	<!-- One grid cell holds both the outgoing and incoming view, so the crossfade
+	     cannot push the panel's height around mid-transition. -->
+	<div class="grid min-h-0 flex-1 overflow-hidden pt-2">
+		{#key view}
+			<div
+				class="col-start-1 row-start-1 min-h-0 overflow-x-hidden overflow-y-auto px-1.5 pb-2 text-sm"
+				in:fly={{ x: dir * shift, duration: enter, delay: leave, easing: cubicOut, opacity: 0 }}
+				out:fly={{ x: -dir * shift, duration: leave, easing: cubicOut, opacity: 0 }}
+			>
+				{#if view === 'files'}
+					<ExplorerView
+						{store}
+						{projectName}
+						{projectPath}
+						{activeId}
+						{mainId}
+						{dirtyIds}
+						{hasProject}
+						{onrenamefile}
+						{ondeletefile}
+						{onsetmain}
+						{onmovefile}
+						{onmovefolder}
+						{onrenamefolder}
+						{ondeletefolder}
+						{ondownloadfile}
+						{ondownloadfolder}
+					/>
 
-			<!-- Outline and Recent live under the tree rather than behind rail tabs:
+					<!-- Outline and Recent live under the tree rather than behind rail tabs:
            in a thesis you navigate by section far more often than by file. -->
-			<PanelSection title="Outline" bind:open={store.outlineExpanded} count={store.outline.length}>
-				<OutlineView {store} {ongotoline} />
-			</PanelSection>
+					<PanelSection
+						title="Outline"
+						bind:open={store.outlineExpanded}
+						count={store.outline.length}
+					>
+						<OutlineView {store} {ongotoline} />
+					</PanelSection>
 
-			{#if recent.length}
-				<PanelSection title="Recent" bind:open={store.recentExpanded}>
-					<RecentView files={recent} onopen={(id) => store.selectFile(id)} />
-				</PanelSection>
-			{/if}
-		{:else if view === 'search'}
-			<SearchView
-				{store}
-				{searchResults}
-				{searchActive}
-				{onsearchnext}
-				{onsearchprev}
-				{ongotoresult}
-				{onreplacecurrent}
-				{onreplaceall}
-			/>
-		{:else if view === 'git'}
-			{#if git}
-				<GitPanel
-					{git}
-					root={gitRoot}
-					refreshKey={store.gitRefreshKey}
-					onstatechange={(s) => (store.gitState = s)}
-					{onopendiff}
-					{activeDiffPath}
-				/>
-			{:else}
-				<div
-					class="text-muted-foreground flex flex-col items-center gap-2 px-2 py-8 text-center text-xs"
-				>
-					<IconGitBranch size={22} />
-					<p>Source control isn't available here.</p>
-				</div>
-			{/if}
-		{/if}
+					{#if recent.length}
+						<PanelSection title="Recent" bind:open={store.recentExpanded}>
+							<RecentView files={recent} onopen={(id) => store.selectFile(id)} />
+						</PanelSection>
+					{/if}
+				{:else if view === 'search'}
+					<SearchView
+						{store}
+						{searchResults}
+						{searchActive}
+						{onsearchnext}
+						{onsearchprev}
+						{ongotoresult}
+						{onreplacecurrent}
+						{onreplaceall}
+					/>
+				{:else if view === 'git'}
+					{#if git}
+						<GitPanel
+							{git}
+							root={gitRoot}
+							refreshKey={store.gitRefreshKey}
+							onstatechange={(s) => (store.gitState = s)}
+							{onopendiff}
+							{activeDiffPath}
+						/>
+					{:else}
+						<div
+							class="text-muted-foreground flex flex-col items-center gap-2 px-2 py-8 text-center text-xs"
+						>
+							<IconGitBranch size={22} />
+							<p>Source control isn't available here.</p>
+						</div>
+					{/if}
+				{/if}
+			</div>
+		{/key}
 	</div>
 
 	{#if view !== 'git'}

@@ -109,10 +109,9 @@ export type BuildRecord = { ms: number; ok: boolean; bytes: number; at: number }
 export const BUILD_HISTORY_LIMIT = 24;
 
 // --- Bottom dock ------------------------------------------------------------
-export type DockTab = 'problems' | 'logs' | 'history';
+export type DockTab = 'problems' | 'logs' | 'stats' | 'history';
 
-/** Right-edge overlay. Consulted and dismissed, so it floats over the panes
- *  rather than taking a column off them. */
+/** What the right-edge column is showing. */
 export type RightPanel = 'none' | 'notes' | 'settings';
 
 // --- Explorer move / folder conflict prompts --------------------------------

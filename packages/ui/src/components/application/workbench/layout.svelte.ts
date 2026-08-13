@@ -1,4 +1,4 @@
-import type { ActivityView } from '../activity-bar.svelte';
+import type { ActivityView } from '../side-panel/types';
 import { classifyFile, editorLanguage } from '../file-kinds';
 import type { GitProvider } from '../git-panel.svelte';
 import { settings } from '@glyphtex/ui/settings';
@@ -19,7 +19,6 @@ export type LayoutDeps = {
 	getProjectRoot: () => string | null;
 };
 
-const ACTIVITY_BAR_PX = 48; // the w-12 rail beside the panel
 const DOCK_MIN_PX = 120;
 
 /** The Workbench's chrome + geometry, plus the editor `bind:this` handle shared with
@@ -70,9 +69,9 @@ export class LayoutStore {
 	resizingDock = $state(false);
 	mainEl = $state<HTMLElement>();
 
-	// --- Right overlay (Notes / Settings) -------------------------------------
-	// Overlaid, not docked: both are things you consult and dismiss, and giving
-	// each a layout column made opening one reflow the editor and the PDF.
+	// --- Right column (Notes / Settings) --------------------------------------
+	// One column for both. Settings used to be a left-rail view and Notes its own
+	// docked column; between them they cost two rail entries and two layouts.
 	rightPanel = $state<RightPanel>('none');
 
 	get notesOpen(): boolean {
@@ -134,10 +133,8 @@ export class LayoutStore {
 		if (this.resizingSidebar && this.shellEl) {
 			const rect = this.shellEl.getBoundingClientRect();
 			// Docked right, the panel grows as the cursor moves left, so measure from
-			// the opposite edge (both layouts skip the fixed-width activity bar).
-			const w = this.sidebarRight
-				? rect.right - ACTIVITY_BAR_PX - e.clientX
-				: e.clientX - rect.left - ACTIVITY_BAR_PX;
+			// the opposite edge.
+			const w = this.sidebarRight ? rect.right - e.clientX : e.clientX - rect.left;
 			this.sidebarW = Math.min(this.maxSidebar, Math.max(200, w));
 			return;
 		}
@@ -155,12 +152,11 @@ export class LayoutStore {
 		this.resizingDock = false;
 	}
 
+	/** Switch the panel's view. Collapsing is the title bar's toggle — the tabs
+	 *  live *inside* the panel now, so clicking one can't also close it. */
 	selectView(view: ActivityView): void {
-		if (view === this.activeView) this.panelCollapsed = !this.panelCollapsed;
-		else {
-			this.activeView = view;
-			this.panelCollapsed = false;
-		}
+		this.activeView = view;
+		this.panelCollapsed = false;
 	}
 
 	// --- Diff (VS Code-style read-only comparison over the editor pane) -------

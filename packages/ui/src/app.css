@@ -42,7 +42,9 @@
 	--destructive-foreground: #ffffff;
 	--success: #067d17;
 	--success-foreground: #ffffff;
-	--warning: #9a7b00;
+	/* #9a7b00 was 3.76:1 on the #f7f7f5 rail, so the amber warning count in the
+	   build dock read as decoration. This lands 5.23, and white on it 5.61. */
+	--warning: #806400;
 	--warning-foreground: #ffffff;
 	--info: #00627a;
 	--info-foreground: #ffffff;

@@ -23,11 +23,12 @@
 		IconTrash
 	} from '@tabler/icons-svelte';
 
-	import type { ActivityView } from '../activity-bar.svelte';
 	import type { SidePanelStore } from './store.svelte';
+	import type { ActivityView } from './types';
+	import ViewTabs from './view-tabs.svelte';
 
 	/**
-	 * Side-panel header — the heading plus the active view's action buttons
+	 * Side-panel header — the view tabs plus the active view's action buttons
 	 * (Explorer: new file/folder, delete, collapse, reveal/open; Search: refresh,
 	 * clear, collapse; Source Control: view toggle + refresh).
 	 */
@@ -39,6 +40,7 @@
 		hasDelete,
 		gitReady,
 		searchResultCount,
+		onselectview,
 		onreveal,
 		onopenfolder,
 		onopenproject,
@@ -51,6 +53,7 @@
 		hasDelete: boolean;
 		gitReady: boolean;
 		searchResultCount: number;
+		onselectview?: (view: ActivityView) => void;
 		onreveal?: () => void;
 		onopenfolder?: () => void;
 		/** Switch to another document (web routes to its list). Absent hides the item. */
@@ -61,9 +64,11 @@
 </script>
 
 <div
-	class="text-foreground flex h-9 shrink-0 items-center justify-between px-3 text-sm font-medium"
+	class="text-foreground border-border flex h-10 shrink-0 items-center justify-between gap-1 border-b px-1.5 text-xs font-medium"
 >
-	<span>{store.heading}</span>
+	<!-- The tabs are the heading. A vertical icon rail used to own this choice and
+	     cost 48px of every window for three buttons. -->
+	<ViewTabs active={view} onselect={onselectview} />
 	{#if view === 'files'}
 		<!-- One visible primary action; everything else lives under the overflow so
          the header doesn't become a five-icon toolbar. -->

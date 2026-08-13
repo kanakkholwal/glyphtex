@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { IconChartBar } from '@tabler/icons-svelte';
+
 	import type { CompileStore } from './compile.svelte';
 
-	/** Build time / pages / output size for the last compile, with a sparkline of
-	 *  recent build times so a slowdown is visible before it becomes annoying. */
+	/** Build time / pages / output for the last compile, plus a bar chart of recent
+	 *  build times so a slowdown shows up before it becomes annoying. */
 	let {
 		compile,
 		note
@@ -12,21 +14,9 @@
 		note?: string;
 	} = $props();
 
-	const W = 100;
-	const H = 28;
-
 	const builds = $derived(compile.builds);
 	const peak = $derived(Math.max(1, ...builds.map((b) => b.ms)));
-
-	const points = $derived(
-		builds.map((b, i) => ({
-			...b,
-			x: builds.length < 2 ? W : (i / (builds.length - 1)) * W,
-			y: H - (b.ms / peak) * (H - 4) - 2
-		}))
-	);
-	const line = $derived(points.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
-	const area = $derived(points.length > 1 ? `${line} ${W},${H} 0,${H}` : '');
+	const failed = $derived(builds.filter((b) => !b.ok).length);
 
 	function bytes(n: number): string {
 		if (!n) return '—';
@@ -34,57 +24,73 @@
 		if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
 		return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 	}
+	const seconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
-	const rows = $derived([
+	// `note` arrives as "Engine: on-device"; the label is the cell's own heading.
+	const engine = $derived(note?.replace(/^engine:\s*/i, '') ?? null);
+
+	const stats = $derived([
 		{
 			label: 'Build time',
-			value: compile.lastCompileMs == null ? '—' : `${(compile.lastCompileMs / 1000).toFixed(1)}s`
+			value: compile.lastCompileMs == null ? '—' : seconds(compile.lastCompileMs)
 		},
 		{ label: 'Pages', value: compile.pdfNumPages ? String(compile.pdfNumPages) : '—' },
-		{ label: 'Output', value: bytes(compile.outputBytes) }
+		{ label: 'Output', value: bytes(compile.outputBytes) },
+		...(engine ? [{ label: 'Engine', value: engine }] : [])
 	]);
 </script>
 
-<aside
-	class="border-border bg-background hidden w-56 shrink-0 flex-col gap-2 rounded-lg border p-3 lg:flex"
-	aria-label="Build statistics"
->
-	{#each rows as row (row.label)}
-		<div class="flex items-baseline justify-between gap-2">
-			<span class="text-faint text-xs">{row.label}</span>
-			<span class="text-foreground text-sm font-medium tabular-nums">{row.value}</span>
-		</div>
-	{/each}
+<!-- Full width, no card. This used to be a 224px panel pinned beside the log; as
+     its own tab that box left three quarters of the dock empty. -->
+<div class="px-1 py-1">
+	<dl class="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+		{#each stats as stat (stat.label)}
+			<div class="min-w-0">
+				<dt class="text-faint text-xs">{stat.label}</dt>
+				<dd class="text-foreground mt-0.5 truncate text-lg font-medium tabular-nums">
+					{stat.value}
+				</dd>
+			</div>
+		{/each}
+	</dl>
 
-	{#if points.length > 1}
-		<svg
-			class="mt-1 w-full"
-			viewBox="0 0 {W} {H}"
-			preserveAspectRatio="none"
-			height={H}
-			role="img"
-			aria-label="Build time over the last {points.length} compiles, peaking at {(
-				peak / 1000
-			).toFixed(1)} seconds; {points.filter((p) => !p.ok).length} failed"
-		>
-			<polygon points={area} class="fill-brand/12" />
-			<polyline
-				points={line}
-				fill="none"
-				class="stroke-brand"
-				stroke-width="1.25"
-				vector-effect="non-scaling-stroke"
-				stroke-linejoin="round"
-			/>
-			{#each points as p, i (i)}
-				{#if !p.ok}
-					<circle cx={p.x} cy={p.y} r="1.75" class="fill-destructive" />
-				{/if}
-			{/each}
-		</svg>
-	{/if}
+	<div class="border-border mt-5 border-t pt-4">
+		{#if builds.length < 2}
+			<div class="text-muted-foreground flex items-center gap-2 py-3 text-xs">
+				<IconChartBar size={15} class="opacity-50 shrink-0" />
+				<span>Build history appears here after a couple of compiles.</span>
+			</div>
+		{:else}
+			<div class="flex items-baseline justify-between gap-3">
+				<h3 class="text-foreground text-xs font-medium">
+					Last {builds.length} builds
+				</h3>
+				<p class="text-faint text-xs tabular-nums">
+					peak {seconds(peak)}{#if failed}
+						· {failed} failed{/if}
+				</p>
+			</div>
 
-	{#if note}
-		<p class="text-faint border-border/70 mt-auto border-t pt-2 text-xs">{note}</p>
-	{/if}
-</aside>
+			<!-- Bars, not a sparkline: builds are discrete events, and each one gets a
+			     hit area and a tooltip. Failure is in the count above as well as the
+			     colour, so it does not rest on hue alone. -->
+			<div
+				class="mt-2.5 flex h-16 items-end gap-px"
+				role="img"
+				aria-label="Build times for the last {builds.length} compiles, peaking at {seconds(
+					peak
+				)}; {failed} failed"
+			>
+				{#each builds as build, i (i)}
+					<div
+						class="min-w-0 flex-1 rounded-t-[2px] transition-colors {build.ok
+							? 'bg-brand/50 hover:bg-brand'
+							: 'bg-destructive'}"
+						style:height={`${Math.max(6, (build.ms / peak) * 100)}%`}
+						title="{seconds(build.ms)} · {build.ok ? 'ok' : 'failed'} · {bytes(build.bytes)}"
+					></div>
+				{/each}
+			</div>
+		{/if}
+	</div>
+</div>

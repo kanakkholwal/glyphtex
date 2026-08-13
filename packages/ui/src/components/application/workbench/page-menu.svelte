@@ -14,10 +14,12 @@
 		DropdownMenuTrigger
 	} from '@glyphtex/ui/dropdown-menu';
 	import {
+		AUTO_SAVE_LABELS,
 		DOC_FONT_LABELS,
 		DOC_FONT_STACKS,
 		settings,
 		type Appearance,
+		type AutoSaveMode,
 		type DocFont
 	} from '@glyphtex/ui/settings';
 	import { toast } from '@glyphtex/ui/sonner';
@@ -33,6 +35,7 @@
 		IconLayoutRows,
 		IconLink,
 		IconMap,
+		IconDeviceFloppy,
 		IconMoon,
 		IconNotes,
 		IconPencil,
@@ -60,6 +63,8 @@
 		{ value: 'split', label: 'Split', icon: IconLayoutColumns },
 		{ value: 'preview', label: 'PDF', icon: IconEye }
 	];
+
+	const autoSaveModes: AutoSaveMode[] = ['off', 'afterDelay', 'onFocusChange'];
 
 	const appearances: { value: Appearance; label: string; icon: typeof IconSun }[] = [
 		{ value: 'light', label: 'Light', icon: IconSun },
@@ -180,6 +185,24 @@
 		{/if}
 
 		<DropdownMenuSeparator />
+
+		<!-- Save mode was a second dropdown in the editor's format row, alongside a
+		     Minimap and Word wrap pair this menu already owns. -->
+		<DropdownMenuSub>
+			<DropdownMenuSubTrigger>
+				<IconDeviceFloppy class="text-muted-foreground" /> Save
+			</DropdownMenuSubTrigger>
+			<DropdownMenuSubContent class="w-44">
+				<DropdownMenuRadioGroup
+					value={settings.autoSave}
+					onValueChange={(v) => (settings.autoSave = v as AutoSaveMode)}
+				>
+					{#each autoSaveModes as mode (mode)}
+						<DropdownMenuRadioItem value={mode}>{AUTO_SAVE_LABELS[mode]}</DropdownMenuRadioItem>
+					{/each}
+				</DropdownMenuRadioGroup>
+			</DropdownMenuSubContent>
+		</DropdownMenuSub>
 
 		<DropdownMenuItem onSelect={() => layout.toggleRightPanel('notes')}>
 			<IconNotes class="text-muted-foreground" /> Notes

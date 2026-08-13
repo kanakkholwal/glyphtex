@@ -76,8 +76,9 @@
 	let installingPacks = $state(false);
 	let packError = $state<string | undefined>(undefined);
 	let updateAvailable = $state(false);
+	let mainFileSource = $state('');
 
-	let lastCompiled: { files: GlyphFile[]; entry: string } | undefined;
+	let lastCompiled = $state<{ files: GlyphFile[]; entry: string } | undefined>(undefined);
 
 	// Keyed on `id`, not mounted once: SvelteKit reuses this component when moving
 	// between documents, so a mount-only load would keep showing the previous one.
@@ -369,7 +370,8 @@
 		lastCompiled = { files, entry: main };
 
 		const source = files.find((f) => f.name === main);
-		requiresBiber = needsBiber(source?.saved ?? source?.content ?? '');
+		mainFileSource = source?.saved ?? source?.content ?? '';
+		requiresBiber = needsBiber(mainFileSource);
 
 		const startedAt = performance.now();
 		const outcome = await compileFiles(toCompileFiles(files, binary), main, id);
@@ -452,6 +454,8 @@
 			{updateAvailable}
 			installing={installingPacks}
 			error={packError}
+			mainSource={mainFileSource}
+			fileCount={lastCompiled?.files.length}
 			onadd={addMissingPacks}
 			onupdate={applyUpdate}
 		/>

@@ -4,7 +4,6 @@
 		DropdownMenu,
 		DropdownMenuContent,
 		DropdownMenuItem,
-		DropdownMenuSeparator,
 		DropdownMenuTrigger
 	} from '@glyphtex/ui/dropdown-menu';
 	import { Logo } from '@glyphtex/ui/logo';
@@ -18,7 +17,6 @@
 		IconLayoutSidebar,
 		IconLayoutSidebarRight,
 		IconLoader2,
-		IconPackageExport,
 		IconPencil,
 		IconSearch
 	} from '@tabler/icons-svelte';
@@ -113,19 +111,33 @@
 
 	<!-- Open document -->
 	{#if renaming}
-		<!-- svelte-ignore a11y_autofocus -->
-		<input
-			bind:this={field}
-			bind:value={draft}
-			autofocus
-			class="border-border bg-input text-foreground h-8 min-w-0 max-w-56 rounded-md border px-2 text-sm font-medium outline-none"
-			onblur={commitRename}
-			onkeydown={(e) => {
-				if (e.key === 'Enter') commitRename();
-				else if (e.key === 'Escape') renaming = false;
-			}}
-			aria-label="Document name"
-		/>
+		<!-- Same box as the button it replaces: h-8, px-2, gap-1.5, a chevron-sized
+         slot, and a hidden mirror span so the field is sized by its own text. A
+         plain input defaults to ~20ch, which shoved the mode switch and every
+         control after it the moment you pressed Rename. -->
+		<div
+			class="bg-input ring-ring/50 flex h-8 max-w-56 min-w-0 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium ring-2 ring-inset"
+		>
+			<span class="grid min-w-0">
+				<!-- svelte-ignore a11y_autofocus -->
+				<input
+					bind:this={field}
+					bind:value={draft}
+					autofocus
+					class="text-foreground col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none"
+					onblur={commitRename}
+					onkeydown={(e) => {
+						if (e.key === 'Enter') commitRename();
+						else if (e.key === 'Escape') renaming = false;
+					}}
+					aria-label="Document name"
+				/>
+				<span class="invisible col-start-1 row-start-1 whitespace-pre" aria-hidden="true">
+					{draft || ' '}
+				</span>
+			</span>
+			<IconChevronDown class="size-3 shrink-0 opacity-0" aria-hidden="true" />
+		</div>
 	{:else}
 		<DropdownMenu>
 			<DropdownMenuTrigger>
@@ -163,8 +175,6 @@
 						<IconFolderOpen class="text-muted-foreground" /> Open another document…
 					</DropdownMenuItem>
 				{/if}
-				<!-- Export lives in the bar's own Export menu, which also does .tex and
-				     .pdf. It used to be repeated here and in the document menu. -->
 			</DropdownMenuContent>
 		</DropdownMenu>
 	{/if}
@@ -181,32 +191,13 @@
 
 	<BranchMenu head={files.head} onopenpanel={() => layout.selectView('git')} />
 
-	<!-- Which editor you are in is a property of the document, so it sits with the
-       breadcrumb. Docking it right would put it next to its own mode-dependent
-       controls and every toggle would shove the whole cluster sideways. -->
 	<span class="bg-border mx-1.5 h-4 w-px shrink-0" aria-hidden="true"></span>
 	<ModeSwitch {layout} />
 
-	<!-- The centred search field became an icon: the bar now carries the mode,
-       layout and compile controls, and a 448px input was the first thing to go. -->
 	<div class="min-w-2 flex-1"></div>
 
-	<!-- Everything that comes and goes with the mode lives at the *start* of the
-       right cluster. In a right-aligned row, inserting here grows the cluster
-       leftwards and nothing after it moves. The layout switch is not here at
-       all: it is the document menu's three-tile slot, so the bar stays short. -->
 	{#if layout.docMode === 'latex'}
 		<div class="mr-1 hidden shrink-0 items-center gap-0.5 md:flex">
-			<Button
-				variant="ghost"
-				size="icon-sm"
-				title="Toggle panel ({shortcutLabel('toggle-panel')})"
-				aria-label="Toggle bottom panel"
-				aria-pressed={compile.showProblems}
-				onclick={() => (compile.showProblems = !compile.showProblems)}
-			>
-				<IconLayoutBottombar class={compile.showProblems ? '' : 'opacity-60'} />
-			</Button>
 			{#if compile.canCompile}
 				<CompileControl {ctrl} />
 			{/if}
@@ -238,8 +229,6 @@
 		/>
 
 		{#if saving !== undefined}
-			<!-- Fixed box: "Saving…" and "Saved" are different widths, and this sits
-           left of three buttons that must not twitch on every keystroke. -->
 			<span
 				class="text-muted-foreground mr-1 inline-flex items-center justify-end gap-1 text-xs lg:w-[4.75rem]"
 				aria-live="polite"
@@ -268,10 +257,17 @@
 				<IconLayoutSidebar class={layout.panelCollapsed ? 'opacity-60' : ''} />
 			{/if}
 		</Button>
+		<Button
+			variant="ghost"
+			size="icon-sm"
+			title="Toggle panel ({shortcutLabel('toggle-panel')})"
+			aria-label="Toggle bottom panel"
+			aria-pressed={compile.showProblems}
+			onclick={() => (compile.showProblems = !compile.showProblems)}
+		>
+			<IconLayoutBottombar class={compile.showProblems ? '' : 'opacity-60'} />
+		</Button>
 
-		<!-- Appearance and Settings used to sit here as their own buttons. Both are
-         low-frequency and both already have a home — appearance in this menu,
-         Settings at the foot of the rail. -->
 		<PageMenu {ctrl} onrename={ctrl.onRenameProject ? startRename : undefined} />
 	</div>
 </header>
