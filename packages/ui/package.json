@@ -256,6 +256,6 @@
     "check": "exit 0",
     "pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --log-level=error",
     "test": "node --test test/*.test.mjs",
-    "test:browser": "node ./test/browser/editor-smoke.mjs && node ./test/browser/toolbar-focus.mjs"
+    "test:browser": "node ./test/browser/editor-smoke.mjs && node ./test/browser/editor-behaviour.mjs"
   }
 }

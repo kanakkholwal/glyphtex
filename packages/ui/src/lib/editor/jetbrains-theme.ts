@@ -172,24 +172,40 @@ function theme(p: EditorPalette, dark: boolean): Extension {
 				right: '0',
 				zIndex: '2',
 				backgroundColor: p.bg,
-				borderBottom: `1px solid ${p.indentGuide}`
+				// Monaco separated sticky scroll with a shadow, not a rule: a hairline
+				// here reads as a second gutter edge against the real one below.
+				boxShadow: `0 3px 6px -3px ${p.scrollbarHover}`,
+				// The strip itself must not eat clicks meant for the text beneath it;
+				// only the rows are interactive.
+				pointerEvents: 'none'
 			},
 			'.cm-tex-sticky-row': {
-				display: 'block',
+				display: 'flex',
+				alignItems: 'center',
+				pointerEvents: 'auto',
 				width: '100%',
 				textAlign: 'left',
-				padding: '1px 8px',
+				padding: '0',
 				border: 'none',
 				background: 'none',
 				color: p.fg,
 				font: 'inherit',
-				fontSize: '0.92em',
+				lineHeight: '1.6',
 				cursor: 'pointer',
-				whiteSpace: 'nowrap',
-				overflow: 'hidden',
-				textOverflow: 'ellipsis'
+				whiteSpace: 'pre',
+				overflow: 'hidden'
 			},
-			'.cm-tex-sticky-row:hover': { backgroundColor: p.lineHighlight, color: p.gutterActiveFg },
+			'.cm-tex-sticky-num': {
+				flex: 'none',
+				textAlign: 'right',
+				paddingRight: '10px',
+				color: p.gutterFg,
+				boxSizing: 'border-box'
+			},
+			'.cm-tex-sticky-code': { overflow: 'hidden', textOverflow: 'ellipsis' },
+			'.cm-tex-sticky-kw': { color: p.keyword },
+			'.cm-tex-sticky-row:hover': { backgroundColor: p.lineHighlight },
+			'.cm-tex-sticky-row:hover .cm-tex-sticky-num': { color: p.gutterActiveFg },
 			// Semantic layer (latex-semantic.ts). These only tint: a false positive
 			// must never read as an error, so nothing here draws a squiggle.
 			'.cm-tex-macro': { color: p.constant },

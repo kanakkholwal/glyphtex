@@ -156,6 +156,12 @@
 	const ORDER: ActivityView[] = ['files', 'search', 'git'];
 	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
 	let dir = $state(1);
+	// Without a Git backend the Changes tab is hidden, so a persisted `git` view
+	// would strand the panel on an empty state with no tab to leave by.
+	$effect(() => {
+		if (view === 'git' && !(git && gitRoot)) onselectview?.('files');
+	});
+
 	// Deliberately the initial value: this only ever tracks the *previous* view so
 	// the next change knows which way to slide.
 	// svelte-ignore state_referenced_locally

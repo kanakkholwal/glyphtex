@@ -23,7 +23,7 @@
 	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
 	import MainFileDialog from '$lib/MainFileDialog.svelte';
 	import EngineNotices from '$lib/EngineNotices.svelte';
-	import { gitProvider, gitRootFor, onWorkingTreeChanged } from '$lib/git';
+	import { onWorkingTreeChanged } from '$lib/git';
 	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from '$lib/storage/bridge';
 	import {
 		filesFromDataTransfer,
@@ -463,6 +463,8 @@
 		<div class="min-h-0 flex-1">
 			<!-- Remount per document: the Workbench captures `initialFiles` when it is
 			     constructed, so navigating between documents must rebuild it. -->
+			<!-- No `git` provider: source control is desktop-only, which hides the
+			     Changes tab and with it the diff view. -->
 			{#key id}
 				<Workbench
 					platform="web"
@@ -470,8 +472,6 @@
 					documentId={project.id}
 					{initialFiles}
 					{saving}
-					git={gitProvider}
-					gitRoot={gitRootFor(project.id)}
 					backHref={resolve('/workspace')}
 					backLabel="Documents"
 					onRenameProject={rename}
