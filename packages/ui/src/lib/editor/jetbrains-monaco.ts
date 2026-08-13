@@ -9,28 +9,28 @@ export const ISLAND_LIGHT = "glyphtex-island-light";
 // Transcribed from IntelliJ Community `platform/platform-resources/src/themes/islands/*`;
 // exported because app.css derives the workbench tokens from this same palette.
 export const islandDarkPalette = {
-	bg: "#191a1c",
-	fg: "#bcbec4",
-	caret: "#ced0d6",
+	bg: "#191919",
+	fg: "#d4d4d4",
+	caret: "#e0e0e0",
 	// Islands leaves selection unset; this comes from its parent scheme, Darcula.
 	selection: "#214283",
 	selectionMatch: "#373b39",
 	// Islands leaves EDITOR_GUTTER_BACKGROUND empty, so the gutter is flush with the
 	// text surface; the active line number uses the brand accent, not JetBrains' #a1a3ab.
-	gutterBg: "#191a1c",
-	gutterFg: "#4b5059",
+	gutterBg: "#191919",
+	gutterFg: "#5a5a5a",
 	gutterActiveFg: "#34d399",
-	lineHighlight: "#1f2024",
-	indentGuide: "#323438",
-	indentGuideActive: "#4e5157",
-	matchedBrace: "#43454a",
+	lineHighlight: "#202020",
+	indentGuide: "#303030",
+	indentGuideActive: "#4a4a4a",
+	matchedBrace: "#404040",
 	// Popups sit on the "layer 1" island surface, one step above the editor.
-	widgetBg: "#26282c",
-	widgetBorder: "#33353b",
+	widgetBg: "#282828",
+	widgetBorder: "#373737",
 	widgetSelection: "#2a4371",
 	scrollbar: "#ffffff26",
 	scrollbarHover: "#ffffff4d",
-	whitespace: "#6f737a",
+	whitespace: "#6b6b6b",
 	// The squiggle colours (EFFECT_COLOR), not the quieter error-stripe colours.
 	error: "#fa6675",
 	warning: "#f2c55c",

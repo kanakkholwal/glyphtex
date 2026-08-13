@@ -93,7 +93,7 @@
 
   --surface-1: #ffffff;
   --surface-2: #f7f7f5;
-  --inverse-canvas: #191a1c;
+  --inverse-canvas: #191919;
   --hairline: #e6e6e4;
   --hairline-soft: #efefed;
   --border-subtle: #efefed;
@@ -119,60 +119,67 @@
   --tracking-title: -0.014em;
 }
 
+/* Surfaces mirror `islandDarkPalette` in lib/editor/jetbrains-monaco.ts. Change
+   both together or the editor drifts from the chrome around it. */
 .dark {
-  --background: #191a1c;
-  --foreground: #bcbec4;
-  --card: #1f2024;
-  --card-foreground: #bcbec4;
-  --surface: #26282c;
-  --popover: #26282c;
-  --popover-foreground: #bcbec4;
+  --ink: #d4d4d4;
+  --ink-body: #a3a3a3;
+  --ink-muted: #8f8f8f;
+  --ink-muted-strong: #9b9b9b;
 
-  --primary: #ced0d6;
-  --primary-foreground: #191a1c;
+  --background: #191919;
+  --foreground: var(--ink);
+  --card: #232323;
+  --card-foreground: var(--ink);
+  --surface: #282828;
+  --popover: #282828;
+  --popover-foreground: var(--ink);
 
-  --secondary: #26282c;
-  --secondary-foreground: #bcbec4;
-  --muted: #1f2024;
+  --primary: #e0e0e0;
+  --primary-foreground: #191919;
 
-  --muted-foreground: #8b9098;
-
-  --faint: #878b93;
-  --accent: #33353b;
-  --accent-foreground: #bcbec4;
+  --secondary: #2f2f2f;
+  --secondary-foreground: var(--ink);
+  --muted: #232323;
+  --muted-foreground: var(--ink-body);
+  --faint: #9b9b9b;
+  --accent: #2f2f2f;
+  --accent-foreground: var(--ink);
 
   --destructive: #fa6675;
-  --destructive-foreground: #191a1c;
+  --destructive-foreground: #191919;
   --success: #6aab73;
-  --success-foreground: #191a1c;
+  --success-foreground: #191919;
   --warning: #f2c55c;
-  --warning-foreground: #191a1c;
+  --warning-foreground: #191919;
   --info: #56a8f5;
-  --info-foreground: #191a1c;
+  --info-foreground: #191919;
 
-  --border: #33353b;
-  --input: #33353b;
-  --ring: #56a8f5;
+  --border: #373737;
+  --input: #373737;
+  --ring: #4ba3f7;
 
-  --sidebar: #191a1c;
-  --sidebar-foreground: #bcbec4;
-  --sidebar-primary: #ced0d6;
-  --sidebar-primary-foreground: #191a1c;
-  --sidebar-accent: #33353b;
-  --sidebar-accent-foreground: #bcbec4;
-  --sidebar-border: #33353b;
-  --sidebar-ring: #56a8f5;
+  --sidebar: #191919;
+  --sidebar-foreground: var(--ink-body);
+  --sidebar-primary: #e0e0e0;
+  --sidebar-primary-foreground: #191919;
+  --sidebar-accent: #2f2f2f;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: #373737;
+  --sidebar-ring: #4ba3f7;
 
-  --chart-1: oklch(0.72 0.165 246);
+  --chart-1: oklch(0.7 0.15 250);
   --chart-2: oklch(0.9401 0 0);
   --chart-3: oklch(0.7137 0.0192 261.32);
   --chart-4: oklch(0.4823 0.0175 285.73);
   --chart-5: oklch(0.741 0.1499 239.59);
 
-  --brand: oklch(0.72 0.165 246);
-  --brand-foreground: oklch(0.1457 0.0043 285.86);
-  --brand-hover: oklch(0.78 0.15 245);
-  --brand-subtle: oklch(0.72 0.165 246 / 0.16);
+  /* Same hue as the light brand (250). White on it is 2.66:1, so the label is
+     dark ink: Notion ships white on #2383e2 in dark mode at 3.88:1, which fails. */
+  --brand: oklch(0.7 0.15 250);
+  --brand-foreground: #191919;
+  --brand-hover: oklch(0.76 0.14 250);
+  --brand-subtle: oklch(0.7 0.15 250 / 0.16);
   --signal-cyan: oklch(0.7888 0.1188 207.62);
   --signal-cyan-soft: oklch(0.7888 0.1188 207.62 / 0.16);
   --signal-blue: oklch(0.7176 0.1626 254.31);
@@ -180,21 +187,18 @@
   --signal-lime: oklch(0.8046 0.1208 117.27);
   --signal-lime-soft: oklch(0.8046 0.1208 117.27 / 0.18);
 
-  --canvas: #191a1c;
-  --surface-soft: #1f2024;
-  --surface-card: #1f2024;
-  --surface-strong: #33353b;
-  --surface-1: #1f2024;
-  --surface-2: #26282c;
-  --inverse-canvas: #bcbec4;
-  --ink: #bcbec4;
-  --ink-body: #a3a6ad;
-  --ink-muted: #7a7e85;
-  --ink-muted-strong: #9198a1;
-  --hairline: #33353b;
-  --hairline-soft: #26282c;
-  --border-subtle: #26282c;
+  --canvas: #191919;
+  --surface-soft: #232323;
+  --surface-card: #232323;
+  --surface-strong: #2f2f2f;
+  --surface-1: #232323;
+  --surface-2: #282828;
+  --inverse-canvas: #d4d4d4;
+  --hairline: #373737;
+  --hairline-soft: #2a2a2a;
+  --border-subtle: #2a2a2a;
 }
+
 
 @theme inline {
   --color-background: var(--background);
