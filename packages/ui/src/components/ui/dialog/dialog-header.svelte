@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { HTMLAttributes } from "svelte/elements";
-	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import type { HTMLAttributes } from 'svelte/elements';
+	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
 
 	let {
 		ref = $bindable(null),
@@ -13,7 +13,7 @@
 <div
 	bind:this={ref}
 	data-slot="dialog-header"
-	class={cn("gap-2 flex flex-col", className)}
+	class={cn('gap-2 flex flex-col', className)}
 	{...restProps}
 >
 	{@render children?.()}

@@ -55,6 +55,10 @@
   width rather than the widest one: at display sizes the widest word leaves a
   slab of empty tint around every shorter word.
 
+  The words must stay `w-max`. As plain grid items they size to fit-content,
+  which the pill's own measured width caps — so a word measured under the
+  fallback font can never grow once the webfont swaps in, and stays clipped.
+
   Width animates, so the resize reads as intentional. Nothing else on the line
   moves: the pill is centred, so it grows and shrinks symmetrically.
 
@@ -77,7 +81,7 @@
 		<span
 			bind:offsetWidth={widths[i]}
 			class={cn(
-				'col-start-1 row-start-1 justify-self-center whitespace-nowrap',
+				'col-start-1 row-start-1 w-max justify-self-center whitespace-nowrap',
 				i === index ? 'visible' : 'invisible',
 				textClass
 			)}
@@ -88,8 +92,8 @@
 					{#each w.split('') as letter, l (l)}
 						<span
 							class="container-flip-letter"
-							style:animation-delay="{l * 18}ms"
-							style:animation-duration="{animationDuration}ms"
+							style:animation-delay="{l * 20}ms"
+							style:animation-duration="{animationDuration / 2}ms"
 							>{letter === ' ' ? NBSP : letter}</span
 						>
 					{/each}
@@ -128,14 +132,16 @@
 		animation-timing-function: ease-out;
 	}
 
+	/* Blur is em-relative: the source used 10px at 72px type, and a fixed px blur
+	   at this pill's inherited ~24px would smear the letter into a blob. */
 	@keyframes container-flip-in {
 		from {
 			opacity: 0;
-			transform: translateY(0.12em);
+			filter: blur(0.14em);
 		}
 		to {
 			opacity: 1;
-			transform: translateY(0);
+			filter: blur(0);
 		}
 	}
 

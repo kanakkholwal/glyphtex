@@ -154,7 +154,7 @@ export type DiffTarget = {
 };
 
 // --- Sample / demo content --------------------------------------------------
-export const SAMPLE_LATEX = String.raw`% GlyphTeX: LaTeX document
+export const SAMPLE_LATEX = String.raw`% GlyphTeX document
 \documentclass{article}
 \usepackage{amsmath}
 

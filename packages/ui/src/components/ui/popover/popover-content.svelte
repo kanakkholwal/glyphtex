@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
-	import { Popover as PopoverPrimitive } from "bits-ui";
-	import type { ComponentProps } from "svelte";
+	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
+	import { Popover as PopoverPrimitive } from 'bits-ui';
+	import type { ComponentProps } from 'svelte';
 
 	type PortalProps = WithoutChildrenOrChild<ComponentProps<typeof PopoverPrimitive.Portal>>;
 
 	let {
 		ref = $bindable(null),
 		class: className,
-		align = "center",
+		align = 'center',
 		sideOffset = 6,
 		portalProps,
 		preventScroll = false,
@@ -27,8 +27,8 @@
 		{preventScroll}
 		class={cn(
 			CRAFT_OVERLAY_ANIMATION,
-			"z-50 w-72 origin-(--transform-origin) rounded-xl border border-border/50 bg-popover p-4 text-popover-foreground shadow-craft-lg outline-none ring-1 ring-foreground/5",
-			className,
+			'z-50 w-72 origin-(--transform-origin) rounded-xl border border-border/50 bg-popover p-4 text-popover-foreground shadow-craft-lg outline-none ring-1 ring-foreground/5',
+			className
 		)}
 		{...restProps}
 	/>

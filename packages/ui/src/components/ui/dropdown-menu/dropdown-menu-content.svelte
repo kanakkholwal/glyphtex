@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
-	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import type { ComponentProps } from "svelte";
+	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
+	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
+	import type { ComponentProps } from 'svelte';
 	import {
-	  dropdownMenuContentSizeVariants,
-	  setDropdownMenuSize,
-	  type DropdownMenuSize,
-	} from "./context";
-	import DropdownMenuPortal from "./dropdown-menu-portal.svelte";
+		dropdownMenuContentSizeVariants,
+		setDropdownMenuSize,
+		type DropdownMenuSize
+	} from './context';
+	import DropdownMenuPortal from './dropdown-menu-portal.svelte';
 
 	let {
 		ref = $bindable(null),
 		sideOffset = 4,
-		align = "start",
-		size = "default",
+		align = 'start',
+		size = 'default',
 		portalProps,
 		class: className,
 		preventScroll = false,
@@ -41,8 +41,8 @@
 			CRAFT_OVERLAY_ANIMATION,
 			// Unfold from the corner nearest the trigger (macOS-menu feel)
 			// instead of scaling from the centre.
-			"origin-(--bits-floating-transform-origin)",
-			"ring-foreground/10 text-popover-foreground rounded-xl shadow-md ring-1 z-50 w-(--bits-dropdown-menu-anchor-width) overflow-x-hidden overflow-y-auto outline-none data-[state=closed]:overflow-hidden relative bg-popover/70 before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:backdrop-blur-2xl before:backdrop-saturate-150 **:data-[slot$=-item]:focus:bg-foreground/10 **:data-[slot$=-item]:data-highlighted:bg-foreground/10 **:data-[slot$=-separator]:bg-foreground/5 **:data-[slot$=-trigger]:focus:bg-foreground/10 **:data-[slot$=-trigger]:aria-expanded:bg-foreground/10! **:data-[variant=destructive]:focus:bg-foreground/10! **:data-[variant=destructive]:text-accent-foreground! **:data-[variant=destructive]:**:text-accent-foreground!",
+			'origin-(--bits-floating-transform-origin)',
+			'ring-foreground/10 text-popover-foreground rounded-xl shadow-md ring-1 z-50 w-(--bits-dropdown-menu-anchor-width) overflow-x-hidden overflow-y-auto outline-none data-[state=closed]:overflow-hidden relative bg-popover/70 before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:backdrop-blur-2xl before:backdrop-saturate-150 **:data-[slot$=-item]:focus:bg-foreground/10 **:data-[slot$=-item]:data-highlighted:bg-foreground/10 **:data-[slot$=-separator]:bg-foreground/5 **:data-[slot$=-trigger]:focus:bg-foreground/10 **:data-[slot$=-trigger]:aria-expanded:bg-foreground/10! **:data-[variant=destructive]:focus:bg-foreground/10! **:data-[variant=destructive]:text-accent-foreground! **:data-[variant=destructive]:**:text-accent-foreground!',
 			dropdownMenuContentSizeVariants({ size }),
 			className
 		)}

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
+	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
 	import { IconMinus } from '@tabler/icons-svelte';
 	import { IconCheck } from '@tabler/icons-svelte';
-	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
-	import type { Snippet } from "svelte";
+	import { cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
+	import type { Snippet } from 'svelte';
 
 	let {
 		ref = $bindable(null),
@@ -34,9 +34,9 @@
 			data-slot="dropdown-menu-checkbox-item-indicator"
 		>
 			{#if indeterminate}
-				<IconMinus  />
+				<IconMinus />
 			{:else if checked}
-				<IconCheck  />
+				<IconCheck />
 			{/if}
 		</span>
 		{@render childrenProp?.()}

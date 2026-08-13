@@ -5,7 +5,7 @@
 	 *   - removable: a static pill with an inline remove button: assigned tags.
 	 * Optional `color` renders a leading dot (hex). Dependency-free (no icon lib).
 	 */
-	import { cn } from "@glyphtex/ui/utils";
+	import { cn } from '@glyphtex/ui/utils';
 
 	let {
 		label,
@@ -14,7 +14,7 @@
 		removable = false,
 		onclick,
 		onremove,
-		class: className,
+		class: className
 	}: {
 		label: string;
 		color?: string | null;
@@ -26,11 +26,11 @@
 	} = $props();
 
 	const base =
-		"inline-flex w-fit max-w-full shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors";
+		'inline-flex w-fit max-w-full shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors';
 	const tone = $derived(
 		selected
-			? "border-primary/40 bg-primary/12 text-foreground"
-			: "border-border-low/60 bg-foreground/3 text-muted-foreground hover:border-border hover:bg-foreground/8 hover:text-foreground",
+			? 'border-primary/40 bg-primary/12 text-foreground'
+			: 'border-border-low/60 bg-foreground/3 text-muted-foreground hover:border-border hover:bg-foreground/8 hover:text-foreground'
 	);
 </script>
 

@@ -1,4 +1,4 @@
-import { parseBib, type BibEntry } from "./bibtex";
+import { parseBib, type BibEntry } from './bibtex';
 
 export type WorkspaceFile = {
 	/** Path or id: used to attribute a suggestion to its file. */
@@ -48,7 +48,7 @@ export function workspaceBibEntries(): BibEntry[] {
 
 	const entries: BibEntry[] = [];
 	for (const file of files) {
-		if (!file.path.toLowerCase().endsWith(".bib")) continue;
+		if (!file.path.toLowerCase().endsWith('.bib')) continue;
 		entries.push(...parseBib(file.content, basename(file.path)));
 	}
 
@@ -71,7 +71,7 @@ export function workspaceLabels(): WorkspaceLabel[] {
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(file.content))) {
 			let line = 1;
-			for (let i = 0; i < m.index; i++) if (file.content[i] === "\n") line++;
+			for (let i = 0; i < m.index; i++) if (file.content[i] === '\n') line++;
 			labels.push({ name: m[1], file: name, line });
 		}
 	}
@@ -88,7 +88,7 @@ export function workspacePackages(): string[] {
 		const re = /\\(?:usepackage|RequirePackage)\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/g;
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(file.content))) {
-			for (const name of m[1].split(",")) {
+			for (const name of m[1].split(',')) {
 				const trimmed = name.trim();
 				if (trimmed) names.add(trimmed);
 			}

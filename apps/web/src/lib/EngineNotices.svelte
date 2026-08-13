@@ -76,15 +76,17 @@
 		}
 	}
 
+	// Same card as a toast: same radius, border, shadow and plain 16px icon, so
+	// the app has one notification language.
 	const card =
-		'border-border bg-card text-foreground pointer-events-auto flex gap-2.5 rounded-lg border p-3 shadow-craft-lg';
+		'border-border bg-card text-foreground pointer-events-auto flex items-start gap-2.5 rounded-lg border p-3 shadow-craft-lg';
 </script>
 
-<!-- Corner cards, not a banner strip. Each of these used to push the entire
-     workbench down the moment a compile discovered it, so the editor and PDF
-     jumped mid-session. `fixed` costs no layout. -->
+<!-- Corner cards, not a banner strip: each of these used to push the whole
+     workbench down the moment a compile found it, so the editor and PDF jumped
+     mid-session. Bottom-left, because toasts own bottom-right. -->
 <div
-	class="pointer-events-none fixed right-4 bottom-4 z-40 flex w-[21rem] max-w-[calc(100vw-2rem)] flex-col gap-2"
+	class="pointer-events-none fixed bottom-4 left-4 z-40 flex w-[21rem] max-w-[calc(100vw-2rem)] flex-col gap-2"
 	aria-live="polite"
 >
 	{#if updateAvailable}

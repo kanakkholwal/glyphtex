@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
+	import { cn } from '@glyphtex/ui/utils';
 	import { IconLayoutSidebar } from '@tabler/icons-svelte';
-	import type { ComponentProps } from "svelte";
-	import { Button } from "../button";
-	import { useSidebar } from "./context.svelte";
+	import type { ComponentProps } from 'svelte';
+	import { Button } from '../button';
+	import { useSidebar } from './context.svelte';
 
 	let {
 		ref = $bindable(null),
@@ -23,7 +23,7 @@
 	data-slot="sidebar-trigger"
 	variant="ghost"
 	size="icon-sm"
-	class={cn("cn-sidebar-trigger", className)}
+	class={cn('cn-sidebar-trigger', className)}
 	type="button"
 	onclick={(e) => {
 		onclick?.(e);
@@ -31,6 +31,6 @@
 	}}
 	{...restProps}
 >
-	<IconLayoutSidebar  />
+	<IconLayoutSidebar />
 	<span class="sr-only">Toggle Sidebar</span>
 </Button>

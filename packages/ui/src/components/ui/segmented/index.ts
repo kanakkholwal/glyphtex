@@ -1,10 +1,5 @@
-import Segmented, {
-	type SegmentedProps,
-	type SegmentedOption,
-} from "./segmented.svelte";
-import SegmentedToggle, {
-	type SegmentedToggleProps,
-} from "./segmented-toggle.svelte";
+import Segmented, { type SegmentedProps, type SegmentedOption } from './segmented.svelte';
+import SegmentedToggle, { type SegmentedToggleProps } from './segmented-toggle.svelte';
 
 export {
 	Segmented,
@@ -12,5 +7,5 @@ export {
 	SegmentedToggle,
 	type SegmentedProps,
 	type SegmentedOption,
-	type SegmentedToggleProps,
+	type SegmentedToggleProps
 };

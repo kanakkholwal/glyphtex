@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Collapsible as CollapsiblePrimitive } from "bits-ui";
-	import { cn } from "@glyphtex/ui/utils";
-	import { cubicOut } from "svelte/easing";
-	import { slide } from "svelte/transition";
+	import { Collapsible as CollapsiblePrimitive } from 'bits-ui';
+	import { cn } from '@glyphtex/ui/utils';
+	import { cubicOut } from 'svelte/easing';
+	import { slide } from 'svelte/transition';
 
 	/**
 	 * Collapsible content panel. Drives open/close with Svelte's native `slide`
@@ -40,8 +40,8 @@
 		{#if open}
 			<div
 				{...props}
-				transition:slide={{ duration, easing, axis: "y" }}
-				class={cn("overflow-hidden", className)}
+				transition:slide={{ duration, easing, axis: 'y' }}
+				class={cn('overflow-hidden', className)}
 			>
 				{@render children?.()}
 			</div>

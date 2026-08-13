@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
+	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
 	import { IconCheck } from '@tabler/icons-svelte';
-	import { cn, type WithoutChild } from "@glyphtex/ui/utils";
+	import { cn, type WithoutChild } from '@glyphtex/ui/utils';
 
 	let {
 		ref = $bindable(null),
@@ -26,7 +26,7 @@
 			data-slot="dropdown-menu-radio-item-indicator"
 		>
 			{#if checked}
-				<IconCheck  />
+				<IconCheck />
 			{/if}
 		</span>
 		{@render childrenProp?.({ checked })}

@@ -1,39 +1,42 @@
 <script lang="ts" module>
-	import { type VariantProps, tv } from "tailwind-variants";
+	import { type VariantProps, tv } from 'tailwind-variants';
 
 	export const badgeVariants = tv({
-		base: "h-5 gap-1 rounded-pill border border-transparent px-2 py-0.5 text-xs font-medium transition-all has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive group/badge inline-flex w-fit shrink-0 items-center justify-center overflow-hidden whitespace-nowrap transition-colors focus-visible:ring-[3px] [&>svg]:pointer-events-none",
+		base: 'h-5 gap-1 rounded-pill border border-transparent px-2 py-0.5 text-xs font-medium transition-all has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive group/badge inline-flex w-fit shrink-0 items-center justify-center overflow-hidden whitespace-nowrap transition-colors focus-visible:ring-[3px] [&>svg]:pointer-events-none',
 		variants: {
 			variant: {
-				default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-				secondary: "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
-				destructive: "bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
-				success: "bg-success/10 [a]:hover:bg-success/20 focus-visible:ring-success/20 text-success dark:bg-success/20",
-				warning: "bg-warning/10 [a]:hover:bg-warning/20 focus-visible:ring-warning/20 text-warning dark:bg-warning/20",
-				info: "bg-info/10 [a]:hover:bg-info/20 focus-visible:ring-info/20 text-info dark:bg-info/20",
-				brand: "bg-brand-subtle [a]:hover:bg-brand/15 focus-visible:ring-brand/20 text-brand",
-				outline: "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
-				ghost: "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-				link: "text-primary underline-offset-4 hover:underline",
-			},
+				default: 'bg-primary text-primary-foreground [a]:hover:bg-primary/80',
+				secondary: 'bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80',
+				destructive:
+					'bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20',
+				success:
+					'bg-success/10 [a]:hover:bg-success/20 focus-visible:ring-success/20 text-success dark:bg-success/20',
+				warning:
+					'bg-warning/10 [a]:hover:bg-warning/20 focus-visible:ring-warning/20 text-warning dark:bg-warning/20',
+				info: 'bg-info/10 [a]:hover:bg-info/20 focus-visible:ring-info/20 text-info dark:bg-info/20',
+				brand: 'bg-brand-subtle [a]:hover:bg-brand/15 focus-visible:ring-brand/20 text-brand',
+				outline: 'border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground',
+				ghost: 'hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50',
+				link: 'text-primary underline-offset-4 hover:underline'
+			}
 		},
 		defaultVariants: {
-			variant: "default",
-		},
+			variant: 'default'
+		}
 	});
 
-	export type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
+	export type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
 </script>
 
 <script lang="ts">
-	import type { HTMLAnchorAttributes } from "svelte/elements";
-	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import type { HTMLAnchorAttributes } from 'svelte/elements';
+	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
 
 	let {
 		ref = $bindable(null),
 		href,
 		class: className,
-		variant = "default",
+		variant = 'default',
 		children,
 		...restProps
 	}: WithElementRef<HTMLAnchorAttributes> & {
@@ -42,7 +45,7 @@
 </script>
 
 <svelte:element
-	this={href ? "a" : "span"}
+	this={href ? 'a' : 'span'}
 	bind:this={ref}
 	data-slot="badge"
 	{href}

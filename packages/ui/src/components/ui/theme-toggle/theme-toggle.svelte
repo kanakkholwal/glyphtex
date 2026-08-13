@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { settings, type Appearance } from "@glyphtex/ui/settings";
-	import { Button, type ButtonSize } from "@glyphtex/ui/button";
+	import { settings, type Appearance } from '@glyphtex/ui/settings';
+	import { Button, type ButtonSize } from '@glyphtex/ui/button';
 	import { IconSun, IconMoon, IconDeviceDesktop } from '@tabler/icons-svelte';
 
 	/**
@@ -8,15 +8,12 @@
 	 * store, so a change here syncs to every other window/tab instantly.
 	 * Lightweight (no editor deps): safe to drop in the marketing nav.
 	 */
-	let {
-		class: className = "",
-		size = "icon-sm",
-	}: { class?: string; size?: ButtonSize } = $props();
+	let { class: className = '', size = 'icon-sm' }: { class?: string; size?: ButtonSize } = $props();
 
 	const labels: Record<Appearance, string> = {
-		light: "Light",
-		dark: "Dark",
-		system: "System",
+		light: 'Light',
+		dark: 'Dark',
+		system: 'System'
 	};
 </script>
 
@@ -28,9 +25,9 @@
 	aria-label={`Theme: ${labels[settings.appearance]}. Click to change.`}
 	onclick={() => settings.cycle()}
 >
-	{#if settings.appearance === "light"}
+	{#if settings.appearance === 'light'}
 		<IconSun />
-	{:else if settings.appearance === "dark"}
+	{:else if settings.appearance === 'dark'}
 		<IconMoon />
 	{:else}
 		<IconDeviceDesktop />

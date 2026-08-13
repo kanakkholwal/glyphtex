@@ -1,45 +1,45 @@
-import type * as Monaco from "monaco-editor";
+import type * as Monaco from 'monaco-editor';
 
-import type { MonacoNamespace } from "./monaco";
-import { LATEX_ID } from "./latex-monarch";
-import { LATEX_COMMANDS } from "./latex-data";
-import { loadedPackageData } from "./latex-packages";
-import { workspaceBibEntries, workspaceLabels } from "./latex-workspace";
+import type { MonacoNamespace } from './monaco';
+import { LATEX_ID } from './latex-monarch';
+import { LATEX_COMMANDS } from './latex-data';
+import { loadedPackageData } from './latex-packages';
+import { workspaceBibEntries, workspaceLabels } from './latex-workspace';
 
 // Monaco refers to these by index, so the protocol is positional: reordering
 // silently recolours everything. Keep in sync with TokenType below.
-const TOKEN_TYPES = ["macro", "unknownMacro", "danglingRef", "resolvedRef"] as const;
+const TOKEN_TYPES = ['macro', 'unknownMacro', 'danglingRef', 'resolvedRef'] as const;
 
 const enum TokenType {
 	Macro = 0,
 	UnknownMacro = 1,
 	DanglingRef = 2,
-	ResolvedRef = 3,
+	ResolvedRef = 3
 }
 
 // Never flagged regardless of the dataset: TeX primitives and anything the
 // grammar already treats as structural.
 const ALWAYS_KNOWN = new Set([
-	"begin",
-	"end",
-	"documentclass",
-	"usepackage",
-	"RequirePackage",
-	"newcommand",
-	"renewcommand",
-	"providecommand",
-	"newenvironment",
-	"renewenvironment",
-	"DeclareMathOperator",
-	"newtheorem",
-	"def",
-	"let",
-	"input",
-	"include",
-	"item",
-	"label",
-	"left",
-	"right",
+	'begin',
+	'end',
+	'documentclass',
+	'usepackage',
+	'RequirePackage',
+	'newcommand',
+	'renewcommand',
+	'providecommand',
+	'newenvironment',
+	'renewenvironment',
+	'DeclareMathOperator',
+	'newtheorem',
+	'def',
+	'let',
+	'input',
+	'include',
+	'item',
+	'label',
+	'left',
+	'right'
 ]);
 
 const REF_CALL = /\\(ref|eqref|autoref|pageref|nameref|cref|Cref|vref|labelcref)\s*\{([^}]*)\}/g;
@@ -53,7 +53,7 @@ const DEFINITION =
 function withoutComments(text: string): string {
 	return text.replace(
 		/(^|[^\\])(%.*)$/gm,
-		(_m, prefix: string, comment: string) => prefix + " ".repeat(comment.length),
+		(_m, prefix: string, comment: string) => prefix + ' '.repeat(comment.length)
 	);
 }
 
@@ -116,7 +116,7 @@ export function registerLatexSemanticTokens(monaco: MonacoNamespace): Monaco.IDi
 					found.push({
 						offset: start,
 						length: inner.length,
-						type: labels.has(inner.trim()) ? TokenType.ResolvedRef : TokenType.DanglingRef,
+						type: labels.has(inner.trim()) ? TokenType.ResolvedRef : TokenType.DanglingRef
 					});
 				}
 			}
@@ -130,13 +130,13 @@ export function registerLatexSemanticTokens(monaco: MonacoNamespace): Monaco.IDi
 					// A \cite can hold several comma-separated keys; each is judged
 					// on its own, at its own offset within the braces.
 					let cursor = 0;
-					for (const part of inner.split(",")) {
+					for (const part of inner.split(',')) {
 						const trimmed = part.trim();
 						if (trimmed) {
 							found.push({
 								offset: listStart + cursor + part.indexOf(trimmed),
 								length: trimmed.length,
-								type: citations.has(trimmed) ? TokenType.ResolvedRef : TokenType.DanglingRef,
+								type: citations.has(trimmed) ? TokenType.ResolvedRef : TokenType.DanglingRef
 							});
 						}
 						cursor += part.length + 1; // + the comma
@@ -159,7 +159,7 @@ export function registerLatexSemanticTokens(monaco: MonacoNamespace): Monaco.IDi
 					line === lastLine ? column - lastColumn : column,
 					token.length,
 					token.type,
-					0,
+					0
 				);
 				lastLine = line;
 				lastColumn = column;
@@ -170,6 +170,6 @@ export function registerLatexSemanticTokens(monaco: MonacoNamespace): Monaco.IDi
 
 		// Monaco calls this when it discards our result; there is no incremental
 		// state to clean up because every pass recomputes from the whole document.
-		releaseDocumentSemanticTokens() {},
+		releaseDocumentSemanticTokens() {}
 	});
 }

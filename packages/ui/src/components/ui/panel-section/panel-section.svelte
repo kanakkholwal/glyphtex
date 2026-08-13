@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	export interface PanelSectionProps {
 		/** Section title. Omit for a header-less group. */
@@ -30,10 +30,10 @@
 
 <script lang="ts">
 	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { Spring } from "svelte/motion";
-	import { slide } from "svelte/transition";
-	import { cubicOut } from "svelte/easing";
-	import { cn } from "@glyphtex/ui/utils";
+	import { Spring } from 'svelte/motion';
+	import { slide } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
+	import { cn } from '@glyphtex/ui/utils';
 
 	let {
 		title,
@@ -46,7 +46,7 @@
 		defaultOpen = true,
 		open = $bindable<boolean | undefined>(undefined),
 		onOpenChange,
-		class: className,
+		class: className
 	}: PanelSectionProps = $props();
 
 	// Two modes:
@@ -64,7 +64,7 @@
 	// svelte-ignore state_referenced_locally
 	const chevronRotation = new Spring(defaultOpen ? 0 : -90, {
 		stiffness: 0.2,
-		damping: 0.62,
+		damping: 0.62
 	});
 
 	$effect(() => {
@@ -82,7 +82,7 @@
 	const hasHeader = $derived(!!title || !!action || collapsible);
 </script>
 
-<section class={cn("flex flex-col gap-2", className)}>
+<section class={cn('flex flex-col gap-2', className)}>
 	{#if hasHeader}
 		{#if collapsible}
 			<button
@@ -90,8 +90,8 @@
 				onclick={toggle}
 				aria-expanded={isOpen}
 				class={cn(
-					"group/section flex min-h-5 items-center justify-between gap-2 rounded-sm outline-none transition-colors",
-					"hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/30",
+					'group/section flex min-h-5 items-center justify-between gap-2 rounded-sm outline-none transition-colors',
+					'hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/30'
 				)}
 			>
 				<div class="flex min-w-0 items-center gap-1.5">
@@ -114,10 +114,7 @@
 				</div>
 				{#if action}
 					<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-					<span
-						role="presentation"
-						onclick={(e) => e.stopPropagation()}
-					>
+					<span role="presentation" onclick={(e) => e.stopPropagation()}>
 						{@render action()}
 					</span>
 				{/if}
@@ -126,10 +123,7 @@
 			<header class="flex min-h-5 items-center justify-between gap-2">
 				<div class="flex min-w-0 items-center gap-1.5">
 					{#if title}
-						<h3
-							class="text-xs font-medium text-faint"
-							title={hint}
-						>
+						<h3 class="text-xs font-medium text-faint" title={hint}>
 							{title}
 						</h3>
 					{/if}

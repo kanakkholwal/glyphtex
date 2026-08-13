@@ -1,18 +1,19 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
-	import type { HTMLAttributes } from "svelte/elements";
-  let {
-    ref = $bindable(null),
-    class: className,
-    children,
-    ...restProps
-  }: WithElementRef<HTMLAttributes<HTMLElement>> = $props();
+	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
+	import type { HTMLAttributes } from 'svelte/elements';
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLElement>> = $props();
 </script>
+
 <kbd
-  bind:this={ref}
-  data-slot="kbd-group"
-  class={cn("gap-1 inline-flex items-center", className)}
-  {...restProps}
+	bind:this={ref}
+	data-slot="kbd-group"
+	class={cn('gap-1 inline-flex items-center', className)}
+	{...restProps}
 >
-  {@render children?.()}
+	{@render children?.()}
 </kbd>

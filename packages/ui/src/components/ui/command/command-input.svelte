@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
+	import { cn } from '@glyphtex/ui/utils';
 	import { IconSearch } from '@tabler/icons-svelte';
-	import { Command as CommandPrimitive } from "bits-ui";
-	import * as InputGroup from "../input-group";
+	import { Command as CommandPrimitive } from 'bits-ui';
+	import * as InputGroup from '../input-group';
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		wrapperClass,
-		value = $bindable(""),
+		value = $bindable(''),
 		...restProps
 	}: CommandPrimitive.InputProps & {
 		wrapperClass?: string;
@@ -18,15 +18,15 @@
 <div data-slot="command-input-wrapper" class="p-1 pb-0">
 	<InputGroup.Root
 		class={cn(
-			"bg-input/30 border-border/60 h-8! rounded-md! shadow-none! *:data-[slot=input-group-addon]:pl-2!",
-			wrapperClass,
+			'bg-input/30 border-border/60 h-8! rounded-md! shadow-none! *:data-[slot=input-group-addon]:pl-2!',
+			wrapperClass
 		)}
 	>
 		<CommandPrimitive.Input
 			data-slot="command-input"
 			class={cn(
-				"w-full text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
-				className,
+				'w-full text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+				className
 			)}
 			bind:ref
 			{...restProps}

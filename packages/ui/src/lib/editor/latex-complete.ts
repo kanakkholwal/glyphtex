@@ -1,18 +1,18 @@
-import type * as Monaco from "monaco-editor";
+import type * as Monaco from 'monaco-editor';
 
-import type { MonacoNamespace } from "./monaco";
-import { LATEX_ID } from "./latex-monarch";
-import { ensurePackages, loadedPackageData } from "./latex-packages";
-import { workspaceBibEntries, workspaceLabels } from "./latex-workspace";
-import { describeEntry } from "./bibtex";
+import type { MonacoNamespace } from './monaco';
+import { LATEX_ID } from './latex-monarch';
+import { ensurePackages, loadedPackageData } from './latex-packages';
+import { workspaceBibEntries, workspaceLabels } from './latex-workspace';
+import { describeEntry } from './bibtex';
 import {
 	LATEX_CLASSES,
 	LATEX_COMMANDS,
 	LATEX_ENVIRONMENTS,
 	LATEX_PACKAGES,
 	type LatexCommand,
-	type LatexEnvironment,
-} from "./latex-data";
+	type LatexEnvironment
+} from './latex-data';
 
 const REF_COMMANDS =
 	/\\(ref|eqref|autoref|pageref|nameref|cref|Cref|crefrange|labelcref|vref)\s*\{[^}]*$/;
@@ -51,7 +51,7 @@ function scanDocument(model: Monaco.editor.ITextModel): DocumentSymbols {
 		citations: [],
 		commands: [],
 		environments: [],
-		packages: [],
+		packages: []
 	};
 
 	const collect = (re: RegExp, onMatch: (m: RegExpExecArray, line: number) => void) => {
@@ -66,31 +66,25 @@ function scanDocument(model: Monaco.editor.ITextModel): DocumentSymbols {
 	// Both bibliography styles: thebibliography items, plus already-cited keys.
 	// Useful completion without parsing a .bib we may not have.
 	collect(/\\bibitem\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/g, (m, line) =>
-		symbols.citations.push({ key: m[1], line }),
+		symbols.citations.push({ key: m[1], line })
 	);
-	collect(
-		/\\(?:no)?cite[a-z]*\s*(?:\[[^\]]*\])*\s*\{([^}]+)\}/g,
-		(m, line) => {
-			for (const key of m[1].split(",")) {
-				const trimmed = key.trim();
-				if (trimmed) symbols.citations.push({ key: trimmed, line });
-			}
-		},
-	);
+	collect(/\\(?:no)?cite[a-z]*\s*(?:\[[^\]]*\])*\s*\{([^}]+)\}/g, (m, line) => {
+		for (const key of m[1].split(',')) {
+			const trimmed = key.trim();
+			if (trimmed) symbols.citations.push({ key: trimmed, line });
+		}
+	});
 	collect(
 		/\\(?:newcommand|renewcommand|providecommand|DeclareMathOperator)\s*\*?\s*\{?\\([a-zA-Z@]+)\}?/g,
-		(m, line) => symbols.commands.push({ name: m[1], line }),
+		(m, line) => symbols.commands.push({ name: m[1], line })
 	);
 	collect(/\\newenvironment\s*\{([^}]+)\}/g, (m) => symbols.environments.push(m[1]));
-	collect(
-		/\\(?:usepackage|RequirePackage)\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/g,
-		(m) => {
-			for (const name of m[1].split(",")) {
-				const trimmed = name.trim();
-				if (trimmed) symbols.packages.push(trimmed);
-			}
-		},
-	);
+	collect(/\\(?:usepackage|RequirePackage)\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/g, (m) => {
+		for (const name of m[1].split(',')) {
+			const trimmed = name.trim();
+			if (trimmed) symbols.packages.push(trimmed);
+		}
+	});
 
 	// Cited keys repeat constantly; keep the first sighting of each.
 	symbols.citations = dedupeBy(symbols.citations, (c) => c.key);
@@ -126,30 +120,31 @@ function dedupeBy<T>(items: T[], key: (item: T) => string): T[] {
 function inMathContext(textBefore: string): boolean {
 	let dollars = 0;
 	for (let i = 0; i < textBefore.length; i++) {
-		if (textBefore[i] !== "$") continue;
+		if (textBefore[i] !== '$') continue;
 		// A `$` is a delimiter unless it is escaped by an odd run of backslashes.
 		let backslashes = 0;
-		for (let j = i - 1; j >= 0 && textBefore[j] === "\\"; j--) backslashes++;
+		for (let j = i - 1; j >= 0 && textBefore[j] === '\\'; j--) backslashes++;
 		if (backslashes % 2 === 0) dollars++;
 	}
 	if (dollars % 2 === 1) return true;
 
-	const lastOpen = Math.max(textBefore.lastIndexOf("\\["), textBefore.lastIndexOf("\\("));
-	const lastClose = Math.max(textBefore.lastIndexOf("\\]"), textBefore.lastIndexOf("\\)"));
+	const lastOpen = Math.max(textBefore.lastIndexOf('\\['), textBefore.lastIndexOf('\\('));
+	const lastClose = Math.max(textBefore.lastIndexOf('\\]'), textBefore.lastIndexOf('\\)'));
 	if (lastOpen > lastClose) return true;
 
-	const mathEnv = /\\(begin|end)\s*\{(equation|align|gather|multline|displaymath|eqnarray|flalign|alignat)\*?\}/g;
+	const mathEnv =
+		/\\(begin|end)\s*\{(equation|align|gather|multline|displaymath|eqnarray|flalign|alignat)\*?\}/g;
 	let depth = 0;
 	let m: RegExpExecArray | null;
-	while ((m = mathEnv.exec(textBefore))) depth += m[1] === "begin" ? 1 : -1;
+	while ((m = mathEnv.exec(textBefore))) depth += m[1] === 'begin' ? 1 : -1;
 	return depth > 0;
 }
 
 /** Sort key: matching context first, then alphabetical within each band. */
 function rank(item: { context?: string; name: string }, math: boolean): string {
-	const ctx = item.context ?? "both";
-	const matches = ctx === "both" || (math ? ctx === "math" : ctx === "text");
-	return `${matches ? "0" : "1"}${item.name}`;
+	const ctx = item.context ?? 'both';
+	const matches = ctx === 'both' || (math ? ctx === 'math' : ctx === 'text');
+	return `${matches ? '0' : '1'}${item.name}`;
 }
 
 export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDisposable[] {
@@ -159,7 +154,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 	const completion = monaco.languages.registerCompletionItemProvider(LATEX_ID, {
 		// `\` opens command completion, `{` opens argument completion, and `,`
 		// re-opens it inside a multi-key \cite or multi-package \usepackage.
-		triggerCharacters: ["\\", "{", ",", "["],
+		triggerCharacters: ['\\', '{', ',', '['],
 
 		provideCompletionItems(model, position) {
 			// Deliberately not awaited: awaiting would stall the widget on a network
@@ -170,16 +165,16 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 				startLineNumber: position.lineNumber,
 				startColumn: 1,
 				endLineNumber: position.lineNumber,
-				endColumn: position.column,
+				endColumn: position.column
 			});
 
 			// The word inside the current braces, so typing narrows the list.
-			const braceWord = /([^{,\s]*)$/.exec(lineBefore)?.[1] ?? "";
+			const braceWord = /([^{,\s]*)$/.exec(lineBefore)?.[1] ?? '';
 			const braceRange: Monaco.IRange = {
 				startLineNumber: position.lineNumber,
 				startColumn: position.column - braceWord.length,
 				endLineNumber: position.lineNumber,
-				endColumn: position.column,
+				endColumn: position.column
 			};
 
 			if (BEGIN_END.test(lineBefore)) {
@@ -204,51 +199,53 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 			}
 
 			return { suggestions: [] };
-		},
+		}
 	});
 
 	function environmentItems(
 		model: Monaco.editor.ITextModel,
 		lineBefore: string,
-		range: Monaco.IRange,
+		range: Monaco.IRange
 	): Monaco.languages.CompletionItem[] {
 		const closing = BEGIN_END.exec(lineBefore)?.[1];
-		const math = inMathContext(model.getValue().slice(0, model.getOffsetAt({
-			lineNumber: range.startLineNumber,
-			column: range.startColumn,
-		})));
+		const math = inMathContext(
+			model.getValue().slice(
+				0,
+				model.getOffsetAt({
+					lineNumber: range.startLineNumber,
+					column: range.startColumn
+				})
+			)
+		);
 
 		// `\end{` only ever needs the name; `\begin{` gets the whole block, which
 		// is the behaviour that makes environments pleasant to type.
 		const userDefined: LatexEnvironment[] = scanDocument(model).environments.map((name) => ({
 			name,
-			detail: "Defined in this document",
+			detail: 'Defined in this document'
 		}));
 
 		return mergeByName<LatexEnvironment>(
 			[...LATEX_ENVIRONMENTS],
 			[...loadedPackageData().environments],
-			userDefined,
+			userDefined
 		).map((env) => {
-			const body = env.body ?? "\n\t$0\n";
+			const body = env.body ?? '\n\t$0\n';
 			return {
 				label: env.name,
 				kind: Kind.Struct,
 				detail: env.detail,
-				insertText:
-					closing === "end"
-						? env.name
-						: `${env.name}}${body}\\end{${env.name}}`,
-				insertTextRules: closing === "end" ? undefined : Snippet,
+				insertText: closing === 'end' ? env.name : `${env.name}}${body}\\end{${env.name}}`,
+				insertTextRules: closing === 'end' ? undefined : Snippet,
 				range,
-				sortText: rank(env, math),
+				sortText: rank(env, math)
 			};
 		});
 	}
 
 	function labelItems(
 		model: Monaco.editor.ITextModel,
-		range: Monaco.IRange,
+		range: Monaco.IRange
 	): Monaco.languages.CompletionItem[] {
 		// The open file first: its labels are live, including ones typed but not
 		// yet saved, so they must win over the indexed copy of the same file.
@@ -261,7 +258,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 				detail: `\\label on line ${label.line}`,
 				insertText: label.name,
 				range,
-				sortText: `0${label.name}`,
+				sortText: `0${label.name}`
 			});
 		}
 
@@ -274,7 +271,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 				insertText: label.name,
 				range,
 				// Labels from other files rank below the ones in view.
-				sortText: `1${label.name}`,
+				sortText: `1${label.name}`
 			});
 		}
 
@@ -283,7 +280,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 
 	function citationItems(
 		model: Monaco.editor.ITextModel,
-		range: Monaco.IRange,
+		range: Monaco.IRange
 	): Monaco.languages.CompletionItem[] {
 		const items = new Map<string, Monaco.languages.CompletionItem>();
 
@@ -297,7 +294,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 				documentation: entry.source ? { value: `From \`${entry.source}\`` } : undefined,
 				insertText: entry.key,
 				range,
-				sortText: `0${entry.key}`,
+				sortText: `0${entry.key}`
 			});
 		}
 
@@ -311,7 +308,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 				detail: `Cited on line ${citation.line}`,
 				insertText: citation.key,
 				range,
-				sortText: `1${citation.key}`,
+				sortText: `1${citation.key}`
 			});
 		}
 
@@ -321,14 +318,14 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 	function simpleItems(
 		entries: readonly { name: string; detail: string }[],
 		kind: Monaco.languages.CompletionItemKind,
-		range: Monaco.IRange,
+		range: Monaco.IRange
 	): Monaco.languages.CompletionItem[] {
 		return entries.map((entry) => ({
 			label: entry.name,
 			kind,
 			detail: entry.detail,
 			insertText: entry.name,
-			range,
+			range
 		}));
 	}
 
@@ -336,7 +333,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 		model: Monaco.editor.ITextModel,
 		lineBefore: string,
 		partial: RegExpExecArray,
-		position: Monaco.IPosition,
+		position: Monaco.IPosition
 	): Monaco.languages.CompletionItem[] {
 		// Replace from the backslash, so accepting `frac` after typing `\fr`
 		// yields `\frac{}{}` rather than `\fr\frac{}{}`.
@@ -344,19 +341,19 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 			startLineNumber: position.lineNumber,
 			startColumn: position.column - partial[0].length,
 			endLineNumber: position.lineNumber,
-			endColumn: position.column,
+			endColumn: position.column
 		};
 		const math = inMathContext(lineBefore);
 
 		const userDefined: LatexCommand[] = scanDocument(model).commands.map((command) => ({
 			name: command.name,
-			detail: `Defined on line ${command.line}`,
+			detail: `Defined on line ${command.line}`
 		}));
 
 		return mergeByName<LatexCommand>(
 			[...LATEX_COMMANDS],
 			[...loadedPackageData().commands],
-			userDefined,
+			userDefined
 		).map((command) => ({
 			label: `\\${command.name}`,
 			kind: command.snippet ? Kind.Function : Kind.Constant,
@@ -372,7 +369,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 			sortText: rank(command, math),
 			// Monaco filters against the label, which includes the backslash the
 			// user has already typed: so the filter text has to include it too.
-			filterText: `\\${command.name}`,
+			filterText: `\\${command.name}`
 		}));
 	}
 
@@ -391,7 +388,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 				if (!command) return null;
 
 				const contents: Monaco.IMarkdownString[] = [
-					{ value: `\`\\${command.name}\`: ${command.detail}` },
+					{ value: `\`\\${command.name}\`: ${command.detail}` }
 				];
 				if (command.doc) contents.push({ value: command.doc });
 				if (command.package) contents.push({ value: `Provided by \`${command.package}\`` });
@@ -402,12 +399,12 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 						startLineNumber: position.lineNumber,
 						startColumn: start,
 						endLineNumber: position.lineNumber,
-						endColumn: end,
-					},
+						endColumn: end
+					}
 				};
 			}
 			return null;
-		},
+		}
 	});
 
 	return [completion, hover];

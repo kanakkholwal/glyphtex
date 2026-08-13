@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { HTMLAttributes } from "svelte/elements";
-	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import type { HTMLAttributes } from 'svelte/elements';
+	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
 
 	let {
 		ref = $bindable(null),
@@ -14,7 +14,7 @@
 	bind:this={ref}
 	data-slot="sidebar-group"
 	data-sidebar="group"
-	class={cn("p-2 relative flex w-full min-w-0 flex-col", className)}
+	class={cn('p-2 relative flex w-full min-w-0 flex-col', className)}
 	{...restProps}
 >
 	{@render children?.()}

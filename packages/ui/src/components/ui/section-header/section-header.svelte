@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
-	import { cn } from "@glyphtex/ui/utils";
+	import type { Snippet } from 'svelte';
+	import { cn } from '@glyphtex/ui/utils';
 
 	/**
 	 * The one section-heading treatment for the marketing pages. Sizes come from
@@ -13,9 +13,9 @@
 		/** Second line, in the muted display voice. */
 		emphasis?: string;
 		description?: string;
-		align?: "left" | "center";
+		align?: 'left' | 'center';
 		/** Heading level. The page owns the outline; this component follows it. */
-		as?: "h2" | "h3";
+		as?: 'h2' | 'h3';
 		class?: string;
 		actions?: Snippet;
 	};
@@ -25,19 +25,19 @@
 		title,
 		emphasis,
 		description,
-		align = "left",
-		as: Tag = "h2",
+		align = 'left',
+		as: Tag = 'h2',
 		class: className,
-		actions,
+		actions
 	}: Props = $props();
 </script>
 
 <div
 	data-slot="section-header"
 	class={cn(
-		"flex flex-col",
-		align === "center" && "items-center text-center mx-auto max-w-3xl",
-		className,
+		'flex flex-col',
+		align === 'center' && 'items-center text-center mx-auto max-w-3xl',
+		className
 	)}
 >
 	{#if eyebrow}
@@ -54,8 +54,8 @@
 	{#if description}
 		<p
 			class={cn(
-				"landing-text-pretty mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg",
-				align === "center" ? "max-w-xl" : "max-w-2xl",
+				'landing-text-pretty mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg',
+				align === 'center' ? 'max-w-xl' : 'max-w-2xl'
 			)}
 		>
 			{description}
@@ -63,7 +63,7 @@
 	{/if}
 
 	{#if actions}
-		<div class={cn("mt-8 flex flex-wrap gap-3", align === "center" && "justify-center")}>
+		<div class={cn('mt-8 flex flex-wrap gap-3', align === 'center' && 'justify-center')}>
 			{@render actions()}
 		</div>
 	{/if}

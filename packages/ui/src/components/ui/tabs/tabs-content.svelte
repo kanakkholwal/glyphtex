@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
-	import { Tabs as TabsPrimitive } from "bits-ui";
+	import { cn } from '@glyphtex/ui/utils';
+	import { Tabs as TabsPrimitive } from 'bits-ui';
 
 	let {
 		ref = $bindable(null),
@@ -24,9 +24,9 @@
 	bind:ref
 	data-slot="tabs-content"
 	class={cn(
-		"text-sm flex-1 outline-none",
-		"data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-200 data-[state=active]:ease-out",
-		className,
+		'text-sm flex-1 outline-none',
+		'data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-200 data-[state=active]:ease-out',
+		className
 	)}
 	{...restProps}
 />

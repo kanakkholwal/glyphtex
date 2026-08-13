@@ -4,8 +4,8 @@ import Root, {
 	parseColor,
 	rgbToHsl,
 	type ColorPickerProps,
-	type ColorValue,
-} from "./color-picker.svelte";
+	type ColorValue
+} from './color-picker.svelte';
 
 export {
 	Root,
@@ -15,5 +15,5 @@ export {
 	parseColor,
 	rgbToHsl,
 	type ColorPickerProps,
-	type ColorValue,
+	type ColorValue
 };

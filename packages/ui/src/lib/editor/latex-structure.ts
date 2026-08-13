@@ -1,20 +1,23 @@
-import type * as Monaco from "monaco-editor";
+import type * as Monaco from 'monaco-editor';
 
-import type { MonacoNamespace } from "./monaco";
-import { LATEX_ID } from "./latex-monarch";
+import type { MonacoNamespace } from './monaco';
+import { LATEX_ID } from './latex-monarch';
 
 /** Sectioning commands, outermost first: the index is the nesting rank. */
 const SECTION_RANK = [
-	"part",
-	"chapter",
-	"section",
-	"subsection",
-	"subsubsection",
-	"paragraph",
-	"subparagraph",
+	'part',
+	'chapter',
+	'section',
+	'subsection',
+	'subsubsection',
+	'paragraph',
+	'subparagraph'
 ] as const;
 
-const SECTION_RE = new RegExp(`^\\s*\\\\(${SECTION_RANK.join("|")})\\*?\\s*(?:\\[[^\\]]*\\])?\\s*\\{`, "");
+const SECTION_RE = new RegExp(
+	`^\\s*\\\\(${SECTION_RANK.join('|')})\\*?\\s*(?:\\[[^\\]]*\\])?\\s*\\{`,
+	''
+);
 const ENVIRONMENT_RE = /^\s*\\(begin|end)\s*\{([^}]+)\}/;
 
 type Heading = {
@@ -29,12 +32,12 @@ function readBraced(text: string, open: number): string | null {
 	let depth = 0;
 	for (let i = open; i < text.length; i++) {
 		const ch = text[i];
-		if (ch === "\\") {
+		if (ch === '\\') {
 			i++; // skip the escaped character
 			continue;
 		}
-		if (ch === "{") depth++;
-		else if (ch === "}") {
+		if (ch === '{') depth++;
+		else if (ch === '}') {
 			depth--;
 			if (depth === 0) return text.slice(open + 1, i);
 		}
@@ -45,9 +48,9 @@ function readBraced(text: string, open: number): string | null {
 // Strips a trailing `%` comment, respecting `\%`.
 function withoutComment(line: string): string {
 	for (let i = 0; i < line.length; i++) {
-		if (line[i] !== "%") continue;
+		if (line[i] !== '%') continue;
 		let backslashes = 0;
-		for (let j = i - 1; j >= 0 && line[j] === "\\"; j--) backslashes++;
+		for (let j = i - 1; j >= 0 && line[j] === '\\'; j--) backslashes++;
 		if (backslashes % 2 === 0) return line.slice(0, i);
 	}
 	return line;
@@ -60,13 +63,13 @@ function findHeadings(model: Monaco.editor.ITextModel): Heading[] {
 		const match = SECTION_RE.exec(text);
 		if (!match) continue;
 
-		const open = text.indexOf("{", match.index);
+		const open = text.indexOf('{', match.index);
 		const title = readBraced(text, open);
 		headings.push({
 			rank: SECTION_RANK.indexOf(match[1] as (typeof SECTION_RANK)[number]),
 			// A title continued on the next line still gets an entry, named after the command.
 			title: title?.trim() || match[1],
-			line,
+			line
 		});
 	}
 	return headings;
@@ -83,7 +86,7 @@ function sectionEnd(headings: Heading[], index: number, lastLine: number): numbe
 
 export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposable[] {
 	const symbols = monaco.languages.registerDocumentSymbolProvider(LATEX_ID, {
-		displayName: "LaTeX sections",
+		displayName: 'LaTeX sections',
 
 		provideDocumentSymbols(model) {
 			const headings = findHeadings(model);
@@ -99,7 +102,7 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 					startLineNumber: heading.line,
 					startColumn: 1,
 					endLineNumber: endLine,
-					endColumn: model.getLineMaxColumn(endLine),
+					endColumn: model.getLineMaxColumn(endLine)
 				};
 				const symbol: Monaco.languages.DocumentSymbol = {
 					name: heading.title,
@@ -111,9 +114,9 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 						startLineNumber: heading.line,
 						startColumn: 1,
 						endLineNumber: heading.line,
-						endColumn: model.getLineMaxColumn(heading.line),
+						endColumn: model.getLineMaxColumn(heading.line)
 					},
-					children: [],
+					children: []
 				};
 
 				while (stack.length > 0 && stack[stack.length - 1].rank >= heading.rank) {
@@ -125,7 +128,7 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 			});
 
 			return roots;
-		},
+		}
 	});
 
 	const folding = monaco.languages.registerFoldingRangeProvider(LATEX_ID, {
@@ -140,7 +143,7 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 					ranges.push({
 						start: heading.line,
 						end,
-						kind: monaco.languages.FoldingRangeKind.Region,
+						kind: monaco.languages.FoldingRangeKind.Region
 					});
 				}
 			});
@@ -152,7 +155,7 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 				const match = ENVIRONMENT_RE.exec(withoutComment(model.getLineContent(line)));
 				if (!match) continue;
 
-				if (match[1] === "begin") {
+				if (match[1] === 'begin') {
 					open.push({ name: match[2], line });
 					continue;
 				}
@@ -169,7 +172,7 @@ export function registerLatexStructure(monaco: MonacoNamespace): Monaco.IDisposa
 			}
 
 			return ranges;
-		},
+		}
 	});
 
 	return [symbols, folding];

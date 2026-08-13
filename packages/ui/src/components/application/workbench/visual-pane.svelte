@@ -35,8 +35,8 @@
 			<div class="min-w-0 flex-1">
 				<p class="text-foreground text-sm font-medium">Visual editing isn't shipped yet</p>
 				<p class="text-muted-foreground mt-0.5 text-xs leading-relaxed">
-					This is a specimen of the writing surface we're building, not
-					<span class="font-medium">{files.displayName}</span>. Edit the real document in LaTeX.
+					A specimen of the surface we're building, not
+					<span class="font-medium">{files.displayName}</span>.
 				</p>
 			</div>
 			<Button size="sm" variant="outline" class="h-8" onclick={() => (layout.docMode = 'latex')}>
@@ -60,7 +60,7 @@
 
 			<p class="text-foreground mt-8 leading-[1.6]">
 				Type the way you think. Structure, maths and citations stay real LaTeX underneath, so the
-				PDF you export is the one your journal expects: and nothing leaves this device.
+				PDF is the one your journal expects.
 			</p>
 
 			<h2
@@ -69,8 +69,8 @@
 				How it will work
 			</h2>
 			<p class="text-foreground leading-[1.6]">
-				Every block maps to a LaTeX construct. Switching to the LaTeX view shows exactly what was
-				written, with your cursor in the same place.
+				Every block maps to a LaTeX construct. Switch to LaTeX and your cursor lands in the same
+				place.
 			</p>
 
 			<ul class="mt-4 space-y-1.5 pl-1">
@@ -92,17 +92,14 @@
 			</div>
 
 			<p class="text-foreground mt-6 leading-[1.6]">
-				Inline maths keeps its source form: <code
+				Inline maths keeps its source form, like <code
 					class="bg-muted text-brand rounded px-1.5 py-0.5 text-[0.85em]">$\hat\theta$</code
-				>: and renders as you type.
+				>, and renders as you type.
 			</p>
 
 			<div class="border-border mt-12 flex items-center gap-2 border-t pt-6">
 				<IconSparkles size={14} class="text-faint shrink-0" />
-				<p class="text-faint text-xs">
-					Blocks, slash commands and drag-to-reorder are in design. Follow the changelog for
-					progress.
-				</p>
+				<p class="text-faint text-xs">Blocks, slash commands and drag-to-reorder are in design.</p>
 			</div>
 		</article>
 	</div>

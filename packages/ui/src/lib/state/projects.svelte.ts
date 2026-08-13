@@ -147,7 +147,11 @@ class ProjectsStore {
 			return this.get(existing.id)!;
 		}
 		const now = Date.now();
-		const base = root.replace(/[\\/]+$/, '').split(/[\\/]/).pop() || 'project';
+		const base =
+			root
+				.replace(/[\\/]+$/, '')
+				.split(/[\\/]/)
+				.pop() || 'project';
 		const project: Project = {
 			id: uid(),
 			name: name ?? base,

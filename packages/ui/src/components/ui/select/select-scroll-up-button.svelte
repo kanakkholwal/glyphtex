@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import { cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
 	import { IconChevronUp } from '@tabler/icons-svelte';
-	import { Select as SelectPrimitive } from "bits-ui";
+	import { Select as SelectPrimitive } from 'bits-ui';
 
 	let {
 		ref = $bindable(null),
@@ -13,8 +13,11 @@
 <SelectPrimitive.ScrollUpButton
 	bind:ref
 	data-slot="select-scroll-up-button"
-	class={cn("bg-popover z-10 flex cursor-default items-center justify-center py-1 [&_svg:not([class*='size-'])]:size-4 top-0 w-full", className)}
+	class={cn(
+		"bg-popover z-10 flex cursor-default items-center justify-center py-1 [&_svg:not([class*='size-'])]:size-4 top-0 w-full",
+		className
+	)}
 	{...restProps}
 >
-	<IconChevronUp  />
+	<IconChevronUp />
 </SelectPrimitive.ScrollUpButton>

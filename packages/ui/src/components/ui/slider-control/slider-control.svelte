@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	export interface SliderControlProps {
 		label: string;
@@ -26,7 +26,7 @@
 	function decimalsForStep(step: number): number {
 		if (!Number.isFinite(step) || step <= 0) return 0;
 		const str = step.toString();
-		const idx = str.indexOf(".");
+		const idx = str.indexOf('.');
 		return idx === -1 ? 0 : str.length - idx - 1;
 	}
 
@@ -44,9 +44,9 @@
 </script>
 
 <script lang="ts">
-	import { tick } from "svelte";
-	import { Spring } from "svelte/motion";
-	import { cn } from "@glyphtex/ui/utils";
+	import { tick } from 'svelte';
+	import { Spring } from 'svelte/motion';
+	import { cn } from '@glyphtex/ui/utils';
 
 	let {
 		label,
@@ -56,14 +56,14 @@
 		step = 1,
 		description,
 		icon,
-		unit = "",
+		unit = '',
 		disabled = false,
 		class: className,
 		hashMarks: showHashMarks = true,
 		onstart,
 		onchange,
 		oncommit,
-		formatValue,
+		formatValue
 	}: SliderControlProps = $props();
 
 	// `Row control` design: one card, label left, value right, animated fill
@@ -93,7 +93,7 @@
 	let isValueHovered = $state(false);
 	let isValueEditable = $state(false);
 	let showInput = $state(false);
-	let inputValue = $state("");
+	let inputValue = $state('');
 
 	const precision = $derived(decimalsForStep(step));
 	// svelte-ignore state_referenced_locally
@@ -105,7 +105,7 @@
 	// dodge when the thumb position would collide with label/value text.
 	const fillPercent = new Spring(initialPercent, {
 		stiffness: 0.25,
-		damping: 0.7,
+		damping: 0.7
 	});
 	const rubberStretchPx = new Spring(0, { stiffness: 0.2, damping: 0.65 });
 	const handleOpacityMv = new Spring(0, { stiffness: 0.3, damping: 0.75 });
@@ -146,27 +146,19 @@
 
 	function computeRubberStretch(clientX: number, sign: -1 | 1) {
 		if (!trackRect) return 0;
-		const distancePast =
-			sign < 0 ? trackRect.left - clientX : clientX - trackRect.right;
+		const distancePast = sign < 0 ? trackRect.left - clientX : clientX - trackRect.right;
 		const overflow = Math.max(0, distancePast - DEAD_ZONE);
-		return (
-			sign *
-			MAX_STRETCH *
-			Math.sqrt(Math.min(overflow / MAX_CURSOR_RANGE, 1))
-		);
+		return sign * MAX_STRETCH * Math.sqrt(Math.min(overflow / MAX_CURSOR_RANGE, 1));
 	}
 
 	function defaultFormatValue(v: number, u: string) {
-		const formatted =
-			precision > 0 ? v.toFixed(precision) : `${Math.round(v)}`;
+		const formatted = precision > 0 ? v.toFixed(precision) : `${Math.round(v)}`;
 		return `${formatted}${u}`;
 	}
 
-	const formattedValue = $derived(
-		(formatValue ?? defaultFormatValue)(value, unit),
-	);
+	const formattedValue = $derived((formatValue ?? defaultFormatValue)(value, unit));
 	const editDisplayValue = $derived(
-		precision > 0 ? value.toFixed(precision) : `${Math.round(value)}`,
+		precision > 0 ? value.toFixed(precision) : `${Math.round(value)}`
 	);
 
 	const percentage = $derived(percentFromValue(value));
@@ -177,25 +169,18 @@
 	const leftThreshold = $derived.by(() => {
 		const w = trackEl?.offsetWidth;
 		if (w && labelEl) {
-			return (
-				((LABEL_CSS_LEFT + labelEl.offsetWidth + HANDLE_BUFFER) / w) * 100
-			);
+			return ((LABEL_CSS_LEFT + labelEl.offsetWidth + HANDLE_BUFFER) / w) * 100;
 		}
 		return 30;
 	});
 	const rightThreshold = $derived.by(() => {
 		const w = trackEl?.offsetWidth;
 		if (w && valueEl) {
-			return (
-				((w - VALUE_CSS_RIGHT - valueEl.offsetWidth - HANDLE_BUFFER) / w) *
-				100
-			);
+			return ((w - VALUE_CSS_RIGHT - valueEl.offsetWidth - HANDLE_BUFFER) / w) * 100;
 		}
 		return 78;
 	});
-	const valueDodge = $derived(
-		percentage < leftThreshold || percentage > rightThreshold,
-	);
+	const valueDodge = $derived(percentage < leftThreshold || percentage > rightThreshold);
 
 	const handleOpacity = $derived.by(() => {
 		if (!isActive) return 0;
@@ -255,17 +240,14 @@
 		if (!showHashMarks) return [];
 		if (!Number.isFinite(discreteSteps) || discreteSteps <= 1) return [];
 		if (discreteSteps <= 10) {
-			return Array.from(
-				{ length: Math.max(Math.floor(discreteSteps) - 1, 0) },
-				(_, i) => ({
-					key: `d-${i + 1}`,
-					left: ((i + 1) * step) / (max - min) * 100,
-				}),
-			);
+			return Array.from({ length: Math.max(Math.floor(discreteSteps) - 1, 0) }, (_, i) => ({
+				key: `d-${i + 1}`,
+				left: (((i + 1) * step) / (max - min)) * 100
+			}));
 		}
 		return Array.from({ length: 9 }, (_, i) => ({
 			key: `t-${i + 1}`,
-			left: (i + 1) * 10,
+			left: (i + 1) * 10
 		}));
 	});
 
@@ -285,12 +267,7 @@
 		if (disabled || showInput) return;
 		if (e.button !== undefined && e.button !== 0) return;
 		// Don't hijack pointerdown that started on the editable value span.
-		if (
-			isValueEditable &&
-			valueEl &&
-			e.target instanceof Node &&
-			valueEl.contains(e.target)
-		) {
+		if (isValueEditable && valueEl && e.target instanceof Node && valueEl.contains(e.target)) {
 			return;
 		}
 		e.preventDefault();
@@ -323,11 +300,11 @@
 			if (trackRect) {
 				if (e.clientX < trackRect.left) {
 					rubberStretchPx.set(computeRubberStretch(e.clientX, -1), {
-						instant: true,
+						instant: true
 					});
 				} else if (e.clientX > trackRect.right) {
 					rubberStretchPx.set(computeRubberStretch(e.clientX, 1), {
-						instant: true,
+						instant: true
 					});
 				} else {
 					rubberStretchPx.set(0, { instant: true });
@@ -347,9 +324,7 @@
 			// Click-snap: spring-animate the fill to the clicked position.
 			const raw = positionToValue(e.clientX);
 			const snapped =
-				discreteSteps <= 10
-					? normalizeValue(raw)
-					: roundValue(snapToDecile(raw, min, max), step);
+				discreteSteps <= 10 ? normalizeValue(raw) : roundValue(snapToDecile(raw, min, max), step);
 			fillPercent.set(percentFromValue(snapped));
 			commitValue(snapped, true);
 		} else {
@@ -377,34 +352,34 @@
 		if (disabled || showInput) return;
 		const pageStep = step * 10;
 		switch (e.key) {
-			case "ArrowLeft":
-			case "ArrowDown":
+			case 'ArrowLeft':
+			case 'ArrowDown':
 				e.preventDefault();
 				onstart?.();
 				commitValue(value - step, true);
 				break;
-			case "ArrowRight":
-			case "ArrowUp":
+			case 'ArrowRight':
+			case 'ArrowUp':
 				e.preventDefault();
 				onstart?.();
 				commitValue(value + step, true);
 				break;
-			case "PageDown":
+			case 'PageDown':
 				e.preventDefault();
 				onstart?.();
 				commitValue(value - pageStep, true);
 				break;
-			case "PageUp":
+			case 'PageUp':
 				e.preventDefault();
 				onstart?.();
 				commitValue(value + pageStep, true);
 				break;
-			case "Home":
+			case 'Home':
 				e.preventDefault();
 				onstart?.();
 				commitValue(min, true);
 				break;
-			case "End":
+			case 'End':
 				e.preventDefault();
 				onstart?.();
 				commitValue(max, true);
@@ -432,10 +407,10 @@
 	}
 
 	function handleInputKeydown(e: KeyboardEvent) {
-		if (e.key === "Enter") {
+		if (e.key === 'Enter') {
 			e.preventDefault();
 			commitInput();
-		} else if (e.key === "Escape") {
+		} else if (e.key === 'Escape') {
 			e.preventDefault();
 			showInput = false;
 			isValueHovered = false;
@@ -447,7 +422,7 @@
 	// reactivity. The rubber-band shifts the *track* (not the wrapper) so the
 	// row's outline doesn't visibly move; only the fillable region stretches.
 	const trackStyle = $derived(
-		`width: calc(100% + ${Math.abs(rubberStretchPx.current)}px); transform: translateX(${rubberStretchPx.current < 0 ? rubberStretchPx.current : 0}px);`,
+		`width: calc(100% + ${Math.abs(rubberStretchPx.current)}px); transform: translateX(${rubberStretchPx.current < 0 ? rubberStretchPx.current : 0}px);`
 	);
 </script>
 
@@ -456,12 +431,10 @@
 	role="group"
 	aria-label={label}
 	class={cn(
-		"relative h-10 w-full select-none overflow-hidden rounded-md border border-border/40 bg-card/60 outline-none transition-colors duration-150",
-		"focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-1 focus-within:ring-offset-background",
-		disabled
-			? "cursor-not-allowed opacity-50"
-			: "hover:border-border/60 hover:bg-card/80",
-		className,
+		'relative h-10 w-full select-none overflow-hidden rounded-md border border-border/40 bg-card/60 outline-none transition-colors duration-150',
+		'focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-1 focus-within:ring-offset-background',
+		disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-border/60 hover:bg-card/80',
+		className
 	)}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}
@@ -469,8 +442,8 @@
 	<div
 		bind:this={trackEl}
 		class={cn(
-			"group/slider relative flex h-full items-center px-3",
-			disabled ? "cursor-not-allowed" : "cursor-ew-resize",
+			'group/slider relative flex h-full items-center px-3',
+			disabled ? 'cursor-not-allowed' : 'cursor-ew-resize'
 		)}
 		style={trackStyle}
 		onpointerdown={handlePointerDown}
@@ -506,7 +479,7 @@
 			class="pointer-events-none absolute inset-y-1 left-1 z-0 rounded-[5px] bg-foreground/[0.07]"
 			style:width={fillPercent.current > 0
 				? `max(calc(${fillPercent.current}% - 8px), 0.5rem)`
-				: "0px"}
+				: '0px'}
 		></div>
 
 		<!-- Pill thumb. Vertically positioned with symmetric inset so the
@@ -514,7 +487,7 @@
 		     glued to the row's midline regardless of scaleY. -->
 		<div
 			class={cn(
-				"pointer-events-none absolute inset-y-[21%] z-10 w-[3px] rounded-full bg-primary shadow-[0_0_0_1px_color-mix(in_srgb,_var(--color-background)_50%,_transparent)]",
+				'pointer-events-none absolute inset-y-[21%] z-10 w-[3px] rounded-full bg-primary shadow-[0_0_0_1px_color-mix(in_srgb,_var(--color-background)_50%,_transparent)]'
 			)}
 			style:left={`max(5px, calc(${fillPercent.current}% - 1.5px))`}
 			style:opacity={handleOpacityMv.current}
@@ -525,16 +498,11 @@
 		<!-- Label (left). z-20 so it floats above the fill. -->
 		<div class="pointer-events-none relative z-20 flex min-w-0 flex-1 items-center gap-1.5">
 			{#if icon}
-				<span
-					class="flex size-3.5 shrink-0 items-center justify-center text-muted-foreground"
-				>
+				<span class="flex size-3.5 shrink-0 items-center justify-center text-muted-foreground">
 					{@render icon()}
 				</span>
 			{/if}
-			<span
-				bind:this={labelEl}
-				class="truncate text-[12px] font-medium text-muted-foreground"
-			>
+			<span bind:this={labelEl} class="truncate text-[12px] font-medium text-muted-foreground">
 				{label}
 			</span>
 		</div>
@@ -547,8 +515,7 @@
 				inputmode="decimal"
 				class="relative z-20 ml-3 h-6 w-16 shrink-0 rounded-sm border border-primary/40 bg-background px-1.5 text-right font-mono text-[12px] font-medium tabular-nums text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
 				value={inputValue}
-				oninput={(e) =>
-					(inputValue = (e.currentTarget as HTMLInputElement).value)}
+				oninput={(e) => (inputValue = (e.currentTarget as HTMLInputElement).value)}
 				onkeydown={handleInputKeydown}
 				onblur={commitInput}
 				onclick={(e) => e.stopPropagation()}
@@ -560,19 +527,16 @@
 				bind:this={valueEl}
 				role="button"
 				tabindex={isValueEditable ? 0 : -1}
-				aria-label={isValueEditable
-					? `${label}: click to edit value`
-					: undefined}
+				aria-label={isValueEditable ? `${label}: click to edit value` : undefined}
 				class={cn(
-					"relative z-20 shrink-0 pl-3 font-mono text-[12px] font-medium tabular-nums text-foreground/85 transition-colors",
-					isValueEditable &&
-						"rounded-sm bg-foreground/[0.06] px-1 text-foreground",
+					'relative z-20 shrink-0 pl-3 font-mono text-[12px] font-medium tabular-nums text-foreground/85 transition-colors',
+					isValueEditable && 'rounded-sm bg-foreground/[0.06] px-1 text-foreground'
 				)}
 				onmouseenter={() => (isValueHovered = true)}
 				onmouseleave={() => (isValueHovered = false)}
 				onclick={handleValueClick}
 				onkeydown={(e) => {
-					if (isValueEditable && (e.key === "Enter" || e.key === " ")) {
+					if (isValueEditable && (e.key === 'Enter' || e.key === ' ')) {
 						e.preventDefault();
 						e.stopPropagation();
 						onstart?.();
@@ -586,7 +550,7 @@
 				onmousedown={(e) => {
 					if (isValueEditable) e.stopPropagation();
 				}}
-				style:cursor={isValueEditable ? "text" : "inherit"}
+				style:cursor={isValueEditable ? 'text' : 'inherit'}
 			>
 				{formattedValue}
 			</span>

@@ -1,7 +1,3 @@
-import Root, { type SettingsFieldProps } from "./settings-field.svelte";
+import Root, { type SettingsFieldProps } from './settings-field.svelte';
 
-export {
-	Root,
-	Root as SettingsField,
-	type SettingsFieldProps,
-};
+export { Root, Root as SettingsField, type SettingsFieldProps };

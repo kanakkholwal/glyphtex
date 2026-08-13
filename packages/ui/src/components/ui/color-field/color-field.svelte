@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	export interface ColorFieldProps {
 		/** Row label (e.g. "Color", "Background"). */
@@ -18,7 +18,7 @@
 		icon?: Snippet;
 		disabled?: boolean;
 		/** Bits-UI popover alignment. Defaults to `start`. */
-		align?: "start" | "center" | "end";
+		align?: 'start' | 'center' | 'end';
 		class?: string;
 	}
 
@@ -26,10 +26,10 @@
 </script>
 
 <script lang="ts">
-	import { tick } from "svelte";
-	import { ColorPicker } from "@glyphtex/ui/color-picker";
-	import * as Popover from "@glyphtex/ui/popover";
-	import { cn } from "@glyphtex/ui/utils";
+	import { tick } from 'svelte';
+	import { ColorPicker } from '@glyphtex/ui/color-picker';
+	import * as Popover from '@glyphtex/ui/popover';
+	import { cn } from '@glyphtex/ui/utils';
 
 	let {
 		label,
@@ -40,8 +40,8 @@
 		allowAlpha = true,
 		icon,
 		disabled = false,
-		align = "start",
-		class: className,
+		align = 'start',
+		class: className
 	}: ColorFieldProps = $props();
 
 	// Row affordance matches <SliderControl> in geometry, typography, and
@@ -54,13 +54,11 @@
 	let isHexHovered = $state(false);
 	let isHexEditable = $state(false);
 	let showInput = $state(false);
-	let inputValue = $state("");
+	let inputValue = $state('');
 	let inputEl: HTMLInputElement | null = $state(null);
 	let hoverTimer: ReturnType<typeof setTimeout> | null = null;
 
-	const displayHex = $derived(
-		value && value.startsWith("#") ? value.toUpperCase() : value,
-	);
+	const displayHex = $derived(value && value.startsWith('#') ? value.toUpperCase() : value);
 
 	$effect(() => {
 		if (hoverTimer) {
@@ -98,7 +96,7 @@
 
 	function commitHexInput() {
 		const v = inputValue.trim();
-		const withHash = v.startsWith("#") ? v : `#${v}`;
+		const withHash = v.startsWith('#') ? v : `#${v}`;
 		if (HEX_REGEX.test(withHash)) {
 			oncommit(withHash);
 		}
@@ -108,10 +106,10 @@
 	}
 
 	function handleHexKeydown(e: KeyboardEvent) {
-		if (e.key === "Enter") {
+		if (e.key === 'Enter') {
 			e.preventDefault();
 			commitHexInput();
-		} else if (e.key === "Escape") {
+		} else if (e.key === 'Escape') {
 			e.preventDefault();
 			showInput = false;
 			isHexHovered = false;
@@ -123,12 +121,10 @@
 <Popover.Root>
 	<div
 		class={cn(
-			"group/field relative flex h-10 w-full select-none items-center gap-3 overflow-hidden rounded-md border border-border/40 bg-card/60 px-3 text-left outline-none transition-colors duration-150",
-			"focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-1 focus-within:ring-offset-background",
-			disabled
-				? "cursor-not-allowed opacity-50"
-				: "hover:border-border/60 hover:bg-card/80",
-			className,
+			'group/field relative flex h-10 w-full select-none items-center gap-3 overflow-hidden rounded-md border border-border/40 bg-card/60 px-3 text-left outline-none transition-colors duration-150',
+			'focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-1 focus-within:ring-offset-background',
+			disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-border/60 hover:bg-card/80',
+			className
 		)}
 	>
 		<Popover.Trigger>
@@ -139,20 +135,16 @@
 					{disabled}
 					aria-label={`${label}: opens color picker`}
 					class={cn(
-						"flex min-w-0 flex-1 items-center gap-1.5 text-left outline-none",
-						disabled ? "cursor-not-allowed" : "cursor-pointer",
+						'flex min-w-0 flex-1 items-center gap-1.5 text-left outline-none',
+						disabled ? 'cursor-not-allowed' : 'cursor-pointer'
 					)}
 				>
 					{#if icon}
-						<span
-							class="flex size-3.5 shrink-0 items-center justify-center text-muted-foreground"
-						>
+						<span class="flex size-3.5 shrink-0 items-center justify-center text-muted-foreground">
 							{@render icon()}
 						</span>
 					{/if}
-					<span
-						class="truncate text-[12px] font-medium text-muted-foreground"
-					>
+					<span class="truncate text-[12px] font-medium text-muted-foreground">
 						{label}
 					</span>
 				</button>
@@ -168,8 +160,7 @@
 					autocomplete="off"
 					class="h-6 w-[5.5rem] rounded-sm border border-primary/40 bg-background px-1.5 text-right font-mono text-[12px] font-medium uppercase tabular-nums text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
 					value={inputValue}
-					oninput={(e) =>
-						(inputValue = (e.currentTarget as HTMLInputElement).value)}
+					oninput={(e) => (inputValue = (e.currentTarget as HTMLInputElement).value)}
 					onkeydown={handleHexKeydown}
 					onblur={commitHexInput}
 					onclick={(e) => e.stopPropagation()}
@@ -193,12 +184,11 @@
 					aria-label={`${label} hex: hover and click to edit`}
 					tabindex={isHexEditable ? 0 : -1}
 					class={cn(
-						"shrink-0 font-mono text-[12px] font-medium tabular-nums text-foreground/85 outline-none transition-colors",
-						isHexEditable &&
-							"rounded-sm bg-foreground/[0.06] px-1 text-foreground cursor-text",
-						!isHexEditable && "cursor-default",
+						'shrink-0 font-mono text-[12px] font-medium tabular-nums text-foreground/85 outline-none transition-colors',
+						isHexEditable && 'rounded-sm bg-foreground/[0.06] px-1 text-foreground cursor-text',
+						!isHexEditable && 'cursor-default'
 					)}
-					style:cursor={isHexEditable ? "text" : undefined}
+					style:cursor={isHexEditable ? 'text' : undefined}
 				>
 					{displayHex}
 				</button>
@@ -214,11 +204,9 @@
 						{disabled}
 						aria-label={`${label} swatch: opens color picker`}
 						class={cn(
-							"relative inline-block h-4 w-7 overflow-hidden rounded-md border border-border/60 shadow-[inset_0_0_0_1px_color-mix(in_srgb,_var(--color-foreground)_4%,_transparent)] outline-none transition-transform",
-							"focus-visible:ring-2 focus-visible:ring-primary/30",
-							disabled
-								? "cursor-not-allowed"
-								: "cursor-pointer hover:scale-105 active:scale-95",
+							'relative inline-block h-4 w-7 overflow-hidden rounded-md border border-border/60 shadow-[inset_0_0_0_1px_color-mix(in_srgb,_var(--color-foreground)_4%,_transparent)] outline-none transition-transform',
+							'focus-visible:ring-2 focus-visible:ring-primary/30',
+							disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'
 						)}
 					>
 						<span
@@ -226,11 +214,7 @@
 							class="absolute inset-0"
 							style="background-image: conic-gradient(color-mix(in srgb, var(--color-foreground) 10%, transparent) 0deg 90deg, transparent 90deg 180deg, color-mix(in srgb, var(--color-foreground) 10%, transparent) 180deg 270deg, transparent 270deg 360deg); background-size: 6px 6px;"
 						></span>
-						<span
-							aria-hidden="true"
-							class="absolute inset-0"
-							style:background={value}
-						></span>
+						<span aria-hidden="true" class="absolute inset-0" style:background={value}></span>
 					</button>
 				{/snippet}
 			</Popover.Trigger>

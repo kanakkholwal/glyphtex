@@ -127,7 +127,7 @@
 					{:else}
 						<DropdownMenuItem disabled>
 							<IconTargetArrow class="text-brand" />
-							<span class="truncate font-mono text-xs">{mainName ?? '-'}</span>
+							<span class="truncate font-mono text-xs">{mainName ?? 'None'}</span>
 						</DropdownMenuItem>
 					{/if}
 				</DropdownMenuGroup>

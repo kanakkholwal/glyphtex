@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
-	import { Command as CommandPrimitive } from "bits-ui";
+	import { cn } from '@glyphtex/ui/utils';
+	import { Command as CommandPrimitive } from 'bits-ui';
 
 	export type CommandRootApi = CommandPrimitive.Root;
 
 	let {
 		api = $bindable(null),
 		ref = $bindable(null),
-		value = $bindable(""),
+		value = $bindable(''),
 		class: className,
 		...restProps
 	}: CommandPrimitive.RootProps & {
@@ -20,6 +20,9 @@
 	bind:value
 	bind:ref
 	data-slot="command"
-	class={cn("bg-popover text-popover-foreground rounded-2xl! p-1 flex size-full flex-col overflow-hidden", className)}
+	class={cn(
+		'bg-popover text-popover-foreground rounded-2xl! p-1 flex size-full flex-col overflow-hidden',
+		className
+	)}
 	{...restProps}
 />

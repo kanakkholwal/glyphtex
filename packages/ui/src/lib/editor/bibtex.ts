@@ -11,22 +11,22 @@ export type BibEntry = {
 };
 
 /** Entry types that declare no citation key and must be skipped. */
-const NON_ENTRY = new Set(["comment", "preamble", "string"]);
+const NON_ENTRY = new Set(['comment', 'preamble', 'string']);
 
 /** Fields worth showing in a suggestion; everything else is ignored. */
-const INTERESTING = new Set(["title", "author", "year", "date", "editor", "booktitle"]);
+const INTERESTING = new Set(['title', 'author', 'year', 'date', 'editor', 'booktitle']);
 
 // Nesting-aware so `title = {The {TeX}book}` survives; `end` is just past the close.
 function readBraced(text: string, open: number): { value: string; end: number } {
 	let depth = 0;
 	for (let i = open; i < text.length; i++) {
 		const ch = text[i];
-		if (ch === "\\") {
+		if (ch === '\\') {
 			i++;
 			continue;
 		}
-		if (ch === "{") depth++;
-		else if (ch === "}") {
+		if (ch === '{') depth++;
+		else if (ch === '}') {
 			depth--;
 			if (depth === 0) return { value: text.slice(open + 1, i), end: i + 1 };
 		}
@@ -38,7 +38,7 @@ function readBraced(text: string, open: number): { value: string; end: number } 
 // Reads a `"…"` value, honouring backslash escapes.
 function readQuoted(text: string, open: number): { value: string; end: number } {
 	for (let i = open + 1; i < text.length; i++) {
-		if (text[i] === "\\") {
+		if (text[i] === '\\') {
 			i++;
 			continue;
 		}
@@ -49,16 +49,13 @@ function readQuoted(text: string, open: number): { value: string; end: number } 
 
 // Collapses the braces and whitespace BibTeX uses for capitalisation control.
 function clean(value: string): string {
-	return value
-		.replace(/[{}]/g, "")
-		.replace(/\s+/g, " ")
-		.trim();
+	return value.replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
 }
 
 // `body` is everything inside the outer braces; the key is whatever precedes the
 // first comma.
 function parseEntryBody(body: string): { key: string; fields: Record<string, string> } {
-	const firstComma = body.indexOf(",");
+	const firstComma = body.indexOf(',');
 	if (firstComma === -1) return { key: body.trim(), fields: {} };
 
 	const key = body.slice(0, firstComma).trim();
@@ -72,7 +69,7 @@ function parseEntryBody(body: string): { key: string; fields: Record<string, str
 		i += nameMatch[0].length;
 
 		let value: string;
-		if (body[i] === "{") {
+		if (body[i] === '{') {
 			const read = readBraced(body, i);
 			value = read.value;
 			i = read.end;
@@ -82,14 +79,14 @@ function parseEntryBody(body: string): { key: string; fields: Record<string, str
 			i = read.end;
 		} else {
 			// Bare value: a number, or an @string abbreviation we do not expand.
-			const bare = /^[^,]*/.exec(body.slice(i))?.[0] ?? "";
+			const bare = /^[^,]*/.exec(body.slice(i))?.[0] ?? '';
 			value = bare;
 			i += bare.length;
 		}
 
 		if (INTERESTING.has(name)) fields[name] = clean(value);
 
-		const comma = body.indexOf(",", i);
+		const comma = body.indexOf(',', i);
 		if (comma === -1) break;
 		i = comma + 1;
 	}
@@ -103,7 +100,7 @@ export function parseBib(text: string, source?: string): BibEntry[] {
 	let i = 0;
 
 	while (i < text.length) {
-		const at = text.indexOf("@", i);
+		const at = text.indexOf('@', i);
 		if (at === -1) break;
 
 		const typeMatch = /^@\s*([a-zA-Z]+)\s*[{(]/.exec(text.slice(at));
@@ -115,7 +112,7 @@ export function parseBib(text: string, source?: string): BibEntry[] {
 		const type = typeMatch[1].toLowerCase();
 		const open = at + typeMatch[0].length - 1;
 		// `@article(...)` is legal but vanishingly rare; not worth a second scanner.
-		if (text[open] !== "{") {
+		if (text[open] !== '{') {
 			i = at + typeMatch[0].length;
 			continue;
 		}
@@ -134,8 +131,8 @@ export function parseBib(text: string, source?: string): BibEntry[] {
 			title: fields.title || fields.booktitle,
 			author: fields.author || fields.editor,
 			// biblatex prefers `date`; take the leading year out of it.
-			year: fields.year || /^(\d{4})/.exec(fields.date ?? "")?.[1],
-			source,
+			year: fields.year || /^(\d{4})/.exec(fields.date ?? '')?.[1],
+			source
 		});
 	}
 
@@ -148,11 +145,11 @@ export function describeEntry(entry: BibEntry): string {
 	if (entry.author) {
 		// Surname of the first author only, plus "et al." when there are more.
 		const authors = entry.author.split(/\s+and\s+/);
-		const first = authors[0].split(",")[0].trim();
+		const first = authors[0].split(',')[0].trim();
 		parts.push(authors.length > 1 ? `${first} et al.` : first);
 	}
 	if (entry.year) parts.push(entry.year);
-	const who = parts.join(", ");
+	const who = parts.join(', ');
 	if (entry.title && who) return `${entry.title}: ${who}`;
 	return entry.title || who || entry.type;
 }

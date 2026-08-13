@@ -1,39 +1,32 @@
 <script lang="ts">
-	import { settings } from "@glyphtex/ui/settings";
+	import { settings } from '@glyphtex/ui/settings';
 	import {
 		IconAlertOctagon,
 		IconAlertTriangle,
 		IconCircleCheck,
 		IconInfoCircle,
 		IconLoader2,
-		IconX,
+		IconX
 	} from '@tabler/icons-svelte';
-	import {
-		Toaster as Sonner,
-		type ToasterProps as SonnerProps,
-	} from "svelte-sonner";
+	import { Toaster as Sonner, type ToasterProps as SonnerProps } from 'svelte-sonner';
 
 	let { ...restProps }: SonnerProps = $props();
 </script>
 
 <!--
-  GlyphTeX desktop/web Sonner theming.
+  GlyphTeX Sonner theming.
 
-  Visual contract: each toast is a 320px-wide card that *visually matches*
-  the bottom-right corner notifications (auto-updater, what's-new) so the
-  app has a single notification language. Same border, same shadow, same
-  icon-badge geometry: variant is conveyed only by the badge tint.
+  Visual contract: a toast is the same card as the app's persistent corner
+  notices (engine packs, update available). Same radius, border, shadow and
+  plain 16px icon; the variant is carried by the icon's colour alone, which
+  measures 4.9:1 or better on the card in both themes.
 
-  Position is bottom-right by default; consumers can still override via
-  the `<Toaster position="...">` prop. Sonner's stack grows upward from
-  the bottom, so toasts naturally pile on top of any persistent corner
-  notification without forcing a layout coordination layer.
+  Position is bottom-right; the persistent notices sit bottom-left so the two
+  stacks never overlap. Consumers can override via `<Toaster position="...">`.
 
-  Icons are @tabler/icons-svelte (the app's icon set; AGENTS.md rule #9).
-  Sonner renders our snippet inside its `[data-icon]` element, so
-  `classes.icon` styles the *badge* and the snippet just supplies the
-  glyph that sits inside it. Theme is read from the settings store: the
-  single owner of the theme fact (no `mode-watcher`; AGENTS.md §3).
+  Icons are @tabler/icons-svelte (AGENTS.md rule #9). Sonner renders our snippet
+  inside its `[data-icon]` element. Theme comes from the settings store, the
+  single owner of that fact (no `mode-watcher`; AGENTS.md §3).
 -->
 <Sonner
 	theme={settings.resolved}
@@ -64,39 +57,35 @@
     --info-text: var(--color-foreground);
     --info-border: var(--color-border);
 
-    /* Pin the close button to the top-right corner *inside* the card. Sonner's
-       default is a floating circle that sits half-outside the top-left edge
-       (--toast-close-button-start: 0, transform: translate(-35%, -35%)): we
-       override every var that drives its position so it lands at top-right,
-       inset 8px on each axis, matching the &lt;X&gt; affordance on the
-       auto-updater / what's-new corner cards. */
+    /* Pin the close button inside the card's top-right. Sonner's default is a
+       floating circle half-outside the top-left edge, so every var that drives
+       its position has to be overridden, not just the side. */
     --toast-close-button-start: unset;
     --toast-close-button-end: 0;
-    --toast-close-button-transform: translate(-8px, 8px);
+    --toast-close-button-transform: translate(-6px, 6px);
   "
 	toastOptions={{
 		classes: {
+			// Width is capped, not fixed: 320px plus two 16px offsets overflows a
+			// 320px phone. Border only, no ring: two edges on one card is one too many.
 			toast:
-				"!w-[320px] !rounded-xl !border !border-border !bg-card !shadow-lg !ring-1 !ring-foreground/5 !p-3 !gap-3",
-			content: "!gap-0.5",
-			title:
-				"!text-[12.5px] !font-semibold !leading-tight !text-foreground !tracking-tight",
-			description: "!text-[11.5px] !text-muted-foreground !leading-snug",
-			icon:
-				"!size-8 !shrink-0 !flex !items-center !justify-center !rounded-lg !bg-primary/10 !text-primary !ring-1 !ring-inset !ring-primary/20 !m-0",
+				'!w-[min(320px,calc(100vw-2rem))] !rounded-lg !border !border-border !bg-card !shadow-craft-lg !p-3 !gap-2.5 !items-start',
+			content: '!gap-0.5',
+			// 13/12, the system's two smallest steps. Was 12.5/11.5, below the floor.
+			title: '!text-[13px] !font-medium !leading-snug !text-foreground',
+			description: '!text-xs !text-muted-foreground !leading-relaxed',
+			// A plain glyph, not a 32px tinted badge with a ring: the badge was heavier
+			// than the message and ate width the description needed.
+			icon: '!size-4 !shrink-0 !m-0 !mt-0.5 !bg-transparent !ring-0',
 			closeButton:
-				"!size-5 !rounded-md !border-0 !bg-transparent !text-muted-foreground/70 hover:!bg-foreground/5 hover:!text-foreground",
-			actionButton: "!text-[11px] !font-semibold",
-			cancelButton: "!text-[11px] !text-muted-foreground",
-			success:
-				"[&_[data-icon]]:!bg-success/10 [&_[data-icon]]:!text-success [&_[data-icon]]:!ring-success/25",
-			error:
-				"[&_[data-icon]]:!bg-destructive/10 [&_[data-icon]]:!text-destructive [&_[data-icon]]:!ring-destructive/25",
-			warning:
-				"[&_[data-icon]]:!bg-warning/10 [&_[data-icon]]:!text-warning [&_[data-icon]]:!ring-warning/25",
-			info:
-				"[&_[data-icon]]:!bg-info/10 [&_[data-icon]]:!text-info [&_[data-icon]]:!ring-info/25",
-		},
+				'!size-5 !rounded-md !border-0 !bg-transparent !text-faint hover:!bg-accent hover:!text-foreground',
+			actionButton: '!text-xs !font-medium',
+			cancelButton: '!text-xs !text-muted-foreground',
+			success: '[&_[data-icon]]:!text-success',
+			error: '[&_[data-icon]]:!text-destructive',
+			warning: '[&_[data-icon]]:!text-warning',
+			info: '[&_[data-icon]]:!text-info'
+		}
 	}}
 	{...restProps}
 >
@@ -116,6 +105,6 @@
 		<IconAlertTriangle class="size-4" />
 	{/snippet}
 	{#snippet closeIcon()}
-		<IconX class="size-3" />
+		<IconX class="size-3.5" />
 	{/snippet}
 </Sonner>

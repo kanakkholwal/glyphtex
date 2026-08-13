@@ -1,11 +1,11 @@
-import Root from "./menubar.svelte";
-import Menu from "./menubar-menu.svelte";
-import Trigger from "./menubar-trigger.svelte";
-import Content from "./menubar-content.svelte";
-import Item from "./menubar-item.svelte";
-import CheckboxItem from "./menubar-checkbox-item.svelte";
-import Separator from "./menubar-separator.svelte";
-import Shortcut from "./menubar-shortcut.svelte";
+import Root from './menubar.svelte';
+import Menu from './menubar-menu.svelte';
+import Trigger from './menubar-trigger.svelte';
+import Content from './menubar-content.svelte';
+import Item from './menubar-item.svelte';
+import CheckboxItem from './menubar-checkbox-item.svelte';
+import Separator from './menubar-separator.svelte';
+import Shortcut from './menubar-shortcut.svelte';
 
 export {
 	Root,
@@ -24,5 +24,5 @@ export {
 	Item as MenubarItem,
 	CheckboxItem as MenubarCheckboxItem,
 	Separator as MenubarSeparator,
-	Shortcut as MenubarShortcut,
+	Shortcut as MenubarShortcut
 };

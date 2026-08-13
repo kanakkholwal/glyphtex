@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
-	import { Dialog as DialogPrimitive } from "bits-ui";
+	import { cn } from '@glyphtex/ui/utils';
+	import { Dialog as DialogPrimitive } from 'bits-ui';
 
 	let {
 		ref = $bindable(null),
@@ -12,6 +12,6 @@
 <DialogPrimitive.Title
 	bind:ref
 	data-slot="dialog-title"
-	class={cn("font-heading text-base leading-none font-medium", className)}
+	class={cn('font-heading text-base leading-none font-medium', className)}
 	{...restProps}
 />

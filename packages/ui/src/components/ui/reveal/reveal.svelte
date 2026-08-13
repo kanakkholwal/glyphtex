@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
-	import { cn } from "@glyphtex/ui/utils";
+	import type { Snippet } from 'svelte';
+	import { cn } from '@glyphtex/ui/utils';
 
-	type Tag = "div" | "section" | "article" | "li" | "header" | "ol" | "ul";
+	type Tag = 'div' | 'section' | 'article' | 'li' | 'header' | 'ol' | 'ul';
 
 	/**
 	 * Scroll-triggered reveal. Svelte's `transition:` directives only fire on
@@ -12,7 +12,7 @@
 	 * Variants: `up` / `down` / `left` / `right` (directional slide + fade),
 	 * `blur` (focus pull), `scale`, `morph` (scale + slide).
 	 */
-	type Variant = "up" | "down" | "left" | "right" | "blur" | "scale" | "morph";
+	type Variant = 'up' | 'down' | 'left' | 'right' | 'blur' | 'scale' | 'morph';
 
 	type Props = {
 		children: Snippet;
@@ -30,10 +30,10 @@
 		class: className,
 		delay = 0,
 		threshold = 0.15,
-		rootMargin = "0px 0px -8% 0px",
+		rootMargin = '0px 0px -8% 0px',
 		once = true,
-		as: Tag = "div",
-		variant = "up",
+		as: Tag = 'div',
+		variant = 'up'
 	}: Props = $props();
 
 	let visible = $state(false);
@@ -42,17 +42,17 @@
 	let settled = $state(false);
 
 	const hidden: Record<Variant, string> = {
-		up: "opacity-0 translate-y-3",
-		down: "opacity-0 -translate-y-3",
-		left: "opacity-0 translate-x-4",
-		right: "opacity-0 -translate-x-4",
-		blur: "opacity-0 blur-sm",
-		scale: "opacity-0 scale-[0.98]",
-		morph: "opacity-0 translate-y-3 scale-[0.99]",
+		up: 'opacity-0 translate-y-3',
+		down: 'opacity-0 -translate-y-3',
+		left: 'opacity-0 translate-x-4',
+		right: 'opacity-0 -translate-x-4',
+		blur: 'opacity-0 blur-sm',
+		scale: 'opacity-0 scale-[0.98]',
+		morph: 'opacity-0 translate-y-3 scale-[0.99]'
 	};
 
 	function reveal(node: HTMLElement) {
-		if (typeof IntersectionObserver === "undefined") {
+		if (typeof IntersectionObserver === 'undefined') {
 			visible = true;
 			settled = true;
 			return {};
@@ -68,11 +68,11 @@
 					settled = false;
 				}
 			},
-			{ threshold, rootMargin },
+			{ threshold, rootMargin }
 		);
 		observer.observe(node);
 		return {
-			destroy: () => observer.disconnect(),
+			destroy: () => observer.disconnect()
 		};
 	}
 </script>
@@ -85,12 +85,15 @@
 		if (visible) settled = true;
 	}}
 	class={cn(
-		"transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none",
-		!settled && "will-change-[opacity,transform,filter]",
+		'transition-[opacity,transform,filter] duration-500 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none',
+		!settled && 'will-change-[opacity,transform,filter]',
 		visible
-			? "opacity-100 translate-x-0 translate-y-0 scale-100 blur-0"
-			: cn(hidden[variant], "motion-reduce:translate-x-0 motion-reduce:translate-y-0 motion-reduce:scale-100 motion-reduce:blur-0 motion-reduce:opacity-100"),
-		className,
+			? 'opacity-100 translate-x-0 translate-y-0 scale-100 blur-0'
+			: cn(
+					hidden[variant],
+					'motion-reduce:translate-x-0 motion-reduce:translate-y-0 motion-reduce:scale-100 motion-reduce:blur-0 motion-reduce:opacity-100'
+				),
+		className
 	)}
 >
 	{@render children()}

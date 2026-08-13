@@ -1,32 +1,30 @@
 <script lang="ts" module>
-	import { tv, type VariantProps } from "tailwind-variants";
+	import { tv, type VariantProps } from 'tailwind-variants';
 	export const tabsListVariants = tv({
-		base: "rounded-lg p-[3px] group-data-horizontal/tabs:h-9 data-[variant=line]:rounded-none group/tabs-list text-muted-foreground inline-flex w-fit items-center justify-center group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
+		base: 'rounded-lg p-[3px] group-data-horizontal/tabs:h-9 data-[variant=line]:rounded-none group/tabs-list text-muted-foreground inline-flex w-fit items-center justify-center group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col',
 		variants: {
 			variant: {
-				default: "gap-2-list-variant-default bg-muted",
-				line: "rounded-lg p-[3px] group-data-horizontal/tabs:h-9 data-[variant=line]:rounded-none-variant-line gap-1 bg-transparent",
-				soft: 'bg-muted/60 [&_[data-slot="tabs-trigger"][data-state=active]_svg]:text-primary [&_[data-slot="tabs-trigger"][data-state=active]]:text-foreground [&_[data-slot="tabs-trigger"]]:text-muted-foreground [&_[data-slot="tabs-trigger"]:hover]:text-foreground [&_[data-slot="tabs-trigger"]]:shadow-transparent',
-			},
+				default: 'gap-2-list-variant-default bg-muted',
+				line: 'rounded-lg p-[3px] group-data-horizontal/tabs:h-9 data-[variant=line]:rounded-none-variant-line gap-1 bg-transparent',
+				soft: 'bg-muted/60 [&_[data-slot="tabs-trigger"][data-state=active]_svg]:text-primary [&_[data-slot="tabs-trigger"][data-state=active]]:text-foreground [&_[data-slot="tabs-trigger"]]:text-muted-foreground [&_[data-slot="tabs-trigger"]:hover]:text-foreground [&_[data-slot="tabs-trigger"]]:shadow-transparent'
+			}
 		},
 		defaultVariants: {
-			variant: "default",
-		},
+			variant: 'default'
+		}
 	});
-	export type TabsListVariant = VariantProps<
-		typeof tabsListVariants
-	>["variant"];
+	export type TabsListVariant = VariantProps<typeof tabsListVariants>['variant'];
 </script>
 
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
-	import { Tabs as TabsPrimitive } from "bits-ui";
-	import { cubicOut } from "svelte/easing";
-	import { Tween } from "svelte/motion";
+	import { cn } from '@glyphtex/ui/utils';
+	import { Tabs as TabsPrimitive } from 'bits-ui';
+	import { cubicOut } from 'svelte/easing';
+	import { Tween } from 'svelte/motion';
 
 	let {
 		ref = $bindable(null),
-		variant = "default",
+		variant = 'default',
 		class: className,
 		children,
 		...restProps
@@ -50,9 +48,7 @@
 	function syncIndicator() {
 		const el = ref as HTMLElement | null;
 		if (!el) return;
-		const active = el.querySelector<HTMLElement>(
-			'[data-slot="tabs-trigger"][data-state="active"]',
-		);
+		const active = el.querySelector<HTMLElement>('[data-slot="tabs-trigger"][data-state="active"]');
 		if (!active) {
 			indicatorVisible = false;
 			return;
@@ -65,8 +61,7 @@
 		const nh = tRect.height;
 
 		isVertical =
-			el.dataset.orientation === "vertical" ||
-			el.closest('[data-orientation="vertical"]') !== null;
+			el.dataset.orientation === 'vertical' || el.closest('[data-orientation="vertical"]') !== null;
 
 		// Snap on first measure so the indicator doesn't grow from (0,0) and fight
 		// the dialog/page enter motion. Subsequent updates Tween.
@@ -93,13 +88,11 @@
 		mo.observe(el, {
 			subtree: true,
 			attributes: true,
-			attributeFilter: ["data-state"],
+			attributeFilter: ['data-state']
 		});
 		const ro = new ResizeObserver(() => syncIndicator());
 		ro.observe(el);
-		el
-			.querySelectorAll('[data-slot="tabs-trigger"]')
-			.forEach((t) => ro.observe(t));
+		el.querySelectorAll('[data-slot="tabs-trigger"]').forEach((t) => ro.observe(t));
 		return () => {
 			mo.disconnect();
 			ro.disconnect();
@@ -112,38 +105,38 @@
 	data-slot="tabs-list"
 	data-variant={variant}
 	class={cn(
-		"relative",
+		'relative',
 		tabsListVariants({ variant }),
 		// When the floating indicator is live, suppress each trigger's own
 		// active background/shadow so the indicator owns the visual. Triggers
 		// get z-10 so their label + icon sit above the indicator pill.
 		indicatorVisible &&
-			variant !== "line" && [
-				"[&_[data-slot=tabs-trigger][data-state=active]]:!bg-transparent",
-				"[&_[data-slot=tabs-trigger][data-state=active]]:!shadow-none",
-				"[&_[data-slot=tabs-trigger]]:z-10",
+			variant !== 'line' && [
+				'[&_[data-slot=tabs-trigger][data-state=active]]:!bg-transparent',
+				'[&_[data-slot=tabs-trigger][data-state=active]]:!shadow-none',
+				'[&_[data-slot=tabs-trigger]]:z-10'
 			],
 		indicatorVisible &&
-			variant === "line" && [
-				"[&_[data-slot=tabs-trigger][data-state=active]]:after:opacity-0",
-				"[&_[data-slot=tabs-trigger]]:z-10",
+			variant === 'line' && [
+				'[&_[data-slot=tabs-trigger][data-state=active]]:after:opacity-0',
+				'[&_[data-slot=tabs-trigger]]:z-10'
 			],
-		className,
+		className
 	)}
 	{...restProps}
 >
-	{#if indicatorVisible && variant !== "line"}
+	{#if indicatorVisible && variant !== 'line'}
 		<span
 			aria-hidden="true"
 			class={cn(
-				"pointer-events-none absolute left-0 top-0 z-0 rounded-md will-change-transform",
-				variant === "default_soft" && "bg-card shadow-(--shadow-craft-inset)",
-				variant === "default" && "bg-background shadow-sm",
+				'pointer-events-none absolute left-0 top-0 z-0 rounded-md will-change-transform',
+				variant === 'default_soft' && 'bg-card shadow-(--shadow-craft-inset)',
+				variant === 'default' && 'bg-background shadow-sm'
 			)}
 			style="transform: translate({x.current}px, {y.current}px); width: {w.current}px; height: {h.current}px;"
 		></span>
 	{/if}
-	{#if indicatorVisible && variant === "line"}
+	{#if indicatorVisible && variant === 'line'}
 		<span
 			aria-hidden="true"
 			class="pointer-events-none absolute z-0 bg-foreground will-change-transform"

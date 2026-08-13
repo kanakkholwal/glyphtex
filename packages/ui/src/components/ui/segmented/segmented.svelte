@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	export interface SegmentedOption<T extends string = string> {
 		value: T;
@@ -16,27 +16,27 @@
 		value: T;
 		onValueChange: (next: T) => void;
 		/** Sets the row size. Default `sm`. */
-		size?: "xs" | "sm" | "md";
+		size?: 'xs' | 'sm' | 'md';
 		/** Stretch each segment to equal flex-1 width. Default true. */
 		fill?: boolean;
 		disabled?: boolean;
 		class?: string;
-		"aria-label"?: string;
+		'aria-label'?: string;
 	}
 </script>
 
 <script lang="ts" generics="T extends string">
-	import { cn } from "@glyphtex/ui/utils";
+	import { cn } from '@glyphtex/ui/utils';
 
 	let {
 		options,
 		value,
 		onValueChange,
-		size = "sm",
+		size = 'sm',
 		fill = true,
 		disabled = false,
 		class: className,
-		"aria-label": ariaLabel,
+		'aria-label': ariaLabel
 	}: SegmentedProps<T> = $props();
 
 	// Animated pill that slides under the active segment. First render skips
@@ -48,9 +48,7 @@
 
 	function measure() {
 		if (!containerEl) return;
-		const active = containerEl.querySelector<HTMLElement>(
-			'[data-active="true"]',
-		);
+		const active = containerEl.querySelector<HTMLElement>('[data-active="true"]');
 		if (!active) {
 			pillLeft = null;
 			pillWidth = null;
@@ -70,7 +68,7 @@
 	});
 
 	$effect(() => {
-		if (!containerEl || typeof ResizeObserver === "undefined") return;
+		if (!containerEl || typeof ResizeObserver === 'undefined') return;
 		const ro = new ResizeObserver(() => measure());
 		ro.observe(containerEl);
 		return () => ro.disconnect();
@@ -90,11 +88,11 @@
 	// `calc(100% - 4px)` tall. `md` (h-8 row / h-7 btn) matches Button `sm`
 	// exactly, so a Segmented and a Button sit at the same height in a toolbar.
 	const sizing = $derived(
-		size === "xs"
-			? { row: "h-6 p-0.5", btn: "h-5 text-[10px] px-2", gap: "gap-0.5" }
-			: size === "md"
-				? { row: "h-8 p-0.5", btn: "h-7 text-[11px] px-3", gap: "gap-0.5" }
-				: { row: "h-7 p-0.5", btn: "h-6 text-[11px] px-2.5", gap: "gap-0.5" },
+		size === 'xs'
+			? { row: 'h-6 p-0.5', btn: 'h-5 text-[10px] px-2', gap: 'gap-0.5' }
+			: size === 'md'
+				? { row: 'h-8 p-0.5', btn: 'h-7 text-[11px] px-3', gap: 'gap-0.5' }
+				: { row: 'h-7 p-0.5', btn: 'h-6 text-[11px] px-2.5', gap: 'gap-0.5' }
 	);
 </script>
 
@@ -103,21 +101,20 @@
 	role="radiogroup"
 	aria-label={ariaLabel}
 	class={cn(
-		"relative inline-flex items-center rounded-lg bg-muted/60 ring-1 ring-inset ring-border/40",
+		'relative inline-flex items-center rounded-lg bg-muted/60 ring-1 ring-inset ring-border/40',
 		sizing.row,
 		sizing.gap,
-		fill && "w-full",
-		disabled && "opacity-50",
-		className,
+		fill && 'w-full',
+		disabled && 'opacity-50',
+		className
 	)}
 >
 	{#if pillLeft !== null && pillWidth !== null}
 		<div
 			aria-hidden="true"
 			class={cn(
-				"pointer-events-none absolute top-1/2 -translate-y-1/2 rounded-md bg-card shadow-[0_1px_2px_color-mix(in_srgb,var(--color-foreground)_8%,transparent)] ring-1 ring-inset ring-border/40",
-				hasAnimated &&
-					"transition-[left,width] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)]",
+				'pointer-events-none absolute top-1/2 -translate-y-1/2 rounded-md bg-card shadow-[0_1px_2px_color-mix(in_srgb,var(--color-foreground)_8%,transparent)] ring-1 ring-inset ring-border/40',
+				hasAnimated && 'transition-[left,width] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)]'
 			)}
 			style:left={`${pillLeft}px`}
 			style:width={`${pillWidth}px`}
@@ -141,14 +138,12 @@
 				onValueChange(option.value);
 			}}
 			class={cn(
-				"relative z-10 inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors duration-150",
-				"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+				'relative z-10 inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors duration-150',
+				'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
 				sizing.btn,
-				fill && "flex-1",
-				active
-					? "text-foreground"
-					: "text-muted-foreground hover:text-foreground",
-				(disabled || option.disabled) && "cursor-not-allowed",
+				fill && 'flex-1',
+				active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+				(disabled || option.disabled) && 'cursor-not-allowed'
 			)}
 		>
 			{#if option.icon}

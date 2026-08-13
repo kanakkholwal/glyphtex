@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Menubar as MenubarPrimitive } from "bits-ui";
-	import { cn } from "@glyphtex/ui/utils";
+	import { Menubar as MenubarPrimitive } from 'bits-ui';
+	import { cn } from '@glyphtex/ui/utils';
 
 	let {
 		ref = $bindable(null),
@@ -12,6 +12,6 @@
 <MenubarPrimitive.Root
 	bind:ref
 	data-slot="menubar"
-	class={cn("flex items-center gap-0.5", className)}
+	class={cn('flex items-center gap-0.5', className)}
 	{...restProps}
 />

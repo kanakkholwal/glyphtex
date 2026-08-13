@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
 
 	export interface SettingsSectionProps {
 		/** Group title: rendered as the card header. Omit for a headerless card. */
@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
+	import { cn } from '@glyphtex/ui/utils';
 
 	let {
 		label,
@@ -28,7 +28,7 @@
 		divided = false,
 		padded = false,
 		class: className,
-		children,
+		children
 	}: SettingsSectionProps = $props();
 </script>
 
@@ -37,7 +37,10 @@
   (title + optional note + trailing action) and the body (rows or a block), so
   every settings page shares the same rhythm and the craft lives in one place.
 -->
-<section class="bg-card border-border shadow-craft-sm overflow-hidden rounded-2xl border" data-slot="settings-section">
+<section
+	class="bg-card border-border shadow-craft-sm overflow-hidden rounded-2xl border"
+	data-slot="settings-section"
+>
 	{#if label || description || action}
 		<header class="border-border/60 flex items-center justify-between gap-3 border-b px-5 py-3.5">
 			<div class="min-w-0">
@@ -51,7 +54,7 @@
 			{#if action}<div class="shrink-0">{@render action()}</div>{/if}
 		</header>
 	{/if}
-	<div class={cn(divided && "divide-border/60 divide-y", padded && "p-5", className)}>
+	<div class={cn(divided && 'divide-border/60 divide-y', padded && 'p-5', className)}>
 		{@render children()}
 	</div>
 </section>

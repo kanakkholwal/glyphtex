@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { Select as SelectPrimitive } from "bits-ui";
-	import { cn, type WithoutChild } from "@glyphtex/ui/utils";
+	import { Select as SelectPrimitive } from 'bits-ui';
+	import { cn, type WithoutChild } from '@glyphtex/ui/utils';
 	import { IconSelector } from '@tabler/icons-svelte';
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		children,
-		size = "default",
+		size = 'default',
 		...restProps
 	}: WithoutChild<SelectPrimitive.TriggerProps> & {
-		size?: "sm" | "default";
+		size?: 'sm' | 'default';
 	} = $props();
 </script>
 

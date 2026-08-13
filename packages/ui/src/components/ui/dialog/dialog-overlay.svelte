@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { CRAFT_OVERLAY_BACKDROP_ANIMATION, cn } from "@glyphtex/ui/utils";
-	import { Dialog as DialogPrimitive } from "bits-ui";
+	import { CRAFT_OVERLAY_BACKDROP_ANIMATION, cn } from '@glyphtex/ui/utils';
+	import { Dialog as DialogPrimitive } from 'bits-ui';
 
 	let {
 		ref = $bindable(null),
@@ -12,6 +12,10 @@
 <DialogPrimitive.Overlay
 	bind:ref
 	data-slot="dialog-overlay"
-	class={cn(CRAFT_OVERLAY_BACKDROP_ANIMATION, "bg-black/10 supports-backdrop-filter:backdrop-blur-xs fixed inset-0 isolate z-50", className)}
+	class={cn(
+		CRAFT_OVERLAY_BACKDROP_ANIMATION,
+		'bg-black/10 supports-backdrop-filter:backdrop-blur-xs fixed inset-0 isolate z-50',
+		className
+	)}
 	{...restProps}
 />

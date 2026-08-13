@@ -1,1 +1,1 @@
-export { default as ThemeToggle } from "./theme-toggle.svelte";
+export { default as ThemeToggle } from './theme-toggle.svelte';
