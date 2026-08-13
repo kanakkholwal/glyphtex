@@ -6,7 +6,7 @@
 	import type { WorkbenchController } from './controller.svelte';
 
 	/**
-	 * Visual (WYSIWYG) editing surface. **Not shipped** — this renders a fixed
+	 * Visual (WYSIWYG) editing surface. **Not shipped**: this renders a fixed
 	 * specimen document so the intended typography and canvas can be reviewed and
 	 * built against. It never reads or writes the real project.
 	 */
@@ -60,7 +60,7 @@
 
 			<p class="text-foreground mt-8 leading-[1.6]">
 				Type the way you think. Structure, maths and citations stay real LaTeX underneath, so the
-				PDF you export is the one your journal expects — and nothing leaves this device.
+				PDF you export is the one your journal expects: and nothing leaves this device.
 			</p>
 
 			<h2
@@ -92,9 +92,9 @@
 			</div>
 
 			<p class="text-foreground mt-6 leading-[1.6]">
-				Inline maths keeps its source form — <code
+				Inline maths keeps its source form: <code
 					class="bg-muted text-brand rounded px-1.5 py-0.5 text-[0.85em]">$\hat\theta$</code
-				> — and renders as you type.
+				>: and renders as you type.
 			</p>
 
 			<div class="border-border mt-12 flex items-center gap-2 border-t pt-6">

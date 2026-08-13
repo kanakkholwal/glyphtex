@@ -55,7 +55,7 @@
 	// type-safe signature (literal route union) to plain string so data-
 	// driven hrefs can flow through, and the explicit protocol check below
 	// keeps us from handing non-routes (mailto:, tel:, http(s)://, //cdn…)
-	// to resolve() at runtime — SvelteKit's runtime guard rejects those.
+	// to resolve() at runtime: SvelteKit's runtime guard rejects those.
 	const resolveAny = resolve as (route: string) => string;
 	function hrefFor(href: string, external = false): string {
 		if (external) return href;
@@ -134,7 +134,7 @@
 			<ThemeToggle size="icon-sm" />
 			<!-- Was "Download". The desktop app is still a prototype, so the header
 			     points at the workspace until there is a release worth shipping.
-			     The label matches the page CTAs exactly — two names for one URL
+			     The label matches the page CTAs exactly: two names for one URL
 			     reads as two destinations. -->
 			<Button href={resolve('/workspace')} variant="brand" class="min-w-0 px-4">
 				Open the workspace

@@ -6,7 +6,7 @@ export const data: PackageData = {
 			name: "color",
 			snippet: "color{${1:red}}$0",
 			detail: "Switch the text colour until the end of the group",
-			doc: "A switch, not a wrapper — it affects everything after it in the current group. `\\textcolor` is safer in running text.",
+			doc: "A switch, not a wrapper: it affects everything after it in the current group. `\\textcolor` is safer in running text.",
 			example: "{\\color{red}warning text}",
 			package: "xcolor",
 			context: "both",
@@ -156,7 +156,7 @@ export const data: PackageData = {
 			name: "definecolorseries",
 			snippet: "definecolorseries{${1:name}}{${2:rgb}}{${3:last}}{${4:blue}}{${5:red}}$0",
 			detail: "Define a colour series that steps through a range",
-			doc: "Combined with `\\resetcolorseries`, this is how you get N distinguishable colours without naming them by hand — each use of `name!!+` yields the next one.",
+			doc: "Combined with `\\resetcolorseries`, this is how you get N distinguishable colours without naming them by hand: each use of `name!!+` yields the next one.",
 			package: "xcolor",
 		},
 		{
@@ -168,7 +168,7 @@ export const data: PackageData = {
 		{
 			name: "hiderowcolors",
 			detail: "Suspend \\rowcolors striping",
-			doc: "`\\showrowcolors` turns it back on — useful across a page break in a longtable.",
+			doc: "`\\showrowcolors` turns it back on: useful across a page break in a longtable.",
 			package: "xcolor",
 			context: "text",
 		},

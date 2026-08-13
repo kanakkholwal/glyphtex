@@ -20,7 +20,7 @@ export type GitPanelDeps = {
 };
 
 /** All Source Control state and behaviour. Like the workbench stores it holds no
- *  `$effect` — the component drives refresh and detection from its own. */
+ *  `$effect`: the component drives refresh and detection from its own. */
 export class GitPanelStore {
 	readonly #git?: GitProvider;
 	readonly #getRoot: () => string | null | undefined;
@@ -47,7 +47,7 @@ export class GitPanelStore {
 	// Which remote fetch/pull/push act on; falls back to origin / first.
 	selectedRemote = $state('');
 
-	// Inline remote editing / adding (no custom dialog — native confirm for removal).
+	// Inline remote editing / adding (no custom dialog: native confirm for removal).
 	editingRemote = $state<string | null>(null);
 	editName = $state('');
 	editUrl = $state('');
@@ -292,7 +292,7 @@ export class GitPanelStore {
 		}
 	}
 
-	/** Guard: a remote op needs an active remote — surface a clear dialog if not. */
+	/** Guard: a remote op needs an active remote: surface a clear dialog if not. */
 	#requireRemote(op: string): boolean {
 		if (this.activeRemote) return true;
 		this.gitError = {
@@ -328,7 +328,7 @@ export class GitPanelStore {
 				)) || 'Pushed.';
 		});
 	}
-	/** Pull (merge) then push — VS Code's "Sync Changes". Surfaces conflicts. */
+	/** Pull (merge) then push: VS Code's "Sync Changes". Surfaces conflicts. */
 	doSync(): void {
 		if (!this.#requireRemote('Sync')) return;
 		void this.#runRemote('Sync', async () => {

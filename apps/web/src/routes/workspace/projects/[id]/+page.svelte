@@ -228,7 +228,7 @@
 	}
 
 	// "Open folder" / "Import project" make a NEW document rather than replacing the
-	// open one — on web a document is browser storage, not a folder we can swap.
+	// open one: on web a document is browser storage, not a folder we can swap.
 	async function importAsNewProject(
 		load: () => Promise<ImportResult>,
 		source: DocumentSource
@@ -270,7 +270,7 @@
 				files.map((f) => ({
 					name: f.path,
 					content: f.data
-						? '% Binary file — edited outside GlyphTeX, included as-is.\n'
+						? '% Binary file: edited outside GlyphTeX, included as-is.\n'
 						: (f.text ?? '')
 				}))
 			);
@@ -291,7 +291,7 @@
 		URL.revokeObjectURL(url);
 	}
 
-	/** Current bytes for a project-relative path — stored image/PDF data, else text. */
+	/** Current bytes for a project-relative path: stored image/PDF data, else text. */
 	function bytesOf(path: string, files: GlyphFile[]): Uint8Array {
 		const data = binary.get(path);
 		if (data) return data;

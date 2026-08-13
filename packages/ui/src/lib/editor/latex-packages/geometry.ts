@@ -14,7 +14,7 @@ export const data: PackageData = {
 			name: "newgeometry",
 			snippet: "newgeometry{${1:margin=1.5cm}}$0",
 			detail: "Change the geometry from the next page onwards",
-			doc: "Body only, and it starts a new page. Only margin-ish keys are allowed — paper size cannot change mid-document. Pair it with `\\restoregeometry`.",
+			doc: "Body only, and it starts a new page. Only margin-ish keys are allowed: paper size cannot change mid-document. Pair it with `\\restoregeometry`.",
 			example: "\\newgeometry{margin=1.5cm}",
 			package: "geometry",
 			context: "text",

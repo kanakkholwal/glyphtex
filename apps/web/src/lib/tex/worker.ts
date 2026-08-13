@@ -24,7 +24,7 @@ let packIndex: PackIndex | null = null;
 
 // The engine outlives any one document, and its filesystem is a single flat map
 // shared by bundle and project files. Tracking who owns what is what keeps one
-// document's sources — and its .aux — from being inherited by the next.
+// document's sources: and its .aux: from being inherited by the next.
 let bundleNames = new Set<string>();
 let mounted = emptyMount();
 
@@ -51,7 +51,7 @@ async function fetchCached(
 		return new Uint8Array(await cached.arrayBuffer());
 	}
 
-	// Name the file in any failure — "Failed to fetch" alone is untraceable
+	// Name the file in any failure: "Failed to fetch" alone is untraceable
 	// once there are several assets.
 	const name = url.split('/').pop() ?? url;
 	let response: Response;
@@ -96,7 +96,7 @@ async function fetchCached(
 		at += chunk.byteLength;
 	}
 
-	// Cache the assembled bytes, not the response — its stream is already spent.
+	// Cache the assembled bytes, not the response: its stream is already spent.
 	// Best-effort: a quota rejection must not discard a download that succeeded.
 	await cache?.put(key, new Response(bytes)).catch(() => {});
 
@@ -180,7 +180,7 @@ function boot(report: Report): Promise<TexEngine> {
 		}
 
 		await evictOldVersions(manifest.version).catch(() => {
-			/* housekeeping — never fail a working boot over it */
+			/* housekeeping: never fail a working boot over it */
 		});
 
 		engine = started;
@@ -305,7 +305,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 			}
 		}
 	} catch (error) {
-		// The retry was poisoned too. Discard anyway — a dead engine fails every
+		// The retry was poisoned too. Discard anyway: a dead engine fails every
 		// later compile, including ones that would succeed.
 		if (error instanceof EnginePoisonedError) discardEngine();
 		// The message that crosses back is written for a user; the stack only

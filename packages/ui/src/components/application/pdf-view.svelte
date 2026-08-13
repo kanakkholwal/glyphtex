@@ -2,7 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	// PDF.js layer styles (canvas/text/annotation positioning + selection). This is
-	// the *component* stylesheet only — NOT the full pdf.js viewer app, so there is
+	// the *component* stylesheet only: NOT the full pdf.js viewer app, so there is
 	// no browser PDF toolbar/chrome. We re-theme the bits we care about below.
 	import 'pdfjs-dist/web/pdf_viewer.css';
 
@@ -15,9 +15,9 @@
 	import ThumbnailRail from './pdf-view/thumbnail-rail.svelte';
 
 	/**
-	 * PdfView — headless PDF preview built on PDF.js' `PDFViewer` component, the
+	 * PdfView: headless PDF preview built on PDF.js' `PDFViewer` component, the
 	 * same engine Overleaf uses. Renders, per page, a canvas + a selectable text
-	 * layer + a clickable annotation layer, virtualized. No toolbar — every control
+	 * layer + a clickable annotation layer, virtualized. No toolbar: every control
 	 * here is ours. This component is a thin shell; the engine + behaviour live in
 	 * {@link PdfViewController} (imported lazily so pdf.js never runs during SSR).
 	 */
@@ -32,7 +32,7 @@
 	}: {
 		data?: Uint8Array;
 		onreverse?: (loc: ReverseLoc) => void;
-		/** Current zoom (%) — bindable so the host toolbar can display it. */
+		/** Current zoom (%): bindable so the host toolbar can display it. */
 		scalePct?: number;
 		/** True while fit-to-width is active. */
 		fitMode?: boolean;
@@ -151,7 +151,7 @@
 		background: var(--color-muted, transparent);
 	}
 
-	/* Page chrome — we own it (PDFViewer renders borderless via removePageBorders). */
+	/* Page chrome: we own it (PDFViewer renders borderless via removePageBorders). */
 	:global(.glyphtex-pdf-container .pdfViewer .page) {
 		margin: 1.25rem auto;
 		border: 1px solid var(--color-border);
@@ -162,7 +162,7 @@
 	}
 
 	/* Selection tint via our brand token (not a hardcoded colour). */
-	:global(.glyphtex-pdf-container .textLayer ::selection) {
+	:global(.glyphtex-pdf-container .textLayer :selection) {
 		background: color-mix(in srgb, var(--color-primary) 30%, transparent);
 	}
 

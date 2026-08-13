@@ -4,7 +4,7 @@ import type { GitChange } from '@glyphtex/ui/application';
 export type StatusRow = [string, number, number, number];
 
 /** A status row to staged / unstaged changes. Each number names the newest version
- *  matched — 0 absent, 1 HEAD, 2 WORKDIR, 3 neither — so one row can yield both. */
+ *  matched: 0 absent, 1 HEAD, 2 WORKDIR, 3 neither: so one row can yield both. */
 export function changesFrom(row: StatusRow): GitChange[] {
 	const [path, head, workdir, stage] = row;
 	const out: GitChange[] = [];

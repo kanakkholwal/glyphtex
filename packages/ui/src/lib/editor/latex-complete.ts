@@ -63,8 +63,8 @@ function scanDocument(model: Monaco.editor.ITextModel): DocumentSymbols {
 	};
 
 	collect(/\\label\s*\{([^}]+)\}/g, (m, line) => symbols.labels.push({ name: m[1], line }));
-	// Both bibliography styles: thebibliography items, plus already-cited keys —
-	// which gives useful completion without parsing a .bib we may not have.
+	// Both bibliography styles: thebibliography items, plus already-cited keys.
+	// Useful completion without parsing a .bib we may not have.
 	collect(/\\bibitem\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/g, (m, line) =>
 		symbols.citations.push({ key: m[1], line }),
 	);
@@ -250,7 +250,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 		model: Monaco.editor.ITextModel,
 		range: Monaco.IRange,
 	): Monaco.languages.CompletionItem[] {
-		// The open file first — its labels are live, including ones typed but not
+		// The open file first: its labels are live, including ones typed but not
 		// yet saved, so they must win over the indexed copy of the same file.
 		const items = new Map<string, Monaco.languages.CompletionItem>();
 
@@ -301,7 +301,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 			});
 		}
 
-		// Then keys seen in the document that no .bib accounts for — usually a
+		// Then keys seen in the document that no .bib accounts for: usually a
 		// \bibitem list, sometimes a typo, either way worth offering.
 		for (const citation of scanDocument(model).citations) {
 			if (items.has(citation.key)) continue;
@@ -371,7 +371,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 			range,
 			sortText: rank(command, math),
 			// Monaco filters against the label, which includes the backslash the
-			// user has already typed — so the filter text has to include it too.
+			// user has already typed: so the filter text has to include it too.
 			filterText: `\\${command.name}`,
 		}));
 	}
@@ -391,7 +391,7 @@ export function registerLatexCompletions(monaco: MonacoNamespace): Monaco.IDispo
 				if (!command) return null;
 
 				const contents: Monaco.IMarkdownString[] = [
-					{ value: `\`\\${command.name}\` — ${command.detail}` },
+					{ value: `\`\\${command.name}\`: ${command.detail}` },
 				];
 				if (command.doc) contents.push({ value: command.doc });
 				if (command.package) contents.push({ value: `Provided by \`${command.package}\`` });

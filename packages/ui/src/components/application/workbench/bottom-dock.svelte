@@ -41,7 +41,7 @@
 
 	let copied = $state(false);
 
-	// No log or file contents go in the URL — a compile log carries the document's
+	// No log or file contents go in the URL: a compile log carries the document's
 	// own text. The user copies and pastes what they choose to share.
 	const ISSUES_URL = `${GLYPHTEX_REPO}/issues`;
 
@@ -53,7 +53,7 @@
 			toast.success('Log copied to clipboard');
 			setTimeout(() => (copied = false), 1500);
 		} catch {
-			toast.error('Could not copy — clipboard blocked');
+			toast.error('Could not copy: clipboard blocked');
 		}
 	}
 
@@ -196,16 +196,15 @@
 					<p
 						class="border-border/60 text-muted-foreground mt-1 border-t px-2 py-2 text-xs leading-relaxed"
 					>
-						Think this is a bug in GlyphTeX rather than your document?
+						Looks like a GlyphTeX bug rather than your document?: Copy the log, then
 						<a
 							class="text-brand font-medium hover:underline"
 							href={ISSUES_URL}
 							target="_blank"
 							rel="noreferrer noopener"
 						>
-							Report it on GitHub
-						</a>
-						— copy the log first so you can paste it in.
+							report it on GitHub</a
+						>.
 					</p>
 				{/if}
 			{/if}

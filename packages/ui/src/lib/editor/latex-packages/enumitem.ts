@@ -43,7 +43,7 @@ export const data: PackageData = {
 			name: "restartlist",
 			snippet: "restartlist{${1:enumerate}}$0",
 			detail: "Reset a resumable list's counter",
-			doc: "Pairs with the `resume` key — start counting from one again after a series of resumed lists.",
+			doc: "Pairs with the `resume` key: start counting from one again after a series of resumed lists.",
 			example: "\\restartlist{enumerate}",
 			package: "enumitem",
 		},
@@ -85,7 +85,7 @@ export const data: PackageData = {
 		{
 			name: "itemsep",
 			detail: "Vertical space between items",
-			doc: "Usually set through an option — `itemsep=0pt` or simply `noitemsep` — rather than by hand.",
+			doc: "Usually set through an option: `itemsep=0pt` or simply `noitemsep`: rather than by hand.",
 			package: "enumitem",
 		},
 		{

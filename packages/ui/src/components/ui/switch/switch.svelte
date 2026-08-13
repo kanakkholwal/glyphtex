@@ -3,10 +3,9 @@
 	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 
 	/**
-	 * Switch — a Mac-native toggle. The track turns emerald (`--brand`) when on —
-	 * both the Apple green-switch convention and our brand's "active" signal — and
-	 * the white knob slides on the shared easing. Use for binary settings instead
-	 * of an On/Off button.
+	 * Switch: a Mac-native toggle. The track takes `--brand` when on, following
+	 * the Apple convention, and the knob slides on the shared easing. Use it for
+	 * binary settings instead of an On/Off button.
 	 */
 	let {
 		ref = $bindable(null),

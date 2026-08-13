@@ -71,7 +71,7 @@
 			<SettingsField
 				label="Shell integration"
 				description={registered
-					? 'Added — right-click any folder and choose “Open with GlyphTeX”.'
+					? 'Added: right-click any folder and choose “Open with GlyphTeX”.'
 					: 'Add an “Open with GlyphTeX” entry to the folder right-click menu. (.tex and .glyx files are associated by the installer.)'}
 				layout="row"
 			>
@@ -114,7 +114,7 @@
 		<div class="text-muted-foreground flex items-center gap-3 px-5 py-5 text-sm">
 			<IconCloud size={20} class="shrink-0 opacity-70" />
 			<p class="leading-relaxed">
-				Optional end-to-end encrypted sync across your devices. GlyphTeX stays local-first — this
+				Optional end-to-end encrypted sync across your devices. GlyphTeX stays local-first: this
 				will always be opt-in.
 			</p>
 		</div>

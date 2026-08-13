@@ -4,17 +4,17 @@
   import { tv, type VariantProps } from "tailwind-variants";
 
 	/**
-	 * Button — Raycast-density variants built on shadcn semantic tokens.
+	 * Button: Raycast-density variants built on shadcn semantic tokens.
 	 *
 	 * Guidelines:
 	 * - Use `size="xs"` for dense toolbar rows (12px text, 24px height).
 	 * - Use `size="sm"` for secondary actions (13px text, 32px height).
 	 * - Use `size="default"` only for primary CTAs in forms / empty states.
-	 * - Colors must come from semantic tokens — never hardcoded (emerald, sky…).
+	 * - Colors must come from semantic tokens: never hardcoded (emerald, sky…).
 	 * - Prefer `ghost` + `icon-sm` for toolbar icon buttons.
 	 *
 	 * Every size is an 8px rounded rect; CTA sizes (default / lg / xl) differ only
-	 * in height and label size. Icons follow the role scale — 14px inline, 16px in
+	 * in height and label size. Icons follow the role scale: 14px inline, 16px in
 	 * controls, 20px in card-level actions.
 	 */
 	export const buttonVariants = tv({
@@ -27,7 +27,7 @@
 			"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
 			"aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-3",
 			"dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-			// Press feedback only — growing on hover makes dense toolbars twitch.
+			// Press feedback only: growing on hover makes dense toolbars twitch.
 			// 0.97, not 0.99: on a 44px CTA the latter is 0.4px of travel.
 			"active:scale-[0.97] active:duration-100",
 			"disabled:pointer-events-none disabled:opacity-50",
@@ -38,7 +38,7 @@
 				default: "bg-primary text-primary-foreground border-transparent shadow-craft-sm hover:bg-primary/95",
 				default_soft:
 					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
-				// Marketing CTAs only — in app chrome the emphasis colour is ink (`default`).
+				// Marketing CTAs only: in app chrome the emphasis colour is ink (`default`).
 				brand: "bg-brand text-brand-foreground border-transparent hover:bg-brand-hover",
 				brand_soft:
 					"bg-brand/10 text-brand border-transparent hover:bg-brand/15 dark:bg-brand/15 dark:hover:bg-brand/25",
@@ -68,11 +68,11 @@
 				
 			},
 			size: {
-				// CTA sizes — 8px rect, 16px/500 label, 156px min width.
+				// CTA sizes: 8px rect, 16px/500 label, 156px min width.
 				default: "h-9 rounded-cta px-4 text-base font-medium gap-2 [&_svg:not([class*='size-'])]:size-4",
 				xl: "h-12 rounded-cta px-6 text-base font-medium gap-2.5 min-w-[156px] [&_svg:not([class*='size-'])]:size-5",
 				lg: "h-11 rounded-cta px-5 text-base font-medium gap-2 min-w-[156px] [&_svg:not([class*='size-'])]:size-4.5",
-				// Control sizes — 8px rect.
+				// Control sizes: 8px rect.
 				sm: "h-8 rounded-md px-3 text-sm gap-1.5 [&_svg:not([class*='size-'])]:size-4",
 				xs: "h-6 rounded-md px-2 text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-3.5",
 				icon: "size-9 rounded-md [&_svg:not([class*='size-'])]:size-5",

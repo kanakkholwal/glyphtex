@@ -68,8 +68,8 @@
 			el.dataset.orientation === "vertical" ||
 			el.closest('[data-orientation="vertical"]') !== null;
 
-		// Snap on first measure so the indicator doesn't grow from (0,0) —
-		// fighting the dialog/page enter motion. Subsequent updates Tween.
+		// Snap on first measure so the indicator doesn't grow from (0,0) and fight
+		// the dialog/page enter motion. Subsequent updates Tween.
 		if (firstMeasure) {
 			x.set(nx, { duration: 0 });
 			y.set(ny, { duration: 0 });

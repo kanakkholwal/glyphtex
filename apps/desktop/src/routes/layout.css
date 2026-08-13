@@ -1,4 +1,4 @@
-/* Desktop app styles — pulls in the shared GlyphTeX design system (tokens, base,
+/* Desktop app styles: pulls in the shared GlyphTeX design system (tokens, base,
    Tailwind, tw-animate-css). App-specific overrides can follow below. */
 @import '@glyphtex/ui/app.css';
 
@@ -11,24 +11,24 @@
    `view-transition-name` (see `projectViewTransitionName`), so they morph
    into one another. Everything else cross-fades via the `root` snapshot.
    Motion uses the app's `ease-craft` curve. */
-::view-transition-group(*) {
+:view-transition-group(*) {
 	animation-duration: 360ms;
 	animation-timing-function: cubic-bezier(0.625, 0.05, 0, 1);
 }
-::view-transition-old(root),
-::view-transition-new(root) {
+:view-transition-old(root),
+:view-transition-new(root) {
 	animation-duration: 240ms;
 	animation-timing-function: cubic-bezier(0.625, 0.05, 0, 1);
 }
 /* Let the morphing surface's old/new images blend cleanly as it resizes. */
-::view-transition-image-pair(*) {
+:view-transition-image-pair(*) {
 	isolation: auto;
 }
 
 /* The morphing surface (card ⇄ editor) scales between very different sizes, so
    its incoming image pixel-snaps near the end. Blur it in and clear the blur as
-   it settles to mask that — the brand logo (`app-logo`) is unaffected. */
-::view-transition-new(.morph-surface) {
+   it settles to mask that: the brand logo (`app-logo`) is unaffected. */
+:view-transition-new(.morph-surface) {
 	animation: glyphtex-morph-in 360ms cubic-bezier(0.625, 0.05, 0, 1) both;
 }
 @keyframes glyphtex-morph-in {
@@ -48,7 +48,7 @@
 
 /* Returning to the projects home: give the logo a little settle-pop as it
    lands (the glide is the group's job; this pops the new image on top). */
-:root[data-vt='to-home']::view-transition-new(app-logo) {
+:root[data-vt='to-home']:view-transition-new(app-logo) {
 	animation: glyphtex-logo-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 	transform-origin: left center;
 }
@@ -66,11 +66,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	::view-transition-group(*),
-	::view-transition-old(root),
-	::view-transition-new(root),
-	::view-transition-new(.morph-surface),
-	:root[data-vt='to-home']::view-transition-new(app-logo) {
+	:view-transition-group(*),
+	:view-transition-old(root),
+	:view-transition-new(root),
+	:view-transition-new(.morph-surface),
+	:root[data-vt='to-home']:view-transition-new(app-logo) {
 		animation: none !important;
 	}
 }

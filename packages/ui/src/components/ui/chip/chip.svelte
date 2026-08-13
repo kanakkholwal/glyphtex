@@ -1,8 +1,8 @@
 <script lang="ts">
 	/**
 	 * Compact pill for tags / filters. Two shapes:
-	 *   - default: a toggle button (use `selected` + `onclick`) — filter chips.
-	 *   - removable: a static pill with an inline remove button — assigned tags.
+	 *   - default: a toggle button (use `selected` + `onclick`): filter chips.
+	 *   - removable: a static pill with an inline remove button: assigned tags.
 	 * Optional `color` renders a leading dot (hex). Dependency-free (no icon lib).
 	 */
 	import { cn } from "@glyphtex/ui/utils";

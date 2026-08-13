@@ -6,8 +6,8 @@ import { revealItemInDir } from '@tauri-apps/plugin-opener';
 import type { ProjectFile, ProjectHost } from '@glyphtex/ui/application';
 
 /**
- * Desktop project host — folder-based LaTeX projects backed by Tauri's native
- * dialogs and the Rust `project` module (std::fs + zip). Wired into
+ * Desktop project host: folder-based LaTeX projects backed by Tauri's native
+ * dialogs and the Rust `project` module (std:fs + zip). Wired into
  * `<Workbench project={projectHost} />`. The web build leaves this undefined.
  */
 export const projectHost: ProjectHost = {

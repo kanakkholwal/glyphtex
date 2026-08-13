@@ -2,15 +2,15 @@
 	import type { Snippet } from "svelte";
 
 	export interface SettingsSectionProps {
-		/** Group title — rendered as the card header. Omit for a headerless card. */
+		/** Group title: rendered as the card header. Omit for a headerless card. */
 		label?: string;
 		/** Optional one-line note under the header title. */
 		description?: string;
 		/** Trailing content in the header (a Badge, a Refresh action…). */
 		action?: Snippet;
-		/** Draw hairlines between direct children — for row-list bodies. */
+		/** Draw hairlines between direct children: for row-list bodies. */
 		divided?: boolean;
-		/** Pad the body — for single-block bodies (row-list bodies pad each row). */
+		/** Pad the body: for single-block bodies (row-list bodies pad each row). */
 		padded?: boolean;
 		/** Extra classes on the body. */
 		class?: string;
@@ -33,7 +33,7 @@
 </script>
 
 <!--
-  SettingsSection — a titled setting-group. One elevated card owns the header
+  SettingsSection: a titled setting-group. One elevated card owns the header
   (title + optional note + trailing action) and the body (rows or a block), so
   every settings page shares the same rhythm and the craft lives in one place.
 -->

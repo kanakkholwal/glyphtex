@@ -21,9 +21,8 @@
 	import EngineSettings from '../engine-settings.svelte';
 
 	/**
-	 * Settings view — live editor / appearance preferences grouped into titled
-	 * PanelSections (single-choice dropdowns + Mac-style switches), the engine
-	 * manager, and the optional OS shell-integration button.
+	 * Live preferences for the open document, grouped into titled sections.
+	 * Everything here writes straight to the settings store; there is no Apply.
 	 */
 	let {
 		engine,
@@ -57,8 +56,8 @@
 	}));
 </script>
 
-<!-- A single-choice setting: label on the left, a compact dropdown on the right
-     (label + control share one line to save vertical space). -->
+<!-- A single-choice setting: label on the left, a compact dropdown on the right,
+     sharing one line to save vertical space in a 320px column. -->
 {#snippet selectField(
 	label: string,
 	opts: readonly { value: string; label: string }[],
@@ -80,7 +79,19 @@
 	</SettingsField>
 {/snippet}
 
-<div class="flex flex-col gap-4 px-1 pt-1 pb-3">
+{#snippet switchField(
+	label: string,
+	checked: boolean,
+	onChange: (v: boolean) => void,
+	description = ''
+)}
+	<SettingsField size="sm" {label} {description} layout="row">
+		<Switch {checked} onCheckedChange={onChange} aria-label={label} />
+	</SettingsField>
+{/snippet}
+
+<div class="flex flex-col gap-5 px-1 pt-1 pb-3">
+	<!-- Theme and panel side were two sections holding one row each. -->
 	<PanelSection title="Appearance">
 		{@render selectField(
 			'Theme',
@@ -88,9 +99,6 @@
 			settings.appearance,
 			(v) => (settings.appearance = v as Appearance)
 		)}
-	</PanelSection>
-
-	<PanelSection title="Layout">
 		{@render selectField(
 			'Side panel',
 			sidebarOpts,
@@ -102,39 +110,40 @@
 	<PanelSection title="Editor">
 		{@render selectField('Font', fontOpts, settings.font, (v) => (settings.font = v as EditorFont))}
 
+		<!-- 10 to 32 in steps of 1. This was 8 to 80 in steps of 2, which put the
+		     default of 13 between two stops: you could not select it back. -->
 		<SliderControl
 			label="Font size"
 			value={settings.fontSize}
-			min={8}
-			max={80}
-			step={2}
+			min={10}
+			max={32}
+			step={1}
 			unit="px"
 			onchange={(v) => (settings.fontSize = v)}
 		/>
 
-		<SettingsField size="sm" label="Line wrapping" layout="row">
-			<Switch
-				checked={settings.lineWrapping}
-				onCheckedChange={(v) => (settings.lineWrapping = v)}
-				aria-label="Line wrapping"
-			/>
-		</SettingsField>
+		{@render switchField(
+			'Wrap long lines',
+			settings.lineWrapping,
+			(v) => (settings.lineWrapping = v)
+		)}
+		{@render switchField('Minimap', settings.minimap, (v) => (settings.minimap = v))}
 	</PanelSection>
 
-	<PanelSection title="Compilation">
-		<SettingsField size="sm" label="Live compile" layout="row">
-			<Switch
-				checked={settings.autoCompile}
-				onCheckedChange={(v) => (settings.autoCompile = v)}
-				aria-label="Live compile"
-			/>
-		</SettingsField>
+	<PanelSection title="Building">
+		{@render switchField(
+			'Live compile',
+			settings.autoCompile,
+			(v) => (settings.autoCompile = v),
+			'Rebuild the PDF as you type.'
+		)}
 
 		{@render selectField(
 			'Auto save',
 			autoSaveOpts,
 			settings.autoSave,
-			(v) => (settings.autoSave = v as AutoSaveMode)
+			(v) => (settings.autoSave = v as AutoSaveMode),
+			'When edits are written to disk.'
 		)}
 	</PanelSection>
 
@@ -146,12 +155,16 @@
 
 	{#if hasShellIntegration}
 		<PanelSection title="System">
-			<SettingsField size="sm" label="Shell integration" layout="row">
+			<SettingsField
+				size="sm"
+				label="Shell integration"
+				description="Adds “Open with GlyphTeX” to the folder right-click menu."
+				layout="row"
+			>
 				<Button
 					variant={shellStatus === 'done' ? 'success_soft' : 'default_soft'}
 					size="xs"
 					disabled={shellStatus === 'busy'}
-					title="Add an “Open with GlyphTeX” entry to the folder right-click menu"
 					onclick={() => onaddshell?.()}
 				>
 					{#if shellStatus === 'busy'}
@@ -159,7 +172,7 @@
 					{:else if shellStatus === 'done'}
 						<IconCheck size={13} /> Added
 					{:else}
-						Add to menu
+						Add
 					{/if}
 				</Button>
 			</SettingsField>

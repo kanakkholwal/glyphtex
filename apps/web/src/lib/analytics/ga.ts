@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/public';
 import type { AnalyticsProvider } from './types';
 
 // `$env/dynamic/public` resolves per request, so on Cloudflare this must come from
-// wrangler `vars` — a build-time env var never reaches the worker.
+// wrangler `vars`: a build-time env var never reaches the worker.
 export const GA_ID = env.PUBLIC_GA_ID ?? '';
 
 declare global {

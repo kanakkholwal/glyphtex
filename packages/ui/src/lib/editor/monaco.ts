@@ -4,7 +4,7 @@ import { registerLatexStructure } from "./latex-structure";
 import { registerLatexSemanticTokens } from "./latex-semantic";
 import { registerJetBrainsThemes } from "./jetbrains-monaco";
 
-/** The bare editor API, not the package root — `css`/`html`/`json`/`ts` are absent. */
+/** The bare editor API, not the package root: `css`/`html`/`json`/`ts` are absent. */
 export type MonacoNamespace = typeof import("monaco-editor/editor/editor.api");
 
 interface MonacoEnvironmentHost {
@@ -22,7 +22,7 @@ export function loadMonaco(): Promise<MonacoNamespace> {
   }
 
   loading ??= (async () => {
-    // Not `import("monaco-editor")` — the root pulls in all 81 languages.
+    // Not `import("monaco-editor")`: the root pulls in all 81 languages.
     // `./monaco-contributions` is required: the API entry ships no features.
     const [monaco, { default: EditorWorker }] = await Promise.all([
       import("monaco-editor/editor/editor.api"),

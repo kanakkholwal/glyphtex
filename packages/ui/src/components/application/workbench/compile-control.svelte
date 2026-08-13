@@ -112,7 +112,7 @@
 
 				<DropdownMenuSeparator />
 				<!-- GroupHeading throws outside a Group, which takes the whole menu
-				     down with it — keep the two together. -->
+				     down with it: keep the two together. -->
 				<DropdownMenuGroup>
 					<DropdownMenuGroupHeading class="text-faint text-xs font-medium">
 						Main file
@@ -127,7 +127,7 @@
 					{:else}
 						<DropdownMenuItem disabled>
 							<IconTargetArrow class="text-brand" />
-							<span class="truncate font-mono text-xs">{mainName ?? '—'}</span>
+							<span class="truncate font-mono text-xs">{mainName ?? '-'}</span>
 						</DropdownMenuItem>
 					{/if}
 				</DropdownMenuGroup>

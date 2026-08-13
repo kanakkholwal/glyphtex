@@ -1,7 +1,7 @@
 // Choosing which file a multi-file project compiles.
 //
 // The old rule was "first path ending in .tex", which in a real thesis picks
-// whatever the archive happened to list first — usually a chapter three folders
+// whatever the archive happened to list first: usually a chapter three folders
 // deep. A compile root is a specific thing, so identify it as one.
 
 export type EntryInput = { path: string; text?: string };

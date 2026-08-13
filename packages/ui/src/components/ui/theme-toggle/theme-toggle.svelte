@@ -4,9 +4,9 @@
 	import { IconSun, IconMoon, IconDeviceDesktop } from '@tabler/icons-svelte';
 
 	/**
-	 * ThemeToggle — cycles light → dark → system. Reads/writes the settings
+	 * ThemeToggle: cycles light → dark → system. Reads/writes the settings
 	 * store, so a change here syncs to every other window/tab instantly.
-	 * Lightweight (no editor deps) — safe to drop in the marketing nav.
+	 * Lightweight (no editor deps): safe to drop in the marketing nav.
 	 */
 	let {
 		class: className = "",

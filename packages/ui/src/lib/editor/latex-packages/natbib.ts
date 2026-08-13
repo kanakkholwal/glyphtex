@@ -1,12 +1,12 @@
 import type { PackageData } from "./index";
 
-// Mutually exclusive with `biblatex` — loading both is an error.
+// Mutually exclusive with `biblatex`: loading both is an error.
 export const data: PackageData = {
 	commands: [
 		{
 			name: "citet",
 			snippet: "citet{$1}$0",
-			detail: "Textual citation — Author (year)",
+			detail: "Textual citation: Author (year)",
 			doc: "Reads as part of the sentence. Optional arguments are prenote and postnote: `\\citet[chap.~2]{key}`.",
 			example: "\\citet{knuth1984} showed that \\dots",
 			package: "natbib",
@@ -15,7 +15,7 @@ export const data: PackageData = {
 		{
 			name: "citep",
 			snippet: "citep{$1}$0",
-			detail: "Parenthetical citation — (Author, year)",
+			detail: "Parenthetical citation: (Author, year)",
 			doc: "`\\citep[see][p.~5]{key}` gives “(see Author, year, p. 5)”. Comma-separate keys for a merged citation.",
 			example: "This is well established \\citep[p.~5]{knuth1984}.",
 			package: "natbib",
@@ -39,7 +39,7 @@ export const data: PackageData = {
 			name: "citealt",
 			snippet: "citealt{$1}$0",
 			detail: "Textual citation without parentheses",
-			doc: "“Author year” with no punctuation of its own — for building a citation into custom surrounding text.",
+			doc: "“Author year” with no punctuation of its own: for building a citation into custom surrounding text.",
 			example: "(see \\citealt{knuth1984})",
 			package: "natbib",
 			context: "text",
@@ -48,7 +48,7 @@ export const data: PackageData = {
 			name: "citealp",
 			snippet: "citealp{$1}$0",
 			detail: "Parenthetical citation without the parentheses",
-			doc: "“Author, year” — same as `\\citep` minus the brackets, so several can be combined by hand.",
+			doc: "“Author, year”: same as `\\citep` minus the brackets, so several can be combined by hand.",
 			example: "(\\citealp{knuth1984}; \\citealp{lamport1994})",
 			package: "natbib",
 			context: "text",
@@ -102,7 +102,7 @@ export const data: PackageData = {
 			name: "citenum",
 			snippet: "citenum{$1}$0",
 			detail: "Bare citation number",
-			doc: "Numeric styles only — gives the number with no brackets, for use inside custom markup.",
+			doc: "Numeric styles only: gives the number with no brackets, for use inside custom markup.",
 			package: "natbib",
 			context: "text",
 		},
@@ -118,7 +118,7 @@ export const data: PackageData = {
 			name: "defcitealias",
 			snippet: "defcitealias{${1:key}}{${2:Alias}}$0",
 			detail: "Give an entry a fixed citation alias",
-			doc: "Cite it afterwards with `\\citetalias` / `\\citepalias` — the usual way to cite a statute or standard by short name.",
+			doc: "Cite it afterwards with `\\citetalias` / `\\citepalias`: the usual way to cite a statute or standard by short name.",
 			example: "\\defcitealias{iso8601}{ISO~8601}",
 			package: "natbib",
 		},

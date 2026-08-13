@@ -16,7 +16,7 @@ export interface ProblemSummary {
 
 const L_NUM = /^l\.(\d+)\b/;
 const ON_INPUT_LINE = /on input line (\d+)/;
-const AT_LINES = /at lines? (\d+)/;
+const AT_LINES = /at lines?: (\d+)/;
 const TECTONIC = /^(error|warning):\s*(.*)$/;
 const WARNING_START = /^(?:LaTeX|LaTeX Font|Package \S+|Class \S+) Warning:\s*(.*)$/;
 const BADBOX = /^(?:Overfull|Underfull) \\[hv]box/;

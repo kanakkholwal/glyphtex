@@ -152,7 +152,7 @@ export class LayoutStore {
 		this.resizingDock = false;
 	}
 
-	/** Switch the panel's view. Collapsing is the title bar's toggle — the tabs
+	/** Switch the panel's view. Collapsing is the title bar's toggle: the tabs
 	 *  live *inside* the panel now, so clicking one can't also close it. */
 	selectView(view: ActivityView): void {
 		this.activeView = view;
@@ -166,11 +166,11 @@ export class LayoutStore {
 		try {
 			const v = await this.#git.fileVersions(root, path, staged);
 			this.diffTarget = { path, staged, ...v };
-			// Reveal the editor pane — neither the PDF nor the visual surface has one.
+			// Reveal the editor pane: neither the PDF nor the visual surface has one.
 			this.docMode = 'latex';
 			if (this.viewMode === 'preview') this.viewMode = 'split';
 		} catch (e) {
-			toast.error(`Could not open diff — ${e}`);
+			toast.error(`Could not open diff: ${e}`);
 		}
 	}
 	closeDiff(): void {

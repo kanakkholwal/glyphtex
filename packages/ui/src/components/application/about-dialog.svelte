@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	/** Where GlyphTeX lives — kept here so the About box and any future "Help"
+	/** Where GlyphTeX lives: kept here so the About box and any future "Help"
 	 * surface read the same canonical links. */
 	export const GLYPHTEX_REPO = 'https://github.com/kanakkholwal/glyphtex';
 	export const GLYPHTEX_SITE = 'https://glyphtex.nexonauts.com';
@@ -12,7 +12,7 @@
 	import { IconBrandGithub, IconWorld } from '@tabler/icons-svelte';
 
 	/**
-	 * AboutDialog — a compact "About GlyphTeX" card: the brand lockup, a one-line
+	 * AboutDialog: a compact "About GlyphTeX" card: the brand lockup, a one-line
 	 * description of what the app is, the build version, and links out to the
 	 * source and the website. Purely informational; no actions beyond the links.
 	 */

@@ -13,7 +13,7 @@
 
 	/**
 	 * Explorer move/delete prompts: name-conflict resolution (replace / keep both
-	 * / merge / skip) + destructive confirm. Promise-based — the {@link FileStore}
+	 * / merge / skip) + destructive confirm. Promise-based: the {@link FileStore}
 	 * op `await`s `pending.resolve`, which the buttons here call.
 	 */
 	let { files }: { files: FileStore } = $props();

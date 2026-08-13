@@ -13,7 +13,7 @@ export const data: PackageData = {
 		{
 			name: "midrule",
 			detail: "Light rule below the table header",
-			doc: "Use instead of `\\hline` inside the table body — it carries the right amount of space with it.",
+			doc: "Use instead of `\\hline` inside the table body: it carries the right amount of space with it.",
 			example: "\\midrule",
 			package: "booktabs",
 			context: "text",

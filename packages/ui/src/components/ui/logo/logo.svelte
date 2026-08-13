@@ -17,13 +17,13 @@
 	import { cn } from '@glyphtex/ui/utils';
 
 	/**
-	 * Logo — the GlyphTeX brand lockup: a geometric "G" glyph mark plus an optional
+	 * Logo: the GlyphTeX brand lockup: a geometric "G" glyph mark plus an optional
 	 * wordmark. Reusable everywhere (top bar, empty states, marketing).
 	 *
 	 * - `badge` (default) sets the mark in a filled rounded-square; turn it off
 	 *   for a plain currentColor mark (large display / on-dark).
 	 * - The mark is monochrome by default. Blue is the product's one signal
-	 *   colour — a gradient mark competes with it wherever the logo is chrome.
+	 *   colour: a gradient mark competes with it wherever the logo is chrome.
 	 * - `text={false}` renders the mark alone.
 	 * - `size` is a preset or a raw pixel height for the mark.
 	 */
@@ -40,7 +40,7 @@
 		text?: boolean;
 		badge?: boolean;
 		size?: LogoSize | number;
-		/** Glyph fill. `mono` by default — inside a badge that reads as an ink square
+		/** Glyph fill. `mono` by default: inside a badge that reads as an ink square
 		 *  with the glyph knocked out. `gradient` is opt-in, for marketing surfaces
 		 *  where the mark is the subject rather than chrome. */
 		tone?: LogoTone;

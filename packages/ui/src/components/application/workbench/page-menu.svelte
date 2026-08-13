@@ -48,8 +48,8 @@
 	import type { WorkbenchController } from './controller.svelte';
 	import type { ViewMode } from './types';
 
-	/** The document's own menu. Notion's shape — presentation first, because that
-	 *  is the part people reach for mid-sentence — and mode-aware, because half of
+	/** The document's own menu. Notion's shape: presentation first, because that
+	 *  is the part people reach for mid-sentence: and mode-aware, because half of
 	 *  a canvas menu means nothing while you're editing source. */
 	let { ctrl, onrename }: { ctrl: WorkbenchController; onrename?: () => void } = $props();
 
@@ -104,7 +104,7 @@
 		{/snippet}
 	</DropdownMenuTrigger>
 	<DropdownMenuContent align="end" class="w-64">
-		<!-- Same three-tile slot in both modes — typeface in Visual, layout in
+		<!-- Same three-tile slot in both modes: typeface in Visual, layout in
 		     LaTeX. Keeping the shape stable is why the layout switch could come out
 		     of the bar: the menu opens to the same geometry either way. -->
 		{#if visual}

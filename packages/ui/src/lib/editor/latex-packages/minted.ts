@@ -34,7 +34,7 @@ export const data: PackageData = {
 			name: "setminted",
 			snippet: "setminted{${1:fontsize=\\small, linenos, breaklines}}$0",
 			detail: "Set minted options globally, or per language",
-			doc: "Options: `linenos`, `numbersep`, `breaklines`, `fontsize`, `bgcolor`, `frame=lines`, `tabsize`, `autogobble` (strips the common indentation — well worth it). A language in the optional argument scopes the settings: `\\setminted[python]{…}`.",
+			doc: "Options: `linenos`, `numbersep`, `breaklines`, `fontsize`, `bgcolor`, `frame=lines`, `tabsize`, `autogobble` (strips the common indentation: well worth it). A language in the optional argument scopes the settings: `\\setminted[python]{…}`.",
 			example: "\\setminted{fontsize=\\small, breaklines, autogobble}",
 			package: "minted",
 		},

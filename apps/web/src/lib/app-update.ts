@@ -30,7 +30,7 @@ export function watchForUpdate(onAvailable: () => void): () => void {
 
 	const announce = () => {
 		// A worker installed with no controller is the first install, not an
-		// update — there is no running build to replace, so stay silent.
+		// update: there is no running build to replace, so stay silent.
 		if (registration?.waiting && navigator.serviceWorker.controller) onAvailable();
 	};
 

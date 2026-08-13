@@ -195,7 +195,7 @@ export function parseSyncTex(text: string): SyncTexMap {
 			}
 			continue;
 		}
-		if (c === ')' || c === ']') continue; // box close — no payload
+		if (c === ')' || c === ']') continue; // box close: no payload
 
 		// Any record line: "<type>tag,line:h,v[:w,h,d]". Non-records (Input:, !238,
 		// <, >) fail the strict parse and are skipped.

@@ -6,7 +6,7 @@ import { isTauriRuntime } from '$lib/runtime';
  *
  * Flow: on app boot we ask the Tauri updater plugin to compare the running
  * build against the `latest.json` manifest published with each GitHub release.
- * If a newer version exists we surface a non-blocking corner card — the
+ * If a newer version exists we surface a non-blocking corner card: the
  * download does NOT start until the user opts in, and install + relaunch is
  * deferred until they explicitly click "Restart to update". This matches the
  * explicit-consent behaviour users expect and is kind to metered connections.
@@ -69,7 +69,7 @@ function createUpdaterStore() {
 
 	async function runCheck(isManual: boolean) {
 		// Production-only. `tauri dev` ships an unsigned, unpublished build, so
-		// the plugin can't compare against `latest.json` meaningfully — and the
+		// the plugin can't compare against `latest.json` meaningfully: and the
 		// corner card during local dev just confuses contributors. Vite's DEV
 		// flag short-circuits cleanly for `tauri dev` while staying live for
 		// `tauri build` artefacts.
@@ -97,7 +97,7 @@ function createUpdaterStore() {
 			version = found.version;
 			notes = found.body ?? null;
 			dismissed = false;
-			// Don't auto-download — surface the card and wait for the user.
+			// Don't auto-download: surface the card and wait for the user.
 			status = 'update-available';
 		} catch (e) {
 			console.error('[updater] check failed', e);
@@ -132,7 +132,7 @@ function createUpdaterStore() {
 
 		/**
 		 * Whether the corner card should render. Silent while idle / checking /
-		 * up to date — it only appears once there's something actionable.
+		 * up to date: it only appears once there's something actionable.
 		 */
 		get visible() {
 			if (dismissed) return false;

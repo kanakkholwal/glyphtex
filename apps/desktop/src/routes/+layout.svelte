@@ -28,7 +28,7 @@
 	onMount(() => updater.init());
 
 	// Warm the common LaTeX package cache on first launch so the first offline
-	// compile just works — done once (localStorage-gated) and deferred so it
+	// compile just works: done once (localStorage-gated) and deferred so it
 	// never competes with first paint. Best-effort: retries on a later launch
 	// if offline / the engine isn't ready.
 	onMount(() => {

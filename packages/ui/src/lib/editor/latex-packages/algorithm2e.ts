@@ -121,7 +121,7 @@ export const data: PackageData = {
 		{
 			name: "Repeat",
 			snippet: "Repeat{$1}{\n\t$0\n}",
-			detail: "Repeat-until loop — the condition comes first, the body second",
+			detail: "Repeat-until loop: the condition comes first, the body second",
 			doc: "Reads backwards from how it prints: `\\Repeat{until-condition}{body}`.",
 			package: "algorithm2e",
 		},
@@ -202,7 +202,7 @@ export const data: PackageData = {
 		},
 		{
 			name: "SetKwProg",
-			snippet: "SetKwProg{${1:Fn}}{${2:Function}}{${3::}}{}$0",
+			snippet: "SetKwProg{${1:Fn}}{${2:Function}}{${3:}}{}$0",
 			detail: "Declare a procedure/function block keyword",
 			doc: "Combined with `\\SetKwFunction` this is how you typeset a named subroutine with its own body: `\\Fn{\\FSort{$A$}}{…}`.",
 			package: "algorithm2e",
@@ -221,7 +221,7 @@ export const data: PackageData = {
 		},
 		{
 			name: "SetAlgoCaptionSeparator",
-			snippet: "SetAlgoCaptionSeparator{${1::}}$0",
+			snippet: "SetAlgoCaptionSeparator{${1:}}$0",
 			detail: "Change the separator between caption number and text",
 			package: "algorithm2e",
 		},
@@ -253,7 +253,7 @@ export const data: PackageData = {
 		{
 			name: "lIf",
 			snippet: "lIf{$1}{$2}$0",
-			detail: "Single-line if — condition and body on one line",
+			detail: "Single-line if: condition and body on one line",
 			doc: "The `l` prefix means 'one line' and exists for `\\lIf`, `\\lElse`, `\\lFor` and `\\lWhile`.",
 			example: "\\lIf{$x < 0$}{$x \\gets -x$}",
 			package: "algorithm2e",

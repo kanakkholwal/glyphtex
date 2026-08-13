@@ -26,7 +26,7 @@
 	/** Shell for the editor: Svelte glue and chrome layout only. State and behaviour
 	 *  live in {@link WorkbenchController}; the panes live in `./workbench/*`. */
 	let props: WorkbenchProps = $props();
-	// The controller intentionally captures the initial (stable) host injections —
+	// The controller intentionally captures the initial (stable) host injections.
 	// `compile`, `project`, `git`, … never change after mount.
 	// svelte-ignore state_referenced_locally
 	const ctrl = new WorkbenchController(props);

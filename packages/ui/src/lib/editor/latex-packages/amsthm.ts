@@ -21,7 +21,7 @@ export const data: PackageData = {
 			name: "theoremstyle",
 			snippet: "theoremstyle{${1:plain}}$0",
 			detail: "Select the style for subsequent \\newtheorem declarations",
-			doc: "`plain` — italic body, bold head (theorems). `definition` — upright body (definitions, examples). `remark` — italic head, upright body (remarks, notes).",
+			doc: "`plain`: italic body, bold head (theorems). `definition`: upright body (definitions, examples). `remark`: italic head, upright body (remarks, notes).",
 			example: "\\theoremstyle{definition}",
 			package: "amsthm",
 		},
@@ -36,7 +36,7 @@ export const data: PackageData = {
 		{
 			name: "qedhere",
 			detail: "Place the QED symbol on this line",
-			doc: "Needed when a proof ends with a display — otherwise the box lands alone on the next line. Inside `align`, put it before the closing `\\\\`-less last row.",
+			doc: "Needed when a proof ends with a display: otherwise the box lands alone on the next line. Inside `align`, put it before the closing `\\\\`-less last row.",
 			example: "\\[ a = b. \\qedhere \\]",
 			package: "amsthm",
 			context: "both",
@@ -50,14 +50,14 @@ export const data: PackageData = {
 		{
 			name: "swapnumbers",
 			detail: "Put the theorem number before the name",
-			doc: "Preamble switch affecting every `\\newtheorem` after it — “1.1 Theorem” rather than “Theorem 1.1”.",
+			doc: "Preamble switch affecting every `\\newtheorem` after it: “1.1 Theorem” rather than “Theorem 1.1”.",
 			example: "\\swapnumbers",
 			package: "amsthm",
 		},
 		{
 			name: "proofname",
 			detail: "The word printed at the head of a proof",
-			doc: "`\\renewcommand{\\proofname}{Beweis}` — or let babel handle it.",
+			doc: "`\\renewcommand{\\proofname}{Beweis}`: or let babel handle it.",
 			package: "amsthm",
 		},
 		{
@@ -76,7 +76,7 @@ export const data: PackageData = {
 			name: "thmnote",
 			snippet: "thmnote{#3}$0",
 			detail: "Theorem note, for use in a \\newtheoremstyle head spec",
-			doc: "The optional argument of a theorem environment — `\\begin{theorem}[Euler]` — arrives here.",
+			doc: "The optional argument of a theorem environment: `\\begin{theorem}[Euler]`: arrives here.",
 			package: "amsthm",
 		},
 		{
@@ -124,21 +124,21 @@ export const data: PackageData = {
 		},
 		{
 			name: "definition",
-			detail: "Definition — upright body, definition style",
+			detail: "Definition: upright body, definition style",
 			body: "\n\t$0\n",
 			package: "amsthm",
 			context: "text",
 		},
 		{
 			name: "remark",
-			detail: "Remark — remark style",
+			detail: "Remark: remark style",
 			body: "\n\t$0\n",
 			package: "amsthm",
 			context: "text",
 		},
 		{
 			name: "example",
-			detail: "Example — definition style",
+			detail: "Example: definition style",
 			body: "\n\t$0\n",
 			package: "amsthm",
 			context: "text",

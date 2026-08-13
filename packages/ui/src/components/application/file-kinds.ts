@@ -1,7 +1,7 @@
 export type FileKind = 'latex' | 'markdown' | 'text' | 'image' | 'pdf' | 'binary';
 
 /**
- * The LaTeX family — sources, bibliography, and the LaTeX-command auxiliary
+ * The LaTeX family: sources, bibliography, and the LaTeX-command auxiliary
  * files a project carries (reference.bib, the .toc, .aux, …). All of these open
  * in the LaTeX editor with highlighting *and* the format toolbar, since they're
  * all LaTeX-project text the user edits alongside the document. Plain logs
@@ -117,7 +117,7 @@ function extOf(name: string): string {
 }
 
 /** Classifies by name so the workbench knows how to render a file. `binary` means
- *  "no preview without a heavy viewer" — the UI offers reveal-in-folder instead. */
+ *  "no preview without a heavy viewer": the UI offers reveal-in-folder instead. */
 export function classifyFile(name: string): FileKind {
 	const ext = extOf(name);
 	if (!ext) return 'text'; // no extension (Makefile, LICENSE, .gitignore) → editable text

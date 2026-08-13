@@ -7,12 +7,12 @@ import type {
 	SystemTexInfo
 } from '@glyphtex/ui/application';
 
-/** Shape returned by the Rust `prefetch_packages` command (its own struct — not
+/** Shape returned by the Rust `prefetch_packages` command (its own struct: not
  *  the compile result; see compile.ts for that contract). */
 type RawPrefetchResult = { success: boolean; message: string | null };
 
 /**
- * Desktop engine manager — lists, downloads, and activates Tectonic versions
+ * Desktop engine manager: lists, downloads, and activates Tectonic versions
  * from GitHub releases (Rust `engine` module), plus managed package-cache
  * controls. Lets users update the LaTeX engine without rebuilding the app.
  */

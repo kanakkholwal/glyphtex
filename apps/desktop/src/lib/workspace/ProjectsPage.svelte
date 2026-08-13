@@ -34,12 +34,12 @@
 			const local = await projectHost.listLocalProjects();
 			for (const lp of local) projects.ensure(lp.root, lp.name, lp.modified);
 		} catch {
-			/* directory unavailable — fall back to the stored list */
+			/* directory unavailable: fall back to the stored list */
 		}
 	});
 
 	/**
-	 * New project — created on disk in the app's own data directory by default
+	 * New project: created on disk in the app's own data directory by default
 	 * (no save prompt). Falls back to an in-memory project if that fails. Returns
 	 * the new id so ProjectsHome can reveal the card, then morph into the editor.
 	 */
@@ -99,7 +99,7 @@
 </script>
 
 <svelte:head>
-	<title>GlyphTeX — {titles[scope]}</title>
+	<title>GlyphTeX: {titles[scope]}</title>
 </svelte:head>
 
 <ProjectsHome

@@ -3,7 +3,7 @@ import { confirm } from '@tauri-apps/plugin-dialog';
 import type { GitProvider } from '@glyphtex/ui/application';
 
 /**
- * Desktop Git provider — local version control via the Rust `git` module
+ * Desktop Git provider: local version control via the Rust `git` module
  * (gitoxide). Operates on the open project folder; local ops are pure Rust, while
  * push / pull / remote edits shell out to the system `git`.
  */

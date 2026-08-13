@@ -18,7 +18,7 @@
 	import { STATUS_CLASS, STATUS_LABEL, type GitChange, type TreeNode } from './types';
 
 	/**
-	 * One changes section's file list — either a flat list or a nested folder
+	 * One changes section's file list: either a flat list or a nested folder
 	 * tree (per `settings.gitView`). Each row opens the file's diff and offers
 	 * stage/unstage (and discard, when staging unstaged changes).
 	 */
@@ -49,7 +49,7 @@
 			class="text-foreground/90 hover:text-foreground flex min-w-0 flex-1 items-center gap-1 text-left {open
 				? 'font-medium'
 				: ''}"
-			title="Open diff — {c.path}"
+			title="Open diff: {c.path}"
 			onclick={() => store.showDiff(c)}
 		>
 			{#if tree}

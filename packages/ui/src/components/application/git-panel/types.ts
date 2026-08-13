@@ -36,7 +36,7 @@ export type GitSettings = {
 
 /** Host-injected Git backend (desktop = Tauri / gitoxide). */
 export type GitProvider = {
-	/** Whether a usable system `git` is installed — gates the remote half (push/pull/sync). */
+	/** Whether a usable system `git` is installed: gates the remote half (push/pull/sync). */
 	available?: () => Promise<boolean>;
 	isRepo: (root: string) => Promise<boolean>;
 	init: (root: string) => Promise<void>;
@@ -101,7 +101,7 @@ export type SectionKey = 'staged' | 'changes' | 'remotes' | 'history';
 export type SyncAction = 'push' | 'pull' | 'sync' | 'none';
 
 export type TreeNode = {
-	/** Display segment — a folder may be a compressed chain like `src/lib`. */
+	/** Display segment: a folder may be a compressed chain like `src/lib`. */
 	name: string;
 	/** Folder path (for collapse) or full file path. */
 	path: string;

@@ -18,7 +18,7 @@
 		version?: string;
 	};
 
-	/** Provided by the host (desktop) — backed by Tauri commands. */
+	/** Provided by the host (desktop): backed by Tauri commands. */
 	export type EngineManager = {
 		label: string;
 		list: () => Promise<EngineVersion[]>;
@@ -50,7 +50,7 @@
 	import { IconRefresh } from '@tabler/icons-svelte';
 
 	/**
-	 * EngineSettings — pick the compile engine (bundled Tectonic or a local
+	 * EngineSettings: pick the compile engine (bundled Tectonic or a local
 	 * System TeX install), list / download / activate / remove Tectonic versions
 	 * from GitHub releases (no app rebuild), and manage the package cache.
 	 */
@@ -71,7 +71,7 @@
 		try {
 			sysInfo = await engine.detectSystem();
 		} catch {
-			/* ignore — UI just shows "not detected" */
+			/* ignore: UI just shows "not detected" */
 		} finally {
 			detecting = false;
 		}
@@ -243,7 +243,7 @@
 				{#if settings.engineKind === 'system'}
 					Your local TeX install, driven through latexmk.
 				{:else}
-					Bundled LaTeX — no setup, packages fetched on demand.
+					Bundled LaTeX: no setup, packages fetched on demand.
 				{/if}
 			</p>
 		</div>
@@ -320,7 +320,7 @@
 								<span
 									class="text-foreground shrink-0 text-sm {nightly ? 'capitalize' : 'tabular-nums'}"
 									title={nightly
-										? 'Newer xetex-layout — fixes the fontawesome5 / icon-font crash'
+										? 'Newer xetex-layout: fixes the fontawesome5 / icon-font crash'
 										: undefined}
 								>
 									{v.version}

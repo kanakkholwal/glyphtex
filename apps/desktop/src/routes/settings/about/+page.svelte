@@ -14,7 +14,7 @@
 			const { getVersion } = await import('@tauri-apps/api/app');
 			appVersion = await getVersion();
 		} catch {
-			/* non-Tauri / web — keep the fallback */
+			/* non-Tauri / web: keep the fallback */
 		}
 	});
 
@@ -26,11 +26,11 @@
 			case 'up-to-date':
 				return "You're on the latest version.";
 			case 'update-available':
-				return `Version ${updater.version} is available — see the prompt to download.`;
+				return `Version ${updater.version} is available: see the prompt to download.`;
 			case 'downloading':
 				return `Downloading update… ${Math.round(updater.progress * 100)}%`;
 			case 'ready':
-				return 'Update downloaded — restart to apply.';
+				return 'Update downloaded: restart to apply.';
 			case 'error':
 				return updater.error ?? 'Update check failed.';
 			default:
@@ -90,7 +90,7 @@
 
 		<div class="text-muted-foreground flex flex-col gap-3 text-sm leading-relaxed">
 			<p>
-				GlyphTeX compiles real LaTeX on your machine with Tectonic — nothing is uploaded, and it
+				GlyphTeX compiles real LaTeX on your machine with Tectonic: nothing is uploaded, and it
 				works fully offline. Your documents stay on disk, in plain files you own.
 			</p>
 			<p>

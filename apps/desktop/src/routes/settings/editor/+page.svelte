@@ -96,7 +96,7 @@
 	<SettingsSection label="Compilation" divided>
 		{@render selectRow(
 			'Auto save',
-			'When edits are written to disk — off (⌘/Ctrl+S only), after a short delay, or on focus change. The preview always renders the last saved version.',
+			'When edits are written to disk: off (⌘/Ctrl+S only), after a short delay, or on focus change. The preview always renders the last saved version.',
 			autoSaveOpts,
 			settings.autoSave,
 			(v) => (settings.autoSave = v as AutoSaveMode)
@@ -109,7 +109,7 @@
 		)}
 		{@render switchRow(
 			'Shell escape',
-			'Allow \\write18 so packages like minted / gnuplot can run external tools. Off by default — only enable it for documents you trust.',
+			'Allow \\write18 so packages like minted / gnuplot can run external tools. Off by default: only enable it for documents you trust.',
 			settings.shellEscape,
 			(v) => (settings.shellEscape = v)
 		)}

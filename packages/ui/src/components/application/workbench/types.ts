@@ -1,5 +1,5 @@
 /**
- * Top-level surface. `visual` is the WYSIWYG editor — shipped as a preview of the
+ * Top-level surface. `visual` is the WYSIWYG editor: shipped as a preview of the
  * intended design, not a working editor (see `visual-pane.svelte`).
  */
 export type DocMode = 'visual' | 'latex';
@@ -61,7 +61,7 @@ export type GlyphFile = {
 	/**
 	 * Last content written to disk (or the loaded baseline). A file is "dirty"
 	 * (unsaved) when its live content differs from `saved`. `undefined` until the
-	 * file has been loaded — an unloaded file can't be dirty.
+	 * file has been loaded: an unloaded file can't be dirty.
 	 */
 	saved?: string;
 };
@@ -154,7 +154,7 @@ export type DiffTarget = {
 };
 
 // --- Sample / demo content --------------------------------------------------
-export const SAMPLE_LATEX = String.raw`% GlyphTeX — LaTeX document
+export const SAMPLE_LATEX = String.raw`% GlyphTeX: LaTeX document
 \documentclass{article}
 \usepackage{amsmath}
 

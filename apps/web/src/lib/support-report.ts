@@ -2,7 +2,7 @@
  * Builds the body of a package-support issue.
  *
  * Privacy model: **allowlist, never blacklist.** Only declarations we can name
- * in advance are copied out of the document — the class line and the package
+ * in advance are copied out of the document: the class line and the package
  * requests that caused the failure. Everything else (prose, data, maths, file
  * names, comments) is never read, so there is nothing to strip and nothing to
  * get wrong. The caller shows the finished text before anything is sent.
@@ -12,7 +12,7 @@
 const DECLARATIONS =
 	/^\s*\\(documentclass|usepackage|RequirePackage|LoadClass|usetikzlibrary|usepgfplotslibrary)\b[^\n]*/gm;
 
-/** Stop at `\begin{document}` — nothing after it is a declaration. */
+/** Stop at `\begin{document}`: nothing after it is a declaration. */
 export function preambleDeclarations(source: string, limit = 40): string[] {
 	const preamble = source.split(/\\begin\s*\{document\}/)[0] ?? '';
 	const found = preamble.match(DECLARATIONS) ?? [];
@@ -21,7 +21,7 @@ export function preambleDeclarations(source: string, limit = 40): string[] {
 }
 
 export type SupportReport = {
-	/** Files the engine could not resolve — the subject of the report. */
+	/** Files the engine could not resolve: the subject of the report. */
 	unsupportedFiles: string[];
 	/** Full text of the document's main file. Only its declarations are read. */
 	mainSource?: string;

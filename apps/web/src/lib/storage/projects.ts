@@ -26,7 +26,7 @@ export type StoredProject = {
 	entryCandidates?: string[];
 };
 
-/** One file. Exactly one of `text` / `data` is set — `data` carries images. */
+/** One file. Exactly one of `text` / `data` is set: `data` carries images. */
 export type StoredFile = {
 	key: string;
 	projectId: string;
@@ -130,7 +130,7 @@ export async function writeFiles(projectId: string, files: NewFile[]): Promise<n
 		const size = sizeOf(f);
 		if (size > PER_FILE_BYTES) {
 			throw new StorageError(
-				`"${f.path}" is ${formatBytes(size)} — over the ${formatBytes(PER_FILE_BYTES)} limit for one file.`
+				`"${f.path}" is ${formatBytes(size)}: over the ${formatBytes(PER_FILE_BYTES)} limit for one file.`
 			);
 		}
 	}
@@ -189,7 +189,7 @@ function patch(id: string, change: Partial<StoredProject>, touch = true): Promis
 	});
 }
 
-// Starring is not an edit, so it must not bump `updatedAt` — that would reshuffle
+// Starring is not an edit, so it must not bump `updatedAt`: that would reshuffle
 // "Newest first" and fake activity in Recent.
 export const setStarred = (id: string, starred: boolean) => patch(id, { starred }, false);
 
@@ -221,7 +221,7 @@ export async function duplicateProject(id: string): Promise<StoredProject> {
 	return copy.entry === source.entry ? copy : await setEntry(copy.id, source.entry);
 }
 
-/** Total bytes across all documents — what the settings panel reports as ours. */
+/** Total bytes across all documents: what the settings panel reports as ours. */
 export async function totalBytes(): Promise<number> {
 	const projects = await listProjects();
 	return projects.reduce((n, p) => n + p.bytes, 0);

@@ -206,7 +206,7 @@
 			a: 'Yes. Export the .zip and drop it in. The source stays plain .tex and .bib, and you can export the folder again any time.'
 		},
 		{
-			q: 'Does biblatex work? What about biber?',
+			q: 'Does biblatex work?: What about biber?',
 			a: 'BibTeX is in the engine, so biblatex with backend=bibtex builds a real reference list offline. Biber is a Perl program with no WebAssembly build, so it needs the desktop app. The browser names the one line that fixes it.'
 		},
 		{

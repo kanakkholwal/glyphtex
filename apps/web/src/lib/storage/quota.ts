@@ -1,4 +1,4 @@
-/** Per-document ceiling. Not a browser limit — it keeps one document from
+/** Per-document ceiling. Not a browser limit: it keeps one document from
  *  eating the whole origin quota and getting everything evicted. */
 export const PER_PROJECT_BYTES = 100 * 1024 * 1024;
 
@@ -17,7 +17,7 @@ export type StorageStatus = {
 	ratio: number;
 	/** Data is exempt from eviction under storage pressure. */
 	persisted: boolean;
-	/** The browser refused to report — show "unknown", never "0 bytes used". */
+	/** The browser refused to report: show "unknown", never "0 bytes used". */
 	unknown: boolean;
 };
 
@@ -36,7 +36,7 @@ export async function storageStatus(): Promise<StorageStatus> {
 
 /**
  * Ask the browser to exempt this origin from eviction. **Call this from a click
- * handler** — Firefox only shows its prompt during a user gesture, and a
+ * handler**: Firefox only shows its prompt during a user gesture, and a
  * gesture-less call just resolves false without ever asking.
  */
 export async function requestPersistence(): Promise<boolean> {

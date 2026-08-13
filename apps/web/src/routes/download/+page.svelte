@@ -78,7 +78,7 @@
 		return null;
 	}
 
-	// GitHub Releases API — only the fields we use, validated at the boundary. The
+	// GitHub Releases API: only the fields we use, validated at the boundary. The
 	// response is untrusted and feeds a clickable download href, so each asset is
 	// parsed/narrowed (and its URL constrained to https) before use (AGENTS.md rule #4).
 	type RawAsset = { name: string; browser_download_url: string; size: number };
@@ -157,7 +157,7 @@
 						title: 'Fastest: install with Homebrew',
 						body: 'One line grabs the right build for your chip and keeps it updated. It clears the Gatekeeper warning too, so skip the steps below.',
 						code: brewCmd,
-						done: 'Installed this way? You are done. Skip the .dmg steps below.'
+						done: 'Installed this way?: You are done. Skip the .dmg steps below.'
 					} satisfies MacStep
 				]
 			: []),
@@ -245,7 +245,7 @@
 	<title>GlyphTeX desktop app: an archived prototype</title>
 	<meta
 		name="description"
-		content="The GlyphTeX desktop app is an unmaintained prototype. Any builds here are outdated and unsupported — use the browser workspace instead."
+		content="The GlyphTeX desktop app is an unmaintained prototype. Any builds here are outdated and unsupported: use the browser workspace instead."
 	/>
 	<meta name="robots" content="noindex" />
 </svelte:head>
@@ -461,7 +461,7 @@
 						class="group/disc overflow-hidden rounded-3xl border border-hairline bg-card shadow-craft-sm [&[open]_.chev]:rotate-180"
 					>
 						<summary
-							class="flex cursor-pointer list-none items-center gap-4 px-6 py-5 transition-colors hover:bg-surface-soft/50 [&::-webkit-details-marker]:hidden"
+							class="flex cursor-pointer list-none items-center gap-4 px-6 py-5 transition-colors hover:bg-surface-soft/50 [&:-webkit-details-marker]:hidden"
 						>
 							<span
 								class="grid size-11 shrink-0 place-items-center rounded-xl border border-hairline bg-background text-foreground"
@@ -552,7 +552,7 @@
 							</ol>
 
 							<p class="mt-6 text-xs leading-relaxed text-muted-foreground">
-								Prefer not to use Terminal? You can also right-click GlyphTeX in Applications,
+								Prefer not to use Terminal?: You can also right-click GlyphTeX in Applications,
 								choose Open, and confirm once in the dialog that appears.
 							</p>
 						</div>

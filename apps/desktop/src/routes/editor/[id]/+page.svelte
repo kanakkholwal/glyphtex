@@ -19,7 +19,7 @@
 </script>
 
 <svelte:head>
-	<title>{project ? `${project.name} — GlyphTeX` : 'GlyphTeX'}</title>
+	<title>{project ? `${project.name}: GlyphTeX` : 'GlyphTeX'}</title>
 </svelte:head>
 
 {#if project}

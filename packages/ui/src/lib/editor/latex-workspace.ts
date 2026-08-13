@@ -1,7 +1,7 @@
 import { parseBib, type BibEntry } from "./bibtex";
 
 export type WorkspaceFile = {
-	/** Path or id — used to attribute a suggestion to its file. */
+	/** Path or id: used to attribute a suggestion to its file. */
 	path: string;
 	content: string;
 };
@@ -33,7 +33,7 @@ export function setWorkspaceFiles(next: readonly WorkspaceFile[]): void {
 	labelCache = null;
 }
 
-/** Clear the index — on closing a project, so its labels stop being offered. */
+/** Clear the index: on closing a project, so its labels stop being offered. */
 export function clearWorkspace(): void {
 	setWorkspaceFiles([]);
 }

@@ -6,7 +6,7 @@
 	import type { GitPanelStore } from './store.svelte';
 	import { whenLabel } from './tree';
 
-	/** Commit history — recent commits (hash · summary · date). */
+	/** Commit history: recent commits (hash · summary · date). */
 	let { store }: { store: GitPanelStore } = $props();
 </script>
 

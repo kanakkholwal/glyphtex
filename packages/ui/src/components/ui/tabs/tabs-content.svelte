@@ -17,7 +17,7 @@
 	rendered as a sibling, not a child of `{#if}`).
 
 	tw-animate-css supplies `animate-in`, `fade-in-*`, `slide-in-from-*`,
-	and the `duration-*` utility. Keep this short (160ms) — tabs are a
+	and the `duration-*` utility. Keep this short (160ms): tabs are a
 	cheap navigation, not a hero transition.
 -->
 <TabsPrimitive.Content

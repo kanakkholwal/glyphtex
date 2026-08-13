@@ -39,7 +39,7 @@ export const data: PackageData = {
 		{
 			name: "phantomcaption",
 			detail: "Step the sub-counter without printing a caption",
-			doc: "Lets a `\\label` attach to a sub-float that has no visible caption — the usual trick for a shared caption covering several images.",
+			doc: "Lets a `\\label` attach to a sub-float that has no visible caption: the usual trick for a shared caption covering several images.",
 			example: "\\phantomcaption\\label{fig:left}",
 			package: "subcaption",
 			context: "text",

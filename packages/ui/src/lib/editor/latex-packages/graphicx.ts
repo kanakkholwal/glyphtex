@@ -15,7 +15,7 @@ export const data: PackageData = {
 			name: "graphicspath",
 			snippet: "graphicspath{{${1:figures/}}}$0",
 			detail: "Directories to search for images",
-			doc: "Note the doubled braces — each path is its own group, and every path must end with a slash: `\\graphicspath{{figures/}{images/}}`.",
+			doc: "Note the doubled braces: each path is its own group, and every path must end with a slash: `\\graphicspath{{figures/}{images/}}`.",
 			example: "\\graphicspath{{figures/}{plots/}}",
 			package: "graphicx",
 		},

@@ -3,7 +3,7 @@
 	import { loadMonaco, type MonacoNamespace } from '@glyphtex/ui/editor';
 
 	/**
-	 * DiffView — read-only diff of two texts, built on Monaco's diff editor.
+	 * DiffView: read-only diff of two texts, built on Monaco's diff editor.
 	 * `mode` switches between VS Code-style side-by-side and inline / unified,
 	 * which here is one option rather than two different components. Theme / font
 	 * / language mirror the editor so a diff reads like the document it came from.
@@ -35,7 +35,7 @@
 
 	// Create the diff editor once. Unlike the CodeMirror merge view this one
 	// reconfigures in place, so content / theme / font changes below never
-	// rebuild it — which keeps scroll position across a recompile.
+	// rebuild it: which keeps scroll position across a recompile.
 	$effect(() => {
 		const parent = host;
 		if (!parent) return;

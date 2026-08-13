@@ -1,6 +1,6 @@
 export const CRAFT_TRANSITION = "transition-all duration-200 ease-in-out";
 
-/** The app's one motion ease. Snappy but never jittery — use for state-driven
+/** The app's one motion ease. Snappy but never jittery: use for state-driven
  *  transitions that should feel intentional and stay out of the way. */
 export const CRAFT_EASE = "cubic-bezier(0.625, 0.05, 0, 1)";
 

@@ -4,7 +4,7 @@
 
 	import type { WorkbenchController } from './controller.svelte';
 
-	/** Status line for the editor column — everything here describes the open
+	/** Status line for the editor column: everything here describes the open
 	 *  document, not the app. App-wide state lives in the title bar. Fields drop
 	 *  out by *pane* width (container queries), not viewport: the column can be a
 	 *  third of a wide window. */

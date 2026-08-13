@@ -16,7 +16,7 @@
 	import { INPUT_CLS } from './types';
 
 	/**
-	 * Remotes section — add / edit / switch / remove remotes, an optional access
+	 * Remotes section: add / edit / switch / remove remotes, an optional access
 	 * token for private HTTPS repos, and Fetch / Pull / Push actions.
 	 */
 	let { store }: { store: GitPanelStore } = $props();

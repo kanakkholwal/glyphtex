@@ -118,7 +118,7 @@ export const data: PackageData = {
 		},
 		{
 			name: "dblcolon",
-			detail: "Double colon ::",
+			detail: "Double colon :",
 			package: "mathtools",
 			context: "math",
 		},
@@ -126,7 +126,7 @@ export const data: PackageData = {
 			name: "prescript",
 			snippet: "prescript{${1:a}}{${2:b}}{${3:X}}$0",
 			detail: "Sub- and superscript before a symbol",
-			doc: "Left superscript, left subscript, then the symbol — the readable way to write a pre-indexed tensor.",
+			doc: "Left superscript, left subscript, then the symbol: the readable way to write a pre-indexed tensor.",
 			example: "\\prescript{14}{6}{\\mathrm{C}}",
 			package: "mathtools",
 			context: "math",

@@ -32,7 +32,7 @@
 	import type { GitProvider } from './git-panel/types';
 
 	/**
-	 * Source Control — local version control for the open project folder. Stage /
+	 * Source Control: local version control for the open project folder. Stage /
 	 * unstage / discard working-tree changes against the real Git index, commit the
 	 * staged set, browse history, and manage remotes (add / edit / switch / remove,
 	 * fetch / pull / push). State + behaviour live in {@link GitPanelStore}; the
@@ -58,7 +58,7 @@
 		activeDiffPath?: string | null;
 	} = $props();
 
-	// The store captures the initial (stable) host injections — `git` / `onopendiff`
+	// The store captures the initial (stable) host injections: `git` / `onopendiff`
 	// don't change after mount; `root` is read live via the getter.
 	// svelte-ignore state_referenced_locally
 	const store = new GitPanelStore({
@@ -102,7 +102,7 @@
 	</div>
 {:else}
 	<div class="flex flex-col gap-2 px-1">
-		<!-- Branch + ahead/behind (panel chrome — refresh / view toggle live in the
+		<!-- Branch + ahead/behind (panel chrome: refresh / view toggle live in the
          side-panel header, next to the "Source Control" heading). -->
 		<div class="flex items-center gap-1.5 px-0.5">
 			<IconGitBranch size={13} class="text-muted-foreground shrink-0" />
@@ -128,8 +128,8 @@
 				<IconAlertTriangle size={13} class="mt-px shrink-0" />
 				<span>
 					{store.hasConflicts
-						? 'Merge has conflicts — resolve the marked files, stage them, then commit to finish.'
-						: 'Merge in progress — commit to finish it.'}
+						? 'Merge has conflicts: resolve the marked files, stage them, then commit to finish.'
+						: 'Merge in progress: commit to finish it.'}
 				</span>
 			</div>
 		{/if}

@@ -191,7 +191,7 @@ export class CodeEditorController {
 	// --- Live reconfiguration ---
 
 	/** Note Monaco themes are global, not per-editor: this restyles every editor
-	 *  on the page, which is what we want — they share one app theme. */
+	 *  on the page, which is what we want: they share one app theme. */
 	reconfigureTheme(theme: 'light' | 'dark'): void {
 		this.#monaco?.editor.setTheme(themeName(theme));
 	}

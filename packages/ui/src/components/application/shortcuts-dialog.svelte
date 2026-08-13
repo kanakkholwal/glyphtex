@@ -12,7 +12,7 @@
 	import { isMacPlatform, shortcutCategories, shortcutsByCategory, formatCombo } from './shortcuts';
 
 	/**
-	 * ShortcutsDialog — a wide, scannable reference of every keyboard shortcut,
+	 * ShortcutsDialog: a wide, scannable reference of every keyboard shortcut,
 	 * grouped by category and flowed into two or three columns. Reads entirely
 	 * from the shortcuts registry, so adding a shortcut there shows up here for
 	 * free. Read-only; this is documentation, not a rebinding surface.
@@ -23,7 +23,7 @@
 	const categories = shortcutCategories();
 
 	/** Split a formatted combo into its visible chunks so each renders as a key.
-	 *  On macOS the chunks are packed (⌘⇧Z) — keep them as one cap; elsewhere
+	 *  On macOS the chunks are packed (⌘⇧Z): keep them as one cap; elsewhere
 	 *  "Ctrl+Shift+Z" splits on "+". */
 	function caps(combo: string): string[] {
 		const formatted = formatCombo(combo, mac);

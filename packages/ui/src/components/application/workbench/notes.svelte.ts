@@ -25,7 +25,7 @@ export function stripTags(text: string): string {
 		.trim();
 }
 
-/** Coarse relative time — notes only ever need "when, roughly". */
+/** Coarse relative time: notes only ever need "when, roughly". */
 export function relativeTime(at: number, now = Date.now()): string {
 	const s = Math.max(0, Math.round((now - at) / 1000));
 	if (s < 45) return 'Just now';
@@ -39,7 +39,7 @@ export function relativeTime(at: number, now = Date.now()): string {
 
 /**
  * Per-document notes, persisted to local storage under the document's scope key.
- * Nothing leaves the device — same guarantee as the rest of the workbench.
+ * Nothing leaves the device: same guarantee as the rest of the workbench.
  */
 export class NotesStore {
 	readonly #getScope: () => string;

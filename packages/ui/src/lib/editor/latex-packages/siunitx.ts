@@ -82,7 +82,7 @@ export const data: PackageData = {
 		{
 			name: "SI",
 			snippet: "SI{${1:1.0}}{${2:\\metre}}$0",
-			detail: "Number with unit — legacy v2 spelling of \\qty",
+			detail: "Number with unit: legacy v2 spelling of \\qty",
 			doc: "Deprecated since siunitx v3. It still works, but new documents should write `\\qty{…}{…}`.",
 			example: "\\SI{9.81}{\\metre\\per\\second\\squared}",
 			package: "siunitx",
@@ -91,7 +91,7 @@ export const data: PackageData = {
 		{
 			name: "si",
 			snippet: "si{${1:\\metre}}$0",
-			detail: "Unit alone — legacy v2 spelling of \\unit",
+			detail: "Unit alone: legacy v2 spelling of \\unit",
 			doc: "Deprecated since siunitx v3 in favour of `\\unit{…}`.",
 			package: "siunitx",
 			context: "both",
@@ -99,14 +99,14 @@ export const data: PackageData = {
 		{
 			name: "SIrange",
 			snippet: "SIrange{${1:1}}{${2:10}}{${3:\\metre}}$0",
-			detail: "Range with a unit — legacy spelling of \\qtyrange",
+			detail: "Range with a unit: legacy spelling of \\qtyrange",
 			package: "siunitx",
 			context: "both",
 		},
 		{
 			name: "SIlist",
 			snippet: "SIlist{${1:1;2;3}}{${2:\\metre}}$0",
-			detail: "List with a unit — legacy spelling of \\qtylist",
+			detail: "List with a unit: legacy spelling of \\qtylist",
 			package: "siunitx",
 			context: "both",
 		},

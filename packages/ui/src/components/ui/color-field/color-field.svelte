@@ -45,7 +45,7 @@
 	}: ColorFieldProps = $props();
 
 	// Row affordance matches <SliderControl> in geometry, typography, and
-	// state. The hex text is its own affordance — hovering it for 800ms
+	// state. The hex text is its own affordance: hovering it for 800ms
 	// reveals an editable pill (DialKit's hover-to-type pattern). Clicking
 	// the swatch (or any non-hex region) opens the full picker popover.
 
@@ -137,7 +137,7 @@
 					type="button"
 					{...props}
 					{disabled}
-					aria-label={`${label} — opens color picker`}
+					aria-label={`${label}: opens color picker`}
 					class={cn(
 						"flex min-w-0 flex-1 items-center gap-1.5 text-left outline-none",
 						disabled ? "cursor-not-allowed" : "cursor-pointer",
@@ -190,7 +190,7 @@
 					onpointerdown={(e) => {
 						if (isHexEditable) e.stopPropagation();
 					}}
-					aria-label={`${label} hex — hover and click to edit`}
+					aria-label={`${label} hex: hover and click to edit`}
 					tabindex={isHexEditable ? 0 : -1}
 					class={cn(
 						"shrink-0 font-mono text-[12px] font-medium tabular-nums text-foreground/85 outline-none transition-colors",
@@ -204,7 +204,7 @@
 				</button>
 			{/if}
 
-			<!-- Swatch — opens the full ColorPicker popover. Checker grid sits
+			<!-- Swatch: opens the full ColorPicker popover. Checker grid sits
 			     underneath so transparent/alpha colors read correctly. -->
 			<Popover.Trigger>
 				{#snippet child({ props })}
@@ -212,7 +212,7 @@
 						type="button"
 						{...props}
 						{disabled}
-						aria-label={`${label} swatch — opens color picker`}
+						aria-label={`${label} swatch: opens color picker`}
 						class={cn(
 							"relative inline-block h-4 w-7 overflow-hidden rounded-md border border-border/60 shadow-[inset_0_0_0_1px_color-mix(in_srgb,_var(--color-foreground)_4%,_transparent)] outline-none transition-transform",
 							"focus-visible:ring-2 focus-visible:ring-primary/30",

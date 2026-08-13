@@ -71,7 +71,7 @@
 		/** Receives the new leaf name; folder prefix is preserved upstream. */
 		onrename?: (id: string, name: string) => void;
 		ondelete?: (id: string) => void;
-		/** Omitted when there's no project — hides the "Set as main" item. */
+		/** Omitted when there's no project: hides the "Set as main" item. */
 		onsetmain?: (id: string) => void;
 		/** `targetDir` '' = root. */
 		onmovefile?: (id: string, targetDir: string) => void;
@@ -142,7 +142,7 @@
 		if (!getDrag()) return;
 		const ok = canDropInto(path);
 		e.preventDefault();
-		e.stopPropagation(); // innermost folder only — no double highlight up the tree
+		e.stopPropagation(); // innermost folder only: no double highlight up the tree
 		if (e.dataTransfer) e.dataTransfer.dropEffect = ok ? 'move' : 'none';
 		dragOverPath = ok ? path : null;
 	}
@@ -276,7 +276,7 @@
 		{#if isOpen(node.path)}
 			<!-- Indent guide: a hairline down the chevron column, so a deep tree reads
 			     as nesting rather than as ragged left padding. `left` tracks the
-			     chevron's centre at this depth — same arithmetic as `indent()`. -->
+			     chevron's centre at this depth: same arithmetic as `indent()`. -->
 			<div
 				class="before:bg-border/70 relative before:absolute before:inset-y-0 before:left-(--guide) before:w-px before:content-['']"
 				style:--guide={`${depth * 12 + 15}px`}
@@ -338,7 +338,7 @@
 							: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
 					style:padding-left={indent(depth)}
 					aria-current={node.id === activeId}
-					title={dirty ? `${node.name} — unsaved` : node.name}
+					title={dirty ? `${node.name}: unsaved` : node.name}
 					draggable="true"
 					ondragstart={(e) => dragStartFile(node, e)}
 					ondragend={endDrag}

@@ -28,7 +28,7 @@
 	import { ZOOM_PRESETS } from './types';
 
 	/**
-	 * Preview pane — the PDF column. Its toolbar navigates the rendered document
+	 * Preview pane: the PDF column. Its toolbar navigates the rendered document
 	 * (sync, find, zoom, page); building it is the workbench toolbar's job.
 	 */
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
@@ -224,8 +224,8 @@
 								<p class="text-foreground text-sm font-medium">Nothing to preview yet</p>
 								<p class="text-muted-foreground max-w-[18rem] text-xs leading-relaxed">
 									{settings.autoCompile
-										? 'Start typing — GlyphTeX renders live, entirely on your device.'
-										: `Press Compile (${shortcutLabel('compile')}) to render — entirely on your device.`}
+										? 'Start typing: GlyphTeX renders live, entirely on your device.'
+										: `Press Compile (${shortcutLabel('compile')}) to render: entirely on your device.`}
 								</p>
 							</div>
 						{:else}

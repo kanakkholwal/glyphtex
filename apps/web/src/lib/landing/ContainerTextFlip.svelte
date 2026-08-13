@@ -52,7 +52,7 @@
 <!--
   Every word occupies the same grid cell, which makes each one measurable
   without a second render pass. The pill is then pinned to the *active* word's
-  width rather than the widest one — at display sizes the widest word leaves a
+  width rather than the widest one: at display sizes the widest word leaves a
   slab of empty tint around every shorter word.
 
   Width animates, so the resize reads as intentional. Nothing else on the line

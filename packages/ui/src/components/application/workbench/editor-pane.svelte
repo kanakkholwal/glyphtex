@@ -37,7 +37,7 @@
 	const assetKey = $derived(files.activeFile?.path ?? files.activeFile?.name);
 
 	// Publishes siblings to the language providers so `\cite{`/`\ref{` resolve across
-	// files. Keyed on `savedTick`, not live buffers — reindexing every keystroke is waste.
+	// files. Keyed on `savedTick`, not live buffers: reindexing every keystroke is waste.
 	$effect(() => {
 		void files.savedTick;
 		setWorkspaceFiles(
@@ -71,7 +71,7 @@
 			<span class="truncate pl-1" title={layout.diffTarget.path}>
 				{baseName(layout.diffTarget.path)}
 				<span class="text-faint">
-					— {layout.diffTarget.staged ? 'Staged changes' : 'Working tree'}
+					· {layout.diffTarget.staged ? 'Staged changes' : 'Working tree'}
 				</span>
 			</span>
 			<div class="ml-auto flex shrink-0 items-center gap-0.5">
@@ -121,7 +121,7 @@
 				<div
 					class="text-muted-foreground flex h-full items-center justify-center p-4 text-center text-xs"
 				>
-					Binary file — no text diff to show.
+					Binary file: no text diff to show.
 				</div>
 			{:else}
 				<DiffView
@@ -265,7 +265,7 @@
 		scrollbar-width: none;
 		mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
 	}
-	.glyphtex-toolbar-lane::-webkit-scrollbar {
+	.glyphtex-toolbar-lane:-webkit-scrollbar {
 		display: none;
 	}
 </style>

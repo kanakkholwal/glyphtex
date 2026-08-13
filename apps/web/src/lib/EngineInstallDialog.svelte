@@ -59,7 +59,7 @@
 				Set up the LaTeX compiler
 			</DialogTitle>
 			<DialogDescription class="leading-relaxed">
-				GlyphTeX compiles LaTeX right in your browser — the same engine the desktop app uses. It
+				GlyphTeX compiles LaTeX right in your browser: the same engine the desktop app uses. It
 				downloads once (~{totalMB} MB) and is cached on this device.
 			</DialogDescription>
 		</DialogHeader>

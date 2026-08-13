@@ -86,13 +86,13 @@ export function formatCombo(combo: string, mac = isMacPlatform()): string {
 	return mac ? parts.join('') : parts.join('+');
 }
 
-/** The canonical (first) combo of a shortcut, formatted — for menu hints. */
+/** The canonical (first) combo of a shortcut, formatted: for menu hints. */
 export function shortcutLabel(id: string, mac = isMacPlatform()): string {
 	const s = byId.get(id);
 	return s ? formatCombo(s.combos[0], mac) : '';
 }
 
-/** All combos of a shortcut, each formatted — for the shortcuts dialog. */
+/** All combos of a shortcut, each formatted: for the shortcuts dialog. */
 export function shortcutCombos(id: string, mac = isMacPlatform()): string[] {
 	const s = byId.get(id);
 	return s ? s.combos.map((c) => formatCombo(c, mac)) : [];

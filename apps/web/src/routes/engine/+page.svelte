@@ -246,7 +246,7 @@
 					</Reveal>
 					<Reveal variant="up" delay={120}>
 						<p>
-							So: could a real TeX engine run in a tab, with no network? Not a subset, not an
+							So: could a real TeX engine run in a tab, with no network?: Not a subset, not an
 							approximation. The actual engine, producing the PDF a journal expects.
 						</p>
 					</Reveal>

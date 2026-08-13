@@ -5,7 +5,7 @@
 	import type { LayoutStore } from './layout.svelte';
 	import type { ViewMode } from './types';
 
-	/** How the LaTeX surface is laid out: source, PDF, or both. Icon-only — it sits
+	/** How the LaTeX surface is laid out: source, PDF, or both. Icon-only: it sits
 	 *  next to the Visual/LaTeX switch, which already carries the words. */
 	let { layout }: { layout: LayoutStore } = $props();
 
@@ -64,7 +64,7 @@
 				{/snippet}
 			</TooltipTrigger>
 			<TooltipContent side="bottom">
-				{stacked ? 'Stacked — switch to side by side' : 'Side by side — switch to stacked'}
+				{stacked ? 'Stacked: switch to side by side' : 'Side by side: switch to stacked'}
 			</TooltipContent>
 		</Tooltip>
 	{/if}

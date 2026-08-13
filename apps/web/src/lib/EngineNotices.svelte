@@ -72,7 +72,7 @@
 			await navigator.clipboard.writeText(reportBody);
 			toast.success('Report copied');
 		} catch {
-			toast.error('Could not copy — clipboard blocked');
+			toast.error('Could not copy: clipboard blocked');
 		}
 	}
 
@@ -196,7 +196,7 @@
 			<DialogTitle>Request package support</DialogTitle>
 			<DialogDescription>
 				This is the whole report. Only the class and package declarations were copied from your
-				document — no prose, data or file names.
+				document: no prose, data or file names.
 			</DialogDescription>
 		</DialogHeader>
 

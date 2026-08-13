@@ -6,7 +6,7 @@ const MANIFEST_URL = '/engine/manifest.json';
 
 /**
  * Open the engine cache, or null if unavailable (private mode, blocked storage).
- * Caching is an optimisation only — callers must work without it.
+ * Caching is an optimisation only: callers must work without it.
  */
 export async function openEngineCache(): Promise<Cache | null> {
 	if (typeof caches === 'undefined') return null;
@@ -47,7 +47,7 @@ export async function loadManifest(): Promise<EngineManifest> {
 		const cached = await cache?.match(MANIFEST_URL);
 		if (cached) return parse(await cached.json());
 		throw networkError instanceof Error
-			? new Error('The compiler is not available offline yet — connect once to install it.')
+			? new Error('The compiler is not available offline yet: connect once to install it.')
 			: networkError;
 	}
 }

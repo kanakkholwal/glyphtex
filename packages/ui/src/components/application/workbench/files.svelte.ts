@@ -22,7 +22,7 @@ export type FileStoreDeps = {
 	projectName: string;
 };
 
-/** The Workbench's document + project model. State and behaviour only — the component
+/** The Workbench's document + project model. State and behaviour only: the component
  *  drives auto-save/persist/git-refresh from its own effects, keyed on {@link savedTick}. */
 export class FileStore {
 	/** Folder-based project bridge (desktop = Tauri fs / zip). Absent on web. */
@@ -35,12 +35,12 @@ export class FileStore {
 	activeId = $state('main');
 	/** Ids of files with an open editor tab, in tab order. */
 	openTabs = $state<string[]>([]);
-	/** Ids of recently opened files, newest first — drives the Recent section. */
+	/** Ids of recently opened files, newest first: drives the Recent section. */
 	recentIds = $state<string[]>([]);
 	/** Live buffer for the active file. */
 	source = $state('');
 	untitledCount = $state(0);
-	// Freshly created folders that hold no files yet — shown in the Explorer tree
+	// Freshly created folders that hold no files yet: shown in the Explorer tree
 	// (forward-slash relative paths) until a file lands in them.
 	extraFolders = $state<string[]>([]);
 
@@ -110,7 +110,7 @@ export class FileStore {
 	}
 
 	/**
-	 * Files with an open tab, in order — always including the active file even if
+	 * Files with an open tab, in order: always including the active file even if
 	 * a rename/delete dropped its id, so the tab strip never loses the current
 	 * file. Renamed/deleted ids fall out here without touching the many rename
 	 * paths that already remap `activeId`.
@@ -123,7 +123,7 @@ export class FileStore {
 			.filter((f): f is GlyphFile => Boolean(f));
 	});
 
-	/** Recently opened files that no longer have a tab — reopening them is one click. */
+	/** Recently opened files that no longer have a tab: reopening them is one click. */
 	readonly recentFiles = $derived.by(() => {
 		const open = new Set(this.openTabFiles.map((f) => f.id));
 		return this.recentIds
@@ -174,7 +174,7 @@ export class FileStore {
 	}
 
 	/** Replace the session after something rewrote the tree behind the editor (pull,
-	 *  clone, discard). Unsaved buffers are dropped — the tree has already won. */
+	 *  clone, discard). Unsaved buffers are dropped: the tree has already won. */
 	async reloadFrom(entries: { name: string; content: string }[]): Promise<void> {
 		const keep = new Set(entries.map((e) => e.name));
 		for (const f of [...this.files]) if (!keep.has(f.name)) await this.removeRel(f.name);
@@ -208,7 +208,7 @@ export class FileStore {
 		return this.projectRoot ? baseName(this.projectRoot) : this.#projectName;
 	}
 
-	// Ids of files with unsaved edits — drives the Explorer's "modified" dots.
+	// Ids of files with unsaved edits: drives the Explorer's "modified" dots.
 	readonly dirtyIds = $derived(
 		new Set(this.files.filter((f) => this.fileDirty(f)).map((f) => f.id))
 	);
@@ -241,7 +241,7 @@ export class FileStore {
 			try {
 				await this.project.writeFile(f.path, content);
 			} catch (e) {
-				toast.error(`Could not save ${baseName(f.name)} — ${e}`);
+				toast.error(`Could not save ${baseName(f.name)}: ${e}`);
 				return false;
 			}
 		}
@@ -316,7 +316,7 @@ export class FileStore {
 			try {
 				await this.project.createEntry(abs, false);
 			} catch (e) {
-				toast.error(`Could not create file — ${e}`);
+				toast.error(`Could not create file: ${e}`);
 				return;
 			}
 			this.files = [
@@ -369,7 +369,7 @@ export class FileStore {
 			try {
 				await this.project.createEntry(abs, true);
 			} catch (e) {
-				toast.error(`Could not create folder — ${e}`);
+				toast.error(`Could not create folder: ${e}`);
 				return;
 			}
 		}
@@ -454,7 +454,7 @@ export class FileStore {
 			try {
 				await this.project.rename(f.path, newAbs);
 			} catch (e) {
-				toast.error(`Move failed — ${e}`);
+				toast.error(`Move failed: ${e}`);
 				return null;
 			}
 			const wasActive = f.id === this.activeId;
@@ -505,7 +505,7 @@ export class FileStore {
 				try {
 					await this.removeRel(newRel, id);
 				} catch (e) {
-					toast.error(`Replace failed — ${e}`);
+					toast.error(`Replace failed: ${e}`);
 					return;
 				}
 			}
@@ -525,7 +525,7 @@ export class FileStore {
 					joinPath(this.projectRoot, newPath)
 				);
 			} catch (e) {
-				toast.error(`Move failed — ${e}`);
+				toast.error(`Move failed: ${e}`);
 				return;
 			}
 		}
@@ -577,7 +577,7 @@ export class FileStore {
 				try {
 					await this.removeFolder(newPath);
 				} catch (e) {
-					toast.error(`Replace failed — ${e}`);
+					toast.error(`Replace failed: ${e}`);
 					return;
 				}
 			}
@@ -619,7 +619,7 @@ export class FileStore {
 					try {
 						await this.removeRel(newRel, cur.id);
 					} catch (e) {
-						toast.error(`Replace failed — ${e}`);
+						toast.error(`Replace failed: ${e}`);
 						continue;
 					}
 				}
@@ -699,7 +699,7 @@ export class FileStore {
 			await this.removeFolder(path);
 			toast.success('Deleted');
 		} catch (e) {
-			toast.error(`Delete failed — ${e}`);
+			toast.error(`Delete failed: ${e}`);
 		}
 	}
 
@@ -717,7 +717,7 @@ export class FileStore {
 			try {
 				await this.project.rename(target.path, newAbs);
 			} catch (e) {
-				toast.error(`Rename failed — ${e}`);
+				toast.error(`Rename failed: ${e}`);
 				return;
 			}
 			const wasMain = id === this.mainId;
@@ -753,7 +753,7 @@ export class FileStore {
 				try {
 					await this.project.remove(t.path);
 				} catch (e) {
-					toast.error(`Delete failed — ${e}`);
+					toast.error(`Delete failed: ${e}`);
 					return;
 				}
 			}
@@ -784,7 +784,7 @@ export class FileStore {
 	}
 
 	// The `.glyx` manifest (project root, named after the folder) records the main
-	// file so reopening the folder — or double-clicking the .glyx — restores it.
+	// file so reopening the folder: or double-clicking the .glyx: restores it.
 	manifestPath(): string | null {
 		if (!this.projectRoot) return null;
 		return joinPath(this.projectRoot, `${baseName(this.projectRoot)}.glyx`);
@@ -839,7 +839,7 @@ export class FileStore {
 			const list = await this.project.readFiles(root);
 			this.onProjectLoaded?.(); // close any diff from the previous project
 			this.projectRoot = root;
-			// `.glyx` manifest is project metadata — keep it on disk, hide from the tree.
+			// `.glyx` manifest is project metadata: keep it on disk, hide from the tree.
 			const visible = list.filter((f) => !f.rel.toLowerCase().endsWith('.glyx'));
 			this.files = visible.map((f) => ({
 				id: f.abs,
@@ -860,7 +860,7 @@ export class FileStore {
 			else this.source = '';
 			toast.success(`Opened ${baseName(root)}`);
 		} catch (e) {
-			toast.error(`Could not open project — ${e}`);
+			toast.error(`Could not open project: ${e}`);
 		}
 	}
 
@@ -908,7 +908,7 @@ export class FileStore {
 			);
 			if (ok) toast.success('Exported project as ZIP');
 		} catch (e) {
-			toast.error(`Export failed — ${e}`);
+			toast.error(`Export failed: ${e}`);
 		}
 	}
 
@@ -918,7 +918,7 @@ export class FileStore {
 		try {
 			await this.project.revealInOS(this.projectRoot);
 		} catch (e) {
-			toast.error(`Could not reveal the folder — ${e}`);
+			toast.error(`Could not reveal the folder: ${e}`);
 		}
 	}
 
@@ -928,7 +928,7 @@ export class FileStore {
 		try {
 			await this.project.revealInOS(this.activeFile.path);
 		} catch (e) {
-			toast.error(`Could not reveal the file — ${e}`);
+			toast.error(`Could not reveal the file: ${e}`);
 		}
 	}
 
@@ -940,7 +940,7 @@ export class FileStore {
 			toast.success(await this.project.registerShellIntegration());
 			return true;
 		} catch (e) {
-			toast.error(`Could not register shell integration — ${e}`);
+			toast.error(`Could not register shell integration: ${e}`);
 			return false;
 		}
 	}

@@ -21,7 +21,7 @@ export type LatexCommand = {
 export type LatexEnvironment = {
 	name: string;
 	detail: string;
-	/** Inner content, inserted straight after `\begin{name}` — so an environment with a
+	/** Inner content, inserted straight after `\begin{name}`: so an environment with a
 	 * mandatory argument (tabular's column spec) opens its body with that argument. */
 	body?: string;
 	package?: string;
@@ -117,7 +117,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{
 		name: "appendix",
 		detail: "Switch following sections to appendix numbering",
-		doc: "A switch, not an environment — everything after it is an appendix.",
+		doc: "A switch, not an environment: everything after it is an appendix.",
 		context: "text",
 	},
 	{ name: "frontmatter", detail: "Begin front matter (book)", context: "text" },
@@ -184,7 +184,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 		name: "emph",
 		snippet: "emph{$1}$0",
 		detail: "Emphasis (nests: italic, then upright)",
-		doc: "Prefer this over `\\textit` for semantic emphasis — it flips shape when nested.",
+		doc: "Prefer this over `\\textit` for semantic emphasis: it flips shape when nested.",
 		context: "text",
 	},
 	{
@@ -279,7 +279,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{
 		name: "cref",
 		snippet: "cref{$1}$0",
-		detail: "Clever reference — type prefix, ranges, lists",
+		detail: "Clever reference: type prefix, ranges, lists",
 		package: "cleveref",
 		context: "both",
 	},
@@ -308,7 +308,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{
 		name: "citet",
 		snippet: "citet{$1}$0",
-		detail: "Textual citation — Author (year)",
+		detail: "Textual citation: Author (year)",
 		package: "natbib",
 		context: "text",
 	},
@@ -407,7 +407,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "overbrace", snippet: "overbrace{$1}$0", detail: "Brace above, with optional superscript label", context: "math" },
 	{ name: "underbrace", snippet: "underbrace{$1}$0", detail: "Brace below, with optional subscript label", context: "math" },
 	{ name: "overrightarrow", snippet: "overrightarrow{$1}$0", detail: "Right arrow above", context: "math" },
-	{ name: "mathbb", snippet: "mathbb{$1}$0", detail: "Blackboard bold — number sets", package: "amssymb", context: "math" },
+	{ name: "mathbb", snippet: "mathbb{$1}$0", detail: "Blackboard bold: number sets", package: "amssymb", context: "math" },
 	{ name: "mathcal", snippet: "mathcal{$1}$0", detail: "Calligraphic capitals", context: "math" },
 	{ name: "mathfrak", snippet: "mathfrak{$1}$0", detail: "Fraktur letters", package: "amssymb", context: "math" },
 	{ name: "mathbf", snippet: "mathbf{$1}$0", detail: "Bold math", context: "math" },
@@ -570,7 +570,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 		name: "caption",
 		snippet: "caption{$1}$0",
 		detail: "Caption for a figure or table",
-		doc: "Put `\\label` *after* `\\caption` — the label picks up the caption's counter.",
+		doc: "Put `\\label` *after* `\\caption`: the label picks up the caption's counter.",
 		context: "text",
 	},
 	{ name: "centering", detail: "Centre everything to the end of the group", context: "text" },
@@ -615,7 +615,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 		name: "newcommand",
 		snippet: "newcommand{\\$1}[${2:1}]{$3}$0",
 		detail: "Define a new command",
-		doc: "Errors if the name already exists — that check is the point; use `\\renewcommand` to override.",
+		doc: "Errors if the name already exists: that check is the point; use `\\renewcommand` to override.",
 	},
 	{ name: "renewcommand", snippet: "renewcommand{\\$1}{$2}$0", detail: "Redefine an existing command" },
 	{ name: "providecommand", snippet: "providecommand{\\$1}{$2}$0", detail: "Define a command only if it does not exist" },
@@ -650,7 +650,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 		name: "def",
 		snippet: "def\\$1{$2}$0",
 		detail: "Plain TeX definition (no existence check)",
-		doc: "Prefer `\\newcommand` in LaTeX — `\\def` silently clobbers whatever was there.",
+		doc: "Prefer `\\newcommand` in LaTeX: `\\def` silently clobbers whatever was there.",
 	},
 	{ name: "let", snippet: "let\\$1=\\$2$0", detail: "Bind one control sequence to another" },
 	{ name: "ensuremath", snippet: "ensuremath{$1}$0", detail: "Typeset as math whichever mode we are in" },
@@ -703,7 +703,7 @@ export const LATEX_COMMANDS: readonly LatexCommand[] = [
 	{ name: "inputminted", snippet: "inputminted{${1:python}}{$2}$0", detail: "Include a source file, highlighted", package: "minted", context: "text" },
 	{ name: "si", snippet: "si{${1:\\metre}}$0", detail: "Typeset a unit", package: "siunitx", context: "both" },
 	{ name: "SI", snippet: "SI{$1}{${2:\\metre}}$0", detail: "Typeset a number with a unit (legacy siunitx)", package: "siunitx", context: "both" },
-	{ name: "qty", snippet: "qty{$1}{${2:\\metre}}$0", detail: "Typeset a quantity — number and unit", package: "siunitx", context: "both" },
+	{ name: "qty", snippet: "qty{$1}{${2:\\metre}}$0", detail: "Typeset a quantity: number and unit", package: "siunitx", context: "both" },
 	{ name: "num", snippet: "num{$1}$0", detail: "Typeset a number with consistent formatting", package: "siunitx", context: "both" },
 	{ name: "ang", snippet: "ang{$1}$0", detail: "Typeset an angle", package: "siunitx", context: "both" },
 	{ name: "todo", snippet: "todo{$1}$0", detail: "Margin to-do note", package: "todonotes", context: "text" },
@@ -864,7 +864,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "multicol", detail: "Balanced multi-column text" },
 	{ name: "changepage", detail: "Locally widen or shift the text block" },
 	{ name: "afterpage", detail: "Run code after the current page ships out" },
-	{ name: "lastpage", detail: "A label for the last page — 'page N of M'" },
+	{ name: "lastpage", detail: "A label for the last page: 'page N of M'" },
 	{ name: "pdfpages", detail: "Insert pages of an existing PDF" },
 	{ name: "everypage", detail: "Hook code onto every page" },
 
@@ -892,7 +892,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	// --- lists and text ---
 	{ name: "enumitem", detail: "Customise list labels and spacing" },
 	{ name: "paralist", detail: "Compact and inline lists" },
-	{ name: "microtype", detail: "Micro-typography — protrusion and font expansion" },
+	{ name: "microtype", detail: "Micro-typography: protrusion and font expansion" },
 	{ name: "csquotes", detail: "Context-sensitive quotation marks" },
 	{ name: "ragged2e", detail: "Ragged text with hyphenation" },
 	{ name: "soul", detail: "Letterspacing, underlining and highlighting" },
@@ -903,7 +903,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "hyphenat", detail: "Control hyphenation" },
 
 	// --- fonts and encoding ---
-	{ name: "inputenc", detail: "Input encoding (unnecessary since 2018 — UTF-8 is default)" },
+	{ name: "inputenc", detail: "Input encoding (unnecessary since 2018: UTF-8 is default)" },
 	{ name: "fontenc", detail: "Output font encoding; use [T1] for proper 8-bit fonts" },
 	{ name: "babel", detail: "Multilingual typesetting and hyphenation" },
 	{ name: "polyglossia", detail: "Multilingual support for XeTeX/LuaTeX" },
@@ -914,7 +914,7 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 	{ name: "mathpazo", detail: "Palatino text and math" },
 	{ name: "helvet", detail: "Helvetica as the sans-serif family" },
 	{ name: "courier", detail: "Courier as the monospace family" },
-	{ name: "beramono", detail: "Bera Mono — a readable code font" },
+	{ name: "beramono", detail: "Bera Mono: a readable code font" },
 	{ name: "inconsolata", detail: "Inconsolata monospace" },
 	{ name: "fontawesome5", detail: "Font Awesome icons" },
 
@@ -978,13 +978,13 @@ export const LATEX_PACKAGES: readonly LatexPackage[] = [
 /* ------------------------------------------------------------- classes */
 
 export const LATEX_CLASSES: readonly LatexClass[] = [
-	{ name: "article", detail: "Short documents — papers, notes. No \\chapter." },
+	{ name: "article", detail: "Short documents: papers, notes. No \\chapter." },
 	{ name: "report", detail: "Longer documents with chapters, single-sided" },
-	{ name: "book", detail: "Books — chapters, two-sided, front/main/back matter" },
+	{ name: "book", detail: "Books: chapters, two-sided, front/main/back matter" },
 	{ name: "letter", detail: "Correspondence" },
 	{ name: "beamer", detail: "Presentation slides" },
 	{ name: "memoir", detail: "Book class with layout customisation built in" },
-	{ name: "scrartcl", detail: "KOMA-Script article — European typographic defaults" },
+	{ name: "scrartcl", detail: "KOMA-Script article: European typographic defaults" },
 	{ name: "scrreprt", detail: "KOMA-Script report" },
 	{ name: "scrbook", detail: "KOMA-Script book" },
 	{ name: "scrlttr2", detail: "KOMA-Script letter" },

@@ -54,7 +54,7 @@ export const data: PackageData = {
 			name: "frame",
 			snippet: "frame{$1}$0",
 			detail: "A slide, in command form",
-			doc: "Short form of the `frame` environment. The environment is preferred — verbatim content needs `[fragile]`, which only the environment accepts.",
+			doc: "Short form of the `frame` environment. The environment is preferred: verbatim content needs `[fragile]`, which only the environment accepts.",
 			package: "beamer",
 			context: "text",
 		},
@@ -86,7 +86,7 @@ export const data: PackageData = {
 		{
 			name: "pause",
 			detail: "Split the slide into overlays at this point",
-			doc: "Everything after it moves to the next overlay. Simple, but it does not compose — reach for `\\onslide` or `\\uncover` as soon as the timing gets interesting.",
+			doc: "Everything after it moves to the next overlay. Simple, but it does not compose: reach for `\\onslide` or `\\uncover` as soon as the timing gets interesting.",
 			package: "beamer",
 			context: "text",
 		},
@@ -189,7 +189,7 @@ export const data: PackageData = {
 			name: "usecolortheme",
 			snippet: "usecolortheme{${1:beaver}}$0",
 			detail: "Load a colour theme on top of the presentation theme",
-			doc: "`beaver`, `crane`, `dolphin`, `seahorse`, `whale`, `rose`, `orchid` — they combine, so a colour theme and an inner theme can be mixed freely.",
+			doc: "`beaver`, `crane`, `dolphin`, `seahorse`, `whale`, `rose`, `orchid`: they combine, so a colour theme and an inner theme can be mixed freely.",
 			package: "beamer",
 		},
 		{

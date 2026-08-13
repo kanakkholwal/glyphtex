@@ -15,7 +15,7 @@
 	// No-op unless a backend is configured and the visitor hasn't opted out.
 	onMount(() => initAnalytics());
 
-	// Every view is reported here, including the first — backends are configured
+	// Every view is reported here, including the first: backends are configured
 	// not to send their own, so this is the single source of page counts.
 	afterNavigate((nav) => {
 		trackPageview(nav.to?.url.pathname ?? location.pathname);

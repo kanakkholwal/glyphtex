@@ -4,11 +4,11 @@
 	import { Tween } from "svelte/motion";
 
 	/**
-	 * Top-of-page navigation progress bar — same UX as Vercel/Linear.
+	 * Top-of-page navigation progress bar: same UX as Vercel/Linear.
 	 *
 	 * Driven by SvelteKit's `navigating` store (truthy whenever a `goto()` /
 	 * link click is mid-flight). On start: jumps to `minimum`, then trickles
-	 * up toward 0.9 while the load is pending — never reaches 1.0 until the
+	 * up toward 0.9 while the load is pending: never reaches 1.0 until the
 	 * navigation actually completes. On finish: snaps to 1.0, fades out.
 	 *
 	 * `color` defaults to the design system's `--color-primary` so the bar
@@ -37,7 +37,7 @@
 	let trickleInterval: ReturnType<typeof setInterval> | null = null;
 	// Bumped on every effect run. Deferred completion work (the `.then` and
 	// `setTimeout` below) captures the value at schedule time and bails if a
-	// newer navigation has started — otherwise stale callbacks can hide the
+	// newer navigation has started: otherwise stale callbacks can hide the
 	// bar mid-way through a chained navigation.
 	let navGeneration = 0;
 

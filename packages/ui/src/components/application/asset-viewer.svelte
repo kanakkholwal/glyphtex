@@ -18,7 +18,7 @@
 	}: {
 		kind: FileKind;
 		name: string;
-		/** Key handed to `readBytes` — absolute path (desktop) or relative (web). */
+		/** Key handed to `readBytes`: absolute path (desktop) or relative (web). */
 		assetKey?: string;
 		readBytes?: (key: string) => Promise<Uint8Array>;
 		onreveal?: () => void;
@@ -148,7 +148,7 @@
 					style="width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain"
 				/>
 			{:else}
-				<!-- No intrinsic size (typically a viewBox-only SVG) — unpic needs one. -->
+				<!-- No intrinsic size (typically a viewBox-only SVG): unpic needs one. -->
 				<img src={imgUrl} alt={leaf} class="max-h-full max-w-full object-contain shadow-craft-lg" />
 			{/if}
 		</div>

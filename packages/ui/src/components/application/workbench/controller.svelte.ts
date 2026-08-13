@@ -15,7 +15,7 @@ import type { CompileFilesFn, CompileFn, CompileProjectFn, GlyphFile, SaveFileFn
 /** A file or folder the user asked to save out of the workbench. */
 export type DownloadRequest = {
 	kind: 'file' | 'folder';
-	/** Suggested download name — the leaf; a folder arrives zipped. */
+	/** Suggested download name: the leaf; a folder arrives zipped. */
 	name: string;
 	/** Project-relative paths to include. */
 	paths: string[];
@@ -35,7 +35,7 @@ export type WorkbenchProps = {
 	/** Host-injected Git backend (desktop = gitoxide, web = isomorphic-git). Enables
 	 *  Source Control. */
 	git?: GitProvider;
-	/** Repository root when there is no folder project — web passes its virtual
+	/** Repository root when there is no folder project: web passes its virtual
 	 *  working-tree path so Source Control works without a folder on disk. */
 	gitRoot?: string | null;
 	/** Host-injected file save (desktop = Tauri dialog + fs). Browser download on web. */
@@ -74,7 +74,7 @@ export type WorkbenchProps = {
 	onAddFiles?: (accept: string) => void;
 	/** Export the whole document as a .zip (web projects). */
 	onExportProject?: () => void;
-	/** Read a file's bytes for the asset viewer — keyed by `path` on desktop and
+	/** Read a file's bytes for the asset viewer: keyed by `path` on desktop and
 	 *  by the project-relative name on web. Absent = assets can't be previewed. */
 	readFileBytes?: (key: string) => Promise<Uint8Array>;
 	/** Save a file / folder out of the Explorer. Absent hides the menu item. */
@@ -532,7 +532,7 @@ export class WorkbenchController {
 				try {
 					await this.files.openPath(this.#openPathOnMount);
 				} catch {
-					/* ignore — bad launch path */
+					/* ignore: bad launch path */
 				}
 			}
 			try {

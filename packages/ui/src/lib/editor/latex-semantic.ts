@@ -91,7 +91,7 @@ export function registerLatexSemanticTokens(monaco: MonacoNamespace): Monaco.IDi
 			BIBITEM.lastIndex = 0;
 			while ((m = BIBITEM.exec(text))) citations.add(m[1]);
 
-			// Collected absolute, then sorted and delta-encoded — Monaco's format is
+			// Collected absolute, then sorted and delta-encoded: Monaco's format is
 			// relative to the previous token, so order is not optional.
 			const found: { offset: number; length: number; type: TokenType }[] = [];
 

@@ -4,7 +4,7 @@ import { isTauriRuntime } from '$lib/runtime';
 
 /** Shape returned by the Rust `compile_latex` / `compile_project` commands.
  *  Mirrors `CompileResult` in src-tauri/src/compile.rs field-for-field (snake_case;
- *  returned struct fields are NOT auto-renamed by Tauri — keep these in lockstep). */
+ *  returned struct fields are NOT auto-renamed by Tauri: keep these in lockstep). */
 type RawCompileResult = {
 	success: boolean;
 	pdf_base64: string | null;
@@ -88,7 +88,7 @@ export async function compileProject(root: string, mainRel: string): Promise<Com
 			hint: res.hint ?? undefined
 		};
 	} catch (e) {
-		// IPC/backend failure (see compileLatex) — plain message, raw in the log (§5).
+		// IPC/backend failure (see compileLatex): plain message, raw in the log (§5).
 		return { error: 'Could not run the compiler.', log: String(e) };
 	}
 }

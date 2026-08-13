@@ -55,7 +55,7 @@
 				{#if store.relayApplies}
 					<p class="text-muted-foreground/70 mt-1 text-xs leading-snug">
 						Browsers can’t reach Git servers directly, so fetch, pull and push are relayed through
-						this address — it sees your traffic and your token. Leave it blank to disable remote
+						this address: it sees your traffic and your token. Leave it blank to disable remote
 						access entirely.
 					</p>
 					<input

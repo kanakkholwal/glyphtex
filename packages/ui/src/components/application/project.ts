@@ -6,7 +6,7 @@ export type ProjectFile = { abs: string; rel: string };
 export type ProjectHost = {
 	/**
 	 * Create a new project folder in the app's own data directory (no location
-	 * prompt — new projects live here by default), returning its absolute root.
+	 * prompt: new projects live here by default), returning its absolute root.
 	 * Absent on the web (in-memory projects only).
 	 */
 	createLocalProject?: (name: string) => Promise<string>;
@@ -24,7 +24,7 @@ export type ProjectHost = {
 	readFiles: (root: string) => Promise<ProjectFile[]>;
 	/** Read a text file (rejects binary / non-UTF-8). */
 	readFile: (abs: string) => Promise<string>;
-	/** Read a file's raw bytes — used to preview images / PDFs in the webview. */
+	/** Read a file's raw bytes: used to preview images / PDFs in the webview. */
 	readFileBytes?: (abs: string) => Promise<Uint8Array>;
 	/** Write (overwrite) a text file, creating parent folders. */
 	writeFile: (abs: string, content: string) => Promise<void>;

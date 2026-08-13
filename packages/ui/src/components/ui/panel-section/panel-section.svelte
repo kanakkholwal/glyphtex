@@ -2,7 +2,7 @@
 	import type { Snippet } from "svelte";
 
 	export interface PanelSectionProps {
-		/** Section title — small uppercase label. Omit for header-less group. */
+		/** Section title. Omit for a header-less group. */
 		title?: string;
 		/** Tooltip content shown next to the title. Rendered via `hint` snippet
 		 * if provided, otherwise as a `title` attribute on the label. */
@@ -11,7 +11,7 @@
 		hintSlot?: Snippet;
 		/** Right-aligned action slot (button, toggle, badge, count). */
 		action?: Snippet;
-		/** Body content. Optional — header-only sections are valid. */
+		/** Body content. Optional: header-only sections are valid. */
 		children?: Snippet;
 		/** When true, child layout sets its own spacing. Default wraps body in
 		 * a `space-y-2.5` group. */
@@ -50,7 +50,7 @@
 	}: PanelSectionProps = $props();
 
 	// Two modes:
-	//   • Static (default): a labelled section with optional action — same
+	//   • Static (default): a labelled section with optional action: same
 	//     visual as the legacy PanelSection.
 	//   • Collapsible: header becomes a button that toggles a slide-animated
 	//     body, with a spring-rotated chevron mirroring DialKit's Folder.
@@ -104,7 +104,7 @@
 					</span>
 					{#if title}
 						<span
-							class="text-xs font-semibold uppercase tracking-[0.12em] text-faint group-hover/section:text-muted-foreground"
+							class="text-xs font-medium text-faint group-hover/section:text-muted-foreground"
 							title={hint}
 						>
 							{title}
@@ -127,7 +127,7 @@
 				<div class="flex min-w-0 items-center gap-1.5">
 					{#if title}
 						<h3
-							class="text-xs font-semibold uppercase tracking-[0.12em] text-faint"
+							class="text-xs font-medium text-faint"
 							title={hint}
 						>
 							{title}

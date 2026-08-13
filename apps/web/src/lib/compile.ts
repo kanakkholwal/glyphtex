@@ -13,7 +13,7 @@ export type CompileOutcome = {
 	diagnostics?: Diagnostic[];
 	/** Package sets that would supply what this compile could not find. */
 	missingPacks?: PackDefinition[];
-	/** Missing files no package set provides — an install would not help. */
+	/** Missing files no package set provides: an install would not help. */
 	unsupportedFiles?: string[];
 };
 
@@ -138,7 +138,7 @@ export function compileLatex(source: string): Promise<CompileOutcome> {
  * resolve. Binary members carry `data`; text members carry `text`.
  *
  * `docId` identifies the document across calls. Two documents can share a file
- * name — `main.tex` is the usual one — so the worker needs this to know when to
+ * name: `main.tex` is the usual one: so the worker needs this to know when to
  * unmount the previous one rather than compile against its leftovers.
  */
 export async function compileFiles(
@@ -168,7 +168,7 @@ export async function compileFiles(
 		return { error: 'The LaTeX engine returned an unexpected response.' };
 	}
 
-	// Show any PDF TeX produced even on error — it recovers and still typesets.
+	// Show any PDF TeX produced even on error: it recovers and still typesets.
 	if (response.pdf && response.pdf.byteLength > 0) {
 		return {
 			pdf: bytesToBase64(response.pdf),
@@ -185,7 +185,7 @@ export async function compileFiles(
 		missingPacks: response.missingPacks,
 		unsupportedFiles: response.unsupportedFiles,
 		error:
-			response.message ?? 'LaTeX compilation failed — no PDF was produced. See the Problems panel.'
+			response.message ?? 'LaTeX compilation failed: no PDF was produced. See the Problems panel.'
 	};
 }
 

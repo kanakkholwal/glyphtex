@@ -240,7 +240,7 @@ export const latexLanguage: Monaco.languages.IMonarchLanguage = {
 				new RegExp(`(\\\\(?:${REF_COMMANDS}))(\\s*)(\\{)([^}]*)(\\})`),
 				["keyword.control", "white", "delimiter.curly", "variable", "delimiter.curly"],
 			],
-			// The guard tests group 1 — the list holds bare names, without the backslash.
+			// The guard tests group 1: the list holds bare names, without the backslash.
 			[/\\([a-zA-Z@]+)/, { cases: { "$1@mathConstants": "constant", "@default": "keyword" } }],
 			[/\\[^a-zA-Z@\s\])]/, "keyword"],
 			[/[\^_]/, "delimiter"],

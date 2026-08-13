@@ -23,7 +23,7 @@ import {
 
 /** Shown when a compile is attempted with no engine wired up yet. Named so the
  *  message can be recognised and cleared once one appears. */
-const NOT_READY = "The compiler isn't ready yet — finish the one-time setup to compile.";
+const NOT_READY = "The compiler isn't ready yet: finish the one-time setup to compile.";
 
 export type CompileDeps = {
 	files: FileStore;
@@ -54,14 +54,14 @@ export class CompileStore {
 	compileError = $state<string | undefined>(undefined);
 	compileLog = $state('');
 	// Actionable hint for a recognized engine limitation (e.g. biber/biblatex
-	// skew, 0-DPI JPEG) — shown as a banner above the Problems list.
+	// skew, 0-DPI JPEG): shown as a banner above the Problems list.
 	compileHint = $state<string | undefined>(undefined);
 	showProblems = $state(false);
 
-	// Finished compiles, oldest first — drives the build-stats sparkline.
+	// Finished compiles, oldest first: drives the build-stats sparkline.
 	builds = $state<BuildRecord[]>([]);
 
-	// PDF preview zoom/page state — bound from PdfView, driven by the header.
+	// PDF preview zoom/page state: bound from PdfView, driven by the header.
 	pdfScalePct = $state(100);
 	pdfFitMode = $state(true);
 	pdfNumPages = $state(0);
@@ -77,7 +77,7 @@ export class CompileStore {
 		renderThumbnail: (page: number, canvas: HTMLCanvasElement) => Promise<void>;
 	}>();
 
-	// Coalescing bookkeeping (plain fields — not reactive).
+	// Coalescing bookkeeping (plain fields: not reactive).
 	#pendingRecompile = false;
 	#lastCompiledSource: string | null = null;
 
@@ -166,7 +166,7 @@ export class CompileStore {
 			a.click();
 			toast.success(`Downloaded ${filename}`);
 		} catch (e) {
-			toast.error(`Could not save the PDF — ${e}`);
+			toast.error(`Could not save the PDF: ${e}`);
 		}
 	}
 
@@ -210,7 +210,7 @@ export class CompileStore {
 		// A manual compile commits the current edits first, so it always reflects
 		// what's on screen. Auto-compile only ever sees already-saved content.
 		if (manual) await this.#files.saveActive(false);
-		// Coalesce: a compile is already in flight — queue exactly one rerun.
+		// Coalesce: a compile is already in flight: queue exactly one rerun.
 		if (this.compiling) {
 			this.#pendingRecompile = true;
 			return;

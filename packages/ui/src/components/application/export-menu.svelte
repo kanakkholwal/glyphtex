@@ -19,7 +19,7 @@
 		IconFileZip
 	} from '@tabler/icons-svelte';
 	/**
-	 * ExportMenu — Export / Share. Every export goes through the host-injected
+	 * ExportMenu: Export / Share. Every export goes through the host-injected
 	 * `saveFile` (desktop = Tauri's native "Save As") when present, else a plain
 	 * browser download. A compiled PDF is saved from its bytes; until the document
 	 * has been compiled the PDF item stays disabled (it needs real bytes). When a
@@ -76,14 +76,14 @@
 			URL.revokeObjectURL(url);
 			toast.success(`Exported ${name}`);
 		} catch (e) {
-			toast.error(`Could not save ${name} — ${e}`);
+			toast.error(`Could not save ${name}: ${e}`);
 		}
 	}
 
 	let copied = $state(false);
 
 	function exportPdf() {
-		// The PDF is the compiled artefact — without bytes there's nothing to save.
+		// The PDF is the compiled artefact: without bytes there's nothing to save.
 		// The menu item is disabled in that state, so this is a belt-and-braces guard.
 		if (!pdfBytes) {
 			toast.info('Compile the document first to export its PDF.');
@@ -107,7 +107,7 @@
 			toast.success('Source copied to clipboard');
 			setTimeout(() => (copied = false), 1500);
 		} catch {
-			toast.error('Could not copy — clipboard blocked');
+			toast.error('Could not copy: clipboard blocked');
 		}
 	}
 
@@ -135,7 +135,7 @@
 			hint: 'Current file',
 			run: exportTex
 		},
-		// Zip the whole working directory — only when a folder project is open
+		// Zip the whole working directory: only when a folder project is open
 		// (desktop). The host injects `onExportZip`; web builds never pass it.
 		...(onExportZip
 			? [

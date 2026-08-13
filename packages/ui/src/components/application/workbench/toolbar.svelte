@@ -3,7 +3,7 @@
 	import EditorTabs from './editor-tabs.svelte';
 
 	/** Open files, and nothing else. Layout, export and compile are page-global, so
-	 *  they moved up to the title bar and its menus — this row is now only "which
+	 *  they moved up to the title bar and its menus: this row is now only "which
 	 *  file am I looking at", which is what a tab strip is for. */
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 

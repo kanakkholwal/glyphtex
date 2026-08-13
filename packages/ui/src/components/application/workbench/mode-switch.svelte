@@ -5,12 +5,12 @@
 	import type { LayoutStore } from './layout.svelte';
 	import type { DocMode } from './types';
 
-	/** The document's two editors. Top-level and always visible — everything else
+	/** The document's two editors. Top-level and always visible: everything else
 	 *  in the bar is a control *within* whichever one you picked. */
 	let { layout }: { layout: LayoutStore } = $props();
 
 	const modes: { value: DocMode; label: string; icon: typeof IconPencil; hint?: string }[] = [
-		{ value: 'visual', label: 'Visual', icon: IconPencil, hint: 'Not shipped yet — preview only' },
+		{ value: 'visual', label: 'Visual', icon: IconPencil, hint: 'Not shipped yet: preview only' },
 		{ value: 'latex', label: 'LaTeX', icon: IconCode }
 	];
 </script>

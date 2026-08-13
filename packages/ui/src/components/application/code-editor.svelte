@@ -9,10 +9,10 @@
 	import { CodeEditorController, type EditorLanguage } from './code-editor/controller.svelte';
 
 	/**
-	 * CodeEditor — the shared Monaco surface (web + desktop).
+	 * CodeEditor: the shared Monaco surface (web + desktop).
 	 *
 	 * Dumb on purpose: theme / language / font come in as props. This component
-	 * is a thin shell — all editor state + behaviour live in
+	 * is a thin shell: all editor state + behaviour live in
 	 * {@link CodeEditorController}; here we only bind props/effects to it and
 	 * re-export its imperative API via `bind:this`.
 	 */
@@ -64,7 +64,7 @@
 	});
 
 	// Mount once. Initial prop values are read untracked so this effect does not
-	// re-run (and re-create the view) when they change — the effects below handle
+	// re-run (and re-create the view) when they change: the effects below handle
 	// live reconfiguration.
 	$effect(() => {
 		const parent = host;
@@ -82,7 +82,7 @@
 		return ctrl.mount(parent, init);
 	});
 
-	// Live reconfiguration — each tracks `view` + exactly one prop set.
+	// Live reconfiguration: each tracks `view` + exactly one prop set.
 	$effect(() => {
 		void ctrl.editor;
 		ctrl.reconfigureTheme(theme);

@@ -23,7 +23,7 @@
 	} from '@tabler/icons-svelte';
 
 	/**
-	 * FormatToolbar — a rich LaTeX formatting bar. The most common actions are
+	 * FormatToolbar: a rich LaTeX formatting bar. The most common actions are
 	 * direct buttons; the rest are grouped into portaled dropdown menus (same
 	 * chrome as the file-tree menus). Each menu item shows the LaTeX command it
 	 * inserts. Acts on the selection via the CodeEditor imperative API.
@@ -178,7 +178,7 @@
 				{
 					label: 'Figure',
 					hint: 'figure',
-					// example-image ships with the mwe package — a real placeholder graphic
+					// example-image ships with the mwe package: a real placeholder graphic
 					// so the inserted figure renders immediately. Swap for your own file.
 					run: i(
 						'\\begin{figure}[h]\n  \\centering\n  \\includegraphics[width=0.6\\linewidth]{example-image}\n  \\caption{Caption text.}\n  \\label{fig:placeholder}\n\\end{figure}\n'

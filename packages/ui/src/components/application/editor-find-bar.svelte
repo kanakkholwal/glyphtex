@@ -20,7 +20,7 @@
 	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from './search-ui';
 
 	/**
-	 * EditorFindBar — a sticky find/replace bar that docks at the bottom of the
+	 * EditorFindBar: a sticky find/replace bar that docks at the bottom of the
 	 * editor pane (VS Code's bottom-widget language). Self-contained input state;
 	 * emits the full option set to the host via `onsearch`, and the host drives
 	 * the CodeEditor's findAll / replace API. Mirrors the side-panel Search view's

@@ -2,7 +2,7 @@
 	// LaTeX-only for now. Typst returns later as an add-on engine.
 	export type EditorEngine = 'latex';
 
-	const SAMPLE_LATEX = String.raw`% GlyphTeX — LaTeX document
+	const SAMPLE_LATEX = String.raw`% GlyphTeX: LaTeX document
 \documentclass{article}
 \usepackage{amsmath}
 
@@ -32,7 +32,7 @@ Nothing is uploaded. Nothing leaves this device.
 	import CodeEditor from './code-editor.svelte';
 
 	/**
-	 * EditorShell — calm editor chrome shared by desktop + web `/editor`.
+	 * EditorShell: calm editor chrome shared by desktop + web `/editor`.
 	 * The source pane is a real Monaco surface (JetBrains Island theme + LaTeX
 	 * grammar). Compile/preview wiring (Tectonic via Rust on desktop, WASM on
 	 * web) lands next; the preview here is a placeholder.
@@ -119,7 +119,7 @@ Nothing is uploaded. Nothing leaves this device.
 					</div>
 					<h1 class="font-display mb-3 text-3xl">Hello from GlyphTeX</h1>
 					<p class="text-muted-foreground leading-relaxed">
-						The Tectonic (LaTeX) engine renders here — fully offline, in-process. Your document
+						The Tectonic (LaTeX) engine renders here: fully offline, in-process. Your document
 						never leaves this device.
 					</p>
 				</div>

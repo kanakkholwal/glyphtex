@@ -1,5 +1,5 @@
 export type BibEntry = {
-	/** Citation key — what goes inside `\cite{}`. */
+	/** Citation key: what goes inside `\cite{}`. */
 	key: string;
 	/** Entry type without the `@`, lowercased: `article`, `book`, … */
 	type: string;
@@ -31,7 +31,7 @@ function readBraced(text: string, open: number): { value: string; end: number } 
 			if (depth === 0) return { value: text.slice(open + 1, i), end: i + 1 };
 		}
 	}
-	// Unterminated — take the rest, so a file being typed still yields entries.
+	// Unterminated: take the rest, so a file being typed still yields entries.
 	return { value: text.slice(open + 1), end: text.length };
 }
 
@@ -153,6 +153,6 @@ export function describeEntry(entry: BibEntry): string {
 	}
 	if (entry.year) parts.push(entry.year);
 	const who = parts.join(", ");
-	if (entry.title && who) return `${entry.title} — ${who}`;
+	if (entry.title && who) return `${entry.title}: ${who}`;
 	return entry.title || who || entry.type;
 }

@@ -105,7 +105,7 @@ export class SidePanelStore {
 		return i === -1 ? '' : name.slice(0, i);
 	}
 
-	// Outline (sectioning) — pure derive from the active file's text.
+	// Outline (sectioning): pure derive from the active file's text.
 	get outline() {
 		return parseOutline(this.#d.getSource());
 	}

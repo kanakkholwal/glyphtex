@@ -7,7 +7,7 @@ import { build, files, version } from '$service-worker';
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
-// App-shell cache — keyed by build version, replaced on every deploy.
+// App-shell cache: keyed by build version, replaced on every deploy.
 const CACHE = `glyphtex-cache-${version}`;
 
 // Owned by src/lib/tex/worker.ts and deliberately not build-versioned: a deploy
@@ -57,7 +57,7 @@ sw.addEventListener('activate', (event) => {
 					if (key !== CACHE && key !== ENGINE_CACHE) await caches.delete(key);
 				}
 			} catch {
-				/* housekeeping only — never block activation over it */
+				/* housekeeping only: never block activation over it */
 			}
 			await sw.clients.claim();
 		})()
@@ -81,7 +81,7 @@ sw.addEventListener('fetch', (event) => {
 			// No cache available: behave as if the service worker weren't here.
 			if (!cache) return fetch(request);
 
-			// Precached build assets are immutable (hashed) — serve cache-first.
+			// Precached build assets are immutable (hashed): serve cache-first.
 			if (PRECACHE.includes(url.pathname)) {
 				const cached = await cache.match(url.pathname).catch(() => undefined);
 				if (cached) return cached;

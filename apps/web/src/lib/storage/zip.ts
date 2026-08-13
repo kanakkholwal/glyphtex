@@ -1,5 +1,5 @@
 // Built on the platform's own compression streams so import/export needs no
-// dependency. Stored (0) and deflate (8) only — what real-world archives use.
+// dependency. Stored (0) and deflate (8) only: what real-world archives use.
 const LOCAL_SIG = 0x04034b50;
 const CENTRAL_SIG = 0x02014b50;
 const EOCD_SIG = 0x06054b50;
@@ -53,7 +53,7 @@ export async function readZip(bytes: Uint8Array): Promise<ZipEntry[]> {
 	const eocd = findEocd(view);
 
 	// Zip64 keeps the real counts in a separate record; the 32-bit fields are
-	// saturated. Rejecting is honest — silently reading 65535 entries is not.
+	// saturated. Rejecting is honest: silently reading 65535 entries is not.
 	if (view.getUint32(eocd - 20, true) === ZIP64_LOCATOR_SIG) {
 		throw new ZipError('Zip64 archives are not supported yet.');
 	}

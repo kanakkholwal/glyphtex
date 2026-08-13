@@ -11,9 +11,9 @@ export type DiffView = 'side' | 'inline';
 export type SidebarPosition = 'left' | 'right';
 /**
  * When edits are written back to disk (VS Code parity):
- *  - `off`            — only on an explicit save (⌘/Ctrl+S).
- *  - `afterDelay`     — automatically a short while after you stop typing.
- *  - `onFocusChange`  — when the editor loses focus (switching files, blurring
+ *  - `off`: only on an explicit save (⌘/Ctrl+S).
+ *  - `afterDelay`: automatically a short while after you stop typing.
+ *  - `onFocusChange`: when the editor loses focus (switching files, blurring
  *                       the window).
  * Compilation always uses the last *saved* content, so this also controls when
  * the preview refreshes.
@@ -46,7 +46,7 @@ export const EDITOR_FONT_LABELS: Record<EditorFont, string> = {
 	geist: 'Geist Mono'
 };
 
-/** Typeface of the reading surface (visual editor, PDF chrome) — not the code pane. */
+/** Typeface of the reading surface (visual editor, PDF chrome): not the code pane. */
 export type DocFont = 'default' | 'serif' | 'mono';
 
 /** Serif is a system stack, not a webfont: nothing ships a serif face offline, and
@@ -66,14 +66,14 @@ export interface EditorSettings {
 	font: EditorFont;
 	fontSize: number;
 	lineWrapping: boolean;
-	/** Monaco's minimap — the block overview down the editor's right edge. */
+	/** Monaco's minimap: the block overview down the editor's right edge. */
 	minimap: boolean;
 	/** Recompile automatically when the saved content changes (debounced). */
 	autoCompile: boolean;
 	/** When edits are persisted to disk. See {@link AutoSaveMode}. */
 	autoSave: AutoSaveMode;
 	/**
-	 * Allow `\write18` (shell escape) during compilation — required by packages
+	 * Allow `\write18` (shell escape) during compilation: required by packages
 	 * that run external tools (e.g. `minted`/Pygments, `gnuplot`). Off by default:
 	 * it lets a document run arbitrary system commands, so it's opt-in.
 	 */
@@ -121,7 +121,7 @@ export const SIDEBAR_POSITION_KEY = 'glyphtex:sidebar-position';
 const isBrowser = typeof window !== 'undefined';
 
 /** Appearance and editor preferences, persisted and synced live across every window
- *  on the origin — change the theme in one and the others follow within a tick. */
+ *  on the origin: change the theme in one and the others follow within a tick. */
 class SettingsStore {
 	#appearance = new PersistedState<Appearance>(APPEARANCE_KEY, 'system');
 	#editor = new PersistedState<EditorSettings>(EDITOR_KEY, EDITOR_DEFAULTS);
@@ -303,7 +303,7 @@ class SettingsStore {
 		this.#gitView.current = value;
 	}
 
-	/** Diff editor layout — side-by-side vs inline (persisted). */
+	/** Diff editor layout: side-by-side vs inline (persisted). */
 	get diffView(): DiffView {
 		return this.#diffView.current;
 	}

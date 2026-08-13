@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
 	import { Checkbox } from '@glyphtex/ui/checkbox';
-	import { IconPlus, IconTrash, IconX } from '@tabler/icons-svelte';
+	import { IconNotes, IconPlus, IconTrash, IconX } from '@tabler/icons-svelte';
 
 	import { relativeTime, stripTags, type NoteFilter, type NotesStore } from './notes.svelte';
 
-	/** Per-document checklist. Local to this device, like everything else here —
-	 *  `#tag` anywhere in the text becomes a chip. */
+	/** Per-document checklist, stored on this device. A `#tag` anywhere in the
+	 *  text becomes a chip. */
 	let {
 		notes,
 		onclose,
@@ -14,15 +14,15 @@
 	}: {
 		notes: NotesStore;
 		onclose?: () => void;
-		/** Drop the header and the landmark — the host already supplies both. */
+		/** Drop the header and the landmark; the host already supplies both. */
 		chromeless?: boolean;
 	} = $props();
 
-	const FILTERS: { id: NoteFilter; label: string }[] = [
-		{ id: 'all', label: 'All' },
-		{ id: 'open', label: 'Open' },
-		{ id: 'done', label: 'Done' }
-	];
+	const filters = $derived<{ id: NoteFilter; label: string; count?: number }[]>([
+		{ id: 'all', label: 'All', count: notes.notes.length },
+		{ id: 'open', label: 'Open', count: notes.openCount },
+		{ id: 'done', label: 'Done', count: notes.doneCount }
+	]);
 
 	let field = $state<HTMLInputElement>();
 </script>
@@ -33,53 +33,40 @@
 	aria-label={chromeless ? undefined : 'Notes'}
 >
 	{#if !chromeless}
-		<div class="border-border flex h-8 shrink-0 items-center gap-2 border-b px-2">
+		<div class="border-border flex h-9 shrink-0 items-center gap-2 border-b px-2 pl-3">
 			<span class="text-foreground text-xs font-medium">Notes</span>
 			{#if notes.openCount}
 				<span class="text-faint text-xs tabular-nums">{notes.openCount} open</span>
 			{/if}
 			<div class="ml-auto flex items-center gap-0.5">
 				{#if notes.doneCount}
-					<button
-						class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+					<Button
+						variant="ghost"
+						size="icon-sm"
 						title="Clear {notes.doneCount} completed"
 						aria-label="Clear completed notes"
 						onclick={() => notes.clearDone()}
 					>
-						<IconTrash size={14} />
-					</button>
+						<IconTrash />
+					</Button>
 				{/if}
 				{#if onclose}
-					<button
-						class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-6 place-items-center rounded transition-colors"
+					<Button
+						variant="ghost"
+						size="icon-sm"
 						title="Close notes"
 						aria-label="Close notes"
 						onclick={() => onclose?.()}
 					>
-						<IconX size={15} />
-					</button>
+						<IconX />
+					</Button>
 				{/if}
 			</div>
 		</div>
 	{/if}
 
-	<div class="flex shrink-0 items-center gap-1 px-2 pt-2">
-		{#each FILTERS as f (f.id)}
-			{@const active = notes.filter === f.id}
-			<button
-				class="rounded px-1.5 py-0.5 text-xs transition-colors {active
-					? 'bg-muted text-foreground'
-					: 'text-muted-foreground hover:text-foreground'}"
-				aria-pressed={active}
-				onclick={() => (notes.filter = f.id)}
-			>
-				{f.label}
-			</button>
-		{/each}
-	</div>
-
 	<form
-		class="flex shrink-0 items-center gap-1 px-2 py-2"
+		class="flex shrink-0 items-center gap-1 px-2 pt-2"
 		onsubmit={(e) => {
 			e.preventDefault();
 			notes.add();
@@ -89,32 +76,47 @@
 		<input
 			bind:this={field}
 			bind:value={notes.draft}
-			class="border-border bg-input focus:ring-ring/50 min-w-0 flex-1 rounded-md border px-2 py-1 text-sm outline-none focus:ring-2"
-			placeholder="Add a note or #tag…"
+			class="border-border bg-input focus-visible:ring-ring/40 h-8 min-w-0 flex-1 rounded-md border px-2.5 text-sm outline-none focus-visible:ring-2"
+			placeholder="Add a note or #tag"
 			aria-label="New note"
 		/>
-		<Button
-			type="submit"
-			variant="ghost"
-			size="icon-sm"
-			disabled={!notes.draft.trim()}
-			aria-label="Add note"
-		>
+		<Button type="submit" size="icon-sm" disabled={!notes.draft.trim()} aria-label="Add note">
 			<IconPlus />
 		</Button>
 	</form>
 
-	<div class="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
+	<!-- Counts on the filters, so switching is a decision rather than a probe. -->
+	<div class="flex shrink-0 items-center gap-0.5 px-2 pt-2" role="group" aria-label="Filter notes">
+		{#each filters as f (f.id)}
+			{@const active = notes.filter === f.id}
+			<button
+				class="flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs transition-colors {active
+					? 'bg-accent text-foreground font-medium'
+					: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
+				aria-pressed={active}
+				onclick={() => (notes.filter = f.id)}
+			>
+				{f.label}
+				{#if f.count}<span class="text-faint tabular-nums">{f.count}</span>{/if}
+			</button>
+		{/each}
+	</div>
+
+	<div class="mt-1 min-h-0 flex-1 overflow-y-auto px-2 pb-2">
 		{#if notes.visible.length === 0}
-			<p class="text-muted-foreground px-1 py-6 text-center text-xs leading-relaxed">
-				{notes.notes.length === 0
-					? 'Jot down what’s left to do in this document. Notes stay on this device.'
-					: 'Nothing in this filter.'}
-			</p>
+			<div class="text-muted-foreground flex flex-col items-center gap-2 py-10 text-center">
+				<IconNotes size={20} class="opacity-40" />
+				{#if notes.notes.length === 0}
+					<p class="text-xs">Nothing noted yet.</p>
+					<p class="text-faint text-xs">Notes stay on this device.</p>
+				{:else}
+					<p class="text-xs">Nothing in this filter.</p>
+				{/if}
+			</div>
 		{:else}
 			<ul class="flex flex-col gap-0.5">
 				{#each notes.visible as note (note.id)}
-					<li class="group hover:bg-muted/60 flex items-start gap-2 rounded-md px-1.5 py-1.5">
+					<li class="group hover:bg-accent flex items-start gap-2 rounded-md px-1.5 py-1.5">
 						<Checkbox
 							class="mt-0.5 shrink-0"
 							checked={note.done}
@@ -130,8 +132,10 @@
 								{stripTags(note.text)}
 							</p>
 							<div class="mt-1 flex flex-wrap items-center gap-1">
+								<!-- Tags are labels, not links. Brand blue is reserved for things
+								     you can click. -->
 								{#each note.tags as tag (tag)}
-									<span class="bg-brand-subtle text-brand rounded px-1.5 py-px text-xs font-medium">
+									<span class="bg-accent text-muted-foreground rounded px-1.5 py-px text-xs">
 										{tag}
 									</span>
 								{/each}

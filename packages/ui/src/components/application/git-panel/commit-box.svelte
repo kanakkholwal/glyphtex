@@ -47,6 +47,6 @@
 	</Button>
 {:else}
 	<p class="text-muted-foreground/70 px-0.5 py-1 text-center text-xs">
-		{store.head?.unborn ? 'No commits yet.' : 'Nothing to commit — working tree clean.'}
+		{store.head?.unborn ? 'No commits yet.' : 'Nothing to commit: working tree clean.'}
 	</p>
 {/if}

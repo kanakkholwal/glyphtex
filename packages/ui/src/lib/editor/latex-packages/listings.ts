@@ -23,7 +23,7 @@ export const data: PackageData = {
 			name: "lstinline",
 			snippet: "lstinline|$1|$0",
 			detail: "Inline code, like \\verb but highlighted",
-			doc: "Delimited by any character that does not appear in the code — `|` by convention. Options go in brackets first: `\\lstinline[language=C]|int x|`.",
+			doc: "Delimited by any character that does not appear in the code: `|` by convention. Options go in brackets first: `\\lstinline[language=C]|int x|`.",
 			example: "the \\lstinline|printf()| call",
 			package: "listings",
 			context: "text",
@@ -76,7 +76,7 @@ export const data: PackageData = {
 			name: "lstMakeShortInline",
 			snippet: "lstMakeShortInline[${1:language=C}]{${2:|}}$0",
 			detail: "Make a character a shorthand for \\lstinline",
-			doc: "After this, `|code|` is inline code. Convenient, but it takes the character away from everything else — including tabular column specs.",
+			doc: "After this, `|code|` is inline code. Convenient, but it takes the character away from everything else: including tabular column specs.",
 			package: "listings",
 		},
 		{

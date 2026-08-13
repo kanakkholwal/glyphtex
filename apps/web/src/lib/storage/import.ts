@@ -34,7 +34,7 @@ export type ImportResult = {
 	files: NewFile[];
 	/** Name suggested for the document, from the archive or folder. */
 	name: string;
-	/** Files left out, with why — reported rather than silently dropped. */
+	/** Files left out, with why: reported rather than silently dropped. */
 	skipped: string[];
 	/** How many entries the blacklist / .gitignore dropped. Counted separately from
 	 *  `skipped`: these are expected, not problems worth listing one by one. */
@@ -215,7 +215,7 @@ export async function importLooseFiles(
 			};
 		})
 	);
-	// Keep folder structure as dropped — a `figures/` folder stays `figures/*`
+	// Keep folder structure as dropped: a `figures/` folder stays `figures/*`
 	// inside the document rather than being flattened to the root.
 	const result = collect(raw, 'Imported', false);
 	return { ...result, name: 'Imported' };

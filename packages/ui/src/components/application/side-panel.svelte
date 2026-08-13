@@ -18,7 +18,7 @@
 	import type { ActivityView, FileMeta, SearchMatch, SearchOptions } from './side-panel/types';
 
 	/**
-	 * SidePanel — content for the active rail view. Explorer stacks the file tree,
+	 * SidePanel: content for the active rail view. Explorer stacks the file tree,
 	 * the document outline and recently closed files; Settings edits the live
 	 * preferences; Search is a full find/replace panel wired to the editor; Source
 	 * Control is the Git view. Local UI state + behaviour live in
@@ -91,12 +91,12 @@
 		/** Whether a folder-based project host is available (enables Open Folder). */
 		hasProject?: boolean;
 		widthPx?: number;
-		/** Active file's text — drives the Outline (sectioning) view. */
+		/** Active file's text: drives the Outline (sectioning) view. */
 		source?: string;
 		engine?: EngineManager;
 		/** Host-injected Git backend. Enables the Source Control view. */
 		git?: GitProvider;
-		/** Repository root the Git backend operates on — the open folder on desktop,
+		/** Repository root the Git backend operates on: the open folder on desktop,
 		 *  a virtual working-tree path on web. */
 		gitRoot?: string | null;
 		/** Open a changed file's diff in the editor pane (Source Control click). */
@@ -122,7 +122,7 @@
 		onmovefile?: (id: string, targetDir: string) => void;
 		/** Move a folder into `targetDir` ('' = root). */
 		onmovefolder?: (path: string, targetDir: string) => void;
-		/** Rename a folder — receives the new leaf name. */
+		/** Rename a folder: receives the new leaf name. */
 		onrenamefolder?: (path: string, name: string) => void;
 		ondeletefolder?: (path: string) => void;
 		/** Create a new file inside `dir`. */
@@ -145,7 +145,7 @@
 		onsearchprev?: () => void;
 		onreplacecurrent?: (replace: string) => void;
 		onreplaceall?: (replace: string) => void;
-		/** Footer click — switch the panel to Source Control. */
+		/** Footer click: switch the panel to Source Control. */
 		onopensourcecontrol?: () => void;
 		/** Change which view the panel shows (the header's tabs). */
 		onselectview?: (view: ActivityView) => void;

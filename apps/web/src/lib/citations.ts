@@ -6,7 +6,7 @@
 // defaults to it. That single case is what this reports.
 //
 // `\cite` on its own is NOT a signal, and neither is a hand-written
-// `thebibliography` — both are ordinary LaTeX that has always worked here.
+// `thebibliography`: both are ordinary LaTeX that has always worked here.
 
 /** Does the document load biblatex, whatever the backend? */
 function usesBiblatex(text: string): boolean {
@@ -36,8 +36,8 @@ function stripComments(source: string): string {
 /**
  * Does this document need Biber, which cannot run in the browser?
  *
- * True only for biblatex left on its default backend. Everything else —
- * classic BibTeX, natbib, biblatex with `backend=bibtex` — compiles here.
+ * True only for biblatex left on its default backend. Everything else
+ * (classic BibTeX, natbib, biblatex with `backend=bibtex`) compiles here.
  */
 export function needsBiber(source: string): boolean {
 	const text = stripComments(source);

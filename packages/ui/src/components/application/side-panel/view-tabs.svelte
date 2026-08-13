@@ -5,7 +5,7 @@
 	import type { ActivityView } from './types';
 
 	/** Which view the panel is showing. Notion's shape: the active one carries its
-	 *  label, the rest are icons — three labelled tabs do not fit a 200px rail. */
+	 *  label, the rest are icons: three labelled tabs do not fit a 200px rail. */
 	let {
 		active = 'files',
 		onselect

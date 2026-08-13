@@ -9,7 +9,7 @@ export function buildRegex(o: SearchOptions): RegExp | null {
 	try {
 		return new RegExp(pat, 'g' + (o.caseSensitive ? '' : 'i'));
 	} catch {
-		return null; // invalid regex — caller shows no results
+		return null; // invalid regex: caller shows no results
 	}
 }
 

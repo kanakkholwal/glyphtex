@@ -3,7 +3,7 @@ import type * as Monaco from "monaco-editor";
 import type { MonacoNamespace } from "./monaco";
 import { LATEX_ID } from "./latex-monarch";
 
-/** Sectioning commands, outermost first — the index is the nesting rank. */
+/** Sectioning commands, outermost first: the index is the nesting rank. */
 const SECTION_RANK = [
 	"part",
 	"chapter",

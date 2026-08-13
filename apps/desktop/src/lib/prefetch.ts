@@ -4,7 +4,7 @@ import { engineManager } from './engine';
 /**
  * localStorage flag remembering the common-package cache was warmed. Versioned
  * so we can force a re-warm later if the bundled package set in
- * `prefetch_packages` (Rust) changes — bump the suffix to invalidate.
+ * `prefetch_packages` (Rust) changes: bump the suffix to invalidate.
  */
 const PREFETCH_FLAG = 'glyphtex:pkg-prefetch:v1';
 
@@ -28,6 +28,6 @@ export async function prefetchCommonPackagesOnce(): Promise<void> {
 		const r = await engineManager.prefetch();
 		if (r.success) safeStorage.set(PREFETCH_FLAG, true);
 	} catch {
-		/* offline or engine not yet available — retry on a future launch */
+		/* offline or engine not yet available: retry on a future launch */
 	}
 }

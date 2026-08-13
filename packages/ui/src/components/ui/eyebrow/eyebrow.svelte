@@ -25,7 +25,7 @@
 	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
 
 	type Props = WithElementRef<HTMLAttributes<HTMLSpanElement>> & {
-		/** Leading icon — a @tabler/icons-svelte component (rendered at `size-3`). */
+		/** Leading icon: a @tabler/icons-svelte component (rendered at `size-3`). */
 		icon?: Component;
 		variant?: EyebrowVariant;
 		children: Snippet;

@@ -17,7 +17,7 @@ export interface PersistedStateOptions<T> {
 	syncTabs?: boolean;
 	/**
 	 * Override how the value is (de)serialized. Defaults to a type-aware
-	 * serializer inferred from `initialValue` — strings stored raw, numbers /
+	 * serializer inferred from `initialValue`: strings stored raw, numbers /
 	 * booleans coerced, everything else JSON. Inferring from the initial value
 	 * keeps backward-compatibility with keys that were written as raw strings.
 	 */
@@ -86,7 +86,7 @@ export function inferSerializer<T>(initialValue: T): Serializer<T> {
 		serialize: (v) => JSON.stringify(v),
 		deserialize: (raw) => {
 			const parsed: unknown = JSON.parse(raw);
-			// An array key that deserialized to a non-array is corrupt — bail to
+			// An array key that deserialized to a non-array is corrupt: bail to
 			// the initial via the caller's catch.
 			if (Array.isArray(initialValue) && !Array.isArray(parsed)) {
 				throw new TypeError("expected an array");
@@ -125,7 +125,7 @@ export class PersistedState<T> {
 		this.#onError = options.onError;
 
 		// Read the persisted value synchronously so the very first reactive read
-		// already reflects storage — no flash of the default on hydrate.
+		// already reflects storage: no flash of the default on hydrate.
 		this.#current = this.#read();
 
 		if (isBrowser && this.#syncTabs) this.#subscribe();
@@ -156,7 +156,7 @@ export class PersistedState<T> {
 
 	/**
 	 * Detach the cross-context listeners. Only needed for component-scoped
-	 * instances — module-level singletons live for the page's lifetime and
+	 * instances: module-level singletons live for the page's lifetime and
 	 * never need teardown.
 	 */
 	dispose(): void {
@@ -198,7 +198,7 @@ export class PersistedState<T> {
 		try {
 			this.#area().setItem(this.#key, this.#serializer.serialize(value));
 		} catch (error) {
-			// Quota exceeded / private mode — best effort, the rune still updated.
+			// Quota exceeded / private mode: best effort, the rune still updated.
 			this.#onError?.(error, "write", this.#key);
 		}
 	}
@@ -238,7 +238,7 @@ export class PersistedState<T> {
 
 /**
  * Convenience factory for when a `new` reads awkwardly at the call site.
- * Returns the same `PersistedState` instance — read/write via `.current`.
+ * Returns the same `PersistedState` instance: read/write via `.current`.
  */
 export function persisted<T>(
 	key: string,
@@ -260,7 +260,7 @@ function area(storage: StorageArea): Storage {
 
 /**
  * Non-reactive twin of `PersistedState` for call sites that just need a safe
- * read/write — SDK bootstrap, anonymous install-id, one-shot route reads —
+ * read/write (SDK bootstrap, anonymous install-id, one-shot route reads)
  * without paying for a reactive rune or cross-tab listeners. Same null / parse
  * / quota guarantees.
  */

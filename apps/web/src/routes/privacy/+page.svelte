@@ -93,7 +93,7 @@
 					<p>
 						Documents, their files, and your settings live in your browser’s IndexedDB and local
 						storage. The LaTeX engine is downloaded once and cached the same way. Clearing your
-						browser’s site data for this domain deletes all of it permanently — we hold no copy, so
+						browser’s site data for this domain deletes all of it permanently: we hold no copy, so
 						there is nothing for us to restore. Export a zip if you need a backup.
 					</p>
 					<p>
@@ -153,7 +153,7 @@
 					<h2>The desktop app</h2>
 					<p>
 						The desktop build contains no analytics of any kind. It makes no network request unless
-						you ask it to — downloading the engine, or talking to a Git remote you configured.
+						you ask it to: downloading the engine, or talking to a Git remote you configured.
 					</p>
 
 					<h2>Verifying this</h2>
@@ -163,7 +163,7 @@
 						union in <code>types.ts</code>. If this page and the code ever disagree,
 						<a href={`${REPO_URL}/issues`} rel="noreferrer noopener" target="_blank"
 							>open an issue</a
-						> — the code is the thing to trust.
+						>: the code is the thing to trust.
 					</p>
 
 					<h2>Contact</h2>

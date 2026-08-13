@@ -7,7 +7,7 @@
 		min?: number;
 		max?: number;
 		step?: number;
-		/** Visible only via the `title` tooltip — no extra row height. */
+		/** Visible only via the `title` tooltip: no extra row height. */
 		description?: string;
 		/** Leading glyph rendered next to the label. */
 		icon?: Snippet;
@@ -66,7 +66,7 @@
 		formatValue,
 	}: SliderControlProps = $props();
 
-	// `Row control` design — one card, label left, value right, animated fill
+	// `Row control` design: one card, label left, value right, animated fill
 	// behind both. Click-anywhere snaps with a spring; drag scrubs in real
 	// time; cursor past the track edges rubber-bands the row to telegraph the
 	// clamp. Mirrors the geometry of <ColorField> so a stacked panel reads as
@@ -443,7 +443,7 @@
 		}
 	}
 
-	// Inline transform/width strings — bound to spring `.current` for
+	// Inline transform/width strings: bound to spring `.current` for
 	// reactivity. The rubber-band shifts the *track* (not the wrapper) so the
 	// row's outline doesn't visibly move; only the fillable region stretches.
 	const trackStyle = $derived(
@@ -561,7 +561,7 @@
 				role="button"
 				tabindex={isValueEditable ? 0 : -1}
 				aria-label={isValueEditable
-					? `${label} — click to edit value`
+					? `${label}: click to edit value`
 					: undefined}
 				class={cn(
 					"relative z-20 shrink-0 pl-3 font-mono text-[12px] font-medium tabular-nums text-foreground/85 transition-colors",

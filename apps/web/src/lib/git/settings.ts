@@ -23,7 +23,7 @@ const write = (key: string, value: string): void => {
 		if (value) localStorage.setItem(key, value);
 		else localStorage.removeItem(key);
 	} catch {
-		/* private mode / storage disabled — the defaults still work */
+		/* private mode / storage disabled: the defaults still work */
 	}
 };
 

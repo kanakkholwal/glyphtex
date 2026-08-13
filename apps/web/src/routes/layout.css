@@ -1,4 +1,4 @@
-/* Web app styles — pulls in the shared GlyphTeX design system (tokens, base,
+/* Web app styles: pulls in the shared GlyphTeX design system (tokens, base,
    Tailwind, tw-animate-css). App-specific overrides can follow below. */
 @import '@glyphtex/ui/app.css';
 

@@ -14,7 +14,7 @@
 	import { IconCornerDownLeft, IconFile } from '@tabler/icons-svelte';
 
 	/**
-	 * Quick-open (⌘/Ctrl+P) — jump between the document's files. Dialog only: its
+	 * Quick-open (⌘/Ctrl+P): jump between the document's files. Dialog only: its
 	 * trigger is the file name in the header breadcrumb.
 	 */
 	let {

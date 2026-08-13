@@ -41,7 +41,7 @@
 		if (open) void refresh();
 	});
 
-	// Runs straight off the click — Firefox only prompts inside a user gesture.
+	// Runs straight off the click: Firefox only prompts inside a user gesture.
 	// A refusal is silent in Chrome, so say what actually happened.
 	async function keepData(): Promise<void> {
 		asking = true;
@@ -104,7 +104,7 @@
 					</div>
 					{#if low}
 						<p class="text-destructive text-xs">
-							Nearly full. Delete a document or some images — browsers evict site data when the disk
+							Nearly full. Delete a document or some images: browsers evict site data when the disk
 							runs low.
 						</p>
 					{/if}

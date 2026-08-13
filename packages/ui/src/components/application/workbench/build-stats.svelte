@@ -19,7 +19,7 @@
 	const failed = $derived(builds.filter((b) => !b.ok).length);
 
 	function bytes(n: number): string {
-		if (!n) return '—';
+		if (!n) return '-';
 		if (n < 1024) return `${n} B`;
 		if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
 		return `${(n / (1024 * 1024)).toFixed(1)} MB`;
@@ -32,9 +32,9 @@
 	const stats = $derived([
 		{
 			label: 'Build time',
-			value: compile.lastCompileMs == null ? '—' : seconds(compile.lastCompileMs)
+			value: compile.lastCompileMs == null ? '-' : seconds(compile.lastCompileMs)
 		},
-		{ label: 'Pages', value: compile.pdfNumPages ? String(compile.pdfNumPages) : '—' },
+		{ label: 'Pages', value: compile.pdfNumPages ? String(compile.pdfNumPages) : '-' },
 		{ label: 'Output', value: bytes(compile.outputBytes) },
 		...(engine ? [{ label: 'Engine', value: engine }] : [])
 	]);

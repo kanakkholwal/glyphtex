@@ -22,7 +22,7 @@
   Visual contract: each toast is a 320px-wide card that *visually matches*
   the bottom-right corner notifications (auto-updater, what's-new) so the
   app has a single notification language. Same border, same shadow, same
-  icon-badge geometry — variant is conveyed only by the badge tint.
+  icon-badge geometry: variant is conveyed only by the badge tint.
 
   Position is bottom-right by default; consumers can still override via
   the `<Toaster position="...">` prop. Sonner's stack grows upward from
@@ -32,7 +32,7 @@
   Icons are @tabler/icons-svelte (the app's icon set; AGENTS.md rule #9).
   Sonner renders our snippet inside its `[data-icon]` element, so
   `classes.icon` styles the *badge* and the snippet just supplies the
-  glyph that sits inside it. Theme is read from the settings store — the
+  glyph that sits inside it. Theme is read from the settings store: the
   single owner of the theme fact (no `mode-watcher`; AGENTS.md §3).
 -->
 <Sonner
@@ -66,7 +66,7 @@
 
     /* Pin the close button to the top-right corner *inside* the card. Sonner's
        default is a floating circle that sits half-outside the top-left edge
-       (--toast-close-button-start: 0, transform: translate(-35%, -35%)) — we
+       (--toast-close-button-start: 0, transform: translate(-35%, -35%)): we
        override every var that drives its position so it lands at top-right,
        inset 8px on each axis, matching the &lt;X&gt; affordance on the
        auto-updater / what's-new corner cards. */

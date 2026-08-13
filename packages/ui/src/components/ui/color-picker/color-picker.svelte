@@ -147,7 +147,7 @@
 	import { cn } from "@glyphtex/ui/utils";
 	import { IconColorPicker } from '@tabler/icons-svelte';
 
-	/** Chromium-only `EyeDropper` constructor — narrowed off `window` at the boundary. */
+	/** Chromium-only `EyeDropper` constructor: narrowed off `window` at the boundary. */
 	interface EyeDropperCtor {
 		new (): { open(): Promise<{ sRGBHex: string }> };
 	}
@@ -253,7 +253,7 @@
 			const result = await new Picker().open();
 			if (result?.sRGBHex) oncommit(result.sRGBHex);
 		} catch {
-			// User dismissed — silent.
+			// User dismissed: silent.
 		}
 	}
 
@@ -283,7 +283,7 @@
 
 	<!--
 	  The literal colors below (#000/#fff gradient corners, #cbd5e1 alpha checker,
-	  the marker's white border + black ring) are NOT theme surfaces — they are the
+	  the marker's white border + black ring) are NOT theme surfaces: they are the
 	  saturation/value color-math and fixed contrast over an *arbitrary* user color,
 	  so they intentionally stay constant across light/dark (mapping them to
 	  semantic tokens would make the marker invisible in dark mode). AGENTS.md rule

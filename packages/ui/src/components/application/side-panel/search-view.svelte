@@ -13,7 +13,7 @@
 	import type { SearchMatch } from './types';
 
 	/**
-	 * Search view — a full find/replace panel (toggles live inside the fields, VS
+	 * Search view: a full find/replace panel (toggles live inside the fields, VS
 	 * Code parity) plus the results list grouped under the active file.
 	 */
 	let {
@@ -66,7 +66,7 @@
 		</button>
 
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
-			<!-- Find — toggles live inside the field (VS Code parity) -->
+			<!-- Find: toggles live inside the field (VS Code parity) -->
 			<div class="relative">
 				<input
 					bind:this={store.searchInputEl}
@@ -93,7 +93,7 @@
 				</div>
 			</div>
 
-			<!-- Replace — preserve-case toggle lives inside the field (VS Code parity);
+			<!-- Replace: preserve-case toggle lives inside the field (VS Code parity);
            replace / replace-all sit alongside it. -->
 			{#if store.showReplace}
 				<div class="flex items-center gap-1">
@@ -171,7 +171,7 @@
 		</div>
 	{/if}
 
-	<!-- Results — grouped under the active file, collapsible (VS Code parity). -->
+	<!-- Results: grouped under the active file, collapsible (VS Code parity). -->
 	{#if store.query && searchResults.length}
 		<div class="mt-1">
 			<button

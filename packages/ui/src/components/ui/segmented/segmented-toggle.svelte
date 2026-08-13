@@ -12,7 +12,7 @@
 		fill?: boolean;
 		disabled?: boolean;
 		class?: string;
-		"aria-label"?: string;
+		"aria-label"? string;
 	}
 </script>
 
@@ -32,7 +32,7 @@
 	}: SegmentedToggleProps = $props();
 
 	// Thin shorthand around <Segmented> for the canonical Off/On DialKit
-	// pattern — saves consumers from spelling out the options array.
+	// pattern: saves consumers from spelling out the options array.
 	const options = $derived([
 		{ value: "off", label: offLabel },
 		{ value: "on", label: onLabel },

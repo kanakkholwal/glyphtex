@@ -22,7 +22,7 @@ export const data: PackageData = {
 		{
 			name: "tikzstyle",
 			snippet: "tikzstyle{${1:name}} = [$2]$0",
-			detail: "Define a reusable style (legacy — prefer \\tikzset)",
+			detail: "Define a reusable style (legacy: prefer \\tikzset)",
 			doc: "Still works for old documents, but `\\tikzset{name/.style={…}}` is the spelling TikZ actually supports.",
 			package: "tikz",
 		},
@@ -109,7 +109,7 @@ export const data: PackageData = {
 		{
 			name: "node",
 			snippet: "node[$1] at ($2) {$3};$0",
-			detail: "Place a node — a box of text, optionally a shape",
+			detail: "Place a node: a box of text, optionally a shape",
 			doc: "Standalone it needs `at (…)`; inside a path it takes the current position. A name in parentheses after `node` lets later paths refer to it and its anchors (`a.north`).",
 			example: "\\node[draw, circle] (a) at (0,0) {$x$};",
 			package: "tikz",
@@ -118,7 +118,7 @@ export const data: PackageData = {
 			name: "coordinate",
 			snippet: "coordinate (${1:name}) at ($2);$0",
 			detail: "Name a point without drawing anything",
-			doc: "A node with the `coordinate` shape — zero size, so paths meet it exactly rather than stopping at a border.",
+			doc: "A node with the `coordinate` shape: zero size, so paths meet it exactly rather than stopping at a border.",
 			example: "\\coordinate (origin) at (0,0);",
 			package: "tikz",
 		},
@@ -172,7 +172,7 @@ export const data: PackageData = {
 		{
 			name: "pgfmathresult",
 			detail: "The result of the last \\pgfmathparse",
-			doc: "A macro, not a command — expand it where you need the number. It is overwritten by the next parse, so save it if you need it later.",
+			doc: "A macro, not a command: expand it where you need the number. It is overwritten by the next parse, so save it if you need it later.",
 			package: "tikz",
 		},
 		{
@@ -275,7 +275,7 @@ export const data: PackageData = {
 			name: "pgfusepath",
 			snippet: "pgfusepath{${1:stroke}}$0",
 			detail: "Draw the constructed path (low-level PGF)",
-			doc: "Takes any of `stroke`, `fill`, `clip`, `discard` — nothing is painted until you say so.",
+			doc: "Takes any of `stroke`, `fill`, `clip`, `discard`: nothing is painted until you say so.",
 			package: "tikz",
 		},
 		{
@@ -356,7 +356,7 @@ export const data: PackageData = {
 			name: "tikzmark",
 			snippet: "tikzmark{${1:name}}$0",
 			detail: "Mark a spot in running text for a later picture to find",
-			doc: "Needs `\\usetikzlibrary{tikzmark}` and two compilation runs — the position travels through the `.aux` file. Draw to it from a picture with `overlay, remember picture`.",
+			doc: "Needs `\\usetikzlibrary{tikzmark}` and two compilation runs: the position travels through the `.aux` file. Draw to it from a picture with `overlay, remember picture`.",
 			example: "the \\tikzmark{here}important word",
 			package: "tikz",
 			context: "text",
@@ -416,7 +416,7 @@ export const data: PackageData = {
 		},
 		{
 			name: "scope",
-			detail: "TikZ scope — options, transformations and clipping stay local",
+			detail: "TikZ scope: options, transformations and clipping stay local",
 			body: "[$1]\n\t$0\n",
 			package: "tikz",
 			context: "text",

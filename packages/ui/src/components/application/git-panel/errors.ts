@@ -31,7 +31,7 @@ export function describeError(raw: string, op: string): GitErrorInfo {
 		return {
 			title: 'You don’t have push access',
 			message:
-				'You can’t push to this repository — it isn’t yours to write to. Fork it to your own account, then point the remote at your fork (Remote → edit) and push there.',
+				'You can’t push to this repository: it isn’t yours to write to. Fork it to your own account, then point the remote at your fork (Remote → edit) and push there.',
 			details
 		};
 	// Browser hosts relay remote traffic through a CORS proxy; when it's off or

@@ -38,7 +38,7 @@ export type AnalyticsEvent =
 	| 'git_action';
 
 /**
- * Event parameters. Values are counts, durations, and fixed enums only — never a
+ * Event parameters. Values are counts, durations, and fixed enums only: never a
  * document name, file path, URL, or anything typed into the editor.
  */
 export type EventParams = Record<string, string | number | boolean | undefined>;

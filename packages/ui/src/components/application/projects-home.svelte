@@ -113,7 +113,7 @@
 		helpHref?: string;
 		/** Which rail destination the host is currently rendering. */
 		activeScope?: Scope;
-		/** Route per destination. A scope with no href is not offered at all — a host
+		/** Route per destination. A scope with no href is not offered at all: a host
 		 *  that cannot back one (no starring on desktop yet) simply omits it. */
 		scopeHrefs?: Partial<Record<Scope, string>>;
 		/** First read of the project store. The shell renders; the grid skeletons. */
@@ -163,7 +163,7 @@
 
 	async function handleCreate() {
 		const id = await oncreate?.();
-		// A host that returns no id navigates on its own (legacy) — nothing to do.
+		// A host that returns no id navigates on its own (legacy): nothing to do.
 		if (typeof id !== 'string') return;
 		// Straight through. This used to sleep 400ms so the card→editor view
 		// transition could morph from a settled card; that put nearly half a second
@@ -222,7 +222,7 @@
 
 	// One row treatment for the whole rail. Height and text come from
 	// SidebarMenuButton's defaults; 28px matches Notion's sidebar density.
-	// Active state is the fill + weight the base already applies — not a brand
+	// Active state is the fill + weight the base already applies: not a brand
 	// colour, which would make every visited rail look like a link.
 	const railRow = 'h-7 rounded-md px-2';
 	const groupLabel = 'text-faint h-6 px-2 text-xs font-medium';
@@ -533,7 +533,7 @@
 						<input
 							bind:value={cloneUrl}
 							class="text-foreground placeholder:text-muted-foreground h-8 min-w-0 flex-1 bg-transparent px-1 text-sm outline-none"
-							placeholder="Repository URL — https://github.com/owner/repo.git"
+							placeholder="Repository URL: https://github.com/owner/repo.git"
 							spellcheck="false"
 							autofocus
 							disabled={cloneBusy}
@@ -617,7 +617,7 @@
 									{...props}
 									variant="ghost"
 									size="icon-sm"
-									title="Sort — {sorts.find((o) => o.id === sort)?.label}"
+									title="Sort: {sorts.find((o) => o.id === sort)?.label}"
 									aria-label="Sort projects"
 								>
 									<IconArrowsSort />
@@ -761,7 +761,7 @@
 								{#if projects.length === 0}
 									<p class="text-foreground text-sm font-medium">No projects yet</p>
 									<p class="max-w-xs text-xs leading-relaxed">
-										Create your first project — everything stays on this device.
+										Create your first project: everything stays on this device.
 									</p>
 									<Button size="sm" class="mt-1" onclick={handleCreate}>
 										<IconPlus /> New project
