@@ -191,13 +191,13 @@
 					>
 						<Button
 							size="lg"
-							variant="brand"
+							variant="default"
 							href={resolve('/workspace')}
 							onclick={() => track('engine_cta_workspace')}
 						>
 							Open the workspace
 						</Button>
-						<Button size="lg" variant="brand_soft" href={REPO_URL} target="_blank" rel="noreferrer">
+						<Button size="lg" variant="outline" href={REPO_URL} target="_blank" rel="noreferrer">
 							<IconBrandGithub class="size-4" />
 							Read the source
 						</Button>
@@ -319,7 +319,7 @@
 									<p class="text-muted-foreground text-sm leading-relaxed">{entry.cause}</p>
 								</div>
 								<div class="flex flex-col gap-2">
-									<span class="text-brand text-sm font-medium"> Fix </span>
+									<span class="text-foreground text-sm font-medium"> Fix </span>
 									<p class="text-muted-foreground text-sm leading-relaxed">{entry.fix}</p>
 								</div>
 							</div>
@@ -357,7 +357,7 @@
 								class="landing-card-outline landing-card-hover flex h-full flex-col gap-3 rounded-xl p-6 transition-colors motion-reduce:transition-none"
 							>
 								<span
-									class="text-brand font-mono text-xs font-semibold tracking-[0.18em] tabular-nums"
+									class="text-muted-foreground font-mono text-xs font-semibold tracking-[0.18em] tabular-nums"
 								>
 									{item.step}
 								</span>
@@ -495,13 +495,13 @@
 					<Reveal variant="up" delay={140} class="mt-9 flex flex-wrap justify-center gap-3">
 						<Button
 							size="lg"
-							variant="brand"
+							variant="default"
 							href={resolve('/workspace')}
 							onclick={() => track('engine_cta_workspace_footer')}
 						>
 							Open the workspace
 						</Button>
-						<Button size="lg" variant="brand_soft" href={resolve('/')}>Back to the overview</Button>
+						<Button size="lg" variant="outline" href={resolve('/')}>Back to the overview</Button>
 					</Reveal>
 				</div>
 			</Container>

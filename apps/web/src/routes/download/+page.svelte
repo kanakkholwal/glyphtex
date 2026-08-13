@@ -284,14 +284,14 @@
 						class="mt-9 flex flex-col items-center gap-3 sm:flex-row"
 						in:fly={{ y: 10, duration: 450, delay: 180, easing: cubicOut }}
 					>
-						<Button href={resolve('/workspace')} variant="brand" size="lg">
+						<Button href={resolve('/workspace')} variant="default" size="lg">
 							Open the workspace
 						</Button>
 						<Button
 							href={repo}
 							target="_blank"
 							rel="noopener noreferrer"
-							variant="brand_soft"
+							variant="outline"
 							size="lg"
 						>
 							<IconBrandGithub class="size-4" />
@@ -336,13 +336,13 @@
 				<div class="mb-5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
 					{#if status === 'loading'}
 						<span class="flex items-center gap-2 text-muted-foreground">
-							<span class="size-1.5 animate-pulse rounded-full bg-brand"></span>
+							<span class="size-1.5 animate-pulse rounded-full bg-muted-foreground"></span>
 							Checking the latest release&hellip;
 						</span>
 					{:else if status === 'ready'}
 						<span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
 							<span
-								class="rounded-full border border-brand/30 bg-brand/10 px-2 py-0.5 font-semibold text-brand"
+								class="rounded-full border border-border bg-surface-strong px-2 py-0.5 font-semibold text-foreground"
 							>
 								GlyphTeX {version}
 							</span>
@@ -382,7 +382,7 @@
 								>
 							{/if}
 							<span
-								class="mb-5 grid size-12 place-items-center rounded-xl border border-hairline bg-background text-foreground transition-colors group-hover:text-brand"
+								class="mb-5 grid size-12 place-items-center rounded-xl border border-hairline bg-background text-foreground transition-colors group-hover:text-foreground"
 							>
 								<Icon class="size-6" />
 							</span>
@@ -532,7 +532,7 @@
 														aria-label="Copy command"
 													>
 														{#if copied === step.code}
-															<IconCheck class="size-3.5 text-brand" /> Copied
+															<IconCheck class="size-3.5 text-success" /> Copied
 														{:else}
 															<IconCopy class="size-3.5" /> Copy
 														{/if}
@@ -541,7 +541,7 @@
 											{/if}
 
 											{#if step.done}
-												<p class="mt-2 flex items-center gap-1.5 text-xs font-medium text-brand">
+												<p class="mt-2 flex items-center gap-1.5 text-xs font-medium text-success">
 													<IconCheck class="size-3.5 shrink-0" />
 													{step.done}
 												</p>
@@ -571,7 +571,7 @@
 				<div class="grid gap-12 lg:grid-cols-2">
 					<Reveal variant="up">
 						<span class="landing-eyebrow">
-							<span class="size-1.5 rounded-full bg-brand"></span>
+							<span class="size-1.5 rounded-full bg-muted-foreground"></span>
 							What the prototype had
 						</span>
 						<h2
@@ -583,7 +583,7 @@
 							{#each included as line (line)}
 								<li class="flex items-start gap-3">
 									<span
-										class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-brand/12 text-brand"
+										class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-surface-strong text-foreground"
 									>
 										<IconCheck class="size-4" />
 									</span>
@@ -649,7 +649,7 @@
 						class="relative overflow-hidden rounded-[2.2rem] border border-hairline bg-card px-6 py-20 text-center shadow-craft-sm sm:px-10 sm:py-24"
 					>
 						<span class="landing-eyebrow">
-							<span class="size-1.5 rounded-full bg-brand"></span>
+							<span class="size-1.5 rounded-full bg-muted-foreground"></span>
 							Where the work is
 						</span>
 						<h2

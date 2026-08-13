@@ -573,7 +573,9 @@
 						{@const Icon = card.icon}
 						<Reveal as="li" variant="up" delay={i * 70} class="h-full">
 							<article class="landing-card landing-card-hover flex h-full flex-col p-8">
-								<span class="grid size-10 place-items-center rounded-xl bg-background text-foreground">
+								<span
+									class="grid size-10 place-items-center rounded-xl bg-background text-foreground"
+								>
 									<Icon class="size-5" stroke-width={1.75} />
 								</span>
 								<h3 class="landing-card-title mt-6">{card.title}</h3>
@@ -639,7 +641,9 @@
 								{@const Icon = card.icon}
 								<Reveal as="li" variant="up" delay={i * 50} class="h-full">
 									<article class="landing-card-outline landing-card-hover h-full p-6">
-										<span class="bg-surface-strong text-foreground grid size-9 place-items-center rounded-lg">
+										<span
+											class="bg-surface-strong text-foreground grid size-9 place-items-center rounded-lg"
+										>
 											<Icon class="size-4.5" stroke-width={1.75} />
 										</span>
 										<h3 class="mt-4 text-base font-semibold tracking-tight text-foreground">

@@ -69,7 +69,7 @@
 										href={hrefFor(link.href, link.external)}
 										target={link.external ? '_blank' : undefined}
 										rel={link.external ? 'noopener noreferrer' : undefined}
-										class="text-base font-medium text-foreground transition-colors hover:text-brand"
+										class="text-base font-medium text-foreground transition-colors hover:text-foreground"
 									>
 										{link.label}
 									</a>

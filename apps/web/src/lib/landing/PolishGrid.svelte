@@ -24,7 +24,7 @@
 		{@const Icon = feature.icon}
 		<Reveal as="li" variant="up" delay={i * 60} class="h-full">
 			<div class="landing-card landing-card-hover flex h-full flex-col gap-4 rounded-2xl p-6">
-				<span class="grid size-10 place-items-center rounded-xl bg-brand/10 text-brand">
+				<span class="grid size-10 place-items-center rounded-xl bg-surface-strong text-foreground">
 					<Icon class="size-5" stroke-width={1.75} />
 				</span>
 				<div>
