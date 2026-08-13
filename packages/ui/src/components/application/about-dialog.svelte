@@ -1,14 +1,14 @@
 <script lang="ts" module>
 	/** Where GlyphTeX lives — kept here so the About box and any future "Help"
 	 * surface read the same canonical links. */
-	export const GLYPHTEX_REPO = "https://github.com/kanakkholwal/glyphtex";
-	export const GLYPHTEX_SITE = "https://glyphtex.nexonauts.com";
+	export const GLYPHTEX_REPO = 'https://github.com/kanakkholwal/glyphtex';
+	export const GLYPHTEX_SITE = 'https://glyphtex.nexonauts.com';
 </script>
 
 <script lang="ts">
-	import { Button } from "@glyphtex/ui/button";
-	import { Dialog, DialogContent } from "@glyphtex/ui/dialog";
-	import { Logo } from "@glyphtex/ui/logo";
+	import { Button } from '@glyphtex/ui/button';
+	import { Dialog, DialogContent } from '@glyphtex/ui/dialog';
+	import { Logo } from '@glyphtex/ui/logo';
 	import { IconBrandGithub, IconWorld } from '@tabler/icons-svelte';
 
 	/**
@@ -18,11 +18,11 @@
 	 */
 	let {
 		open = $bindable(false),
-		platform = "desktop",
-		version = "0.1.0",
+		platform = 'desktop',
+		version = '0.1.0'
 	}: {
 		open?: boolean;
-		platform?: "web" | "desktop";
+		platform?: 'web' | 'desktop';
 		version?: string;
 	} = $props();
 </script>
@@ -33,9 +33,7 @@
 			<Logo text={false} badge size={56} />
 
 			<div class="flex flex-col items-center gap-1.5">
-				<h2 class="font-display text-foreground text-xl font-semibold tracking-tight">
-					GlyphTeX
-				</h2>
+				<h2 class="font-display text-foreground text-xl font-semibold tracking-tight">GlyphTeX</h2>
 				<p class="text-muted-foreground text-sm leading-relaxed text-balance">
 					A local-first LaTeX editor
 				</p>
@@ -71,7 +69,12 @@
 			</div>
 
 			<p class="text-muted-foreground/60 text-xs">
-				Built by <a href="https://x.com/kanakkholwal" target="_blank" rel="noreferrer noopener" class="underline hover:no-underline">@kanakkholwal</a>. Open source under the project license.
+				Built by <a
+					href="https://x.com/kanakkholwal"
+					target="_blank"
+					rel="noreferrer noopener"
+					class="underline hover:no-underline">@kanakkholwal</a
+				>. Open source under the project license.
 			</p>
 		</div>
 	</DialogContent>

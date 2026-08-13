@@ -1,15 +1,22 @@
-export type ViewMode = "editor" | "split" | "preview";
+/**
+ * Top-level surface. `visual` is the WYSIWYG editor — shipped as a preview of the
+ * intended design, not a working editor (see `visual-pane.svelte`).
+ */
+export type DocMode = 'visual' | 'latex';
+
+/** How the LaTeX surface is laid out. Only meaningful when `docMode` is `latex`. */
+export type ViewMode = 'editor' | 'split' | 'preview';
 
 /** Split axis: side by side, or editor above preview. */
-export type SplitDirection = "horizontal" | "vertical";
+export type SplitDirection = 'horizontal' | 'vertical';
 
 /** Result returned by the host's compile bridges (single-file or project). */
 export type CompileResult = {
-  pdf?: string;
-  log?: string;
-  error?: string;
-  synctex?: string;
-  hint?: string;
+	pdf?: string;
+	log?: string;
+	error?: string;
+	synctex?: string;
+	hint?: string;
 };
 
 /** Single-file compile bridge (web/demo). */
@@ -19,20 +26,14 @@ export type CompileFn = (source: string) => Promise<CompileResult>;
  * In-memory multi-file compile bridge (web projects). The host receives every
  * text file plus the entry path, and supplies binary assets itself.
  */
-export type CompileFilesFn = (
-  files: GlyphFile[],
-  entry: string,
-) => Promise<CompileResult>;
+export type CompileFilesFn = (files: GlyphFile[], entry: string) => Promise<CompileResult>;
 
 /**
  * Multi-file project compile bridge (desktop). Given the project root and the
  * main file's path relative to it, runs the engine so `\input` /
  * `\includegraphics` / `\bibliography` resolve against the real folder.
  */
-export type CompileProjectFn = (
-  root: string,
-  mainRel: string,
-) => Promise<CompileResult>;
+export type CompileProjectFn = (root: string, mainRel: string) => Promise<CompileResult>;
 
 /**
  * Host-injected file save (desktop = Tauri dialog + fs). Resolves `true` when
@@ -40,8 +41,8 @@ export type CompileProjectFn = (
  * the workbench falls back to a browser download.
  */
 export type SaveFileFn = (
-  bytes: Uint8Array,
-  opts: { filename: string; extensions?: string[] },
+	bytes: Uint8Array,
+	opts: { filename: string; extensions?: string[] }
 ) => Promise<boolean>;
 
 /**
@@ -52,54 +53,54 @@ export type SaveFileFn = (
  * been read from disk yet (lazy-loaded on first open).
  */
 export type GlyphFile = {
-  id: string;
-  name: string;
-  content: string;
-  path?: string;
-  loaded?: boolean;
-  /**
-   * Last content written to disk (or the loaded baseline). A file is "dirty"
-   * (unsaved) when its live content differs from `saved`. `undefined` until the
-   * file has been loaded — an unloaded file can't be dirty.
-   */
-  saved?: string;
+	id: string;
+	name: string;
+	content: string;
+	path?: string;
+	loaded?: boolean;
+	/**
+	 * Last content written to disk (or the loaded baseline). A file is "dirty"
+	 * (unsaved) when its live content differs from `saved`. `undefined` until the
+	 * file has been loaded — an unloaded file can't be dirty.
+	 */
+	saved?: string;
 };
 
 // --- Find / replace ---------------------------------------------------------
 export type SearchOptions = {
-  query: string;
-  replace?: string;
-  caseSensitive?: boolean;
-  wholeWord?: boolean;
-  regexp?: boolean;
-  preserveCase?: boolean;
+	query: string;
+	replace?: string;
+	caseSensitive?: boolean;
+	wholeWord?: boolean;
+	regexp?: boolean;
+	preserveCase?: boolean;
 };
 export type SearchMatch = {
-  from: number;
-  to: number;
-  line: number;
-  column: number;
-  text: string;
+	from: number;
+	to: number;
+	line: number;
+	column: number;
+	text: string;
 };
 
 /** The imperative surface a `CodeEditor` exposes via `bind:this`. */
 export type EditorApi = {
-  wrapSelection: (before: string, after?: string) => void;
-  insertText: (text: string) => void;
-  selectedText: () => string;
-  focusEditor: () => void;
-  undo: () => void;
-  redo: () => void;
-  goToLine: (line: number) => void;
-  findAll: (o: SearchOptions) => SearchMatch[];
-  selectRange: (from: number, to: number) => void;
-  replaceRange: (from: number, to: number, insert: string) => void;
-  replaceAllMatches: (o: SearchOptions, replacement: string) => number;
-  clearSearch: () => void;
+	wrapSelection: (before: string, after?: string) => void;
+	insertText: (text: string) => void;
+	selectedText: () => string;
+	focusEditor: () => void;
+	undo: () => void;
+	redo: () => void;
+	goToLine: (line: number) => void;
+	findAll: (o: SearchOptions) => SearchMatch[];
+	selectRange: (from: number, to: number) => void;
+	replaceRange: (from: number, to: number, insert: string) => void;
+	replaceAllMatches: (o: SearchOptions, replacement: string) => number;
+	clearSearch: () => void;
 };
 
 // --- Compilation ------------------------------------------------------------
-export type CompileStatus = "idle" | "compiling" | "success" | "error";
+export type CompileStatus = 'idle' | 'compiling' | 'success' | 'error';
 
 /** One finished compile, kept for the build-stats sparkline. */
 export type BuildRecord = { ms: number; ok: boolean; bytes: number; at: number };
@@ -108,45 +109,49 @@ export type BuildRecord = { ms: number; ok: boolean; bytes: number; at: number }
 export const BUILD_HISTORY_LIMIT = 24;
 
 // --- Bottom dock ------------------------------------------------------------
-export type DockTab = "problems" | "logs" | "history";
+export type DockTab = 'problems' | 'logs' | 'history';
+
+/** Right-edge overlay. Consulted and dismissed, so it floats over the panes
+ *  rather than taking a column off them. */
+export type RightPanel = 'none' | 'notes' | 'settings';
 
 // --- Explorer move / folder conflict prompts --------------------------------
-export type ConflictAction = "replace" | "rename" | "skip" | "merge";
+export type ConflictAction = 'replace' | 'rename' | 'skip' | 'merge';
 export type ConflictChoice = {
-  action: ConflictAction;
-  newName?: string;
-  applyToAll?: boolean;
+	action: ConflictAction;
+	newName?: string;
+	applyToAll?: boolean;
 };
 /**
  * A promise-based modal request: an op `await`s the user's choice; the dialog
  * markup resolves it. One pending request at a time (moves are sequential).
  */
 export type Pending =
-  | {
-      kind: "conflict";
-      name: string;
-      isFolder: boolean;
-      /** Offer "Merge" (folder-into-folder). */
-      canMerge: boolean;
-      /** Offer the "apply to all" checkbox (batch file conflicts during a merge). */
-      canApplyAll: boolean;
-      resolve: (c: ConflictChoice) => void;
-    }
-  | {
-      kind: "confirm";
-      title: string;
-      message: string;
-      confirmLabel: string;
-      resolve: (ok: boolean) => void;
-    };
+	| {
+			kind: 'conflict';
+			name: string;
+			isFolder: boolean;
+			/** Offer "Merge" (folder-into-folder). */
+			canMerge: boolean;
+			/** Offer the "apply to all" checkbox (batch file conflicts during a merge). */
+			canApplyAll: boolean;
+			resolve: (c: ConflictChoice) => void;
+	  }
+	| {
+			kind: 'confirm';
+			title: string;
+			message: string;
+			confirmLabel: string;
+			resolve: (ok: boolean) => void;
+	  };
 
 // --- Diff view (Source Control → open a change in the editor pane) ----------
 export type DiffTarget = {
-  path: string;
-  staged: boolean;
-  original: string;
-  modified: string;
-  binary: boolean;
+	path: string;
+	staged: boolean;
+	original: string;
+	modified: string;
+	binary: boolean;
 };
 
 // --- Sample / demo content --------------------------------------------------
@@ -184,25 +189,25 @@ export const SAMPLE_BIB = String.raw`@article{glyph2026,
  * /editor route, or a quick demo).
  */
 export const DEMO_FILES: GlyphFile[] = [
-  { id: "main", name: "main.tex", content: SAMPLE_LATEX },
-  {
-    id: "intro",
-    name: "sections/introduction.tex",
-    content: String.raw`\section{Introduction}
+	{ id: 'main', name: 'main.tex', content: SAMPLE_LATEX },
+	{
+		id: 'intro',
+		name: 'sections/introduction.tex',
+		content: String.raw`\section{Introduction}
 
 Local-first typesetting keeps your unpublished work on your own machine.
 This section motivates the approach.
-`,
-  },
-  {
-    id: "results",
-    name: "sections/results.tex",
-    content: String.raw`\section{Results}
+`
+	},
+	{
+		id: 'results',
+		name: 'sections/results.tex',
+		content: String.raw`\section{Results}
 
 We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$.
-`,
-  },
-  { id: "refs", name: "references.bib", content: SAMPLE_BIB },
+`
+	},
+	{ id: 'refs', name: 'references.bib', content: SAMPLE_BIB }
 ];
 
 /** PDF preview zoom presets (percent). */

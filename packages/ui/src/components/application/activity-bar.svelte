@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	export type ActivityView = 'files' | 'search' | 'git' | 'settings';
+	export type ActivityView = 'files' | 'search' | 'git';
 </script>
 
 <script lang="ts">
@@ -9,21 +9,19 @@
 		IconFiles,
 		IconFolderOpen,
 		IconGitBranch,
-		IconNotes,
 		IconPlus,
-		IconSearch,
-		IconSettings
+		IconSearch
 	} from '@tabler/icons-svelte';
 
 	import { shortcutLabel } from './shortcuts';
 
-	/** Icon-only mode switcher. App identity and menus live in the title bar. */
+	/** Icon-only mode switcher. App identity and menus live in the title bar.
+	 *  Active is a neutral fill, not a brand tint: blue reads as "link" on a nav
+	 *  rail, and the fill already carries the state. */
 	let {
 		active = 'files',
 		onselect,
 		position = 'left',
-		notesOpen = false,
-		ontogglenotes,
 		onnewfile,
 		onopenproject
 	}: {
@@ -31,8 +29,6 @@
 		onselect?: (view: ActivityView) => void;
 		/** Which workbench edge the rail docks on — flips its divider border. */
 		position?: 'left' | 'right';
-		notesOpen?: boolean;
-		ontogglenotes?: () => void;
 		onnewfile?: () => void;
 		/** Absent on web, where there is no folder picker. */
 		onopenproject?: () => void;
@@ -48,7 +44,7 @@
 </script>
 
 <nav
-	class="bg-card border-border flex w-12 shrink-0 flex-col items-center gap-1 py-2 {position ===
+	class="bg-sidebar border-sidebar-border flex w-12 shrink-0 flex-col items-center gap-1 py-2 {position ===
 	'right'
 		? 'border-l'
 		: 'border-r'}"
@@ -61,39 +57,19 @@
 				{#snippet child({ props })}
 					<Button
 						{...props}
-						variant={active === item.id ? 'brand_soft' : 'ghost'}
+						variant={active === item.id ? 'secondary' : 'ghost'}
 						size="icon-sm"
 						aria-label={item.label}
 						aria-pressed={active === item.id}
 						onclick={() => onselect?.(item.id)}
 					>
-						<Icon class="size-5" />
+						<Icon class="size-4.5" />
 					</Button>
 				{/snippet}
 			</TooltipTrigger>
 			<TooltipContent side="right">{item.label}</TooltipContent>
 		</Tooltip>
 	{/each}
-
-	{#if ontogglenotes}
-		<Tooltip delayDuration={300}>
-			<TooltipTrigger>
-				{#snippet child({ props })}
-					<Button
-						{...props}
-						variant={notesOpen ? 'brand_soft' : 'ghost'}
-						size="icon-sm"
-						aria-label="Notes"
-						aria-pressed={notesOpen}
-						onclick={() => ontogglenotes?.()}
-					>
-						<IconNotes class="size-5" />
-					</Button>
-				{/snippet}
-			</TooltipTrigger>
-			<TooltipContent side="right">Notes · {shortcutLabel('toggle-notes')}</TooltipContent>
-		</Tooltip>
-	{/if}
 
 	<div class="mt-auto flex flex-col items-center gap-1">
 		{#if onnewfile}
@@ -107,7 +83,7 @@
 							aria-label="New file"
 							onclick={() => onnewfile?.()}
 						>
-							<IconPlus class="size-5" />
+							<IconPlus class="size-4.5" />
 						</Button>
 					{/snippet}
 				</TooltipTrigger>
@@ -125,30 +101,15 @@
 							aria-label="Open project"
 							onclick={() => onopenproject?.()}
 						>
-							<IconFolderOpen class="size-5" />
+							<IconFolderOpen class="size-4.5" />
 						</Button>
 					{/snippet}
 				</TooltipTrigger>
 				<TooltipContent side="right">Open project</TooltipContent>
 			</Tooltip>
 		{/if}
-
-		<Tooltip delayDuration={300}>
-			<TooltipTrigger>
-				{#snippet child({ props })}
-					<Button
-						{...props}
-						variant={active === 'settings' ? 'brand_soft' : 'ghost'}
-						size="icon-sm"
-						aria-label="Settings"
-						aria-pressed={active === 'settings'}
-						onclick={() => onselect?.('settings')}
-					>
-						<IconSettings class="size-5" />
-					</Button>
-				{/snippet}
-			</TooltipTrigger>
-			<TooltipContent side="right">Settings</TooltipContent>
-		</Tooltip>
+		<!-- Settings and Notes left the rail: both are read-and-dismiss surfaces, so
+		     they open as a right-edge overlay from the document menu instead of
+		     taking a column off the editor. -->
 	</div>
 </nav>

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Button } from "@glyphtex/ui/button";
-	import { Spinner } from "@glyphtex/ui/spinner";
+	import { Button } from '@glyphtex/ui/button';
+	import { Spinner } from '@glyphtex/ui/spinner';
 	import { IconFileOff, IconFolderShare } from '@tabler/icons-svelte';
-	import { Image } from "@unpic/svelte";
+	import { Image } from '@unpic/svelte';
 
-	import type { FileKind } from "./file-kinds";
-	import PdfView from "./pdf-view.svelte";
+	import type { FileKind } from './file-kinds';
+	import PdfView from './pdf-view.svelte';
 
 	/** Renders a non-text file (image, PDF, or an unpreviewable fallback card). Bytes
 	 *  are read lazily through the host; without a reader everything falls back. */
@@ -14,7 +14,7 @@
 		name,
 		assetKey,
 		readBytes,
-		onreveal,
+		onreveal
 	}: {
 		kind: FileKind;
 		name: string;
@@ -24,16 +24,16 @@
 		onreveal?: () => void;
 	} = $props();
 
-	const leaf = $derived(name.slice(name.lastIndexOf("/") + 1));
-	const ext = $derived(leaf.slice(leaf.lastIndexOf(".") + 1).toLowerCase());
+	const leaf = $derived(name.slice(name.lastIndexOf('/') + 1));
+	const ext = $derived(leaf.slice(leaf.lastIndexOf('.') + 1).toLowerCase());
 
 	const IMG_MIME: Record<string, string> = {
-		svg: "image/svg+xml",
-		jpg: "image/jpeg",
-		jpeg: "image/jpeg",
-		ico: "image/x-icon",
-		tif: "image/tiff",
-		tiff: "image/tiff",
+		svg: 'image/svg+xml',
+		jpg: 'image/jpeg',
+		jpeg: 'image/jpeg',
+		ico: 'image/x-icon',
+		tif: 'image/tiff',
+		tiff: 'image/tiff'
 	};
 
 	let bytes = $state<Uint8Array | undefined>(undefined);
@@ -68,7 +68,7 @@
 		imgUrl = undefined;
 		imgSize = { w: 0, h: 0 };
 
-		if (k === "binary" || !p || !reader) {
+		if (k === 'binary' || !p || !reader) {
 			loading = false;
 			return;
 		}
@@ -80,7 +80,7 @@
 				const b = await reader(p);
 				if (cancelled) return;
 				bytes = b;
-				if (k === "image") {
+				if (k === 'image') {
 					createdUrl = URL.createObjectURL(new Blob([b as BlobPart], { type: mime }));
 					const size = await measure(createdUrl);
 					if (cancelled) return;
@@ -99,9 +99,7 @@
 		};
 	});
 
-	const unsupported = $derived(
-		kind === "binary" || !assetKey || !readBytes || !!error,
-	);
+	const unsupported = $derived(kind === 'binary' || !assetKey || !readBytes || !!error);
 </script>
 
 <div class="bg-muted/30 flex h-full min-h-0 flex-col">
@@ -121,8 +119,8 @@
 					{#if error}
 						{leaf} couldn't be opened in the editor.
 					{:else}
-						<span class="font-mono">{leaf}</span> isn't a text, image, or PDF file, so GlyphTeX
-						won't render it without an external app.
+						<span class="font-mono">{leaf}</span> isn't a text, image, or PDF file, so GlyphTeX won't
+						render it without an external app.
 					{/if}
 					Open it in your file manager instead.
 				</p>
@@ -134,11 +132,9 @@
 				</Button>
 			{/if}
 		</div>
-	{:else if kind === "image" && imgUrl}
+	{:else if kind === 'image' && imgUrl}
 		<!-- Checkered mat so transparent PNGs/SVGs read correctly. -->
-		<div
-			class="glyphtex-checker flex min-h-0 flex-1 items-center justify-center overflow-auto p-6"
-		>
+		<div class="glyphtex-checker flex min-h-0 flex-1 items-center justify-center overflow-auto p-6">
 			{#if imgSize.w > 0}
 				<!-- unpic's `constrained` layout writes `width:100%`, which overflows a short
 				     wide pane. `style` is appended last, so capping both axes here wins. -->
@@ -163,7 +159,7 @@
 				{imgSize.w} × {imgSize.h}
 			</div>
 		{/if}
-	{:else if kind === "pdf" && bytes}
+	{:else if kind === 'pdf' && bytes}
 		<PdfView data={bytes} />
 	{/if}
 </div>

@@ -39,10 +39,10 @@
 	import { Button } from '@glyphtex/ui/button';
 	import { Segmented } from '@glyphtex/ui/segmented';
 	import {
-	  settings,
-	  TEX_PROGRAM_LABELS,
-	  type EngineKind,
-	  type TexProgram
+		settings,
+		TEX_PROGRAM_LABELS,
+		type EngineKind,
+		type TexProgram
 	} from '@glyphtex/ui/settings';
 	import { SettingsSection } from '@glyphtex/ui/settings-section';
 	import { toast } from '@glyphtex/ui/sonner';
@@ -332,9 +332,7 @@
 										Active
 									</span>
 								{:else if v.installed}
-									<span
-										class="text-faint shrink-0 text-xs font-medium uppercase tracking-wide"
-									>
+									<span class="text-faint shrink-0 text-xs font-medium uppercase tracking-wide">
 										Installed
 									</span>
 								{/if}
@@ -350,7 +348,9 @@
 										</Button>
 									{:else}
 										{#if !v.active}
-											<Button variant="default_soft" size="xs" onclick={() => use(v.version)}>Use</Button>
+											<Button variant="default_soft" size="xs" onclick={() => use(v.version)}
+												>Use</Button
+											>
 										{/if}
 										{#if engine.remove}
 											<Button

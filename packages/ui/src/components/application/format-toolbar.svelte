@@ -36,7 +36,10 @@
 		insert?: (text: string) => void;
 	} = $props();
 
-	const w = (before: string, after = '') => () => wrap?.(before, after);
+	const w =
+		(before: string, after = '') =>
+		() =>
+			wrap?.(before, after);
 	const i = (text: string) => () => insert?.(text);
 
 	type Cmd = { label: string; hint?: string; run: () => void };
@@ -95,7 +98,9 @@
 				{
 					label: 'Numbered list',
 					hint: 'enumerate',
-					run: i('\\begin{enumerate}\n  \\item First item\n  \\item Second item\n\\end{enumerate}\n')
+					run: i(
+						'\\begin{enumerate}\n  \\item First item\n  \\item Second item\n\\end{enumerate}\n'
+					)
 				},
 				{
 					label: 'Description list',
@@ -250,7 +255,8 @@
 						{:else}
 							<DropdownMenuItem onSelect={item.run}>
 								<span class="flex-1">{item.label}</span>
-								{#if item.hint}<DropdownMenuShortcut class="font-mono">{item.hint}</DropdownMenuShortcut
+								{#if item.hint}<DropdownMenuShortcut class="font-mono"
+										>{item.hint}</DropdownMenuShortcut
 									>{/if}
 							</DropdownMenuItem>
 						{/if}

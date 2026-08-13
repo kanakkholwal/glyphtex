@@ -855,34 +855,43 @@
 											onclick={() => onopen?.(p.id)}
 											aria-label={`Open ${p.name}`}
 										>
-											<!-- Shares its view-transition-name with the editor surface, so
-                           opening the project morphs this page into it. Two ghost pages
-                           used to fan out behind this one on hover; a three-layer
-                           rotate-and-lift is too much choreography for a gesture that
-                           fires every time the pointer crosses a tile. -->
-											<div
-												class="bg-card border-border group-hover:border-ring/40 group-hover:shadow-craft-sm relative aspect-[4/5] overflow-hidden rounded-lg border transition-[border-color,box-shadow] duration-200"
-												style:view-transition-name={projectViewTransitionName(p.id)}
-												style:view-transition-class="morph-surface"
-											>
-												<!-- folded corner -->
+											<div class="relative aspect-[4/5]">
+												<!-- Ghost pages that fan out from behind the front page on hover. -->
 												<div
-													class="border-border bg-muted/60 absolute top-0 right-0 size-6 border-b border-l"
-													style="clip-path: polygon(100% 0, 0 0, 100% 100%)"
+													aria-hidden="true"
+													class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-lg border opacity-0 transition-[transform,opacity] duration-300 group-hover:-translate-x-3 group-hover:-translate-y-1 group-hover:-rotate-[5deg] group-hover:scale-[0.97] group-hover:opacity-70 motion-reduce:hidden"
 												></div>
-												<div class="flex h-full flex-col gap-2 p-5 pt-6">
-													<div class="bg-foreground/80 h-2 w-3/5 rounded-full"></div>
-													<div class="mt-2 flex flex-col gap-1.5">
-														{#each lineWidths(p.id) as w, i (i)}
-															<div
-																class="bg-foreground/12 h-1.5 rounded-full"
-																style:width={`${w}%`}
-															></div>
-														{/each}
-													</div>
-													<div class="mt-auto flex items-center gap-1.5">
-														<span class="bg-brand/70 h-1.5 w-1.5 rounded-full"></span>
-														<div class="bg-foreground/12 h-1.5 w-2/5 rounded-full"></div>
+												<div
+													aria-hidden="true"
+													class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-lg border opacity-0 transition-[transform,opacity] duration-300 group-hover:translate-x-3 group-hover:-translate-y-2 group-hover:rotate-[5deg] group-hover:scale-[0.985] group-hover:opacity-100 motion-reduce:hidden"
+												></div>
+
+												<!-- Shares its view-transition-name with the editor surface, so
+												     opening the project morphs this page into it. -->
+												<div
+													class="bg-card border-border shadow-craft-sm group-hover:shadow-craft-lg ease-craft absolute inset-0 z-10 overflow-hidden rounded-lg border transition-[transform,box-shadow] duration-300 group-hover:-translate-y-1 group-active:translate-y-0 group-active:scale-[0.985] motion-reduce:transform-none"
+													style:view-transition-name={projectViewTransitionName(p.id)}
+													style:view-transition-class="morph-surface"
+												>
+													<!-- folded corner -->
+													<div
+														class="border-border bg-muted/60 absolute top-0 right-0 size-6 border-b border-l"
+														style="clip-path: polygon(100% 0, 0 0, 100% 100%)"
+													></div>
+													<div class="flex h-full flex-col gap-2 p-5 pt-6">
+														<div class="bg-foreground/80 h-2 w-3/5 rounded-full"></div>
+														<div class="mt-2 flex flex-col gap-1.5">
+															{#each lineWidths(p.id) as w, i (i)}
+																<div
+																	class="bg-foreground/12 h-1.5 rounded-full"
+																	style:width={`${w}%`}
+																></div>
+															{/each}
+														</div>
+														<div class="mt-auto flex items-center gap-1.5">
+															<span class="bg-brand/70 h-1.5 w-1.5 rounded-full"></span>
+															<div class="bg-foreground/12 h-1.5 w-2/5 rounded-full"></div>
+														</div>
 													</div>
 												</div>
 											</div>

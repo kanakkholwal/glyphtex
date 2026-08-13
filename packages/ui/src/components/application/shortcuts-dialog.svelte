@@ -1,14 +1,15 @@
 <script lang="ts">
-	import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@glyphtex/ui/dialog";
-	import { Kbd } from "@glyphtex/ui/kbd";
+	import {
+		Dialog,
+		DialogContent,
+		DialogDescription,
+		DialogHeader,
+		DialogTitle
+	} from '@glyphtex/ui/dialog';
+	import { Kbd } from '@glyphtex/ui/kbd';
 	import { IconKeyboard } from '@tabler/icons-svelte';
 
-	import {
-		isMacPlatform,
-		shortcutCategories,
-		shortcutsByCategory,
-		formatCombo,
-	} from "./shortcuts";
+	import { isMacPlatform, shortcutCategories, shortcutsByCategory, formatCombo } from './shortcuts';
 
 	/**
 	 * ShortcutsDialog — a wide, scannable reference of every keyboard shortcut,
@@ -26,7 +27,7 @@
 	 *  "Ctrl+Shift+Z" splits on "+". */
 	function caps(combo: string): string[] {
 		const formatted = formatCombo(combo, mac);
-		return mac ? [formatted] : formatted.split("+");
+		return mac ? [formatted] : formatted.split('+');
 	}
 </script>
 
@@ -38,7 +39,7 @@
 				Keyboard shortcuts
 			</DialogTitle>
 			<DialogDescription>
-				Everything you can drive from the keyboard. {mac ? "⌘ is Command." : "Mod is the Ctrl key."}
+				Everything you can drive from the keyboard. {mac ? '⌘ is Command.' : 'Mod is the Ctrl key.'}
 			</DialogDescription>
 		</DialogHeader>
 

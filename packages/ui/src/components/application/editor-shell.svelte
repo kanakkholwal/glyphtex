@@ -49,9 +49,7 @@ Nothing is uploaded. Nothing leaves this device.
 
 <div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
 	<!-- Top toolbar -->
-	<header
-		class="border-border bg-card flex h-11 shrink-0 items-center gap-3 border-b px-3"
-	>
+	<header class="border-border bg-card flex h-11 shrink-0 items-center gap-3 border-b px-3">
 		<div class="flex items-center gap-2">
 			<div
 				class="bg-primary text-primary-foreground grid size-6 place-items-center rounded-md text-sm font-semibold"
@@ -116,15 +114,13 @@ Nothing is uploaded. Nothing leaves this device.
 				<div
 					class="bg-card text-card-foreground border-border shadow-craft-sm mx-auto max-w-prose rounded-lg border p-8"
 				>
-					<div
-						class="text-faint mb-4 text-xs font-medium tracking-widest uppercase"
-					>
+					<div class="text-faint mb-4 text-xs font-medium tracking-widest uppercase">
 						Rendered output
 					</div>
 					<h1 class="font-display mb-3 text-3xl">Hello from GlyphTeX</h1>
 					<p class="text-muted-foreground leading-relaxed">
-						The Tectonic (LaTeX) engine renders here — fully offline, in-process.
-						Your document never leaves this device.
+						The Tectonic (LaTeX) engine renders here — fully offline, in-process. Your document
+						never leaves this device.
 					</p>
 				</div>
 			</div>

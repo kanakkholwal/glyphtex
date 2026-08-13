@@ -67,12 +67,14 @@
 								onCheckedChange={() => entry.run?.()}
 							>
 								{entry.label}
-								{#if entry.shortcut}<DropdownMenuShortcut>{entry.shortcut}</DropdownMenuShortcut>{/if}
+								{#if entry.shortcut}<DropdownMenuShortcut>{entry.shortcut}</DropdownMenuShortcut
+									>{/if}
 							</DropdownMenuCheckboxItem>
 						{:else}
 							<DropdownMenuItem disabled={entry.disabled} onSelect={() => entry.run?.()}>
 								{entry.label}
-								{#if entry.shortcut}<DropdownMenuShortcut>{entry.shortcut}</DropdownMenuShortcut>{/if}
+								{#if entry.shortcut}<DropdownMenuShortcut>{entry.shortcut}</DropdownMenuShortcut
+									>{/if}
 							</DropdownMenuItem>
 						{/if}
 					{/each}

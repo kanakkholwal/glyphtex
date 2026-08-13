@@ -15,5 +15,11 @@ export default defineConfig({
 
 			adapter: adapter()
 		})
-	]
+	],
+
+	optimizeDeps: {
+		// Discovered only when the preview pane mounts; without this the first
+		// lazy import re-runs the optimizer and 504s every in-flight monaco chunk.
+		include: ['pdfjs-dist', 'pdfjs-dist/web/pdf_viewer.mjs']
+	}
 });

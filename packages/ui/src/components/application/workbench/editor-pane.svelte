@@ -1,339 +1,329 @@
 <script lang="ts">
-  import { Button } from "@glyphtex/ui/button";
-  import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuGroupHeading,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-  } from "@glyphtex/ui/dropdown-menu";
-  import {
-    AUTO_SAVE_LABELS,
-    settings,
-    type AutoSaveMode,
-  } from "@glyphtex/ui/settings";
-  import {
-    IconArrowBackUp,
-    IconArrowForwardUp,
-    IconBaselineDensityMedium,
-    IconChevronDown,
-    IconDeviceFloppy,
-    IconFolderShare,
-    IconLayoutColumns,
-    IconMap2,
-    IconRefresh,
-    IconSearch,
-    IconX,
-  } from '@tabler/icons-svelte';
+	import { Button } from '@glyphtex/ui/button';
+	import {
+		DropdownMenu,
+		DropdownMenuCheckboxItem,
+		DropdownMenuContent,
+		DropdownMenuGroup,
+		DropdownMenuGroupHeading,
+		DropdownMenuSeparator,
+		DropdownMenuTrigger
+	} from '@glyphtex/ui/dropdown-menu';
+	import { AUTO_SAVE_LABELS, settings, type AutoSaveMode } from '@glyphtex/ui/settings';
+	import {
+		IconArrowBackUp,
+		IconArrowForwardUp,
+		IconBaselineDensityMedium,
+		IconChevronDown,
+		IconDeviceFloppy,
+		IconFolderShare,
+		IconLayoutColumns,
+		IconMap2,
+		IconRefresh,
+		IconSearch,
+		IconX
+	} from '@tabler/icons-svelte';
 
-  import { setWorkspaceFiles } from "@glyphtex/ui/editor";
+	import { setWorkspaceFiles } from '@glyphtex/ui/editor';
 
-  import AssetViewer from "../asset-viewer.svelte";
-  import CodeEditor from "../code-editor.svelte";
-  import DiffView from "../diff-view.svelte";
-  import EditorFindBar from "../editor-find-bar.svelte";
-  import FormatToolbar from "../format-toolbar.svelte";
-  import { shortcutLabel } from "../shortcuts";
-  import type { WorkbenchController } from "./controller.svelte";
-  import EditorStatus from "./editor-status.svelte";
-  import { baseName } from "./paths";
+	import AssetViewer from '../asset-viewer.svelte';
+	import CodeEditor from '../code-editor.svelte';
+	import DiffView from '../diff-view.svelte';
+	import EditorFindBar from '../editor-find-bar.svelte';
+	import FormatToolbar from '../format-toolbar.svelte';
+	import { shortcutLabel } from '../shortcuts';
+	import type { WorkbenchController } from './controller.svelte';
+	import EditorStatus from './editor-status.svelte';
+	import { baseName } from './paths';
 
-  /** The main editor column: a read-only diff, the code editor, or the asset viewer,
-   *  depending on what is active. Open files live in the workbench toolbar above. */
-  let { ctrl }: { ctrl: WorkbenchController } = $props();
-  const files = $derived(ctrl.files);
-  const layout = $derived(ctrl.layout);
-  const search = $derived(ctrl.search);
+	/** The main editor column: a read-only diff, the code editor, or the asset viewer,
+	 *  depending on what is active. Open files live in the workbench toolbar above. */
+	let { ctrl }: { ctrl: WorkbenchController } = $props();
+	const files = $derived(ctrl.files);
+	const layout = $derived(ctrl.layout);
+	const search = $derived(ctrl.search);
 
-  // Assets are read by absolute path on desktop and by project-relative name on
-  // web (IndexedDB), so the viewer takes whichever the host can resolve.
-  const assetKey = $derived(files.activeFile?.path ?? files.activeFile?.name);
+	// Assets are read by absolute path on desktop and by project-relative name on
+	// web (IndexedDB), so the viewer takes whichever the host can resolve.
+	const assetKey = $derived(files.activeFile?.path ?? files.activeFile?.name);
 
-  const AUTO_SAVE_MODES: AutoSaveMode[] = ["off", "afterDelay", "onFocusChange"];
+	const AUTO_SAVE_MODES: AutoSaveMode[] = ['off', 'afterDelay', 'onFocusChange'];
 
-  // Publishes siblings to the language providers so `\cite{`/`\ref{` resolve across
-  // files. Keyed on `savedTick`, not live buffers — reindexing every keystroke is waste.
-  $effect(() => {
-    void files.savedTick;
-    setWorkspaceFiles(
-      files.files
-        .filter((f) => f.loaded !== false)
-        .map((f) => ({
-          path: f.path ?? f.name,
-          content: files.liveContent(f),
-        })),
-    );
-  });
+	// Publishes siblings to the language providers so `\cite{`/`\ref{` resolve across
+	// files. Keyed on `savedTick`, not live buffers — reindexing every keystroke is waste.
+	$effect(() => {
+		void files.savedTick;
+		setWorkspaceFiles(
+			files.files
+				.filter((f) => f.loaded !== false)
+				.map((f) => ({
+					path: f.path ?? f.name,
+					content: files.liveContent(f)
+				}))
+		);
+	});
 </script>
 
 <section
-  class="bg-background flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden {layout.viewMode !==
-  'split'
-    ? ''
-    : layout.splitDir === 'vertical'
-      ? 'border-border w-full border-b'
-      : 'border-border h-full border-r'}"
-  style={layout.viewMode !== "split"
-    ? "width:100%;height:100%"
-    : layout.splitDir === "vertical"
-      ? `height:${layout.splitPct}%`
-      : `width:${layout.splitPct}%`}
+	class="bg-background flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden {layout.viewMode !==
+	'split'
+		? ''
+		: layout.splitDir === 'vertical'
+			? 'border-border w-full border-b'
+			: 'border-border h-full border-r'}"
+	style={layout.viewMode !== 'split'
+		? 'width:100%;height:100%'
+		: layout.splitDir === 'vertical'
+			? `height:${layout.splitPct}%`
+			: `width:${layout.splitPct}%`}
 >
-  {#if layout.diffTarget}
-    <div
-      class="text-muted-foreground border-border bg-card flex h-9 shrink-0 items-center gap-2 border-b px-1.5 text-xs"
-    >
-      <span class="truncate pl-1" title={layout.diffTarget.path}>
-        {baseName(layout.diffTarget.path)}
-        <span class="text-faint">
-          — {layout.diffTarget.staged ? "Staged changes" : "Working tree"}
-        </span>
-      </span>
-      <div class="ml-auto flex shrink-0 items-center gap-0.5">
-        <Button
-          variant={settings.diffView === "side" ? "secondary" : "ghost"}
-          size="icon-sm"
-          title="Side by side"
-          aria-label="Side by side"
-          aria-pressed={settings.diffView === "side"}
-          onclick={() => (settings.diffView = "side")}
-        >
-          <IconLayoutColumns />
-        </Button>
-        <Button
-          variant={settings.diffView === "inline" ? "secondary" : "ghost"}
-          size="icon-sm"
-          title="Inline"
-          aria-label="Inline"
-          aria-pressed={settings.diffView === "inline"}
-          onclick={() => (settings.diffView = "inline")}
-        >
-          <IconBaselineDensityMedium />
-        </Button>
-        <span class="bg-border/60 mx-1 h-5 w-px"></span>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title="Refresh diff"
-          aria-label="Refresh diff"
-          onclick={() => layout.refreshDiff()}
-        >
-          <IconRefresh />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title="Close diff"
-          aria-label="Close diff"
-          onclick={() => layout.closeDiff()}
-        >
-          <IconX />
-        </Button>
-      </div>
-    </div>
-    <div class="min-h-0 flex-1">
-      {#if layout.diffTarget.binary}
-        <div
-          class="text-muted-foreground flex h-full items-center justify-center p-4 text-center text-xs"
-        >
-          Binary file — no text diff to show.
-        </div>
-      {:else}
-        <DiffView
-          original={layout.diffTarget.original}
-          modified={layout.diffTarget.modified}
-          mode={settings.diffView}
-          theme={settings.resolved}
-          language={layout.diffLanguage}
-          fontSize={settings.fontSize}
-          fontFamily={settings.fontStack}
-        />
-      {/if}
-    </div>
-  {:else if files.activeEditable}
-    <div
-      class="border-border bg-card flex h-10 shrink-0 items-center gap-0.5 border-b px-1.5"
-    >
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        title="Undo ({shortcutLabel('undo')})"
-        aria-label="Undo"
-        disabled={!layout.canUndo}
-        onclick={() => layout.editor?.undo()}
-      >
-        <IconArrowBackUp />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        title="Redo ({shortcutLabel('redo')})"
-        aria-label="Redo"
-        disabled={!layout.canRedo}
-        onclick={() => layout.editor?.redo()}
-      >
-        <IconArrowForwardUp />
-      </Button>
-      <span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
-      <Button
-        variant={search.showFind ? "secondary" : "ghost"}
-        size="icon-sm"
-        title="Find / replace ({shortcutLabel('find')})"
-        aria-label="Find in document"
-        aria-pressed={search.showFind}
-        onclick={() => (search.showFind ? search.closeFind() : search.openFind())}
-      >
-        <IconSearch />
-      </Button>
+	{#if layout.diffTarget}
+		<div
+			class="text-muted-foreground border-border bg-card flex h-9 shrink-0 items-center gap-2 border-b px-1.5 text-xs"
+		>
+			<span class="truncate pl-1" title={layout.diffTarget.path}>
+				{baseName(layout.diffTarget.path)}
+				<span class="text-faint">
+					— {layout.diffTarget.staged ? 'Staged changes' : 'Working tree'}
+				</span>
+			</span>
+			<div class="ml-auto flex shrink-0 items-center gap-0.5">
+				<Button
+					variant={settings.diffView === 'side' ? 'secondary' : 'ghost'}
+					size="icon-sm"
+					title="Side by side"
+					aria-label="Side by side"
+					aria-pressed={settings.diffView === 'side'}
+					onclick={() => (settings.diffView = 'side')}
+				>
+					<IconLayoutColumns />
+				</Button>
+				<Button
+					variant={settings.diffView === 'inline' ? 'secondary' : 'ghost'}
+					size="icon-sm"
+					title="Inline"
+					aria-label="Inline"
+					aria-pressed={settings.diffView === 'inline'}
+					onclick={() => (settings.diffView = 'inline')}
+				>
+					<IconBaselineDensityMedium />
+				</Button>
+				<span class="bg-border/60 mx-1 h-5 w-px"></span>
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					title="Refresh diff"
+					aria-label="Refresh diff"
+					onclick={() => layout.refreshDiff()}
+				>
+					<IconRefresh />
+				</Button>
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					title="Close diff"
+					aria-label="Close diff"
+					onclick={() => layout.closeDiff()}
+				>
+					<IconX />
+				</Button>
+			</div>
+		</div>
+		<div class="min-h-0 flex-1">
+			{#if layout.diffTarget.binary}
+				<div
+					class="text-muted-foreground flex h-full items-center justify-center p-4 text-center text-xs"
+				>
+					Binary file — no text diff to show.
+				</div>
+			{:else}
+				<DiffView
+					original={layout.diffTarget.original}
+					modified={layout.diffTarget.modified}
+					mode={settings.diffView}
+					theme={settings.resolved}
+					language={layout.diffLanguage}
+					fontSize={settings.fontSize}
+					fontFamily={settings.fontStack}
+				/>
+			{/if}
+		</div>
+	{:else if files.activeEditable}
+		<div class="border-border bg-card flex h-10 shrink-0 items-center gap-0.5 border-b px-1.5">
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				title="Undo ({shortcutLabel('undo')})"
+				aria-label="Undo"
+				disabled={!layout.canUndo}
+				onclick={() => layout.editor?.undo()}
+			>
+				<IconArrowBackUp />
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				title="Redo ({shortcutLabel('redo')})"
+				aria-label="Redo"
+				disabled={!layout.canRedo}
+				onclick={() => layout.editor?.redo()}
+			>
+				<IconArrowForwardUp />
+			</Button>
+			<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
+			<Button
+				variant={search.showFind ? 'secondary' : 'ghost'}
+				size="icon-sm"
+				title="Find / replace ({shortcutLabel('find')})"
+				aria-label="Find in document"
+				aria-pressed={search.showFind}
+				onclick={() => (search.showFind ? search.closeFind() : search.openFind())}
+			>
+				<IconSearch />
+			</Button>
 
-      {#if files.activeHasToolbar}
-        <span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
-        <!-- Scrolls rather than wraps (the pane can be a third of the window); the
+			{#if files.activeHasToolbar}
+				<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
+				<!-- Scrolls rather than wraps (the pane can be a third of the window); the
              mask fades the cut edge so a clipped control reads as "more here".
              A plain wheel scrolls it, since there is no visible scrollbar to drag. -->
-        <div
-          class="glyphtex-toolbar-lane min-w-0 flex-1 overflow-x-auto"
-          onwheel={(e) => {
-            const el = e.currentTarget;
-            if (el.scrollWidth <= el.clientWidth || e.deltaX !== 0) return;
-            e.preventDefault();
-            el.scrollLeft += e.deltaY;
-          }}
-        >
-          <FormatToolbar
-            wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
-            insert={(t) => layout.editor?.insertText(t)}
-          />
-        </div>
-        <span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
-      {:else}
-        <div class="flex-1"></div>
-      {/if}
+				<div
+					class="glyphtex-toolbar-lane min-w-0 flex-1 overflow-x-auto"
+					onwheel={(e) => {
+						const el = e.currentTarget;
+						if (el.scrollWidth <= el.clientWidth || e.deltaX !== 0) return;
+						e.preventDefault();
+						el.scrollLeft += e.deltaY;
+					}}
+				>
+					<FormatToolbar
+						wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
+						insert={(t) => layout.editor?.insertText(t)}
+					/>
+				</div>
+				<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
+			{:else}
+				<div class="flex-1"></div>
+			{/if}
 
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          {#snippet child({ props })}
-            <Button
-              {...props}
-              variant="ghost"
-              size="sm"
-              class="text-muted-foreground shrink-0 gap-1.5 px-2"
-              title="Saving and editor options"
-            >
-              <IconDeviceFloppy class="size-3.5" />
-              <span class="hidden xl:inline">
-                {settings.autoSave === "off"
-                  ? "Manual save"
-                  : "Auto save"}
-              </span>
-              <IconChevronDown class="size-3 opacity-50" />
-            </Button>
-          {/snippet}
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="w-56">
-          <DropdownMenuGroup>
-            <DropdownMenuGroupHeading class="text-faint text-xs font-medium">
-              Save
-            </DropdownMenuGroupHeading>
-            {#each AUTO_SAVE_MODES as mode (mode)}
-              <DropdownMenuCheckboxItem
-                checked={settings.autoSave === mode}
-                onCheckedChange={() => (settings.autoSave = mode)}
-              >
-                {AUTO_SAVE_LABELS[mode]}
-              </DropdownMenuCheckboxItem>
-            {/each}
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuCheckboxItem
-            checked={settings.minimap}
-            onCheckedChange={(v) => (settings.minimap = v)}
-          >
-            <IconMap2 class="text-muted-foreground" /> Minimap
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem
-            checked={settings.lineWrapping}
-            onCheckedChange={(v) => (settings.lineWrapping = v)}
-          >
-            Word wrap
-          </DropdownMenuCheckboxItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+			<DropdownMenu>
+				<DropdownMenuTrigger>
+					{#snippet child({ props })}
+						<Button
+							{...props}
+							variant="ghost"
+							size="sm"
+							class="text-muted-foreground shrink-0 gap-1.5 px-2"
+							title="Saving and editor options"
+						>
+							<IconDeviceFloppy class="size-3.5" />
+							<span class="hidden xl:inline">
+								{settings.autoSave === 'off' ? 'Manual save' : 'Auto save'}
+							</span>
+							<IconChevronDown class="size-3 opacity-50" />
+						</Button>
+					{/snippet}
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" class="w-56">
+					<DropdownMenuGroup>
+						<DropdownMenuGroupHeading class="text-faint text-xs font-medium">
+							Save
+						</DropdownMenuGroupHeading>
+						{#each AUTO_SAVE_MODES as mode (mode)}
+							<DropdownMenuCheckboxItem
+								checked={settings.autoSave === mode}
+								onCheckedChange={() => (settings.autoSave = mode)}
+							>
+								{AUTO_SAVE_LABELS[mode]}
+							</DropdownMenuCheckboxItem>
+						{/each}
+					</DropdownMenuGroup>
+					<DropdownMenuSeparator />
+					<DropdownMenuCheckboxItem
+						checked={settings.minimap}
+						onCheckedChange={(v) => (settings.minimap = v)}
+					>
+						<IconMap2 class="text-muted-foreground" /> Minimap
+					</DropdownMenuCheckboxItem>
+					<DropdownMenuCheckboxItem
+						checked={settings.lineWrapping}
+						onCheckedChange={(v) => (settings.lineWrapping = v)}
+					>
+						Word wrap
+					</DropdownMenuCheckboxItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		</div>
 
-    <div class="min-h-0 flex-1">
-      <CodeEditor
-        bind:this={layout.editor}
-        bind:value={files.source}
-        bind:canUndo={layout.canUndo}
-        bind:canRedo={layout.canRedo}
-        docKey={files.activeId}
-        theme={settings.resolved}
-        language={files.activeLanguage}
-        fontSize={settings.fontSize}
-        fontFamily={settings.fontStack}
-        lineWrapping={settings.lineWrapping}
-        minimap={settings.minimap}
-        oncursor={(p) => (layout.cursor = p)}
-      />
-    </div>
-    {#if search.showFind}
-      <EditorFindBar
-        bind:this={search.findBar}
-        initial={search.searchOpts}
-        resultCount={search.searchResults.length}
-        activeIndex={search.searchActive}
-        onsearch={(o) => search.runSearch(o)}
-        onnext={() => search.searchNext()}
-        onprev={() => search.searchPrev()}
-        onreplacecurrent={(r) => search.replaceCurrent(r)}
-        onreplaceall={(r) => search.replaceAll(r)}
-        onclose={() => search.closeFind()}
-      />
-    {/if}
-    <!-- @container so the status line drops fields by pane width, not viewport. -->
-    <div class="@container shrink-0">
-      <EditorStatus {ctrl} />
-    </div>
-  {:else}
-    {#if files.project?.revealInOS && files.activeFile?.path}
-      <div
-        class="border-border bg-card flex h-9 shrink-0 items-center justify-end border-b px-1.5"
-      >
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          title="Reveal in folder"
-          aria-label="Reveal in folder"
-          onclick={() => files.revealActiveFile()}
-        >
-          <IconFolderShare />
-        </Button>
-      </div>
-    {/if}
-    <div class="min-h-0 flex-1">
-      <AssetViewer
-        kind={files.activeKind}
-        name={files.activeFile?.name ?? ""}
-        {assetKey}
-        readBytes={ctrl.readFileBytes}
-        onreveal={files.project?.revealInOS && files.activeFile?.path
-          ? () => files.revealActiveFile()
-          : undefined}
-      />
-    </div>
-  {/if}
+		<div class="min-h-0 flex-1">
+			<CodeEditor
+				bind:this={layout.editor}
+				bind:value={files.source}
+				bind:canUndo={layout.canUndo}
+				bind:canRedo={layout.canRedo}
+				docKey={files.activeId}
+				theme={settings.resolved}
+				language={files.activeLanguage}
+				fontSize={settings.fontSize}
+				fontFamily={settings.fontStack}
+				lineWrapping={settings.lineWrapping}
+				minimap={settings.minimap}
+				oncursor={(p) => (layout.cursor = p)}
+			/>
+		</div>
+		{#if search.showFind}
+			<EditorFindBar
+				bind:this={search.findBar}
+				initial={search.searchOpts}
+				resultCount={search.searchResults.length}
+				activeIndex={search.searchActive}
+				onsearch={(o) => search.runSearch(o)}
+				onnext={() => search.searchNext()}
+				onprev={() => search.searchPrev()}
+				onreplacecurrent={(r) => search.replaceCurrent(r)}
+				onreplaceall={(r) => search.replaceAll(r)}
+				onclose={() => search.closeFind()}
+			/>
+		{/if}
+		<!-- @container so the status line drops fields by pane width, not viewport. -->
+		<div class="@container shrink-0">
+			<EditorStatus {ctrl} />
+		</div>
+	{:else}
+		{#if files.project?.revealInOS && files.activeFile?.path}
+			<div class="border-border bg-card flex h-9 shrink-0 items-center justify-end border-b px-1.5">
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					title="Reveal in folder"
+					aria-label="Reveal in folder"
+					onclick={() => files.revealActiveFile()}
+				>
+					<IconFolderShare />
+				</Button>
+			</div>
+		{/if}
+		<div class="min-h-0 flex-1">
+			<AssetViewer
+				kind={files.activeKind}
+				name={files.activeFile?.name ?? ''}
+				{assetKey}
+				readBytes={ctrl.readFileBytes}
+				onreveal={files.project?.revealInOS && files.activeFile?.path
+					? () => files.revealActiveFile()
+					: undefined}
+			/>
+		</div>
+	{/if}
 </section>
 
 <style>
-  /* No visible scrollbar in a 40px toolbar; the edge fade is the affordance. */
-  .glyphtex-toolbar-lane {
-    scrollbar-width: none;
-    mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
-  }
-  .glyphtex-toolbar-lane::-webkit-scrollbar {
-    display: none;
-  }
+	/* No visible scrollbar in a 40px toolbar; the edge fade is the affordance. */
+	.glyphtex-toolbar-lane {
+		scrollbar-width: none;
+		mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+	}
+	.glyphtex-toolbar-lane::-webkit-scrollbar {
+		display: none;
+	}
 </style>

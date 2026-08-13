@@ -39,6 +39,11 @@ export default defineConfig({
 			ignored: ['**/src-tauri/**']
 		}
 	},
+	optimizeDeps: {
+		// Discovered only when the preview pane mounts; without this the first
+		// lazy import re-runs the optimizer and 504s every in-flight monaco chunk.
+		include: ['pdfjs-dist', 'pdfjs-dist/web/pdf_viewer.mjs']
+	},
 	build: {
 		// Tauri ships a modern WebView; no need to down-level.
 		target: 'esnext'

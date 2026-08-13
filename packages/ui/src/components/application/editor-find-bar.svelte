@@ -10,7 +10,13 @@
 </script>
 
 <script lang="ts">
-	import { IconChevronDown, IconChevronRight, IconChevronUp, IconReplace, IconX } from '@tabler/icons-svelte';
+	import {
+		IconChevronDown,
+		IconChevronRight,
+		IconChevronUp,
+		IconReplace,
+		IconX
+	} from '@tabler/icons-svelte';
 	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from './search-ui';
 
 	/**
@@ -58,13 +64,47 @@
 	}
 
 	function emit() {
-		onsearch?.({ query, replace, caseSensitive: matchCase, wholeWord, regexp: useRegex, preserveCase });
+		onsearch?.({
+			query,
+			replace,
+			caseSensitive: matchCase,
+			wholeWord,
+			regexp: useRegex,
+			preserveCase
+		});
 	}
 
 	const toggles = $derived([
-		{ key: 'case', label: 'Aa', title: 'Match case', on: matchCase, toggle: () => { matchCase = !matchCase; emit(); } },
-		{ key: 'word', label: 'W', title: 'Whole word', on: wholeWord, toggle: () => { wholeWord = !wholeWord; emit(); } },
-		{ key: 'regex', label: '.*', title: 'Regular expression', on: useRegex, toggle: () => { useRegex = !useRegex; emit(); } }
+		{
+			key: 'case',
+			label: 'Aa',
+			title: 'Match case',
+			on: matchCase,
+			toggle: () => {
+				matchCase = !matchCase;
+				emit();
+			}
+		},
+		{
+			key: 'word',
+			label: 'W',
+			title: 'Whole word',
+			on: wholeWord,
+			toggle: () => {
+				wholeWord = !wholeWord;
+				emit();
+			}
+		},
+		{
+			key: 'regex',
+			label: '.*',
+			title: 'Regular expression',
+			on: useRegex,
+			toggle: () => {
+				useRegex = !useRegex;
+				emit();
+			}
+		}
 	]);
 
 	function onFindKeydown(e: KeyboardEvent) {
@@ -92,7 +132,10 @@
 		aria-expanded={showReplace}
 		onclick={() => (showReplace = !showReplace)}
 	>
-		<IconChevronRight size={15} class="transition-transform duration-200 {showReplace ? 'rotate-90' : ''}" />
+		<IconChevronRight
+			size={15}
+			class="transition-transform duration-200 {showReplace ? 'rotate-90' : ''}"
+		/>
 	</button>
 
 	<div class="flex min-w-0 flex-1 flex-col gap-1">

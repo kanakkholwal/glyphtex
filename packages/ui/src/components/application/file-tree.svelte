@@ -274,7 +274,14 @@
 			{/if}
 		</div>
 		{#if isOpen(node.path)}
-			<div transition:slide={{ duration: 200, easing: cubicOut }}>
+			<!-- Indent guide: a hairline down the chevron column, so a deep tree reads
+			     as nesting rather than as ragged left padding. `left` tracks the
+			     chevron's centre at this depth — same arithmetic as `indent()`. -->
+			<div
+				class="before:bg-border/70 relative before:absolute before:inset-y-0 before:left-(--guide) before:w-px before:content-['']"
+				style:--guide={`${depth * 12 + 15}px`}
+				transition:slide={{ duration: 200, easing: cubicOut }}
+			>
 				<Self
 					nodes={node.children}
 					{activeId}
