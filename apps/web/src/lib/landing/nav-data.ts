@@ -1,4 +1,3 @@
-
 export type NavLink = { label: string; href: string; external?: boolean };
 
 export const REPO_URL = 'https://github.com/kanakkholwal/glyphtex';
@@ -11,7 +10,6 @@ const INSTITUTIONS: NavLink = { label: 'Institutions', href: '/#institutions' };
 const FAQ: NavLink = { label: 'FAQ', href: '/#faq' };
 
 const ENGINE: NavLink = { label: 'The engine', href: '/engine' };
-
 
 const DOWNLOAD: NavLink = { label: 'Desktop app', href: '/download' };
 const WORKSPACE: NavLink = { label: 'Browser workspace', href: '/workspace' };

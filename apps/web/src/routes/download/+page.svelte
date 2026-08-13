@@ -163,7 +163,7 @@
 			: []),
 		{
 			title: 'Download the .dmg for your chip',
-			body: 'Apple Silicon for M1, M2, M3, and M4 Macs. Intel for older models. Not sure which you have? Open the Apple menu, then About This Mac.'
+			body: 'Apple Silicon for M1 and later. Intel for older Macs. Check under Apple menu, About This Mac.'
 		},
 		{
 			title: 'Drag GlyphTeX into Applications',
@@ -232,12 +232,12 @@
 
 	// Prototype scope, stated plainly. Nothing here is a promise about the current build.
 	const included = [
-		'The LaTeX engine, built in. No separate TeX distribution to install.',
-		'An editor with live preview, file tree, search, and a command palette.',
-		'A Git client: stage, commit, diff, history, clone, and push or pull.',
-		'Everything runs locally, so projects stay on your disk and compile offline.',
-		'No account, and the app itself sends no analytics of any kind.',
-		'Missing whatever has landed in the workspace since these builds were cut.'
+		'The LaTeX engine, built in.',
+		'Live preview, file tree, search, command palette.',
+		'A Git client: stage, commit, diff, history, push.',
+		'Runs locally. Compiles offline.',
+		'No account, no analytics.',
+		'Missing everything shipped since these builds were cut.'
 	];
 </script>
 
@@ -270,16 +270,14 @@
 						in:fly={{ y: 10, duration: 450, delay: 60, easing: cubicOut }}
 					>
 						The desktop app is on hold.
-						<span class="landing-title-em">Use the browser workspace.</span>
 					</h1>
 
 					<p
 						class="landing-lead mt-7 max-w-2xl"
 						in:fly={{ y: 10, duration: 450, delay: 120, easing: cubicOut }}
 					>
-						Any builds listed below are old prototypes, kept only for reference. They lag well
-						behind the current editor, get no updates, and are not supported. The browser workspace
-						is where GlyphTeX is actually being built.
+						Use the browser workspace. The builds below are old prototypes, unsupported and kept
+						only for reference.
 					</p>
 
 					<div
@@ -327,9 +325,7 @@
 						Old prototypes. <em class="landing-title-em not-italic">Kept for reference only.</em>
 					</h2>
 					<p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-						These builds predate most of the current editor and will not be updated. Expect missing
-						features and rough edges. Install one only if you want to see where the desktop shell
-						got to.
+						These predate most of the current editor and will not be updated. Expect rough edges.
 					</p>
 				</Reveal>
 
@@ -502,10 +498,8 @@
 							>
 								<IconInfoCircle class="mt-0.5 size-4 shrink-0 text-muted-foreground" />
 								<p class="text-sm leading-relaxed text-muted-foreground">
-									Apple charges for the developer ID that removes this warning, and we have not
-									added it yet. The app is the same build you can read on GitHub. Until it is
-									notarized, macOS needs one command to trust it. {#if showHomebrew}Homebrew (step
-										1) does this for you.{/if}
+									We have not paid for an Apple developer ID yet, so macOS needs one command to
+									trust the app. {#if showHomebrew}Homebrew (step 1) does it for you.{/if}
 								</p>
 							</div>
 

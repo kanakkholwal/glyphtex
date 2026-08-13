@@ -181,9 +181,8 @@
 						class="landing-lead mt-7 max-w-2xl"
 						in:fly={{ y: 10, duration: 450, delay: 120, easing: cubicOut }}
 					>
-						GlyphTeX runs Tectonic's XeTeX, xdvipdfmx and BibTeX compiled to WebAssembly, with a TeX
-						distribution bundled alongside. The engine is published on npm and the whole thing is
-						GPLv3, so you can pull it into your own project without going through us.
+						Tectonic's XeTeX, xdvipdfmx and BibTeX compiled to WebAssembly, with a TeX distribution
+						bundled alongside. Published on npm, GPLv3.
 					</p>
 
 					<div
@@ -240,24 +239,21 @@
 				>
 					<Reveal variant="up" delay={60}>
 						<p>
-							Every browser LaTeX editor we looked at sent your document to a server to compile it.
-							That is a reasonable engineering choice and a bad deal for the writer. Your thesis
-							leaves your machine, you wait in a queue behind other people's builds, and the day the
-							service goes down your deadline goes with it.
+							Every browser LaTeX editor we looked at compiles on a server. Your thesis leaves your
+							machine, you queue behind other people's builds, and the day the service goes down
+							your deadline goes with it.
 						</p>
 					</Reveal>
 					<Reveal variant="up" delay={120}>
 						<p>
-							So the question was whether a real TeX engine could run locally, in a tab, with no
-							network. Not a subset that handles common documents, and not a renderer that
-							approximates the output. The actual engine, producing the PDF a journal expects.
+							So: could a real TeX engine run in a tab, with no network? Not a subset, not an
+							approximation. The actual engine, producing the PDF a journal expects.
 						</p>
 					</Reveal>
 					<Reveal variant="up" delay={180}>
 						<p>
-							The research said no. Two rounds of it concluded that no Rust LaTeX engine compiles to
-							WebAssembly and we would be cross-compiling a large C codebase by hand. Then we read
-							Tectonic's source properly, and the picture changed.
+							The research said no: we would be cross-compiling a large C codebase by hand. Then we
+							read Tectonic's source properly.
 						</p>
 					</Reveal>
 				</div>
@@ -276,26 +272,21 @@
 					<Reveal variant="up" delay={60}>
 						<p>
 							Tectonic had spent years removing every piece of TeX that touches an operating system.
-							We grepped the vendored C tree to check. Zero live calls to open a file. Zero
-							kpathsea, the path search library every other TeX distribution is built around. No
-							subprocesses, no threads, no signal handlers. Instead there were 458 calls routing all
-							input and output back into Rust through one trait.
+							Zero calls to open a file. Zero kpathsea. No subprocesses, no threads. Instead, 458
+							calls routing all input and output back into Rust through one trait.
 						</p>
 					</Reveal>
 					<Reveal variant="up" delay={120}>
 						<p>
-							That trait is the whole story. Everything a browser makes difficult about TeX, file
-							lookup, was already behind a single interface we could implement ourselves. Tectonic
-							did it to make builds reproducible, not to target the web, and it turned out to be the
-							most web-ready TeX engine in existence. Nobody had noticed because the WebAssembly
-							issue on their tracker had been sitting open since 2018.
+							That trait is the whole story. File lookup, the one thing a browser makes hard, was
+							already behind a single interface. Tectonic did it for reproducible builds, not for
+							the web, and accidentally built the most web-ready TeX engine there is.
 						</p>
 					</Reveal>
 					<Reveal variant="up" delay={180}>
 						<p>
-							We were not first, either. A repository with zero stars had a working Tectonic
-							WebAssembly build sitting in it. We validated it, measured it, and found the engine
-							genuinely worked and the 414 line wrapper around it did not. That was a good trade.
+							We were not first. A repository with zero stars had a working WebAssembly build in it.
+							The engine worked; the 414-line wrapper around it did not. Good trade.
 						</p>
 					</Reveal>
 				</div>
@@ -308,7 +299,7 @@
 					<SectionHeader
 						eyebrow="What went wrong"
 						title="The engine was the easy half."
-						description="A selection from the build log. Most took longer to diagnose than to fix, which usually means a bad assumption rather than a hard problem."
+						description="Most took longer to diagnose than to fix."
 						align="center"
 					/>
 				</Reveal>
@@ -340,11 +331,9 @@
 					<p
 						class="text-muted-foreground mx-auto mt-10 max-w-2xl text-center text-base leading-relaxed"
 					>
-						The pattern underneath all of them is that TeX has no graceful degradation. A missing
-						font is not a smaller font. It is a hang, or a blank page, or an exit code of zero with
-						nothing in the PDF. So the bundle is now built by compiling real documents and feeding
-						back whatever they report missing, and the build fails if any of them cannot produce a
-						PDF.
+						TeX has no graceful degradation. A missing font is not a smaller font: it is a hang, a
+						blank page, or exit code zero with nothing in the PDF. So the bundle is built by
+						compiling real documents and feeding back whatever they report missing.
 					</p>
 				</Reveal>
 			</Container>
@@ -381,9 +370,8 @@
 
 				<Reveal variant="up" delay={420}>
 					<p class="text-muted-foreground mt-8 text-center text-sm">
-						Everything is resolved before step 01, because a TeX file lookup is synchronous and
-						there is nothing to await inside one. That single constraint is why the bundle is
-						prebuilt rather than fetched.
+						A TeX file lookup is synchronous, so everything resolves before step 01. That one
+						constraint is why the bundle is prebuilt rather than fetched.
 					</p>
 				</Reveal>
 			</Container>
@@ -395,7 +383,7 @@
 					<SectionHeader
 						eyebrow="The landscape"
 						title="The projects that got here first."
-						description="Browser LaTeX is over a decade old and every project below is open source. They differ in what they optimise for. Placement, not a scoreboard."
+						description="Every project below is open source. Placement, not a scoreboard."
 						align="center"
 					/>
 				</Reveal>
@@ -446,10 +434,8 @@
 					<p
 						class="text-muted-foreground mx-auto mt-10 max-w-2xl text-center text-base leading-relaxed"
 					>
-						We built on Tectonic, which builds on XeTeX, which builds on TeX. The bundle tooling,
-						the pack format and the wrapper are published under GPLv3 so the next person trying this
-						does not have to rediscover the six bugs above. If the WebAssembly work is useful
-						upstream, we would rather it went there than stayed here.
+						We built on Tectonic, which builds on XeTeX, which builds on TeX. The tooling is GPLv3
+						so the next person does not have to rediscover the six bugs above.
 					</p>
 				</Reveal>
 			</Container>

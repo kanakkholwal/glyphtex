@@ -67,69 +67,44 @@
 		{ icon: IconCloudOff, label: 'Compiles with the network off' }
 	];
 
-	type PainPoint = { id: string; title: string; description: string; icon: typeof IconClock };
+	type PainPoint = { id: string; title: string; icon: typeof IconClock };
 
+	// Titles only. Each one is a complete thought, and a supporting sentence under
+	// every card turned a scannable list into four paragraphs.
 	const painPoints: PainPoint[] = [
-		{
-			id: 'queue',
-			title: 'Compile queue times out before the build finishes.',
-			description:
-				'A 30-second build becomes a 4-minute wait when the shared queue is busy. The deadline does not care.',
-			icon: IconClock
-		},
-		{
-			id: 'license',
-			title: 'Per-seat licensing blocks the whole lab from editing.',
-			description:
-				'Procurement caps the seat count. The undergrad who needs to proofread gets locked out.',
-			icon: IconLock
-		},
-		{
-			id: 'privacy',
-			title: 'Unpublished drafts sit on a third-party server.',
-			description: 'Submission-ready manuscripts leave traces somewhere you do not control.',
-			icon: IconShield
-		},
-		{
-			id: 'history',
-			title: 'Full history is locked behind the paid tier.',
-			description:
-				'Free plans cap revisions. The paper you wrote last year has its diffs paywalled.',
-			icon: IconHistory
-		}
+		{ id: 'queue', title: 'A compile queue between you and your PDF.', icon: IconClock },
+		{ id: 'license', title: 'Per-seat licences that lock out a co-author.', icon: IconLock },
+		{ id: 'privacy', title: 'Unpublished drafts on someone else’s server.', icon: IconShield },
+		{ id: 'history', title: 'Revision history behind a paid tier.', icon: IconHistory }
 	];
 
 	const solutions = [
-		'Compile on your machine, instantly. No queue, no limits.',
-		'Free for everyone, forever. No subscriptions, no per-seat fees.',
-		'Your drafts stay on your own disk. Every revision is tracked.',
-		'Open a browser tab and write. Nothing to install, no account.'
+		'Compiles on your machine. No queue.',
+		'Free forever. No seats to count.',
+		'Drafts stay on your disk.',
+		'Open a tab and write.'
 	];
 
 	const polishFeatures = [
 		{
 			icon: IconWriting,
 			title: 'Auto-compile on save',
-			description:
-				'The PDF rebuilds as you type. You stop writing and the next page is already there.'
+			description: 'The PDF rebuilds as you type.'
 		},
 		{
 			icon: IconStack3,
-			title: 'Live preview beside source',
-			description:
-				'Editor on the left, rendered PDF on the right. Errors land next to the line that caused them.'
+			title: 'Preview beside source',
+			description: 'Errors land next to the line that caused them.'
 		},
 		{
 			icon: IconFileText,
 			title: 'Bibliographies that build',
-			description:
-				'BibTeX runs inside the engine, so \\bibliography and biblatex resolve into a real reference list offline. Only Biber needs the desktop app.'
+			description: 'BibTeX runs in the engine, offline.'
 		},
 		{
 			icon: IconSearch,
 			title: 'Project-wide find',
-			description:
-				'A single keystroke searches every .tex and .bib in the project. Live, with file previews.'
+			description: 'One keystroke searches every .tex and .bib.'
 		}
 	];
 
@@ -137,18 +112,17 @@
 		{
 			icon: IconFileText,
 			title: 'Overleaf export',
-			description: 'Drag the .zip from Overleaf into GlyphTeX. The folder structure stays intact.'
+			description: 'Drop the .zip in. The folder structure stays intact.'
 		},
 		{
 			icon: IconGitBranch,
 			title: 'Git repository',
-			description:
-				'Point GlyphTeX at an existing repo. Pulls, pushes, and history work as expected.'
+			description: 'Point at an existing repo. Pull, push, history.'
 		},
 		{
 			icon: IconFolders,
 			title: 'Plain .tex folder',
-			description: 'A directory of chapters, figures, and a .bib. Open it and start writing.'
+			description: 'Chapters, figures, a .bib. Open it and write.'
 		}
 	];
 
@@ -156,17 +130,17 @@
 		{
 			icon: IconGitBranch,
 			title: 'Built-in Git UI',
-			description: 'Stage, commit, branch, and merge without leaving the editor.'
+			description: 'Stage, commit, branch, merge. Without leaving the editor.'
 		},
 		{
 			icon: IconLock,
-			title: 'No proprietary history tier',
-			description: 'Every revision, forever. The repository is the source of truth.'
+			title: 'No history paywall',
+			description: 'Every revision, forever.'
 		},
 		{
 			icon: IconBrandGithub,
-			title: 'Works with your remote',
-			description: 'GitHub, GitLab, a self-hosted Gitea, or your university server.'
+			title: 'Your own remote',
+			description: 'GitHub, GitLab, Gitea, or a university server.'
 		}
 	];
 
@@ -181,51 +155,35 @@
 		{
 			icon: IconBook2,
 			title: 'PhD students',
-			body: 'Thesis drafts that compile every time. Write on a plane. Submit from your own machine. Keep every revision for the viva defence.'
+			body: 'A thesis that compiles on a plane, with every revision kept for the viva.'
 		},
 		{
 			icon: IconSchool,
-			title: 'Professors and lecturers',
-			body: 'Course notes, handouts, and lab manuals that stay versioned across semesters. Hand the source to a TA and they can edit it locally.'
+			title: 'Professors',
+			body: 'Notes and handouts versioned across semesters. Hand the source to a TA.'
 		},
 		{
 			icon: IconUsersGroup,
 			title: 'Research groups',
-			body: 'A shared repo, individual commits, and one source of truth for the manuscript. No shared Google Doc with a half-written equation.'
+			body: 'One repo, individual commits, one source of truth for the manuscript.'
 		}
 	];
 
 	const institutionCards = [
-		{
-			icon: IconLicense,
-			title: 'No licence server, no renewal',
-			body: 'GPLv3. Nothing to procure, no seats to reconcile at the end of term.'
-		},
-		{
-			icon: IconShieldLock,
-			title: 'Nothing leaves the device',
-			body: 'Drafts compile locally. No vendor holds the data, so there is no processor to assess.'
-		},
+		{ icon: IconLicense, title: 'No licence server', body: 'Nothing to procure or renew.' },
+		{ icon: IconShieldLock, title: 'Nothing leaves the device', body: 'No vendor holds the data.' },
 		{
 			icon: IconDeviceDesktop,
 			title: 'Runs on managed machines',
-			body: 'The browser workspace needs no install and no admin rights. Lab images stay as IT built them.'
+			body: 'No install, no admin rights.'
 		},
-		{
-			icon: IconSchool,
-			title: 'Ready for a whole cohort',
-			body: 'Hand out a template repo and students start writing. No accounts to provision or revoke.'
-		},
+		{ icon: IconSchool, title: 'Ready for a cohort', body: 'No accounts to provision or revoke.' },
 		{
 			icon: IconPackageExport,
 			title: 'Archival by default',
-			body: 'Plain .tex and .bib under Git. A thesis submitted this year still opens in ten.'
+			body: 'Plain .tex and .bib under Git.'
 		},
-		{
-			icon: IconServer,
-			title: 'Self-host the moving parts',
-			body: 'Point the Git proxy at your own host so pushes stay inside the university network.'
-		}
+		{ icon: IconServer, title: 'Self-hostable', body: 'Point the Git proxy at your own host.' }
 	];
 
 	const institutionStats = [
@@ -244,36 +202,28 @@
 	type Faq = { q: string; a: string };
 	const faqs: Faq[] = [
 		{
-			q: 'Can I bring my Overleaf project into GlyphTeX?',
-			a: 'Yes. Export from Overleaf as a .zip and drop it into the workspace. The source stays plain .tex and .bib files; nothing is reshaped, and you can export the folder again at any time.'
+			q: 'Can I bring my Overleaf project across?',
+			a: 'Yes. Export the .zip and drop it in. The source stays plain .tex and .bib, and you can export the folder again any time.'
 		},
 		{
-			q: 'Does GlyphTeX support biblatex and biber?',
-			a: 'BibTeX is compiled into the engine, so \\bibliography and biblatex with backend=bibtex build a real reference list offline. Biber is the exception: a Perl program with no WebAssembly build, so it needs the desktop app. The browser names the one line that fixes it rather than rendering every citation as [?].'
+			q: 'Does biblatex work? What about biber?',
+			a: 'BibTeX is in the engine, so biblatex with backend=bibtex builds a real reference list offline. Biber is a Perl program with no WebAssembly build, so it needs the desktop app. The browser names the one line that fixes it.'
 		},
 		{
 			q: 'Will it handle a 300-page thesis?',
-			a: 'Yes. Projects split across chapters and includes, and the outline panel mirrors the structure. Compiling happens on your own hardware, so the only practical limit is your machine.'
-		},
-		{
-			q: 'Can my students use it without paying?',
-			a: 'Yes. GlyphTeX is GPLv3 open source with no paid tier. There is no seat to count and no licence server to phone home. Your department can deploy it on every lab machine.'
+			a: 'Yes. Chapters and includes work, and the outline mirrors them. It compiles on your hardware, so your machine is the only limit.'
 		},
 		{
 			q: 'Does it work offline?',
-			a: 'Yes. The workspace downloads the engine once, then compiles in the tab with no network at all. Your files live in browser storage on your own device; nothing uploads.'
+			a: 'Yes. The engine downloads once, then compiles in the tab with no network. Files live in browser storage on your device.'
 		},
 		{
 			q: 'How do collaborators share a manuscript?',
-			a: 'Through Git. Stage, commit, browse history, and push to GitHub, GitLab, a self-hosted Gitea, or a university server. Browsers cannot reach Git servers directly, so the workspace relays through a proxy you can point at your own host. You can also just export the folder.'
+			a: 'Through Git. Stage, commit, and push to GitHub, GitLab, Gitea, or a university server. Browsers cannot reach Git directly, so the workspace relays through a proxy you can self-host.'
 		},
 		{
-			q: 'Does SyncTeX work?',
-			a: 'Yes. Click anywhere in the rendered PDF and GlyphTeX jumps back to the line that produced it. The reverse works too: jump from a source line to the matching point in the preview.'
-		},
-		{
-			q: 'Can I run it on a university-managed machine?',
-			a: 'Yes. The workspace is a web page, so there is nothing to install and no admin rights to request. If a managed browser blocks site storage, use a normal window and export your project when you finish.'
+			q: 'Can I use it on a managed university machine?',
+			a: 'Yes. The workspace is a web page, so there is nothing to install and no admin rights to request.'
 		}
 	];
 
@@ -331,7 +281,7 @@
 					</a>
 
 					<h1
-						class="landing-display max-w-4xl"
+						class="landing-display"
 						in:fly={{ y: 10, duration: 450, delay: 60, easing: cubicOut }}
 					>
 						LaTeX, on your machine.
@@ -353,8 +303,7 @@
 						class="landing-lead mt-6 max-w-2xl"
 						in:fly={{ y: 10, duration: 450, delay: 140, easing: cubicOut }}
 					>
-						Compile locally in milliseconds. Track every revision in Git. Nothing ever leaves your
-						device.
+						Compile locally in milliseconds. Version it in Git. Nothing leaves your device.
 					</p>
 
 					<div
@@ -406,9 +355,7 @@
 		<!-- Trust strip. A static grid, not a marquee: nothing here needs to move. -->
 		<Section spacing="tight">
 			<Container size="wide">
-				<p class="text-center text-base text-muted-foreground">
-					Built on the tools your department already trusts
-				</p>
+				<p class="text-center text-base text-muted-foreground">Built on</p>
 
 				<ul class="mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
 					{#each techLogos as logo (logo.slug)}
@@ -451,7 +398,7 @@
 					<SectionHeader
 						eyebrow="Why not cloud LaTeX"
 						title="What you're up against."
-						description="Writing a paper is not the same job as waiting on a compile queue, hunting for a licence seat, or trusting a server with your draft."
+						description="Cloud LaTeX makes you pay for all of this."
 					/>
 				</Reveal>
 
@@ -466,8 +413,7 @@
 									>
 										<Icon class="size-4.5" stroke-width={1.75} />
 									</span>
-									<p class="text-base leading-snug font-semibold text-foreground">{point.title}</p>
-									<p class="text-base leading-relaxed text-muted-foreground">{point.description}</p>
+									<p class="text-base leading-snug font-medium text-foreground">{point.title}</p>
 								</article>
 							</Reveal>
 						{/each}
@@ -511,7 +457,7 @@
 									eyebrow="Step 1 · Open"
 									title="Open the project"
 									emphasis="you already have."
-									description="A folder of plain .tex files. Bring an Overleaf export, a thesis repo, or a blank document. No reshaping, no proprietary format."
+									description="A folder of plain .tex files. Nothing is reshaped."
 								/>
 							</Reveal>
 
@@ -540,7 +486,7 @@
 							eyebrow="Step 2 · Compile"
 							title="The engine runs"
 							emphasis="while you write."
-							description="Tectonic compiles on every save. The PDF stays live, the bibliography stays in sync, and no queue sits between you and the build."
+							description="Tectonic compiles on every save, in the tab. No queue."
 							align="center"
 						/>
 					</Reveal>
@@ -560,7 +506,7 @@
 									eyebrow="Step 3 · Track"
 									title="History stays"
 									emphasis="in your repo."
-									description="Diffs, commits, branches, and remotes live in your own repository. GlyphTeX handles the workflow; the archive stays yours."
+									description="Commits, branches, and remotes live in your repository, not ours."
 								/>
 							</Reveal>
 
@@ -618,7 +564,7 @@
 					<SectionHeader
 						eyebrow="Built for academics"
 						title="For the people who write papers."
-						description="The workflow GlyphTeX is opinionated about is the one researchers already live in: a folder of .tex files, a bibliography, and a long revision history."
+						description="A folder of .tex files, a bibliography, and a long revision history."
 					/>
 				</Reveal>
 
@@ -649,7 +595,7 @@
 								<SectionHeader
 									eyebrow="For universities and institutes"
 									title="Free for the whole department."
-									description="One department or every lab machine on campus. No seat count, no licence server, no contract to renew. Students keep the editor after they graduate."
+									description="One department or every lab machine on campus. Nothing to procure."
 								/>
 							</Reveal>
 
@@ -686,13 +632,6 @@
 									Read the licence
 								</Button>
 							</Reveal>
-
-							<Reveal variant="up" delay={200}>
-								<p class="mt-6 max-w-md text-sm leading-relaxed text-muted-foreground">
-									Tell us the department, the rough number of writers, and what your IT team needs
-									to sign off on. Pilots usually start with one lab.
-								</p>
-							</Reveal>
 						</div>
 
 						<ul class="grid gap-3 sm:grid-cols-2">
@@ -727,7 +666,7 @@
 								<SectionHeader
 									eyebrow="FAQ"
 									title="Questions worth asking first."
-									description="The things people check before moving a thesis to a new editor."
+									description="What people check before moving a thesis."
 								/>
 							</Reveal>
 							<a
@@ -809,8 +748,7 @@
 
 					<Reveal variant="up" delay={70}>
 						<p class="landing-lead mt-6 max-w-xl">
-							Open a thesis in 30 seconds. Compile on your machine. Version it in Git. Free for
-							individuals, free for the lab.
+							Free for you, free for the lab. No account either way.
 						</p>
 					</Reveal>
 
