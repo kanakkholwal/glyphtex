@@ -4,7 +4,7 @@
 	import SiteHeader from '$lib/SiteHeader.svelte';
 	import { Button } from '@glyphtex/ui/button';
 	import { Reveal } from '@glyphtex/ui/reveal';
-	import { Container, HeroBackdrop, Section } from '$lib/landing';
+	import { Container, Section } from '$lib/landing';
 	import {
 		IconAlertTriangle,
 		IconArrowRight,
@@ -17,9 +17,7 @@
 		IconCopy,
 		IconDownload,
 		IconInfoCircle,
-		IconPlayerPlay,
 		IconShieldCheck,
-		IconStar,
 		IconTerminal2
 	} from '@tabler/icons-svelte';
 	import { onMount } from 'svelte';
@@ -31,7 +29,6 @@
 	const repoName = 'glyphtex';
 	const repo = `https://github.com/${owner}/${repoName}`;
 	const releases = `${repo}/releases`;
-	const heroBackdrop = '/background-download.webp';
 
 	type OS = 'mac' | 'windows' | 'linux' | null;
 	let detected = $state<OS>(null);
@@ -158,7 +155,7 @@
 			? [
 					{
 						title: 'Fastest: install with Homebrew',
-						body: 'One line grabs the right build for your chip and keeps it updated. It clears the Gatekeeper warning for you, so you can skip the manual steps below.',
+						body: 'One line grabs the right build for your chip and keeps it updated. It clears the Gatekeeper warning too, so skip the steps below.',
 						code: brewCmd,
 						done: 'Installed this way? You are done. Skip the .dmg steps below.'
 					} satisfies MacStep
@@ -174,12 +171,12 @@
 		},
 		{
 			title: 'Clear the Gatekeeper warning, once',
-			body: 'GlyphTeX is not notarized by Apple yet, so the first launch can show a "GlyphTeX is damaged" or "unidentified developer" message. Run this line in Terminal to clear it. It only removes the quarantine flag macOS adds to downloaded apps.',
+			body: 'GlyphTeX is not notarized yet, so the first launch can warn that it is damaged or from an unidentified developer. This line clears the quarantine flag.',
 			code: quarantineCmd
 		},
 		{
 			title: 'Open GlyphTeX',
-			body: 'Launch it from Applications or Spotlight and you are in. macOS will not ask again. If you ever reinstall from a .dmg and the warning returns, run the same line once more.'
+			body: 'Launch from Applications or Spotlight. macOS will not ask again. Reinstalling from a .dmg brings the warning back, so run the line once more.'
 		}
 	];
 
@@ -253,49 +250,32 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="min-h-screen bg-canvas font-sans text-ink antialiased selection:bg-brand-subtle">
-	<div
-		aria-hidden="true"
-		class="landing-bg-grid landing-bg-grid-fade pointer-events-none fixed inset-0 -z-10 opacity-30"
-	></div>
-
+<div class="min-h-screen bg-background font-sans text-ink antialiased selection:bg-brand-subtle">
 	<SiteHeader />
 
-	<main>
-		<!-- Full-bleed hero, same shape as the home page: photo to the viewport edges,
-		     the fixed nav sitting transparently on top, copy left-aligned in the nav's
-		     own gutters. `min-h-dvh` so mobile chrome can't crop the CTAs. -->
-		<section class="relative min-h-dvh w-full overflow-hidden">
-			<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
+	<main id="main">
+		<section class="relative w-full">
+			<Container size="wide">
+				<div class="mx-auto flex max-w-4xl flex-col items-center pt-36 pb-16 text-center md:pt-44">
+					<span
+						class="bg-warning/10 text-warning mb-6 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+						in:fly={{ y: 8, duration: 400, easing: cubicOut }}
+					>
+						<IconAlertTriangle class="size-4" />
+						Outdated prototype · not maintained
+					</span>
 
-			<div
-				class="relative z-10 mx-auto flex min-h-dvh max-w-7xl flex-col justify-center px-6 pt-28 pb-16 lg:px-10"
-			>
-				<span
-					class="border-warning/40 bg-warning/10 text-warning mb-8 inline-flex w-fit items-center gap-1.5 self-start rounded-full border px-3 py-1.5 text-xs font-semibold"
-					in:fly={{ y: 8, duration: 500, delay: 0, easing: cubicOut }}
-				>
-					<IconAlertTriangle class="size-3.5" />
-					Outdated prototype · not maintained
-				</span>
-
-				<div class="flex max-w-2xl flex-col items-start text-left">
 					<h1
-						class="landing-text-balance text-[2.5rem] leading-[1.05] font-bold tracking-[-0.025em] text-foreground sm:text-5xl md:text-[3rem]"
-						in:fly={{ y: 12, duration: 600, delay: 80, easing: cubicOut }}
+						class="landing-display"
+						in:fly={{ y: 10, duration: 450, delay: 60, easing: cubicOut }}
 					>
 						The desktop app is on hold.
-						<span
-							class="mt-2 block font-serif text-xl font-medium text-foreground/65 italic sm:text-2xl md:text-3xl"
-							style="line-height: 1.15;"
-						>
-							Use the browser workspace.
-						</span>
+						<span class="landing-title-em">Use the browser workspace.</span>
 					</h1>
 
 					<p
-						class="landing-text-pretty mt-5 max-w-xl text-base leading-relaxed font-medium text-foreground/85 sm:text-lg"
-						in:fly={{ y: 12, duration: 600, delay: 160, easing: cubicOut }}
+						class="landing-lead mt-7 max-w-2xl"
+						in:fly={{ y: 10, duration: 450, delay: 120, easing: cubicOut }}
 					>
 						Any builds listed below are old prototypes, kept only for reference. They lag well
 						behind the current editor, get no updates, and are not supported. The browser workspace
@@ -303,49 +283,32 @@
 					</p>
 
 					<div
-						class="mt-6 flex flex-col items-start gap-3 sm:flex-row"
-						in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
+						class="mt-9 flex flex-col items-center gap-3 sm:flex-row"
+						in:fly={{ y: 10, duration: 450, delay: 180, easing: cubicOut }}
 					>
-						<Button
-							href={resolve('/workspace')}
-							variant="default"
-							size="lg"
-							class="group/cta gap-2.5"
-						>
-							<IconPlayerPlay class="size-4" />
-							Try the workspace
-							<IconArrowRight class="size-4 transition-transform group-hover/cta:translate-x-0.5" />
+						<Button href={resolve('/workspace')} variant="brand" size="lg">
+							Open the workspace
 						</Button>
 						<Button
 							href={repo}
 							target="_blank"
 							rel="noopener noreferrer"
-							variant="outline"
+							variant="brand_soft"
 							size="lg"
-							class="group/star gap-2"
 						>
 							<IconBrandGithub class="size-4" />
 							Star the repo
-							<IconStar
-								class="size-3.5 opacity-55 transition-[color,fill,opacity] group-hover/star:fill-warning group-hover/star:text-warning group-hover/star:opacity-100"
-							/>
 						</Button>
 					</div>
 
-					<div
-						class="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium tracking-wide text-foreground/70"
-						in:fly={{ y: 8, duration: 500, delay: 320, easing: cubicOut }}
+					<p
+						class="mt-7 text-base text-muted-foreground"
+						in:fly={{ y: 8, duration: 400, delay: 240, easing: cubicOut }}
 					>
-						<span class="relative flex size-1.5">
-							<span
-								class="bg-brand/60 absolute inline-flex h-full w-full animate-ping rounded-full opacity-70"
-							></span>
-							<span class="bg-brand relative inline-flex size-1.5 rounded-full"></span>
-						</span>
 						Open source · GPLv3 · No account · No telemetry in the app
-					</div>
+					</p>
 				</div>
-			</div>
+			</Container>
 		</section>
 
 		<!--
@@ -353,21 +316,15 @@
 		  detects the visitor's OS and highlights the matching card.
 		  Same chip + reveal pattern as the home page sections.
 		-->
-		<Section bordered>
+		<Section>
 			<Container>
 				<Reveal variant="up" class="mb-12 max-w-3xl">
-					<span
-						class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
-					>
+					<span class="landing-eyebrow">
 						<span class="size-1.5 rounded-full bg-warning"></span>
 						Archived builds
 					</span>
-					<h2
-						class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
-					>
-						Old prototypes. <em class="font-serif italic font-medium text-foreground/65"
-							>Kept for reference only.</em
-						>
+					<h2 class="landing-section-title mt-4">
+						Old prototypes. <em class="landing-title-em not-italic">Kept for reference only.</em>
 					</h2>
 					<p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
 						These builds predate most of the current editor and will not be updated. Expect missing
@@ -486,20 +443,15 @@
 		  first launch needs one short Terminal command. Renders as a
 		  `<details>` accordion so non-Mac visitors don't see it expanded.
 		-->
-		<Section bordered>
+		<Section>
 			<Container>
 				<Reveal variant="up" class="mb-12 max-w-3xl">
-					<span
-						class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
-					>
+					<span class="landing-eyebrow">
 						<span class="size-1.5 rounded-full bg-warning"></span>
 						macOS · one-time step
 					</span>
-					<h2
-						class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
-					>
-						Clearing the <em class="font-serif italic font-medium text-foreground/65">Gatekeeper</em
-						> warning.
+					<h2 class="landing-section-title mt-4">
+						Clearing the <em class="landing-title-em not-italic">Gatekeeper</em> warning.
 					</h2>
 					<p class="mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg">
 						The build isn't Apple-notarized yet, so the first launch needs one short Terminal
@@ -624,18 +576,14 @@
 			<Container>
 				<div class="grid gap-12 lg:grid-cols-2">
 					<Reveal variant="up">
-						<span
-							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
-						>
+						<span class="landing-eyebrow">
 							<span class="size-1.5 rounded-full bg-brand"></span>
 							What the prototype had
 						</span>
 						<h2
 							class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl"
 						>
-							One app. <em class="font-serif italic font-medium text-foreground/65"
-								>Frozen where it stopped.</em
-							>
+							One app. <em class="landing-title-em not-italic">Frozen where it stopped.</em>
 						</h2>
 						<ul class="mt-7 flex flex-col gap-3.5">
 							{#each included as line (line)}
@@ -706,18 +654,14 @@
 					<div
 						class="relative overflow-hidden rounded-[2.2rem] border border-hairline bg-card px-6 py-20 text-center shadow-craft-sm sm:px-10 sm:py-24"
 					>
-						<span
-							class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/70"
-						>
+						<span class="landing-eyebrow">
 							<span class="size-1.5 rounded-full bg-brand"></span>
 							Where the work is
 						</span>
 						<h2
 							class="landing-text-balance mt-4 max-w-3xl mx-auto text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
 						>
-							A real release <em class="font-serif italic font-medium text-foreground/65"
-								>comes later</em
-							>.
+							A real release <em class="landing-title-em not-italic">comes later</em>.
 						</h2>
 						<p
 							class="landing-text-pretty mt-5 max-w-md mx-auto text-base leading-relaxed text-muted-foreground sm:text-lg"

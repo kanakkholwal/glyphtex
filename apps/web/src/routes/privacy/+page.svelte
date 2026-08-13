@@ -1,26 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { Container, Section } from '$lib/landing';
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
-	import { analyticsConfigured, hasOptedOut, setOptedOut } from '$lib/analytics';
 	import { CONTACT_EMAIL, REPO_URL } from '$lib/landing/nav-data';
-	import { Button } from '@glyphtex/ui/button';
-	import { IconCheck, IconDatabaseOff } from '@tabler/icons-svelte';
-
-	// Read on mount, not at init: `hasOptedOut` touches localStorage, which is not
-	// available during SSR.
-	let optedOut = $state(false);
-	let configured = $state(false);
-	onMount(() => {
-		optedOut = hasOptedOut();
-		configured = analyticsConfigured();
-	});
-
-	function toggle(): void {
-		optedOut = !optedOut;
-		setOptedOut(optedOut);
-	}
 
 	const updated = '23 July 2026';
 
@@ -82,7 +64,7 @@
 	<title>Privacy · GlyphTeX</title>
 	<meta
 		name="description"
-		content="What GlyphTeX collects on this website, what it never collects, and how to turn analytics off."
+		content="What GlyphTeX collects on this website, and what it never collects."
 	/>
 </svelte:head>
 
@@ -190,33 +172,6 @@
 						Note that we hold no personal data of yours beyond what Google Analytics collects, and
 						no account to attach it to.
 					</p>
-				</div>
-
-				<div class="border-border bg-card mt-10 rounded-lg border p-4">
-					<h2 class="flex items-center gap-2 text-base font-semibold">
-						<IconDatabaseOff size={18} class="text-brand shrink-0" />
-						Turn analytics off
-					</h2>
-					{#if configured}
-						<p class="text-muted-foreground mt-1.5 text-sm">
-							{optedOut
-								? 'Analytics are off in this browser. Nothing is being sent.'
-								: 'Opting out stops every event on this page, in this browser, immediately.'}
-						</p>
-						<Button variant={optedOut ? 'outline' : 'default'} class="mt-3" onclick={toggle}>
-							{#if optedOut}<IconCheck size={15} />{/if}
-							{optedOut ? 'Analytics are off — turn back on' : 'Opt out of analytics'}
-						</Button>
-						<p class="text-muted-foreground/70 mt-2 text-xs">
-							The choice is saved in this browser’s local storage, so it does not follow you to
-							another browser or a private window.
-						</p>
-					{:else}
-						<p class="text-muted-foreground mt-1.5 text-sm">
-							No analytics provider is configured on this deployment, so nothing is being collected
-							and there is nothing to opt out of.
-						</p>
-					{/if}
 				</div>
 			</div>
 		</Container>

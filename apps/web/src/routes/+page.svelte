@@ -1,22 +1,14 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { track } from '$lib/analytics';
-	import {
-		Container,
-		ContainerTextFlip,
-		HeroBackdrop,
-		MacWindow,
-		Section,
-		ShowcasePanel
-	} from '$lib/landing';
+	import { Container, ContainerTextFlip, Section, ShowcasePanel } from '$lib/landing';
 	import EditorMock from '$lib/landing/EditorMock.svelte';
 	import { CONTACT_EMAIL } from '$lib/landing/nav-data';
 	import PolishGrid from '$lib/landing/PolishGrid.svelte';
-	import { techLogos, type TechLogo } from '$lib/landing/tech-logos';
+	import { techLogos } from '$lib/landing/tech-logos';
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
 	import { Button } from '@glyphtex/ui/button';
-	import { Logo } from '@glyphtex/ui/logo';
 	import { Reveal } from '@glyphtex/ui/reveal';
 	import { SectionHeader } from '@glyphtex/ui/section-header';
 	import {
@@ -27,7 +19,6 @@
 		IconCheck,
 		IconClock,
 		IconCloudOff,
-		IconCpu,
 		IconDeviceDesktop,
 		IconFileText,
 		IconFolders,
@@ -39,7 +30,6 @@
 		IconMail,
 		IconMinus,
 		IconPackageExport,
-		IconPlayerPlay,
 		IconPlus,
 		IconSchool,
 		IconSearch,
@@ -55,22 +45,15 @@
 	import { fly, slide } from 'svelte/transition';
 
 	const repo = 'https://github.com/kanakkholwal/glyphtex';
-	const heroBackdrop = '/background-hero.webp';
-
-	// One label for one destination. The page previously shipped "Try the
-	// workspace" and "Open workspace" as two names for the same URL.
 	const CTA_LABEL = 'Open the workspace';
 	const workspace = resolve('/workspace');
 
-	// Concrete artifacts the committed audience actually writes.
 	const rotatingWords = ['thesis.', 'paper.', 'manuscript.', 'lecture notes.'];
 
 	const reducedMotion =
 		typeof window !== 'undefined' &&
 		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-	// The four promises under the hero CTA. These are the page's only statement
-	// of them — the values strip below deliberately does not repeat them.
 	const heroAssurances = [
 		{ icon: IconInfinity, label: 'Free forever' },
 		{ icon: IconUserOff, label: 'No account' },
@@ -78,25 +61,18 @@
 		{ icon: IconLock, label: 'Files stay on your device' }
 	];
 
-	// Claims the hero does not already make. Three, not five: "no account" and
-	// "files stay on your machine" are above, and saying them twice in 400px of
-	// scroll reads as padding rather than emphasis.
 	const openSourceClaims = [
 		{ icon: IconBrandGithub, label: 'GPLv3 open source' },
 		{ icon: IconGitBranch, label: 'Plain .tex under plain Git' },
 		{ icon: IconCloudOff, label: 'Compiles with the network off' }
 	];
 
-	// Cloud-LaTeX frictions researchers actually hit. Four, not six: the two that
-	// were cut ("browser tab open all day", "dropped connection") restated the
-	// queue and network points, and the sixth was being masked into
-	// unreadability by a decorative fade anyway.
 	type PainPoint = { id: string; title: string; description: string; icon: typeof IconClock };
 
 	const painPoints: PainPoint[] = [
 		{
 			id: 'queue',
-			title: 'Compile queue times out before the document is done.',
+			title: 'Compile queue times out before the build finishes.',
 			description:
 				'A 30-second build becomes a 4-minute wait when the shared queue is busy. The deadline does not care.',
 			icon: IconClock
@@ -123,8 +99,6 @@
 		}
 	];
 
-	// Plain wording: researchers care that the file compiles, not which engine
-	// compiles it. No engine name, no licence acronym, no jargon.
 	const solutions = [
 		'Compile on your machine, instantly. No queue, no limits.',
 		'Free for everyone, forever. No subscriptions, no per-seat fees.',
@@ -221,33 +195,31 @@
 		}
 	];
 
-	// Every card answers a question a department head or an IT reviewer actually
-	// asks before a tool reaches a lab machine.
 	const institutionCards = [
 		{
 			icon: IconLicense,
 			title: 'No licence server, no renewal',
-			body: 'GPLv3. Nothing to procure, no seats to reconcile at the end of term, and no renewal that lands mid-semester.'
+			body: 'GPLv3. Nothing to procure, no seats to reconcile at the end of term.'
 		},
 		{
 			icon: IconShieldLock,
 			title: 'Nothing leaves the device',
-			body: 'Grant applications, unpublished results, and student drafts compile locally. There is no vendor holding the data, so there is no processor to assess.'
+			body: 'Drafts compile locally. No vendor holds the data, so there is no processor to assess.'
 		},
 		{
 			icon: IconDeviceDesktop,
 			title: 'Runs on managed machines',
-			body: 'The browser workspace needs no install and no admin rights. Lab images stay exactly as IT built them.'
+			body: 'The browser workspace needs no install and no admin rights. Lab images stay as IT built them.'
 		},
 		{
 			icon: IconSchool,
 			title: 'Ready for a whole cohort',
-			body: 'Hand out a template repo and students start writing. No accounts to provision, none to revoke when they graduate.'
+			body: 'Hand out a template repo and students start writing. No accounts to provision or revoke.'
 		},
 		{
 			icon: IconPackageExport,
 			title: 'Archival by default',
-			body: 'Plain .tex and .bib under Git. A thesis submitted this year still opens in ten, with or without GlyphTeX.'
+			body: 'Plain .tex and .bib under Git. A thesis submitted this year still opens in ten.'
 		},
 		{
 			icon: IconServer,
@@ -277,7 +249,7 @@
 		},
 		{
 			q: 'Does GlyphTeX support biblatex and biber?',
-			a: 'BibTeX is compiled into the engine, so \\bibliography and \\bibliographystyle build a real bibliography in the browser, offline. biblatex works too, with \\usepackage[backend=bibtex]{biblatex}. Biber is the exception: it is a Perl program with no WebAssembly build, so biblatex left on its default backend needs the desktop app — and the browser tells you which one-line change fixes it rather than rendering every citation as [?]. A manual thebibliography list compiles fine in either.'
+			a: 'BibTeX is compiled into the engine, so \\bibliography and biblatex with backend=bibtex build a real reference list offline. Biber is the exception: a Perl program with no WebAssembly build, so it needs the desktop app. The browser names the one line that fixes it rather than rendering every citation as [?].'
 		},
 		{
 			q: 'Will it handle a 300-page thesis?',
@@ -293,7 +265,7 @@
 		},
 		{
 			q: 'How do collaborators share a manuscript?',
-			a: 'Through Git. Source control is built into both the desktop app and the browser workspace: stage, commit, browse history, and push to GitHub, GitLab, a self-hosted Gitea, or a university server. Because browsers cannot reach Git servers directly, the workspace relays fetch and push through a proxy you can point at your own host. You can also just export the folder.'
+			a: 'Through Git. Stage, commit, browse history, and push to GitHub, GitLab, a self-hosted Gitea, or a university server. Browsers cannot reach Git servers directly, so the workspace relays through a proxy you can point at your own host. You can also just export the folder.'
 		},
 		{
 			q: 'Does SyncTeX work?',
@@ -305,7 +277,6 @@
 		}
 	];
 
-	// First item open so the pattern reads on load.
 	let openFaq = $state<number | null>(0);
 </script>
 
@@ -315,42 +286,23 @@
 		name="description"
 		content="GlyphTeX is a local-first LaTeX editor for academic writing. Plain .tex projects, compiled on your machine, versioned with Git. GPLv3, free for individuals and institutions."
 	/>
-	<!-- The hero photo is the LCP element and is painted from CSS, so the browser
-	     cannot discover it during preload scanning without this hint. -->
-	<link rel="preload" as="image" href={heroBackdrop} fetchpriority="high" />
 </svelte:head>
 
-{#snippet techLogo(logo: TechLogo, duplicate = false)}
-	<a
-		href={logo.href}
-		target="_blank"
-		rel="noopener noreferrer"
-		class="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-2.5 transition-colors duration-200"
-		aria-hidden={duplicate ? 'true' : undefined}
-		tabindex={duplicate ? -1 : undefined}
-	>
-		<svg viewBox="0 0 24 24" class="size-5" fill="currentColor" aria-hidden="true">
-			<path d={logo.path} />
-		</svg>
-		<span class="text-sm font-semibold tracking-tight">{logo.name}</span>
-	</a>
-{/snippet}
-
 {#snippet featureList(items: typeof openSources)}
-	<ul class="mt-10 space-y-6">
+	<ul class="mt-10 space-y-7">
 		{#each items as item, i (item.title)}
 			{@const Icon = item.icon}
 			<Reveal as="li" variant="left" delay={i * 60} class="flex items-start gap-4">
 				<span
-					class="landing-card mt-0.5 grid size-11 shrink-0 place-items-center rounded-xl text-brand"
+					class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand"
 				>
-					<Icon class="size-5" stroke-width={1.75} />
+					<Icon class="size-4.5" stroke-width={1.75} />
 				</span>
-				<span class="pt-1">
-					<span class="block text-md font-semibold tracking-tight text-foreground"
+				<span>
+					<span class="block text-base font-semibold tracking-tight text-foreground"
 						>{item.title}</span
 					>
-					<span class="mt-1.5 block text-sm leading-relaxed text-muted-foreground"
+					<span class="mt-1.5 block text-base leading-relaxed text-muted-foreground"
 						>{item.description}</span
 					>
 				</span>
@@ -359,58 +311,54 @@
 	</ul>
 {/snippet}
 
-<div class="min-h-screen bg-canvas font-sans text-ink antialiased selection:bg-brand-subtle">
-	<div
-		aria-hidden="true"
-		class="landing-bg-grid landing-bg-grid-fade pointer-events-none fixed inset-0 -z-10 opacity-30"
-	></div>
-
+<div class="min-h-screen bg-background font-sans text-ink antialiased selection:bg-brand-subtle">
 	<SiteHeader />
 
 	<main id="main">
-		<!--
-		  Hero. One primary action; the engine link is a quiet text link rather than
-		  a second lg button, so the page has a single obvious next step.
-		-->
+		<!-- Hero. White, one primary action, and the product immediately underneath. -->
 		<section class="relative w-full overflow-hidden">
-			<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
+			<Container size="wide">
+				<div class="flex flex-col items-center pt-36 pb-16 text-center md:pt-44">
+					<a
+						href={repo}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="mb-8 inline-flex items-center gap-1.5 rounded-full bg-surface-soft px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+						in:fly={{ y: 8, duration: 400, easing: cubicOut }}
+					>
+						<IconBrandGithub class="size-4" />
+						Open source · GPLv3
+					</a>
 
-			<div
-				class="relative z-10 mx-auto flex min-h-[min(100dvh,52rem)] max-w-7xl flex-col justify-center px-6 pt-32 pb-20 lg:px-10"
-			>
-				<a
-					href={repo}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="mb-8 inline-flex w-fit items-center gap-1.5 self-start rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-xs font-medium text-brand transition-colors hover:bg-brand/15"
-					in:fly={{ y: 8, duration: 400, delay: 0, easing: cubicOut }}
-				>
-					<IconBrandGithub class="size-3.5" />
-					Open source · GPLv3
-				</a>
-
-				<div class="flex max-w-2xl flex-col items-start text-left">
 					<h1
-						class="landing-display"
+						class="landing-display max-w-4xl"
 						in:fly={{ y: 10, duration: 450, delay: 60, easing: cubicOut }}
 					>
 						LaTeX, on your machine.
-						<span class="landing-title-em mt-3 text-[0.5em] leading-tight">
-							Write your
-							<ContainerTextFlip words={rotatingWords} interval={2600} tone="brand" />
-						</span>
 					</h1>
 
+					<!-- The rotator sits on its own centred line at lead size, not inside
+					     the display type: an animated width inside a `text-wrap: balance`
+					     H1 cannot be laid out predictably, and at 80px it clipped. Centred
+					     and alone, it grows and shrinks symmetrically and moves nothing. -->
 					<p
-						class="landing-text-pretty mt-6 max-w-xl text-base leading-relaxed text-foreground/85 sm:text-lg"
-						in:fly={{ y: 10, duration: 450, delay: 120, easing: cubicOut }}
+						class="mt-6 text-xl font-medium text-ink sm:text-2xl"
+						in:fly={{ y: 10, duration: 450, delay: 100, easing: cubicOut }}
 					>
-						A local-first LaTeX editor for academic writing. Open a thesis, a paper, or a set of
-						lecture notes. Compile on your machine. Track every revision in Git.
+						Write your
+						<ContainerTextFlip words={rotatingWords} interval={2600} tone="brand" />
+					</p>
+
+					<p
+						class="landing-lead mt-6 max-w-2xl"
+						in:fly={{ y: 10, duration: 450, delay: 140, easing: cubicOut }}
+					>
+						Compile locally in milliseconds. Track every revision in Git. Nothing ever leaves your
+						device.
 					</p>
 
 					<div
-						class="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center"
+						class="mt-9 flex flex-col items-center gap-3 sm:flex-row"
 						in:fly={{ y: 10, duration: 450, delay: 180, easing: cubicOut }}
 					>
 						<!-- Desktop download is hidden until the app is no longer a prototype.
@@ -419,74 +367,75 @@
 							href={workspace}
 							variant="brand"
 							size="lg"
-							class="group/cta gap-2.5"
 							onclick={() => track('cta_workspace_click', { location: 'hero' })}
 						>
-							<IconPlayerPlay class="size-4" />
 							{CTA_LABEL}
-							<IconArrowRight class="size-4 transition-transform group-hover/cta:translate-x-0.5" />
 						</Button>
-						<a
+						<Button
 							href={resolve('/engine')}
-							class="group/engine inline-flex items-center gap-2 text-sm font-semibold text-foreground/80 underline-offset-4 transition-colors hover:text-foreground hover:underline"
+							variant="brand_soft"
+							size="lg"
 							onclick={() => track('cta_engine_click', { location: 'hero' })}
 						>
-							<IconCpu class="size-4 text-brand" />
 							How the engine works
-							<IconArrowRight
-								class="size-3.5 transition-transform group-hover/engine:translate-x-0.5"
-							/>
-						</a>
+						</Button>
 					</div>
 
 					<ul
-						class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-xs font-medium text-foreground/80"
+						class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-sm font-medium text-muted-foreground"
 						in:fly={{ y: 8, duration: 400, delay: 240, easing: cubicOut }}
 					>
 						{#each heroAssurances as item (item.label)}
 							{@const Icon = item.icon}
 							<li class="inline-flex items-center gap-1.5">
-								<Icon class="text-brand size-3.5 shrink-0" stroke-width={2} />
+								<Icon class="text-brand size-4 shrink-0" stroke-width={2} />
 								{item.label}
 							</li>
 						{/each}
 					</ul>
 				</div>
-			</div>
-		</section>
 
-		<!--
-		  Trust strip. The marquee and the old values row were two separate bands
-		  saying adjacent things; they are one band now. The logo track holds two
-		  copies of the list so translateX(-50%) wraps seamlessly, and the second
-		  copy is hidden from assistive tech and the tab order.
-		-->
-		<Section spacing="tight" bordered>
-			<Container size="wide">
-				<p class="landing-eyebrow mb-8 justify-center text-muted-foreground">Built on</p>
-
-				<div
-					class="marquee-mask relative overflow-hidden"
-					style="mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);"
-				>
-					<div class="marquee-track flex w-max items-center gap-12 whitespace-nowrap">
-						{#each techLogos as logo (logo.slug)}
-							{@render techLogo(logo)}
-						{/each}
-						{#each techLogos as logo (`dup-${logo.slug}`)}
-							{@render techLogo(logo, true)}
-						{/each}
+				<div class="pb-8" in:fly={{ y: 16, duration: 500, delay: 300, easing: cubicOut }}>
+					<div class="landing-shot overflow-hidden">
+						<EditorMock />
 					</div>
 				</div>
+			</Container>
+		</section>
+
+		<!-- Trust strip. A static grid, not a marquee: nothing here needs to move. -->
+		<Section spacing="tight">
+			<Container size="wide">
+				<p class="text-center text-base text-muted-foreground">
+					Built on the tools your department already trusts
+				</p>
+
+				<ul class="mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
+					{#each techLogos as logo (logo.slug)}
+						<li>
+							<a
+								href={logo.href}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="flex items-center gap-2.5 text-foreground/70 transition-colors hover:text-foreground"
+							>
+								<svg viewBox="0 0 24 24" class="size-5" fill="currentColor" aria-hidden="true">
+									<path d={logo.path} />
+								</svg>
+								<span class="text-base font-semibold tracking-tight">{logo.name}</span>
+							</a>
+						</li>
+					{/each}
+				</ul>
 
 				<Reveal variant="up">
 					<ul
-						class="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-hairline pt-8"
+						class="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-hairline pt-10"
 					>
 						{#each openSourceClaims as claim (claim.label)}
 							{@const Icon = claim.icon}
-							<li class="text-foreground/80 inline-flex items-center gap-2 text-sm font-medium">
-								<Icon class="text-brand size-4 shrink-0" stroke-width={1.75} />
+							<li class="inline-flex items-center gap-2 text-base text-muted-foreground">
+								<Icon class="text-brand size-4.5 shrink-0" stroke-width={1.75} />
 								{claim.label}
 							</li>
 						{/each}
@@ -495,159 +444,103 @@
 			</Container>
 		</Section>
 
-		<!--
-		  Why not cloud LaTeX. Pain points on the left, the answer on the right,
-		  a hairline connector between them. The icon chips are one neutral
-		  treatment: the previous six hardcoded hues (amber/orange/rose/violet/
-		  sky/pink) encoded nothing and collapsed into one colour under
-		  deuteranopia.
-		-->
-		<Section id="why" bordered>
+		<!-- Why not cloud LaTeX. -->
+		<Section id="why">
 			<Container size="wide">
 				<Reveal variant="up">
 					<SectionHeader
 						eyebrow="Why not cloud LaTeX"
 						title="What you're up against."
-						description="The job of writing a paper is not the job of waiting on a remote compile queue, hunting for a license seat, or trusting a third-party server with an unpublished draft."
-						align="center"
+						description="Writing a paper is not the same job as waiting on a compile queue, hunting for a licence seat, or trusting a server with your draft."
 					/>
 				</Reveal>
 
-				<div class="mt-14 grid gap-10 lg:grid-cols-[1.1fr_auto_1fr] lg:items-center lg:gap-16">
-					<ul class="flex flex-col gap-3">
+				<div class="mt-14 grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+					<ul class="grid gap-3 sm:grid-cols-2">
 						{#each painPoints as point, i (point.id)}
 							{@const Icon = point.icon}
-							<Reveal as="li" variant="left" delay={i * 60}>
-								<article
-									class="landing-card landing-card-hover flex items-start gap-3.5 rounded-xl p-4"
-								>
+							<Reveal as="li" variant="up" delay={i * 60} class="h-full">
+								<article class="landing-card flex h-full flex-col gap-3 p-6">
 									<span
-										class="grid size-9 shrink-0 place-items-center rounded-lg bg-foreground/5 text-muted-foreground"
+										class="grid size-9 place-items-center rounded-lg bg-background text-muted-foreground"
 									>
-										<Icon class="size-4" stroke-width={1.75} />
+										<Icon class="size-4.5" stroke-width={1.75} />
 									</span>
-									<div class="min-w-0 flex-1">
-										<p class="text-foreground text-sm leading-snug font-medium">{point.title}</p>
-										<p class="text-muted-foreground mt-1 text-xs leading-relaxed">
-											{point.description}
-										</p>
-									</div>
+									<p class="text-base leading-snug font-semibold text-foreground">{point.title}</p>
+									<p class="text-base leading-relaxed text-muted-foreground">{point.description}</p>
 								</article>
 							</Reveal>
 						{/each}
 					</ul>
 
-					<!-- Centre connector. The logo anchors the seam; the old version wrapped
-					     it in an infinite `animate-ping` ring that was not gated behind
-					     prefers-reduced-motion. -->
-					<div class="hidden w-14 flex-col items-center self-stretch lg:flex" aria-hidden="true">
-						<div
-							class="h-full w-px flex-1 bg-linear-to-b from-transparent via-hairline to-transparent"
-						></div>
-						<span
-							class="my-2 grid size-16 place-items-center rounded-2xl bg-surface-card shadow-craft-lg ring-1 ring-hairline"
-						>
-							<Logo size="md" text={false} badge={false} tone="gradient" />
-						</span>
-						<div
-							class="h-full w-px flex-1 bg-linear-to-b from-transparent via-hairline to-transparent"
-						></div>
-					</div>
+					<Reveal variant="up" delay={120} class="h-full">
+						<article class="landing-card flex h-full flex-col gap-5 p-8">
+							<span class="landing-eyebrow">What GlyphTeX does instead</span>
+							<h3 class="landing-card-title">Every one of those, answered locally.</h3>
 
-					<Reveal variant="right" delay={120}>
-						<article class="landing-card flex flex-col gap-4 rounded-2xl p-6">
-							<header class="flex items-center gap-2">
-								<span
-									class="inline-flex items-center gap-1.5 rounded-full bg-foreground/5 px-2.5 py-0.5 text-xs font-semibold tracking-wider uppercase text-muted-foreground"
-								>
-									<span class="size-1.5 rounded-full bg-success"></span>
-									All in place
-								</span>
-							</header>
-
-							<h3 class="landing-card-title">Fixes that ship with GlyphTeX</h3>
-
-							<ul class="flex flex-col gap-2.5 pt-1">
+							<ul class="flex flex-col gap-3.5 pt-1">
 								{#each solutions as solution (solution)}
-									<li class="flex items-start gap-2.5 text-sm leading-relaxed text-foreground/85">
+									<li class="flex items-start gap-3 text-base leading-relaxed text-foreground">
 										<span
-											class="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-brand/12 text-brand"
+											class="mt-1 grid size-4.5 shrink-0 place-items-center rounded-full bg-brand text-brand-foreground"
 										>
-											<IconCheck class="size-2.5" stroke-width={3} />
+											<IconCheck class="size-3" stroke-width={3} />
 										</span>
 										<span>{solution}</span>
 									</li>
 								{/each}
 							</ul>
 
-							<footer class="mt-auto flex items-center gap-2.5 border-t border-hairline pt-4">
-								<span
-									class="bg-foreground/5 text-muted-foreground grid size-7 shrink-0 place-items-center rounded-full"
-								>
-									<IconBrandGithub class="size-3.5" />
-								</span>
-								<p class="text-xs text-muted-foreground">
-									<span class="text-foreground font-medium">Read it before you trust it</span><br />
-									GPLv3 · No account · Runs offline
-								</p>
-							</footer>
+							<p class="mt-auto pt-4 text-base text-muted-foreground">
+								GPLv3 · No account · Runs offline
+							</p>
 						</article>
 					</Reveal>
 				</div>
 			</Container>
 		</Section>
 
-		<!--
-		  The workflow, in three beats: open, compile, track. The page used to run
-		  these three showcases AND a separate "How it works / three steps" section
-		  that restated them as text cards — one of the two duplicate fanned-tile
-		  layouts. That section is gone; these three are the workflow.
-		-->
-		<Section id="open" spacing="tight" bordered>
+		<!-- The workflow, in three beats: open, compile, track. -->
+		<Section id="open" spacing="tight">
 			<Container size="wide">
-				<ShowcasePanel tone="neutral">
-					<div class="grid items-center gap-16 lg:grid-cols-12 lg:gap-24">
-						<div class="lg:col-span-6">
+				<ShowcasePanel padding="none" class="p-6 sm:p-10 md:p-14">
+					<div class="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+						<div>
 							<Reveal variant="up">
 								<SectionHeader
 									eyebrow="Step 1 · Open"
 									title="Open the project"
 									emphasis="you already have."
-									description="A GlyphTeX project is a folder of plain .tex files. Bring an Overleaf export, a thesis repo, or a fresh blank document. No reshaping, no proprietary format."
+									description="A folder of plain .tex files. Bring an Overleaf export, a thesis repo, or a blank document. No reshaping, no proprietary format."
 								/>
 							</Reveal>
 
 							{@render featureList(openSources)}
 
 							<div class="mt-10">
-								<Button href={workspace} variant="brand" class="gap-2">
-									<IconPlayerPlay class="size-4" />
-									{CTA_LABEL}
-								</Button>
+								<Button href={workspace} variant="brand">{CTA_LABEL}</Button>
 							</div>
 						</div>
 
-						<div class="lg:col-span-6">
-							<Reveal variant="morph">
-								<MacWindow title="GlyphTeX">
-									<EditorMock />
-								</MacWindow>
-							</Reveal>
-						</div>
+						<Reveal variant="morph">
+							<div class="landing-shot overflow-hidden">
+								<EditorMock />
+							</div>
+						</Reveal>
 					</div>
 				</ShowcasePanel>
 			</Container>
 		</Section>
 
-		<Section id="compile" spacing="tight" bordered>
+		<Section id="compile" spacing="tight">
 			<Container size="wide">
-				<ShowcasePanel tone="neutral">
+				<ShowcasePanel padding="none" class="p-6 sm:p-10 md:p-14">
 					<Reveal variant="up">
 						<SectionHeader
 							eyebrow="Step 2 · Compile"
 							title="The engine runs"
 							emphasis="while you write."
-							description="Tectonic compiles your project on every save. The PDF stays live, the bibliography stays in sync, and there is no remote queue between you and the build."
+							description="Tectonic compiles on every save. The PDF stays live, the bibliography stays in sync, and no queue sits between you and the build."
 							align="center"
 						/>
 					</Reveal>
@@ -657,86 +550,75 @@
 			</Container>
 		</Section>
 
-		<Section id="track" spacing="tight" bordered>
+		<Section id="track" spacing="tight">
 			<Container size="wide">
-				<ShowcasePanel tone="neutral">
-					<div class="grid items-start gap-14 lg:grid-cols-12 lg:gap-20">
-						<div class="lg:col-span-5">
+				<ShowcasePanel padding="none" class="p-6 sm:p-10 md:p-14">
+					<div class="grid items-start gap-14 lg:grid-cols-2 lg:gap-20">
+						<div>
 							<Reveal variant="up">
 								<SectionHeader
 									eyebrow="Step 3 · Track"
 									title="History stays"
 									emphasis="in your repo."
-									description="Diffs, commits, branches, and remotes live in your own repository. GlyphTeX helps with the workflow; the archive still belongs to you and the tools you already trust."
+									description="Diffs, commits, branches, and remotes live in your own repository. GlyphTeX handles the workflow; the archive stays yours."
 								/>
 							</Reveal>
 
 							{@render featureList(trackFeatures)}
 						</div>
 
-						<div class="lg:col-span-7">
-							<Reveal variant="morph">
-								<div class="landing-card overflow-hidden rounded-2xl p-7 sm:p-9">
-									<span
-										class="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface-soft px-3 py-1.5 text-xs font-semibold tracking-[0.16em] uppercase text-muted-foreground"
-									>
-										<IconGitBranch class="size-3" />
-										thesis · history
-									</span>
+						<Reveal variant="morph">
+							<div class="landing-shot p-7 sm:p-8">
+								<span
+									class="inline-flex items-center gap-2 rounded-md bg-surface-soft px-2.5 py-1 font-mono text-sm text-muted-foreground"
+								>
+									<IconGitBranch class="size-3.5" />
+									thesis · history
+								</span>
 
-									<h3 class="landing-card-title mt-6 text-2xl">
-										Every commit is a sentence you can roll back to.
-									</h3>
-									<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-										Same Git you would use from the command line. The editor just makes the common
-										cases a click away.
-									</p>
+								<h3 class="landing-card-title mt-6">
+									Every commit is a sentence you can roll back to.
+								</h3>
+								<p class="mt-2 text-base leading-relaxed text-muted-foreground">
+									The same Git you would use from the command line. The editor just makes the common
+									cases a click away.
+								</p>
 
-									<!-- Static visual aid, not a live feed. -->
-									<ul class="mt-7 flex flex-col gap-3">
-										{#each commits as commit (commit.hash)}
-											<li
-												class="flex items-center gap-3 rounded-lg border border-hairline bg-surface-soft px-3.5 py-2.5"
-											>
-												<span class="size-2 shrink-0 rounded-full bg-success"></span>
-												<div class="min-w-0 flex-1">
-													<div class="truncate text-sm font-medium text-foreground">
-														{commit.msg}
-													</div>
-													<div class="mt-0.5 font-mono text-xs text-muted-foreground">
-														{commit.hash} · {commit.when}
-													</div>
+								<ul class="mt-7 flex flex-col gap-2.5">
+									{#each commits as commit (commit.hash)}
+										<li class="flex items-center gap-3 rounded-lg bg-surface-soft px-3.5 py-3">
+											<span class="size-2 shrink-0 rounded-full bg-success"></span>
+											<div class="min-w-0 flex-1">
+												<div class="truncate text-base font-medium text-foreground">
+													{commit.msg}
 												</div>
-												<span
-													class="rounded-md border border-hairline bg-surface-card px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
-												>
-													main
-												</span>
-											</li>
-										{/each}
-									</ul>
-								</div>
-							</Reveal>
-						</div>
+												<div class="mt-0.5 font-mono text-sm text-muted-foreground">
+													{commit.hash} · {commit.when}
+												</div>
+											</div>
+											<span
+												class="rounded-md bg-background px-2 py-0.5 font-mono text-sm text-muted-foreground"
+											>
+												main
+											</span>
+										</li>
+									{/each}
+								</ul>
+							</div>
+						</Reveal>
 					</div>
 				</ShowcasePanel>
 			</Container>
 		</Section>
 
-		<!--
-		  Built for academics. The fanned dummy-avatar tiles are gone: they were a
-		  second copy of the How-it-works layout, and three invented silhouettes
-		  were carrying no information.
-		-->
-		<Section id="audience" bordered>
+		<!-- Built for academics. -->
+		<Section id="audience">
 			<Container size="wide">
 				<Reveal variant="up">
 					<SectionHeader
 						eyebrow="Built for academics"
-						title="Opinionated where it matters,"
-						emphasis="out of your way everywhere else."
+						title="For the people who write papers."
 						description="The workflow GlyphTeX is opinionated about is the one researchers already live in: a folder of .tex files, a bibliography, and a long revision history."
-						align="center"
 					/>
 				</Reveal>
 
@@ -744,12 +626,12 @@
 					{#each audienceCards as card, i (card.title)}
 						{@const Icon = card.icon}
 						<Reveal as="li" variant="up" delay={i * 70} class="h-full">
-							<article class="landing-card landing-card-hover flex h-full flex-col rounded-3xl p-8">
-								<span class="grid size-11 place-items-center rounded-2xl bg-brand/10 text-brand">
+							<article class="landing-card landing-card-hover flex h-full flex-col p-8">
+								<span class="grid size-10 place-items-center rounded-xl bg-background text-brand">
 									<Icon class="size-5" stroke-width={1.75} />
 								</span>
 								<h3 class="landing-card-title mt-6">{card.title}</h3>
-								<p class="mt-3 text-sm leading-relaxed text-muted-foreground">{card.body}</p>
+								<p class="mt-3 text-base leading-relaxed text-muted-foreground">{card.body}</p>
 							</article>
 						</Reveal>
 					{/each}
@@ -757,33 +639,28 @@
 			</Container>
 		</Section>
 
-		<!--
-		  Institutions. This absorbs the old `#compare` band, which sat directly
-		  underneath making the identical "free for individuals, free for the
-		  institution" argument with two more cards.
-		-->
-		<Section id="institutions" spacing="tight" bordered>
+		<!-- Institutions. Absorbs what used to be a separate pricing band. -->
+		<Section id="institutions" spacing="tight">
 			<Container size="wide">
-				<ShowcasePanel tone="neutral">
-					<div class="grid gap-14 lg:grid-cols-12 lg:gap-16">
-						<div class="lg:col-span-5">
+				<ShowcasePanel padding="none" class="p-6 sm:p-10 md:p-14">
+					<div class="grid gap-14 lg:grid-cols-[5fr_7fr] lg:gap-16">
+						<div>
 							<Reveal variant="up">
 								<SectionHeader
 									eyebrow="For universities and institutes"
-									title="Give the whole department LaTeX."
-									emphasis="Pay nothing for it."
-									description="One department, one faculty, or every lab machine on campus. There is no seat count, no licence server to run, and no contract to renew. The editor your students use for a thesis is the one they keep after they graduate."
+									title="Free for the whole department."
+									description="One department or every lab machine on campus. No seat count, no licence server, no contract to renew. Students keep the editor after they graduate."
 								/>
 							</Reveal>
 
 							<Reveal variant="up" delay={80}>
-								<dl class="mt-10 grid grid-cols-3 gap-4">
+								<dl class="mt-10 grid grid-cols-3 gap-6">
 									{#each institutionStats as stat (stat.label)}
-										<div class="border-l border-brand/25 pl-4">
-											<dt class="text-brand text-2xl font-semibold tracking-tight">
+										<div>
+											<dt class="text-3xl font-semibold tracking-tight text-foreground">
 												{stat.value}
 											</dt>
-											<dd class="text-muted-foreground mt-1 text-xs leading-snug">
+											<dd class="mt-1.5 text-sm leading-snug text-muted-foreground">
 												{stat.label}
 											</dd>
 										</div>
@@ -795,68 +672,54 @@
 								<Button
 									href={institutionMailto}
 									variant="brand"
-									size="lg"
-									class="group/inst gap-2.5"
 									onclick={() => track('cta_institution_click', { location: 'institutions' })}
 								>
 									<IconMail class="size-4" />
 									Talk to us about your campus
-									<IconArrowRight
-										class="size-4 transition-transform group-hover/inst:translate-x-0.5"
-									/>
 								</Button>
 								<Button
 									href="{repo}/blob/main/LICENSE"
 									target="_blank"
 									rel="noopener noreferrer"
-									variant="outline"
-									size="lg"
-									class="gap-2.5"
+									variant="brand_soft"
 								>
-									<IconLicense class="size-4 text-brand" />
 									Read the licence
 								</Button>
 							</Reveal>
 
 							<Reveal variant="up" delay={200}>
-								<p class="text-muted-foreground mt-5 max-w-md text-xs leading-relaxed">
+								<p class="mt-6 max-w-md text-sm leading-relaxed text-muted-foreground">
 									Tell us the department, the rough number of writers, and what your IT team needs
 									to sign off on. Pilots usually start with one lab.
 								</p>
 							</Reveal>
 						</div>
 
-						<div class="lg:col-span-7">
-							<ul class="grid gap-3 sm:grid-cols-2">
-								{#each institutionCards as card, i (card.title)}
-									{@const Icon = card.icon}
-									<Reveal as="li" variant="up" delay={i * 50} class="h-full">
-										<article class="landing-card landing-card-hover h-full rounded-2xl p-5">
-											<span
-												class="bg-brand/10 text-brand grid size-9 place-items-center rounded-lg"
-											>
-												<Icon class="size-4.5" stroke-width={1.75} />
-											</span>
-											<h3 class="mt-4 text-md font-semibold tracking-tight text-foreground">
-												{card.title}
-											</h3>
-											<p class="text-muted-foreground mt-2 text-sm leading-relaxed">
-												{card.body}
-											</p>
-										</article>
-									</Reveal>
-								{/each}
-							</ul>
-						</div>
+						<ul class="grid gap-3 sm:grid-cols-2">
+							{#each institutionCards as card, i (card.title)}
+								{@const Icon = card.icon}
+								<Reveal as="li" variant="up" delay={i * 50} class="h-full">
+									<article class="landing-card-outline landing-card-hover h-full p-6">
+										<span class="bg-brand/10 text-brand grid size-9 place-items-center rounded-lg">
+											<Icon class="size-4.5" stroke-width={1.75} />
+										</span>
+										<h3 class="mt-4 text-base font-semibold tracking-tight text-foreground">
+											{card.title}
+										</h3>
+										<p class="mt-2 text-base leading-relaxed text-muted-foreground">
+											{card.body}
+										</p>
+									</article>
+								</Reveal>
+							{/each}
+						</ul>
 					</div>
 				</ShowcasePanel>
 			</Container>
 		</Section>
 
-		<Section id="faq" bordered>
+		<Section id="faq">
 			<Container>
-				<!-- 5/7 rather than 4/8: at col-span-4 the heading broke onto four lines
-				     against a half-empty answer column. -->
 				<div class="grid gap-12 lg:grid-cols-12 lg:gap-14">
 					<div class="lg:col-span-5">
 						<div class="lg:sticky lg:top-28">
@@ -864,33 +727,32 @@
 								<SectionHeader
 									eyebrow="FAQ"
 									title="Questions worth asking first."
-									description="Everything here restates a claim made further up the page, so nothing in the answers is a promise the editor doesn't already keep."
+									description="The things people check before moving a thesis to a new editor."
 								/>
 							</Reveal>
 							<a
 								href="{repo}/issues"
 								target="_blank"
 								rel="noopener noreferrer"
-								class="text-brand group/faq mt-6 inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
+								class="group/tile mt-8 inline-flex items-center gap-2.5 text-base font-medium text-foreground"
 							>
-								<IconBrandGithub class="size-4" />
+								<span class="landing-arrow">
+									<IconArrowRight class="size-4" />
+								</span>
 								Ask something else
-								<IconArrowRight
-									class="size-3.5 transition-transform group-hover/faq:translate-x-0.5"
-								/>
 							</a>
 						</div>
 					</div>
 
 					<div class="lg:col-span-7">
-						<ul class="space-y-3">
+						<ul class="space-y-2">
 							{#each faqs as faq, i (faq.q)}
 								{@const open = openFaq === i}
 								<li>
 									<div
-										class="overflow-hidden rounded-2xl border transition-colors duration-200 {open
-											? 'border-hairline bg-surface-card'
-											: 'border-hairline bg-surface-card/50 hover:bg-surface-card'}"
+										class="overflow-hidden rounded-xl transition-colors duration-200 {open
+											? 'bg-surface-soft'
+											: 'hover:bg-surface-soft'}"
 									>
 										<button
 											type="button"
@@ -902,18 +764,17 @@
 										>
 											<span aria-hidden="true" class="mt-0.5 shrink-0 text-muted-foreground">
 												{#if open}
-													<IconMinus class="size-4" />
+													<IconMinus class="size-4.5" />
 												{:else}
-													<IconPlus class="size-4" />
+													<IconPlus class="size-4.5" />
 												{/if}
 											</span>
-											<span class="flex-1 text-md font-semibold tracking-tight text-foreground">
+											<span class="flex-1 text-base font-semibold tracking-tight text-foreground">
 												{faq.q}
 											</span>
 										</button>
-										<!-- The panel element always exists: `aria-controls` above must
-										     resolve to a real node even while the answer is collapsed. A
-										     `region` needs an accessible name, so it borrows the question. -->
+										<!-- The panel always exists: `aria-controls` must resolve to a real
+										     node even while the answer is collapsed. -->
 										<div
 											id={`faq-panel-${i}`}
 											role="region"
@@ -923,7 +784,7 @@
 											{#if open}
 												<p
 													transition:slide={{ duration: reducedMotion ? 0 : 200, easing: cubicOut }}
-													class="pb-5 pl-12 pr-5 text-sm leading-relaxed text-muted-foreground"
+													class="pb-5 pl-[3.35rem] pr-5 text-base leading-relaxed text-muted-foreground"
 												>
 													{faq.a}
 												</p>
@@ -938,89 +799,44 @@
 			</Container>
 		</Section>
 
-		<!--
-		  Closing CTA. Set at section-title size, not larger than the H1 — the
-		  previous version closed at 64px against a 48px hero headline.
-		-->
-		<Section id="cta" spacing="tight" bordered>
+		<!-- Closing CTA: a full-bleed tinted band, matching the section rhythm. -->
+		<section id="cta" class="bg-surface-soft">
 			<Container size="wide">
-				<ShowcasePanel tone="neutral" padding="loose">
-					<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
-						<Reveal variant="up">
-							<SectionHeader
-								eyebrow="Ready for early adopters"
-								title="Your next paper, written locally."
-								emphasis="No queue, no license."
-								description="Open a thesis in 30 seconds. Compile on your machine. Version it in Git. Free for individuals, free for the lab."
-								align="center"
-							/>
-						</Reveal>
+				<div class="flex flex-col items-center py-28 text-center md:py-36">
+					<Reveal variant="up">
+						<h2 class="landing-section-title">Your next paper, written locally.</h2>
+					</Reveal>
 
-						<Reveal variant="up" delay={80} class="mt-10">
-							<Button
-								href={workspace}
-								variant="brand"
-								size="lg"
-								class="group/final gap-2.5"
-								onclick={() => track('cta_workspace_click', { location: 'final_cta' })}
-							>
-								<IconPlayerPlay class="size-4" />
-								{CTA_LABEL}
-								<IconArrowRight
-									class="size-4 transition-transform group-hover/final:translate-x-0.5"
-								/>
-							</Button>
-						</Reveal>
+					<Reveal variant="up" delay={70}>
+						<p class="landing-lead mt-6 max-w-xl">
+							Open a thesis in 30 seconds. Compile on your machine. Version it in Git. Free for
+							individuals, free for the lab.
+						</p>
+					</Reveal>
 
-						<Reveal variant="up" delay={140} class="mt-6">
-							<a
-								href={repo}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="group/src inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-							>
-								Or read the source on GitHub
-								<IconArrowRight
-									class="size-3.5 transition-transform group-hover/src:translate-x-0.5"
-								/>
-							</a>
-						</Reveal>
-					</div>
-				</ShowcasePanel>
+					<Reveal variant="up" delay={140} class="mt-9 flex flex-wrap justify-center gap-3">
+						<Button
+							href={workspace}
+							variant="brand"
+							size="lg"
+							onclick={() => track('cta_workspace_click', { location: 'final_cta' })}
+						>
+							{CTA_LABEL}
+						</Button>
+						<Button
+							href={repo}
+							target="_blank"
+							rel="noopener noreferrer"
+							variant="brand_soft"
+							size="lg"
+						>
+							Read the source
+						</Button>
+					</Reveal>
+				</div>
 			</Container>
-		</Section>
+		</section>
 	</main>
 
 	<SiteFooter />
 </div>
-
-<style>
-	/*
-	 * Trust-logo marquee. The list is duplicated in markup so the track can
-	 * translate by exactly half its width and wrap without a JS tween.
-	 */
-	@keyframes hero-marquee {
-		from {
-			transform: translateX(0);
-		}
-		to {
-			transform: translateX(-50%);
-		}
-	}
-
-	.marquee-track {
-		animation: hero-marquee 38s linear infinite;
-	}
-
-	/* Otherwise a logo slides out from under the cursor before it can be clicked. */
-	.marquee-mask:hover .marquee-track,
-	.marquee-mask:focus-within .marquee-track {
-		animation-play-state: paused;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.marquee-track {
-			animation: none;
-		}
-	}
-</style>

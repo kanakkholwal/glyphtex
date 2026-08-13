@@ -4,13 +4,13 @@
 
 	/**
 	 * The one section-heading treatment for the marketing pages. Sizes come from
-	 * `.landing-section-title`; nothing should hand-roll `text-3xl sm:text-4xl…`
-	 * again. `emphasis` renders the second-line voice run.
+	 * `.landing-section-title`; nothing should hand-roll `text-3xl sm:text-4xl…`.
 	 */
 	type Props = {
+		/** Sentence-case label above the title. Not uppercase, not brand-coloured. */
 		eyebrow?: string;
 		title: string;
-		/** Second line, set in the display-serif voice. No faux italic. */
+		/** Second line, in the muted display voice. */
 		emphasis?: string;
 		description?: string;
 		align?: "left" | "center";
@@ -35,13 +35,13 @@
 <div
 	data-slot="section-header"
 	class={cn(
-		"flex flex-col gap-5",
+		"flex flex-col",
 		align === "center" && "items-center text-center mx-auto max-w-3xl",
 		className,
 	)}
 >
 	{#if eyebrow}
-		<span class="landing-eyebrow">{eyebrow}</span>
+		<span class="landing-eyebrow mb-3">{eyebrow}</span>
 	{/if}
 
 	<svelte:element this={Tag} class="landing-section-title">
@@ -54,7 +54,7 @@
 	{#if description}
 		<p
 			class={cn(
-				"landing-text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg",
+				"landing-text-pretty mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg",
 				align === "center" ? "max-w-xl" : "max-w-2xl",
 			)}
 		>
@@ -63,7 +63,7 @@
 	{/if}
 
 	{#if actions}
-		<div class={cn("mt-2 flex flex-wrap gap-3", align === "center" && "justify-center")}>
+		<div class={cn("mt-8 flex flex-wrap gap-3", align === "center" && "justify-center")}>
 			{@render actions()}
 		</div>
 	{/if}

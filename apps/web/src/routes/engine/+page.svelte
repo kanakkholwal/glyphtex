@@ -1,26 +1,16 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { track } from '$lib/analytics';
-	import { Container, HeroBackdrop, Section } from '$lib/landing';
+	import { Container, Section } from '$lib/landing';
 	import { REPO_URL } from '$lib/landing/nav-data';
 	import SiteFooter from '$lib/SiteFooter.svelte';
 	import SiteHeader from '$lib/SiteHeader.svelte';
 	import { Button } from '@glyphtex/ui/button';
 	import { Reveal } from '@glyphtex/ui/reveal';
 	import { SectionHeader } from '@glyphtex/ui/section-header';
-	import {
-		IconArrowRight,
-		IconBrandGithub,
-		IconBrandNpm,
-		IconCheck,
-		IconCpu,
-		IconFileText,
-		IconX
-	} from '@tabler/icons-svelte';
+	import { IconBrandGithub, IconBrandNpm, IconCheck, IconX } from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { fly } from 'svelte/transition';
-
-	const heroBackdrop = '/background-section.webp';
 
 	// Measured against the artifacts this site ships, not estimated. Re-measure
 	// with `pnpm engine:refresh` and scripts/check-size-budget.sh before editing.
@@ -168,46 +158,28 @@
 	/>
 </svelte:head>
 
-<div class="bg-canvas text-ink selection:bg-brand-subtle min-h-screen font-sans antialiased">
-	<div
-		aria-hidden="true"
-		class="landing-bg-grid landing-bg-grid-fade pointer-events-none fixed inset-0 -z-10 opacity-30"
-	></div>
-
+<div class="bg-background text-ink selection:bg-brand-subtle min-h-screen font-sans antialiased">
 	<SiteHeader />
 
-	<main>
-		<section class="relative w-full overflow-hidden">
-			<HeroBackdrop src={heroBackdrop} tone="default" wash="left" />
+	<main id="main">
+		<section class="relative w-full">
+			<Container size="wide">
+				<div class="mx-auto flex max-w-4xl flex-col items-center pt-36 pb-16 text-center md:pt-44">
+					<span class="landing-eyebrow mb-4" in:fly={{ y: 8, duration: 400, easing: cubicOut }}>
+						The engine
+					</span>
 
-			<div
-				class="relative z-10 mx-auto flex max-w-7xl flex-col justify-center px-6 pt-36 pb-20 lg:px-10"
-			>
-				<span
-					class="text-foreground/70 mb-8 inline-flex w-fit items-center gap-2 self-start text-[11px] font-semibold tracking-[0.18em] uppercase"
-					in:fly={{ y: 8, duration: 500, easing: cubicOut }}
-				>
-					<span class="bg-brand size-1.5 rounded-full"></span>
-					The engine
-				</span>
-
-				<div class="flex max-w-3xl flex-col items-start text-left">
 					<h1
-						class="landing-text-balance text-foreground text-[2.5rem] leading-[1.05] font-bold tracking-[-0.025em] sm:text-5xl md:text-[3.25rem]"
-						in:fly={{ y: 12, duration: 600, delay: 80, easing: cubicOut }}
+						class="landing-display"
+						in:fly={{ y: 10, duration: 450, delay: 60, easing: cubicOut }}
 					>
-						A real TeX engine, not an approximation of one.
-						<span
-							class="text-foreground/65 mt-3 block font-serif text-xl font-medium italic sm:text-2xl md:text-3xl"
-							style="line-height: 1.15;"
-						>
-							Here is what it took to get one into a browser tab.
-						</span>
+						A real TeX engine.
+						<span class="landing-title-em">In a browser tab.</span>
 					</h1>
 
 					<p
-						class="landing-text-pretty text-foreground/85 mt-6 max-w-2xl text-base leading-relaxed font-medium sm:text-lg"
-						in:fly={{ y: 12, duration: 600, delay: 160, easing: cubicOut }}
+						class="landing-lead mt-7 max-w-2xl"
+						in:fly={{ y: 10, duration: 450, delay: 120, easing: cubicOut }}
 					>
 						GlyphTeX runs Tectonic's XeTeX, xdvipdfmx and BibTeX compiled to WebAssembly, with a TeX
 						distribution bundled alongside. The engine is published on npm and the whole thing is
@@ -215,49 +187,49 @@
 					</p>
 
 					<div
-						class="mt-9 flex flex-col gap-3 sm:flex-row"
-						in:fly={{ y: 12, duration: 600, delay: 240, easing: cubicOut }}
+						class="mt-9 flex flex-col items-center gap-3 sm:flex-row"
+						in:fly={{ y: 10, duration: 450, delay: 180, easing: cubicOut }}
 					>
 						<Button
 							size="lg"
+							variant="brand"
 							href={resolve('/workspace')}
 							onclick={() => track('engine_cta_workspace')}
 						>
 							Open the workspace
-							<IconArrowRight class="size-4" />
 						</Button>
-						<Button size="lg" variant="outline" href={REPO_URL} target="_blank" rel="noreferrer">
+						<Button size="lg" variant="brand_soft" href={REPO_URL} target="_blank" rel="noreferrer">
 							<IconBrandGithub class="size-4" />
 							Read the source
 						</Button>
 					</div>
 
 					<div
-						class="border-hairline bg-surface-card/80 mt-6 flex w-fit items-center gap-3 rounded-xl border px-4 py-2.5 font-mono text-sm backdrop-blur-sm"
-						in:fly={{ y: 12, duration: 600, delay: 300, easing: cubicOut }}
+						class="bg-surface-soft mt-8 flex w-fit items-center gap-3 rounded-lg px-4 py-2.5 font-mono text-base"
+						in:fly={{ y: 10, duration: 450, delay: 240, easing: cubicOut }}
 					>
 						<IconBrandNpm class="text-muted-foreground size-4 shrink-0" />
-						<code class="text-foreground/90">npm i glyphtex-engine</code>
+						<code class="text-foreground">npm i glyphtex-engine</code>
 					</div>
 				</div>
 
 				<div
-					class="border-hairline mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border md:grid-cols-4"
-					in:fly={{ y: 16, duration: 700, delay: 360, easing: cubicOut }}
+					class="landing-surface grid grid-cols-2 gap-8 p-8 md:grid-cols-4 md:p-10"
+					in:fly={{ y: 16, duration: 500, delay: 300, easing: cubicOut }}
 				>
 					{#each stats as stat (stat.label)}
-						<div class="bg-surface-card/80 flex flex-col gap-1 p-5 backdrop-blur-sm">
-							<span class="text-foreground text-2xl font-semibold tracking-tight sm:text-3xl">
+						<div class="flex flex-col gap-1">
+							<span class="text-foreground text-3xl font-semibold tracking-tight">
 								{stat.value}
 							</span>
-							<span class="text-muted-foreground text-xs font-medium">{stat.label}</span>
+							<span class="text-muted-foreground text-sm leading-snug">{stat.label}</span>
 						</div>
 					{/each}
 				</div>
-			</div>
+			</Container>
 		</section>
 
-		<Section bordered>
+		<Section>
 			<Container size="narrow">
 				<Reveal variant="up">
 					<SectionHeader eyebrow="Where this started" title="We wanted the compiler to be ours." />
@@ -292,13 +264,10 @@
 			</Container>
 		</Section>
 
-		<Section bordered>
+		<Section>
 			<Container size="narrow">
 				<Reveal variant="up">
-					<SectionHeader
-						eyebrow="Why Tectonic"
-						title="It had already solved the hard part, for unrelated reasons."
-					/>
+					<SectionHeader eyebrow="Why Tectonic" title="Tectonic had already solved it." />
 				</Reveal>
 
 				<div
@@ -333,13 +302,13 @@
 			</Container>
 		</Section>
 
-		<Section bordered>
+		<Section>
 			<Container>
 				<Reveal variant="up">
 					<SectionHeader
 						eyebrow="What went wrong"
 						title="The engine was the easy half."
-						description="A selection from the build log. Most of these took longer to diagnose than to fix, and every one of them taught us something about how TeX fails."
+						description="A selection from the build log. Most took longer to diagnose than to fix, which usually means a bad assumption rather than a hard problem."
 						align="center"
 					/>
 				</Reveal>
@@ -348,28 +317,18 @@
 					{#each buildLog as entry, i (entry.symptom)}
 						<Reveal variant="up" delay={40 + i * 50}>
 							<div
-								class="border-hairline bg-surface-card hover:bg-surface-soft grid grid-cols-1 gap-x-8 gap-y-4 rounded-2xl border p-6 transition-colors sm:p-7 md:grid-cols-3 motion-reduce:transition-none"
+								class="landing-card-outline landing-card-hover grid grid-cols-1 gap-x-8 gap-y-4 rounded-xl p-6 transition-colors sm:p-7 md:grid-cols-3 motion-reduce:transition-none"
 							>
 								<div class="flex flex-col gap-2">
-									<span
-										class="text-muted-foreground/70 text-[10px] font-semibold tracking-[0.16em] uppercase"
-									>
-										Symptom
-									</span>
+									<span class="text-muted-foreground text-sm"> Symptom </span>
 									<p class="text-foreground font-mono text-sm leading-relaxed">{entry.symptom}</p>
 								</div>
 								<div class="flex flex-col gap-2">
-									<span
-										class="text-muted-foreground/70 text-[10px] font-semibold tracking-[0.16em] uppercase"
-									>
-										Cause
-									</span>
+									<span class="text-muted-foreground text-sm"> Cause </span>
 									<p class="text-muted-foreground text-sm leading-relaxed">{entry.cause}</p>
 								</div>
 								<div class="flex flex-col gap-2">
-									<span class="text-brand/80 text-[10px] font-semibold tracking-[0.16em] uppercase">
-										Fix
-									</span>
+									<span class="text-brand text-sm font-medium"> Fix </span>
 									<p class="text-muted-foreground text-sm leading-relaxed">{entry.fix}</p>
 								</div>
 							</div>
@@ -391,7 +350,7 @@
 			</Container>
 		</Section>
 
-		<Section bordered>
+		<Section>
 			<Container>
 				<Reveal variant="up">
 					<SectionHeader
@@ -406,7 +365,7 @@
 					{#each pipeline as item, i (item.step)}
 						<Reveal variant="up" delay={60 + i * 70}>
 							<li
-								class="border-hairline bg-surface-card hover:bg-surface-soft flex h-full flex-col gap-3 rounded-3xl border p-6 transition-colors motion-reduce:transition-none"
+								class="landing-card-outline landing-card-hover flex h-full flex-col gap-3 rounded-xl p-6 transition-colors motion-reduce:transition-none"
 							>
 								<span
 									class="text-brand font-mono text-xs font-semibold tracking-[0.18em] tabular-nums"
@@ -430,13 +389,13 @@
 			</Container>
 		</Section>
 
-		<Section bordered>
+		<Section>
 			<Container>
 				<Reveal variant="up">
 					<SectionHeader
 						eyebrow="The landscape"
-						title="Where this sits among the projects that got here first."
-						description="Browser LaTeX has been worked on for over a decade and every project below is open source. They made different trade-offs because they were solving different problems. This is placement, not a scoreboard."
+						title="The projects that got here first."
+						description="Browser LaTeX is over a decade old and every project below is open source. They differ in what they optimise for. Placement, not a scoreboard."
 						align="center"
 					/>
 				</Reveal>
@@ -496,7 +455,7 @@
 			</Container>
 		</Section>
 
-		<Section bordered>
+		<Section>
 			<Container size="narrow">
 				<Reveal variant="up">
 					<SectionHeader
@@ -510,9 +469,7 @@
 				<div class="mt-12 flex flex-col gap-3">
 					{#each limits as limit, i (limit.title)}
 						<Reveal variant="up" delay={80 + i * 80}>
-							<div
-								class="border-hairline bg-surface-card flex items-start gap-4 rounded-2xl border p-6"
-							>
+							<div class="landing-card-outline flex items-start gap-4 rounded-xl p-6">
 								<div
 									class={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
 										limit.works ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'
@@ -537,50 +494,32 @@
 			</Container>
 		</Section>
 
-		<Section>
-			<Container size="narrow">
-				<div class="flex flex-col items-center text-center">
+		<section class="bg-surface-soft">
+			<Container size="wide">
+				<div class="flex flex-col items-center py-28 text-center md:py-36">
 					<Reveal variant="up">
-						<div
-							class="border-hairline bg-surface-soft text-foreground/70 mb-8 flex size-12 items-center justify-center rounded-2xl border"
-						>
-							<IconCpu class="size-6" />
-						</div>
+						<h2 class="landing-section-title">Open a document and watch it compile.</h2>
 					</Reveal>
-					<Reveal variant="up" delay={80}>
-						<h2
-							class="landing-text-balance text-foreground text-3xl leading-[1.05] font-semibold tracking-tight sm:text-4xl"
-						>
-							Open a document and watch it compile.
-						</h2>
-					</Reveal>
-					<Reveal variant="up" delay={140}>
-						<p
-							class="landing-text-pretty text-muted-foreground mt-5 max-w-xl text-base leading-relaxed sm:text-lg"
-						>
+					<Reveal variant="up" delay={70}>
+						<p class="landing-lead mt-6 max-w-xl">
 							No account, no queue, no upload. The compiler downloads once and then belongs to your
 							browser.
 						</p>
 					</Reveal>
-					<Reveal variant="up" delay={200}>
-						<div class="mt-9 flex flex-col gap-3 sm:flex-row">
-							<Button
-								size="lg"
-								href={resolve('/workspace')}
-								onclick={() => track('engine_cta_workspace_footer')}
-							>
-								Open the workspace
-								<IconArrowRight class="size-4" />
-							</Button>
-							<Button size="lg" variant="outline" href={resolve('/')}>
-								<IconFileText class="size-4" />
-								Back to the overview
-							</Button>
-						</div>
+					<Reveal variant="up" delay={140} class="mt-9 flex flex-wrap justify-center gap-3">
+						<Button
+							size="lg"
+							variant="brand"
+							href={resolve('/workspace')}
+							onclick={() => track('engine_cta_workspace_footer')}
+						>
+							Open the workspace
+						</Button>
+						<Button size="lg" variant="brand_soft" href={resolve('/')}>Back to the overview</Button>
 					</Reveal>
 				</div>
 			</Container>
-		</Section>
+		</section>
 	</main>
 
 	<SiteFooter />

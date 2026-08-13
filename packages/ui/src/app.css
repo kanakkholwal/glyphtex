@@ -1,4 +1,3 @@
-/* Self-hosted variable fonts — bundled, so they work fully offline. */
 @import "@fontsource-variable/inter/index.css";
 @import "@fontsource-variable/geist/index.css";
 @import "@fontsource-variable/geist-mono/index.css";
@@ -9,20 +8,15 @@
 @import "tw-animate-css";
 @plugin '@tailwindcss/typography';
 
-/* Dark mode is class-driven (mode-watcher toggles `.dark` on <html>). */
 @custom-variant dark (&:is(.dark *));
 
-/* Scan this package's component sources. Explicit @source overrides the
-   default node_modules ignore so classes resolve when consumed cross-package. */
 @source './';
 
-/* --- Light --- */
 :root {
-  /* The three-step neutral ramp every surface and label derives from. Exact hex,
-     not oklch: these are fixed brand values, not computed steps off a base. */
-  --ink: #292929; /* titles, active nav, primary text */
-  --ink-body: #5d5d5d; /* descriptions, inactive nav, secondary text */
-  --ink-muted: #9e9e9e; /* section labels, placeholders, metadata */
+  --ink: #292929;
+  --ink-body: #5d5d5d;
+  --ink-muted: #9e9e9e;
+  --ink-muted-strong: #6f6d6a;
 
   --background: #ffffff;
   --foreground: var(--ink);
@@ -32,8 +26,6 @@
   --popover: #ffffff;
   --popover-foreground: var(--ink);
 
-  /* Primary = ink. The CTA is a near-black pill, never a saturated fill; the
-     brand blue stays a signal colour (links, focus, selection) in --brand. */
   --primary: #292929;
   --primary-foreground: #ffffff;
 
@@ -41,59 +33,45 @@
   --secondary-foreground: var(--ink);
   --muted: #f5f5f5;
   --muted-foreground: var(--ink-body);
-  /* Third step, for labels that must recede. Still clears 4.5:1 on both white
-     and --canvas; --ink-muted (#9e9e9e, 2.68:1) does not and is decor-only. */
+
   --faint: #6f6f6f;
-  --accent: #f0f0f0; /* hover / pressed surface */
+  --accent: #f0f0f0;
   --accent-foreground: var(--ink);
 
-  /* The scheme's raw #ff0000 / #ebc700 are squiggle colours: garish as UI fills and
-     the yellow fails contrast on white, so these are the same hues re-lightened. */
   --destructive: #d13438;
   --destructive-foreground: #ffffff;
-  --success: #067d17; /* palette.string — already usable as-is */
+  --success: #067d17;
   --success-foreground: #ffffff;
   --warning: #9a7b00;
   --warning-foreground: #ffffff;
-  --info: #00627a; /* palette.func */
+  --info: #00627a;
   --info-foreground: #ffffff;
 
-  /* Lines & focus. Structure comes from hairlines, not from surface contrast:
-     the panels are all white, so the 1px rules are what separate them. */
-  --border: #ebebeb;
-  /* Field FILL only. Lines come from --border — the two were one token, which
-     stops working once every surface is white. */
-  --input: #f5f5f5;
-  --ring: #1750eb; /* palette.number — the scheme's saturated blue */
+  --border: #e6e6e4;
 
-  /* The recessed floor an inset sidebar sits on — the white content panel lifts
-     off it. Same value as --canvas; a white-on-white rail has no shape. */
+  --input: #f5f5f5;
+  --ring: #1750eb;
+
   --sidebar: #f6f5f3;
   --sidebar-foreground: var(--ink-body);
   --sidebar-primary: var(--ink);
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f0f0f0;
   --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: #ebebeb;
+  --sidebar-border: #e6e6e4;
   --sidebar-ring: #1750eb;
 
-  /* Charts — brand blue + a neutral ramp. */
   --chart-1: oklch(0.62 0.185 246);
   --chart-2: oklch(0.2103 0.0059 285.89);
   --chart-3: oklch(0.5517 0.0138 285.94);
   --chart-4: oklch(0.7118 0.0129 286.07);
   --chart-5: oklch(0.72 0.165 246);
 
-  /* The one signal colour: links, focus rings, selection, active/branded. Never
-     hijack the neutral --accent (a hover/surface token) for brand colour.
-     L=0.52 is the contrast floor, not a taste call: the old 0.62 put white-on-brand
-     at 3.55:1 and 11px brand labels at 3.26:1. This lands 5.43 / 4.98. */
   --brand: oklch(0.52 0.17 250);
   --brand-foreground: oklch(1 0 0);
   --brand-hover: oklch(0.46 0.165 250);
   --brand-subtle: oklch(0.52 0.17 250 / 0.1);
-  /* Official brand gradient — logo / app icon / hero illustrations ONLY.
-	   Never use gradients in general application UI (see DESIGN.md). */
+
   --brand-gradient: linear-gradient(
     135deg,
     #33aaff 0%,
@@ -101,7 +79,6 @@
     #007acc 100%
   );
 
-  /* Marketing accents — editorial/illustrative landing moments only. */
   --signal-cyan: oklch(0.7832 0.1259 208.88);
   --signal-cyan-soft: oklch(0.7832 0.1259 208.88 / 0.14);
   --signal-blue: oklch(0.6274 0.1918 259.39);
@@ -109,33 +86,24 @@
   --signal-lime: oklch(0.7016 0.1215 111.84);
   --signal-lime-soft: oklch(0.7016 0.1215 111.84 / 0.16);
 
-  /* Marketing surface mirrors (landing layer) — neutral; hairlines are SOLID
-	   neutral lines so the landing reads as a crisp structural grid. */
-  --canvas: #f6f5f3; /* warm off-white page backdrop behind the app frame */
-  --surface-soft: #f5f5f5;
+  --canvas: #f6f5f3;
+  --surface-soft: #f7f7f5;
   --surface-card: #ffffff;
-  --surface-strong: #f0f0f0;
-  /* Surface-lift scale (trace-mvp): canvas → surface-1 → surface-2 (lift, not
-	   opacity). `inverse-canvas` is the polarity-flipped CTA surface. */
-  --surface-1: #ffffff;
-  --surface-2: #f5f5f5;
-  --inverse-canvas: #191a1c; /* the dark scheme's canvas — one system */
-  --hairline: #ebebeb;
-  --hairline-soft: #f2f2f2;
-  --border-subtle: #f2f2f2;
+  --surface-strong: #efefed;
 
-  /* Base radius — 8px, the nav/control step. Cards step up to --radius-2xl and
-     CTAs go pill; see the radius scale in @theme inline. */
+  --surface-1: #ffffff;
+  --surface-2: #f7f7f5;
+  --inverse-canvas: #191a1c;
+  --hairline: #e6e6e4;
+  --hairline-soft: #efefed;
+  --border-subtle: #efefed;
+
   --radius: 0.5rem;
 
-  /* Icon sizing, by role. Raw vars for reference — components use the matching
-     Tailwind step (size-3.5 / size-4 / size-5) so the class stays greppable. */
-  --icon-nav: 14px; /* menus, tree rows, inline affordances */
-  --icon-control: 16px; /* toolbar buttons */
-  --icon-card: 20px; /* card headers, activity rail, feature rows */
+  --icon-nav: 14px;
+  --icon-control: 16px;
+  --icon-card: 20px;
 
-  /* Raw vars, NOT in @theme: Tailwind's --spacing-* namespace would clobber
-     max-w-*, text-*, etc. Use as `padding: var(--space-lg)`. */
   --space-hair: 1px;
   --space-xxs: 0.25rem;
   --space-xs: 0.5rem;
@@ -146,56 +114,46 @@
   --space-xxl: 2.5rem;
   --space-section: 6rem;
 
-  /* Display tracking, as em so it survives Dynamic Type / user zoom. Tracking is
-     size-specific: a single letter-spacing is wrong at one end of the scale. */
-  --tracking-display: -0.032em; /* 48px+ */
-  --tracking-headline: -0.024em; /* 30-40px */
-  --tracking-title: -0.018em; /* 20-24px */
+  --tracking-display: -0.044em;
+  --tracking-headline: -0.015em;
+  --tracking-title: -0.014em;
 }
 
-/* --- Dark --- */
 .dark {
-  /* Literals from `islandDarkPalette` in `lib/editor/jetbrains-monaco.ts` — edit the
-     palette, not these, or the editor and its chrome drift apart. Hex, not oklch. */
-  --background: #191a1c; /* palette.bg */
-  --foreground: #bcbec4; /* palette.fg */
-  --card: #1f2024; /* palette.lineHighlight — one step off the canvas */
+  --background: #191a1c;
+  --foreground: #bcbec4;
+  --card: #1f2024;
   --card-foreground: #bcbec4;
-  --surface: #26282c; /* palette.widgetBg — the "layer 1" island surface */
-  --popover: #26282c; /* popovers sit where the suggest widget sits */
+  --surface: #26282c;
+  --popover: #26282c;
   --popover-foreground: #bcbec4;
 
-  /* Primary = ink emphasis. The brand stays blue, in --brand. */
-  --primary: #ced0d6; /* palette.caret — the scheme's brightest neutral */
+  --primary: #ced0d6;
   --primary-foreground: #191a1c;
 
   --secondary: #26282c;
   --secondary-foreground: #bcbec4;
   --muted: #1f2024;
-  /* Deliberately one step brighter than palette.comment (#7a7e85): that value is
-     4.27:1 on --canvas, and this token carries body copy, not syntax. */
+
   --muted-foreground: #8b9098;
-  /* Section labels only, but still above 4.5:1 on canvas and on --card. */
+
   --faint: #878b93;
-  --accent: #33353b; /* palette.widgetBorder — hover/pressed surface */
+  --accent: #33353b;
   --accent-foreground: #bcbec4;
 
-  /* The scheme's own squiggle colours, so the Problems panel matches the squiggle. */
-  --destructive: #fa6675; /* palette.error */
+  --destructive: #fa6675;
   --destructive-foreground: #191a1c;
-  --success: #6aab73; /* palette.string */
+  --success: #6aab73;
   --success-foreground: #191a1c;
-  --warning: #f2c55c; /* palette.warning */
+  --warning: #f2c55c;
   --warning-foreground: #191a1c;
-  --info: #56a8f5; /* palette.func */
+  --info: #56a8f5;
   --info-foreground: #191a1c;
 
-  --border: #33353b; /* palette.widgetBorder */
+  --border: #33353b;
   --input: #33353b;
-  --ring: #56a8f5; /* palette.func — focus matches the scheme's link blue */
+  --ring: #56a8f5;
 
-  /* The floor itself (palette.bg): with the inset variant the rail is the
-     recessed layer and the content panel is what lifts (--card). */
   --sidebar: #191a1c;
   --sidebar-foreground: #bcbec4;
   --sidebar-primary: #ced0d6;
@@ -222,24 +180,22 @@
   --signal-lime: oklch(0.8046 0.1208 117.27);
   --signal-lime-soft: oklch(0.8046 0.1208 117.27 / 0.18);
 
-  /* The same Islands ladder, under the names the app layout uses. */
-  --canvas: #191a1c; /* palette.bg */
-  --surface-soft: #1f2024; /* palette.lineHighlight */
+  --canvas: #191a1c;
+  --surface-soft: #1f2024;
   --surface-card: #1f2024;
-  --surface-strong: #33353b; /* palette.widgetBorder */
+  --surface-strong: #33353b;
   --surface-1: #1f2024;
-  --surface-2: #26282c; /* palette.widgetBg */
+  --surface-2: #26282c;
   --inverse-canvas: #bcbec4;
-  --ink: #bcbec4; /* palette.fg */
-  --ink-body: #a3a6ad; /* between fg and comment — body copy */
-  --ink-muted: #7a7e85; /* palette.comment */
+  --ink: #bcbec4;
+  --ink-body: #a3a6ad;
+  --ink-muted: #7a7e85;
+  --ink-muted-strong: #9198a1;
   --hairline: #33353b;
   --hairline-soft: #26282c;
   --border-subtle: #26282c;
 }
 
-/* Map tokens → Tailwind utilities. `inline` keeps the var reference live so
-   .dark overrides flow through. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -284,7 +240,6 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  /* The single brand accent + marketing surface mirrors. */
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-hover: var(--brand-hover);
@@ -305,32 +260,27 @@
   --color-ink: var(--ink);
   --color-ink-body: var(--ink-body);
   --color-ink-muted: var(--ink-muted);
+  --color-ink-muted-strong: var(--ink-muted-strong);
   --color-hairline: var(--hairline);
   --color-hairline-soft: var(--hairline-soft);
   --color-border-subtle: var(--border-subtle);
 
-  /* Radius scale. Three steps carry the system: 8px for anything in a nav or
-     toolbar, 16px for cards and panels, full-round for CTAs. The rest exist so
-     nested corners can step down without inventing values. */
   --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius-md: 8px; /* nav rows, buttons, inputs, menu items */
+  --radius-md: 8px;
   --radius-lg: 10px;
   --radius-xl: 12px;
-  --radius-2xl: 16px; /* cards, panels, dialogs */
+  --radius-2xl: 16px;
   --radius-3xl: 20px;
   --radius-4xl: 24px;
   --radius-spotlight: 1.875rem;
-  --radius-pill: 9999px; /* CTAs */
+  --radius-pill: 9999px;
+  --radius-cta: 8px;
 
-  /* Shared motion easing — the "settle into place" curve used by Reveal. */
   --ease-craft: cubic-bezier(0.625, 0.05, 0, 1);
 }
 
-/* Static design tokens (typography, materiality). Not theme-dependent. */
 @theme {
-  /* Application type scale — 12 / 13 / 14, with 24 for page titles. `text-base`
-     stays 16px: it is the landing/prose step, not app chrome. */
   --text-xs: 12px;
   --text-xs--line-height: 1.35;
   --text-sm: 13px;
@@ -346,20 +296,22 @@
   --font-display:
     "Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, sans-serif;
-  /* Marketing headline moments only. Never app chrome. Quicksand is a rounded
-     sans, so the fallbacks are sans too; the token keeps its name for the
-     `.font-serif` utility that markup already uses. */
+
   --font-serif:
     "Quicksand Variable", "Quicksand", "Avenir Next", "Century Gothic",
     ui-rounded, sans-serif;
-  /* The technical voice — labels, code, metrics. */
+
   --font-mono:
     "Geist Mono Variable", "Geist Mono", "JetBrains Mono Variable",
     ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
 
-  /* craft-* shadows — neutral graphite, low-alpha. Depth from light, never heavy. */
   --shadow-craft-sm:
-    0 1px 2px 0 rgb(9 9 11 / 0.06), 0 1px 1px -1px rgb(9 9 11 / 0.05);
+    0 1px 2px 0 rgb(9 9 11 / 0.05), 0 1px 1px -1px rgb(9 9 11 / 0.04);
+  --shadow-notion:
+    rgba(0, 0, 0, 0.01) 0px 0.175px 1.041px 0px,
+    rgba(0, 0, 0, 0.02) 0px 0.8px 2.925px 0px,
+    rgba(0, 0, 0, 0.027) 0px 2.025px 7.847px 0px,
+    rgba(0, 0, 0, 0.04) 0px 4px 18px 0px;
   --shadow-craft-lg:
     0 12px 32px -10px rgb(9 9 11 / 0.12), 0 4px 12px -6px rgb(9 9 11 / 0.07);
   --shadow-craft-floating:
@@ -370,8 +322,6 @@
   --shadow-craft-xl:
     0 20px 40px -8px rgb(9 9 11 / 0.1), 0 8px 16px -8px rgb(9 9 11 / 0.06);
 
-  /* Elevation set (adopted from trace-mvp), but monochrome: the ring derives
-     from --ring rather than trace's blue. */
   --shadow-md:
     0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
   --shadow-xl:
@@ -389,8 +339,6 @@
     outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
   }
 
-  /* Interactive elements get a pointer cursor by default (browsers leave
-	   <button> as an arrow). Disabled controls fall back to the default. */
   button:not(:disabled):not([disabled]),
   [role="button"]:not([aria-disabled="true"]),
   summary,
@@ -410,8 +358,6 @@
     scroll-behavior: smooth;
   }
 
-  /* The marketing header is fixed; without this every in-page anchor lands with
-     its heading hidden behind the bar. */
   :target,
   [id] {
     scroll-margin-top: 6rem;
@@ -422,8 +368,6 @@
       scroll-behavior: auto;
     }
 
-    /* Safety net: infinite decorative loops (ping/pulse/marquee) must not survive
-       a reduced-motion preference just because someone forgot to gate one. */
     *,
     *::before,
     *::after {
@@ -438,25 +382,21 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    /* Slight negative tracking is what makes the UI read as tight rather than
-       loose at 12–14px. Display sizes override it with their own tracking. */
+
     letter-spacing: -0.15px;
-    /* Inter's bespoke OpenType character variants (see DESIGN.md). */
+
     font-feature-settings:
       "cv01", "cv05", "cv09", "cv11", "ss03", "ss07", "dlig";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Display headings — Geist, semibold, tight tracking. */
   .font-display {
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.025em;
   }
 
-  /* Quicksand has one axis (wght 300-700) and no true italic — any `italic` on
-     these runs is a synthesised oblique. */
   .font-serif {
     font-family: var(--font-serif);
     font-weight: 500;
@@ -467,19 +407,15 @@
     font-weight: 600;
   }
 
-  /* Tabular numerals everywhere numbers carry meaning (metrics, line/col). */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 
-  /* Selection — a quiet neutral ink tint (keyfold-style, monochrome). */
   ::selection {
     background-color: color-mix(in oklab, var(--foreground) 14%, transparent);
   }
 }
 
-/* Unlayered so it wins over Tailwind: the base components hard-code
-   `cursor-default` on these clickable items. */
 [role="menuitem"]:not([data-disabled]):not([aria-disabled="true"]),
 [role="menuitemcheckbox"]:not([data-disabled]):not([aria-disabled="true"]),
 [role="menuitemradio"]:not([data-disabled]):not([aria-disabled="true"]),
@@ -488,9 +424,6 @@
   cursor: pointer;
 }
 
-/* --- Scrollbars --- */
-/* Firefox uses the standard props; WebKit/Chromium (the Tauri WebView) needs
-   the pseudo-elements below. */
 * {
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--foreground) 18%, transparent)
@@ -506,7 +439,7 @@
 }
 ::-webkit-scrollbar-thumb {
   background: color-mix(in oklab, var(--foreground) 16%, transparent);
-  /* Transparent border + padding-box clip is what insets the pill from the track. */
+
   border: 3px solid transparent;
   border-radius: 9999px;
   background-clip: padding-box;
@@ -524,12 +457,10 @@
   background: transparent;
 }
 
-/* Reserve the scrollbar gutter so content doesn't reflow when it appears. */
 .scrollbar-gutter-stable {
   scrollbar-gutter: stable;
 }
 
-/* Fully hide the scrollbar (used by the command list, etc.). */
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -538,19 +469,12 @@
   display: none;
 }
 
-/* --- Marketing / landing primitives --- */
-/* Only what the marketing pages actually render. The previous version carried
-   60 unreferenced `.landing-*` rules; they are gone, not commented out. */
 @layer components {
-  /* --- Display type --- */
-  /* One treatment per level. Sizes are clamped so the hero always outranks a
-     section title, which outranks a card title — the old page had the closing
-     CTA at 64px against a 48px H1. */
   .landing-display {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(2.5rem, 1.9rem + 3vw, 4rem);
-    line-height: 1.04;
+    font-size: clamp(2.75rem, 1.9rem + 4.2vw, 5rem);
+    line-height: 1.05;
     letter-spacing: var(--tracking-display);
     color: var(--ink);
     text-wrap: balance;
@@ -559,8 +483,8 @@
   .landing-section-title {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(1.875rem, 1.4rem + 2.1vw, 2.75rem);
-    line-height: 1.08;
+    font-size: clamp(2rem, 1.5rem + 2.5vw, 3.25rem);
+    line-height: 1.15;
     letter-spacing: var(--tracking-headline);
     color: var(--ink);
     text-wrap: balance;
@@ -569,147 +493,106 @@
   .landing-card-title {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 1.25rem;
+    font-size: 1.375rem;
     line-height: 1.25;
     letter-spacing: var(--tracking-title);
     color: var(--ink);
+    text-wrap: balance;
   }
 
-  /* The second-line voice. Quicksand has no italic axis, so `font-style: italic`
-     here would render a synthesised oblique — hence the explicit `normal`. */
+  .landing-lead {
+    font-size: clamp(1.0625rem, 1rem + 0.5vw, 1.375rem);
+    font-weight: 400;
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+    color: var(--ink-body);
+    text-wrap: pretty;
+  }
+
   .landing-title-em {
     display: block;
-    font-family: var(--font-serif);
-    font-style: normal;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    color: var(--muted-foreground);
-  }
-
-  /* Section eyebrow. 12px is on-scale; the old 11px was not, and the brand hue
-     it uses now clears 4.5:1 on both --canvas and the panel tint. */
-  .landing-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: var(--text-xs);
     font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--brand);
+    color: var(--ink-muted-strong);
   }
 
-  .landing-eyebrow::before {
-    content: "";
-    width: 0.375rem;
-    height: 0.375rem;
-    border-radius: 999px;
-    background: currentColor;
+  .landing-eyebrow {
+    display: block;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    color: var(--ink-body);
   }
 
-  /* --- Surfaces --- */
-  /* A real card. Most of these sit over a flat --canvas, where a backdrop-filter
-     blurs a solid colour: full GPU cost, zero visible effect. */
+  .landing-surface {
+    background: var(--surface-soft);
+    border-radius: 1.25rem;
+  }
+
   .landing-card {
+    background: var(--surface-soft);
+    border-radius: 0.75rem;
+  }
+
+  .landing-card-outline {
     background: var(--surface-card);
     border: 1px solid var(--hairline);
-    box-shadow: var(--shadow-craft-sm);
+    border-radius: 0.75rem;
   }
 
   .landing-card-hover {
-    transition:
-      border-color 200ms ease,
-      box-shadow 200ms ease;
+    transition: background-color 160ms ease, border-color 160ms ease;
   }
 
   @media (hover: hover) and (pointer: fine) {
     .landing-card-hover:hover {
-      border-color: color-mix(in oklab, var(--brand) 40%, transparent);
-      box-shadow: var(--shadow-craft-md);
+      background: var(--surface-strong);
+    }
+
+    .landing-card-outline.landing-card-hover:hover {
+      background: var(--surface-soft);
+      border-color: var(--border);
     }
   }
 
-  /* Translucency is reserved for chrome that genuinely overlaps moving content:
-     the fixed header, and anything sitting on the hero photograph. */
-  .landing-glass {
-    background-color: color-mix(in oklab, var(--card) 60%, transparent);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+  .landing-arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--background);
+    transition: transform 160ms ease, background-color 160ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .group\/tile:hover .landing-arrow {
+      transform: translateX(2px);
+    }
+  }
+
+  .landing-shot {
+    border-radius: 0.625rem;
+    background: var(--surface-card);
+    box-shadow: var(--shadow-notion);
   }
 
   .landing-glass-strong {
-    background-color: color-mix(in oklab, var(--card) 85%, transparent);
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
-    box-shadow:
-      inset 0 1px 0 0 color-mix(in oklab, white 10%, transparent),
-      0 8px 24px -8px rgb(0 0 0 / 0.1);
-  }
-
-  /* Never stack a translucent surface on another — legibility collapses and the
-     material stops reading as material. Chips inside glass are solid. */
-  .landing-glass .landing-chip-solid,
-  .landing-glass-strong .landing-chip-solid {
-    background: var(--surface-card);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    background-color: color-mix(in oklab, var(--background) 82%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
   }
 
   @media (prefers-reduced-transparency: reduce) {
-    .landing-glass,
     .landing-glass-strong {
-      background-color: var(--card);
+      background-color: var(--background);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
     }
   }
 
-  /* --- Backdrops --- */
-  .landing-bg-grid {
-    background-image:
-      linear-gradient(
-        to right,
-        color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 56px 56px;
-  }
-
-  .landing-bg-grid-fade {
-    mask-image: radial-gradient(
-      ellipse 70% 60% at 50% 0%,
-      black 30%,
-      transparent 75%
-    );
-    -webkit-mask-image: radial-gradient(
-      ellipse 70% 60% at 50% 0%,
-      black 30%,
-      transparent 75%
-    );
-  }
-
-  .landing-bg-aurora {
-    background-image:
-      radial-gradient(
-        ellipse 80% 50% at 50% -10%,
-        color-mix(in oklab, var(--brand) 12%, transparent),
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 60% 40% at 80% 10%,
-        color-mix(in oklab, var(--brand) 7%, transparent),
-        transparent 60%
-      );
-  }
-
-  /* --- Text wrap helpers --- */
   .landing-text-balance {
     text-wrap: balance;
   }
@@ -717,58 +600,8 @@
   .landing-text-pretty {
     text-wrap: pretty;
   }
-
-  /* --- Footer --- */
-  .landing-footer {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .landing-footer-wordmark {
-    display: block;
-    text-align: center;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 22vw;
-    line-height: 0.82;
-    letter-spacing: -0.06em;
-    color: color-mix(in oklab, var(--foreground) 50%, transparent);
-    user-select: none;
-  }
-
-  /* --- Closing CTA panel --- */
-  .landing-cta-panel {
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 4rem 1.5rem;
-    border: 1px solid var(--hairline);
-    border-radius: 2rem;
-    /* Pinstripe field that fades out through the centre so the copy stays clean. */
-    background:
-      radial-gradient(
-        ellipse 58% 64% at 50% 50%,
-        var(--surface-card) 42%,
-        transparent 100%
-      ),
-      repeating-linear-gradient(
-        to right,
-        transparent 0,
-        transparent 1.35rem,
-        color-mix(in oklab, var(--hairline) 42%, transparent) 1.35rem,
-        color-mix(in oklab, var(--hairline) 42%, transparent)
-          calc(1.35rem + 1px)
-      ),
-      var(--surface-card);
-    text-align: center;
-  }
 }
 
-/* --- Monaco --- */
-/* Monaco paints itself from its registered theme; decorations we add need real
-   CSS. Search hits come from code-editor/controller's decorations collection. */
 .glyphtex-search-match {
   background-color: color-mix(in oklab, var(--color-warning) 32%, transparent);
   border-radius: 2px;

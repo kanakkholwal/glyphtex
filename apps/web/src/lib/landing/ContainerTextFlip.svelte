@@ -16,15 +16,22 @@
 	let {
 		words = ['better', 'modern', 'beautiful', 'awesome'],
 		interval = 3000,
-		animationDuration = 700,
+		animationDuration = 600,
 		class: className = '',
 		textClass = '',
 		tone = 'neutral'
 	}: Props = $props();
 
 	let index = $state(0);
+	let widths = $state<number[]>([]);
 
 	const word = $derived(words[index] ?? '');
+	const activeWidth = $derived(widths[index] ?? 0);
+
+	// A literal space collapses at the edge of an inline-block letter, so
+	// "lecture notes" renders as "lecturenotes". Escaped, not a pasted glyph:
+	// the raw character is invisible in a diff and gets lost on the next edit.
+	const NBSP = ' ';
 
 	const reducedMotion =
 		typeof window !== 'undefined' &&
@@ -43,9 +50,13 @@
 </script>
 
 <!--
-  Every word occupies the same grid cell, so the pill sizes to the widest one
-  once and never resizes. The previous version measured the active word and
-  animated `width`, which reflowed the surrounding H1 on every rotation.
+  Every word occupies the same grid cell, which makes each one measurable
+  without a second render pass. The pill is then pinned to the *active* word's
+  width rather than the widest one — at display sizes the widest word leaves a
+  slab of empty tint around every shorter word.
+
+  Width animates, so the resize reads as intentional. Nothing else on the line
+  moves: the pill is centred, so it grows and shrinks symmetrically.
 
   Accessibility: the rotation is decorative. An `aria-live` region here would
   announce a new word every few seconds for the whole session, so the animated
@@ -53,17 +64,20 @@
 -->
 <span
 	class={cn(
-		'container-flip relative inline-grid overflow-hidden rounded-lg px-2.5 pt-0.5 pb-1 align-baseline',
+		'container-flip relative inline-grid overflow-hidden rounded-[0.22em] px-[0.14em] pb-[0.04em] align-baseline',
 		tone === 'brand' && 'container-flip-brand',
 		className
 	)}
+	style:width={activeWidth ? `calc(${activeWidth}px + 0.28em)` : 'auto'}
+	style:transition-duration={reducedMotion ? '0ms' : `${animationDuration / 2}ms`}
 >
 	<span class="sr-only">{words.join(', ')}</span>
 
 	{#each words as w, i (w)}
 		<span
+			bind:offsetWidth={widths[i]}
 			class={cn(
-				'container-flip-slot col-start-1 row-start-1 whitespace-nowrap',
+				'col-start-1 row-start-1 justify-self-center whitespace-nowrap',
 				i === index ? 'visible' : 'invisible',
 				textClass
 			)}
@@ -74,8 +88,9 @@
 					{#each w.split('') as letter, l (l)}
 						<span
 							class="container-flip-letter"
-							style:animation-delay="{l * 20}ms"
-							style:animation-duration="{animationDuration}ms">{letter === ' ' ? ' ' : letter}</span
+							style:animation-delay="{l * 18}ms"
+							style:animation-duration="{animationDuration}ms"
+							>{letter === ' ' ? NBSP : letter}</span
 						>
 					{/each}
 				{/key}
@@ -91,26 +106,16 @@
 	   style of the heading it sits in, so it never sets its own type scale. */
 	.container-flip {
 		font: inherit;
-		justify-items: center;
 		align-items: center;
-		background: linear-gradient(to bottom, var(--card), var(--muted));
-		box-shadow:
-			inset 0 -1px var(--border),
-			inset 0 0 0 1px var(--border),
-			0 4px 8px color-mix(in oklab, var(--border) 55%, transparent);
+		max-width: 100%;
+		transition-property: width;
+		transition-timing-function: cubic-bezier(0.625, 0.05, 0, 1);
+		background: var(--surface-soft);
 	}
 
 	.container-flip-brand {
 		color: var(--brand);
-		background: linear-gradient(
-			to bottom,
-			color-mix(in oklab, var(--brand) 8%, var(--card)),
-			color-mix(in oklab, var(--brand) 14%, var(--card))
-		);
-		box-shadow:
-			inset 0 -1px color-mix(in oklab, var(--brand) 32%, transparent),
-			inset 0 0 0 1px color-mix(in oklab, var(--brand) 24%, transparent),
-			0 4px 12px color-mix(in oklab, var(--brand) 18%, transparent);
+		background: color-mix(in oklab, var(--brand) 12%, var(--background));
 	}
 
 	/* `backwards`, not `both`: the resting state below is the visible one, so a
@@ -126,7 +131,7 @@
 	@keyframes container-flip-in {
 		from {
 			opacity: 0;
-			transform: translateY(0.14em);
+			transform: translateY(0.12em);
 		}
 		to {
 			opacity: 1;
@@ -135,6 +140,9 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
+		.container-flip {
+			transition: none;
+		}
 		.container-flip-letter {
 			animation: none;
 		}

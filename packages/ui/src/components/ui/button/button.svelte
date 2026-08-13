@@ -13,9 +13,9 @@
 	 * - Colors must come from semantic tokens — never hardcoded (emerald, sky…).
 	 * - Prefer `ghost` + `icon-sm` for toolbar icon buttons.
 	 *
-	 * Shape follows role: CTA sizes (default / lg / xl) are pills, dense control
-	 * sizes are 8px rounded rects. Icons follow the role scale — 14px inline,
-	 * 16px in controls, 20px in card-level actions.
+	 * Every size is an 8px rounded rect; CTA sizes (default / lg / xl) differ only
+	 * in height and label size. Icons follow the role scale — 14px inline, 16px in
+	 * controls, 20px in card-level actions.
 	 */
 	export const buttonVariants = tv({
 		base: [
@@ -39,10 +39,9 @@
 				default_soft:
 					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
 				// Marketing CTAs only — in app chrome the emphasis colour is ink (`default`).
-				brand:
-					"bg-brand text-brand-foreground border-transparent shadow-craft-sm hover:bg-brand-hover",
+				brand: "bg-brand text-brand-foreground border-transparent hover:bg-brand-hover",
 				brand_soft:
-					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
+					"bg-brand/10 text-brand border-transparent hover:bg-brand/15 dark:bg-brand/15 dark:hover:bg-brand/25",
 				secondary:
 					"border-secondary bg-secondary text-secondary-foreground border-border/30 shadow-craft-sm hover:bg-muted/50",
 				outline:
@@ -69,10 +68,10 @@
 				
 			},
 			size: {
-				// CTA sizes — pill.
-				default: "h-9 rounded-pill px-5 text-md font-medium gap-2 [&_svg:not([class*='size-'])]:size-4",
-				xl: "h-12.5 rounded-pill px-7 text-base font-medium gap-2.5 [&_svg:not([class*='size-'])]:size-5",
-				lg: "h-11 rounded-pill px-7 text-md font-semibold gap-2 [&_svg:not([class*='size-'])]:size-5",
+				// CTA sizes — 8px rect, 16px/500 label, 156px min width.
+				default: "h-9 rounded-cta px-4 text-base font-medium gap-2 [&_svg:not([class*='size-'])]:size-4",
+				xl: "h-12 rounded-cta px-6 text-base font-medium gap-2.5 min-w-[156px] [&_svg:not([class*='size-'])]:size-5",
+				lg: "h-11 rounded-cta px-5 text-base font-medium gap-2 min-w-[156px] [&_svg:not([class*='size-'])]:size-4.5",
 				// Control sizes — 8px rect.
 				sm: "h-8 rounded-md px-3 text-sm gap-1.5 [&_svg:not([class*='size-'])]:size-4",
 				xs: "h-6 rounded-md px-2 text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-3.5",

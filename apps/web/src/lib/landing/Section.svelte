@@ -2,11 +2,6 @@
 	import { cn } from '@glyphtex/ui/utils';
 	import type { Snippet } from 'svelte';
 
-	// Vertical-rhythm wrapper for every landing section. `border-t` + a
-	// hairline border gives each section a clear seam without needing
-	// background colors that fight the editorial backdrop photo. Sections
-	// opt in to a border by passing `bordered`.
-
 	type Props = {
 		children: Snippet;
 		class?: string;
@@ -25,9 +20,9 @@
 
 	const spacings = {
 		none: '',
-		tight: 'py-16 md:py-20',
-		default: 'py-24 md:py-32',
-		loose: 'py-32 md:py-44'
+		tight: 'py-14 md:py-20',
+		default: 'py-20 md:py-28',
+		loose: 'py-28 md:py-40'
 	} as const;
 </script>
 
@@ -36,7 +31,7 @@
 	class={cn(
 		'relative w-full',
 		spacings[spacing],
-		bordered && 'border-t border-hairline/70',
+		bordered && 'border-t border-hairline',
 		className
 	)}
 >
