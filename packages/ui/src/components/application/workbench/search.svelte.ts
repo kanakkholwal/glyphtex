@@ -63,7 +63,9 @@ export class SearchStore {
 		const n = this.searchResults.length;
 		this.searchActive = ((i % n) + n) % n;
 		const m = this.searchResults[this.searchActive];
-		this.#layout.editor?.selectRange(m.from, m.to);
+		// Reveal without taking the caret: otherwise the first Enter in the find
+		// input jumps to the editor and the second one types a newline into the doc.
+		this.#layout.editor?.selectRange(m.from, m.to, { focus: false });
 	}
 	searchNext(): void {
 		this.gotoResult(this.searchActive + 1);
@@ -87,7 +89,7 @@ export class SearchStore {
 			}
 		}
 		if (this.searchOpts.preserveCase) insert = applyCase(matched, insert);
-		this.#layout.editor?.replaceRange(m.from, m.to, insert);
+		this.#layout.editor?.replaceRange(m.from, m.to, insert, { focus: false });
 		this.runSearch({ ...this.searchOpts, replace });
 	}
 	replaceAll(replace: string): void {

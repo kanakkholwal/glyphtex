@@ -186,6 +186,7 @@
 					<FormatToolbar
 						wrap={(b, a) => layout.editor?.wrapSelection(b, a)}
 						insert={(t) => layout.editor?.insertText(t)}
+						focusEditor={() => layout.editor?.focusEditor()}
 					/>
 				</div>
 				<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
@@ -193,8 +194,8 @@
 				<div class="flex-1"></div>
 			{/if}
 
-			<!-- Save mode, minimap and word wrap moved to the title bar's document
-			     menu: they are page-global, and this row is for the caret. -->
+			<!-- Save mode and word wrap moved to the title bar's document menu: they
+			     are page-global, and this row is for the caret. -->
 		</div>
 
 		<div class="min-h-0 flex-1">
@@ -209,7 +210,6 @@
 				fontSize={settings.fontSize}
 				fontFamily={settings.fontStack}
 				lineWrapping={settings.lineWrapping}
-				minimap={settings.minimap}
 				oncursor={(p) => (layout.cursor = p)}
 			/>
 		</div>

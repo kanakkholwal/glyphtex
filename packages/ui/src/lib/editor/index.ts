@@ -1,16 +1,23 @@
-export { loadMonaco, type MonacoNamespace } from './monaco';
 export {
-	islandDark,
-	islandLight,
-	registerJetBrainsThemes,
-	jetbrainsThemeName,
-	ISLAND_DARK,
-	ISLAND_LIGHT
-} from './jetbrains-monaco';
-export { registerLatex, latexLanguage, latexConfiguration, LATEX_ID } from './latex-monarch';
-export { registerLatexCompletions } from './latex-complete';
-export { registerLatexStructure } from './latex-structure';
-export { registerLatexSemanticTokens } from './latex-semantic';
+	editorTheme,
+	islandLightPalette,
+	islandDarkPalette,
+	type EditorPalette
+} from './jetbrains-theme';
+export { latex, latexStreamLanguage, LATEX_ID } from './latex-language';
+export { latexCompletionSource, latexCompletions, type LatexCompletion } from './latex-complete';
+export { latexHover, latexHoverAt, type LatexHover } from './latex-hover';
+export { latexFolding, sectionHeadings, type Heading } from './latex-fold';
+export { latexSemantics } from './latex-semantic';
+export { latexStickyHeadings, enclosingHeadings } from './latex-sticky';
+export {
+	analyzeSemantics,
+	inMathContext,
+	scanDocument,
+	type DocumentSymbols,
+	type SemanticKind,
+	type SemanticToken
+} from './latex-analyze';
 export {
 	setWorkspaceFiles,
 	clearWorkspace,

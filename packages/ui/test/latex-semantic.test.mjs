@@ -1,60 +1,21 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { registerLatexSemanticTokens } from './.build/editor.mjs';
-import { setWorkspaceFiles, clearWorkspace } from './.build/editor.mjs';
+import { analyzeSemantics, setWorkspaceFiles, clearWorkspace } from './.build/editor.mjs';
 
-const TOKEN_TYPES = ['macro', 'unknownMacro', 'danglingRef', 'resolvedRef'];
-
-let provider = null;
-const monaco = {
-	languages: {
-		registerDocumentSemanticTokensProvider: (_id, p) => {
-			provider = p;
-			return { dispose() {} };
-		},
-	},
-};
-registerLatexSemanticTokens(monaco);
-
-function makeModel(text) {
-	const lines = text.split('\n');
-	return {
-		getValue: () => text,
-		getPositionAt: (offset) => {
-			let remaining = offset;
-			for (let i = 0; i < lines.length; i++) {
-				if (remaining <= lines[i].length) return { lineNumber: i + 1, column: remaining + 1 };
-				remaining -= lines[i].length + 1;
-			}
-			return { lineNumber: lines.length, column: lines[lines.length - 1].length + 1 };
-		},
-	};
-}
-
-// Decode Monaco's delta encoding (5 ints/token, each relative to the previous)
-// to absolute positions: an off-by-one looks fine raw but paints wrong characters.
-function tokensOf(text) {
-	const model = makeModel(text);
-	const { data } = provider.provideDocumentSemanticTokens(model);
-	const lines = text.split('\n');
-
-	const out = [];
-	let line = 0;
-	let column = 0;
-	for (let i = 0; i < data.length; i += 5) {
-		const deltaLine = data[i];
-		const deltaColumn = data[i + 1];
-		line += deltaLine;
-		column = deltaLine === 0 ? column + deltaColumn : deltaColumn;
-		out.push({
-			line: line + 1,
-			column: column + 1,
-			length: data[i + 2],
-			type: TOKEN_TYPES[data[i + 3]],
-			text: lines[line].slice(column, column + data[i + 2]),
-		});
-	}
-	return out;
+// Resolve each token back against the ORIGINAL source: the analyser blanks
+// comments in a copy, so an offset bug looks fine raw but paints wrong characters.
+function tokensOf(source) {
+	return analyzeSemantics(source).map((token) => {
+		const before = source.slice(0, token.offset);
+		const line = before.split('\n').length;
+		return {
+			line,
+			column: token.offset - (before.lastIndexOf('\n') + 1) + 1,
+			length: token.length,
+			type: token.kind,
+			text: source.slice(token.offset, token.offset + token.length)
+		};
+	});
 }
 
 beforeEach(() => clearWorkspace());
@@ -63,7 +24,10 @@ describe('semantic tokens', () => {
 	test('flags a command nothing defines', () => {
 		const tokens = tokensOf('\\reff{x} and \\frac{1}{2}');
 		const unknown = tokens.filter((t) => t.type === 'unknownMacro');
-		assert.deepEqual(unknown.map((t) => t.text), ['\\reff']);
+		assert.deepEqual(
+			unknown.map((t) => t.text),
+			['\\reff']
+		);
 	});
 
 	test('marks a user-defined macro, and stops calling it unknown', () => {
@@ -90,7 +54,7 @@ describe('semantic tokens', () => {
 			'% second, rather longer, comment',
 			'\\badcmd',
 			'% third',
-			'\\alsobad',
+			'\\alsobad'
 		].join('\n');
 		for (const token of tokensOf(text)) {
 			// Starting with a backslash in the real source is the cheapest alignment proof.
@@ -105,10 +69,14 @@ describe('semantic tokens', () => {
 
 	test('resolves a ref against a label in the document', () => {
 		const tokens = tokensOf('\\label{sec:a}\nSee \\ref{sec:a} and \\ref{sec:missing}.');
-		const resolved = tokens.filter((t) => t.type === 'resolvedRef');
-		const dangling = tokens.filter((t) => t.type === 'danglingRef');
-		assert.deepEqual(resolved.map((t) => t.text), ['sec:a']);
-		assert.deepEqual(dangling.map((t) => t.text), ['sec:missing']);
+		assert.deepEqual(
+			tokens.filter((t) => t.type === 'resolvedRef').map((t) => t.text),
+			['sec:a']
+		);
+		assert.deepEqual(
+			tokens.filter((t) => t.type === 'danglingRef').map((t) => t.text),
+			['sec:missing']
+		);
 	});
 
 	test('resolves a ref against a label in another project file', () => {
@@ -116,7 +84,7 @@ describe('semantic tokens', () => {
 		const tokens = tokensOf('See \\ref{sec:elsewhere}.');
 		assert.deepEqual(
 			tokens.filter((t) => t.type === 'resolvedRef').map((t) => t.text),
-			['sec:elsewhere'],
+			['sec:elsewhere']
 		);
 	});
 
@@ -131,24 +99,21 @@ describe('semantic tokens', () => {
 		const tokens = tokensOf('\\cite{good,bad}');
 		assert.deepEqual(
 			tokens.filter((t) => t.type === 'resolvedRef').map((t) => t.text),
-			['good'],
+			['good']
 		);
 		assert.deepEqual(
 			tokens.filter((t) => t.type === 'danglingRef').map((t) => t.text),
-			['bad'],
+			['bad']
 		);
 	});
 
-	test('emits strictly increasing positions', () => {
-		// Monaco's decoder assumes sorted input; unsorted data silently paints
-		// garbage rather than throwing.
-		const tokens = tokensOf('\\badone\n\\label{a}\n\\ref{a} \\badtwo \\ref{missing}');
+	test('emits strictly increasing offsets', () => {
+		// CodeMirror's RangeSet.of throws on unsorted ranges, so order is not optional.
+		const tokens = analyzeSemantics('\\badone\n\\label{a}\n\\ref{a} \\badtwo \\ref{missing}');
 		for (let i = 1; i < tokens.length; i++) {
-			const before = tokens[i - 1];
-			const now = tokens[i];
 			assert.ok(
-				now.line > before.line || (now.line === before.line && now.column >= before.column),
-				`out of order at ${i}: ${JSON.stringify([before, now])}`,
+				tokens[i].offset >= tokens[i - 1].offset,
+				`out of order at ${i}: ${JSON.stringify([tokens[i - 1], tokens[i]])}`
 			);
 		}
 	});

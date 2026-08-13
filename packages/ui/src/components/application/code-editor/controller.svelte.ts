@@ -1,6 +1,43 @@
-import type * as Monaco from 'monaco-editor';
-
-import { loadMonaco, type MonacoNamespace } from '@glyphtex/ui/editor';
+import {
+	acceptCompletion,
+	autocompletion,
+	closeBrackets,
+	closeBracketsKeymap,
+	completionKeymap
+} from '@codemirror/autocomplete';
+import {
+	defaultKeymap,
+	history,
+	historyKeymap,
+	redo,
+	redoDepth,
+	undo,
+	undoDepth
+} from '@codemirror/commands';
+import { markdown } from '@codemirror/lang-markdown';
+import { bracketMatching, codeFolding, foldGutter, foldKeymap } from '@codemirror/language';
+import { highlightSelectionMatches } from '@codemirror/search';
+import {
+	Compartment,
+	EditorState,
+	StateEffect,
+	StateField,
+	Transaction,
+	type Extension
+} from '@codemirror/state';
+import {
+	Decoration,
+	EditorView,
+	drawSelection,
+	dropCursor,
+	highlightActiveLine,
+	highlightActiveLineGutter,
+	keymap,
+	lineNumbers,
+	rectangularSelection,
+	type DecorationSet
+} from '@codemirror/view';
+import { editorTheme, latex } from '@glyphtex/ui/editor';
 
 import { applyCase } from '../case-preserve';
 import { buildRegex, expandReplacement } from './search';
@@ -16,7 +53,6 @@ export type EditorInit = {
 	fontFamily: string;
 	lineWrapping: boolean;
 	readonly: boolean;
-	minimap: boolean;
 };
 
 export type CodeEditorCallbacks = {
@@ -26,23 +62,62 @@ export type CodeEditorCallbacks = {
 	oncursor?: (pos: { line: number; column: number }) => void;
 };
 
-function languageId(lang: EditorLanguage): string {
-	if (lang === 'latex') return 'latex';
-	if (lang === 'markdown') return 'markdown';
-	return 'plaintext';
+// --- Find/replace highlight --------------------------------------------------
+// The app owns its find panel, so matches are painted from a decoration set
+// rather than by @codemirror/search's own query state.
+const searchMark = Decoration.mark({ class: 'cm-searchMatch' });
+const setMatches = StateEffect.define<readonly { from: number; to: number }[]>();
+
+const searchField = StateField.define<DecorationSet>({
+	create: () => Decoration.none,
+	update(deco, tr) {
+		let next = deco.map(tr.changes);
+		for (const effect of tr.effects) {
+			if (!effect.is(setMatches)) continue;
+			const length = tr.state.doc.length;
+			next = Decoration.set(
+				effect.value
+					.filter((m) => m.to > m.from && m.to <= length)
+					.map((m) => searchMark.range(m.from, m.to))
+			);
+		}
+		return next;
+	},
+	provide: (f) => EditorView.decorations.from(f)
+});
+
+function languageExtension(lang: EditorLanguage): Extension {
+	if (lang === 'latex') return latex();
+	if (lang === 'markdown') return markdown();
+	return [];
 }
 
-/** Theme name registered by `registerJetBrainsThemes`. */
-function themeName(theme: 'light' | 'dark'): string {
-	return theme === 'dark' ? 'glyphtex-island-dark' : 'glyphtex-island-light';
+// CM6 sizes to its content by default; the workbench panes are resizable, so the
+// view has to fill the host instead and scroll internally.
+const fillHost = EditorView.theme({
+	'&': { height: '100%' },
+	'.cm-scroller': { overflow: 'auto' },
+	'.cm-content': { paddingTop: '12px', paddingBottom: '12px' }
+});
+
+function fontExtension(size: number, family: string): Extension {
+	return EditorView.theme({
+		'&': { fontSize: `${size}px` },
+		'.cm-scroller': { fontFamily: family, lineHeight: '1.6' }
+	});
 }
 
 export class CodeEditorController {
-	editor = $state<Monaco.editor.IStandaloneCodeEditor>();
+	view = $state<EditorView>();
 
-	#monaco: MonacoNamespace | null = null;
-	#disposables: Monaco.IDisposable[] = [];
-	#decorations: Monaco.editor.IEditorDecorationsCollection | null = null;
+	readonly #theme = new Compartment();
+	readonly #language = new Compartment();
+	readonly #font = new Compartment();
+	readonly #wrap = new Compartment();
+	readonly #readonly = new Compartment();
+	// History lives in a compartment purely so a document switch can clear it by
+	// reconfiguring; CM6 exposes no other way to reset the undo stack.
+	readonly #history = new Compartment();
 
 	// Last document the undo history belongs to (non-reactive, view-local).
 	#lastDocKey: string | null = null;
@@ -52,280 +127,207 @@ export class CodeEditorController {
 		this.#cb = cb;
 	}
 
-	/** Mount into `parent`; returns the teardown for the component's mount effect.
-	 *  Monaco loads async but the teardown must be sync, hence the `disposed` flag. */
+	/** Mount into `parent`; returns the teardown for the component's mount effect. */
 	mount(parent: HTMLElement, init: EditorInit): () => void {
-		let disposed = false;
-
-		void loadMonaco()
-			.then((monaco) => {
-				if (disposed) return;
-				this.#attach(monaco, parent, init);
-			})
-			.catch((error) => {
-				// Nothing to fall back to, so surface it rather than leaving a blank
-				// pane with no explanation.
-				console.error('[GlyphTeX] the code editor failed to load:', error);
-			});
-
+		const view = new EditorView({
+			parent,
+			state: EditorState.create({ doc: init.value, extensions: this.#extensions(init) })
+		});
+		this.view = view;
 		return () => {
-			disposed = true;
-			this.#teardown();
+			view.destroy();
+			this.view = undefined;
 		};
 	}
 
-	#attach(monaco: MonacoNamespace, parent: HTMLElement, init: EditorInit): void {
-		this.#monaco = monaco;
-
-		const editor = monaco.editor.create(parent, {
-			value: init.value,
-			language: languageId(init.language),
-			theme: themeName(init.theme),
-			fontSize: init.fontSize,
-			fontFamily: init.fontFamily,
-			wordWrap: init.lineWrapping ? 'on' : 'off',
-			readOnly: init.readonly,
-			// Track the container instead of requiring the host to call layout() on
-			// every splitter drag; the panes here are resizable.
-			automaticLayout: true,
-			lineHeight: 1.6,
-			// Characters off: at LaTeX line lengths the glyph render is noise, and the
-			// block render is what makes a 40-page chapter navigable.
-			minimap: {
-				enabled: init.minimap,
-				renderCharacters: false,
-				showSlider: 'mouseover',
-				maxColumn: 80
-			},
-			scrollBeyondLastLine: false,
-			renderLineHighlight: 'all',
-			smoothScrolling: true,
-			// Folding follows our section/environment provider rather than
-			// indentation, which is meaningless in LaTeX.
-			folding: true,
-			foldingStrategy: 'auto',
-			showFoldingControls: 'mouseover',
-			// Keeps the enclosing \section heading pinned while you scroll inside it.
-			stickyScroll: { enabled: true, maxLineCount: 3 },
-			cursorBlinking: 'smooth',
-			padding: { top: 12, bottom: 12 },
-			tabSize: 2,
-			insertSpaces: true,
-			bracketPairColorization: { enabled: false },
-			// Drives latex-semantic.ts: unknown commands, user macros, dangling refs.
-			'semanticHighlighting.enabled': true,
-
-			// --- Suggestions ---
-			// Prose types mostly words, so quick suggestions stay off; the provider's
-			// trigger characters (`\`, `{`, `,`) open the widget instead.
-			quickSuggestions: { other: false, comments: false, strings: false },
-			suggestOnTriggerCharacters: true,
-			// Ctrl/Cmd+Space still works everywhere for an explicit request.
-			wordBasedSuggestions: 'currentDocument',
-			tabCompletion: 'on',
-			snippetSuggestions: 'inline',
-			// Enter inserts a newline; Tab accepts. Prose has far more Enter presses
-			// than accepted completions, and the reverse mapping eats paragraphs.
-			acceptSuggestionOnEnter: 'off',
-			suggest: {
-				showWords: true,
-				showSnippets: true,
-				insertMode: 'replace',
-				localityBonus: true
-			},
-
-			// Monaco's own find widget is redundant: the app has its own find/replace
-			// panel driving findAll()/replaceAllMatches().
-			find: { addExtraSpaceOnTop: false, seedSearchStringFromSelection: 'never' },
-			scrollbar: { useShadows: false, verticalScrollbarSize: 10, horizontalScrollbarSize: 10 },
-			overviewRulerBorder: false,
-			fixedOverflowWidgets: true
-		});
-
-		this.#decorations = editor.createDecorationsCollection();
-
-		this.#disposables.push(
-			editor.onDidChangeModelContent(() => {
-				const model = editor.getModel();
-				if (!model) return;
-				this.#cb.setValue(model.getValue());
-				// Monaco tracks undo/redo availability on the model itself, so this
-				// stays correct through grouped edits that a manual counter would miss.
-				this.#cb.setCanUndo(model.canUndo());
-				this.#cb.setCanRedo(model.canRedo());
-			})
-		);
-
-		if (this.#cb.oncursor) {
-			const oncursor = this.#cb.oncursor;
-			this.#disposables.push(
-				editor.onDidChangeCursorPosition((e) => {
-					oncursor({ line: e.position.lineNumber, column: e.position.column });
-				})
-			);
-		}
-
-		this.editor = editor;
-	}
-
-	#teardown(): void {
-		for (const d of this.#disposables) d.dispose();
-		this.#disposables = [];
-		this.#decorations = null;
-
-		const editor = this.editor;
-		if (editor) {
-			// Dispose the model explicitly: Monaco models are owned by a global
-			// registry, not by the editor, so they outlive it and leak otherwise.
-			editor.getModel()?.dispose();
-			editor.dispose();
-		}
-		this.editor = undefined;
-		this.#monaco = null;
-	}
-
-	get #model(): Monaco.editor.ITextModel | null {
-		return this.editor?.getModel() ?? null;
+	#extensions(init: EditorInit): Extension[] {
+		return [
+			fillHost,
+			lineNumbers(),
+			highlightActiveLineGutter(),
+			highlightActiveLine(),
+			drawSelection(),
+			dropCursor(),
+			rectangularSelection(),
+			EditorState.allowMultipleSelections.of(true),
+			codeFolding(),
+			foldGutter(),
+			bracketMatching(),
+			closeBrackets(),
+			highlightSelectionMatches(),
+			history(),
+			searchField,
+			// Prose types mostly words, so the popup opens from the language's own
+			// context checks rather than on every character.
+			autocompletion({ defaultKeymap: false, icons: false, closeOnBlur: true }),
+			keymap.of([
+				// Enter inserts a newline; Tab accepts. Prose has far more Enter presses
+				// than accepted completions, and the reverse mapping eats paragraphs.
+				{ key: 'Tab', run: acceptCompletion },
+				...closeBracketsKeymap,
+				...completionKeymap.filter((b) => b.key !== 'Enter'),
+				...foldKeymap,
+				...historyKeymap,
+				...defaultKeymap
+			]),
+			EditorView.updateListener.of((update) => {
+				if (update.docChanged) {
+					this.#cb.setValue(update.state.doc.toString());
+				}
+				if (update.docChanged || update.transactions.length > 0) {
+					this.#cb.setCanUndo(undoDepth(update.state) > 0);
+					this.#cb.setCanRedo(redoDepth(update.state) > 0);
+				}
+				if (this.#cb.oncursor && (update.selectionSet || update.docChanged)) {
+					const head = update.state.selection.main.head;
+					const line = update.state.doc.lineAt(head);
+					this.#cb.oncursor({ line: line.number, column: head - line.from + 1 });
+				}
+			}),
+			this.#theme.of(editorTheme(init.theme)),
+			this.#language.of(languageExtension(init.language)),
+			this.#font.of(fontExtension(init.fontSize, init.fontFamily)),
+			this.#wrap.of(init.lineWrapping ? EditorView.lineWrapping : []),
+			this.#readonly.of([
+				EditorState.readOnly.of(init.readonly),
+				EditorView.editable.of(!init.readonly)
+			]),
+			this.#history.of(history())
+		];
 	}
 
 	// --- Live reconfiguration ---
 
-	/** Note Monaco themes are global, not per-editor: this restyles every editor
-	 *  on the page, which is what we want: they share one app theme. */
 	reconfigureTheme(theme: 'light' | 'dark'): void {
-		this.#monaco?.editor.setTheme(themeName(theme));
+		this.view?.dispatch({ effects: this.#theme.reconfigure(editorTheme(theme)) });
 	}
 
 	reconfigureLang(language: EditorLanguage): void {
-		const model = this.#model;
-		if (model && this.#monaco) {
-			this.#monaco.editor.setModelLanguage(model, languageId(language));
-		}
+		this.view?.dispatch({ effects: this.#language.reconfigure(languageExtension(language)) });
 	}
 
 	reconfigureFont(size: number, family: string): void {
-		this.editor?.updateOptions({ fontSize: size, fontFamily: family });
+		this.view?.dispatch({ effects: this.#font.reconfigure(fontExtension(size, family)) });
 	}
 
 	reconfigureWrap(wrap: boolean): void {
-		this.editor?.updateOptions({ wordWrap: wrap ? 'on' : 'off' });
+		this.view?.dispatch({
+			effects: this.#wrap.reconfigure(wrap ? EditorView.lineWrapping : [])
+		});
 	}
 
 	reconfigureReadonly(ro: boolean): void {
-		this.editor?.updateOptions({ readOnly: ro });
+		this.view?.dispatch({
+			effects: this.#readonly.reconfigure([
+				EditorState.readOnly.of(ro),
+				EditorView.editable.of(!ro)
+			])
+		});
 	}
 
-	reconfigureMinimap(on: boolean): void {
-		this.editor?.updateOptions({ minimap: { enabled: on } });
-	}
-
-	/** Reset undo history on document switch, so undo can't reach another file's edits.
-	 *  Swaps the model because Monaco's undo stack lives there and has no public reset. */
+	/** Reset undo history on document switch, so undo can't reach another file's
+	 *  edits. Emptying and refilling the compartment discards the stack. */
 	resetHistoryIfDocChanged(key: string): void {
-		const editor = this.editor;
-		const monaco = this.#monaco;
-		if (!editor || !monaco || key === this.#lastDocKey) return;
-
-		const previous = editor.getModel();
-		// First mount adopts the model Monaco already created rather than
-		// replacing it, so the initial value and language survive untouched.
+		const view = this.view;
+		if (!view || key === this.#lastDocKey) return;
+		// First mount has nothing to clear; adopting the key here keeps the initial
+		// value and configuration untouched.
 		if (this.#lastDocKey === null) {
 			this.#lastDocKey = key;
 			return;
 		}
 		this.#lastDocKey = key;
-
-		const replacement = monaco.editor.createModel(
-			previous?.getValue() ?? '',
-			previous?.getLanguageId() ?? 'latex'
-		);
-		editor.setModel(replacement);
-		previous?.dispose();
+		view.dispatch({ effects: this.#history.reconfigure([]) });
+		view.dispatch({ effects: this.#history.reconfigure(history()) });
 	}
 
-	/** External value → editor, guarded so typing doesn't loop. `applyEdits` bypasses
-	 *  the undo stack; `setValue`/`pushEditOperations` would clear or pollute it. */
+	/** External value → editor, guarded so typing doesn't loop. Kept out of the
+	 *  undo stack: it is a host sync, not something the user did. */
 	syncExternalValue(next: string): void {
-		const model = this.#model;
-		if (!model || next === model.getValue()) return;
-		model.applyEdits([{ range: model.getFullModelRange(), text: next }]);
+		const view = this.view;
+		if (!view || next === view.state.doc.toString()) return;
+		view.dispatch({
+			changes: { from: 0, to: view.state.doc.length, insert: next },
+			annotations: Transaction.addToHistory.of(false)
+		});
 	}
 
 	// --- Imperative API ---
 
 	wrapSelection(before: string, after: string = before): void {
-		const editor = this.editor;
-		const model = this.#model;
-		if (!editor || !model) return;
+		const view = this.view;
+		if (!view) return;
 
-		const selection = editor.getSelection();
-		if (!selection) return;
-		const selected = model.getValueInRange(selection);
-		const start = model.getOffsetAt(selection.getStartPosition());
-
-		editor.executeEdits('glyphtex', [
-			{ range: selection, text: `${before}${selected}${after}`, forceMoveMarkers: true }
-		]);
-		// Reselect just the original text, now sitting after the opening delimiter.
-		this.selectRange(start + before.length, start + before.length + selected.length);
-		editor.focus();
+		const { from, to } = view.state.selection.main;
+		const selected = view.state.sliceDoc(from, to);
+		view.dispatch({
+			changes: { from, to, insert: `${before}${selected}${after}` },
+			// Reselect just the original text, now sitting after the opening delimiter.
+			selection: { anchor: from + before.length, head: from + before.length + selected.length }
+		});
+		view.focus();
 	}
 
 	insertText(text: string): void {
-		const editor = this.editor;
-		const model = this.#model;
-		if (!editor || !model) return;
+		const view = this.view;
+		if (!view) return;
 
-		const selection = editor.getSelection();
-		if (!selection) return;
-		const start = model.getOffsetAt(selection.getStartPosition());
+		const { from, to } = view.state.selection.main;
+		// A block snippet (one that closes its own line) belongs on a line of its
+		// own; splicing it mid-paragraph produces `Lorem \begin{itemize}…ipsum`.
+		const line = view.state.doc.lineAt(from);
+		const midLine = from > line.from && line.text.slice(0, from - line.from).trim() !== '';
+		const insert = text.endsWith('\n') && midLine ? `\n${text}` : text;
 
-		editor.executeEdits('glyphtex', [{ range: selection, text, forceMoveMarkers: true }]);
-		this.selectRange(start + text.length, start + text.length);
-		editor.focus();
+		view.dispatch({
+			changes: { from, to, insert },
+			selection: { anchor: from + insert.length }
+		});
+		view.focus();
 	}
 
 	focusEditor(): void {
-		this.editor?.focus();
+		this.view?.focus();
 	}
 
 	selectedText(): string {
-		const editor = this.editor;
-		const model = this.#model;
-		const selection = editor?.getSelection();
-		if (!model || !selection) return '';
-		return model.getValueInRange(selection);
+		const view = this.view;
+		if (!view) return '';
+		const { from, to } = view.state.selection.main;
+		return view.state.sliceDoc(from, to);
 	}
 
 	undo(): void {
-		const editor = this.editor;
-		if (!editor) return;
-		editor.trigger('glyphtex', 'undo', null);
-		editor.focus();
+		const view = this.view;
+		if (!view) return;
+		undo(view);
+		view.focus();
 	}
 
 	redo(): void {
-		const editor = this.editor;
-		if (!editor) return;
-		editor.trigger('glyphtex', 'redo', null);
-		editor.focus();
+		const view = this.view;
+		if (!view) return;
+		redo(view);
+		view.focus();
 	}
 
 	goToLine(line: number): void {
-		const editor = this.editor;
-		const model = this.#model;
-		if (!editor || !model) return;
+		const view = this.view;
+		if (!view) return;
 
-		const n = Math.max(1, Math.min(line, model.getLineCount()));
-		editor.setPosition({ lineNumber: n, column: 1 });
-		editor.revealLineInCenter(n);
-		editor.focus();
+		const n = Math.max(1, Math.min(line, view.state.doc.lines));
+		const target = view.state.doc.line(n);
+		view.dispatch({
+			selection: { anchor: target.from },
+			effects: EditorView.scrollIntoView(target.from, { y: 'center' })
+		});
+		view.focus();
 	}
 
 	/** Highlight matches in the editor and return them all for the results list. */
 	findAll(o: SearchOptions): SearchMatch[] {
-		const model = this.#model;
-		if (!model) return [];
+		const view = this.view;
+		if (!view) return [];
 
 		const re = buildRegex(o);
 		if (!re) {
@@ -333,7 +335,7 @@ export class CodeEditorController {
 			return [];
 		}
 
-		const text = model.getValue();
+		const text = view.state.doc.toString();
 		const out: SearchMatch[] = [];
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(text)) && out.length < 5000) {
@@ -342,60 +344,60 @@ export class CodeEditorController {
 				continue;
 			}
 			const from = m.index;
-			const position = model.getPositionAt(from);
+			const line = view.state.doc.lineAt(from);
 			out.push({
 				from,
 				to: from + m[0].length,
-				line: position.lineNumber,
-				column: position.column,
-				text: model.getLineContent(position.lineNumber)
+				line: line.number,
+				column: from - line.from + 1,
+				text: line.text
 			});
 		}
 
-		// Monaco has no search-query concept of its own to drive, so matches are
-		// highlighted with a decorations collection instead.
-		this.#decorations?.set(
-			out.map((match) => ({
-				range: this.#rangeOf(model, match.from, match.to),
-				options: { className: 'glyphtex-search-match' }
-			}))
-		);
-
+		view.dispatch({ effects: setMatches.of(out.map(({ from, to }) => ({ from, to }))) });
 		return out;
 	}
 
-	selectRange(from: number, to: number): void {
-		const editor = this.editor;
-		const model = this.#model;
-		if (!editor || !model) return;
+	/** `focus: false` reveals a match without stealing the caret, so find-next and
+	 *  Replace can be pressed repeatedly from the find bar. */
+	selectRange(from: number, to: number, opts: { focus?: boolean } = {}): void {
+		const view = this.view;
+		if (!view) return;
 
-		const range = this.#rangeOf(model, from, to);
-		editor.setSelection(range);
-		editor.revealRangeInCenterIfOutsideViewport(range);
-		editor.focus();
+		const max = view.state.doc.length;
+		const anchor = Math.max(0, Math.min(from, max));
+		const head = Math.max(0, Math.min(to, max));
+		view.dispatch({
+			selection: { anchor, head },
+			effects: EditorView.scrollIntoView(anchor, { y: 'nearest' })
+		});
+		if (opts.focus !== false) view.focus();
 	}
 
-	replaceRange(from: number, to: number, insert: string): void {
-		const editor = this.editor;
-		const model = this.#model;
-		if (!editor || !model) return;
+	replaceRange(from: number, to: number, insert: string, opts: { focus?: boolean } = {}): void {
+		const view = this.view;
+		if (!view) return;
 
-		editor.executeEdits('glyphtex', [
-			{ range: this.#rangeOf(model, from, to), text: insert, forceMoveMarkers: true }
-		]);
-		this.selectRange(from + insert.length, from + insert.length);
+		const max = view.state.doc.length;
+		view.dispatch({
+			changes: {
+				from: Math.max(0, Math.min(from, max)),
+				to: Math.max(0, Math.min(to, max)),
+				insert
+			}
+		});
+		this.selectRange(from + insert.length, from + insert.length, opts);
 	}
 
 	/** Replace every match in one undoable change. Returns the count replaced. */
 	replaceAllMatches(o: SearchOptions, replacement: string): number {
-		const editor = this.editor;
-		const model = this.#model;
-		if (!editor || !model) return 0;
+		const view = this.view;
+		if (!view) return 0;
 
 		const re = buildRegex(o);
 		if (!re) return 0;
 
-		const text = model.getValue();
+		const text = view.state.doc.toString();
 		const matches = text.match(re);
 		const count = matches ? matches.length : 0;
 		if (!count) return 0;
@@ -414,28 +416,14 @@ export class CodeEditorController {
 			next = text.replace(re, repl);
 		}
 
-		// One edit over the whole document, so the whole replace-all undoes as a
+		// One change over the whole document, so the whole replace-all undoes as a
 		// single step rather than match by match.
-		editor.executeEdits('glyphtex', [{ range: model.getFullModelRange(), text: next }]);
+		view.dispatch({ changes: { from: 0, to: text.length, insert: next } });
 		return count;
 	}
 
 	/** Clear the highlight (closing the search panel). */
 	clearSearch(): void {
-		this.#decorations?.clear();
-	}
-
-	// Offset pair → Monaco range via the model's own conversion; hand-computing
-	// line/column from offsets goes wrong on CRLF documents.
-	#rangeOf(model: Monaco.editor.ITextModel, from: number, to: number): Monaco.IRange {
-		const max = model.getValueLength();
-		const start = model.getPositionAt(Math.max(0, Math.min(from, max)));
-		const end = model.getPositionAt(Math.max(0, Math.min(to, max)));
-		return {
-			startLineNumber: start.lineNumber,
-			startColumn: start.column,
-			endLineNumber: end.lineNumber,
-			endColumn: end.column
-		};
+		this.view?.dispatch({ effects: setMatches.of([]) });
 	}
 }

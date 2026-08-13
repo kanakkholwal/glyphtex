@@ -93,8 +93,14 @@ export type EditorApi = {
 	redo: () => void;
 	goToLine: (line: number) => void;
 	findAll: (o: SearchOptions) => SearchMatch[];
-	selectRange: (from: number, to: number) => void;
-	replaceRange: (from: number, to: number, insert: string) => void;
+	/** `focus: false` reveals without stealing the caret (find bar navigation). */
+	selectRange: (from: number, to: number, opts?: { focus?: boolean }) => void;
+	replaceRange: (
+		from: number,
+		to: number,
+		insert: string,
+		opts?: { focus?: boolean }
+	) => void;
 	replaceAllMatches: (o: SearchOptions, replacement: string) => number;
 	clearSearch: () => void;
 };

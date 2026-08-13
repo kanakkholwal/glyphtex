@@ -1,7 +1,9 @@
 // Must not import the editor modules: under Vite that loads a second copy and
-// registers the providers twice, surfacing as duplicated suggestions.
+// registers the language twice, surfacing as duplicated suggestions.
 const CDP = process.env.CDP || 'http://127.0.0.1:9333';
-const PAGE = process.env.PAGE || 'http://localhost:5199/editor';
+// The workspace list, not a document: /editor no longer exists, and a project
+// URL carries an id that differs per profile. The run opens or creates one.
+const PAGE = process.env.PAGE || 'http://localhost:5173/workspace';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const list = await (await fetch(`${CDP}/json/list`)).json();
@@ -35,26 +37,38 @@ await send('Runtime.enable');
 await send('Page.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: 1400, height: 900, deviceScaleFactor: 1, mobile: false });
 await send('Page.navigate', { url: PAGE });
+await sleep(5000);
+
+// A fresh profile has no documents, so make one to open the editor on.
+await evaluate(`(() => {
+	const link = document.querySelector('a[href*="/workspace/projects/"]');
+	if (link) { link.click(); return 'existing'; }
+	[...document.querySelectorAll('button')]
+		.find(b => (b.getAttribute('aria-label') || b.textContent || '').trim() === 'New project')?.click();
+	return 'created';
+})()`);
 
 let mounted = false;
 for (let i = 0; i < 80; i++) {
 	await sleep(500);
-	mounted = await evaluate(`!!document.querySelector('.monaco-editor')`).catch(() => false);
+	mounted = await evaluate(`!!document.querySelector('.cm-content')`).catch(() => false);
 	if (mounted) break;
 }
-check('Monaco editor mounts', mounted);
+check('CodeMirror editor mounts', mounted);
 if (!mounted) { ws.close(); process.exit(1); }
 await sleep(1500);
 
-const box = await evaluate(`(() => { const r = document.querySelector('.monaco-editor').getBoundingClientRect(); return {w: Math.round(r.width), h: Math.round(r.height)}; })()`);
+const box = await evaluate(`(() => { const r = document.querySelector('.cm-editor').getBoundingClientRect(); return {w: Math.round(r.width), h: Math.round(r.height)}; })()`);
 check('editor has non-zero size', box.w > 100 && box.h > 100, `${box.w}x${box.h}`);
 
-const bg = await evaluate(`getComputedStyle(document.querySelector('.monaco-editor .monaco-editor-background') || document.querySelector('.monaco-editor')).backgroundColor`);
-check('Islands Dark background', /rgb\(25,\s*26,\s*28\)/.test(bg), bg);
+const bg = await evaluate(`getComputedStyle(document.querySelector('.cm-editor')).backgroundColor`);
+check('Islands Dark background', /rgb\(25,\s*25,\s*25\)/.test(bg), bg);
 
+// CodeMirror emits generated class names (ͼ…) per highlight tag, so distinctness
+// is the only stable assertion: exact names change when the theme is rebuilt.
 const tokens = await evaluate(`(() => {
-	const spans = [...document.querySelectorAll('.monaco-editor .view-line span span')];
-	const classes = new Set(spans.map(s => [...s.classList].find(c => c.startsWith('mtk'))).filter(Boolean));
+	const spans = [...document.querySelectorAll('.cm-line span[class]')];
+	const classes = new Set(spans.flatMap(s => [...s.classList]));
 	return { spans: spans.length, distinct: classes.size };
 })()`);
 check('grammar produces distinct token classes', tokens.distinct > 2, `${tokens.distinct} classes / ${tokens.spans} spans`);
@@ -68,7 +82,7 @@ await evaluate(`(() => {
 })()`);
 await sleep(300);
 
-const target = await evaluate(`(() => { const r = document.querySelector('.monaco-editor .view-lines').getBoundingClientRect(); return {x: Math.round(r.x + 40), y: Math.round(r.y + 10)}; })()`);
+const target = await evaluate(`(() => { const r = document.querySelector('.cm-content').getBoundingClientRect(); return {x: Math.round(r.x + 40), y: Math.round(r.y + 10)}; })()`);
 for (const type of ['mousePressed', 'mouseReleased']) {
 	await send('Input.dispatchMouseEvent', { type, x: target.x, y: target.y, button: 'left', clickCount: 1 });
 }
@@ -91,16 +105,16 @@ async function type(text) {
 }
 
 const widgetState = () => evaluate(`(() => {
-	const w = document.querySelector('.suggest-widget');
+	const w = document.querySelector('.cm-tooltip-autocomplete');
 	return {
-		visible: !!w && w.classList.contains('visible') && w.offsetHeight > 0,
-		rows: [...document.querySelectorAll('.suggest-widget .monaco-list-row')].map(r => r.textContent.trim()),
+		visible: !!w && w.offsetHeight > 0,
+		rows: [...document.querySelectorAll('.cm-tooltip-autocomplete li')].map(r => r.textContent.trim()),
 	};
 })()`);
 
 await type(String.fromCharCode(92) + 'fra');
 const cmd = await widgetState();
-check('suggest widget opens on a partial command', cmd.visible, cmd.rows.slice(0, 3).join(' | '));
+check('completion popup opens on a partial command', cmd.visible, cmd.rows.slice(0, 3).join(' | '));
 check('offers \\frac', cmd.rows.some((r) => r.includes('frac')), cmd.rows[0] ?? '(none)');
 check('no duplicate suggestions', new Set(cmd.rows).size === cmd.rows.length, `${cmd.rows.length} rows, ${new Set(cmd.rows).size} unique`);
 
