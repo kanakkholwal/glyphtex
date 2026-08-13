@@ -136,7 +136,7 @@
 			     points at the workspace until there is a release worth shipping.
 			     The label matches the page CTAs exactly: two names for one URL
 			     reads as two destinations. -->
-			<Button href={resolve('/workspace')} variant="brand" class="min-w-0 px-4">
+			<Button href={resolve('/workspace')} variant="default" class="min-w-0 px-4">
 				Open the workspace
 			</Button>
 			<button
