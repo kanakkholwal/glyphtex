@@ -1,0 +1,93 @@
+% A conventional article: the common case.
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref}
+\usepackage{natbib}
+
+\title{On the Consistency of Estimators under Weak Dependence}
+\author{A.\ Researcher\thanks{Department of Statistics.} \and B.\ Coauthor}
+\date{\today}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We establish consistency of $\hat\theta_n$ under $\alpha$-mixing, relaxing the
+i.i.d.\ assumption of \citet{knuth1984}. Simulations support the theory.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Let $X_1,\dots,X_n$ be a sequence of random variables with common marginal
+distribution $F$. Prior work \citep{knuth1984,lamport1994} assumes independence;
+we do not. See Section~\ref{sec:results} for the main result.
+
+\subsection{Notation}
+\label{sec:notation}
+
+Throughout, $\|\cdot\|$ denotes the Euclidean norm, and we write
+\begin{equation}
+  \label{eq:objective}
+  Q_n(\theta) = \frac{1}{n} \sum_{i=1}^{n} q(X_i, \theta),
+\end{equation}
+with $\hat\theta_n = \arg\min_{\theta \in \Theta} Q_n(\theta)$.
+
+\section{Results}
+\label{sec:results}
+
+\begin{theorem}[Consistency]
+\label{thm:main}
+Suppose $\Theta$ is compact and $q$ is continuous. Then
+$\hat\theta_n \to \theta_0$ in probability.
+\end{theorem}
+
+\begin{proof}
+The argument follows the standard uniform-convergence route. By
+Lemma~\ref{lem:ulln},
+\[
+  \sup_{\theta \in \Theta} \left| Q_n(\theta) - Q(\theta) \right| \xrightarrow{p} 0 .
+\]
+Identification then gives the claim.
+\end{proof}
+
+\begin{lemma}[Uniform LLN]
+\label{lem:ulln}
+Under $\alpha$-mixing with $\sum_k \alpha(k) < \infty$, the empirical objective
+converges uniformly.
+\end{lemma}
+
+\subsection{Discussion}
+
+The conditions are mild. Note that:
+\begin{itemize}
+  \item compactness can be weakened to local compactness;
+  \item continuity may be replaced by upper semicontinuity;
+  \item the mixing rate is not sharp.
+\end{itemize}
+
+An enumerated version, for contrast:
+\begin{enumerate}
+  \item First, we verify identification.
+  \item Second, we verify the uniform law.
+  \item Third, we conclude.
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\linewidth]{figures/convergence}
+  \caption{Empirical convergence of $\hat\theta_n$ across 500 replications.}
+  \label{fig:convergence}
+\end{figure}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

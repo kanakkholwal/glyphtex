@@ -71,7 +71,7 @@ export type WorkbenchProps = {
 	/** Rename the open document from the header (web projects). */
 	onRenameProject?: (name: string) => void;
 	/** Add files/images from disk into the open document (web projects). */
-	onAddFiles?: (accept: string) => void;
+	onAddFiles?: (accept: string) => void | Promise<string[]>;
 	/** Export the whole document as a .zip (web projects). */
 	onExportProject?: () => void;
 	/** Read a file's bytes for the asset viewer: keyed by `path` on desktop and
@@ -88,7 +88,7 @@ export class WorkbenchController {
 	readonly backHref?: string;
 	readonly backLabel?: string;
 	readonly onRenameProject?: (name: string) => void;
-	readonly onAddFiles?: (accept: string) => void;
+	readonly onAddFiles?: (accept: string) => void | Promise<string[]>;
 	readonly onExportProject?: () => void;
 	readonly onOpenProject?: () => void;
 	readonly #onOpenFolder?: () => void;

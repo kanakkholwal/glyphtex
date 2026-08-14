@@ -85,6 +85,9 @@ export type SearchMatch = {
 
 /** The imperative surface a `CodeEditor` exposes via `bind:this`. */
 export type EditorApi = {
+	/** False while the editor module is still loading: its methods no-op until
+	 *  then, so a queued reveal has to wait rather than be dropped. */
+	ready?: () => boolean;
 	wrapSelection: (before: string, after?: string) => void;
 	insertText: (text: string) => void;
 	selectedText: () => string;

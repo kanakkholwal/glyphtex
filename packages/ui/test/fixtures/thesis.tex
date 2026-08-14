@@ -1,0 +1,61 @@
+% Macro-heavy thesis preamble: the case that breaks naive block parsers.
+\documentclass[12pt,twoside,openright]{report}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{xparse}
+\usepackage{etoolbox}
+
+% --- Notation shorthands --------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\providecommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\DeclareMathOperator{\argmin}{arg\,min}
+\DeclareMathOperator*{\esssup}{ess\,sup}
+
+% A macro with an optional argument, defined the xparse way.
+\NewDocumentCommand{\norm}{o m}{%
+  \IfNoValueTF{#1}{\left\lVert #2 \right\rVert}{\left\lVert #2 \right\rVert_{#1}}%
+}
+
+\newenvironment{remark}[1][Remark]{%
+  \par\medskip\noindent\textbf{#1.}\enspace%
+}{%
+  \par\medskip%
+}
+
+\newcommand{\citefig}[2]{Figure~\ref{#1} (see also \cite{#2})}
+
+\begin{document}
+
+\chapter{Preliminaries}
+\label{ch:prelim}
+
+We work throughout on a probability space $(\Omega, \mathcal{F}, \Prob)$ and take
+all random elements to be $\R^d$-valued. For $x \in \R^d$ write $\norm{x}$ for the
+Euclidean norm and $\norm[1]{x}$ for the $\ell_1$ norm.
+
+\section{Standing assumptions}
+
+\begin{remark}[Convention]
+Unless stated otherwise, $\E$ denotes expectation under $\Prob$.
+\end{remark}
+
+The estimator is $\hat\theta = \argmin_{\theta} \abs{Q(\theta)}$, and we assume
+$\esssup_\omega \norm{X(\omega)} < \infty$.
+
+\input{chapters/background}
+\include{chapters/method}
+
+\section{A displayed system}
+
+\begin{align}
+  \label{eq:system}
+  \dot{x}(t) &= A x(t) + B u(t), \\
+  y(t)       &= C x(t).
+\end{align}
+
+Note $\citefig{fig:block}{astrom2008}$ for the block diagram.
+
+\end{document}

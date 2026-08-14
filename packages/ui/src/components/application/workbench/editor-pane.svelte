@@ -32,6 +32,14 @@
 	const layout = $derived(ctrl.layout);
 	const search = $derived(ctrl.search);
 
+	// A jump from a visual block queues its span, because switching modes unmounts
+	// this editor; apply it as soon as the handle exists.
+	$effect(() => {
+		void layout.editor;
+		void layout.revealSpan;
+		layout.flushReveal();
+	});
+
 	// Assets are read by absolute path on desktop and by project-relative name on
 	// web (IndexedDB), so the viewer takes whichever the host can resolve.
 	const assetKey = $derived(files.activeFile?.path ?? files.activeFile?.name);

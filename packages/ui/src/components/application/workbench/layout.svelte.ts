@@ -74,6 +74,21 @@ export class LayoutStore {
 
 	// Editor handle (bound from CodeEditor), shared with search + compile.
 	editor = $state<EditorApi>();
+
+	/** A source range the LaTeX view should reveal once its editor exists. Set
+	 *  when jumping from a visual block, which unmounts the editor as it switches. */
+	revealSpan = $state<{ from: number; to: number } | null>(null);
+
+	/** Apply and clear a queued reveal. Called by the editor pane on mount.
+	 *  Held until the editor is actually ready: it is bound before its module
+	 *  finishes loading, and calling early would drop the reveal silently. */
+	flushReveal(): void {
+		const span = this.revealSpan;
+		const editor = this.editor;
+		if (!span || !editor || editor.ready?.() === false) return;
+		this.revealSpan = null;
+		editor.selectRange(span.from, span.to);
+	}
 	// Whether the editor currently has anything to undo / redo (bound from CodeEditor).
 	canUndo = $state(false);
 	canRedo = $state(false);
