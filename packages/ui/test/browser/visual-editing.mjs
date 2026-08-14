@@ -5,8 +5,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { connect, sleep } from './harness.mjs';
 
-const { send, ev, check, clearModals, key, typeText, editorDoc, focusDoc, openProject, finish } =
-	await connect();
+const {
+	send,
+	ev,
+	check,
+	clearModals,
+	clickSel,
+	key,
+	typeText,
+	editorDoc,
+	focusDoc,
+	openProject,
+	finish
+} = await connect();
 
 await openProject();
 await focusDoc();
@@ -446,6 +457,209 @@ const rawChips = await ev(
 check('a tikzpicture shows as an inert chip', rawChips >= 1, `chips: ${rawChips}`);
 await toLatex();
 check('opening it in visual mode changed nothing', (await source()) === beforeTikz);
+
+// --- A table is a grid here, not a trip to the LaTeX view ---------------------
+const TABLE_DOC = [
+	'\\documentclass{article}',
+	'\\usepackage{graphicx}',
+	'\\begin{document}',
+	'\\begin{table}[h]',
+	'  \\centering',
+	'  \\begin{tabular}{l l}',
+	'    \\hline',
+	'    Header 1 & Header 2 \\\\',
+	'    \\hline',
+	'    Cell 1 & Cell 2 \\\\',
+	'    Cell 3 & Cell 4 \\\\',
+	'    \\hline',
+	'  \\end{tabular}',
+	'  \\caption{Caption text.}',
+	'\\end{table}',
+	'',
+	'\\begin{figure}',
+	'  \\includegraphics{example-image}',
+	'\\end{figure}',
+	'\\end{document}',
+	''
+].join('\n');
+
+check('table document loads', await loadSource(TABLE_DOC, 'Header 1'));
+await toVisual();
+await sleep(600);
+
+const shape = () =>
+	ev(`(() => {
+  const cells = [...document.querySelectorAll('[data-table-cell]')];
+  return { cells: cells.length, texts: cells.map(c => c.textContent.trim()) };
+})()`);
+const grid0 = await shape();
+check('the table renders as an editable grid', grid0.cells === 6, JSON.stringify(grid0));
+check(
+	'the cells hold the real contents',
+	grid0.texts.join('|') === 'Header 1|Header 2|Cell 1|Cell 2|Cell 3|Cell 4',
+	JSON.stringify(grid0.texts)
+);
+
+await ev(`(() => {
+  const cell = document.querySelectorAll('[data-table-cell]')[3];
+  cell.focus();
+  cell.textContent = 'Edited cell';
+  cell.dispatchEvent(new FocusEvent('blur'));
+  return true;
+})()`);
+await sleep(700);
+await toLatex();
+const afterCell = await source();
+check('editing a cell rewrites only that cell', /Cell 1 & Edited cell/.test(afterCell ?? ''));
+check(
+	'the rest of the table is byte identical',
+	(afterCell ?? '').replace('Edited cell', 'Cell 2') === TABLE_DOC,
+	'the table was reformatted'
+);
+
+await toVisual();
+await sleep(500);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Add row"]'); b?.click(); return !!b; })()`
+);
+await sleep(700);
+check('adding a row gives the grid one more', (await shape()).cells === 8);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Add column"]'); b?.click(); return !!b; })()`
+);
+await sleep(700);
+check('adding a column widens every row', (await shape()).cells === 12);
+await toLatex();
+check(
+	'the column reaches the spec, not just the rows',
+	/\\begin\{tabular\}\{l l l\}/.test((await source()) ?? ''),
+	JSON.stringify((await source())?.match(/\\begin\{tabular\}\{[^}]*\}/)?.[0])
+);
+
+// A column menu is where alignment and targeted inserts live.
+await toVisual();
+await sleep(500);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Column 2 actions"]'); b?.click(); return !!b; })()`
+);
+await sleep(400);
+check(
+	'a column handle opens its menu',
+	await ev(`!!document.querySelector('[role="menu"][aria-label="Column actions"]')`)
+);
+await ev(`(() => {
+  const item = [...document.querySelectorAll('[role="menuitemradio"]')].find(i => i.textContent.includes('Align centre'));
+  item?.click();
+  return !!item;
+})()`);
+await sleep(700);
+await toLatex();
+check(
+	'column alignment lands in the spec',
+	/\\begin\{tabular\}\{l c l\}/.test((await source()) ?? ''),
+	JSON.stringify((await source())?.match(/\\begin\{tabular\}\{[^}]*\}/)?.[0])
+);
+
+// --- A figure with no caption can still be given one --------------------------
+check('reload the table document', await loadSource(TABLE_DOC, 'Header 1'));
+await toVisual();
+await sleep(600);
+
+// Regression guard: an empty caption still has to be a target you can hit. Taking
+// the placeholder out of the flow collapsed the span to zero width, and clicking
+// it did nothing at all. `.focus()` would not have caught that, so click it.
+await clickSel('[data-float-caption]');
+check(
+	'clicking an empty caption puts the caret in it',
+	await ev(`!!document.activeElement?.hasAttribute?.('data-float-caption')`),
+	await ev(`document.activeElement?.tagName`)
+);
+
+// The placeholder was driven off the model, which only catches up on a reparse,
+// so it sat under the first characters you typed.
+const emptyBefore = await ev(`(() => {
+  const caption = [...document.querySelectorAll('[data-float-caption]')].pop();
+  const before = caption.hasAttribute('data-empty');
+  caption.focus();
+  caption.textContent = 'A';
+  caption.dispatchEvent(new Event('input', { bubbles: true }));
+  return before;
+})()`);
+await sleep(300);
+const emptyAfter = await ev(
+	`[...document.querySelectorAll('[data-float-caption]')].pop().hasAttribute('data-empty')`
+);
+check(
+	'the caption placeholder clears on the first keystroke',
+	emptyBefore && !emptyAfter,
+	JSON.stringify({ emptyBefore, emptyAfter })
+);
+
+await ev(`(() => {
+  const caption = [...document.querySelectorAll('[data-float-caption]')].pop();
+  caption.focus();
+  caption.textContent = 'Added from visual mode.';
+  caption.dispatchEvent(new FocusEvent('blur'));
+  return true;
+})()`);
+await sleep(700);
+await toLatex();
+check(
+	'a caption is created for a float that had none',
+	/\\includegraphics\{example-image\}\n\s*\\caption\{Added from visual mode\.\}/.test(
+		(await source()) ?? ''
+	),
+	JSON.stringify((await source())?.match(/\\begin\{figure\}[\s\S]*?\\end\{figure\}/)?.[0])
+);
+
+// --- Float controls write real LaTeX ------------------------------------------
+await toVisual();
+await sleep(600);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('figure button')].find(x => x.textContent.trim() === '60%'); b?.click(); return !!b; })()`
+);
+await sleep(700);
+await toLatex();
+check(
+	'the width control adds width= to a graphic that had none',
+	/\\includegraphics\[width=0\.6\\linewidth\]\{example-image\}/.test((await source()) ?? '')
+);
+
+await toVisual();
+await sleep(600);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('figure [aria-label="Centre"]')].pop(); b?.click(); return !!b; })()`
+);
+await sleep(700);
+await toLatex();
+check(
+	'the alignment control adds \\centering',
+	/\\begin\{figure\}\n\s*\\centering/.test((await source()) ?? '')
+);
+
+await toVisual();
+await sleep(600);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('figure [aria-label="Float options"]')].pop(); b?.click(); return !!b; })()`
+);
+await sleep(400);
+check(
+	'the options popover opens',
+	await ev(`!!document.querySelector('[role="dialog"][aria-label="Float options"]')`)
+);
+await ev(`(() => {
+  const b = [...document.querySelectorAll('[role="dialog"][aria-label="Float options"] button')].find(x => x.textContent.trim() === 'Text left');
+  b?.click();
+  return !!b;
+})()`);
+await sleep(900);
+await toLatex();
+const wrapped = await source();
+check(
+	'text wrap converts the figure to a wrapfigure',
+	/\\begin\{wrapfigure\}\{r\}/.test(wrapped ?? '')
+);
+check('and loads the package it needs', /\\usepackage\{wrapfig\}/.test(wrapped ?? ''));
 
 // --- Undo ---------------------------------------------------------------------
 await toVisual();

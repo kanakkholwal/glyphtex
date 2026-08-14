@@ -163,12 +163,14 @@ describe('editing a float in place', () => {
 		assert.match(out, /\\caption\{New\}/);
 	});
 
-	test('a float with no caption or width reports no patch rather than inventing one', () => {
+	// A float with neither is the common case for a figure someone just pasted in,
+	// so the controls create what is missing rather than going quiet. See
+	// tex-table.test.mjs for the created-from-nothing cases.
+	test('a float with no caption or width still reports no width', () => {
 		const src = body('\\begin{figure}\n  \\includegraphics{x}\n\\end{figure}');
-		assert.equal(setFloatCaption(src, float(src), 'Nope'), null);
-		assert.equal(setFloatWidth(src, float(src), '\\linewidth'), null);
 		assert.equal(floatWidth(src, float(src)), null);
-		// The path is still editable: that is the one command it does have.
+		assert.ok(setFloatCaption(src, float(src), 'Nope'));
+		assert.ok(setFloatWidth(src, float(src), '\\linewidth'));
 		assert.ok(setFloatGraphic(src, float(src), 'y'));
 	});
 });

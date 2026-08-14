@@ -2,22 +2,47 @@ export { parseTexDoc } from './parse';
 export { escapeText, printBlock, printInlines, sectionCommand } from './print';
 export {
 	applyPatch,
+	applyPatches,
 	deleteBlock,
+	ensurePackage,
+	envOption,
+	floatAlignment,
+	floatLabel,
+	floatPlacement,
 	floatWidth,
 	insertAfter,
 	insertAtStart,
 	mergeIntoPrevious,
 	patchDelta,
 	replaceBlock,
+	setEnvOption,
+	setEnvironment,
+	setFloatAlignment,
+	setMathNumbered,
 	setFloatCaption,
 	setFloatGraphic,
+	setFloatLabel,
+	setFloatPlacement,
 	setFloatWidth,
+	setFloatWrap,
 	setInlines,
 	setListItem,
 	setListItems,
 	splitParagraph
 } from './edit';
-export type { Patch } from './edit';
+export type { FloatAlignment, Patch } from './edit';
+export {
+	deleteTableColumn,
+	deleteTableRow,
+	insertTableColumn,
+	insertTableRow,
+	printTable,
+	readTable,
+	setTableCell,
+	setTableColumnAlign,
+	setTableRules
+} from './tabular';
+export type { ColumnAlign, TableCell, TableGrid, TableRow } from './tabular';
 export {
 	BLOCK_TEMPLATES,
 	CARET,

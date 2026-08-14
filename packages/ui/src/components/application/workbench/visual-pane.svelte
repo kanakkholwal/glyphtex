@@ -543,6 +543,9 @@
 	}
 
 	const PROSE_KINDS = ['heading', 'paragraph', 'quote'];
+	const QUOTE_ENVIRONMENTS = ['quote', 'quotation', 'verse'];
+	/** Where a `\usepackage` a control needs would go. */
+	const preambleEnd = $derived(doc?.preamble.span.to ?? 0);
 
 	function runBlockAction(action: BlockAction) {
 		const open = blockMenu;
@@ -697,10 +700,20 @@
 		host.focus();
 	}
 
-	/** A float card edited one of its own commands. Re-parse: the caption and the
-	 *  graphic are read out of the source, not held as block state. */
-	function applyFloatPatch(patch: Patch | null) {
-		if (patch) commitStructural(patch, { key: null });
+	/**
+	 * A block control edited one of its own commands. Re-parse: captions, widths
+	 * and table cells are read out of the source, not held as block state.
+	 *
+	 * A list, because one control can need two edits: wrapping a figure also puts
+	 * `\usepackage{wrapfig}` in the preamble, which moves everything after it.
+	 */
+	function applyBlockPatch(patches: (Patch | null)[]) {
+		const real = patches.filter((patch): patch is Patch => patch !== null);
+		if (!tex || !real.length) return;
+		const next = tex.applyPatches(files.source, real);
+		if (next === files.source) return;
+		write(next);
+		doc = tex.parseTexDoc(next);
 	}
 
 	/** Every editable spot in document order, so the arrow keys can walk them. */
@@ -732,6 +745,27 @@
 		'text-[0.95rem] font-semibold mt-5'
 	];
 </script>
+
+{#snippet boxControls(actions: { label: string; active: boolean; run: () => void }[])}
+	<!-- Quiet but readable: these say what the block is as much as they change it,
+	     so hiding them until hover would hide the state too. -->
+	<div
+		class="flex items-center gap-0.5 opacity-45 transition-opacity group-focus-within/box:opacity-100 group-hover/box:opacity-100"
+	>
+		{#each actions as action (action.label)}
+			<button
+				type="button"
+				aria-pressed={action.active}
+				class="flex h-7 items-center rounded px-2 text-xs transition-colors {action.active
+					? 'bg-accent text-foreground'
+					: 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'}"
+				onclick={action.run}
+			>
+				{action.label}
+			</button>
+		{/each}
+	</div>
+{/snippet}
 
 {#snippet prose(block: Block, index: number)}
 	{@const key = `${index}`}
@@ -773,7 +807,16 @@
 			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
 		/>
 	{:else if block.kind === 'quote'}
-		<blockquote class="border-border text-muted-foreground mt-4 border-l-2 pl-4">
+		<blockquote class="group/box border-border text-muted-foreground relative mt-4 border-l-2 pl-4">
+			<div class="absolute top-0 right-0">
+				{@render boxControls(
+					QUOTE_ENVIRONMENTS.map((name) => ({
+						label: name,
+						active: block.environment === name,
+						run: () => applyBlockPatch([tex?.setEnvironment(files.source, block, name) ?? null])
+					}))
+				)}
+			</div>
 			<BlockEditor
 				runs={block.content}
 				tag="p"
@@ -822,21 +865,71 @@
 			{/each}
 		</svelte:element>
 	{:else if block.kind === 'math'}
-		<div class="border-border bg-surface-soft mt-5 rounded-lg border px-4 py-3.5">
-			<div class="text-muted-foreground flex items-center gap-2 text-xs font-medium">
+		{@const numbered = !!block.environment && !block.environment.endsWith('*')}
+		<div class="group/box border-border bg-surface-soft mt-5 overflow-hidden rounded-lg border">
+			<div
+				class="text-muted-foreground border-border flex items-center gap-2 border-b px-3 py-1.5 text-xs font-medium"
+			>
 				<IconMathFunction size={14} />
-				{block.environment ?? 'Display math'}
+				{block.environment ?? 'display maths'}
+				<div class="ml-auto">
+					{@render boxControls([
+						{
+							label: 'Numbered',
+							active: numbered,
+							run: () =>
+								applyBlockPatch([tex?.setMathNumbered(files.source, block, !numbered) ?? null])
+						}
+					])}
+				</div>
 			</div>
 			<pre
-				class="text-foreground mt-2 overflow-x-auto text-center text-sm whitespace-pre-wrap">{block.source.trim()}</pre>
+				class="text-foreground overflow-x-auto px-4 py-3.5 text-center text-sm whitespace-pre-wrap">{block.source.trim()}</pre>
 		</div>
 	{:else if block.kind === 'code'}
-		<div class="border-border bg-surface-soft mt-5 overflow-hidden rounded-lg border">
+		{@const listing = block.environment.startsWith('lst')}
+		<div class="group/box border-border bg-surface-soft mt-5 overflow-hidden rounded-lg border">
 			<div
 				class="text-muted-foreground border-border flex items-center gap-2 border-b px-3 py-1.5 text-xs font-medium"
 			>
 				<IconCode size={14} />
 				{block.environment}
+				<div class="ml-auto flex items-center gap-1">
+					{#if listing}
+						{@const language = tex?.envOption(files.source, block, 'language') ?? ''}
+						<!-- Free text, not a list: `listings` supports dozens of dialects and
+						     naming five of them would be the wrong five. -->
+						<input
+							value={language}
+							placeholder="language"
+							aria-label="Listing language"
+							class="border-border text-foreground focus-visible:border-brand h-7 w-28 rounded border bg-transparent px-2 text-xs outline-none"
+							onchange={(e) =>
+								applyBlockPatch([
+									tex?.setEnvOption(
+										files.source,
+										block,
+										'language',
+										(e.currentTarget as HTMLInputElement).value.trim()
+									) ?? null
+								])}
+						/>
+					{/if}
+					{@render boxControls([
+						{
+							label: 'Syntax',
+							active: listing,
+							run: () =>
+								applyBlockPatch([
+									listing
+										? null
+										: (tex?.ensurePackage(files.source, preambleEnd, 'listings') ?? null),
+									tex?.setEnvironment(files.source, block, listing ? 'verbatim' : 'lstlisting') ??
+										null
+								])
+						}
+					])}
+				</div>
 			</div>
 			<pre class="overflow-x-auto px-3 py-2.5 font-mono text-xs">{block.source.replace(
 					/^\n/,
@@ -847,8 +940,9 @@
 		<FloatCard
 			{block}
 			{ctrl}
+			{tex}
 			source={files.source}
-			onpatch={applyFloatPatch}
+			onpatch={applyBlockPatch}
 			onopensource={() => openInSource(block)}
 		/>
 	{:else}

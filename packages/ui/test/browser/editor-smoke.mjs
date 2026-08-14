@@ -54,7 +54,11 @@ await send('Page.bringToFront');
 await send('Emulation.setFocusEmulationEnabled', { enabled: true });
 await send('Storage.clearDataForOrigin', { origin: new URL(PAGE).origin, storageTypes: 'all' });
 await send('Page.navigate', { url: PAGE });
-await sleep(5000);
+await sleep(2500);
+// `clearDataForOrigin` leaves sessionStorage alone, and the doc mode lives there.
+// Without this the run inherits whichever mode the last one left behind.
+await evaluate('sessionStorage.clear()');
+await sleep(2500);
 
 // A fresh profile has no documents, so make one to open the editor on.
 await evaluate(`(() => {

@@ -1,32 +1,52 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
-	import type { FloatBlock, Patch } from '@glyphtex/ui/tex-doc';
-	import { IconCode, IconPhoto, IconPhotoPlus, IconTable, IconUpload } from '@tabler/icons-svelte';
+	import type { FloatAlignment, FloatBlock, Patch } from '@glyphtex/ui/tex-doc';
+	import {
+		IconAlignCenter,
+		IconAlignLeft,
+		IconAlignRight,
+		IconCode,
+		IconPhoto,
+		IconPhotoPlus,
+		IconSettings,
+		IconTable,
+		IconUpload
+	} from '@tabler/icons-svelte';
 
 	import { classifyFile } from '../../file-kinds';
 	import type { WorkbenchController } from '../controller.svelte';
+	import TableGrid from './table-grid.svelte';
+
+	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
 
 	/**
-	 * A figure or table, editable where it can be: the caption, the image and its
-	 * width. The environment around them is never reprinted, so placement options,
-	 * subfigures and hand-tuned spacing survive untouched, because each control
-	 * patches only the one command it owns.
+	 * A figure or table, edited in place. Every control patches the one command it
+	 * owns, so placement options, subfigures and hand-tuned spacing survive an
+	 * edit to the caption next to them.
+	 *
+	 * The everyday controls (width, alignment, caption) are on the card; the ones
+	 * you set once (placement, wrapping, the label) are behind Options.
 	 */
 	let {
 		block,
 		source,
 		ctrl,
+		tex,
 		onpatch,
 		onopensource
 	}: {
 		block: FloatBlock;
 		source: string;
 		ctrl: WorkbenchController;
-		onpatch: (patch: Patch | null) => void;
+		tex: TexDocModule | undefined;
+		/** A list, because a control can need two edits: wrapping a figure also has
+		 *  to put `\usepackage{wrapfig}` in the preamble. */
+		onpatch: (patches: (Patch | null)[]) => void;
 		onopensource: () => void;
 	} = $props();
 
 	const isTable = $derived(block.environment.startsWith('table'));
+	const isWrapped = $derived(block.environment.startsWith('wrap'));
 
 	// LaTeX conventionally omits the extension so the driver can choose the file;
 	// the preview has to put it back to find the bytes.
@@ -87,25 +107,30 @@
 	});
 
 	let picking = $state(false);
+	let options = $state(false);
 
-	// Read straight off this float's own slice, not through the parser module.
-	// `source` is the whole document and changes on every keystroke anywhere, so
-	// an effect with a dynamic import here re-imported once per keypress per figure.
+	// Read off this float's own slice rather than the whole document: `source`
+	// changes on every keystroke anywhere, and these run once per float.
+	const slice = $derived(source.slice(block.span.from, block.span.to));
+	const grid = $derived(tex && isTable ? tex.readTable(source, block) : null);
 	const width = $derived(
-		/\\includegraphics\s*\*?\s*\[[^\]]*?width\s*=\s*([^,\]]+)[^\]]*\]/
-			.exec(source.slice(block.span.from, block.span.to))?.[1]
-			.trim() ?? undefined
+		/\\includegraphics\s*\*?\s*\[[^\]]*?width\s*=\s*([^,\]]+)[^\]]*\]/.exec(slice)?.[1].trim() ?? ''
 	);
+	const alignment = $derived<FloatAlignment>(
+		(/\\(centering|raggedright|raggedleft)\b/.exec(slice)?.[1] as FloatAlignment) ?? null
+	);
+	const placement = $derived(/^\\begin\s*\{[^}]*\}[ \t]*\[([^\]]*)\]/.exec(slice)?.[1] ?? '');
+	const label = $derived(/\\label\s*\{([^}]*)\}/.exec(slice)?.[1] ?? '');
 
-	async function patchWith(make: (tex: typeof import('@glyphtex/ui/tex-doc')) => Patch | null) {
-		onpatch(make(await import('@glyphtex/ui/tex-doc')));
-	}
+	const one = (make: (t: TexDocModule) => Patch | null) => {
+		if (tex) onpatch([make(tex)]);
+	};
 
 	function chooseImage(path: string) {
 		picking = false;
 		// Strip the extension: that is what LaTeX wants, and it keeps the source
 		// portable across the drivers that pick their own format.
-		void patchWith((tex) => tex.setFloatGraphic(source, block, path.replace(/\.[^./]+$/, '')));
+		one((t) => t.setFloatGraphic(source, block, path.replace(/\.[^./]+$/, '')));
 	}
 
 	async function uploadImage() {
@@ -122,31 +147,76 @@
 		{ value: '\\linewidth', label: 'Full' }
 	];
 
+	const ALIGNS: { id: FloatAlignment; label: string; icon: typeof IconAlignLeft }[] = [
+		{ id: 'raggedright', label: 'Align left', icon: IconAlignLeft },
+		{ id: 'centering', label: 'Centre', icon: IconAlignCenter },
+		{ id: 'raggedleft', label: 'Align right', icon: IconAlignRight }
+	];
+
+	const PLACEMENTS = [
+		{ value: 'h', label: 'Here' },
+		{ value: 't', label: 'Top' },
+		{ value: 'b', label: 'Bottom' },
+		{ value: 'p', label: 'Own page' },
+		{ value: 'htbp', label: 'Anywhere' }
+	];
+
+	const WRAPS = [
+		{ value: '', label: 'None' },
+		{ value: 'l', label: 'Text right' },
+		{ value: 'r', label: 'Text left' }
+	];
+
+	/** Wrapping needs a package the document may not load yet, so the toggle
+	 *  carries that edit with it rather than producing source that will not build. */
+	function setWrap(side: string) {
+		if (!tex) return;
+		const preambleEnd = source.indexOf('\\begin{document}');
+		onpatch([
+			side && preambleEnd > 0 ? tex.ensurePackage(source, preambleEnd, 'wrapfig') : null,
+			tex.setFloatWrap(source, block, (side || null) as 'l' | 'r' | null)
+		]);
+	}
+
 	let captionEl = $state<HTMLElement>();
+	// Tracked off the DOM, not off `block.caption`: the model only catches up when
+	// the source is reparsed, so a model-driven placeholder sat under the first
+	// characters you typed.
+	let captionEmpty = $state(true);
 
 	// The caption is plain text, not inline runs: it lives inside `\caption{…}`,
 	// which this card patches as a whole rather than reprinting the float.
 	$effect(() => {
 		const text = block.caption ?? '';
-		if (captionEl && document.activeElement !== captionEl && captionEl.textContent !== text) {
-			captionEl.textContent = text;
+		if (captionEl && document.activeElement !== captionEl) {
+			if (captionEl.textContent !== text) captionEl.textContent = text;
+			captionEmpty = !text;
 		}
 	});
 
 	function commitCaption() {
 		const text = (captionEl?.textContent ?? '').replace(/\s+/g, ' ').trim();
 		if (text === (block.caption ?? '')) return;
-		void patchWith((tex) => tex.setFloatCaption(source, block, text));
+		one((t) => t.setFloatCaption(source, block, text));
 	}
+
+	const CHIP =
+		'flex h-7 min-w-9 items-center justify-center rounded px-2 text-xs transition-colors';
+	const OFF = 'text-muted-foreground hover:text-foreground hover:bg-accent/60';
+	const ON = 'bg-accent text-foreground';
+	const FIELD =
+		'border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1 text-xs outline-none';
 </script>
 
-<figure class="border-border bg-surface-soft mt-5 overflow-hidden rounded-lg border">
+<!-- No `overflow-hidden`: the card's own popovers open past its edges, and
+     clipping them cut the Options panel in half. -->
+<figure class="border-border bg-surface-soft group/float mt-5 rounded-lg border">
 	<div
 		class="text-muted-foreground border-border flex items-center gap-2 border-b px-3 py-1.5 text-xs font-medium"
 	>
 		{#if isTable}<IconTable size={14} />{:else}<IconPhoto size={14} />{/if}
 		{block.environment}
-		{#if block.label}<span class="text-faint font-mono">#{block.label}</span>{/if}
+		{#if label}<span class="text-faint font-mono">#{label}</span>{/if}
 		<div class="ml-auto flex items-center gap-1">
 			{#if !isTable}
 				<div class="relative">
@@ -211,7 +281,16 @@
 		</div>
 	</div>
 
-	{#if !isTable}
+	{#if isTable}
+		{#if grid}
+			<TableGrid {grid} tex={tex!} onpatch={(patch) => onpatch([patch])} />
+		{:else}
+			<div class="text-muted-foreground px-4 py-3 text-xs">
+				This table uses spanning cells or a column spec the grid editor cannot represent, so it is
+				edited in the LaTeX view.
+			</div>
+		{/if}
+	{:else}
 		<div class="flex min-h-28 items-center justify-center px-4 py-4">
 			{#if preview}
 				<img
@@ -233,33 +312,139 @@
 				<p class="text-muted-foreground text-xs">No image yet.</p>
 			{/if}
 		</div>
-
-		{#if block.graphic}
-			<div class="border-border flex items-center gap-1 border-t px-3 py-1.5">
-				<span class="text-faint mr-1 text-xs">Width</span>
-				{#each WIDTHS as option (option.value)}
-					<button
-						type="button"
-						aria-pressed={width === option.value}
-						class="flex h-9 min-w-11 items-center justify-center rounded-md px-2 text-xs {width ===
-						option.value
-							? 'bg-accent text-foreground'
-							: 'text-muted-foreground hover:text-foreground'}"
-						onclick={() => void patchWith((tex) => tex.setFloatWidth(source, block, option.value))}
-					>
-						{option.label}
-					</button>
-				{/each}
-			</div>
-		{/if}
-	{:else}
-		<div class="text-muted-foreground px-4 py-3 text-xs">
-			Tables are edited in the LaTeX view, because the visual editor would have to guess at column
-			specs and merged cells.
-		</div>
 	{/if}
 
-	<figcaption class="border-border border-t px-3 py-2">
+	<!-- Quiet until you are working on this float: a document of twenty figures
+	     should not read as twenty control panels. -->
+	<div
+		class="border-border flex flex-wrap items-center gap-1 border-t px-3 py-1.5 opacity-45 transition-opacity group-focus-within/float:opacity-100 group-hover/float:opacity-100"
+	>
+		{#if !isTable}
+			<span class="text-faint mr-1 text-xs">Width</span>
+			{#each WIDTHS as option (option.value)}
+				<button
+					type="button"
+					aria-pressed={width === option.value}
+					class="{CHIP} {width === option.value ? ON : OFF}"
+					onclick={() => one((t) => t.setFloatWidth(source, block, option.value))}
+				>
+					{option.label}
+				</button>
+			{/each}
+			<span class="bg-border/70 mx-1.5 h-4 w-px"></span>
+		{:else if grid}
+			<span class="text-faint mr-1 text-xs">Rules</span>
+			<button
+				type="button"
+				aria-pressed={grid.ruleAfter}
+				class="{CHIP} {grid.ruleAfter ? ON : OFF}"
+				onclick={() => onpatch([tex!.setTableRules(grid, !grid.ruleAfter)])}
+			>
+				{grid.ruleAfter ? 'On' : 'Off'}
+			</button>
+			<span class="bg-border/70 mx-1.5 h-4 w-px"></span>
+		{/if}
+
+		{#each ALIGNS as option (option.label)}
+			{@const Icon = option.icon}
+			<button
+				type="button"
+				title={option.label}
+				aria-label={option.label}
+				aria-pressed={alignment === option.id}
+				class="{CHIP} {alignment === option.id ? ON : OFF}"
+				onclick={() =>
+					one((t) =>
+						t.setFloatAlignment(source, block, alignment === option.id ? null : option.id)
+					)}
+			>
+				<Icon size={14} />
+			</button>
+		{/each}
+
+		<div class="relative ml-auto">
+			<button
+				type="button"
+				aria-label="Float options"
+				aria-expanded={options}
+				class="{CHIP} {options ? ON : OFF} gap-1.5"
+				onclick={() => (options = !options)}
+			>
+				<IconSettings size={14} />
+				Options
+			</button>
+			{#if options}
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
+				<div
+					class="fixed inset-0 z-40"
+					onpointerdown={() => (options = false)}
+					role="presentation"
+				></div>
+				<div
+					class="border-border bg-popover absolute right-0 bottom-full z-50 mb-1 w-64 rounded-lg border p-2.5 shadow-lg"
+					role="dialog"
+					aria-label="Float options"
+				>
+					<p class="text-faint mb-1 text-[0.6875rem] font-medium tracking-wide uppercase">
+						Placement
+					</p>
+					<div class="flex flex-wrap gap-1">
+						{#each PLACEMENTS as option (option.value)}
+							<button
+								type="button"
+								aria-pressed={placement === option.value}
+								class="{CHIP} {placement === option.value ? ON : OFF}"
+								onclick={() => one((t) => t.setFloatPlacement(source, block, option.value))}
+							>
+								{option.label}
+							</button>
+						{/each}
+					</div>
+
+					{#if !isTable}
+						<p class="text-faint mt-2.5 mb-1 text-[0.6875rem] font-medium tracking-wide uppercase">
+							Text wrap
+						</p>
+						<div class="flex flex-wrap gap-1">
+							{#each WRAPS as option (option.value)}
+								{@const active = option.value
+									? isWrapped && slice.includes(`{${option.value}}`)
+									: !isWrapped}
+								<button
+									type="button"
+									aria-pressed={active}
+									class="{CHIP} {active ? ON : OFF}"
+									onclick={() => setWrap(option.value)}
+								>
+									{option.label}
+								</button>
+							{/each}
+						</div>
+						<p class="text-faint mt-1 text-[0.6875rem]">Wrapping loads the wrapfig package.</p>
+					{/if}
+
+					<p class="text-faint mt-2.5 mb-1 text-[0.6875rem] font-medium tracking-wide uppercase">
+						Label
+					</p>
+					<input
+						value={label}
+						placeholder={isTable ? 'tab:name' : 'fig:name'}
+						aria-label="Reference label"
+						class="{FIELD} font-mono"
+						onchange={(e) =>
+							one((t) =>
+								t.setFloatLabel(source, block, (e.currentTarget as HTMLInputElement).value)
+							)}
+					/>
+					<p class="text-faint mt-1 text-[0.6875rem]">
+						Cross-reference it with \ref{'{'}{label || (isTable ? 'tab:name' : 'fig:name')}{'}'}.
+					</p>
+				</div>
+			{/if}
+		</div>
+	</div>
+
+	<figcaption class="border-border relative border-t px-3 py-2">
 		<span class="text-faint mr-1.5 text-xs">Caption</span>
 		<span
 			bind:this={captionEl}
@@ -268,9 +453,10 @@
 			tabindex="0"
 			aria-label="{isTable ? 'Table' : 'Figure'} caption"
 			data-float-caption
-			data-empty={!block.caption || undefined}
+			data-empty={captionEmpty || undefined}
 			data-placeholder="Describe this {isTable ? 'table' : 'figure'}"
-			class="text-foreground rounded-sm text-sm outline-none hover:bg-accent/60 focus-visible:bg-accent/60"
+			class="text-foreground hover:bg-accent/60 focus-visible:bg-accent/60 inline-block min-w-48 rounded-sm text-sm outline-none"
+			oninput={() => (captionEmpty = !(captionEl?.textContent ?? '').trim())}
 			onblur={commitCaption}
 			onkeydown={(e) => {
 				if (e.key === 'Enter') {
@@ -283,8 +469,11 @@
 </figure>
 
 <style>
+	/* Out of the flow: an inline placeholder pushed the first typed character
+	   along in front of it instead of being replaced by it. */
 	[data-float-caption][data-empty]::before {
 		content: attr(data-placeholder);
+		position: absolute;
 		color: var(--color-faint);
 		pointer-events: none;
 	}

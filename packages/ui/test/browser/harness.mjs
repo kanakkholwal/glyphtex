@@ -167,6 +167,11 @@ export async function connect() {
 			storageTypes: 'all'
 		});
 		await send('Page.navigate', { url: PAGE });
+		await sleep(1500);
+		// `clearDataForOrigin` leaves sessionStorage alone, and the doc mode lives
+		// there. Without this a run inherits whichever mode the last one left, and
+		// the LaTeX view is simply not on the page.
+		await ev('sessionStorage.clear()');
 
 		let route = '';
 		for (let attempt = 0; attempt < 6 && !route.includes('/projects/'); attempt++) {

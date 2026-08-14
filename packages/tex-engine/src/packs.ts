@@ -109,13 +109,21 @@ export function parsePackIndex(value: unknown): PackIndex {
 	return index;
 }
 
+// listings loads its language and misc drivers by number and probes one file
+// that never existed in any TeX Live: lstlang0.sty / lstmisc0.sty. listings.sty
+// ships in core and handles their absence, and the real drivers (lstlang1-3,
+// lstmisc) are bundled, so these two are internal probes, not installable
+// packages. Without this a document that compiles perfectly warns "unavailable
+// packages: lstlang0.sty, lstmisc0.sty".
+const INTERNAL_PROBE = /^lst(?:lang|misc)0\.sty$/;
+
 // A real package is a single bare token like `fancyhdr.sty`. A healthy compile
 // also reports probes that are NOT packages: fonts by name, `tex-text.tec`,
 // `foo.sty.aux` cascades, and dotted-stem config lookups (`geometry.cfg.sty`).
 // kpathsea finds packages by bare name, so anything with a path separator or a
 // dot in its stem is a probe — matching only `^token.(sty|cls)$` excludes them.
 function isInstallable(file: string): boolean {
-	return /^[^./]+\.(sty|cls)$/.test(file);
+	return /^[^./]+\.(sty|cls)$/.test(file) && !INTERNAL_PROBE.test(file);
 }
 
 // Returns both halves: the packs drive the install prompt, and `unsupported`
