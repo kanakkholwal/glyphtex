@@ -15,12 +15,23 @@ export async function connect() {
 	const pending = new Map();
 	ws.addEventListener('message', (e) => {
 		const m = JSON.parse(e.data);
-		if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
+		if (m.id && pending.has(m.id)) {
+			pending.get(m.id)(m);
+			pending.delete(m.id);
+		}
 	});
 	const send = (method, params = {}) =>
-		new Promise((res) => { const n = ++id; pending.set(n, res); ws.send(JSON.stringify({ id: n, method, params })); });
+		new Promise((res) => {
+			const n = ++id;
+			pending.set(n, res);
+			ws.send(JSON.stringify({ id: n, method, params }));
+		});
 	const ev = async (expression) => {
-		const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+		const r = await send('Runtime.evaluate', {
+			expression,
+			returnByValue: true,
+			awaitPromise: true
+		});
 		const d = r.result?.exceptionDetails;
 		if (d) throw new Error(d.exception?.description ?? d.text);
 		return r.result?.result?.value;
@@ -35,7 +46,8 @@ export async function connect() {
 	// The engine-install dialog's overlay covers the whole viewport and silently
 	// eats every synthetic click. `data-dialog-overlay` is the attribute that
 	// matters; missing it makes an entire run test nothing.
-	const clearModals = () => ev(`(() => {
+	const clearModals = () =>
+		ev(`(() => {
 		document.querySelectorAll('[role="dialog"],[data-slot="dialog-overlay"],[data-dialog-overlay]').forEach(e => e.remove());
 		document.body.style.pointerEvents = ''; document.body.removeAttribute('data-scroll-locked');
 		return document.querySelectorAll('[data-slot="dialog-overlay"]').length;
@@ -47,19 +59,41 @@ export async function connect() {
 		await sleep(350);
 	};
 	const clickSel = async (sel) => {
-		const box = await ev(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null;
+		const box =
+			await ev(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null;
 		  const r = e.getBoundingClientRect(); return { x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }; })()`);
 		if (!box) return false;
 		await clickAt(box.x, box.y);
 		return true;
 	};
 	const key = async (k, code, vk, modifiers = 0, text) => {
-		await send('Input.dispatchKeyEvent', { type: 'keyDown', key: k, code, windowsVirtualKeyCode: vk, modifiers });
-		if (text) await send('Input.dispatchKeyEvent', { type: 'char', text, unmodifiedText: text, key: k, modifiers });
-		await send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code, windowsVirtualKeyCode: vk, modifiers });
+		await send('Input.dispatchKeyEvent', {
+			type: 'keyDown',
+			key: k,
+			code,
+			windowsVirtualKeyCode: vk,
+			modifiers
+		});
+		if (text)
+			await send('Input.dispatchKeyEvent', {
+				type: 'char',
+				text,
+				unmodifiedText: text,
+				key: k,
+				modifiers
+			});
+		await send('Input.dispatchKeyEvent', {
+			type: 'keyUp',
+			key: k,
+			code,
+			windowsVirtualKeyCode: vk,
+			modifiers
+		});
 		await sleep(120);
 	};
-	const typeText = async (s) => { for (const ch of s) await key(ch, undefined, ch.charCodeAt(0), 0, ch); };
+	const typeText = async (s) => {
+		for (const ch of s) await key(ch, undefined, ch.charCodeAt(0), 0, ch);
+	};
 
 	/** The whole LaTeX document, not just the rendered lines. CodeMirror only
 	 *  paints the viewport, so `.cm-content.innerText` silently truncates and any
@@ -73,22 +107,40 @@ export async function connect() {
 			return view ? view.state.doc.toString() : c.innerText;
 		})()`);
 
-	const focusInfo = () => ev(`(() => {
+	const focusInfo = () =>
+		ev(`(() => {
 		const a = document.activeElement;
 		return { tag: a?.tagName.toLowerCase(), isContent: !!a?.classList?.contains('cm-content'),
 		         label: (a?.getAttribute('aria-label') || a?.placeholder || '').slice(0, 30) };
 	})()`);
 
 	// Click the first line, not the pane centre, which a late overlay can cover.
+	// Falls back to focusing the element outright: a Chrome window that is behind
+	// another one reports `visibilityState: hidden`, and synthetic mouse events
+	// then leave the focus on `body` no matter where they land.
 	const focusDoc = async () => {
 		for (let i = 0; i < 3; i++) {
-			const b = await ev(`(() => { const e = document.querySelector('.cm-line'); if (!e) return null;
+			const b =
+				await ev(`(() => { const e = document.querySelector('.cm-line'); if (!e) return null;
 			  const r = e.getBoundingClientRect(); return { x: Math.round(r.x + 20), y: Math.round(r.y + r.height / 2) }; })()`);
 			if (b) await clickAt(b.x, b.y);
 			if ((await focusInfo()).isContent) return true;
 			await clearModals();
 		}
-		return false;
+		await ev(`(() => {
+			const content = document.querySelector('.cm-content');
+			const line = document.querySelector('.cm-line');
+			if (!content || !line) return false;
+			content.focus();
+			const range = document.createRange();
+			range.selectNodeContents(line);
+			range.collapse(true);
+			const selection = getSelection();
+			selection.removeAllRanges();
+			selection.addRange(range);
+			return true;
+		})()`);
+		return (await focusInfo()).isContent;
 	};
 
 	/** Open or create a project and land in the LaTeX view. The doc mode is
@@ -96,7 +148,16 @@ export async function connect() {
 	const openProject = async () => {
 		await send('Runtime.enable');
 		await send('Page.enable');
-		await send('Emulation.setDeviceMetricsOverride', { width: 1400, height: 900, deviceScaleFactor: 1, mobile: false });
+		await send('Emulation.setDeviceMetricsOverride', {
+			width: 1400,
+			height: 900,
+			deviceScaleFactor: 1,
+			mobile: false
+		});
+		// A window behind another one reports itself hidden, and the app's own
+		// focus handling then behaves differently from a real session.
+		await send('Page.bringToFront');
+		await send('Emulation.setFocusEmulationEnabled', { enabled: true });
 		await send('Page.navigate', { url: PAGE });
 
 		let route = '';
@@ -106,13 +167,20 @@ export async function connect() {
 			  [...document.querySelectorAll('button')].find(x => (x.getAttribute('aria-label')||x.textContent||'').trim()==='New project')?.click(); return 2; })()`);
 			for (let i = 0; i < 20; i++) {
 				await sleep(500);
-				if (await ev(`!!document.querySelector('.cm-content') || !!document.querySelector('[aria-label="Visual editor"]')`)) break;
+				if (
+					await ev(
+						`!!document.querySelector('.cm-content') || !!document.querySelector('[aria-label="Visual editor"]')`
+					)
+				)
+					break;
 			}
 			route = (await ev(`location.pathname`)) || '';
 		}
 		await sleep(1200);
 		await clearModals();
-		await ev(`(() => { const b = [...document.querySelectorAll('button')].find(x => /^latex$/i.test((x.textContent||'').trim())); b?.click(); return !!b; })()`);
+		await ev(
+			`(() => { const b = [...document.querySelectorAll('button')].find(x => /^latex$/i.test((x.textContent||'').trim())); b?.click(); return !!b; })()`
+		);
 		for (let i = 0; i < 20; i++) {
 			await sleep(400);
 			if (await ev(`!!document.querySelector('.cm-content')`)) break;
@@ -128,5 +196,19 @@ export async function connect() {
 		process.exit(failed ? 1 : 0);
 	};
 
-	return { send, ev, check, clearModals, clickAt, clickSel, key, typeText, editorDoc, focusInfo, focusDoc, openProject, finish };
+	return {
+		send,
+		ev,
+		check,
+		clearModals,
+		clickAt,
+		clickSel,
+		key,
+		typeText,
+		editorDoc,
+		focusInfo,
+		focusDoc,
+		openProject,
+		finish
+	};
 }

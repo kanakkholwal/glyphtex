@@ -3,8 +3,8 @@ import type { Inline, MarkKind } from '@glyphtex/ui/tex-doc';
 /**
  * The bridge between inline runs and a `contenteditable`.
  *
- * Runs the model does not let you type into — math, citations, refs, labels,
- * unmodelled macros — render as `contenteditable="false"` atoms carrying their
+ * Runs the model does not let you type into (math, citations, refs, labels,
+ * unmodelled macros) render as `contenteditable="false"` atoms carrying their
  * source in `data-src`. The browser then treats each as a single character: it
  * can be selected and deleted whole, but never half-edited into invalid LaTeX.
  */
@@ -182,6 +182,35 @@ export function domToInlines(root: Node): Inline[] {
 	}
 
 	return out.filter((run) => run.kind !== 'text' || run.text !== '');
+}
+
+/**
+ * Drop the first `count` characters of a run list, the markdown prefix an input
+ * rule just consumed. Computed on the model rather than by splitting the DOM at
+ * the caret: the caret's range can be anchored on the element rather than the
+ * text node, and the split then hands back the whole block instead of nothing.
+ */
+export function dropLeading(runs: Inline[], count: number): Inline[] {
+	let remaining = count;
+	const out: Inline[] = [];
+	for (const run of runs) {
+		if (remaining <= 0) {
+			out.push(run);
+			continue;
+		}
+		if (run.kind === 'text') {
+			if (run.text.length <= remaining) {
+				remaining -= run.text.length;
+				continue;
+			}
+			out.push({ kind: 'text', text: run.text.slice(remaining) });
+			remaining = 0;
+			continue;
+		}
+		// Anything else is one opaque unit, matching `inlinesToText`.
+		remaining -= 1;
+	}
+	return out;
 }
 
 /** Plain text of a run list, for prefix matching in input rules. */

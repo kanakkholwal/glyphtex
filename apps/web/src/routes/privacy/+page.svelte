@@ -139,7 +139,7 @@
 
 				<div class="prose prose-sm dark:prose-invert mt-8 max-w-none">
 					<p class="text-muted-foreground text-xs">
-						File counts are reported as buckets (1, 2–5, 6–20, 21–100, 100+) rather than exact
+						File counts are reported as buckets (1, 2-5, 6-20, 21-100, 100+) rather than exact
 						numbers, so a document’s shape cannot be inferred from them.
 					</p>
 

@@ -201,7 +201,7 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 /**
  * Drop the whitespace at a block's edges. A block's span starts at its first
  * meaningful node, so keeping the newline in front of it would make every
- * reprint one space longer than the last — the round trip would never settle.
+ * reprint one space longer than the last, so the round trip would never settle.
  */
 function trimRuns(runs: Inline[]): Inline[] {
 	const out = runs.slice();
@@ -275,7 +275,26 @@ function listItems(nodes: Node[], source: string, description: boolean) {
 	return items;
 }
 
+/** Strip `\begin{env}[opts]` and `\end{env}` off an environment's source. */
+function envBody(text: string): string {
+	return text
+		.replace(/^\\begin\s*\{[^}]*\}[ \t]*(?:\[[^\]]*\])?[ \t]*\r?\n?/, '')
+		.replace(/\r?\n?[ \t]*\\end\s*\{[^}]*\}[ \t]*$/, '');
+}
+
 function blockFor(node: Node, source: string, span: Span): Block | null {
+	// A verbatim environment is its own node type too, and its body arrives as one
+	// raw string, which is the point: nothing inside it is LaTeX.
+	if (node.type === 'verbatim') {
+		return {
+			kind: 'code',
+			source: typeof node.content === 'string' ? node.content : '',
+			environment: envName(node) || 'verbatim',
+			span,
+			fidelity: 'source'
+		};
+	}
+
 	// `equation` and friends parse as `mathenv`, a type of their own rather than
 	// an `environment`, so they need matching before the generic branch.
 	if (node.type === 'mathenv') {
@@ -312,9 +331,11 @@ function blockFor(node: Node, source: string, span: Span): Block | null {
 			};
 		}
 		if (CODE_ENVS.has(name)) {
+			// Sliced from the source, not from the child nodes: a listing's body is
+			// not LaTeX, so it has no nodes to read positions off.
 			return {
 				kind: 'code',
-				source: literal(body, source),
+				source: envBody(source.slice(span.from, span.to)),
 				environment: name,
 				span,
 				fidelity: 'source'

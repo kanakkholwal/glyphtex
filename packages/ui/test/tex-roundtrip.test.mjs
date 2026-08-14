@@ -4,21 +4,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
 	applyPatch,
-	BLOCK_TEMPLATES,
 	deleteBlock,
 	escapeText,
-	floatWidth,
 	insertAfter,
 	mergeIntoPrevious,
 	parseTexDoc,
 	printBlock,
 	printInlines,
-	setFloatCaption,
-	setFloatGraphic,
-	setFloatWidth,
 	setInlines,
-	setListItem,
-	templateSource
+	setListItem
 } from './.build/tex-doc.mjs';
 
 const FIXTURES = path.join(import.meta.dirname, 'fixtures');
@@ -206,90 +200,5 @@ describe('structural edits', () => {
 		const kinds = parseTexDoc(out).blocks;
 		assert.equal(kinds.length, 4);
 		assert.equal(printInlines(kinds[1].content), 'Inserted.');
-	});
-});
-
-describe('block templates', () => {
-	// The `/` menu and the LaTeX format toolbar read the same list, so a template
-	// that does not parse would break both surfaces at once.
-	for (const template of BLOCK_TEMPLATES.filter((t) => t.id !== 'paragraph')) {
-		test(`${template.id} inserts something the parser recognises`, () => {
-			const text = templateSource(template.id);
-			const src = `\begin{document}\n${text}\n\end{document}\n`;
-			const { blocks } = parseTexDoc(src);
-			assert.equal(blocks.length, 1, `${template.id} produced ${blocks.length} blocks`);
-			assert.ok(!text.includes('\u0000'), 'the caret marker leaked into the inserted source');
-		});
-	}
-
-	test('the figure template is the one with a real placeholder graphic', () => {
-		assert.equal(
-			templateSource('figure'),
-			'\begin{figure}[h]\n' +
-				'  \centering\n' +
-				'  \includegraphics[width=0.6\linewidth]{example-image}\n' +
-				'  \caption{Caption text.}\n' +
-				'  \label{fig:placeholder}\n' +
-				'\end{figure}'
-		);
-	});
-
-	test('an inserted figure reads back as a float with its parts', () => {
-		const src = `\begin{document}\n${templateSource('figure')}\n\end{document}\n`;
-		const float = parseTexDoc(src).blocks[0];
-		assert.equal(float.kind, 'float');
-		assert.equal(float.graphic, 'example-image');
-		assert.equal(float.caption, 'Caption text.');
-		assert.equal(float.label, 'fig:placeholder');
-	});
-});
-
-describe('editing a float in place', () => {
-	const FIGURE =
-		'\begin{document}\n' +
-		'\begin{figure}[h]\n' +
-		'  \centering\n' +
-		'  \includegraphics[width=0.6\linewidth]{example-image}\n' +
-		'  \caption{Caption text.}\n' +
-		'  \label{fig:placeholder}\n' +
-		'\end{figure}\n' +
-		'\end{document}\n';
-	const float = () => parseTexDoc(FIGURE).blocks[0];
-
-	const patched = (patch) => applyPatch(FIGURE, patch);
-
-	test('the caption is rewritten and nothing around it moves', () => {
-		const out = patched(setFloatCaption(FIGURE, float(), 'Convergence of the estimator.'));
-		assert.match(out, /\caption\{Convergence of the estimator\.\}/);
-		assert.equal(out.replace('Convergence of the estimator.', 'Caption text.'), FIGURE);
-	});
-
-	test('the graphic path is rewritten without touching its options', () => {
-		const out = patched(setFloatGraphic(FIGURE, float(), 'figures/plot'));
-		assert.match(out, /\includegraphics\[width=0\.6\linewidth\]\{figures\/plot\}/);
-	});
-
-	test('the width is rewritten without touching the path', () => {
-		const out = patched(setFloatWidth(FIGURE, float(), '\linewidth'));
-		assert.match(out, /\includegraphics\[width=\linewidth\]\{example-image\}/);
-		assert.equal(floatWidth(out, parseTexDoc(out).blocks[0]), '\linewidth');
-	});
-
-	test('a caption edit leaves a second figure alone', () => {
-		const two = FIGURE.replace(
-			'\end{document}',
-			'\begin{figure}[t]\n  \includegraphics{other}\n  \caption{Second.}\n\end{figure}\n\end{document}'
-		);
-		const first = parseTexDoc(two).blocks[0];
-		const out = applyPatch(two, setFloatCaption(two, first, 'Edited.'));
-		assert.match(out, /\caption\{Second\.\}/);
-		assert.match(out, /\caption\{Edited\.\}/);
-	});
-
-	test('a float with no caption reports no patch rather than inventing one', () => {
-		const src = '\begin{document}\n\begin{figure}\n  \includegraphics{x}\n\end{figure}\n\end{document}\n';
-		const block = parseTexDoc(src).blocks[0];
-		assert.equal(setFloatCaption(src, block, 'Nope'), null);
-		assert.equal(setFloatWidth(src, block, '\linewidth'), null);
 	});
 });

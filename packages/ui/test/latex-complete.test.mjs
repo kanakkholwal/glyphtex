@@ -106,7 +106,10 @@ describe('snippet templates', () => {
 	});
 
 	test('defaults are left alone', () => {
-		assert.equal(toSnippetTemplate('documentclass[${1:11pt}]{${2:article}}$0'), 'documentclass[${1:11pt}]{${2:article}}${3}');
+		assert.equal(
+			toSnippetTemplate('documentclass[${1:11pt}]{${2:article}}$0'),
+			'documentclass[${1:11pt}]{${2:article}}${3}'
+		);
 	});
 });
 

@@ -139,8 +139,8 @@ export const data: PackageData = {
 		{
 			name: 'bibpunct',
 			snippet: 'bibpunct{${1:(}}{${2:)}}{${3:;}}{${4:a}}{${5:,}}{${6:,}}$0',
-			detail: 'Set citation punctuation (open, close, between, style, author–year, years)',
-			doc: 'The fourth argument selects the style: `a` author–year, `n` numerical, `s` superscript. Preamble only, after `\\usepackage{natbib}`.',
+			detail: 'Set citation punctuation (open, close, between, style, author-year, years)',
+			doc: 'The fourth argument selects the style: `a` author-year, `n` numerical, `s` superscript. Preamble only, after `\\usepackage{natbib}`.',
 			example: '\\bibpunct{[}{]}{;}{a}{,}{,}',
 			package: 'natbib'
 		},

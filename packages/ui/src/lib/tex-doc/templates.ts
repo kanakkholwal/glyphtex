@@ -2,7 +2,7 @@
  * The block snippets both editors insert.
  *
  * One list, because the visual editor's `/` menu and the LaTeX format toolbar
- * must produce byte-identical LaTeX — a figure inserted in one mode and seen in
+ * must produce byte-identical LaTeX. A figure inserted in one mode and seen in
  * the other should not look like a different feature.
  *
  * Kept free of any parser import: the toolbar ships in the LaTeX view, which
@@ -10,7 +10,7 @@
  */
 
 /** Marks where the caret lands. NUL, because every printable character we might
- *  have used (`|`) occurs in real LaTeX — tabular column specs, for one. */
+ *  have used (`|`) occurs in real LaTeX, such as tabular column specs. */
 export const CARET = '\u0000';
 
 export type BlockTemplate = {

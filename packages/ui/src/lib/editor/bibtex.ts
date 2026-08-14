@@ -152,6 +152,6 @@ export function describeEntry(entry: BibEntry): string {
 	const who = parts.join(', ');
 	// Em dash, not a colon: titles routinely end in one, and "Vol 2: Knuth" reads
 	// as part of the title. a420034 swapped it while rewriting comments.
-	if (entry.title && who) return `${entry.title} — ${who}`;
+	if (entry.title && who) return `${entry.title} · ${who}`;
 	return entry.title || who || entry.type;
 }

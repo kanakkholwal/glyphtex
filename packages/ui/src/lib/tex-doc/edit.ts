@@ -106,27 +106,30 @@ export function deleteBlock(source: string, block: Block): Patch {
 
 // --- Floats -------------------------------------------------------------------
 // A figure or table is edited in place: we rewrite the one command inside its
-// span and leave the rest of the environment — placement, spacing, subfigures,
-// anything we do not model — exactly as written.
+// span and leave the rest of the environment exactly as written: placement,
+// spacing, subfigures, anything we do not model.
 
-/** Rewrite the first match of `pattern` inside a block's span. Group 1 is the
- *  part replaced, so the surrounding command survives verbatim. */
+/**
+ * Rewrite capture group 1 of `pattern` inside a block's span. Every pattern
+ * carries the `d` flag so the group's own offsets are used: searching for the
+ * matched text instead would find the wrong copy whenever a caption happens to
+ * contain the word it sits next to.
+ */
 function patchInside(
 	source: string,
 	block: Block,
 	pattern: RegExp,
 	replacement: string
 ): Patch | null {
-	const text = source.slice(block.span.from, block.span.to);
-	const match = pattern.exec(text);
-	if (!match || match.index === undefined) return null;
-	const at = block.span.from + match.index + match[0].indexOf(match[1], 0);
-	return { from: at, to: at + match[1].length, insert: replacement };
+	const match = pattern.exec(source.slice(block.span.from, block.span.to));
+	const at = match?.indices?.[1];
+	if (!at) return null;
+	return { from: block.span.from + at[0], to: block.span.from + at[1], insert: replacement };
 }
 
-const CAPTION = /\caption\s*\*?\s*(?:\[[^\]]*\])?\s*\{([\s\S]*?)\}/;
-const GRAPHIC = /\includegraphics\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}/;
-const GRAPHIC_WIDTH = /\includegraphics\s*\[[^\]]*?width\s*=\s*([^,\]]+)[^\]]*\]/;
+const CAPTION = /\\caption\s*\*?\s*(?:\[[^\]]*\])?\s*\{([\s\S]*?)\}/d;
+const GRAPHIC = /\\includegraphics\s*\*?\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}/d;
+const GRAPHIC_WIDTH = /\\includegraphics\s*\*?\s*\[[^\]]*?width\s*=\s*([^,\]]+)[^\]]*\]/d;
 
 export function setFloatCaption(source: string, block: Block, caption: string): Patch | null {
 	return patchInside(source, block, CAPTION, caption);

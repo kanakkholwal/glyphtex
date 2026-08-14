@@ -36,8 +36,14 @@ describe('parseBib', () => {
 			@inproceedings{two, title={Second}}
 			@misc{three, title={Third}}
 		`);
-		assert.deepEqual(entries.map((e) => e.key), ['one', 'two', 'three']);
-		assert.deepEqual(entries.map((e) => e.type), ['book', 'inproceedings', 'misc']);
+		assert.deepEqual(
+			entries.map((e) => e.key),
+			['one', 'two', 'three']
+		);
+		assert.deepEqual(
+			entries.map((e) => e.type),
+			['book', 'inproceedings', 'misc']
+		);
 	});
 
 	test('skips @comment, @preamble and @string', () => {
@@ -47,7 +53,10 @@ describe('parseBib', () => {
 			@preamble{"\\\\newcommand{\\\\x}{y}"}
 			@book{real, title={Real}}
 		`);
-		assert.deepEqual(entries.map((e) => e.key), ['real']);
+		assert.deepEqual(
+			entries.map((e) => e.key),
+			['real']
+		);
 	});
 
 	test('takes the year out of a biblatex date field', () => {
@@ -70,7 +79,10 @@ describe('parseBib', () => {
 
 	test('ignores stray @ signs and junk', () => {
 		const entries = parseBib('email me @ nowhere. @@ @notanentry no braces @book{ok, title={OK}}');
-		assert.deepEqual(entries.map((e) => e.key), ['ok']);
+		assert.deepEqual(
+			entries.map((e) => e.key),
+			['ok']
+		);
 	});
 
 	test('returns nothing for empty or field-less input', () => {
@@ -87,15 +99,21 @@ describe('parseBib', () => {
 describe('describeEntry', () => {
 	test('combines title, author and year', () => {
 		assert.equal(
-			describeEntry({ key: 'k', type: 'book', title: 'The TeXbook', author: 'Knuth, Donald E.', year: '1984' }),
-			'The TeXbook — Knuth, 1984',
+			describeEntry({
+				key: 'k',
+				type: 'book',
+				title: 'The TeXbook',
+				author: 'Knuth, Donald E.',
+				year: '1984'
+			}),
+			'The TeXbook — Knuth, 1984'
 		);
 	});
 
 	test('abbreviates multiple authors', () => {
 		assert.equal(
 			describeEntry({ key: 'k', type: 'book', title: 'T', author: 'Knuth, D. and Lamport, L.' }),
-			'T — Knuth et al.',
+			'T — Knuth et al.'
 		);
 	});
 

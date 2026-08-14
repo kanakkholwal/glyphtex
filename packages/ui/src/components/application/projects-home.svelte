@@ -233,7 +233,7 @@
 	const sorts: { id: Sort; label: string }[] = [
 		{ id: 'newest', label: 'Newest first' },
 		{ id: 'oldest', label: 'Oldest first' },
-		{ id: 'name', label: 'Name (A–Z)' }
+		{ id: 'name', label: 'Name (A-Z)' }
 	];
 
 	const storagePct = $derived(
@@ -283,7 +283,7 @@
 		for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
 		return Array.from({ length: n }, (_, i) => {
 			h = (h * 1103515245 + 12345) >>> 0;
-			return 55 + ((h >> (i + 3)) % 42); // 55–96%
+			return 55 + ((h >> (i + 3)) % 42); // 55-96%
 		});
 	}
 </script>

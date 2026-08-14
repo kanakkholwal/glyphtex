@@ -12,7 +12,7 @@
 	];
 
 	/** Where a freshly focused block should put its caret: either end, or a
-	 *  character offset — a merge has to land the caret on the seam. */
+	 *  character offset. A merge has to land the caret on the seam. */
 	export type CaretTarget = 'start' | 'end' | number;
 
 	export function placeCaret(el: HTMLElement, where: CaretTarget): void {
@@ -46,10 +46,10 @@
 
 	import type { Inline } from '@glyphtex/ui/tex-doc';
 
-	import { domToInlines, inlinesToHtml, inlinesToText } from './inline-dom';
+	import { domToInlines, dropLeading, inlinesToHtml, inlinesToText } from './inline-dom';
 
 	/**
-	 * One editable run of inline content — a paragraph, a heading's title, a list
+	 * One editable run of inline content: a paragraph, a heading's title, a list
 	 * item. Everything structural (splitting, merging, converting) is reported to
 	 * the parent, which owns the source and turns it into a patch.
 	 *
@@ -69,12 +69,17 @@
 		onconvert,
 		onslash,
 		onmove,
-		onfocus
+		onfocus,
+		onatom,
+		onpasteblocks,
+		label = 'Text block'
 	}: {
 		runs: Inline[];
 		tag?: string;
 		class?: string;
 		placeholder?: string;
+		/** Announced to screen readers, which otherwise hear "text box" per block. */
+		label?: string;
 		/** Bumped by the parent to take the caret. A nonce, not a boolean: the same
 		 *  block can be re-focused twice in a row and both must land. */
 		focusToken?: number | null;
@@ -89,10 +94,21 @@
 		onslash?: (anchor: DOMRect) => void;
 		onmove?: (direction: -1 | 1) => void;
 		onfocus?: () => void;
+		/** An atom was clicked: math, a citation, a ref, an unmodelled macro. */
+		onatom?: (el: HTMLElement) => void;
+		/** Several paragraphs were pasted at once. */
+		onpasteblocks?: (paragraphs: string[]) => void;
 	} = $props();
 
 	let el = $state<HTMLElement>();
 	let focused = $state(false);
+	/**
+	 * Set once this editor has reported a structural change. The parent re-parses
+	 * and replaces this block, which blurs us. A blur write would then push
+	 * our now-stale text into whatever took our place. It did exactly that: `## `
+	 * became `\subsection{\#\#}`.
+	 */
+	let handedOff = false;
 
 	const html = $derived(inlinesToHtml(runs));
 
@@ -156,7 +172,24 @@
 		return [read(), right];
 	}
 
+	/** True when the whole selection lives inside this block. */
+	function selectionIsLocal(): boolean {
+		const selection = window.getSelection();
+		if (!el || !selection || selection.rangeCount === 0) return false;
+		const range = selection.getRangeAt(0);
+		return el.contains(range.startContainer) && el.contains(range.endContainer);
+	}
+
 	function onBeforeInput(event: InputEvent) {
+		// Blocks are separate editables, so a selection dragged across two of them
+		// belongs to neither. Letting the browser apply the edit rewrites one block
+		// from another block's DOM and silently drops the source in between.
+		if (!selectionIsLocal()) {
+			event.preventDefault();
+			window.getSelection()?.collapseToStart();
+			return;
+		}
+
 		// Input rules fire on the space (or the final backtick) that completes them.
 		if (event.inputType !== 'insertText' || !onconvert) return;
 		const typed = event.data ?? '';
@@ -165,9 +198,9 @@
 		const rule = INPUT_RULES.find((r) => r.pattern.test(prefix));
 		if (!rule) return;
 		event.preventDefault();
+		handedOff = true;
 		// Everything after the prefix survives the conversion.
-		const rest = splitAtCaret()?.[1] ?? [];
-		onconvert(rule.template, rest);
+		onconvert(rule.template, dropLeading(read(), prefix.length - typed.length));
 	}
 
 	function onKeyDown(event: KeyboardEvent) {
@@ -184,19 +217,33 @@
 				oninput(read());
 				return;
 			}
+			// Select All would otherwise take the whole page, since every block is
+			// its own editable and the browser walks up to the document.
+			if (key === 'a' && el) {
+				event.preventDefault();
+				const range = document.createRange();
+				range.selectNodeContents(el);
+				const selection = window.getSelection();
+				selection?.removeAllRanges();
+				selection?.addRange(range);
+				return;
+			}
 		}
 
 		if (event.key === 'Enter' && !event.shiftKey) {
 			event.preventDefault();
 			if (!onsplit) return;
 			const halves = splitAtCaret();
-			if (halves) onsplit(halves[0], halves[1]);
+			if (!halves) return;
+			handedOff = true;
+			onsplit(halves[0], halves[1]);
 			return;
 		}
 
 		if (event.key === 'Backspace' && atStart() && window.getSelection()?.isCollapsed) {
 			if (!onmergeback) return;
 			event.preventDefault();
+			handedOff = true;
 			onmergeback(read());
 			return;
 		}
@@ -219,8 +266,27 @@
 	function onPaste(event: ClipboardEvent) {
 		event.preventDefault();
 		const text = event.clipboardData?.getData('text/plain') ?? '';
-		if (text) document.execCommand('insertText', false, text.replace(/\r?\n+/g, ' '));
+		if (!text) return;
+
+		// A blank line is a paragraph break in LaTeX as much as in the clipboard, so
+		// pasting several paragraphs must produce several blocks, not one long line.
+		const paragraphs = text.split(/\r?\n[ \t]*\r?\n/).map((p) => p.replace(/\r?\n/g, ' ').trim());
+		if (paragraphs.length > 1 && onpasteblocks) {
+			handedOff = true;
+			onpasteblocks(paragraphs.filter(Boolean));
+			return;
+		}
+		document.execCommand('insertText', false, paragraphs.join(' '));
 		oninput(read());
+	}
+
+	/** Clicking an atom opens its own editor: its source is not typeable inline. */
+	function onClick(event: MouseEvent) {
+		const atom = (event.target as Element | null)?.closest?.('[data-atom]');
+		if (atom && onatom) {
+			event.preventDefault();
+			onatom(atom as HTMLElement);
+		}
 	}
 </script>
 
@@ -231,22 +297,25 @@
 	role="textbox"
 	tabindex="0"
 	aria-multiline="false"
+	aria-label={label}
 	data-block-editor
 	data-empty={isEmpty || undefined}
 	data-placeholder={placeholder}
-	class="outline-none focus-visible:outline-none {className}"
+	class="outline-none {className}"
 	oninput={() => oninput(read())}
 	onbeforeinput={onBeforeInput}
 	onkeydown={onKeyDown}
 	onpaste={onPaste}
+	onclick={onClick}
 	onfocusin={() => {
 		focused = true;
+		handedOff = false;
 		onfocus?.();
 	}}
 	onfocusout={() => {
 		// Settle the model before releasing the DOM: dropping `focused` first would
 		// let the projection effect run against runs one keystroke out of date.
-		oninput(read());
+		if (!handedOff) oninput(read());
 		focused = false;
 	}}
 ></svelte:element>
@@ -254,8 +323,17 @@
 <style>
 	[data-block-editor][data-empty]::before {
 		content: attr(data-placeholder);
-		color: var(--color-faint, #9e9e9e);
+		color: var(--color-faint);
 		pointer-events: none;
 		position: absolute;
+	}
+	/* An atom is one unit to the caret, so it should read as one to the pointer. */
+	[data-block-editor] :global([data-atom]) {
+		cursor: pointer;
+		user-select: none;
+	}
+	[data-block-editor] :global([data-atom]:hover) {
+		outline: 1px solid var(--color-border);
+		outline-offset: 1px;
 	}
 </style>

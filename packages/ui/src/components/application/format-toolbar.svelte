@@ -117,17 +117,17 @@
 				{
 					label: 'Bulleted list',
 					hint: 'itemize',
-					run: t("itemize")
+					run: t('itemize')
 				},
 				{
 					label: 'Numbered list',
 					hint: 'enumerate',
-					run: t("enumerate")
+					run: t('enumerate')
 				},
 				{
 					label: 'Description list',
 					hint: 'description',
-					run: t("description")
+					run: t('description')
 				}
 			]
 		},
@@ -146,12 +146,12 @@
 				{
 					label: 'Equation',
 					hint: 'equation',
-					run: t("equation")
+					run: t('equation')
 				},
 				{
 					label: 'Aligned',
 					hint: 'align',
-					run: t("align")
+					run: t('align')
 				},
 				'sep',
 				{ label: 'Fraction', hint: '\\frac{}{}', run: w('\\frac{', '}{}') },
@@ -200,22 +200,22 @@
 					hint: 'figure',
 					// example-image ships with the mwe package: a real placeholder graphic
 					// so the inserted figure renders immediately. Swap for your own file.
-					run: t("figure")
+					run: t('figure')
 				},
 				{
 					label: 'Table',
 					hint: 'tabular',
-					run: t("table")
+					run: t('table')
 				},
 				{
 					label: 'Code block',
 					hint: 'verbatim',
-					run: t("verbatim")
+					run: t('verbatim')
 				},
 				{
 					label: 'Block quote',
 					hint: 'quote',
-					run: t("quote")
+					run: t('quote')
 				}
 			]
 		}

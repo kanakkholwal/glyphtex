@@ -1,20 +1,14 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
 	import type { FloatBlock, Patch } from '@glyphtex/ui/tex-doc';
-	import {
-		IconCode,
-		IconPhoto,
-		IconPhotoPlus,
-		IconTable,
-		IconUpload
-	} from '@tabler/icons-svelte';
+	import { IconCode, IconPhoto, IconPhotoPlus, IconTable, IconUpload } from '@tabler/icons-svelte';
 
 	import { classifyFile } from '../../file-kinds';
 	import type { WorkbenchController } from '../controller.svelte';
 
 	/**
 	 * A figure or table, editable where it can be: the caption, the image and its
-	 * width. The environment around them is never reprinted — placement options,
+	 * width. The environment around them is never reprinted, so placement options,
 	 * subfigures and hand-tuned spacing survive untouched, because each control
 	 * patches only the one command it owns.
 	 */
@@ -38,6 +32,10 @@
 	// the preview has to put it back to find the bytes.
 	const EXTENSIONS = ['', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.pdf'];
 
+	// Remembers which extension answered, so remounting a document full of figures
+	// does not repeat eight rejected reads per figure.
+	const resolved = new Map<string, string | null>();
+
 	const imageFiles = $derived(
 		ctrl.files.files.filter((f) => classifyFile(f.name) === 'image').map((f) => f.name)
 	);
@@ -59,10 +57,13 @@
 		let cancelled = false;
 
 		void (async () => {
-			for (const extension of EXTENSIONS) {
+			const known = resolved.get(path);
+			const candidates = known === undefined ? EXTENSIONS : known === null ? [] : [known];
+			for (const extension of candidates) {
 				try {
 					const bytes = await read(path + extension);
 					if (cancelled) return;
+					resolved.set(path, extension);
 					url = URL.createObjectURL(new Blob([bytes as BlobPart]));
 					preview = url;
 					previewFor = path;
@@ -73,6 +74,7 @@
 				}
 			}
 			if (!cancelled) {
+				resolved.set(path, null);
 				preview = undefined;
 				missing = true;
 			}
@@ -85,17 +87,17 @@
 	});
 
 	let picking = $state(false);
-	let width = $state<string>();
 
-	$effect(() => {
-		void import('@glyphtex/ui/tex-doc').then((tex) => {
-			width = tex.floatWidth(source, block) ?? undefined;
-		});
-	});
+	// Read straight off this float's own slice, not through the parser module.
+	// `source` is the whole document and changes on every keystroke anywhere, so
+	// an effect with a dynamic import here re-imported once per keypress per figure.
+	const width = $derived(
+		/\\includegraphics\s*\*?\s*\[[^\]]*?width\s*=\s*([^,\]]+)[^\]]*\]/
+			.exec(source.slice(block.span.from, block.span.to))?.[1]
+			.trim() ?? undefined
+	);
 
-	async function patchWith(
-		make: (tex: typeof import('@glyphtex/ui/tex-doc')) => Patch | null
-	) {
+	async function patchWith(make: (tex: typeof import('@glyphtex/ui/tex-doc')) => Patch | null) {
 		onpatch(make(await import('@glyphtex/ui/tex-doc')));
 	}
 
@@ -223,7 +225,7 @@
 					<p class="font-mono">{block.graphic}</p>
 					{#if missing}
 						<p class="text-faint mt-1">
-							Not in this document — it will still compile if TeX can find it.
+							Not in this document. It will still compile if TeX can find it.
 						</p>
 					{/if}
 				</div>
@@ -239,13 +241,11 @@
 					<button
 						type="button"
 						aria-pressed={width === option.value}
-						class="rounded px-2 py-0.5 text-xs {width === option.value
+						class="flex h-9 min-w-11 items-center justify-center rounded-md px-2 text-xs {width ===
+						option.value
 							? 'bg-accent text-foreground'
 							: 'text-muted-foreground hover:text-foreground'}"
-						onclick={() => {
-							width = option.value;
-							void patchWith((tex) => tex.setFloatWidth(source, block, option.value));
-						}}
+						onclick={() => void patchWith((tex) => tex.setFloatWidth(source, block, option.value))}
 					>
 						{option.label}
 					</button>
@@ -254,8 +254,8 @@
 		{/if}
 	{:else}
 		<div class="text-muted-foreground px-4 py-3 text-xs">
-			Tables are edited in the LaTeX view — the visual editor would have to guess at column
-			specs and merged cells.
+			Tables are edited in the LaTeX view, because the visual editor would have to guess at column specs
+			and merged cells.
 		</div>
 	{/if}
 
@@ -266,9 +266,11 @@
 			contenteditable="true"
 			role="textbox"
 			tabindex="0"
-			aria-label="Figure caption"
+			aria-label="{isTable ? 'Table' : 'Figure'} caption"
 			data-float-caption
-			class="text-foreground text-sm outline-none"
+			data-empty={!block.caption || undefined}
+			data-placeholder="Describe this {isTable ? 'table' : 'figure'}"
+			class="text-foreground rounded-sm text-sm outline-none hover:bg-accent/60 focus-visible:bg-accent/60"
 			onblur={commitCaption}
 			onkeydown={(e) => {
 				if (e.key === 'Enter') {
@@ -279,3 +281,11 @@
 		></span>
 	</figcaption>
 </figure>
+
+<style>
+	[data-float-caption][data-empty]::before {
+		content: attr(data-placeholder);
+		color: var(--color-faint);
+		pointer-events: none;
+	}
+</style>

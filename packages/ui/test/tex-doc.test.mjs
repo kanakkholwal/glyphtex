@@ -67,7 +67,10 @@ describe('block recognition', () => {
 		const { blocks } = parseTexDoc(read('article.tex'));
 		const headings = blocks.filter((b) => b.kind === 'heading');
 		assert.deepEqual(
-			headings.map((h) => [h.level, h.title.map((i) => (i.kind === 'text' ? i.text : '')).join('')]),
+			headings.map((h) => [
+				h.level,
+				h.title.map((i) => (i.kind === 'text' ? i.text : '')).join('')
+			]),
 			[
 				[2, 'Introduction'],
 				[3, 'Notation'],
@@ -103,15 +106,38 @@ describe('block recognition', () => {
 		assert.match(float.caption, /Empirical convergence/);
 	});
 
-	test('verbatim is code, and its body is never treated as LaTeX', () => {
+	test('verbatim is a code block, and its body is never treated as LaTeX', () => {
+		// Regression guard: `verbatim` is its own AST node, not an `environment`, so
+		// it used to fall through and its body was projected as editable prose —
+		// which the visual editor would then have re-escaped on the next keystroke.
+		const src =
+			'\\begin{document}\n\\begin{verbatim}\n\\section{not a heading}\n100% not a comment\n\\end{verbatim}\n\\end{document}\n';
+		const { blocks } = parseTexDoc(src);
+		assert.deepEqual(
+			blocks.map((b) => b.kind),
+			['code']
+		);
+		assert.equal(blocks[0].environment, 'verbatim');
+		assert.match(blocks[0].source, /\\section\{not a heading\}/);
+		assert.match(blocks[0].source, /100% not a comment/);
+	});
+
+	test('lstlisting is a code block too', () => {
+		const src =
+			'\\begin{document}\n\\begin{lstlisting}[language=C]\nint main() { return 0; }\n\\end{lstlisting}\n\\end{document}\n';
+		const { blocks } = parseTexDoc(src);
+		assert.equal(blocks.length, 1);
+		assert.equal(blocks[0].kind, 'code');
+		assert.match(blocks[0].source, /int main/);
+	});
+
+	test('a verbatim slide never surfaces its contents as headings', () => {
 		const { blocks } = parseTexDoc(read('beamer.tex'));
-		const code = blocks.flatMap((b) => (b.kind === 'code' ? [b] : []));
-		const nested = JSON.stringify(blocks);
-		assert.ok(code.length + nested.length > 0);
-		// The \section inside the verbatim slide must not surface as a heading.
 		const headings = blocks.filter((b) => b.kind === 'heading');
 		assert.ok(
-			!headings.some((h) => h.title.some((i) => i.kind === 'text' && /must not be highlighted/.test(i.text))),
+			!headings.some((h) =>
+				h.title.some((i) => i.kind === 'text' && /must not be highlighted/.test(i.text))
+			),
 			'verbatim content leaked into the block model'
 		);
 	});

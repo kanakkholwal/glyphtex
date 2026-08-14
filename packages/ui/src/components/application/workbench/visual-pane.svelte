@@ -8,25 +8,30 @@
 		Patch,
 		TexDoc
 	} from '@glyphtex/ui/tex-doc';
+	import { Button } from '@glyphtex/ui/button';
 	import {
 		IconAlertTriangle,
 		IconCode,
 		IconMathFunction,
 		IconPlus,
+		IconRowInsertTop,
 		IconTrash
 	} from '@tabler/icons-svelte';
 
 	import type { WorkbenchController } from './controller.svelte';
+	import AtomEditor from './visual/atom-editor.svelte';
 	import BlockEditor, { type CaretTarget } from './visual/block-editor.svelte';
 	import FloatCard from './visual/float-card.svelte';
+	import { inlinesToHtml } from './visual/inline-dom';
+	import SelectionToolbar from './visual/selection-toolbar.svelte';
 	import SlashMenu from './visual/slash-menu.svelte';
 
 	/**
 	 * Visual (WYSIWYG) editing surface.
 	 *
 	 * The LaTeX source stays the single source of truth. Every edit here is a
-	 * patch over one block's span, so anything the model does not understand —
-	 * TikZ, custom environments, hand-tuned spacing — is never rewritten, and the
+	 * patch over one block's span. Anything the model does not understand
+	 * (TikZ, custom environments, hand-tuned spacing) is never rewritten, and the
 	 * two modes stay byte-identical outside the block you touched.
 	 */
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
@@ -58,8 +63,14 @@
 	type SlashMode =
 		| { kind: 'convert'; index: number }
 		| { kind: 'insertAfter'; index: number }
+		| { kind: 'insertBefore'; index: number }
 		| { kind: 'draft' };
 	let slash = $state<{ rect: DOMRect; mode: SlashMode } | null>(null);
+
+	/** The atom whose own editor is open, and the block that owns it. */
+	let atom = $state<{ el: HTMLElement; index: number; item?: number } | null>(null);
+	/** Where the floating format bar sits, when there is a selection to format. */
+	let selectionRect = $state<DOMRect | null>(null);
 
 	// The parser is imported lazily: it is 58 KB the LaTeX view never needs, and
 	// keeping it out of the SSR graph keeps the Worker inside its size budget.
@@ -99,6 +110,10 @@
 	let coalesceKey = '';
 	let coalesceAt = 0;
 
+	// Bounded by bytes, not entries: a thesis is a megabyte a snapshot, and 200 of
+	// those is a quarter of a gigabyte held for an undo nobody will reach for.
+	const UNDO_BUDGET = 8_000_000;
+
 	function pushUndo(source: string, coalesce?: string) {
 		const now = Date.now();
 		// Typing into one block is a single undo step, not one per keystroke.
@@ -107,11 +122,15 @@
 			return;
 		}
 		undoStack.push(source);
-		if (undoStack.length > 200) undoStack.shift();
+		let held = undoStack.reduce((sum, entry) => sum + entry.length, 0);
+		while (undoStack.length > 1 && (held > UNDO_BUDGET || undoStack.length > 200)) {
+			held -= undoStack.shift()!.length;
+		}
 		redoStack.length = 0;
 		coalesceKey = coalesce ?? '';
 		coalesceAt = now;
 	}
+
 
 	function restore(from: string[], to: string[]) {
 		const previous = from.pop();
@@ -136,10 +155,15 @@
 	}
 
 	// --- Writing back -----------------------------------------------------------
+	let paneEl = $state<HTMLElement>();
+
 	function focusOn(key: string | null, caret: CaretTarget = 'end') {
 		focusKey = key;
 		caretAt = caret;
 		focusToken += 1;
+		// With no block to land on, keep the caret inside the pane so Ctrl+Z still
+		// reaches this pane's handler instead of falling through to the document.
+		if (!key) paneEl?.focus();
 	}
 
 	function write(next: string, coalesce?: string) {
@@ -403,6 +427,7 @@
 		slash = null;
 		if (!mode) return;
 		if (mode.kind === 'convert') onConvert(mode.index, template.id, []);
+		else if (mode.kind === 'insertBefore') insertTemplate(template.id, mode.index - 1);
 		else insertTemplate(template.id, mode.kind === 'draft' ? (draftAfter ?? -1) : mode.index);
 	}
 
@@ -422,6 +447,99 @@
 
 	function insertAfterBlock(index: number, origin: HTMLElement) {
 		slash = { rect: origin.getBoundingClientRect(), mode: { kind: 'insertAfter', index } };
+	}
+
+	function insertBeforeBlock(index: number, origin: HTMLElement) {
+		slash = { rect: origin.getBoundingClientRect(), mode: { kind: 'insertBefore', index } };
+	}
+
+	/** Dismissing the menu must hand the caret back, or Escape strands the user. */
+	function closeSlash() {
+		const mode = slash?.mode;
+		slash = null;
+		if (mode?.kind === 'convert') focusOn(`${mode.index}`);
+		else if (mode?.kind === 'draft') focusOn('draft');
+	}
+
+	// --- Selection formatting ---------------------------------------------------
+	// Tracked on the document because the selection can start in one block and the
+	// pointer can leave it; per-block mouseup handlers miss both cases.
+	function onSelectionChange() {
+		const selection = document.getSelection();
+		if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
+			selectionRect = null;
+			return;
+		}
+		const range = selection.getRangeAt(0);
+		const host = (range.commonAncestorContainer as Element).closest
+			? (range.commonAncestorContainer as Element).closest('[data-block-editor]')
+			: range.commonAncestorContainer.parentElement?.closest('[data-block-editor]');
+		const rect = range.getBoundingClientRect();
+		selectionRect = host && rect.width > 0 ? rect : null;
+	}
+
+	const MARK_COMMANDS: Record<string, string> = {
+		code: 'texttt',
+		smallcaps: 'textsc'
+	};
+
+	function runSelectionCommand(id: string) {
+		const host = document.activeElement as HTMLElement | null;
+		const selected = document.getSelection()?.toString() ?? '';
+		if (!host?.hasAttribute('data-block-editor') || !selected) return;
+
+		if (id === 'bold' || id === 'italic') {
+			document.execCommand('styleWithCSS', false, 'false');
+			document.execCommand(id);
+		} else if (id === 'math') {
+			// The selected text becomes the maths source, so `E=mc^2` in prose turns
+			// into an atom rather than being escaped character by character.
+			document.execCommand('insertHTML', false, inlinesToHtml([{ kind: 'math', source: selected }]));
+		} else {
+			const command = MARK_COMMANDS[id];
+			const tag = id === 'code' ? 'code' : 'em';
+			document.execCommand(
+				'insertHTML',
+				false,
+				`<${tag} data-cmd="${command}">${selected.replace(/[<>&]/g, '')}</${tag}>`
+			);
+		}
+		host.dispatchEvent(new Event('input', { bubbles: true }));
+		selectionRect = null;
+	}
+
+	/** Several pasted paragraphs replace the block with one block each. */
+	function onPasteBlocks(index: number, paragraphs: string[]) {
+		const block = doc?.blocks[index];
+		if (!tex || !block || !paragraphs.length) return;
+		const existing = tex.printBlock(block, files.source);
+		const insert = [existing, ...paragraphs.map((p) => tex!.escapeText(p))].join('\n\n');
+		commitStructural({ ...block.span, insert }, { key: `${index + paragraphs.length}` });
+	}
+
+	// --- Atoms ------------------------------------------------------------------
+	function openAtom(index: number, el: HTMLElement, item?: number) {
+		atom = { el, index, item };
+		selectionRect = null;
+	}
+
+	/** Rewrite the clicked atom in the DOM, then let the normal input path run. */
+	function commitAtom(source: string | null) {
+		const open = atom;
+		atom = null;
+		if (!open) return;
+		const host = open.el.closest('[data-block-editor]') as HTMLElement | null;
+		if (!host) return;
+
+		if (source === null) open.el.remove();
+		else {
+			open.el.setAttribute('data-src', source);
+			const kind = open.el.getAttribute('data-atom');
+			open.el.textContent =
+				kind === 'cite' ? `[${source}]` : kind === 'label' ? `#${source}` : source;
+		}
+		host.dispatchEvent(new Event('input', { bubbles: true }));
+		host.focus();
 	}
 
 	/** A float card edited one of its own commands. Re-parse: the caption and the
@@ -467,6 +585,7 @@
 			runs={block.title}
 			tag={`h${Math.min(6, block.level)}`}
 			placeholder="Heading"
+			label={`Heading level ${block.level}`}
 			class="text-foreground relative mb-1 leading-tight {HEADING_CLASS[block.level] ??
 				HEADING_CLASS[6]}"
 			focusToken={tokenFor(key)}
@@ -477,12 +596,15 @@
 			onconvert={(template, rest) => onConvert(index, template, rest)}
 			onslash={(rect) => (slash = { rect, mode: { kind: 'convert', index } })}
 			onmove={(direction) => moveFocus(key, direction)}
+			onatom={(el) => openAtom(index, el)}
+			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
 		/>
 	{:else if block.kind === 'paragraph'}
 		<BlockEditor
 			runs={block.content}
 			tag="p"
 			placeholder="Write, or press / for blocks"
+			label="Paragraph"
 			class="text-foreground relative mt-4 leading-[1.6]"
 			focusToken={tokenFor(key)}
 			{caretAt}
@@ -492,6 +614,8 @@
 			onconvert={(template, rest) => onConvert(index, template, rest)}
 			onslash={(rect) => (slash = { rect, mode: { kind: 'convert', index } })}
 			onmove={(direction) => moveFocus(key, direction)}
+			onatom={(el) => openAtom(index, el)}
+			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
 		/>
 	{:else if block.kind === 'quote'}
 		<blockquote class="border-border text-muted-foreground mt-4 border-l-2 pl-4">
@@ -499,6 +623,7 @@
 				runs={block.content}
 				tag="p"
 				placeholder="Quote"
+				label="Quotation"
 				class="relative leading-[1.6]"
 				focusToken={tokenFor(key)}
 				{caretAt}
@@ -506,6 +631,8 @@
 				onsplit={(left, right) => onSplit(index, left, right)}
 				onmergeback={(rest) => onMergeBack(index, rest)}
 				onmove={(direction) => moveFocus(key, direction)}
+			onatom={(el) => openAtom(index, el)}
+			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
 			/>
 		</blockquote>
 	{:else if block.kind === 'list'}
@@ -525,6 +652,7 @@
 							runs={item.content}
 							tag="span"
 							placeholder="List item"
+							label={`List item ${j + 1}`}
 							class="relative block"
 							focusToken={tokenFor(itemKey)}
 							{caretAt}
@@ -532,6 +660,7 @@
 							onsplit={(left, right) => onItemSplit(index, j, left, right)}
 							onmergeback={(rest) => onItemMergeBack(index, j, rest)}
 							onmove={(direction) => moveFocus(itemKey, direction)}
+							onatom={(el) => openAtom(index, el, j)}
 						/>
 					</span>
 				</li>
@@ -593,21 +722,50 @@
 	/>
 {/snippet}
 
+<svelte:document onselectionchange={onSelectionChange} />
+
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <section
-	class="bg-background flex min-h-0 min-w-0 flex-1 flex-col overflow-auto"
+	bind:this={paneEl}
+	tabindex="-1"
+	class="bg-background flex min-h-0 min-w-0 flex-1 flex-col overflow-auto outline-none"
 	aria-label="Visual editor"
 	role="document"
 	onkeydown={onPaneKeyDown}
+	onscroll={() => {
+		// Both overlays are position:fixed against a rect that the scroll invalidates.
+		slash = null;
+		atom = null;
+		selectionRect = null;
+	}}
 >
 	<div
 		class="mx-auto w-full px-6 pt-6 pb-24 sm:px-12 lg:px-16"
 		style:max-width={settings.docFullWidth ? 'none' : '900px'}
 	>
 		{#if parseError}
-			<p class="text-destructive text-sm">Could not read this document: {parseError}</p>
+			<div class="border-border bg-surface-soft rounded-lg border px-4 py-3.5">
+				<p class="text-foreground text-sm font-medium">This document could not be read</p>
+				<p class="text-muted-foreground mt-1 text-xs">{parseError}</p>
+				<Button
+					size="sm"
+					variant="outline"
+					class="mt-3 h-8"
+					onclick={() => (layout.docMode = 'latex')}
+				>
+					Edit the LaTeX instead
+				</Button>
+			</div>
 		{:else if !doc}
-			<p class="text-muted-foreground text-sm">Reading the document…</p>
+			<!-- A skeleton, not a line of text: the real content is about to land in
+			     the same place, and a swap of differing heights shifts the page. -->
+			<div class="space-y-3" aria-busy="true" aria-label="Reading the document">
+				<div class="bg-surface-soft h-7 w-2/5 animate-pulse rounded"></div>
+				<div class="bg-surface-soft h-4 w-full animate-pulse rounded"></div>
+				<div class="bg-surface-soft h-4 w-11/12 animate-pulse rounded"></div>
+				<div class="bg-surface-soft h-4 w-4/5 animate-pulse rounded"></div>
+				<div class="bg-surface-soft mt-8 h-24 w-full animate-pulse rounded"></div>
+			</div>
 		{:else}
 			{#if doc.preamble.packages.length || doc.preamble.documentClass}
 				<!-- The preamble is summarised, never block-edited: macro definitions
@@ -651,25 +809,44 @@
 						block.kind === 'list' ||
 						block.kind === 'float'}
 					<div class="group/block relative">
-						<!-- Handles sit in the gutter so they never reflow the prose. -->
+						<!-- Inside the measure, not in a negative-margin gutter: at the pane's
+						     narrow widths a gutter is clipped and the handles vanish. They are
+						     44px targets and out of the tab order, since tabbing a long
+						     document should walk its prose, not two buttons per block. -->
 						<div
-							class="absolute -left-11 z-10 flex gap-0.5 pt-1 opacity-0 transition-opacity group-hover/block:opacity-100 focus-within:opacity-100"
+							class="pointer-events-none absolute -top-4 right-0 z-10 flex gap-0.5 opacity-0 transition-opacity group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100 group-hover/block:pointer-events-auto group-hover/block:opacity-100"
 						>
+							{#if i === 0}
+								<button
+									type="button"
+									tabindex="-1"
+									aria-label="Insert block above"
+									title="Insert block above"
+									class="text-faint hover:text-foreground hover:bg-accent flex size-9 items-center justify-center rounded-md"
+									onclick={(e) => insertBeforeBlock(i, e.currentTarget)}
+								>
+									<IconRowInsertTop size={16} />
+								</button>
+							{/if}
 							<button
 								type="button"
+								tabindex="-1"
 								aria-label="Insert block below"
-								class="text-faint hover:text-foreground hover:bg-accent rounded p-1"
+								title="Insert block below"
+								class="text-faint hover:text-foreground hover:bg-accent flex size-9 items-center justify-center rounded-md"
 								onclick={(e) => insertAfterBlock(i, e.currentTarget)}
 							>
-								<IconPlus size={15} />
+								<IconPlus size={16} />
 							</button>
 							<button
 								type="button"
+								tabindex="-1"
 								aria-label="Delete block"
-								class="text-faint hover:text-destructive hover:bg-accent rounded p-1"
+								title="Delete block (Ctrl+Z to undo)"
+								class="text-faint hover:text-destructive hover:bg-accent flex size-9 items-center justify-center rounded-md"
 								onclick={() => removeBlock(i)}
 							>
-								<IconTrash size={15} />
+								<IconTrash size={16} />
 							</button>
 						</div>
 
@@ -704,7 +881,7 @@
 						class="text-muted-foreground hover:text-foreground mt-4 text-sm"
 						onclick={() => openDraft(-1)}
 					>
-						This document has no body yet — click to start writing.
+						This document has no body yet. Click to start writing.
 					</button>
 				{/if}
 			</article>
@@ -713,5 +890,20 @@
 </section>
 
 {#if slash}
-	<SlashMenu anchor={slash.rect} onpick={pickTemplate} onclose={() => (slash = null)} />
+	<SlashMenu anchor={slash.rect} onpick={pickTemplate} onclose={closeSlash} />
+{/if}
+
+{#if atom}
+	<AtomEditor
+		target={atom.el}
+		onapply={(source) => commitAtom(source)}
+		onremove={() => commitAtom(null)}
+		onclose={() => (atom = null)}
+	/>
+{/if}
+
+<!-- Suppressed while another overlay owns the selection, so two popovers never
+     fight over the same range. -->
+{#if selectionRect && !slash && !atom}
+	<SelectionToolbar rect={selectionRect} oncommand={runSelectionCommand} />
 {/if}

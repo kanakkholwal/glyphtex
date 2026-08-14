@@ -12,7 +12,10 @@ await openProject();
 await focusDoc();
 
 // --- Load a document with something worth not breaking ------------------------
-const fixture = fs.readFileSync(path.join(import.meta.dirname, '..', 'fixtures', 'tikz.tex'), 'utf8');
+const fixture = fs.readFileSync(
+	path.join(import.meta.dirname, '..', 'fixtures', 'tikz.tex'),
+	'utf8'
+);
 const article = fs.readFileSync(
 	path.join(import.meta.dirname, '..', 'fixtures', 'article.tex'),
 	'utf8'
@@ -81,7 +84,11 @@ check('the typed text shows in the block', (await blockText(1))?.endsWith('EDITE
 
 check('back to LaTeX', await toLatex());
 const afterTyping = await source();
-check('the edit landed in the LaTeX source', afterTyping?.includes('EDITED'), 'not found in source');
+check(
+	'the edit landed in the LaTeX source',
+	afterTyping?.includes('EDITED'),
+	'not found in source'
+);
 check(
 	'the rest of the document is untouched',
 	afterTyping?.includes('\\begin{figure}') && afterTyping?.includes('\\includegraphics'),
@@ -112,7 +119,12 @@ check('Enter then typing creates a real paragraph', afterEnter?.includes('A bran
 check(
 	'the new paragraph is its own block, not glued on',
 	/\n\s*\n\s*A brand new paragraph\./.test(afterEnter ?? ''),
-	JSON.stringify(afterEnter?.slice(Math.max(0, (afterEnter?.indexOf('A brand new') ?? 0) - 30), (afterEnter?.indexOf('A brand new') ?? 0) + 30))
+	JSON.stringify(
+		afterEnter?.slice(
+			Math.max(0, (afterEnter?.indexOf('A brand new') ?? 0) - 30),
+			(afterEnter?.indexOf('A brand new') ?? 0) + 30
+		)
+	)
 );
 
 // --- Input rule: "## " turns an empty block into a subsection -----------------
@@ -136,8 +148,18 @@ await toVisual();
 await caretInBlock(1);
 await key('Enter', 'Enter', 13);
 await sleep(300);
-await send('Input.dispatchKeyEvent', { type: 'keyDown', key: '/', code: 'Slash', windowsVirtualKeyCode: 191 });
-await send('Input.dispatchKeyEvent', { type: 'keyUp', key: '/', code: 'Slash', windowsVirtualKeyCode: 191 });
+await send('Input.dispatchKeyEvent', {
+	type: 'keyDown',
+	key: '/',
+	code: 'Slash',
+	windowsVirtualKeyCode: 191
+});
+await send('Input.dispatchKeyEvent', {
+	type: 'keyUp',
+	key: '/',
+	code: 'Slash',
+	windowsVirtualKeyCode: 191
+});
 await sleep(500);
 check('the slash menu opens', await ev(`!!document.querySelector('[aria-label="Insert block"]')`));
 await typeText('equat');
@@ -146,6 +168,54 @@ await key('Enter', 'Enter', 13);
 await sleep(600);
 await toLatex();
 check('picking Equation inserts one', /\\begin\{equation\}/.test((await source()) ?? ''));
+
+// --- A figure is editable where it can be, verbatim everywhere else -----------
+check('reload the article', await loadSource(article, 'Consistency of Estimators'));
+await toVisual();
+await sleep(500);
+check(
+	'the figure renders as a card with its caption',
+	await ev(
+		`(() => { const c = document.querySelector('[data-float-caption]'); return !!c && /Empirical convergence/.test(c.textContent); })()`
+	)
+);
+
+await ev(`(() => {
+  const c = document.querySelector('[data-float-caption]');
+  c.focus();
+  c.textContent = 'A rewritten caption.';
+  c.dispatchEvent(new FocusEvent('blur'));
+  return true;
+})()`);
+await sleep(700);
+await toLatex();
+const afterCaption = await source();
+check(
+	'editing the caption rewrites only the caption',
+	/\\caption\{A rewritten caption\.\}/.test(afterCaption ?? '')
+);
+check(
+	'the graphic and its options are untouched',
+	afterCaption?.includes('\\includegraphics[width=0.7\\linewidth]{figures/convergence}'),
+	'the includegraphics line was rewritten'
+);
+check(
+	'the figure label survives a caption edit',
+	afterCaption?.includes('\\label{fig:convergence}')
+);
+
+await toVisual();
+await sleep(500);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim() === 'Full' && x.closest('figure')); b?.click(); return !!b; })()`
+);
+await sleep(700);
+await toLatex();
+check(
+	'the width control rewrites only width=',
+	/\\includegraphics\[width=\\linewidth\]\{figures\/convergence\}/.test((await source()) ?? ''),
+	JSON.stringify((await source())?.match(/\\includegraphics[^\n]*/)?.[0])
+);
 
 // --- A block we do not model is never rewritten -------------------------------
 check('tikz fixture loads', await loadSource(fixture, 'tikzpicture'));
@@ -167,6 +237,10 @@ await sleep(500);
 await key('z', 'KeyZ', 90, 2);
 await sleep(500);
 await toLatex();
-check('Ctrl+Z reverts a visual edit', !(await source())?.includes('ZZZ'), 'the undo stack missed it');
+check(
+	'Ctrl+Z reverts a visual edit',
+	!(await source())?.includes('ZZZ'),
+	'the undo stack missed it'
+);
 
 finish();
