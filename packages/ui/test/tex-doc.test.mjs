@@ -108,7 +108,7 @@ describe('block recognition', () => {
 
 	test('verbatim is a code block, and its body is never treated as LaTeX', () => {
 		// Regression guard: `verbatim` is its own AST node, not an `environment`, so
-		// it used to fall through and its body was projected as editable prose —
+		// it used to fall through and its body was projected as editable prose,
 		// which the visual editor would then have re-escaped on the next keystroke.
 		const src =
 			'\\begin{document}\n\\begin{verbatim}\n\\section{not a heading}\n100% not a comment\n\\end{verbatim}\n\\end{document}\n';

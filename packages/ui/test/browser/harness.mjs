@@ -40,7 +40,7 @@ export async function connect() {
 	const results = [];
 	const check = (name, pass, detail = '') => {
 		results.push({ name, pass });
-		console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? `  — ${detail}` : ''}`);
+		console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? `  · ${detail}` : ''}`);
 	};
 
 	// The engine-install dialog's overlay covers the whole viewport and silently
@@ -158,6 +158,14 @@ export async function connect() {
 		// focus handling then behaves differently from a real session.
 		await send('Page.bringToFront');
 		await send('Emulation.setFocusEmulationEnabled', { enabled: true });
+		// Start from an empty origin every time. Sharing one browser between the
+		// suites otherwise means each one opens whatever document the last one left
+		// behind, and assertions fail for reasons that have nothing to do with the
+		// code under test.
+		await send('Storage.clearDataForOrigin', {
+			origin: new URL(PAGE).origin,
+			storageTypes: 'all'
+		});
 		await send('Page.navigate', { url: PAGE });
 
 		let route = '';
@@ -186,6 +194,13 @@ export async function connect() {
 			if (await ev(`!!document.querySelector('.cm-content')`)) break;
 		}
 		await clearModals();
+		// Present in the DOM is not the same as ready for input. On a cold dev
+		// server the first suite would otherwise type into a page still hydrating
+		// and report a failure that has nothing to do with the code under test.
+		for (let i = 0; i < 10; i++) {
+			if (await focusDoc()) break;
+			await sleep(600);
+		}
 		return route;
 	};
 

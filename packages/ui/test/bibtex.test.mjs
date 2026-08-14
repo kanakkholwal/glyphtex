@@ -106,14 +106,14 @@ describe('describeEntry', () => {
 				author: 'Knuth, Donald E.',
 				year: '1984'
 			}),
-			'The TeXbook — Knuth, 1984'
+			'The TeXbook · Knuth, 1984'
 		);
 	});
 
 	test('abbreviates multiple authors', () => {
 		assert.equal(
 			describeEntry({ key: 'k', type: 'book', title: 'T', author: 'Knuth, D. and Lamport, L.' }),
-			'T — Knuth et al.'
+			'T · Knuth et al.'
 		);
 	});
 

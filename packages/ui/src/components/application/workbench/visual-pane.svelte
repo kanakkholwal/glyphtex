@@ -12,15 +12,15 @@
 	import {
 		IconAlertTriangle,
 		IconCode,
+		IconGripVertical,
 		IconMathFunction,
-		IconPlus,
-		IconRowInsertTop,
-		IconTrash
+		IconPlus
 	} from '@tabler/icons-svelte';
 
 	import type { WorkbenchController } from './controller.svelte';
 	import AtomEditor from './visual/atom-editor.svelte';
 	import BlockEditor, { type CaretTarget } from './visual/block-editor.svelte';
+	import BlockMenu, { type BlockAction } from './visual/block-menu.svelte';
 	import FloatCard from './visual/float-card.svelte';
 	import { inlinesToHtml } from './visual/inline-dom';
 	import SelectionToolbar from './visual/selection-toolbar.svelte';
@@ -40,7 +40,8 @@
 	const files = $derived(ctrl.files);
 
 	const bodySize = $derived(settings.docSmallText ? '0.875rem' : '1rem');
-	const measure = $derived(settings.docFullWidth ? 'none' : '708px');
+	// 3.5rem of that is the block gutter, so the text measure stays 708px.
+	const measure = $derived(settings.docFullWidth ? 'none' : 'calc(708px + 3.5rem)');
 
 	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
 	let tex = $state<TexDocModule>();
@@ -69,6 +70,8 @@
 
 	/** The atom whose own editor is open, and the block that owns it. */
 	let atom = $state<{ el: HTMLElement; index: number; item?: number } | null>(null);
+	/** The gutter grip menu, anchored to the grip that opened it. */
+	let blockMenu = $state<{ rect: DOMRect; index: number } | null>(null);
 	/** Where the floating format bar sits, when there is a selection to format. */
 	let selectionRect = $state<DOMRect | null>(null);
 
@@ -130,7 +133,6 @@
 		coalesceKey = coalesce ?? '';
 		coalesceAt = now;
 	}
-
 
 	function restore(from: string[], to: string[]) {
 		const previous = from.pop();
@@ -449,8 +451,18 @@
 		slash = { rect: origin.getBoundingClientRect(), mode: { kind: 'insertAfter', index } };
 	}
 
-	function insertBeforeBlock(index: number, origin: HTMLElement) {
-		slash = { rect: origin.getBoundingClientRect(), mode: { kind: 'insertBefore', index } };
+	const PROSE_KINDS = ['heading', 'paragraph', 'quote'];
+
+	function runBlockAction(action: BlockAction) {
+		const open = blockMenu;
+		blockMenu = null;
+		if (!open || !doc) return;
+		const { rect, index } = open;
+		if (action === 'above') slash = { rect, mode: { kind: 'insertBefore', index } };
+		else if (action === 'below') slash = { rect, mode: { kind: 'insertAfter', index } };
+		else if (action === 'convert') slash = { rect, mode: { kind: 'convert', index } };
+		else if (action === 'source') openInSource(doc.blocks[index]);
+		else removeBlock(index);
 	}
 
 	/** Dismissing the menu must hand the caret back, or Escape strands the user. */
@@ -494,7 +506,11 @@
 		} else if (id === 'math') {
 			// The selected text becomes the maths source, so `E=mc^2` in prose turns
 			// into an atom rather than being escaped character by character.
-			document.execCommand('insertHTML', false, inlinesToHtml([{ kind: 'math', source: selected }]));
+			document.execCommand(
+				'insertHTML',
+				false,
+				inlinesToHtml([{ kind: 'math', source: selected }])
+			);
 		} else {
 			const command = MARK_COMMANDS[id];
 			const tag = id === 'code' ? 'code' : 'em';
@@ -631,8 +647,8 @@
 				onsplit={(left, right) => onSplit(index, left, right)}
 				onmergeback={(rest) => onMergeBack(index, rest)}
 				onmove={(direction) => moveFocus(key, direction)}
-			onatom={(el) => openAtom(index, el)}
-			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
+				onatom={(el) => openAtom(index, el)}
+				onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
 			/>
 		</blockquote>
 	{:else if block.kind === 'list'}
@@ -733,9 +749,10 @@
 	role="document"
 	onkeydown={onPaneKeyDown}
 	onscroll={() => {
-		// Both overlays are position:fixed against a rect that the scroll invalidates.
+		// The overlays are position:fixed against a rect the scroll invalidates.
 		slash = null;
 		atom = null;
+		blockMenu = null;
 		selectionRect = null;
 	}}
 >
@@ -792,7 +809,7 @@
 			{/if}
 
 			<article
-				class="glyphtex-doc mx-auto"
+				class="glyphtex-doc mx-auto pl-14"
 				style:max-width={measure}
 				style:font-family={settings.docFontStack}
 				style:font-size={bodySize}
@@ -809,44 +826,35 @@
 						block.kind === 'list' ||
 						block.kind === 'float'}
 					<div class="group/block relative">
-						<!-- Inside the measure, not in a negative-margin gutter: at the pane's
-						     narrow widths a gutter is clipped and the handles vanish. They are
-						     44px targets and out of the tab order, since tabbing a long
+						<!-- The gutter lives in the article's own left padding, so it is never
+						     clipped however narrow the pane gets. The block's top margin
+						     collapses through this wrapper, which is what lines the controls up
+						     with the first line of text. Out of the tab order: tabbing a long
 						     document should walk its prose, not two buttons per block. -->
 						<div
-							class="pointer-events-none absolute -top-4 right-0 z-10 flex gap-0.5 opacity-0 transition-opacity group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100 group-hover/block:pointer-events-auto group-hover/block:opacity-100"
+							class="pointer-events-none absolute top-0 -left-14 z-10 flex w-14 items-start justify-end gap-px pr-1.5 opacity-0 transition-opacity group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100 group-hover/block:pointer-events-auto group-hover/block:opacity-100"
 						>
-							{#if i === 0}
-								<button
-									type="button"
-									tabindex="-1"
-									aria-label="Insert block above"
-									title="Insert block above"
-									class="text-faint hover:text-foreground hover:bg-accent flex size-9 items-center justify-center rounded-md"
-									onclick={(e) => insertBeforeBlock(i, e.currentTarget)}
-								>
-									<IconRowInsertTop size={16} />
-								</button>
-							{/if}
 							<button
 								type="button"
 								tabindex="-1"
 								aria-label="Insert block below"
 								title="Insert block below"
-								class="text-faint hover:text-foreground hover:bg-accent flex size-9 items-center justify-center rounded-md"
+								class="text-faint hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-['']"
 								onclick={(e) => insertAfterBlock(i, e.currentTarget)}
 							>
-								<IconPlus size={16} />
+								<IconPlus size={15} />
 							</button>
 							<button
 								type="button"
 								tabindex="-1"
-								aria-label="Delete block"
-								title="Delete block (Ctrl+Z to undo)"
-								class="text-faint hover:text-destructive hover:bg-accent flex size-9 items-center justify-center rounded-md"
-								onclick={() => removeBlock(i)}
+								aria-label="Block actions"
+								title="Block actions"
+								aria-haspopup="menu"
+								class="text-faint hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-['']"
+								onclick={(e) =>
+									(blockMenu = { rect: e.currentTarget.getBoundingClientRect(), index: i })}
 							>
-								<IconTrash size={16} />
+								<IconGripVertical size={15} />
 							</button>
 						</div>
 
@@ -893,6 +901,15 @@
 	<SlashMenu anchor={slash.rect} onpick={pickTemplate} onclose={closeSlash} />
 {/if}
 
+{#if blockMenu && doc}
+	<BlockMenu
+		rect={blockMenu.rect}
+		canConvert={PROSE_KINDS.includes(doc.blocks[blockMenu.index]?.kind ?? '')}
+		onpick={runBlockAction}
+		onclose={() => (blockMenu = null)}
+	/>
+{/if}
+
 {#if atom}
 	<AtomEditor
 		target={atom.el}
@@ -904,6 +921,6 @@
 
 <!-- Suppressed while another overlay owns the selection, so two popovers never
      fight over the same range. -->
-{#if selectionRect && !slash && !atom}
+{#if selectionRect && !slash && !atom && !blockMenu}
 	<SelectionToolbar rect={selectionRect} oncommand={runSelectionCommand} />
 {/if}

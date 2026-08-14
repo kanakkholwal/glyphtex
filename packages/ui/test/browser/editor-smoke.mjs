@@ -37,7 +37,7 @@ const evaluate = async (expression) => {
 const results = [];
 const check = (name, pass, detail = '') => {
 	results.push({ name, pass });
-	console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? `  — ${detail}` : ''}`);
+	console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? `  · ${detail}` : ''}`);
 };
 
 await send('Runtime.enable');
@@ -52,6 +52,7 @@ await send('Emulation.setDeviceMetricsOverride', {
 // mouse events then leave the focus on `body`: every keystroke goes nowhere.
 await send('Page.bringToFront');
 await send('Emulation.setFocusEmulationEnabled', { enabled: true });
+await send('Storage.clearDataForOrigin', { origin: new URL(PAGE).origin, storageTypes: 'all' });
 await send('Page.navigate', { url: PAGE });
 await sleep(5000);
 

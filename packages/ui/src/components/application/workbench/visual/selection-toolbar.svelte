@@ -19,16 +19,17 @@
 		{ id: 'math', icon: IconMath, label: 'Inline maths', keys: '' }
 	];
 
-	const WIDTH = 196;
+	// Five 26px buttons plus the 1px border and 2px padding either side.
+	const WIDTH = 136;
 	const left = $derived(
 		Math.max(8, Math.min(rect.left + rect.width / 2 - WIDTH / 2, window.innerWidth - WIDTH - 8))
 	);
 	// Above the selection when there is room, below it when there is not.
-	const top = $derived(rect.top > 56 ? rect.top - 44 : rect.bottom + 8);
+	const top = $derived(rect.top > 48 ? rect.top - 38 : rect.bottom + 8);
 </script>
 
 <div
-	class="border-border bg-popover fixed z-50 flex items-center gap-0.5 rounded-lg border p-1 shadow-lg"
+	class="border-border bg-popover fixed z-50 flex items-center rounded-md border p-0.5 shadow-md"
 	style:left="{left}px"
 	style:top="{top}px"
 	style:width="{WIDTH}px"
@@ -41,11 +42,11 @@
 			type="button"
 			title={action.keys ? `${action.label} (${action.keys})` : action.label}
 			aria-label={action.label}
-			class="text-muted-foreground hover:bg-accent hover:text-foreground flex size-9 items-center justify-center rounded-md transition-colors"
+			class="text-muted-foreground hover:bg-accent hover:text-foreground flex size-[26px] items-center justify-center rounded transition-colors"
 			onmousedown={(e) => e.preventDefault()}
 			onclick={() => oncommand(action.id)}
 		>
-			<Icon size={16} />
+			<Icon size={15} />
 		</button>
 	{/each}
 </div>

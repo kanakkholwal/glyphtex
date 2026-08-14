@@ -153,13 +153,26 @@ check('fixture document loads', loaded);
 // --- Sticky headings track the scroll position -------------------------------
 // Scroll by a fraction of the range: a fixed pixel target clamps on a short
 // document and silently tests the top of the file instead.
+const readSticky = () =>
+	ev(`(() => { const s = document.querySelector('.cm-tex-sticky'); if (!s) return null;
+	  return { rows: s.children.length, text: s.innerText.replace(/\\n/g, ' '),
+	           hidden: getComputedStyle(s).display === 'none' }; })()`);
+
+// The strip repaints from requestMeasure, which runs on CodeMirror's own
+// schedule; a fixed wait races it. Poll until two reads agree.
 const stickyAt = async (fraction) => {
 	await ev(`(() => { const s = document.querySelector('.cm-scroller'); if (!s) return null;
 	  s.scrollTop = Math.round((s.scrollHeight - s.clientHeight) * ${fraction}); return s.scrollTop; })()`);
-	await sleep(600);
-	return ev(`(() => { const s = document.querySelector('.cm-tex-sticky'); if (!s) return null;
-	  return { rows: s.children.length, text: s.innerText.replace(/\\n/g, ' '),
-	           hidden: getComputedStyle(s).display === 'none' }; })()`);
+	// The first reads are empty because the measure has not run yet, so two
+	// agreeing reads are only trusted after a second has passed.
+	let previous = null;
+	for (let i = 0; i < 12; i++) {
+		await sleep(250);
+		const now = await readSticky();
+		if (i >= 4 && previous && JSON.stringify(now) === JSON.stringify(previous)) return now;
+		previous = now;
+	}
+	return previous;
 };
 const atTop = await stickyAt(0);
 check(

@@ -169,6 +169,97 @@ await sleep(600);
 await toLatex();
 check('picking Equation inserts one', /\\begin\{equation\}/.test((await source()) ?? ''));
 
+// --- Selection formatting -----------------------------------------------------
+check('reload for the selection checks', await loadSource(article, 'Consistency of Estimators'));
+await toVisual();
+await sleep(500);
+
+// Select the first word of a paragraph and bold it from the floating bar.
+const selectedWord = await ev(`(() => {
+  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
+  if (!el) return null;
+  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
+  if (!node) return null;
+  el.focus();
+  const r = document.createRange();
+  r.setStart(node, 0);
+  r.setEnd(node, 4);
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  document.dispatchEvent(new Event('selectionchange'));
+  return r.toString();
+})()`);
+await sleep(400);
+check('a selection raises the format bar', await ev(`!!document.querySelector('[aria-label="Format selection"]')`), String(selectedWord));
+
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Format selection"] [aria-label="Bold"]'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+await toLatex();
+check(
+	'the format bar writes \\textbf into the source',
+	/\\textbf\{/.test((await source()) ?? ''),
+	'no bold reached the source'
+);
+
+// --- Atoms are editable, not read-only holes ----------------------------------
+check('reload for the atom checks', await loadSource(article, 'Consistency of Estimators'));
+await toVisual();
+await sleep(500);
+const atomOpened = await ev(`(() => {
+  const a = document.querySelector('[data-block-editor] [data-atom="cite"]');
+  if (!a) return false;
+  a.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  return true;
+})()`);
+await sleep(500);
+check('clicking a citation opens its editor', atomOpened && (await ev(`!!document.querySelector('[role="dialog"][aria-label^="Edit"]')`)));
+
+await ev(`(() => {
+  const input = document.querySelector('[role="dialog"][aria-label^="Edit"] input');
+  if (!input) return false;
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+  setter.call(input, 'replaced2026');
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  return true;
+})()`);
+await sleep(300);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('[role="dialog"][aria-label^="Edit"] button')].find(x => x.textContent.trim() === 'Apply'); b?.click(); return !!b; })()`
+);
+await sleep(700);
+await toLatex();
+check(
+	'editing a citation rewrites its keys',
+	/\\citep?\{[^}]*replaced2026/.test((await source()) ?? ''),
+	JSON.stringify((await source())?.match(/\\cite\w*\{[^}]*\}/)?.[0])
+);
+
+// --- Cross-block selection must not corrupt the document ----------------------
+check('reload for the cross-block check', await loadSource(article, 'Consistency of Estimators'));
+const beforeCross = await source();
+await toVisual();
+await sleep(500);
+await ev(`(() => {
+  const els = [...document.querySelectorAll('[data-block-editor]')];
+  const a = els[1], b = els[2];
+  if (!a || !b) return false;
+  a.focus();
+  const r = document.createRange();
+  r.setStart(a, 0);
+  r.setEnd(b, b.childNodes.length);
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  return true;
+})()`);
+await key('Backspace', 'Backspace', 8);
+await sleep(600);
+await toLatex();
+check(
+	'a selection spanning two blocks is refused, not applied',
+	(await source()) === beforeCross,
+	'a cross-block delete mutated the document'
+);
+
 // --- A figure is editable where it can be, verbatim everywhere else -----------
 check('reload the article', await loadSource(article, 'Consistency of Estimators'));
 await toVisual();
