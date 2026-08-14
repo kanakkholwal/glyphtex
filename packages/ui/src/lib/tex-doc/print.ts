@@ -43,6 +43,12 @@ export function printInlines(runs: Inline[]): string {
 			case 'label':
 				out += `\\label{${run.name}}`;
 				break;
+			case 'link':
+				out += run.command === 'url' ? `\\url{${run.url}}` : `\\href{${run.url}}{${run.text}}`;
+				break;
+			case 'footnote':
+				out += `\\footnote{${run.source}}`;
+				break;
 			case 'raw':
 				out += run.source;
 				break;

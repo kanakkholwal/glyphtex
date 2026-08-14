@@ -18,8 +18,15 @@ export {
 	splitParagraph
 } from './edit';
 export type { Patch } from './edit';
-export { BLOCK_TEMPLATES, CARET, expandTemplate, templateSource } from './templates';
-export type { BlockTemplate } from './templates';
+export {
+	BLOCK_TEMPLATES,
+	CARET,
+	INLINE_TEMPLATES,
+	expandTemplate,
+	inlineTemplate,
+	templateSource
+} from './templates';
+export type { BlockTemplate, InlineTemplate, TemplateGroup } from './templates';
 export { SECTION_COMMANDS } from './types';
 export type {
 	Block,

@@ -254,8 +254,8 @@
 		{/if}
 	{:else}
 		<div class="text-muted-foreground px-4 py-3 text-xs">
-			Tables are edited in the LaTeX view, because the visual editor would have to guess at column specs
-			and merged cells.
+			Tables are edited in the LaTeX view, because the visual editor would have to guess at column
+			specs and merged cells.
 		</div>
 	{/if}
 

@@ -28,7 +28,17 @@ export const SECTION_COMMANDS = [
  */
 export type Fidelity = 'native' | 'source' | 'raw';
 
-export type MarkKind = 'bold' | 'italic' | 'emph' | 'code';
+export type MarkKind =
+	| 'bold'
+	| 'italic'
+	| 'emph'
+	| 'code'
+	| 'smallcaps'
+	| 'underline'
+	| 'strike'
+	| 'sans'
+	| 'superscript'
+	| 'subscript';
 
 /** Inline run inside a paragraph or heading. */
 export type Inline =
@@ -40,6 +50,11 @@ export type Inline =
 	| { kind: 'cite'; command: string; keys: string[] }
 	| { kind: 'ref'; command: string; target: string }
 	| { kind: 'label'; name: string }
+	/** `\href{url}{text}`, or `\url{url}` with no separate text. */
+	| { kind: 'link'; command: 'href' | 'url'; url: string; text: string }
+	/** The argument is kept as source, not runs: a footnote can hold anything, and
+	 *  writing it back verbatim is what keeps the round trip exact. */
+	| { kind: 'footnote'; source: string }
 	/** A command we do not model: shown as an inert chip, never rewritten. */
 	| { kind: 'raw'; source: string };
 

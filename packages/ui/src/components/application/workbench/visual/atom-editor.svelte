@@ -5,9 +5,10 @@
 	import { IconTrash } from '@tabler/icons-svelte';
 
 	/**
-	 * Edits one atom in place: the maths, the citation keys, the ref target. These
-	 * are the parts of a paragraph you can see in visual mode but could never type
-	 * into, so without this they are read-only holes in an editable document.
+	 * Edits one atom in place: the maths, the citation keys, the ref target, a
+	 * link, a footnote. These are the parts of a paragraph you can see in visual
+	 * mode but could never type into, so without this they are read-only holes in
+	 * an editable document.
 	 */
 	let {
 		target,
@@ -16,26 +17,41 @@
 		onclose
 	}: {
 		target: HTMLElement;
-		onapply: (source: string) => void;
+		onapply: (value: { src: string; url?: string }) => void;
 		onremove: () => void;
 		onclose: () => void;
 	} = $props();
 
-	const KINDS: Record<string, { title: string; hint: string; mono: boolean }> = {
-		math: { title: 'Maths', hint: 'LaTeX between the dollar signs', mono: true },
-		cite: { title: 'Citation', hint: 'Comma-separated BibTeX keys', mono: true },
-		ref: { title: 'Cross-reference', hint: 'The label it points at', mono: true },
-		label: { title: 'Anchor', hint: 'The name other blocks reference', mono: true },
-		raw: { title: 'Not modelled', hint: 'Raw LaTeX, written back exactly', mono: true }
+	const KINDS: Record<string, { title: string; hint: string }> = {
+		math: { title: 'Maths', hint: 'LaTeX between the dollar signs' },
+		cite: { title: 'Citation', hint: 'Comma-separated BibTeX keys' },
+		ref: { title: 'Cross-reference', hint: 'The label it points at' },
+		label: { title: 'Anchor', hint: 'The name other blocks reference' },
+		link: { title: 'Link', hint: 'Shown text and its address' },
+		footnote: { title: 'Footnote', hint: 'LaTeX, written back as typed' },
+		raw: { title: 'Not modelled', hint: 'Raw LaTeX, written back exactly' }
 	};
+
+	// Six symbols, matching the LaTeX toolbar's Math menu, so neither mode can do
+	// something the other cannot.
+	const SYMBOLS = [
+		{ label: 'a/b', insert: '\\frac{a}{b}' },
+		{ label: '√', insert: '\\sqrt{x}' },
+		{ label: '∑', insert: '\\sum_{i=1}^{n} ' },
+		{ label: '∏', insert: '\\prod_{i=1}^{n} ' },
+		{ label: '∫', insert: '\\int_{a}^{b} ' },
+		{ label: 'lim', insert: '\\lim_{x \\to 0} ' }
+	];
 
 	const kind = $derived(target.getAttribute('data-atom') ?? 'raw');
 	const meta = $derived(KINDS[kind] ?? KINDS.raw);
+	const isLink = $derived(kind === 'link');
 	const rect = $derived(target.getBoundingClientRect());
 
 	// Seeded once on open. The panel is keyed by the atom it edits, so a different
 	// atom mounts a fresh instance rather than reusing this value.
 	let value = $state(untrack(() => target.getAttribute('data-src') ?? ''));
+	let url = $state(untrack(() => target.getAttribute('data-url') ?? ''));
 	let input = $state<HTMLInputElement>();
 
 	$effect(() => {
@@ -44,7 +60,7 @@
 	});
 
 	function apply() {
-		onapply(value);
+		onapply(isLink ? { src: value, url } : { src: value });
 	}
 
 	function onKeyDown(event: KeyboardEvent) {
@@ -57,10 +73,25 @@
 		}
 	}
 
-	const PANEL_H = 132;
+	/** Drop a symbol in at the caret rather than at the end, so it can be built up
+	 *  inside an existing expression. */
+	function insertSymbol(text: string) {
+		const at = input?.selectionStart ?? value.length;
+		const to = input?.selectionEnd ?? at;
+		value = value.slice(0, at) + text + value.slice(to);
+		const caret = at + text.length;
+		requestAnimationFrame(() => {
+			input?.focus();
+			input?.setSelectionRange(caret, caret);
+		});
+	}
+
+	const height = $derived(132 + (isLink ? 38 : 0) + (kind === 'math' ? 34 : 0));
 	const top = $derived(
-		rect.bottom + PANEL_H > window.innerHeight ? rect.top - PANEL_H - 6 : rect.bottom + 6
+		rect.bottom + height > window.innerHeight ? rect.top - height - 6 : rect.bottom + 6
 	);
+	const FIELD =
+		'border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1.5 font-mono text-sm outline-none';
 </script>
 
 <svelte:window onresize={onclose} />
@@ -78,15 +109,40 @@
 		<span class="text-foreground text-sm font-medium">{meta.title}</span>
 		<span class="text-faint text-xs">{meta.hint}</span>
 	</div>
+
+	{#if kind === 'math'}
+		<div class="mb-1.5 flex items-center gap-0.5" role="group" aria-label="Insert a symbol">
+			{#each SYMBOLS as symbol (symbol.label)}
+				<button
+					type="button"
+					title={symbol.insert}
+					class="text-muted-foreground hover:bg-accent hover:text-foreground h-7 min-w-8 rounded px-1.5 font-mono text-xs"
+					onclick={() => insertSymbol(symbol.insert)}
+				>
+					{symbol.label}
+				</button>
+			{/each}
+		</div>
+	{/if}
+
 	<input
 		bind:this={input}
 		bind:value
 		onkeydown={onKeyDown}
-		aria-label="{meta.title} source"
-		class="border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1.5 text-sm outline-none {meta.mono
-			? 'font-mono'
-			: ''}"
+		aria-label={isLink ? 'Link text' : `${meta.title} source`}
+		placeholder={isLink ? 'Text to show' : ''}
+		class={FIELD}
 	/>
+	{#if isLink}
+		<input
+			bind:value={url}
+			onkeydown={onKeyDown}
+			aria-label="Link address"
+			placeholder="https://example.com"
+			class="{FIELD} mt-1.5"
+		/>
+	{/if}
+
 	<div class="mt-2.5 flex items-center gap-2">
 		<Button size="sm" class="h-8" onclick={apply}>Apply</Button>
 		<Button size="sm" variant="ghost" class="h-8" onclick={onclose}>Cancel</Button>

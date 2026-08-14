@@ -82,6 +82,27 @@ describe('printing is idempotent', () => {
 		assert.equal(printBlock(blocks[0], src), '\\textsc{Small} and \\textbf{bold}');
 	});
 
+	test('every mark the toolbars offer survives a round trip', () => {
+		const marks =
+			'\\textbf{a} \\textit{b} \\emph{c} \\texttt{d} \\textsc{e} \\underline{f} ' +
+			'\\sout{g} \\textsf{h} \\textsuperscript{i} \\textsubscript{j}';
+		const src = `\\begin{document}\n${marks}\n\\end{document}\n`;
+		const { blocks } = parseTexDoc(src);
+		assert.equal(printBlock(blocks[0], src), marks);
+		// Each one is a distinct mark, not everything collapsed onto \emph.
+		const kinds = blocks[0].content.filter((r) => r.kind === 'mark').map((r) => r.mark);
+		assert.equal(new Set(kinds).size, 10);
+	});
+
+	test('links and footnotes round trip byte for byte', () => {
+		const body =
+			'See \\href{https://ex.com/a_b~c}{the site}, \\url{https://ex.com}' +
+			'\\footnote{With \\textbf{markup} inside.}';
+		const src = `\\begin{document}\n${body}\n\\end{document}\n`;
+		const { blocks } = parseTexDoc(src);
+		assert.equal(printBlock(blocks[0], src), body);
+	});
+
 	test('a citation keeps its variant', () => {
 		const src = '\\begin{document}\nAs shown \\citep{a, b}.\n\\end{document}\n';
 		const { blocks } = parseTexDoc(src);

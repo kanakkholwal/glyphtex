@@ -169,6 +169,88 @@ await sleep(600);
 await toLatex();
 check('picking Equation inserts one', /\\begin\{equation\}/.test((await source()) ?? ''));
 
+// --- Everything the LaTeX toolbar inserts is reachable here too ----------------
+check('reload for the parity checks', await loadSource(article, 'Consistency of Estimators'));
+await toVisual();
+await caretInBlock(1);
+await key('Enter', 'Enter', 13);
+await sleep(300);
+const slash = async (modifiers = 0) => {
+	for (const type of ['keyDown', 'keyUp'])
+		await send('Input.dispatchKeyEvent', {
+			type,
+			key: '/',
+			code: 'Slash',
+			windowsVirtualKeyCode: 191,
+			modifiers
+		});
+	await sleep(500);
+};
+await slash();
+const offered = await ev(`(() => {
+  const menu = document.querySelector('[aria-label="Insert block"]');
+  if (!menu) return null;
+  return {
+    groups: [...menu.querySelectorAll('[role="listbox"] > p')].map(p => p.textContent.trim()),
+    labels: [...menu.querySelectorAll('[role="option"]')].map(o => o.textContent.trim())
+  };
+})()`);
+check(
+	'the insert menu groups its entries',
+	!!offered && offered.groups.length >= 4,
+	JSON.stringify(offered?.groups)
+);
+for (const wanted of ['Part', 'Chapter', 'Matrix', 'Cases', 'Display maths', 'Description list']) {
+	check(
+		`the / menu offers ${wanted}`,
+		!!offered?.labels.includes(wanted),
+		JSON.stringify(offered?.labels)
+	);
+}
+await key('Escape', 'Escape', 27);
+await sleep(300);
+
+// --- An inline atom can be inserted at the caret, not only edited --------------
+// Ctrl+/ rather than a bare slash: the caret sits tight against a word, where a
+// bare slash is a character the writer meant to type.
+await caretInBlock(1);
+await slash(2);
+check(
+	'Ctrl+/ opens the menu against a word',
+	await ev(`!!document.querySelector('[aria-label="Insert block"]')`)
+);
+check(
+	'the menu offers inline things when there is a caret',
+	await ev(
+		`[...document.querySelectorAll('[role="option"]')].some(o => o.textContent.trim() === 'Footnote')`
+	)
+);
+await typeText('footnote');
+await sleep(400);
+await key('Enter', 'Enter', 13);
+await sleep(600);
+check(
+	'picking Footnote opens its editor',
+	await ev(`!!document.querySelector('[role="dialog"][aria-label^="Edit footnote"]')`)
+);
+await ev(`(() => {
+  const input = document.querySelector('[role="dialog"][aria-label^="Edit footnote"] input');
+  if (!input) return false;
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+  setter.call(input, 'A note from the visual editor.');
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  const apply = [...document.querySelectorAll('[role="dialog"] button')].find(b => b.textContent.trim() === 'Apply');
+  apply?.click();
+  return true;
+})()`);
+await sleep(700);
+await toLatex();
+check(
+	'the footnote lands in the LaTeX source',
+	/\\footnote\{A note from the visual editor\.\}/.test((await source()) ?? ''),
+	JSON.stringify((await source())?.match(/\\footnote\{[^}]*\}/)?.[0])
+);
+
 // --- Selection formatting -----------------------------------------------------
 check('reload for the selection checks', await loadSource(article, 'Consistency of Estimators'));
 await toVisual();
@@ -189,7 +271,11 @@ const selectedWord = await ev(`(() => {
   return r.toString();
 })()`);
 await sleep(400);
-check('a selection raises the format bar', await ev(`!!document.querySelector('[aria-label="Format selection"]')`), String(selectedWord));
+check(
+	'a selection raises the format bar',
+	await ev(`!!document.querySelector('[aria-label="Format selection"]')`),
+	String(selectedWord)
+);
 
 await ev(
 	`(() => { const b = document.querySelector('[aria-label="Format selection"] [aria-label="Bold"]'); b?.click(); return !!b; })()`
@@ -200,6 +286,44 @@ check(
 	'the format bar writes \\textbf into the source',
 	/\\textbf\{/.test((await source()) ?? ''),
 	'no bold reached the source'
+);
+
+// The overflow is where the other eight marks live; small caps must not come
+// back as \emph, which is what the old single mark kind did to it.
+await toVisual();
+await sleep(500);
+await ev(`(() => {
+  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
+  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
+  el.focus();
+  const r = document.createRange();
+  r.setStart(node, 0); r.setEnd(node, 4);
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  document.dispatchEvent(new Event('selectionchange'));
+  return true;
+})()`);
+await sleep(400);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="More formatting"]'); b?.click(); return !!b; })()`
+);
+await sleep(300);
+check(
+	'the format bar has an overflow with the rest of the marks',
+	(await ev(
+		`document.querySelectorAll('[aria-label="More formatting"][role="menu"] [role="menuitem"]').length`
+	)) >= 7
+);
+await ev(`(() => {
+  const item = [...document.querySelectorAll('[role="menuitem"]')].find(i => i.textContent.includes('Small caps'));
+  item?.click();
+  return !!item;
+})()`);
+await sleep(600);
+await toLatex();
+check(
+	'small caps writes \\textsc, not \\emph',
+	/\\textsc\{/.test((await source()) ?? ''),
+	JSON.stringify((await source())?.match(/\\text(sc|it)\{[^}]*\}/)?.[0])
 );
 
 // --- Atoms are editable, not read-only holes ----------------------------------
@@ -213,7 +337,10 @@ const atomOpened = await ev(`(() => {
   return true;
 })()`);
 await sleep(500);
-check('clicking a citation opens its editor', atomOpened && (await ev(`!!document.querySelector('[role="dialog"][aria-label^="Edit"]')`)));
+check(
+	'clicking a citation opens its editor',
+	atomOpened && (await ev(`!!document.querySelector('[role="dialog"][aria-label^="Edit"]')`))
+);
 
 await ev(`(() => {
   const input = document.querySelector('[role="dialog"][aria-label^="Edit"] input');

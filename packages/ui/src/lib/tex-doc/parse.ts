@@ -1,6 +1,13 @@
 import { parseMinimal } from '@unified-latex/unified-latex-util-parse';
 
-import { SECTION_COMMANDS, type Block, type Inline, type Span, type TexDoc } from './types';
+import {
+	SECTION_COMMANDS,
+	type Block,
+	type Inline,
+	type MarkKind,
+	type Span,
+	type TexDoc
+} from './types';
 
 /**
  * LaTeX source → editable blocks.
@@ -43,13 +50,20 @@ const CODE_ENVS = new Set(['verbatim', 'verbatim*', 'lstlisting', 'minted', 'Ver
 const FLOAT_ENVS = new Set(['figure', 'figure*', 'table', 'table*', 'wrapfigure']);
 const QUOTE_ENVS = new Set(['quote', 'quotation', 'verse']);
 
-const INLINE_MARKS: Record<string, 'bold' | 'italic' | 'emph' | 'code'> = {
+const INLINE_MARKS: Record<string, MarkKind> = {
 	textbf: 'bold',
+	bfseries: 'bold',
 	textit: 'italic',
 	emph: 'emph',
 	texttt: 'code',
-	textsc: 'emph',
-	underline: 'emph'
+	textsc: 'smallcaps',
+	underline: 'underline',
+	uline: 'underline',
+	sout: 'strike',
+	st: 'strike',
+	textsf: 'sans',
+	textsuperscript: 'superscript',
+	textsubscript: 'subscript'
 };
 
 const CITE = /^(no)?cite[a-zA-Z]*$/;
@@ -170,6 +184,29 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 			}
 			if (name === 'label' && arg) {
 				out.push({ kind: 'label', name: plainText(children(arg)) });
+				i++;
+				continue;
+			}
+			// Sliced from the source, not projected: a URL is full of characters
+			// (`~`, `_`, `%`) that the text projection would drop or rewrite.
+			if (name === 'url' && arg) {
+				const url = literal(children(arg), source);
+				out.push({ kind: 'link', command: 'url', url, text: url });
+				i++;
+				continue;
+			}
+			if (name === 'href' && arg && nodes[i + 2]?.type === 'group') {
+				out.push({
+					kind: 'link',
+					command: 'href',
+					url: literal(children(arg), source),
+					text: literal(children(nodes[i + 2]), source)
+				});
+				i += 2;
+				continue;
+			}
+			if (name === 'footnote' && arg) {
+				out.push({ kind: 'footnote', source: literal(children(arg), source) });
 				i++;
 				continue;
 			}

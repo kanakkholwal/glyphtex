@@ -1,9 +1,12 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
 	applyPatch,
 	BLOCK_TEMPLATES,
 	CARET,
+	INLINE_TEMPLATES,
 	floatWidth,
 	parseTexDoc,
 	setFloatCaption,
@@ -27,18 +30,26 @@ describe('block templates', () => {
 	// The `/` menu and the LaTeX format toolbar insert from this one list, so a
 	// template that does not parse would break both surfaces at once.
 	const EXPECTED = {
+		part: 'heading',
+		chapter: 'heading',
 		section: 'heading',
 		subsection: 'heading',
 		subsubsection: 'heading',
+		'paragraph-heading': 'heading',
+		subparagraph: 'heading',
 		itemize: 'list',
 		enumerate: 'list',
 		description: 'list',
 		equation: 'math',
+		displaymath: 'math',
 		align: 'math',
+		matrix: 'math',
+		cases: 'math',
 		figure: 'float',
 		table: 'float',
 		quote: 'quote',
-		verbatim: 'code'
+		verbatim: 'code',
+		sample: 'paragraph'
 	};
 
 	for (const template of BLOCK_TEMPLATES.filter((t) => t.id !== 'paragraph')) {
@@ -50,6 +61,50 @@ describe('block templates', () => {
 			assert.equal(blocks[0].kind, EXPECTED[template.id]);
 		});
 	}
+
+	// Parity guard. Anything the LaTeX toolbar can insert has to be reachable in
+	// visual mode too, and both surfaces read from these two lists.
+	test('every template the LaTeX toolbar inserts exists in the shared list', () => {
+		const toolbar = fs.readFileSync(
+			path.join(
+				import.meta.dirname,
+				'..',
+				'src',
+				'components',
+				'application',
+				'format-toolbar.svelte'
+			),
+			'utf8'
+		);
+		const used = [...toolbar.matchAll(/\bt\('([^']+)'\)/g)].map((m) => m[1]);
+		assert.ok(used.length >= 10, `only found ${used.length} shared templates in the toolbar`);
+		for (const id of used) {
+			assert.ok(
+				BLOCK_TEMPLATES.some((t) => t.id === id),
+				`the toolbar inserts "${id}", which the / menu does not offer`
+			);
+		}
+	});
+
+	test('every template has an icon in the insert menu', () => {
+		const menu = fs.readFileSync(
+			path.join(
+				import.meta.dirname,
+				'..',
+				'src',
+				'components',
+				'application',
+				'workbench',
+				'visual',
+				'slash-menu.svelte'
+			),
+			'utf8'
+		);
+		const icons = menu.slice(menu.indexOf('const ICONS'), menu.indexOf('const GROUP_LABEL'));
+		for (const { id } of [...BLOCK_TEMPLATES, ...INLINE_TEMPLATES]) {
+			assert.ok(icons.includes(`${/^[a-z]+$/.test(id) ? id : `'${id}'`}:`), `no icon for ${id}`);
+		}
+	});
 
 	test('the figure template is the one with a real placeholder graphic', () => {
 		// Matches the LaTeX toolbar's Insert → Figure byte for byte: `example-image`

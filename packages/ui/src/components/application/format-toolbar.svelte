@@ -106,7 +106,8 @@
 				{ label: 'Section', hint: '\\section{}', run: w('\\section{', '}') },
 				{ label: 'Subsection', hint: '\\subsection{}', run: w('\\subsection{', '}') },
 				{ label: 'Subsubsection', hint: '\\subsubsection{}', run: w('\\subsubsection{', '}') },
-				{ label: 'Paragraph', hint: '\\paragraph{}', run: w('\\paragraph{', '}') }
+				{ label: 'Paragraph', hint: '\\paragraph{}', run: w('\\paragraph{', '}') },
+				{ label: 'Subparagraph', hint: '\\subparagraph{}', run: w('\\subparagraph{', '}') }
 			]
 		},
 		{
@@ -161,18 +162,8 @@
 				{ label: 'Integral', hint: '\\int', run: i('\\int_{a}^{b} ') },
 				{ label: 'Limit', hint: '\\lim', run: i('\\lim_{x \\to 0} ') },
 				'sep',
-				{
-					label: 'Matrix',
-					hint: 'pmatrix',
-					run: i('\\begin{pmatrix}\n  a & b \\\\\n  c & d\n\\end{pmatrix}\n')
-				},
-				{
-					label: 'Cases',
-					hint: 'cases',
-					run: i(
-						'\\[\n  f(x) =\n  \\begin{cases}\n    x & \\text{if } x \\geq 0 \\\\\n    -x & \\text{otherwise}\n  \\end{cases}\n\\]\n'
-					)
-				}
+				{ label: 'Matrix', hint: 'pmatrix', run: t('matrix') },
+				{ label: 'Cases', hint: 'cases', run: t('cases') }
 			]
 		},
 		{
@@ -189,11 +180,7 @@
 				{
 					label: 'Sample paragraph',
 					hint: 'text',
-					run: i(
-						'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor ' +
-							'incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud ' +
-							'exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n'
-					)
+					run: t('sample')
 				},
 				{
 					label: 'Figure',

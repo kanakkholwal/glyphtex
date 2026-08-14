@@ -90,8 +90,9 @@
 		onmergeback?: (rest: Inline[]) => void;
 		/** An input rule fired: become this block template, keeping `rest`. */
 		onconvert?: (template: string, rest: Inline[]) => void;
-		/** `/` typed in an empty block: the parent opens the insert menu. */
-		onslash?: (anchor: DOMRect) => void;
+		/** `/` typed at a word boundary: the parent opens the insert menu. `empty`
+		 *  decides whether a picked block replaces this one or is inserted after it. */
+		onslash?: (anchor: DOMRect, empty: boolean) => void;
 		onmove?: (direction: -1 | 1) => void;
 		onfocus?: () => void;
 		/** An atom was clicked: math, a citation, a ref, an unmodelled macro. */
@@ -151,6 +152,15 @@
 
 	function atStart(): boolean {
 		return textBeforeCaret() === '';
+	}
+
+	/** Where the caret is on screen, for anchoring a menu. A collapsed range has a
+	 *  zero-size rect in some browsers, so fall back to the block. */
+	function caretRect(): DOMRect {
+		const selection = window.getSelection();
+		const rect =
+			selection && selection.rangeCount ? selection.getRangeAt(0).getBoundingClientRect() : null;
+		return rect && (rect.width || rect.height) ? rect : el!.getBoundingClientRect();
 	}
 
 	function atEnd(): boolean {
@@ -248,10 +258,16 @@
 			return;
 		}
 
-		if (event.key === '/' && isEmpty && onslash) {
-			event.preventDefault();
-			onslash(el!.getBoundingClientRect());
-			return;
+		// A bare `/` only at a word boundary: firing on every one would eat the slash
+		// in "and/or" or in a path. Ctrl+/ is the way in from anywhere else, since
+		// a footnote often belongs tight against the word before it.
+		if (event.key === '/' && onslash) {
+			const boundary = isEmpty || /(^|[\s.,;:!?)\]}])$/.test(textBeforeCaret() ?? 'x');
+			if (meta || boundary) {
+				event.preventDefault();
+				onslash(caretRect(), isEmpty);
+				return;
+			}
 		}
 
 		if ((event.key === 'ArrowUp' && atStart()) || (event.key === 'ArrowDown' && atEnd())) {

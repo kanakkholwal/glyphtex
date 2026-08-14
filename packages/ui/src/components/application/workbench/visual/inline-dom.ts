@@ -17,14 +17,26 @@ const MARK_TAG: Record<MarkKind, string> = {
 	bold: 'strong',
 	italic: 'em',
 	emph: 'em',
-	code: 'code'
+	code: 'code',
+	smallcaps: 'span',
+	underline: 'u',
+	strike: 's',
+	sans: 'span',
+	superscript: 'sup',
+	subscript: 'sub'
 };
 
 const MARK_CLASS: Record<MarkKind, string> = {
 	bold: 'font-semibold',
 	italic: 'italic',
 	emph: 'italic',
-	code: 'bg-muted rounded px-1 py-0.5 text-[0.85em]'
+	code: 'bg-muted rounded px-1 py-0.5 text-[0.85em]',
+	smallcaps: 'uppercase text-[0.85em] tracking-[0.03em]',
+	underline: 'underline underline-offset-2',
+	strike: 'line-through',
+	sans: 'font-sans',
+	superscript: '',
+	subscript: ''
 };
 
 const ATOM_CLASS: Record<string, string> = {
@@ -32,6 +44,8 @@ const ATOM_CLASS: Record<string, string> = {
 	cite: 'text-brand',
 	ref: 'text-brand',
 	label: 'text-faint text-[0.75em]',
+	link: 'text-brand underline underline-offset-2',
+	footnote: 'text-brand align-super text-[0.7em]',
 	raw: 'text-muted-foreground bg-accent rounded px-1 py-0.5 text-[0.8em] font-mono'
 };
 
@@ -43,10 +57,17 @@ function esc(text: string): string {
 		.replace(/"/g, '&quot;');
 }
 
-function atom(kind: string, src: string, command: string, shown: string, title: string): string {
+function atom(
+	kind: string,
+	src: string,
+	command: string,
+	shown: string,
+	title: string,
+	extra = ''
+): string {
 	return (
 		`<span class="glyphtex-atom ${ATOM_CLASS[kind] ?? ''}" contenteditable="false"` +
-		` data-atom="${kind}" data-src="${esc(src)}" data-cmd="${esc(command)}"` +
+		` data-atom="${kind}" data-src="${esc(src)}" data-cmd="${esc(command)}"${extra}` +
 		` title="${esc(title)}">${esc(shown)}</span>`
 	);
 }
@@ -60,7 +81,9 @@ export function inlinesToHtml(runs: Inline[]): string {
 				break;
 			case 'mark': {
 				const tag = MARK_TAG[run.mark];
-				out += `<${tag} class="${MARK_CLASS[run.mark]}" data-cmd="${esc(run.command)}">${inlinesToHtml(run.content)}</${tag}>`;
+				out +=
+					`<${tag} class="${MARK_CLASS[run.mark]}" data-mark="${run.mark}"` +
+					` data-cmd="${esc(run.command)}">${inlinesToHtml(run.content)}</${tag}>`;
 				break;
 			}
 			case 'math':
@@ -81,6 +104,21 @@ export function inlinesToHtml(runs: Inline[]): string {
 			case 'label':
 				out += atom('label', run.name, 'label', `#${run.name}`, `Anchor: ${run.name}`);
 				break;
+			case 'link':
+				out += atom(
+					'link',
+					run.text,
+					run.command,
+					run.text || run.url,
+					run.url,
+					` data-url="${esc(run.url)}"`
+				);
+				break;
+			case 'footnote':
+				// A dagger, not a number: the number depends on the whole document, and
+				// showing a wrong one is worse than showing none.
+				out += atom('footnote', run.source, 'footnote', '†', `Footnote: ${run.source}`);
+				break;
 			case 'raw':
 				out += atom('raw', run.source, '', run.source, 'Not modelled: edit in the LaTeX view');
 				break;
@@ -90,15 +128,36 @@ export function inlinesToHtml(runs: Inline[]): string {
 	return out || '<br>';
 }
 
+const TAG_MARK: Record<string, MarkKind> = {
+	strong: 'bold',
+	b: 'bold',
+	code: 'code',
+	tt: 'code',
+	kbd: 'code',
+	em: 'italic',
+	i: 'italic',
+	u: 'underline',
+	ins: 'underline',
+	s: 'strike',
+	strike: 'strike',
+	del: 'strike',
+	sup: 'superscript',
+	sub: 'subscript'
+};
+
 function markOf(el: Element): MarkKind | null {
-	const tag = el.tagName.toLowerCase();
-	if (tag === 'strong' || tag === 'b') return 'bold';
-	if (tag === 'code' || tag === 'tt' || tag === 'kbd') return 'code';
-	if (tag === 'em' || tag === 'i' || tag === 'u') return 'italic';
+	// What we rendered wins over the tag: `\textsc` and `\textsf` share a `span`,
+	// and only the attribute tells them apart.
+	const declared = el.getAttribute('data-mark') as MarkKind | null;
+	if (declared && declared in MARK_TAG) return declared;
+	const byTag = TAG_MARK[el.tagName.toLowerCase()];
+	if (byTag) return byTag;
 	// execCommand can style instead of wrapping, depending on the browser.
-	const weight = (el as HTMLElement).style?.fontWeight;
-	if (weight === 'bold' || Number(weight) >= 600) return 'bold';
-	if ((el as HTMLElement).style?.fontStyle === 'italic') return 'italic';
+	const style = (el as HTMLElement).style;
+	if (style?.fontWeight === 'bold' || Number(style?.fontWeight) >= 600) return 'bold';
+	if (style?.fontStyle === 'italic') return 'italic';
+	if (style?.textDecorationLine === 'underline') return 'underline';
+	if (style?.textDecorationLine === 'line-through') return 'strike';
 	return null;
 }
 
@@ -106,7 +165,14 @@ const DEFAULT_COMMAND: Record<MarkKind, string> = {
 	bold: 'textbf',
 	italic: 'textit',
 	emph: 'emph',
-	code: 'texttt'
+	code: 'texttt',
+	smallcaps: 'textsc',
+	underline: 'underline',
+	// Needs the ulem package, same as the LaTeX toolbar's Strikethrough.
+	strike: 'sout',
+	sans: 'textsf',
+	superscript: 'textsuperscript',
+	subscript: 'textsubscript'
 };
 
 function atomRun(el: Element): Inline {
@@ -128,6 +194,14 @@ function atomRun(el: Element): Inline {
 			return { kind: 'ref', command: command || 'ref', target: src };
 		case 'label':
 			return { kind: 'label', name: src };
+		case 'link': {
+			const url = el.getAttribute('data-url') ?? src;
+			return command === 'url'
+				? { kind: 'link', command: 'url', url, text: url }
+				: { kind: 'link', command: 'href', url, text: src };
+		}
+		case 'footnote':
+			return { kind: 'footnote', source: src };
 		default:
 			return { kind: 'raw', source: src };
 	}

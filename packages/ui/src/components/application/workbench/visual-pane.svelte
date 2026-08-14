@@ -1,13 +1,6 @@
 <script lang="ts">
 	import { settings } from '@glyphtex/ui/settings';
-	import type {
-		Block,
-		BlockTemplate,
-		Inline,
-		ListBlock,
-		Patch,
-		TexDoc
-	} from '@glyphtex/ui/tex-doc';
+	import type { Block, Inline, ListBlock, MarkKind, Patch, TexDoc } from '@glyphtex/ui/tex-doc';
 	import { Button } from '@glyphtex/ui/button';
 	import {
 		IconAlertTriangle,
@@ -24,7 +17,7 @@
 	import FloatCard from './visual/float-card.svelte';
 	import { inlinesToHtml } from './visual/inline-dom';
 	import SelectionToolbar from './visual/selection-toolbar.svelte';
-	import SlashMenu from './visual/slash-menu.svelte';
+	import SlashMenu, { type InsertPick } from './visual/slash-menu.svelte';
 
 	/**
 	 * Visual (WYSIWYG) editing surface.
@@ -66,7 +59,16 @@
 		| { kind: 'insertAfter'; index: number }
 		| { kind: 'insertBefore'; index: number }
 		| { kind: 'draft' };
-	let slash = $state<{ rect: DOMRect; mode: SlashMode } | null>(null);
+	let slash = $state<{
+		rect: DOMRect;
+		mode: SlashMode;
+		inline: boolean;
+		allowInline: boolean;
+	} | null>(null);
+
+	/** Where an inline insert should land. Captured before the menu opens: focusing
+	 *  its filter input collapses the selection the caret was sitting in. */
+	let savedCaret: { host: HTMLElement; range: Range } | null = null;
 
 	/** The atom whose own editor is open, and the block that owns it. */
 	let atom = $state<{ el: HTMLElement; index: number; item?: number } | null>(null);
@@ -281,9 +283,21 @@
 		commitStructural(patch, { key: `${index - 1}`, caret: seam });
 	}
 
+	/** Blocks with no editable projection: the caret has nowhere to land in them. */
+	const OPAQUE_TEMPLATES = [
+		'equation',
+		'displaymath',
+		'align',
+		'matrix',
+		'cases',
+		'figure',
+		'table',
+		'verbatim'
+	];
+
 	function templateFocusKey(id: string, index: number): string | null {
-		if (id === 'itemize' || id === 'enumerate') return `${index}:0`;
-		if (['equation', 'align', 'figure', 'table', 'verbatim'].includes(id)) return null;
+		if (id === 'itemize' || id === 'enumerate' || id === 'description') return `${index}:0`;
+		if (OPAQUE_TEMPLATES.includes(id)) return null;
 		return `${index}`;
 	}
 
@@ -424,13 +438,72 @@
 		insertTemplate(id, draftAfter ?? -1);
 	}
 
-	function pickTemplate(template: BlockTemplate) {
-		const mode = slash?.mode;
+	function pickInsert(pick: InsertPick) {
+		const open = slash;
+		const mode = open?.mode;
 		slash = null;
 		if (!mode) return;
-		if (mode.kind === 'convert') onConvert(mode.index, template.id, []);
-		else if (mode.kind === 'insertBefore') insertTemplate(template.id, mode.index - 1);
-		else insertTemplate(template.id, mode.kind === 'draft' ? (draftAfter ?? -1) : mode.index);
+		if (pick.type === 'inline') {
+			insertInline(pick.id);
+			return;
+		}
+		// A block picked from a block that already has prose in it goes below it;
+		// converting would throw that prose away.
+		if (mode.kind === 'convert' && open?.inline) insertTemplate(pick.id, mode.index);
+		else if (mode.kind === 'convert') onConvert(mode.index, pick.id, []);
+		else if (mode.kind === 'insertBefore') insertTemplate(pick.id, mode.index - 1);
+		else insertTemplate(pick.id, mode.kind === 'draft' ? (draftAfter ?? -1) : mode.index);
+	}
+
+	/** Seed text for a freshly inserted atom, so it is never an invisible hole. */
+	const INLINE_SEED: Record<string, string> = {
+		math: 'x',
+		cite: 'key',
+		ref: 'sec:label',
+		label: 'sec:name',
+		footnote: 'Note text.',
+		link: 'link text'
+	};
+
+	/**
+	 * Insert an atom at the caret we saved before the menu stole focus, then open
+	 * its editor: an atom seeded with `key` is only useful if you can name it now.
+	 */
+	function insertInline(id: string) {
+		const saved = savedCaret;
+		savedCaret = null;
+		if (!saved) return;
+		const seed = INLINE_SEED[id] ?? '';
+		const runs: Inline[] =
+			id === 'math'
+				? [{ kind: 'math', source: seed }]
+				: id === 'cite'
+					? [{ kind: 'cite', command: 'cite', keys: [seed] }]
+					: id === 'ref'
+						? [{ kind: 'ref', command: 'ref', target: seed }]
+						: id === 'label'
+							? [{ kind: 'label', name: seed }]
+							: id === 'footnote'
+								? [{ kind: 'footnote', source: seed }]
+								: [{ kind: 'link', command: 'href', url: 'https://example.com', text: seed }];
+
+		saved.host.focus();
+		const selection = window.getSelection();
+		selection?.removeAllRanges();
+		selection?.addRange(saved.range);
+		// Tagged on the way in: after insertHTML the caret is the only clue to which
+		// atom is the new one, and a paragraph can hold several of the same kind.
+		document.execCommand(
+			'insertHTML',
+			false,
+			inlinesToHtml(runs).replace('data-atom=', 'data-fresh data-atom=')
+		);
+		saved.host.dispatchEvent(new Event('input', { bubbles: true }));
+
+		const inserted = saved.host.querySelector<HTMLElement>('[data-fresh]');
+		if (!inserted) return;
+		inserted.removeAttribute('data-fresh');
+		openAtom(-1, inserted);
 	}
 
 	// --- Block chrome -----------------------------------------------------------
@@ -448,7 +521,25 @@
 	}
 
 	function insertAfterBlock(index: number, origin: HTMLElement) {
-		slash = { rect: origin.getBoundingClientRect(), mode: { kind: 'insertAfter', index } };
+		savedCaret = null;
+		slash = {
+			rect: origin.getBoundingClientRect(),
+			mode: { kind: 'insertAfter', index },
+			inline: false,
+			allowInline: false
+		};
+	}
+
+	/** `/` in a block. An empty block is replaced by what you pick; a block with
+	 *  prose in it keeps its text and takes an atom, or gains a block below. */
+	function openSlash(rect: DOMRect, empty: boolean, mode: SlashMode) {
+		const selection = window.getSelection();
+		const host = document.activeElement as HTMLElement | null;
+		savedCaret =
+			host?.hasAttribute('data-block-editor') && selection?.rangeCount
+				? { host, range: selection.getRangeAt(0).cloneRange() }
+				: null;
+		slash = { rect, mode, inline: !empty, allowInline: !!savedCaret };
 	}
 
 	const PROSE_KINDS = ['heading', 'paragraph', 'quote'];
@@ -458,9 +549,13 @@
 		blockMenu = null;
 		if (!open || !doc) return;
 		const { rect, index } = open;
-		if (action === 'above') slash = { rect, mode: { kind: 'insertBefore', index } };
-		else if (action === 'below') slash = { rect, mode: { kind: 'insertAfter', index } };
-		else if (action === 'convert') slash = { rect, mode: { kind: 'convert', index } };
+		savedCaret = null;
+		if (action === 'above')
+			slash = { rect, mode: { kind: 'insertBefore', index }, inline: false, allowInline: false };
+		else if (action === 'below')
+			slash = { rect, mode: { kind: 'insertAfter', index }, inline: false, allowInline: false };
+		else if (action === 'convert')
+			slash = { rect, mode: { kind: 'convert', index }, inline: false, allowInline: false };
 		else if (action === 'source') openInSource(doc.blocks[index]);
 		else removeBlock(index);
 	}
@@ -490,9 +585,22 @@
 		selectionRect = host && rect.width > 0 ? rect : null;
 	}
 
-	const MARK_COMMANDS: Record<string, string> = {
-		code: 'texttt',
-		smallcaps: 'textsc'
+	/** Marks the browser can toggle itself, and the tag each one leaves behind. */
+	const NATIVE_MARKS: Record<string, string> = {
+		bold: 'bold',
+		italic: 'italic',
+		underline: 'underline',
+		strike: 'strikeThrough',
+		superscript: 'superscript',
+		subscript: 'subscript'
+	};
+
+	/** The rest: written as our own markup, since no execCommand produces them. */
+	const MARK_TAGS: Record<string, { tag: string; command: string }> = {
+		code: { tag: 'code', command: 'texttt' },
+		emph: { tag: 'em', command: 'emph' },
+		smallcaps: { tag: 'span', command: 'textsc' },
+		sans: { tag: 'span', command: 'textsf' }
 	};
 
 	function runSelectionCommand(id: string) {
@@ -500,28 +608,49 @@
 		const selected = document.getSelection()?.toString() ?? '';
 		if (!host?.hasAttribute('data-block-editor') || !selected) return;
 
-		if (id === 'bold' || id === 'italic') {
+		if (NATIVE_MARKS[id]) {
+			// Tags, not inline styles: a style attribute has no LaTeX command behind it.
 			document.execCommand('styleWithCSS', false, 'false');
-			document.execCommand(id);
-		} else if (id === 'math') {
-			// The selected text becomes the maths source, so `E=mc^2` in prose turns
-			// into an atom rather than being escaped character by character.
+			document.execCommand(NATIVE_MARKS[id]);
+		} else if (id === 'clear') {
+			document.execCommand('removeFormat');
+		} else if (id === 'math' || id === 'link') {
+			// The selection becomes the atom's own content, so `E=mc^2` in prose turns
+			// into maths rather than being escaped character by character.
+			const runs: Inline[] =
+				id === 'math'
+					? [{ kind: 'math', source: selected }]
+					: [{ kind: 'link', command: 'href', url: 'https://example.com', text: selected }];
 			document.execCommand(
 				'insertHTML',
 				false,
-				inlinesToHtml([{ kind: 'math', source: selected }])
+				inlinesToHtml(runs).replace('data-atom=', 'data-fresh data-atom=')
 			);
 		} else {
-			const command = MARK_COMMANDS[id];
-			const tag = id === 'code' ? 'code' : 'em';
+			const mark = MARK_TAGS[id];
+			if (!mark) return;
 			document.execCommand(
 				'insertHTML',
 				false,
-				`<${tag} data-cmd="${command}">${selected.replace(/[<>&]/g, '')}</${tag}>`
+				inlinesToHtml([
+					{
+						kind: 'mark',
+						mark: id as MarkKind,
+						command: mark.command,
+						content: [{ kind: 'text', text: selected }]
+					}
+				])
 			);
 		}
 		host.dispatchEvent(new Event('input', { bubbles: true }));
 		selectionRect = null;
+
+		// A new link is a URL nobody has typed yet, so go straight to its editor.
+		const fresh = host.querySelector<HTMLElement>('[data-fresh]');
+		if (fresh) {
+			fresh.removeAttribute('data-fresh');
+			if (id === 'link') openAtom(-1, fresh);
+		}
 	}
 
 	/** Several pasted paragraphs replace the block with one block each. */
@@ -539,20 +668,30 @@
 		selectionRect = null;
 	}
 
+	/** What an atom shows once its source changes. Kept beside the atom writer in
+	 *  inline-dom, which is where the same decision is made on first render. */
+	function atomText(kind: string | null, source: string, url: string): string {
+		if (kind === 'cite') return `[${source}]`;
+		if (kind === 'label') return `#${source}`;
+		if (kind === 'footnote') return '†';
+		if (kind === 'link') return source || url;
+		return source;
+	}
+
 	/** Rewrite the clicked atom in the DOM, then let the normal input path run. */
-	function commitAtom(source: string | null) {
+	function commitAtom(value: { src: string; url?: string } | null) {
 		const open = atom;
 		atom = null;
 		if (!open) return;
 		const host = open.el.closest('[data-block-editor]') as HTMLElement | null;
 		if (!host) return;
 
-		if (source === null) open.el.remove();
+		if (value === null) open.el.remove();
 		else {
-			open.el.setAttribute('data-src', source);
 			const kind = open.el.getAttribute('data-atom');
-			open.el.textContent =
-				kind === 'cite' ? `[${source}]` : kind === 'label' ? `#${source}` : source;
+			open.el.setAttribute('data-src', value.src);
+			if (value.url !== undefined) open.el.setAttribute('data-url', value.url);
+			open.el.textContent = atomText(kind, value.src, value.url ?? '');
 		}
 		host.dispatchEvent(new Event('input', { bubbles: true }));
 		host.focus();
@@ -610,7 +749,7 @@
 			onsplit={(left, right) => onSplit(index, left, right)}
 			onmergeback={(rest) => onMergeBack(index, rest)}
 			onconvert={(template, rest) => onConvert(index, template, rest)}
-			onslash={(rect) => (slash = { rect, mode: { kind: 'convert', index } })}
+			onslash={(rect, empty) => openSlash(rect, empty, { kind: 'convert', index })}
 			onmove={(direction) => moveFocus(key, direction)}
 			onatom={(el) => openAtom(index, el)}
 			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
@@ -628,7 +767,7 @@
 			onsplit={(left, right) => onSplit(index, left, right)}
 			onmergeback={(rest) => onMergeBack(index, rest)}
 			onconvert={(template, rest) => onConvert(index, template, rest)}
-			onslash={(rect) => (slash = { rect, mode: { kind: 'convert', index } })}
+			onslash={(rect, empty) => openSlash(rect, empty, { kind: 'convert', index })}
 			onmove={(direction) => moveFocus(key, direction)}
 			onatom={(el) => openAtom(index, el)}
 			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
@@ -734,7 +873,7 @@
 		oninput={onDraftInput}
 		onmergeback={onDraftKeyOut}
 		onconvert={(template) => convertDraft(template)}
-		onslash={(rect) => (slash = { rect, mode: { kind: 'draft' } })}
+		onslash={(rect, empty) => openSlash(rect, empty, { kind: 'draft' })}
 	/>
 {/snippet}
 
@@ -898,7 +1037,13 @@
 </section>
 
 {#if slash}
-	<SlashMenu anchor={slash.rect} onpick={pickTemplate} onclose={closeSlash} />
+	<SlashMenu
+		anchor={slash.rect}
+		allowInline={slash.allowInline}
+		inlineFirst={slash.inline}
+		onpick={pickInsert}
+		onclose={closeSlash}
+	/>
 {/if}
 
 {#if blockMenu && doc}
