@@ -92,7 +92,7 @@
 	<!-- Breadcrumb, Notion's shape: app / document / open file. The app node is
        also where the File-Edit-View menus live, so the row carries the desktop
        menu bar without a second control. -->
-	<AppMenu menus={ctrl.menus}>
+	<AppMenu menus={ctrl.menus} focusEditor={() => ctrl.layout.editor?.focusEditor()}>
 		{#snippet trigger({ props })}
 			<Button
 				{...props}

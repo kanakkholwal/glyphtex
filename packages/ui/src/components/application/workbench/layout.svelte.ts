@@ -1,8 +1,11 @@
 import type { ActivityView } from '../side-panel/types';
 import { classifyFile, editorLanguage } from '../file-kinds';
 import type { GitProvider } from '../git-panel.svelte';
+import { PersistedState } from '@glyphtex/ui/persisted-state';
 import { settings } from '@glyphtex/ui/settings';
 import { toast } from '@glyphtex/ui/sonner';
+
+import { GEOMETRY, LAYOUT_KEYS, PREFERENCE, TAB_CONTEXT } from './layout-storage';
 
 import type {
 	DiffTarget,
@@ -27,11 +30,47 @@ export class LayoutStore {
 	readonly #git?: GitProvider;
 	readonly #getProjectRoot: () => string | null;
 
-	activeView = $state<ActivityView>('files');
-	panelCollapsed = $state(false);
+	// Persisted chrome. Storage area per field is decided in `layout-storage.ts`.
+	#activeView = new PersistedState<ActivityView>(LAYOUT_KEYS.activeView, 'files', TAB_CONTEXT);
+	#panelCollapsed = new PersistedState<boolean>(LAYOUT_KEYS.panelCollapsed, false, TAB_CONTEXT);
+	#docMode = new PersistedState<DocMode>(LAYOUT_KEYS.docMode, 'latex', TAB_CONTEXT);
+	#viewMode = new PersistedState<ViewMode>(LAYOUT_KEYS.viewMode, 'split', TAB_CONTEXT);
+	#dockTab = new PersistedState<DockTab>(LAYOUT_KEYS.dockTab, 'problems', TAB_CONTEXT);
+	#rightPanel = new PersistedState<RightPanel>(LAYOUT_KEYS.rightPanel, 'none', TAB_CONTEXT);
+	#splitDir = new PersistedState<SplitDirection>(LAYOUT_KEYS.splitDir, 'horizontal', PREFERENCE);
+	#thumbsOpen = new PersistedState<boolean>(LAYOUT_KEYS.thumbsOpen, true, PREFERENCE);
+	#splitPct = new PersistedState<number>(LAYOUT_KEYS.splitPct, 52, GEOMETRY);
+	#sidebarW = new PersistedState<number>(LAYOUT_KEYS.sidebarW, 300, GEOMETRY);
+	#dockH = new PersistedState<number>(LAYOUT_KEYS.dockH, 224, GEOMETRY);
+
+	get activeView(): ActivityView {
+		return this.#activeView.current;
+	}
+	set activeView(value: ActivityView) {
+		this.#activeView.current = value;
+	}
+
+	get panelCollapsed(): boolean {
+		return this.#panelCollapsed.current;
+	}
+	set panelCollapsed(value: boolean) {
+		this.#panelCollapsed.current = value;
+	}
+
 	/** Which editor you are in. `viewMode` only applies inside `latex`. */
-	docMode = $state<DocMode>('latex');
-	viewMode = $state<ViewMode>('split');
+	get docMode(): DocMode {
+		return this.#docMode.current;
+	}
+	set docMode(value: DocMode) {
+		this.#docMode.current = value;
+	}
+
+	get viewMode(): ViewMode {
+		return this.#viewMode.current;
+	}
+	set viewMode(value: ViewMode) {
+		this.#viewMode.current = value;
+	}
 
 	// Editor handle (bound from CodeEditor), shared with search + compile.
 	editor = $state<EditorApi>();
@@ -50,10 +89,17 @@ export class LayoutStore {
 	diffTarget = $state<DiffTarget | null>(null);
 
 	// --- Resizable split ------------------------------------------------------
+	// Live during a drag, flushed to storage in `stopResize`: writing per pointer
+	// move would hit synchronous localStorage on every frame.
 	/** Size of the editor pane, as a % of the split axis. */
 	splitPct = $state(52);
 	/** `horizontal` = side by side; `vertical` = editor above, preview below. */
-	splitDir = $state<SplitDirection>('horizontal');
+	get splitDir(): SplitDirection {
+		return this.#splitDir.current;
+	}
+	set splitDir(value: SplitDirection) {
+		this.#splitDir.current = value;
+	}
 	dragging = $state(false);
 	bodyEl = $state<HTMLElement>();
 
@@ -64,7 +110,12 @@ export class LayoutStore {
 	resizingSidebar = $state(false);
 
 	// --- Bottom dock (Problems / Logs / History) ------------------------------
-	dockTab = $state<DockTab>('problems');
+	get dockTab(): DockTab {
+		return this.#dockTab.current;
+	}
+	set dockTab(value: DockTab) {
+		this.#dockTab.current = value;
+	}
 	dockH = $state(224);
 	resizingDock = $state(false);
 	mainEl = $state<HTMLElement>();
@@ -72,7 +123,12 @@ export class LayoutStore {
 	// --- Right column (Notes / Settings) --------------------------------------
 	// One column for both. Settings used to be a left-rail view and Notes its own
 	// docked column; between them they cost two rail entries and two layouts.
-	rightPanel = $state<RightPanel>('none');
+	get rightPanel(): RightPanel {
+		return this.#rightPanel.current;
+	}
+	set rightPanel(value: RightPanel) {
+		this.#rightPanel.current = value;
+	}
 
 	get notesOpen(): boolean {
 		return this.rightPanel === 'notes';
@@ -86,11 +142,20 @@ export class LayoutStore {
 	}
 
 	/** PDF thumbnail rail, on the preview's outer edge. */
-	thumbsOpen = $state(true);
+	get thumbsOpen(): boolean {
+		return this.#thumbsOpen.current;
+	}
+	set thumbsOpen(value: boolean) {
+		this.#thumbsOpen.current = value;
+	}
 
 	constructor(deps: LayoutDeps) {
 		this.#git = deps.git;
 		this.#getProjectRoot = deps.getProjectRoot;
+
+		this.splitPct = this.#splitPct.current;
+		this.sidebarW = this.#sidebarW.current;
+		this.dockH = this.#dockH.current;
 	}
 
 	readonly maxSidebar = $derived(Math.max(200, Math.round(this.shellW * 0.3)));
@@ -147,6 +212,9 @@ export class LayoutStore {
 		this.splitPct = Math.min(72, Math.max(28, pct));
 	}
 	stopResize(): void {
+		if (this.dragging) this.#splitPct.current = this.splitPct;
+		if (this.resizingSidebar) this.#sidebarW.current = this.sidebarW;
+		if (this.resizingDock) this.#dockH.current = this.dockH;
 		this.dragging = false;
 		this.resizingSidebar = false;
 		this.resizingDock = false;

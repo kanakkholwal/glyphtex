@@ -288,35 +288,44 @@ export class WorkbenchController {
 						label: 'Undo',
 						shortcut: shortcutLabel('undo'),
 						disabled: !this.layout.canUndo,
+						refocusEditor: true,
 						run: () => this.layout.editor?.undo()
 					},
 					{
 						label: 'Redo',
 						shortcut: shortcutLabel('redo'),
 						disabled: !this.layout.canRedo,
+						refocusEditor: true,
 						run: () => this.layout.editor?.redo()
 					},
 					{ type: 'separator' },
 					{
 						label: 'Bold',
+						refocusEditor: true,
 						run: () => this.layout.editor?.wrapSelection('\\textbf{', '}')
 					},
 					{
 						label: 'Italic',
+						refocusEditor: true,
 						run: () => this.layout.editor?.wrapSelection('\\textit{', '}')
 					},
 					{ type: 'separator' },
 					{
 						label: 'Insert Section',
-						run: () => this.layout.editor?.insertText('\\section{}\n')
+						refocusEditor: true,
+						// wrapSelection, not insertText: this leaves the caret inside the
+						// braces, where the title goes, rather than past the newline.
+						run: () => this.layout.editor?.wrapSelection('\\section{', '}')
 					},
 					{
 						label: 'Insert List',
+						refocusEditor: true,
 						run: () =>
 							this.layout.editor?.insertText('\\begin{itemize}\n  \\item \n\\end{itemize}\n')
 					},
 					{
 						label: 'Insert Equation',
+						refocusEditor: true,
 						run: () => this.layout.editor?.insertText('\\begin{equation}\n  \n\\end{equation}\n')
 					},
 					{ type: 'separator' },

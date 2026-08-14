@@ -68,7 +68,7 @@
 >
 	<!-- The tabs are the heading. A vertical icon rail used to own this choice and
 	     cost 48px of every window for three buttons. -->
-	<ViewTabs active={view} onselect={onselectview} />
+	<ViewTabs active={view} {gitReady} onselect={onselectview} />
 	{#if view === 'files'}
 		<!-- One visible primary action; everything else lives under the overflow so
          the header doesn't become a five-icon toolbar. -->

@@ -86,7 +86,7 @@
      workbench down the moment a compile found it, so the editor and PDF jumped
      mid-session. Bottom-left, because toasts own bottom-right. -->
 <div
-	class="pointer-events-none fixed bottom-4 left-4 z-40 flex w-[21rem] max-w-[calc(100vw-2rem)] flex-col gap-2"
+	class="pointer-events-none fixed bottom-4 right-4 z-40 flex w-[21rem] max-w-[calc(100vw-2rem)] flex-col gap-2"
 	aria-live="polite"
 >
 	{#if updateAvailable}

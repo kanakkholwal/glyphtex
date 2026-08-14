@@ -34,7 +34,6 @@
 		IconLayoutColumns,
 		IconLayoutRows,
 		IconLink,
-		IconMap,
 		IconDeviceFloppy,
 		IconMoon,
 		IconNotes,
@@ -176,18 +175,12 @@
 			>
 				<IconTextWrap class="text-muted-foreground" /> Wrap long lines
 			</DropdownMenuCheckboxItem>
-			<DropdownMenuCheckboxItem
-				checked={settings.minimap}
-				onCheckedChange={(v) => (settings.minimap = v)}
-			>
-				<IconMap class="text-muted-foreground" /> Minimap
-			</DropdownMenuCheckboxItem>
 		{/if}
 
 		<DropdownMenuSeparator />
 
-		<!-- Save mode was a second dropdown in the editor's format row, alongside a
-		     Minimap and Word wrap pair this menu already owns. -->
+		<!-- Save mode was a second dropdown in the editor's format row, alongside the
+		     Word wrap toggle this menu already owns. -->
 		<DropdownMenuSub>
 			<DropdownMenuSubTrigger>
 				<IconDeviceFloppy class="text-muted-foreground" /> Save

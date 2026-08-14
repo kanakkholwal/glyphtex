@@ -214,17 +214,27 @@
     "svelte": "^5.56.7"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.10.4",
+    "@codemirror/lang-markdown": "^6.5.2",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/legacy-modes": "^6.5.3",
+    "@codemirror/lint": "^6.9.7",
+    "@codemirror/merge": "^6.12.2",
+    "@codemirror/search": "^6.7.1",
+    "@codemirror/state": "^6.7.1",
+    "@codemirror/view": "^6.43.8",
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/geist-mono": "^5.2.8",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/quicksand": "^5.3.0",
+    "@lezer/highlight": "^1.2.3",
     "@tabler/icons-svelte": "^3.44.0",
     "@unpic/svelte": "^1.0.1",
     "bits-ui": "^2.18.1",
     "clsx": "^2.1.1",
     "mode-watcher": "^1.1.0",
-    "monaco-editor": "^0.56.0",
     "pdfjs-dist": "^6.1.200",
     "svelte-sonner": "^1.1.0",
     "tailwind-merge": "^3.5.0",
@@ -244,8 +254,8 @@
   "scripts": {
     "build": "exit 0",
     "check": "exit 0",
-    "pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --external:monaco-editor --log-level=error",
+    "pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --log-level=error",
     "test": "node --test test/*.test.mjs",
-    "test:browser": "node ./test/browser/editor-smoke.mjs"
+    "test:browser": "node ./test/browser/editor-smoke.mjs && node ./test/browser/editor-behaviour.mjs"
   }
 }

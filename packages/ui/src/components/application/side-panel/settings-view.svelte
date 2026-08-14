@@ -127,7 +127,6 @@
 			settings.lineWrapping,
 			(v) => (settings.lineWrapping = v)
 		)}
-		{@render switchField('Minimap', settings.minimap, (v) => (settings.minimap = v))}
 	</PanelSection>
 
 	<PanelSection title="Building">

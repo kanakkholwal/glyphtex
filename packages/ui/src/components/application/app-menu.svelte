@@ -6,6 +6,9 @@
 		checked?: boolean;
 		disabled?: boolean;
 		run?: () => void;
+		/** Item edits the document: put the caret back in the editor on close,
+		 *  instead of letting the menu return focus to its trigger. */
+		refocusEditor?: boolean;
 	};
 	export type MenuSeparator = { type: 'separator' };
 	export type MenuEntry = MenuAction | MenuSeparator;
@@ -35,15 +38,32 @@
 		menus,
 		trigger,
 		align = 'start',
-		side = 'bottom'
+		side = 'bottom',
+		focusEditor
 	}: {
 		menus: Menu[];
 		trigger: Snippet<[{ props: Record<string, unknown> }]>;
 		align?: 'start' | 'center' | 'end';
 		side?: 'top' | 'right' | 'bottom' | 'left';
+		/** Used by entries flagged `refocusEditor`. */
+		focusEditor?: () => void;
 	} = $props();
 
 	const isSep = (e: MenuEntry): e is MenuSeparator => e.type === 'separator';
+
+	// bits-ui returns focus to the trigger after close, which would strand the
+	// caret on the menu button for items that just edited the document.
+	let reclaimFocus = $state(false);
+	function runEntry(entry: MenuAction) {
+		if (entry.refocusEditor) reclaimFocus = true;
+		entry.run?.();
+	}
+	function onCloseAutoFocus(event: Event) {
+		if (!reclaimFocus) return;
+		reclaimFocus = false;
+		event.preventDefault();
+		focusEditor?.();
+	}
 </script>
 
 <DropdownMenu>
@@ -52,7 +72,7 @@
 			{@render trigger({ props })}
 		{/snippet}
 	</DropdownMenuTrigger>
-	<DropdownMenuContent {align} {side} class="w-44">
+	<DropdownMenuContent {align} {side} class="w-44" {onCloseAutoFocus}>
 		{#each menus as menu (menu.label)}
 			<DropdownMenuSub>
 				<DropdownMenuSubTrigger>{menu.label}</DropdownMenuSubTrigger>
@@ -64,14 +84,14 @@
 							<DropdownMenuCheckboxItem
 								checked={entry.checked}
 								disabled={entry.disabled}
-								onCheckedChange={() => entry.run?.()}
+								onCheckedChange={() => runEntry(entry)}
 							>
 								{entry.label}
 								{#if entry.shortcut}<DropdownMenuShortcut>{entry.shortcut}</DropdownMenuShortcut
 									>{/if}
 							</DropdownMenuCheckboxItem>
 						{:else}
-							<DropdownMenuItem disabled={entry.disabled} onSelect={() => entry.run?.()}>
+							<DropdownMenuItem disabled={entry.disabled} onSelect={() => runEntry(entry)}>
 								{entry.label}
 								{#if entry.shortcut}<DropdownMenuShortcut>{entry.shortcut}</DropdownMenuShortcut
 									>{/if}

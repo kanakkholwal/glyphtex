@@ -1,48 +1,12 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { registerLatexCompletions } from './.build/editor.mjs';
-
-// Stub monaco namespace: only what the provider actually touches.
-let completionProvider = null;
-let hoverProvider = null;
-
-const monaco = {
-	languages: {
-		CompletionItemKind: { Function: 1, Constant: 2, Struct: 3, Reference: 4, Value: 5, Module: 6, Class: 7 },
-		CompletionItemInsertTextRule: { InsertAsSnippet: 4 },
-		registerCompletionItemProvider: (_id, p) => { completionProvider = p; return { dispose() {} }; },
-		registerHoverProvider: (_id, p) => { hoverProvider = p; return { dispose() {} }; },
-	},
-};
-
-function makeModel(text) {
-	const lines = text.split('\n');
-	const offsetOf = (lineNumber, column) => {
-		let o = 0;
-		for (let i = 0; i < lineNumber - 1; i++) o += lines[i].length + 1;
-		return o + column - 1;
-	};
-	return {
-		getValue: () => text,
-		getVersionId: () => 1,
-		getLineCount: () => lines.length,
-		getLineContent: (n) => lines[n - 1],
-		getLineMaxColumn: (n) => lines[n - 1].length + 1,
-		getOffsetAt: ({ lineNumber, column }) => offsetOf(lineNumber, column),
-		getPositionAt: (offset) => {
-			let remaining = offset;
-			for (let i = 0; i < lines.length; i++) {
-				if (remaining <= lines[i].length) return { lineNumber: i + 1, column: remaining + 1 };
-				remaining -= lines[i].length + 1;
-			}
-			return { lineNumber: lines.length, column: lines[lines.length - 1].length + 1 };
-		},
-		getValueInRange: ({ startLineNumber, startColumn, endLineNumber, endColumn }) =>
-			text.slice(offsetOf(startLineNumber, startColumn), offsetOf(endLineNumber, endColumn)),
-	};
-}
-
-registerLatexCompletions(monaco);
+import {
+	enclosingHeadings,
+	latexCompletions,
+	latexHoverAt,
+	sectionHeadings,
+	toSnippetTemplate
+} from './.build/editor.mjs';
 
 const DOC = `\\documentclass{article}
 \\usepackage{amsmath}
@@ -59,14 +23,10 @@ E = mc^2
 
 function completeAfter(fragment) {
 	const text = DOC + fragment;
-	const model = makeModel(text);
-	const lines = text.split('\n');
-	const position = { lineNumber: lines.length, column: lines[lines.length - 1].length + 1 };
-	const result = completionProvider.provideCompletionItems(model, position);
-	return result.suggestions;
+	return latexCompletions(text, text.length) ?? { from: text.length, options: [] };
 }
 
-const labelsOf = (items) => items.map((i) => i.label);
+const labelsOf = (result) => result.options.map((o) => o.label);
 
 describe('LaTeX completion', () => {
 	test('\\ref{ offers labels defined in the document', () => {
@@ -77,39 +37,34 @@ describe('LaTeX completion', () => {
 	});
 
 	test('\\cite{ offers keys already cited', () => {
-		const labels = labelsOf(completeAfter('Also \\cite{'));
-		assert.deepEqual(labels, ['knuth1984']);
+		assert.deepEqual(labelsOf(completeAfter('Also \\cite{')), ['knuth1984']);
 	});
 
 	test('\\begin{ offers environments and closes them', () => {
-		const items = completeAfter('\\begin{');
-		const itemize = items.find((i) => i.label === 'itemize');
+		const itemize = completeAfter('\\begin{').options.find((i) => i.label === 'itemize');
 		assert.ok(itemize, 'itemize should be offered');
-		assert.match(itemize.insertText, /^itemize\}/, 'should close the opening brace');
-		assert.match(itemize.insertText, /\\end\{itemize\}$/, 'should insert the matching \\end');
-		assert.equal(itemize.insertTextRules, 4, 'should insert as a snippet');
+		assert.match(itemize.insert, /^itemize\}/, 'should close the opening brace');
+		assert.match(itemize.insert, /\\end\{itemize\}$/, 'should insert the matching \\end');
+		assert.equal(itemize.isSnippet, true, 'should insert as a snippet');
 	});
 
 	test('\\end{ offers only the bare name', () => {
-		const items = completeAfter('\\end{');
-		const itemize = items.find((i) => i.label === 'itemize');
-		assert.equal(itemize.insertText, 'itemize');
-		assert.equal(itemize.insertTextRules, undefined);
+		const itemize = completeAfter('\\end{').options.find((i) => i.label === 'itemize');
+		assert.equal(itemize.insert, 'itemize');
+		assert.equal(itemize.isSnippet, false);
 	});
 
 	test('a partial command offers commands, replacing from the backslash', () => {
-		const items = completeAfter('\\fra');
-		const frac = items.find((i) => i.label === '\\frac');
+		const result = completeAfter('\\fra');
+		const frac = result.options.find((i) => i.label === '\\frac');
 		assert.ok(frac, 'frac should be offered');
-		assert.equal(frac.insertText, '\\frac{$1}{$2}$0');
-		// Range must cover "\fra" (4 chars) or the insert reads "\fra\frac".
-		assert.equal(frac.range.endColumn - frac.range.startColumn, 4);
-		assert.equal(frac.filterText, '\\frac');
+		assert.equal(frac.insert, '\\frac{$1}{$2}$0');
+		// The replaced range must cover "\fra" or the insert reads "\fra\frac".
+		assert.equal(DOC.length + '\\fra'.length - result.from, 4);
 	});
 
 	test('user-defined \\newcommand is offered', () => {
-		const labels = labelsOf(completeAfter('\\myv'));
-		assert.ok(labels.includes('\\myvec'), 'should pick up \\newcommand{\\myvec}');
+		assert.ok(labelsOf(completeAfter('\\myv')).includes('\\myvec'));
 	});
 
 	test('\\usepackage{ offers packages, \\documentclass{ offers classes', () => {
@@ -119,37 +74,90 @@ describe('LaTeX completion', () => {
 	});
 
 	test('math context ranks math commands above text ones', () => {
-		const inMath = completeAfter('$x = \\al');
-		const alpha = inMath.find((i) => i.label === '\\alpha');
-		assert.ok(alpha, 'alpha should be offered');
-		assert.match(alpha.sortText, /^0/, 'math command should rank first inside math');
+		const inMath = completeAfter('$x = \\al').options.find((i) => i.label === '\\alpha');
+		assert.ok(inMath, 'alpha should be offered');
+		assert.equal(inMath.boost, 1, 'math command should rank first inside math');
 
-		const inText = completeAfter('Plain text \\al');
-		const alphaText = inText.find((i) => i.label === '\\alpha');
-		assert.match(alphaText.sortText, /^1/, 'math command should rank lower outside math');
+		const inText = completeAfter('Plain text \\al').options.find((i) => i.label === '\\alpha');
+		assert.equal(inText.boost, -1, 'math command should rank lower outside math');
 	});
 
 	test('escaped dollar does not fool the math heuristic', () => {
-		const items = completeAfter('Costs \\$5 and \\al');
-		const alpha = items.find((i) => i.label === '\\alpha');
-		assert.match(alpha.sortText, /^1/, '\\$ is not a math delimiter');
+		const alpha = completeAfter('Costs \\$5 and \\al').options.find((i) => i.label === '\\alpha');
+		assert.equal(alpha.boost, -1, '\\$ is not a math delimiter');
 	});
 
 	test('plain prose offers nothing', () => {
-		assert.equal(completeAfter('just some words ').length, 0);
+		const text = `${DOC}just some words `;
+		assert.equal(latexCompletions(text, text.length), null);
+	});
+});
+
+describe('snippet templates', () => {
+	test('numbered fields become CodeMirror placeholders', () => {
+		assert.equal(toSnippetTemplate('\\frac{$1}{$2}$0'), '\\frac{${1}}{${2}}${3}');
+	});
+
+	test('$0 becomes the last field, not the first', () => {
+		// TextMate treats $0 as "finish here"; CodeMirror orders fields numerically,
+		// so a literal ${0} would jump the caret to the front of the snippet.
+		const out = toSnippetTemplate('begin{$1}\n\t$0\n\\end{$1}');
+		assert.equal(out, 'begin{${1}}\n\t${2}\n\\end{${1}}');
+	});
+
+	test('defaults are left alone', () => {
+		assert.equal(toSnippetTemplate('documentclass[${1:11pt}]{${2:article}}$0'), 'documentclass[${1:11pt}]{${2:article}}${3}');
 	});
 });
 
 describe('LaTeX hover', () => {
 	test('describes the command under the cursor', () => {
-		const model = makeModel('We use \\frac{1}{2} here.');
-		const hover = hoverProvider.provideHover(model, { lineNumber: 1, column: 11 });
+		const hover = latexHoverAt('We use \\frac{1}{2} here.', 10);
 		assert.ok(hover, 'should return a hover');
-		assert.match(hover.contents[0].value, /\\frac/);
+		assert.equal(hover.name, 'frac');
 	});
 
 	test('returns nothing over plain words', () => {
-		const model = makeModel('We use \\frac{1}{2} here.');
-		assert.equal(hoverProvider.provideHover(model, { lineNumber: 1, column: 2 }), null);
+		assert.equal(latexHoverAt('We use \\frac{1}{2} here.', 1), null);
+	});
+});
+
+describe('section headings', () => {
+	const NESTED = [
+		'\\section{One}',
+		'text',
+		'\\subsection{One A}',
+		'more text',
+		'\\section{Two}',
+		'tail'
+	].join('\n');
+
+	test('reads titles and strips markup', () => {
+		const found = sectionHeadings('\\section{A \\textbf{bold} title}\\label{s}');
+		assert.deepEqual(
+			found.map((h) => h.title),
+			['A bold title']
+		);
+	});
+
+	test('pins the enclosing path, outermost first', () => {
+		const headings = sectionHeadings(NESTED);
+		assert.deepEqual(
+			enclosingHeadings(headings, 4).map((h) => h.title),
+			['One', 'One A']
+		);
+	});
+
+	test('pins nothing on the heading line itself', () => {
+		const headings = sectionHeadings(NESTED);
+		assert.deepEqual(enclosingHeadings(headings, 1), []);
+	});
+
+	test('a later section replaces the earlier one', () => {
+		const headings = sectionHeadings(NESTED);
+		assert.deepEqual(
+			enclosingHeadings(headings, 6).map((h) => h.title),
+			['Two']
+		);
 	});
 });

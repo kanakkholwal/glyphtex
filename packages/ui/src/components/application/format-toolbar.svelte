@@ -30,10 +30,13 @@
 	 */
 	let {
 		wrap,
-		insert
+		insert,
+		focusEditor
 	}: {
 		wrap?: (before: string, after?: string) => void;
 		insert?: (text: string) => void;
+		/** Called after a menu closes, to put the caret back where the edit landed. */
+		focusEditor?: () => void;
 	} = $props();
 
 	const w =
@@ -41,6 +44,21 @@
 		() =>
 			wrap?.(before, after);
 	const i = (text: string) => () => insert?.(text);
+
+	// A menu item's edit runs on select, but bits-ui then returns focus to the
+	// trigger, which is what leaves the caret on the button. Reclaim it on close,
+	// and only when something actually ran: Escape should still land on the trigger.
+	let ranFromMenu = $state(false);
+	const runItem = (item: Cmd) => () => {
+		ranFromMenu = true;
+		item.run();
+	};
+	function onMenuClose(event: Event) {
+		if (!ranFromMenu) return;
+		ranFromMenu = false;
+		event.preventDefault();
+		focusEditor?.();
+	}
 
 	type Cmd = { label: string; hint?: string; run: () => void };
 	type ButtonCmd = { icon: typeof IconBold; label: string; run: () => void };
@@ -225,6 +243,7 @@
 						title={a.label}
 						aria-label={a.label}
 						onclick={a.run}
+						onmousedown={(e: MouseEvent) => e.preventDefault()}
 					>
 						<Icon class="size-4" />
 					</Button>
@@ -248,12 +267,12 @@
 						</Button>
 					{/snippet}
 				</DropdownMenuTrigger>
-				<DropdownMenuContent align="start" class="w-56">
+				<DropdownMenuContent align="start" class="w-56" onCloseAutoFocus={onMenuClose}>
 					{#each cluster.items as item, ii (ii)}
 						{#if isSep(item)}
 							<DropdownMenuSeparator />
 						{:else}
-							<DropdownMenuItem onSelect={item.run}>
+							<DropdownMenuItem onSelect={runItem(item)}>
 								<span class="flex-1">{item.label}</span>
 								{#if item.hint}<DropdownMenuShortcut class="font-mono"
 										>{item.hint}</DropdownMenuShortcut

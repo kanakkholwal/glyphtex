@@ -244,7 +244,7 @@
 			{@const Icon = item.icon}
 			<Reveal as="li" variant="left" delay={i * 60} class="flex items-start gap-4">
 				<span
-					class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand"
+					class="mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg bg-surface-strong text-foreground"
 				>
 					<Icon class="size-4.5" stroke-width={1.75} />
 				</span>
@@ -314,7 +314,7 @@
 						     Restore this button (and the /download nav entry) at release. -->
 						<Button
 							href={workspace}
-							variant="brand"
+							variant="default"
 							size="lg"
 							onclick={() => track('cta_workspace_click', { location: 'hero' })}
 						>
@@ -322,7 +322,7 @@
 						</Button>
 						<Button
 							href={resolve('/engine')}
-							variant="brand_soft"
+							variant="outline"
 							size="lg"
 							onclick={() => track('cta_engine_click', { location: 'hero' })}
 						>
@@ -337,7 +337,7 @@
 						{#each heroAssurances as item (item.label)}
 							{@const Icon = item.icon}
 							<li class="inline-flex items-center gap-1.5">
-								<Icon class="text-brand size-4 shrink-0" stroke-width={2} />
+								<Icon class="text-muted-foreground size-4 shrink-0" stroke-width={2} />
 								{item.label}
 							</li>
 						{/each}
@@ -382,7 +382,7 @@
 						{#each openSourceClaims as claim (claim.label)}
 							{@const Icon = claim.icon}
 							<li class="inline-flex items-center gap-2 text-base text-muted-foreground">
-								<Icon class="text-brand size-4.5 shrink-0" stroke-width={1.75} />
+								<Icon class="text-muted-foreground size-4.5 shrink-0" stroke-width={1.75} />
 								{claim.label}
 							</li>
 						{/each}
@@ -464,7 +464,7 @@
 							{@render featureList(openSources)}
 
 							<div class="mt-10">
-								<Button href={workspace} variant="brand">{CTA_LABEL}</Button>
+								<Button href={workspace} variant="default">{CTA_LABEL}</Button>
 							</div>
 						</div>
 
@@ -573,7 +573,9 @@
 						{@const Icon = card.icon}
 						<Reveal as="li" variant="up" delay={i * 70} class="h-full">
 							<article class="landing-card landing-card-hover flex h-full flex-col p-8">
-								<span class="grid size-10 place-items-center rounded-xl bg-background text-brand">
+								<span
+									class="grid size-10 place-items-center rounded-xl bg-background text-foreground"
+								>
 									<Icon class="size-5" stroke-width={1.75} />
 								</span>
 								<h3 class="landing-card-title mt-6">{card.title}</h3>
@@ -617,7 +619,7 @@
 							<Reveal variant="up" delay={140} class="mt-10 flex flex-wrap items-center gap-3">
 								<Button
 									href={institutionMailto}
-									variant="brand"
+									variant="default"
 									onclick={() => track('cta_institution_click', { location: 'institutions' })}
 								>
 									<IconMail class="size-4" />
@@ -627,7 +629,7 @@
 									href="{repo}/blob/main/LICENSE"
 									target="_blank"
 									rel="noopener noreferrer"
-									variant="brand_soft"
+									variant="outline"
 								>
 									Read the licence
 								</Button>
@@ -639,7 +641,9 @@
 								{@const Icon = card.icon}
 								<Reveal as="li" variant="up" delay={i * 50} class="h-full">
 									<article class="landing-card-outline landing-card-hover h-full p-6">
-										<span class="bg-brand/10 text-brand grid size-9 place-items-center rounded-lg">
+										<span
+											class="bg-surface-strong text-foreground grid size-9 place-items-center rounded-lg"
+										>
 											<Icon class="size-4.5" stroke-width={1.75} />
 										</span>
 										<h3 class="mt-4 text-base font-semibold tracking-tight text-foreground">
@@ -755,7 +759,7 @@
 					<Reveal variant="up" delay={140} class="mt-9 flex flex-wrap justify-center gap-3">
 						<Button
 							href={workspace}
-							variant="brand"
+							variant="default"
 							size="lg"
 							onclick={() => track('cta_workspace_click', { location: 'final_cta' })}
 						>
@@ -765,7 +769,7 @@
 							href={repo}
 							target="_blank"
 							rel="noopener noreferrer"
-							variant="brand_soft"
+							variant="outline"
 							size="lg"
 						>
 							Read the source
