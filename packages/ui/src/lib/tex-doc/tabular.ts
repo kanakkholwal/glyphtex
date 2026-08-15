@@ -1,10 +1,8 @@
 import type { Patch } from './edit';
 import type { Block, Span } from './types';
 
-/**
- * A `tabular` read as a grid. Only plain ones: a `\multicolumn`, `\multirow`,
- * nested environment or `*{n}{…}` spec makes {@link readTable} return null.
- */
+// A `tabular` read as a grid. Only plain ones: a `\multicolumn`, `\multirow`,
+// nested environment or `*{n}{…}` spec makes {@link readTable} return null.
 
 export type TableCell = { text: string; span: Span };
 export type TableRow = { cells: TableCell[]; ruleBefore: boolean };
@@ -249,10 +247,8 @@ export function setTableColumnAlign(grid: TableGrid, at: number, align: ColumnAl
 	);
 }
 
-/**
- * One edit, because two patches over the same span would cancel out. Set as a
- * group: a half-ruled table is a hand-tuned choice this control is not for.
- */
+/** One edit: two patches over the same span would cancel out. Set as a group,
+ *  since a half-ruled table is a hand-tuned choice this control is not for. */
 export function setTableStyle(
 	grid: TableGrid,
 	style: { rules: boolean; borders: boolean }

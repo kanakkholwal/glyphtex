@@ -48,14 +48,8 @@
 
 	import { domToInlines, dropLeading, inlinesToHtml, inlinesToText } from './inline-dom';
 
-	/**
-	 * One editable run of inline content: a paragraph, a heading's title, a list
-	 * item. Everything structural (splitting, merging, converting) is reported to
-	 * the parent, which owns the source and turns it into a patch.
-	 *
-	 * The DOM is authoritative while focused: re-rendering under a live caret
-	 * would move it, so `runs` is only projected back in when focus is elsewhere.
-	 */
+	/** One editable run of inline content. The DOM is authoritative while focused:
+	 *  `runs` is only projected back in when the caret is elsewhere. */
 	let {
 		runs,
 		tag = 'div',
@@ -103,12 +97,8 @@
 
 	let el = $state<HTMLElement>();
 	let focused = $state(false);
-	/**
-	 * Set once this editor has reported a structural change. The parent re-parses
-	 * and replaces this block, which blurs us. A blur write would then push
-	 * our now-stale text into whatever took our place. It did exactly that: `## `
-	 * became `\subsection{\#\#}`.
-	 */
+	/** Blocks the blur write after a structural report, which would otherwise push
+	 *  stale text into the block that replaced us. */
 	let handedOff = false;
 
 	const html = $derived(inlinesToHtml(runs));

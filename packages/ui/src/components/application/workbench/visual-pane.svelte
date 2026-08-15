@@ -779,10 +779,8 @@
 		host.focus();
 	}
 
-	/**
-	 * Re-parses, because captions and widths are read out of the source. A list,
-	 * since wrapping a figure also has to write to the preamble.
-	 */
+	/** Re-parses, because captions and widths are read out of the source. A list,
+	 *  since wrapping a figure also has to write to the preamble. */
 	function applyBlockPatch(patches: (Patch | null)[]) {
 		const real = patches.filter((patch): patch is Patch => patch !== null);
 		if (!tex || !real.length) return;

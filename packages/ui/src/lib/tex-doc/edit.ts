@@ -1,10 +1,8 @@
 import { printBlock, printInlines } from './print';
 import type { Block, Inline, Span } from './types';
 
-/**
- * Source patches for block edits: a splice over one block's span, so everything
- * outside it survives byte for byte.
- */
+// Source patches for block edits: a splice over one block's span, so everything
+// outside it survives byte for byte.
 
 export type Patch = { from: number; to: number; insert: string };
 
@@ -57,10 +55,8 @@ export function setListItems(
 	return replaceBlock(source, block, { ...block, items });
 }
 
-/**
- * Split a paragraph in two at a run boundary. LaTeX separates paragraphs with a
- * blank line, so that is what goes between them.
- */
+/** LaTeX separates paragraphs with a blank line, so that is what goes between
+ *  the two halves. */
 export function splitParagraph(block: Block, left: Inline[], right: Inline[]): Patch {
 	return {
 		...block.span,
@@ -94,10 +90,8 @@ export function insertAtStart(bodySpan: Span, text: string): Patch {
 	return { from: bodySpan.from, to: bodySpan.from, insert: `${text}\n\n` };
 }
 
-/**
- * Remove a block along with the blank line that separated it, so deleting the
- * middle of a document does not leave a widening gap behind.
- */
+/** Takes the blank line with it, so deleting from the middle does not leave a
+ *  widening gap behind. */
 export function deleteBlock(source: string, block: Block): Patch {
 	let { from, to } = block.span;
 	const trailing = /^\n[ \t]*\n/.exec(source.slice(to));
@@ -110,9 +104,8 @@ export function deleteBlock(source: string, block: Block): Patch {
 }
 
 // --- Floats -------------------------------------------------------------------
-// A figure or table is edited in place: we rewrite the one command inside its
-// span and leave the rest of the environment exactly as written: placement,
-// spacing, subfigures, anything we do not model.
+// Rewrite the one command inside the span; everything else in the environment is
+// left exactly as written.
 
 /** Rewrite capture group 1 inside a block. The `d` flag is what makes this use
  *  the group's own offsets rather than searching for the matched text again. */
@@ -325,10 +318,8 @@ export function setEnvOption(
 	};
 }
 
-/**
- * `\[ … \]` has no number to turn on, so switching it on promotes it to an
- * `equation`; the rest are one star away.
- */
+/** `\[ … \]` has no number to turn on, so switching it on promotes it to an
+ *  `equation`; the rest are one star away. */
 export function setMathNumbered(source: string, block: Block, on: boolean): Patch | null {
 	if (block.kind !== 'math') return null;
 	const environment = block.environment;

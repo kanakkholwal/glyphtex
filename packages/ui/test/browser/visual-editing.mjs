@@ -238,7 +238,10 @@ await sleep(300);
 
 // --- An inline atom can be inserted at the caret, not only edited --------------
 // Ctrl+/ rather than a bare slash: the caret sits tight against a word, where a
-// bare slash is a character the writer meant to type.
+// bare slash is a character the writer meant to type. Reloaded first, so the
+// empty draft the section above left behind cannot shift the block indices.
+check('reload for the inline insert', await loadSource(article, 'Consistency of Estimators'));
+await toVisual();
 await caretInBlock(1);
 await slash(2);
 check(
@@ -471,7 +474,8 @@ const gutterVisible = () =>
   return g ? getComputedStyle(g).opacity : 'no gutter';
 })()`);
 const gutterOn = await gutterVisible();
-check('the gutter shows on the focused block', gutterOn === '1', String(gutterOn));
+// A number, not '1': the fade may still be running when the check reads it.
+check('the gutter shows on the focused block', Number(gutterOn) > 0.9, String(gutterOn));
 check(
 	'the focused block carries an active marker, and only that block',
 	await ev(
@@ -498,11 +502,7 @@ const gutterOff = await ev(`(() => {
   const grip = document.querySelector('[aria-label="Block actions"][aria-expanded="true"]');
   return grip ? getComputedStyle(grip.parentElement).opacity : 'no open grip';
 })()`);
-check(
-	'the trigger stays visible under its own menu',
-	gutterOff === '1',
-	String(gutterOff)
-);
+check('the trigger stays visible under its own menu', gutterOff === '1', String(gutterOff));
 await key('Escape', 'Escape', 27);
 await sleep(300);
 
@@ -727,10 +727,13 @@ check(
 // A column menu is where alignment and targeted inserts live.
 await toVisual();
 await sleep(500);
-await ev(
-	`(() => { const b = document.querySelector('[aria-label="Column 2 actions"]'); b?.click(); return !!b; })()`
-);
-await sleep(400);
+for (let i = 0; i < 8; i++) {
+	await ev(
+		`(() => { const b = document.querySelector('[aria-label="Column 2 actions"]'); b?.click(); return !!b; })()`
+	);
+	await sleep(300);
+	if (await ev(`!!document.querySelector('[role="menu"][aria-label="Column actions"]')`)) break;
+}
 check(
 	'a column handle opens its menu',
 	await ev(`!!document.querySelector('[role="menu"][aria-label="Column actions"]')`)

@@ -29,6 +29,7 @@
 		IconDeviceFloppy,
 		IconDots,
 		IconEye,
+		IconLayoutBottombar,
 		IconLayoutColumns,
 		IconLayoutRows,
 		IconMoon,
@@ -177,6 +178,14 @@
 			</DropdownMenuSubContent>
 		</DropdownMenuSub>
 
+		<!-- Its only other mouse target is the compile status button, which isn't
+		     rendered until an engine is installed. -->
+		<DropdownMenuCheckboxItem
+			checked={ctrl.compile.showProblems}
+			onCheckedChange={(v) => (ctrl.compile.showProblems = v)}
+		>
+			<IconLayoutBottombar class="text-muted-foreground" /> Bottom panel
+		</DropdownMenuCheckboxItem>
 		<DropdownMenuItem onSelect={() => layout.toggleRightPanel('notes')}>
 			<IconNotes class="text-muted-foreground" /> Notes
 		</DropdownMenuItem>
