@@ -1,3 +1,11 @@
+<script lang="ts" module>
+	type History = { undo: string[]; redo: string[]; coalesceKey: string; coalesceAt: number };
+
+	// Module level, not component: switching to the LaTeX view and back unmounts
+	// this pane, and a per-instance map would drop the stack every time.
+	const histories = new Map<string, History>();
+</script>
+
 <script lang="ts">
 	import { settings } from '@glyphtex/ui/settings';
 	import type { Block, Inline, ListBlock, MarkKind, Patch, TexDoc } from '@glyphtex/ui/tex-doc';
@@ -19,14 +27,8 @@
 	import SelectionToolbar from './visual/selection-toolbar.svelte';
 	import SlashMenu, { type InsertPick } from './visual/slash-menu.svelte';
 
-	/**
-	 * Visual (WYSIWYG) editing surface.
-	 *
-	 * The LaTeX source stays the single source of truth. Every edit here is a
-	 * patch over one block's span. Anything the model does not understand
-	 * (TikZ, custom environments, hand-tuned spacing) is never rewritten, and the
-	 * two modes stay byte-identical outside the block you touched.
-	 */
+	/** Visual editing surface. The LaTeX source stays the truth: every edit is a
+	 *  patch over one block, so the two modes stay byte-identical elsewhere. */
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 
 	const layout = $derived(ctrl.layout);
@@ -131,15 +133,8 @@
 	});
 
 	// --- Undo -------------------------------------------------------------------
-	// Visual edits bypass the LaTeX view's history (they are applied as external
-	// updates there), so this pane keeps its own.
-	//
-	// Per file, not per pane: the stack holds whole-source snapshots, so one shared
-	// stack means ⌘Z after a file switch writes the *other* file's source into this
-	// one. Keyed by file id, and thrown away when its tab closes.
-	type History = { undo: string[]; redo: string[]; coalesceKey: string; coalesceAt: number };
-	const histories = new Map<string, History>();
-
+	// Keyed by file: the stack holds whole-source snapshots, so a shared one would
+	// write another file's source into this one after a switch.
 	function history(): History {
 		const id = files.activeId;
 		let entry = histories.get(id);
@@ -174,6 +169,7 @@
 		entry.redo.length = 0;
 		entry.coalesceKey = coalesce ?? '';
 		entry.coalesceAt = now;
+		historyTick += 1;
 	}
 
 	function restore(direction: 'undo' | 'redo') {
@@ -182,11 +178,19 @@
 		const to = direction === 'undo' ? entry.redo : entry.undo;
 		const previous = from.pop();
 		if (previous === undefined || !tex) return;
+
+		// A focused editable keeps its own DOM and only takes the model back on
+		// blur, so leaving it focused put the undone text straight back.
+		const active = document.activeElement as HTMLElement | null;
+		if (active && paneEl?.contains(active)) active.blur();
+
 		to.push(files.source);
 		entry.coalesceKey = '';
 		selfWritten = previous;
 		files.source = previous;
 		doc = tex.parseTexDoc(previous);
+		paneEl?.focus();
+		historyTick += 1;
 	}
 
 	function onPaneKeyDown(event: KeyboardEvent) {
@@ -200,6 +204,22 @@
 			restore('redo');
 		}
 	}
+
+	// Published while this pane is mounted, so the Edit menu drives the surface that
+	// is actually on screen instead of a CodeMirror handle that isn't there.
+	// `historyTick` exists only to make the menu's enabled state reactive: the stacks
+	// are plain arrays, so pushing to one is invisible to the template.
+	let historyTick = $state(0);
+	$effect(() => {
+		layout.visualApi = {
+			undo: () => restore('undo'),
+			redo: () => restore('redo'),
+			canUndo: () => (void historyTick, history().undo.length > 0),
+			canRedo: () => (void historyTick, history().redo.length > 0),
+			mark: (id) => runSelectionCommand(id)
+		};
+		return () => (layout.visualApi = undefined);
+	});
 
 	// --- Writing back -----------------------------------------------------------
 	let paneEl = $state<HTMLElement>();
@@ -219,11 +239,8 @@
 		files.source = next;
 	}
 
-	/**
-	 * Typing inside a block. The source is patched but never re-parsed: the DOM
-	 * already shows the result, and re-rendering would move the caret. The spans
-	 * after the edit are shifted by hand instead.
-	 */
+	/** Patched but never re-parsed: the DOM already shows the result, so the spans
+	 *  after the edit are shifted by hand instead. */
 	function commitInline(index: number, patch: Patch) {
 		if (!tex || !doc) return false;
 		const next = tex.applyPatch(files.source, patch);
@@ -508,10 +525,8 @@
 		link: 'link text'
 	};
 
-	/**
-	 * Insert an atom at the caret we saved before the menu stole focus, then open
-	 * its editor: an atom seeded with `key` is only useful if you can name it now.
-	 */
+	/** Inserts at the caret saved before the menu took focus, then opens its
+	 *  editor: a seeded atom is only useful if you can name it now. */
 	function insertInline(id: string) {
 		const saved = savedCaret;
 		savedCaret = null;
@@ -589,8 +604,10 @@
 	const QUOTE_ENVIRONMENTS = ['quote', 'quotation', 'verse'];
 	/** Where a `\usepackage` a control needs would go. */
 	const preambleEnd = $derived(doc?.preamble.span.to ?? 0);
-	/** Any floating surface is up, so the per-block chrome should stand down. */
-	const overlayOpen = $derived(!!slash || !!atom || !!blockMenu);
+	/** The block whose menu is open, so its gutter stays put under the popover. */
+	const menuBlock = $derived(
+		blockMenu?.index ?? (slash && slash.mode.kind !== 'draft' ? slash.mode.index : null)
+	);
 
 	function runBlockAction(action: BlockAction) {
 		const open = blockMenu;
@@ -763,11 +780,8 @@
 	}
 
 	/**
-	 * A block control edited one of its own commands. Re-parse: captions, widths
-	 * and table cells are read out of the source, not held as block state.
-	 *
-	 * A list, because one control can need two edits: wrapping a figure also puts
-	 * `\usepackage{wrapfig}` in the preamble, which moves everything after it.
+	 * Re-parses, because captions and widths are read out of the source. A list,
+	 * since wrapping a figure also has to write to the preamble.
 	 */
 	function applyBlockPatch(patches: (Patch | null)[]) {
 		const real = patches.filter((patch): patch is Patch => patch !== null);
@@ -1005,6 +1019,7 @@
 			{tex}
 			source={files.source}
 			onpatch={applyBlockPatch}
+			oncellpatch={(patch) => patch && commitInline(index, patch)}
 			onatom={(element) => openAtom(index, element)}
 			onopensource={() => openInSource(block)}
 		/>
@@ -1122,9 +1137,7 @@
 						block.kind === 'list' ||
 						block.kind === 'float'}
 					<div class="group/block relative" data-block-wrapper>
-						<!-- Where you are, without moving anything: a hairline in the gutter
-						     rather than a background, which would fight the prose. Driven by
-						     focus-within like the gutter beside it, so the two can never
+						<!-- Focus-within like the gutter beside it, so the two can never
 						     disagree about which block is live. -->
 						<span
 							aria-hidden="true"
@@ -1134,16 +1147,14 @@
 						     clipped however narrow the pane gets. The block's top margin
 						     collapses through this wrapper, which is what lines the controls up
 						     with the first line of text. Out of the tab order: tabbing a long
-						     document should walk its prose, not two buttons per block.
-
-						     Hidden while a menu is open: the pointer is over the menu, not the
-						     document, and two sets of controls competing for the same click is
-						     what makes a surface feel busy. -->
+						     document should walk its prose. A menu takes the focus with it, so
+						     the block that owns one keeps its gutter pinned as the anchor. -->
 						<div
 							data-block-gutter
-							class="pointer-events-none absolute top-0 -left-14 z-10 flex w-14 items-start justify-end gap-px pr-1.5 opacity-0 transition-opacity {overlayOpen
-								? ''
-								: 'group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100 group-hover/block:pointer-events-auto group-hover/block:opacity-100'}"
+							class="pointer-events-none absolute top-0 -left-14 z-10 flex w-14 items-start justify-end gap-px pr-1.5 transition-opacity group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100 group-hover/block:pointer-events-auto group-hover/block:opacity-100 {menuBlock ===
+							i
+								? 'pointer-events-auto opacity-100'
+								: 'opacity-0'}"
 						>
 							<button
 								type="button"
@@ -1161,7 +1172,11 @@
 								aria-label="Block actions"
 								title="Block actions"
 								aria-haspopup="menu"
-								class="text-faint hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-['']"
+								aria-expanded={blockMenu?.index === i}
+								class="hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-[''] {blockMenu?.index ===
+								i
+									? 'bg-accent text-foreground'
+									: 'text-faint'}"
 								onclick={(e) =>
 									(blockMenu = { rect: e.currentTarget.getBoundingClientRect(), index: i })}
 							>

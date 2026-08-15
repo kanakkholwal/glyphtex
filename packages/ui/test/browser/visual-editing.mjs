@@ -75,7 +75,7 @@ check('fixture loads in the LaTeX view', await loadSource(article, 'Consistency 
 check('visual mode renders editable blocks', await toVisual());
 
 // Click into the nth editable block and put the caret at its end.
-const caretInBlock = (n, where = 'end') =>
+const placeCaret = (n, where = 'end') =>
 	ev(`(() => {
 	  const el = document.querySelectorAll('[data-block-editor]')[${n}];
 	  if (!el) return false;
@@ -86,6 +86,18 @@ const caretInBlock = (n, where = 'end') =>
 	  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
 	  return document.activeElement === el;
 	})()`);
+
+// Retries: the pane re-renders for a beat after a mode switch or a structural
+// edit, and a single focus() call is dropped when it does.
+const caretInBlock = async (n, where = 'end') => {
+	let ok = false;
+	for (let i = 0; i < 12; i++) {
+		ok = await placeCaret(n, where);
+		await sleep(150);
+		if (await ev(`!!document.querySelector('[data-block-wrapper]:focus-within')`)) return true;
+	}
+	return ok;
+};
 
 const blockText = (n) =>
 	ev(`document.querySelectorAll('[data-block-editor]')[${n}]?.innerText.trim()`);
@@ -452,13 +464,7 @@ check('unlinking removes the command but keeps the words', !/\\href\{/.test(unli
 // --- The gutter stands down while a menu owns the pointer ---------------------
 await toVisual();
 await sleep(500);
-// The pane re-renders for a beat after the mode switch, which drops the focus
-// this section is about. Land it, then check.
-for (let i = 0; i < 10; i++) {
-	await caretInBlock(1);
-	await sleep(200);
-	if (await ev(`!!document.querySelector('[data-block-wrapper]:focus-within')`)) break;
-}
+await caretInBlock(1);
 const gutterVisible = () =>
 	ev(`(() => {
   const g = document.querySelector('[data-block-wrapper]:focus-within [data-block-gutter]');
@@ -487,10 +493,14 @@ await ev(
 	})()`
 );
 await sleep(400);
-const gutterOff = await gutterVisible();
+// The trigger is the popover's anchor, so it has to stay put and read as active.
+const gutterOff = await ev(`(() => {
+  const grip = document.querySelector('[aria-label="Block actions"][aria-expanded="true"]');
+  return grip ? getComputedStyle(grip.parentElement).opacity : 'no open grip';
+})()`);
 check(
-	'the gutter hides once its menu is open',
-	gutterOff === '0' || gutterOff === 'no gutter',
+	'the trigger stays visible under its own menu',
+	gutterOff === '1',
 	String(gutterOff)
 );
 await key('Escape', 'Escape', 27);
@@ -644,7 +654,11 @@ const TABLE_DOC = [
 
 check('table document loads', await loadSource(TABLE_DOC, 'Header 1'));
 await toVisual();
-await sleep(600);
+// The grid only exists once the parse lands; a fixed sleep raced it.
+for (let i = 0; i < 15; i++) {
+	await sleep(200);
+	if (await ev(`document.querySelectorAll('td [data-block-editor]').length > 0`)) break;
+}
 
 const shape = () =>
 	ev(`(() => {
@@ -859,13 +873,7 @@ check('and loads the package it needs', /\\usepackage\{wrapfig\}/.test(wrapped ?
 
 // --- Undo ---------------------------------------------------------------------
 await toVisual();
-// The pane keeps re-rendering for a beat after the switch, which drops the caret;
-// typing into nothing would make this check pass for the wrong reason.
-for (let i = 0; i < 10; i++) {
-	await caretInBlock(0);
-	await sleep(200);
-	if (await ev(`!!document.querySelector('[data-block-wrapper]:focus-within')`)) break;
-}
+await caretInBlock(0);
 await typeText('ZZZ');
 await sleep(500);
 await key('z', 'KeyZ', 90, 2);

@@ -70,6 +70,8 @@ export interface EditorSettings {
 	autoCompile: boolean;
 	/** When edits are persisted to disk. See {@link AutoSaveMode}. */
 	autoSave: AutoSaveMode;
+	/** Idle time before "After delay" auto-save writes, in milliseconds. */
+	autoSaveDelayMs: number;
 	/**
 	 * Allow `\write18` (shell escape) during compilation: required by packages
 	 * that run external tools (e.g. `minted`/Pygments, `gnuplot`). Off by default:
@@ -95,6 +97,7 @@ export const EDITOR_DEFAULTS: EditorSettings = {
 	lineWrapping: false,
 	autoCompile: true,
 	autoSave: 'afterDelay',
+	autoSaveDelayMs: 1000,
 	shellEscape: false,
 	engineKind: 'tectonic',
 	texProgram: 'pdflatex',
@@ -106,8 +109,8 @@ export const EDITOR_DEFAULTS: EditorSettings = {
 /** Debounce (ms) before an edit triggers an automatic recompile. */
 export const COMPILE_DEBOUNCE_MS = 650;
 
-/** Idle time (ms) before "After delay" auto-save writes the buffer to disk. */
-export const AUTO_SAVE_DELAY_MS = 1000;
+/** Delays offered for "After delay" auto-save. */
+export const AUTO_SAVE_DELAYS = [500, 1000, 2000, 5000, 10000] as const;
 
 export const APPEARANCE_KEY = 'glyphtex:appearance';
 export const EDITOR_KEY = 'glyphtex:editor';
@@ -231,6 +234,12 @@ class SettingsStore {
 		this.patchEditor({ autoCompile: value });
 	}
 
+	get autoSaveDelayMs(): number {
+		return this.#editor.current.autoSaveDelayMs ?? 1000;
+	}
+	set autoSaveDelayMs(value: number) {
+		this.patchEditor({ autoSaveDelayMs: value });
+	}
 	get autoSave(): AutoSaveMode {
 		return this.#editor.current.autoSave ?? 'afterDelay';
 	}

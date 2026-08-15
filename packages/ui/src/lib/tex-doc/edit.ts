@@ -2,11 +2,8 @@ import { printBlock, printInlines } from './print';
 import type { Block, Inline, Span } from './types';
 
 /**
- * Source patches for block edits.
- *
- * Every visual edit is a splice over one block's span. Nothing outside the span
- * is read or rewritten, so a document full of TikZ, custom environments and
- * hand-tuned spacing survives an edit to the paragraph next to it byte for byte.
+ * Source patches for block edits: a splice over one block's span, so everything
+ * outside it survives byte for byte.
  */
 
 export type Patch = { from: number; to: number; insert: string };
@@ -15,11 +12,7 @@ export function applyPatch(source: string, patch: Patch): string {
 	return source.slice(0, patch.from) + patch.insert + source.slice(patch.to);
 }
 
-/**
- * Apply several patches at once, back to front so the earlier ones keep their
- * offsets. Used when one control has to touch two places, such as a wrap toggle
- * that also has to add `\usepackage{wrapfig}`.
- */
+/** Back to front, so the earlier patches keep their offsets. */
 export function applyPatches(source: string, patches: (Patch | null)[]): string {
 	return patches
 		.filter((patch): patch is Patch => patch !== null)
@@ -121,12 +114,8 @@ export function deleteBlock(source: string, block: Block): Patch {
 // span and leave the rest of the environment exactly as written: placement,
 // spacing, subfigures, anything we do not model.
 
-/**
- * Rewrite capture group 1 of `pattern` inside a block's span. Every pattern
- * carries the `d` flag so the group's own offsets are used: searching for the
- * matched text instead would find the wrong copy whenever a caption happens to
- * contain the word it sits next to.
- */
+/** Rewrite capture group 1 inside a block. The `d` flag is what makes this use
+ *  the group's own offsets rather than searching for the matched text again. */
 function patchInside(
 	source: string,
 	block: Block,
@@ -255,11 +244,7 @@ export function setFloatAlignment(
 	return { from: at, to: at, insert: `\n  \\${alignment}` };
 }
 
-/**
- * Turn a figure into a `wrapfigure` so the text runs beside it, and back. The
- * side and the width are the two arguments `wrapfig` takes; everything else in
- * the environment is left alone.
- */
+/** Figure to `wrapfigure` and back. Everything inside is left alone. */
 export function setFloatWrap(
 	source: string,
 	block: Block,
@@ -296,11 +281,7 @@ export function ensurePackage(source: string, preambleEnd: number, name: string)
 	return { from: at, to: at, insert: `\n\\usepackage{${name}}` };
 }
 
-/**
- * Swap the environment a block is written in, keeping its body. Quote to
- * quotation, verbatim to lstlisting: the visual difference is small, the LaTeX
- * one matters, and both are one identifier.
- */
+/** Swap the environment a block is written in, keeping its body. */
 export function setEnvironment(source: string, block: Block, name: string): Patch | null {
 	const inner = source.slice(block.span.from, block.span.to);
 	const begin = /^\\begin\s*\{([^}]*)\}/.exec(inner);
@@ -345,9 +326,8 @@ export function setEnvOption(
 }
 
 /**
- * Toggle equation numbering. `\[ … \]` has no number to turn on, so switching it
- * on promotes it to an `equation`; every other maths environment is its own
- * starred variant away.
+ * `\[ … \]` has no number to turn on, so switching it on promotes it to an
+ * `equation`; the rest are one star away.
  */
 export function setMathNumbered(source: string, block: Block, on: boolean): Patch | null {
 	if (block.kind !== 'math') return null;

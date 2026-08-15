@@ -256,6 +256,7 @@
 <CommandPalette
 	bind:open={layout.paletteOpen}
 	files={files.files}
+	commands={ctrl.commands}
 	activeId={files.activeId}
 	projectName={files.displayName}
 	onopen={(id) => files.openFile(id)}

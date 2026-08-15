@@ -29,14 +29,8 @@
 		IconTypography
 	} from '@tabler/icons-svelte';
 
-	/**
-	 * Insert menu, opened by `/` or by the gutter's `+`. It owns the filter input
-	 * rather than reading the block's text, so the block never has to hold a
-	 * half-typed command that could reach the source.
-	 *
-	 * Everything either editor can insert is in here, grouped, because a flat list
-	 * of twenty entries is a scan rather than a choice.
-	 */
+	/** Insert menu. It owns the filter input rather than reading the block, so no
+	 *  half-typed command can reach the source. */
 	let {
 		anchor,
 		allowInline = false,

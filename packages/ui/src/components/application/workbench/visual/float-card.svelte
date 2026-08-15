@@ -19,14 +19,8 @@
 
 	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
 
-	/**
-	 * A figure or table, edited in place. Every control patches the one command it
-	 * owns, so placement options, subfigures and hand-tuned spacing survive an
-	 * edit to the caption next to them.
-	 *
-	 * The everyday controls (width, alignment, caption) are on the card; the ones
-	 * you set once (placement, wrapping, the label) are behind Options.
-	 */
+	/** Every control patches the one command it owns, so placement, subfigures and
+	 *  hand-tuned spacing survive an edit to the caption beside them. */
 	let {
 		block,
 		source,
@@ -34,6 +28,7 @@
 		tex,
 		onpatch,
 		onopensource,
+		oncellpatch,
 		onatom
 	}: {
 		block: FloatBlock;
@@ -44,6 +39,8 @@
 		 *  to put `\usepackage{wrapfig}` in the preamble. */
 		onpatch: (patches: (Patch | null)[]) => void;
 		onopensource: () => void;
+		/** A cell text edit, which must not reparse the document under the caret. */
+		oncellpatch?: (patch: Patch | null) => void;
 		/** A cell's maths or citation was clicked; the pane owns that editor. */
 		onatom?: (element: HTMLElement) => void;
 	} = $props();
@@ -200,9 +197,8 @@
 	}
 
 	let captionEl = $state<HTMLElement>();
-	// Tracked off the DOM, not off `block.caption`: the model only catches up when
-	// the source is reparsed, so a model-driven placeholder sat under the first
-	// characters you typed.
+	// Off the DOM, not the model: the model only catches up on a reparse, so its
+	// placeholder sat under the first characters typed.
 	let captionEmpty = $state(true);
 
 	// The caption is plain text, not inline runs: it lives inside `\caption{…}`,
@@ -309,6 +305,7 @@
 				tex={tex!}
 				align={PLACEMENT_OF[alignment ?? 'raggedright']}
 				{onatom}
+				{oncellpatch}
 				onpatch={(patch) => onpatch([patch])}
 			/>
 		{:else}

@@ -3,6 +3,7 @@
 	import { PanelSection } from '@glyphtex/ui/panel-section';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '@glyphtex/ui/select';
 	import {
+		AUTO_SAVE_DELAYS,
 		AUTO_SAVE_LABELS,
 		EDITOR_FONT_LABELS,
 		settings,
@@ -49,6 +50,10 @@
 	const fontOpts = (Object.keys(EDITOR_FONT_LABELS) as EditorFont[]).map((id) => ({
 		value: id,
 		label: EDITOR_FONT_LABELS[id]
+	}));
+	const delayOpts = AUTO_SAVE_DELAYS.map((ms) => ({
+		value: String(ms),
+		label: ms < 1000 ? `${ms} ms` : `${ms / 1000} s`
 	}));
 	const autoSaveOpts = (Object.keys(AUTO_SAVE_LABELS) as AutoSaveMode[]).map((id) => ({
 		value: id,
@@ -144,6 +149,16 @@
 			(v) => (settings.autoSave = v as AutoSaveMode),
 			'When edits are written to disk.'
 		)}
+
+		{#if settings.autoSave === 'afterDelay'}
+			{@render selectField(
+				'Save delay',
+				delayOpts,
+				String(settings.autoSaveDelayMs),
+				(v) => (settings.autoSaveDelayMs = Number(v)),
+				'How long typing has to stop before the file is written.'
+			)}
+		{/if}
 	</PanelSection>
 
 	{#if engine}

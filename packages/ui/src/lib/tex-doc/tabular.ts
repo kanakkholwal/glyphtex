@@ -2,12 +2,8 @@ import type { Patch } from './edit';
 import type { Block, Span } from './types';
 
 /**
- * A `tabular` read as a grid, so visual mode can edit cells and add or remove
- * rows and columns instead of sending you to the source for a two-by-two table.
- *
- * Only plain grids are modelled. A `\multicolumn`, a `\multirow`, a nested
- * environment or a `*{n}{…}` column spec makes {@link readTable} return null, and
- * the card falls back to the LaTeX view rather than guessing at the shape.
+ * A `tabular` read as a grid. Only plain ones: a `\multicolumn`, `\multirow`,
+ * nested environment or `*{n}{…}` spec makes {@link readTable} return null.
  */
 
 export type TableCell = { text: string; span: Span };
@@ -190,10 +186,8 @@ const reprint = (grid: TableGrid, rows: TableRow[], columns = grid.columns): Pat
 
 const cell = (text: string): TableCell => ({ text, span: { from: 0, to: 0 } });
 
-/**
- * Write one cell. Patched over the cell's own span, not the whole table, so
- * typing in a corner does not reformat rows nobody touched.
- */
+/** Patched over the cell's own span, so typing in a corner does not reformat
+ *  rows nobody touched. */
 export function setTableCell(
 	grid: TableGrid,
 	row: number,
@@ -256,12 +250,8 @@ export function setTableColumnAlign(grid: TableGrid, at: number, align: ColumnAl
 }
 
 /**
- * The rules a table draws, as one edit. Horizontal rules are `\hline`s and
- * vertical ones are `|` in the column spec, but they are a single choice to the
- * reader, and two patches over the same span would cancel each other out.
- *
- * Set as a group: a half-ruled table is a hand-tuned choice this control is not
- * for, and booktabs-style top/head/bottom is what the rest want.
+ * One edit, because two patches over the same span would cancel out. Set as a
+ * group: a half-ruled table is a hand-tuned choice this control is not for.
  */
 export function setTableStyle(
 	grid: TableGrid,

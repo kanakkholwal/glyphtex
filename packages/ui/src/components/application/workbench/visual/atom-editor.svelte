@@ -4,12 +4,8 @@
 	import { Button } from '@glyphtex/ui/button';
 	import { IconTrash } from '@tabler/icons-svelte';
 
-	/**
-	 * Edits one atom in place: the maths, the citation keys, the ref target, a
-	 * link, a footnote. These are the parts of a paragraph you can see in visual
-	 * mode but could never type into, so without this they are read-only holes in
-	 * an editable document.
-	 */
+	/** Edits one atom in place. These are the parts of a paragraph you can see but
+	 *  could never type into. */
 	let {
 		target,
 		onapply,

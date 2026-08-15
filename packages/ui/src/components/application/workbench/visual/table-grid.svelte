@@ -16,26 +16,25 @@
 
 	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
 
-	/**
-	 * A `tabular` edited as a grid. The handles live in the table itself rather
-	 * than in a floating overlay, so a column control is always exactly as wide as
-	 * its column however the browser lays the table out.
-	 *
-	 * A cell is a full inline editor, not a text box: `\textbf{…}` in a header has
-	 * to read as bold here, and the format bar has to work inside it.
-	 */
+	/** Handles live in the table itself, so a column control is always exactly as
+	 *  wide as its column however the browser lays the table out. */
 	let {
 		grid,
 		tex,
 		align = 'left',
 		onpatch,
+		oncellpatch,
 		onatom
 	}: {
 		grid: TableGrid;
 		tex: TexDocModule;
 		/** How the float places the table on the page, mirrored here. */
 		align?: 'left' | 'center' | 'right';
+		/** A structural change: the whole tabular is reprinted and reparsed. */
 		onpatch: (patch: Patch | null) => void;
+		/** A cell's own text: one span, no reparse, so the grid is not rebuilt
+		 *  under the caret. */
+		oncellpatch?: (patch: Patch | null) => void;
 		onatom?: (el: HTMLElement) => void;
 	} = $props();
 
@@ -77,7 +76,9 @@
 	}
 
 	function commitCell(row: number, column: number, runs: Inline[]) {
-		onpatch(tex.setTableCell(grid, row, column, tex.printInlines(runs)));
+		const patch = tex.setTableCell(grid, row, column, tex.printInlines(runs));
+		if (oncellpatch) oncellpatch(patch);
+		else onpatch(patch);
 	}
 
 	const HANDLE =
@@ -146,7 +147,6 @@
 							<BlockEditor
 								runs={runsOf(cell.text)}
 								tag="span"
-								commitOn="blur"
 								class="focus-visible:bg-accent/60 block rounded-sm"
 								label="Row {r + 1}, column {c + 1}"
 								oninput={(runs) => commitCell(r, c, runs)}

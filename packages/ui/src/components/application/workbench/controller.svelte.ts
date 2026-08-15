@@ -1,9 +1,9 @@
 import type { EngineManager } from '../engine-settings.svelte';
 import type { GitProvider } from '../git-panel.svelte';
-import type { Menu } from '../app-menu.svelte';
+import type { PaletteCommand } from '../command-palette.svelte';
 import type { ProjectHost } from '../project';
 import { matchShortcut, shortcutLabel } from '../shortcuts';
-import { AUTO_SAVE_DELAY_MS, settings } from '@glyphtex/ui/settings';
+import { settings } from '@glyphtex/ui/settings';
 
 import { CompileStore } from './compile.svelte';
 import { FileStore } from './files.svelte';
@@ -17,6 +17,8 @@ import type {
 	CompileProjectFn,
 	DocMode,
 	GlyphFile,
+	Menu,
+	MenuAction,
 	SaveFileFn
 } from './types';
 
@@ -190,6 +192,49 @@ export class WorkbenchController {
 		return this.layout.docMode === 'visual' && this.visualAllowed ? 'visual' : 'latex';
 	}
 
+	/**
+	 * Every menu action, flattened for the command palette. One searchable list
+	 * beats a three-level hover tree for anything the mouse doesn't reach daily,
+	 * which is why the header no longer carries a File/Edit/View menu.
+	 */
+	get commands(): PaletteCommand[] {
+		return this.menus.flatMap((menu) =>
+			menu.items
+				.filter((item): item is MenuAction => item.type !== 'separator')
+				.map((item) => ({
+					id: `${menu.label}:${item.label}`,
+					group: menu.label,
+					// Checkbox items read as a state, not an action, without this.
+					label:
+						item.checked === undefined
+							? item.label
+							: `${item.label} (${item.checked ? 'on' : 'off'})`,
+					shortcut: item.shortcut,
+					disabled: item.disabled,
+					run: () => item.run?.()
+				}))
+		);
+	}
+
+	// --- Editing, routed to whichever surface is on screen ---
+	undo(): void {
+		this.layout.editing?.undo();
+	}
+	redo(): void {
+		this.layout.editing?.redo();
+	}
+	/** Inline emphasis. The block editor toggles a real mark; the source editor
+	 *  wraps the selection in the command that produces one. */
+	mark(id: 'bold' | 'italic'): void {
+		if (this.layout.visualApi) this.layout.visualApi.mark(id);
+		else this.layout.editor?.wrapSelection(id === 'bold' ? '\\textbf{' : '\\textit{', '}');
+	}
+
+	/** Project-wide search. Distinct from ⌘F, which is find-in-file. */
+	searchProject(): void {
+		this.layout.selectView('search');
+	}
+
 	// --- Open / import (host hook, else the desktop ProjectHost) ---
 	get canOpenFolder(): boolean {
 		return Boolean(this.#onOpenFolder || this.files.project);
@@ -305,71 +350,71 @@ export class WorkbenchController {
 						shortcut: shortcutLabel('save-all'),
 						disabled: this.files.dirtyIds.size === 0,
 						run: () => void this.files.saveAll()
-					},
-					{ type: 'separator' },
-					{
-						label: 'Compile',
-						shortcut: shortcutLabel('compile'),
-						disabled: !this.compile.canCompile,
-						run: () => this.compile.runCompile(true)
 					}
+					// Compile is not a File action: the Compile control owns it, and the
+					// palette makes it searchable.
 				]
 			},
 			{
 				label: 'Edit',
+				// Routed through `layout.editing`, not the CodeMirror handle: in Visual
+				// that handle does not exist, so every item here used to silently no-op
+				// while still looking live.
 				items: [
 					{
 						label: 'Undo',
 						shortcut: shortcutLabel('undo'),
-						disabled: !this.layout.canUndo,
+						disabled: !this.layout.undoable,
 						refocusEditor: true,
-						run: () => this.layout.editor?.undo()
+						run: () => this.undo()
 					},
 					{
 						label: 'Redo',
 						shortcut: shortcutLabel('redo'),
-						disabled: !this.layout.canRedo,
+						disabled: !this.layout.redoable,
 						refocusEditor: true,
-						run: () => this.layout.editor?.redo()
+						run: () => this.redo()
 					},
 					{ type: 'separator' },
-					{
-						label: 'Bold',
-						refocusEditor: true,
-						run: () => this.layout.editor?.wrapSelection('\\textbf{', '}')
-					},
-					{
-						label: 'Italic',
-						refocusEditor: true,
-						run: () => this.layout.editor?.wrapSelection('\\textit{', '}')
-					},
-					{ type: 'separator' },
-					{
-						label: 'Insert Section',
-						refocusEditor: true,
-						// wrapSelection, not insertText: this leaves the caret inside the
-						// braces, where the title goes, rather than past the newline.
-						run: () => this.layout.editor?.wrapSelection('\\section{', '}')
-					},
-					{
-						label: 'Insert List',
-						refocusEditor: true,
-						run: () =>
-							this.layout.editor?.insertText('\\begin{itemize}\n  \\item \n\\end{itemize}\n')
-					},
-					{
-						label: 'Insert Equation',
-						refocusEditor: true,
-						run: () => this.layout.editor?.insertText('\\begin{equation}\n  \n\\end{equation}\n')
-					},
+					{ label: 'Bold', refocusEditor: true, run: () => this.mark('bold') },
+					{ label: 'Italic', refocusEditor: true, run: () => this.mark('italic') },
+					// Structural inserts are source edits. In Visual the block editor's
+					// own "/" menu places them, because it knows where the caret is.
+					...(this.layout.visualApi
+						? []
+						: [
+								{ type: 'separator' as const },
+								{
+									label: 'Insert Section',
+									refocusEditor: true,
+									// wrapSelection, not insertText: this leaves the caret inside the
+									// braces, where the title goes, rather than past the newline.
+									run: () => this.layout.editor?.wrapSelection('\\section{', '}')
+								},
+								{
+									label: 'Insert List',
+									refocusEditor: true,
+									run: () =>
+										this.layout.editor?.insertText('\\begin{itemize}\n  \\item \n\\end{itemize}\n')
+								},
+								{
+									label: 'Insert Equation',
+									refocusEditor: true,
+									run: () =>
+										this.layout.editor?.insertText('\\begin{equation}\n  \n\\end{equation}\n')
+								}
+							]),
 					{ type: 'separator' },
 					{
 						label: 'Find in File',
 						shortcut: shortcutLabel('find'),
-						run: () => {
-							this.layout.activeView = 'search';
-							this.layout.panelCollapsed = false;
-						}
+						disabled: Boolean(this.layout.visualApi),
+						run: () => this.search.openFind()
+					},
+					{
+						label: 'Search in Project',
+						shortcut: shortcutLabel('search-project'),
+						run: () => this.searchProject()
 					}
 				]
 			},
@@ -486,29 +531,6 @@ export class WorkbenchController {
 				]
 			},
 			{
-				label: 'Run',
-				items: [
-					{
-						label: 'Compile',
-						shortcut: shortcutLabel('compile'),
-						disabled: !this.compile.canCompile,
-						run: () => this.compile.runCompile(true)
-					},
-					{ type: 'separator' },
-					{
-						label: 'Live Compile',
-						checked: settings.autoCompile,
-						run: () => (settings.autoCompile = !settings.autoCompile)
-					},
-					{ type: 'separator' },
-					{
-						label: 'Sync to PDF',
-						shortcut: shortcutLabel('sync-pdf'),
-						run: () => this.compile.syncToPdf()
-					}
-				]
-			},
-			{
 				label: 'Help',
 				items: [
 					{
@@ -549,6 +571,8 @@ export class WorkbenchController {
 			['compile', () => this.compile.runCompile(true)],
 			['sync-pdf', () => this.compile.syncToPdf()],
 			['quick-open', () => (this.layout.paletteOpen = true)],
+			// Search-project before find so ⇧⌘F isn't shadowed by the ⌘F match.
+			['search-project', () => this.searchProject()],
 			['find', () => this.search.openFind()],
 			['new-file', () => void this.files.newFile()],
 			['toggle-sidebar', () => (this.layout.panelCollapsed = !this.layout.panelCollapsed)],
@@ -588,7 +612,7 @@ export class WorkbenchController {
 		if (settings.autoSave !== 'afterDelay') return;
 		const f = this.files.files.find((x) => x.id === this.files.activeId);
 		if (!f || !this.files.fileDirty(f)) return;
-		const t = setTimeout(() => void this.files.saveActive(), AUTO_SAVE_DELAY_MS);
+		const t = setTimeout(() => void this.files.saveActive(), settings.autoSaveDelayMs);
 		return () => clearTimeout(t);
 	}
 

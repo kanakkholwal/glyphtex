@@ -10,19 +10,8 @@
 		IconUnderline
 	} from '@tabler/icons-svelte';
 
-	/**
-	 * Formatting bar over a live selection. Visual mode has no toolbar of its own,
-	 * so without this the only way to bold a word is a keyboard shortcut nobody is
-	 * told about.
-	 *
-	 * Grouped the way every editor groups them: the three weights together, then
-	 * the two things that replace the text with an object, then the link. Each
-	 * button shows whether it is already on, so the bar reports the selection as
-	 * well as changing it.
-	 *
-	 * Every control suppresses mousedown: taking focus would collapse the
-	 * selection it is about to act on.
-	 */
+	/** Formatting bar over a live selection. Mousedown is suppressed throughout:
+	 *  taking focus would collapse the selection it is about to act on. */
 	let { rect, oncommand }: { rect: DOMRect; oncommand: (id: string) => void } = $props();
 
 	const GROUPS = [

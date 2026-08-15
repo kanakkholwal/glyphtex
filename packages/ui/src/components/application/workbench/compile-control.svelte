@@ -19,7 +19,7 @@
 		IconChevronDown,
 		IconLoader2,
 		IconPlayerPlayFilled,
-		IconTargetArrow
+		IconTarget
 	} from '@tabler/icons-svelte';
 
 	import { shortcutLabel } from '../shortcuts';
@@ -59,9 +59,7 @@
 		<span class="truncate whitespace-nowrap">{compile.compileLabel}</span>
 	</button>
 
-	<ButtonGroup
-		class="[&>[data-slot]:first-child]:!rounded-l-md [&>[data-slot]:last-child]:!rounded-r-md"
-	>
+	<ButtonGroup>
 		<!-- `min-w` covers the widest of Compile / Recompile / Compiling…, so the
 		     caret beside it holds still while a build runs. -->
 		<Button
@@ -94,21 +92,16 @@
 					</Button>
 				{/snippet}
 			</DropdownMenuTrigger>
+			<!-- Build settings only. "Compile once" and "Sync to PDF" used to sit here
+			     too, next to the button that already compiles and beside ⌘J. -->
 			<DropdownMenuContent align="end" class="w-56">
 				<DropdownMenuCheckboxItem
 					checked={settings.autoCompile}
 					onCheckedChange={(v) => (settings.autoCompile = v)}
 				>
 					Live compile
+					<DropdownMenuShortcut>Recompiles as you type</DropdownMenuShortcut>
 				</DropdownMenuCheckboxItem>
-				<DropdownMenuItem onclick={() => compile.runCompile(true)}>
-					Compile once
-					<DropdownMenuShortcut>{shortcutLabel('compile')}</DropdownMenuShortcut>
-				</DropdownMenuItem>
-				<DropdownMenuItem onclick={() => compile.syncToPdf()}>
-					Sync to PDF
-					<DropdownMenuShortcut>{shortcutLabel('sync-pdf')}</DropdownMenuShortcut>
-				</DropdownMenuItem>
 
 				<DropdownMenuSeparator />
 				<!-- GroupHeading throws outside a Group, which takes the whole menu
@@ -119,14 +112,14 @@
 					</DropdownMenuGroupHeading>
 					{#if texFiles.length > 1}
 						{#each texFiles as file (file.id)}
-							<DropdownMenuItem onclick={() => files.setMain(file.id)}>
-								<IconTargetArrow class={file.id === files.mainId ? 'text-brand' : 'opacity-0'} />
+							<DropdownMenuItem onSelect={() => files.setMain(file.id)}>
+								<IconTarget class={file.id === files.mainId ? 'text-brand' : 'opacity-0'} />
 								<span class="truncate font-mono text-xs">{file.name}</span>
 							</DropdownMenuItem>
 						{/each}
 					{:else}
 						<DropdownMenuItem disabled>
-							<IconTargetArrow class="text-brand" />
+							<IconTarget class="text-brand" />
 							<span class="truncate font-mono text-xs">{mainName ?? 'None'}</span>
 						</DropdownMenuItem>
 					{/if}

@@ -60,7 +60,6 @@
 		runs,
 		tag = 'div',
 		class: className = '',
-		commitOn = 'input',
 		placeholder = '',
 		focusToken = null,
 		caretAt = 'end' as CaretTarget,
@@ -78,9 +77,6 @@
 		runs: Inline[];
 		tag?: string;
 		class?: string;
-		/** `blur` for a host that reparses on every write, such as a table cell:
-		 *  patching per keystroke would rebuild the grid under the caret. */
-		commitOn?: 'input' | 'blur';
 		placeholder?: string;
 		/** Announced to screen readers, which otherwise hear "text box" per block. */
 		label?: string;
@@ -322,7 +318,7 @@
 	data-empty={isEmpty || undefined}
 	data-placeholder={placeholder}
 	class="outline-none {className}"
-	oninput={() => commitOn === 'input' && oninput(read())}
+	oninput={() => oninput(read())}
 	onbeforeinput={onBeforeInput}
 	onkeydown={onKeyDown}
 	onpaste={onPaste}
