@@ -333,7 +333,7 @@ export const data: PackageData = {
 			name: 'definecolor',
 			snippet: 'definecolor{${1:name}}{${2:RGB}}{${3:0,0,0}}$0',
 			detail: 'Define a colour usable in TikZ options',
-			doc: 'TikZ loads xcolor, so every model works: `rgb` (0–1), `RGB` (0–255), `HTML`, `gray`, `cmyk`.',
+			doc: 'TikZ loads xcolor, so every model works: `rgb` (0-1), `RGB` (0-255), `HTML`, `gray`, `cmyk`.',
 			example: '\\definecolor{brandblue}{HTML}{2A6FDB}',
 			package: 'tikz'
 		},

@@ -34,6 +34,7 @@
 
 	$effect(() => ctrl.armPersist());
 	$effect(() => ctrl.armAutoSave());
+	$effect(() => files.persistTabs());
 	$effect(() => layout.observeShell());
 	$effect(() => ctrl.clearSearchHighlight());
 	$effect(() => compile.armAutoCompile());
@@ -151,22 +152,24 @@
 		<!-- min-w-0: without it a wide PDF page or long log line pushes the layout past
          the window edge, hiding the preview toolbar and log copy button. -->
 		<main bind:this={layout.mainEl} class="flex min-h-0 min-w-0 flex-1 flex-col">
-			<!-- No tab strip in Visual: it is one document, not a set of files. -->
-			{#if layout.docMode === 'latex'}
-				<Toolbar {ctrl} />
-			{/if}
+			<!-- Above the Visual/LaTeX split: a mode is a lens on one file, so "which
+			     file" must not change its answer (or its position) when you switch. -->
+			<Toolbar {ctrl} />
 
 			<div class="flex min-h-0 min-w-0 flex-1">
 				<div class="flex min-h-0 min-w-0 flex-1 flex-col">
 					<div
 						bind:this={layout.bodyEl}
-						class="flex min-h-0 min-w-0 flex-1 {layout.docMode === 'latex' &&
+						id="glyphtex-doc-surface"
+						role="tabpanel"
+						aria-label={files.activeFile?.name ?? 'Document'}
+						class="flex min-h-0 min-w-0 flex-1 {ctrl.docMode === 'latex' &&
 						layout.viewMode === 'split' &&
 						layout.splitDir === 'vertical'
 							? 'flex-col'
 							: ''}"
 					>
-						{#if layout.docMode === 'visual'}
+						{#if ctrl.docMode === 'visual'}
 							<VisualPane {ctrl} />
 						{:else}
 							{#if layout.viewMode !== 'preview'}
@@ -253,6 +256,7 @@
 <CommandPalette
 	bind:open={layout.paletteOpen}
 	files={files.files}
+	commands={ctrl.commands}
 	activeId={files.activeId}
 	projectName={files.displayName}
 	onopen={(id) => files.openFile(id)}

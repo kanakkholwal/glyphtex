@@ -208,6 +208,14 @@
     "./persisted-state": {
       "svelte": "./src/lib/state/persisted-state.svelte.ts",
       "default": "./src/lib/state/persisted-state.svelte.ts"
+    },
+    "./tex-doc": {
+      "svelte": "./src/lib/tex-doc/index.ts",
+      "default": "./src/lib/tex-doc/index.ts"
+    },
+    "./tex-templates": {
+      "svelte": "./src/lib/tex-doc/templates.ts",
+      "default": "./src/lib/tex-doc/templates.ts"
     }
   },
   "peerDependencies": {
@@ -231,6 +239,8 @@
     "@fontsource-variable/quicksand": "^5.3.0",
     "@lezer/highlight": "^1.2.3",
     "@tabler/icons-svelte": "^3.44.0",
+    "@unified-latex/unified-latex-types": "^1.8.4",
+    "@unified-latex/unified-latex-util-parse": "^1.8.4",
     "@unpic/svelte": "^1.0.1",
     "bits-ui": "^2.18.1",
     "clsx": "^2.1.1",
@@ -254,8 +264,8 @@
   "scripts": {
     "build": "exit 0",
     "check": "exit 0",
-    "pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --log-level=error",
+    "pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --log-level=error && esbuild src/lib/tex-doc/index.ts --bundle --format=esm --outfile=test/.build/tex-doc.mjs --log-level=error",
     "test": "node --test test/*.test.mjs",
-    "test:browser": "node ./test/browser/editor-smoke.mjs && node ./test/browser/editor-behaviour.mjs"
+    "test:browser": "node ./test/browser/editor-smoke.mjs && node ./test/browser/editor-behaviour.mjs && node ./test/browser/visual-editing.mjs"
   }
 }

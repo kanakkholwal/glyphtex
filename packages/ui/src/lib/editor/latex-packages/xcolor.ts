@@ -54,7 +54,7 @@ export const data: PackageData = {
 			name: 'definecolor',
 			snippet: 'definecolor{${1:name}}{${2:RGB}}{${3:0,0,0}}$0',
 			detail: 'Define a named colour',
-			doc: 'Models: `rgb` and `cmyk` take fractions 0–1, `RGB` takes integers 0–255, `HTML` takes six hex digits with no `#`, `gray` takes one fraction.',
+			doc: 'Models: `rgb` and `cmyk` take fractions 0-1, `RGB` takes integers 0-255, `HTML` takes six hex digits with no `#`, `gray` takes one fraction.',
 			example: '\\definecolor{brand}{HTML}{2A6FDB}',
 			package: 'xcolor'
 		},

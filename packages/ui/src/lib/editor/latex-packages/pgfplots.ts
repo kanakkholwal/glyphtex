@@ -130,7 +130,7 @@ export const data: PackageData = {
 			name: 'coordinate',
 			snippet: 'coordinate (${1:name}) at (axis cs:${2:0},${3:0});$0',
 			detail: "Name a point on the plot's own scale",
-			doc: '`axis cs:` reads the numbers as data coordinates; a bare `(0,0)` would mean canvas centimetres. `rel axis cs:` runs 0–1 across the axis box instead.',
+			doc: '`axis cs:` reads the numbers as data coordinates; a bare `(0,0)` would mean canvas centimetres. `rel axis cs:` runs 0-1 across the axis box instead.',
 			example: '\\coordinate (peak) at (axis cs:3,9);',
 			package: 'pgfplots'
 		},

@@ -52,15 +52,11 @@
 		compact?: boolean;
 	} = $props();
 
-	let open = $state(false);
-	let root = $state<HTMLDivElement>();
-
 	const baseName = $derived(filename.replace(/\.[^./\\]+$/, '') || 'document');
 
 	// Save via the host's native dialog when available (desktop = Tauri), else a
 	// plain browser download. Stays quiet if the user cancels the dialog.
 	async function saveOrDownload(bytes: Uint8Array, name: string, extensions: string[]) {
-		open = false;
 		try {
 			if (saveFile) {
 				const saved = await saveFile(bytes, { filename: name, extensions });
@@ -95,7 +91,6 @@
 		saveOrDownload(new TextEncoder().encode(source), `${baseName}.tex`, ['tex']);
 
 	async function exportZip() {
-		open = false;
 		if (!onExportZip) return;
 		await onExportZip();
 	}
@@ -157,21 +152,8 @@
 		}
 	]);
 
-	$effect(() => {
-		if (!open) return;
-		const onDown = (e: MouseEvent) => {
-			if (root && !root.contains(e.target as Node)) open = false;
-		};
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') open = false;
-		};
-		document.addEventListener('mousedown', onDown);
-		document.addEventListener('keydown', onKey);
-		return () => {
-			document.removeEventListener('mousedown', onDown);
-			document.removeEventListener('keydown', onKey);
-		};
-	});
+	// Dismissal (outside click, Escape) is the DropdownMenu's job; the hand-rolled
+	// listeners that used to live here were keyed on an `open` flag nothing set.
 </script>
 
 <DropdownMenu>
@@ -193,7 +175,7 @@
 			</Button>
 		{/snippet}
 	</DropdownMenuTrigger>
-	<DropdownMenuContent align="end" class="w-52">
+	<DropdownMenuContent align="end" class="w-56">
 		{#each items as item, i (item.separator ? `sep-${i}` : item.label)}
 			{#if item.separator}
 				<DropdownMenuSeparator />

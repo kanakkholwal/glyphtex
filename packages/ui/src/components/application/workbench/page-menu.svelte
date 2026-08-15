@@ -22,22 +22,17 @@
 		type AutoSaveMode,
 		type DocFont
 	} from '@glyphtex/ui/settings';
-	import { toast } from '@glyphtex/ui/sonner';
 	import {
 		IconArrowsHorizontal,
 		IconCode,
 		IconDeviceDesktop,
+		IconDeviceFloppy,
 		IconDots,
 		IconEye,
-		IconFolderOpen,
-		IconFolderShare,
 		IconLayoutColumns,
 		IconLayoutRows,
-		IconLink,
-		IconDeviceFloppy,
 		IconMoon,
 		IconNotes,
-		IconPencil,
 		IconSettings,
 		IconSun,
 		IconTextSize,
@@ -47,14 +42,13 @@
 	import type { WorkbenchController } from './controller.svelte';
 	import type { ViewMode } from './types';
 
-	/** The document's own menu. Notion's shape: presentation first, because that
-	 *  is the part people reach for mid-sentence: and mode-aware, because half of
-	 *  a canvas menu means nothing while you're editing source. */
-	let { ctrl, onrename }: { ctrl: WorkbenchController; onrename?: () => void } = $props();
+	/** How *this view* is presented, and nothing else. Mode-aware, because half of a
+	 *  canvas menu means nothing while you're editing source. Anything that acts on
+	 *  the document itself lives on the document's own breadcrumb node. */
+	let { ctrl }: { ctrl: WorkbenchController } = $props();
 
-	const files = $derived(ctrl.files);
 	const layout = $derived(ctrl.layout);
-	const visual = $derived(layout.docMode === 'visual');
+	const visual = $derived(ctrl.docMode === 'visual');
 
 	const fonts: DocFont[] = ['default', 'serif', 'mono'];
 	const layouts: { value: ViewMode; label: string; icon: typeof IconEye }[] = [
@@ -76,33 +70,19 @@
 
 	const tile =
 		'flex flex-1 flex-col items-center gap-1 rounded-md py-2 transition-colors cursor-pointer';
-
-	async function copyLink() {
-		if (typeof location === 'undefined' || !navigator.clipboard) return;
-		try {
-			await navigator.clipboard.writeText(location.href);
-			toast.success('Link copied');
-		} catch {
-			toast.error('Could not copy the link');
-		}
-	}
 </script>
 
 <DropdownMenu>
 	<DropdownMenuTrigger>
 		{#snippet child({ props })}
-			<Button
-				{...props}
-				variant="ghost"
-				size="icon-sm"
-				title="Document menu"
-				aria-label="Document menu"
-			>
+			<!-- No Tooltip wrapper: nesting a second trigger primitive here spreads its
+			     own handlers over the menu's and the dropdown stops opening. -->
+			<Button {...props} variant="ghost" size="icon-sm" title="View options" aria-label="View options">
 				<IconDots />
 			</Button>
 		{/snippet}
 	</DropdownMenuTrigger>
-	<DropdownMenuContent align="end" class="w-64">
+	<DropdownMenuContent align="end" class="w-56">
 		<!-- Same three-tile slot in both modes: typeface in Visual, layout in
 		     LaTeX. Keeping the shape stable is why the layout switch could come out
 		     of the bar: the menu opens to the same geometry either way. -->
@@ -207,7 +187,7 @@
 			<DropdownMenuSubTrigger>
 				<AppearanceIcon class="text-muted-foreground" /> Appearance
 			</DropdownMenuSubTrigger>
-			<DropdownMenuSubContent class="w-40">
+			<DropdownMenuSubContent class="w-44">
 				<DropdownMenuRadioGroup
 					value={settings.appearance}
 					onValueChange={(v) => (settings.appearance = v as Appearance)}
@@ -218,31 +198,5 @@
 				</DropdownMenuRadioGroup>
 			</DropdownMenuSubContent>
 		</DropdownMenuSub>
-
-		<DropdownMenuSeparator />
-
-		{#if onrename}
-			<DropdownMenuItem onSelect={() => onrename?.()}>
-				<IconPencil class="text-muted-foreground" /> Rename
-			</DropdownMenuItem>
-		{/if}
-		<DropdownMenuItem onSelect={copyLink}>
-			<IconLink class="text-muted-foreground" /> Copy link
-		</DropdownMenuItem>
-		{#if files.project?.revealInOS && files.projectRoot}
-			<DropdownMenuItem onSelect={() => files.revealProject()}>
-				<IconFolderShare class="text-muted-foreground" /> Reveal in file explorer
-			</DropdownMenuItem>
-		{/if}
-		{#if ctrl.canOpenFolder}
-			<DropdownMenuItem onSelect={() => ctrl.openFolder()}>
-				<IconFolderOpen class="text-muted-foreground" /> Open folder…
-			</DropdownMenuItem>
-		{/if}
-		{#if ctrl.onOpenProject}
-			<DropdownMenuItem onSelect={() => ctrl.onOpenProject?.()}>
-				<IconFolderOpen class="text-muted-foreground" /> Open another document…
-			</DropdownMenuItem>
-		{/if}
 	</DropdownMenuContent>
 </DropdownMenu>

@@ -6,7 +6,7 @@ Drives a real Chrome over the DevTools Protocol and checks that the Monaco
 editor mounts, paints in the Islands theme, tokenizes LaTeX, and opens the
 suggestion widget with our completions in it.
 
-It installs nothing — it uses the Chrome already on the machine and Node's
+It installs nothing. It uses the Chrome already on the machine and Node's
 built-in `WebSocket`.
 
 ## Why this exists
@@ -16,7 +16,7 @@ BibTeX logic directly, and they all passed while the editor was, in the browser,
 completely inert: `monaco-editor/editor/editor.api` ships the API surface with
 **no editor contributions**, so there was no suggest widget, no hover, no
 folding controls and no snippet insertion. The editor mounted, painted and
-highlighted perfectly — and did nothing when you typed.
+highlighted perfectly, and did nothing when you typed.
 
 Nothing short of driving a browser could have caught that, which is the whole
 point of this file. See `src/lib/editor/monaco-contributions.ts`.
@@ -38,7 +38,7 @@ different ports.
 
 ## Limitations
 
-- Not part of `pnpm test` — it needs a running server and a browser, so it is a
+- Not part of `pnpm test`, since it needs a running server and a browser, so it is a
   deliberate manual/CI step rather than something that runs on every change.
 - It removes the first-run compiler dialog from the DOM to reach the editor
   underneath. That is a harness step; it does not exercise the install flow.

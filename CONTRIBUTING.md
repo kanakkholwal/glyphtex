@@ -46,7 +46,7 @@ You can work on the **web app and shared UI without Rust** — skip the Tauri bi
 
 ```bash
 git clone https://github.com/kanakkholwal/glyphtex.git
-cd glyph
+cd glyphtex
 pnpm install        # installs everything across the monorepo
 ```
 

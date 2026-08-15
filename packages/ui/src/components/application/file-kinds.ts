@@ -134,6 +134,15 @@ export function isEditable(kind: FileKind): boolean {
 	return kind === 'latex' || kind === 'markdown' || kind === 'text';
 }
 
+// Narrower than the `latex` kind: a .bib or .aux is LaTeX-family text, but it has
+// no document body, so the block model has nothing to show for it.
+const VISUAL_EXT = new Set(['tex', 'latex', 'ltx']);
+
+/** Whether a file can open in the Visual editor. */
+export function isVisualEditable(name: string): boolean {
+	return VISUAL_EXT.has(extOf(name));
+}
+
 /** The CodeMirror language mode for an editable kind. */
 export function editorLanguage(kind: FileKind): 'latex' | 'markdown' | 'plain' {
 	if (kind === 'latex') return 'latex';

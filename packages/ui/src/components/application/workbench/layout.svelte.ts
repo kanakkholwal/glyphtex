@@ -14,7 +14,8 @@ import type {
 	EditorApi,
 	RightPanel,
 	SplitDirection,
-	ViewMode
+	ViewMode,
+	VisualApi
 } from './types';
 
 export type LayoutDeps = {
@@ -74,6 +75,37 @@ export class LayoutStore {
 
 	// Editor handle (bound from CodeEditor), shared with search + compile.
 	editor = $state<EditorApi>();
+
+	/** Editing handle published by the Visual pane while it is mounted. The block
+	 *  editor keeps its own history and its own marks, so menu items that say
+	 *  "Undo" or "Bold" have to reach whichever surface is actually on screen. */
+	visualApi = $state<VisualApi>();
+
+	/** The live editing surface: Visual when it is mounted, else the LaTeX editor. */
+	get editing(): VisualApi | EditorApi | undefined {
+		return this.visualApi ?? this.editor;
+	}
+	get undoable(): boolean {
+		return this.visualApi ? this.visualApi.canUndo() : this.canUndo;
+	}
+	get redoable(): boolean {
+		return this.visualApi ? this.visualApi.canRedo() : this.canRedo;
+	}
+
+	/** A source range the LaTeX view should reveal once its editor exists. Set
+	 *  when jumping from a visual block, which unmounts the editor as it switches. */
+	revealSpan = $state<{ from: number; to: number } | null>(null);
+
+	/** Apply and clear a queued reveal. Called by the editor pane on mount.
+	 *  Held until the editor is actually ready: it is bound before its module
+	 *  finishes loading, and calling early would drop the reveal silently. */
+	flushReveal(): void {
+		const span = this.revealSpan;
+		const editor = this.editor;
+		if (!span || !editor || editor.ready?.() === false) return;
+		this.revealSpan = null;
+		editor.selectRange(span.from, span.to);
+	}
 	// Whether the editor currently has anything to undo / redo (bound from CodeEditor).
 	canUndo = $state(false);
 	canRedo = $state(false);

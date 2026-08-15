@@ -2,12 +2,14 @@
 	import { Tooltip, TooltipContent, TooltipTrigger } from '@glyphtex/ui/tooltip';
 	import { IconCode, IconPencil } from '@tabler/icons-svelte';
 
-	import type { LayoutStore } from './layout.svelte';
+	import type { WorkbenchController } from './controller.svelte';
 	import type { DocMode } from './types';
 
 	/** The document's two editors. Top-level and always visible: everything else
 	 *  in the bar is a control *within* whichever one you picked. */
-	let { layout }: { layout: LayoutStore } = $props();
+	let { ctrl }: { ctrl: WorkbenchController } = $props();
+
+	const layout = $derived(ctrl.layout);
 
 	const modes: { value: DocMode; label: string; icon: typeof IconPencil; hint?: string }[] = [
 		{ value: 'visual', label: 'Visual', icon: IconPencil, hint: 'Not shipped yet: preview only' },
@@ -21,30 +23,39 @@
 	aria-label="Editor"
 >
 	{#each modes as mode (mode.value)}
-		{@const active = layout.docMode === mode.value}
+		{@const blocked = mode.value === 'visual' && !ctrl.visualAllowed}
+		{@const active = ctrl.docMode === mode.value}
 		{@const Icon = mode.icon}
 		<Tooltip delayDuration={300}>
 			<TooltipTrigger>
 				{#snippet child({ props })}
 					<button
 						{...props}
-						class="flex h-6.5 cursor-pointer items-center gap-1.5 rounded-[6px] px-2 text-xs font-medium transition-colors {active
+						class="flex h-6.5 items-center gap-1.5 rounded-[6px] px-2 text-xs font-medium transition-colors {active
 							? 'bg-card text-foreground shadow-craft-sm'
-							: 'text-muted-foreground hover:text-foreground'}"
+							: 'text-muted-foreground hover:text-foreground'} {blocked
+							? 'cursor-not-allowed opacity-40'
+							: 'cursor-pointer'}"
 						aria-pressed={active}
-						onclick={() => (layout.docMode = mode.value)}
+						aria-disabled={blocked}
+						onclick={() => {
+							if (!blocked) layout.docMode = mode.value;
+						}}
 					>
 						<Icon class="size-3.5" />
 						<span class="hidden lg:inline">{mode.label}</span>
-						<!-- A dot, not the word: the label already crowds out below lg, and
-						     the pane says it plainly the moment you land there. -->
-						{#if mode.hint}
+						<!-- A dot, not the word: the label already crowds out below lg, and the
+						     pane says it plainly the moment you land there. -->
+						{#if mode.hint && !blocked}
 							<span class="bg-warning size-1 shrink-0 rounded-full" aria-hidden="true"></span>
 						{/if}
 					</button>
 				{/snippet}
 			</TooltipTrigger>
-			<TooltipContent side="bottom">{mode.hint ?? mode.label}</TooltipContent>
+			<!-- Disabled controls must say why, or the only signal is that nothing happened. -->
+			<TooltipContent side="bottom">
+				{(blocked ? ctrl.visualBlockedReason : mode.hint) ?? mode.label}
+			</TooltipContent>
 		</Tooltip>
 	{/each}
 </div>

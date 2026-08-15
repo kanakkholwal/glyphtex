@@ -54,7 +54,7 @@
 				</Button>
 			{/snippet}
 		</DropdownMenuTrigger>
-		<DropdownMenuContent align="start" class="w-60">
+		<DropdownMenuContent align="start" class="w-56">
 			<DropdownMenuGroup>
 				<DropdownMenuGroupHeading class="text-faint text-xs font-medium">
 					{head.unborn ? 'No commits yet' : (head.upstream ?? 'No upstream')}

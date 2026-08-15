@@ -114,6 +114,11 @@
 	$effect(() => ctrl?.syncExternalValue(value));
 
 	// --- Imperative API (accessed via bind:this from a toolbar, etc.) ---------
+	/** The controller loads asynchronously; until it does, every method below is
+	 *  a no-op, so callers that must not lose their request check this first. */
+	export function ready(): boolean {
+		return Boolean(ctrl?.view);
+	}
 	export function wrapSelection(before: string, after?: string) {
 		ctrl?.wrapSelection(before, after);
 	}

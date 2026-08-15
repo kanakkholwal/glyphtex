@@ -1,0 +1,49 @@
+% siunitx + booktabs + multirow: alignment syntax that is not ordinary text.
+\documentclass{article}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\sisetup{
+  table-number-alignment = center,
+  round-mode = places,
+  round-precision = 2,
+  separate-uncertainty = true,
+}
+
+\begin{document}
+
+\section{Measurements}
+
+The sample was held at \SI{298.15}{\kelvin} under \SI{1.2(3)}{\bar}, giving a
+molar mass of \SI{18.015}{\gram\per\mole} and a flow of
+\SI{2.5e-3}{\cubic\metre\per\second}. Ranges are written \SIrange{10}{20}{\celsius}
+and bare numbers as \num{6.022e23}.
+
+\begin{table}[htbp]
+  \centering
+  \begin{threeparttable}
+    \caption{Recovered parameters by method and sample size.}
+    \label{tab:params}
+    \begin{tabular}{llS[table-format=2.3]S[table-format=1.3]}
+      \toprule
+      \multirow{2}{*}{Method} & \multirow{2}{*}{Kernel}
+        & \multicolumn{2}{c}{Estimate} \\
+      \cmidrule(lr){3-4}
+        & & {$\hat\theta$} & {SE} \\
+      \midrule
+      \multirow{2}{*}{MLE}
+        & Gaussian    & 12.345 & 0.021 \\
+        & Epanechnikov & 12.301 & 0.024 \\
+      \addlinespace
+      GMM
+        & ---          &  9.870 & 0.113\tnote{a} \\
+      \bottomrule
+    \end{tabular}
+    \begin{tablenotes}
+      \item[a] Bootstrap standard error, \num{2000} replications.
+    \end{tablenotes}
+  \end{threeparttable}
+\end{table}
+
+\end{document}

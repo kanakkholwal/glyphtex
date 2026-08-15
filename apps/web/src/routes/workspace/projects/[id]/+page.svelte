@@ -248,10 +248,21 @@
 		}
 	}
 
-	function pickFiles(want: string): void {
+	// Resolved with the paths `addFiles` took in, so a caller that needs to know
+	// what arrived (the visual editor's figure card) can use them.
+	let pendingPick: ((paths: string[]) => void) | null = null;
+
+	function settlePick(paths: string[]): void {
+		pendingPick?.(paths);
+		pendingPick = null;
+	}
+
+	function pickFiles(want: string): Promise<string[]> {
+		settlePick([]);
 		accept = want;
 		// Let `accept` land on the input before it opens the picker.
 		queueMicrotask(() => fileInput?.click());
+		return new Promise((resolve) => (pendingPick = resolve));
 	}
 
 	async function addFiles(list: FileList | File[]): Promise<void> {
@@ -259,6 +270,7 @@
 		try {
 			const { files, skipped } = await importLooseFiles(list);
 			if (files.length === 0) {
+				settlePick([]);
 				toast.error(skipped[0] ? `Skipped ${skipped[0]}` : 'Nothing to add.');
 				return;
 			}
@@ -275,9 +287,11 @@
 				}))
 			);
 			if (ctrl) await persist(ctrl.files.snapshotFiles());
+			settlePick(files.map((f) => f.path));
 			toast.success(`Added ${files.length} file${files.length === 1 ? '' : 's'}.`);
 			if (skipped.length > 0) toast.warning(`Skipped ${skipped.join(', ')}`);
 		} catch (error) {
+			settlePick([]);
 			toast.error(error instanceof Error ? error.message : 'Could not add those files.');
 		}
 	}
@@ -509,8 +523,10 @@
 		onchange={(e) => {
 			const list = e.currentTarget.files;
 			if (list && list.length > 0) void addFiles(list);
+			else settlePick([]);
 			e.currentTarget.value = '';
 		}}
+		oncancel={() => settlePick([])}
 	/>
 
 	<input

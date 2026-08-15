@@ -8,6 +8,9 @@
 		DropdownMenuShortcut,
 		DropdownMenuTrigger
 	} from '@glyphtex/ui/dropdown-menu';
+	// Imported from the standalone templates module, not `@glyphtex/ui/tex-doc`:
+	// that entry pulls in unified-latex, which the LaTeX view must not bundle.
+	import { templateSource } from '@glyphtex/ui/tex-templates';
 	import {
 		IconBold,
 		IconChevronDown,
@@ -44,6 +47,9 @@
 		() =>
 			wrap?.(before, after);
 	const i = (text: string) => () => insert?.(text);
+	/** A shared block template, so this bar and the visual editor's `/` menu
+	 *  insert byte-identical LaTeX. */
+	const t = (id: string) => i(`${templateSource(id)}\n`);
 
 	// A menu item's edit runs on select, but bits-ui then returns focus to the
 	// trigger, which is what leaves the caret on the button. Reclaim it on close,
@@ -100,7 +106,8 @@
 				{ label: 'Section', hint: '\\section{}', run: w('\\section{', '}') },
 				{ label: 'Subsection', hint: '\\subsection{}', run: w('\\subsection{', '}') },
 				{ label: 'Subsubsection', hint: '\\subsubsection{}', run: w('\\subsubsection{', '}') },
-				{ label: 'Paragraph', hint: '\\paragraph{}', run: w('\\paragraph{', '}') }
+				{ label: 'Paragraph', hint: '\\paragraph{}', run: w('\\paragraph{', '}') },
+				{ label: 'Subparagraph', hint: '\\subparagraph{}', run: w('\\subparagraph{', '}') }
 			]
 		},
 		{
@@ -111,21 +118,17 @@
 				{
 					label: 'Bulleted list',
 					hint: 'itemize',
-					run: i('\\begin{itemize}\n  \\item First item\n  \\item Second item\n\\end{itemize}\n')
+					run: t('itemize')
 				},
 				{
 					label: 'Numbered list',
 					hint: 'enumerate',
-					run: i(
-						'\\begin{enumerate}\n  \\item First item\n  \\item Second item\n\\end{enumerate}\n'
-					)
+					run: t('enumerate')
 				},
 				{
 					label: 'Description list',
 					hint: 'description',
-					run: i(
-						'\\begin{description}\n  \\item[First term] Description of the first term.\n  \\item[Second term] Description of the second term.\n\\end{description}\n'
-					)
+					run: t('description')
 				}
 			]
 		},
@@ -144,12 +147,12 @@
 				{
 					label: 'Equation',
 					hint: 'equation',
-					run: i('\\begin{equation}\n  E = mc^2\n\\end{equation}\n')
+					run: t('equation')
 				},
 				{
 					label: 'Aligned',
 					hint: 'align',
-					run: i('\\begin{align}\n  a &= b + c \\\\\n    &= d + e\n\\end{align}\n')
+					run: t('align')
 				},
 				'sep',
 				{ label: 'Fraction', hint: '\\frac{}{}', run: w('\\frac{', '}{}') },
@@ -159,18 +162,8 @@
 				{ label: 'Integral', hint: '\\int', run: i('\\int_{a}^{b} ') },
 				{ label: 'Limit', hint: '\\lim', run: i('\\lim_{x \\to 0} ') },
 				'sep',
-				{
-					label: 'Matrix',
-					hint: 'pmatrix',
-					run: i('\\begin{pmatrix}\n  a & b \\\\\n  c & d\n\\end{pmatrix}\n')
-				},
-				{
-					label: 'Cases',
-					hint: 'cases',
-					run: i(
-						'\\[\n  f(x) =\n  \\begin{cases}\n    x & \\text{if } x \\geq 0 \\\\\n    -x & \\text{otherwise}\n  \\end{cases}\n\\]\n'
-					)
-				}
+				{ label: 'Matrix', hint: 'pmatrix', run: t('matrix') },
+				{ label: 'Cases', hint: 'cases', run: t('cases') }
 			]
 		},
 		{
@@ -187,37 +180,29 @@
 				{
 					label: 'Sample paragraph',
 					hint: 'text',
-					run: i(
-						'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor ' +
-							'incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud ' +
-							'exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n'
-					)
+					run: t('sample')
 				},
 				{
 					label: 'Figure',
 					hint: 'figure',
 					// example-image ships with the mwe package: a real placeholder graphic
 					// so the inserted figure renders immediately. Swap for your own file.
-					run: i(
-						'\\begin{figure}[h]\n  \\centering\n  \\includegraphics[width=0.6\\linewidth]{example-image}\n  \\caption{Caption text.}\n  \\label{fig:placeholder}\n\\end{figure}\n'
-					)
+					run: t('figure')
 				},
 				{
 					label: 'Table',
 					hint: 'tabular',
-					run: i(
-						'\\begin{table}[h]\n  \\centering\n  \\begin{tabular}{l l}\n    \\hline\n    Header 1 & Header 2 \\\\\n    \\hline\n    Cell 1 & Cell 2 \\\\\n    Cell 3 & Cell 4 \\\\\n    \\hline\n  \\end{tabular}\n  \\caption{Caption text.}\n  \\label{tab:placeholder}\n\\end{table}\n'
-					)
+					run: t('table')
 				},
 				{
 					label: 'Code block',
 					hint: 'verbatim',
-					run: i('\\begin{verbatim}\ncode goes here\n\\end{verbatim}\n')
+					run: t('verbatim')
 				},
 				{
 					label: 'Block quote',
 					hint: 'quote',
-					run: i('\\begin{quote}\n  Quoted text goes here.\n\\end{quote}\n')
+					run: t('quote')
 				}
 			]
 		}

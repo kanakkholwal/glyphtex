@@ -1,6 +1,13 @@
-import { classifyFile, editorLanguage, isEditable, type FileKind } from '../file-kinds';
+import {
+	classifyFile,
+	editorLanguage,
+	isEditable,
+	isVisualEditable,
+	type FileKind
+} from '../file-kinds';
 import type { GitHeadInfo, GitProvider } from '../git-panel.svelte';
 import type { ProjectHost } from '../project';
+import { safeStorage } from '@glyphtex/ui/persisted-state';
 import { settings } from '@glyphtex/ui/settings';
 import { toast } from '@glyphtex/ui/sonner';
 
@@ -20,7 +27,14 @@ export type FileStoreDeps = {
 	gitRoot?: string | null;
 	initialFiles?: GlyphFile[];
 	projectName: string;
+	/** Stable key for this document's persisted tab strip. */
+	scope?: string;
 };
+
+const tabsKey = (scope: string) => `glyphtex:tabs:${scope}`;
+
+/** The persisted strip: which files are open, and which one you were in. */
+type StoredTabs = { tabs: string[]; active: string };
 
 /** The Workbench's document + project model. State and behaviour only: the component
  *  drives auto-save/persist/git-refresh from its own effects, keyed on {@link savedTick}. */
@@ -107,13 +121,72 @@ export class FileStore {
 		this.activeId = seed[0]?.id ?? 'main';
 		this.openTabs = this.activeId ? [this.activeId] : [];
 		this.source = seed[0]?.content ?? '';
+		const last = this.restoreTabs(deps.scope ?? deps.projectName);
+		if (last) {
+			this.activeId = last;
+			this.source = this.files.find((f) => f.id === last)?.content ?? '';
+		}
+	}
+
+	// --- Tab strip ------------------------------------------------------------
+	// `openTabs` holds file ids, and a project file's id *is* its absolute path, so
+	// every rename / move / delete has to maintain this list or tabs silently
+	// vanish (and a recreated path inherits a ghost tab).
+	/** Point an open tab at a file's new id, keeping its place in the strip. */
+	#remapTab(oldId: string, newId: string): void {
+		if (oldId === newId) return;
+		this.openTabs = this.openTabs.map((t) => (t === oldId ? newId : t));
+		this.#closedTabs = this.#closedTabs.map((t) => (t === oldId ? newId : t));
+		this.recentIds = this.recentIds.map((r) => (r === oldId ? newId : r));
+	}
+
+	/** Forget a tab whose file is gone. Remembered so ⌘⌥T can bring it back. */
+	#dropTab(id: string, remember = true): void {
+		if (remember && this.openTabs.includes(id)) {
+			this.#closedTabs = [...this.#closedTabs.filter((t) => t !== id), id].slice(-12);
+		}
+		this.openTabs = this.openTabs.filter((t) => t !== id);
+		this.recentIds = this.recentIds.filter((r) => r !== id);
+	}
+
+	/** Ids of tabs closed in this session, oldest first: the ⌘⌥T stack. */
+	#closedTabs = $state<string[]>([]);
+
+	// The document key the strip is stored under. Re-pointed by `restoreTabs` when
+	// a folder is opened, so tabs follow the project rather than the window.
+	#tabScope = '';
+
+	/**
+	 * Load this document's tab strip. Ids that no longer resolve are dropped.
+	 * Returns the file that was active last time, for the caller to open.
+	 */
+	restoreTabs(scope: string): string | null {
+		this.#tabScope = scope;
+		if (!scope) return null;
+		const saved = safeStorage.get<StoredTabs | null>(tabsKey(scope), null);
+		const ids = Array.isArray(saved?.tabs) ? saved.tabs : [];
+		if (!ids.length) return null;
+		const known = new Set(this.files.map((f) => f.id));
+		const live = ids.filter((id) => typeof id === 'string' && known.has(id));
+		if (!live.length) return null;
+		this.openTabs = live.includes(this.activeId) ? live : [...live, this.activeId].filter(Boolean);
+		return known.has(saved?.active ?? '') ? (saved?.active ?? null) : null;
+	}
+
+	/** Write the strip back. Called from an effect that tracks `openTabs`. */
+	persistTabs(): void {
+		void this.openTabs; // tracked by the caller's effect
+		if (!this.#tabScope) return;
+		safeStorage.set<StoredTabs>(tabsKey(this.#tabScope), {
+			tabs: this.openTabFiles.map((f) => f.id),
+			active: this.activeId
+		});
 	}
 
 	/**
 	 * Files with an open tab, in order: always including the active file even if
 	 * a rename/delete dropped its id, so the tab strip never loses the current
-	 * file. Renamed/deleted ids fall out here without touching the many rename
-	 * paths that already remap `activeId`.
+	 * file.
 	 */
 	readonly openTabFiles = $derived.by(() => {
 		const ids = [...this.openTabs];
@@ -121,6 +194,26 @@ export class FileStore {
 		return ids
 			.map((id) => this.files.find((f) => f.id === id))
 			.filter((f): f is GlyphFile => Boolean(f));
+	});
+
+	/**
+	 * Label per open tab. Two chapters both called `intro.tex` are indistinguishable
+	 * by leaf alone, so a colliding tab earns its parent folder: only the ones that
+	 * actually collide, and at every width.
+	 */
+	readonly tabLabels = $derived.by(() => {
+		const counts = new Map<string, number>();
+		for (const f of this.openTabFiles) {
+			const leaf = baseName(f.name);
+			counts.set(leaf, (counts.get(leaf) ?? 0) + 1);
+		}
+		return new Map(
+			this.openTabFiles.map((f) => {
+				const leaf = baseName(f.name);
+				const dir = (counts.get(leaf) ?? 0) > 1 ? leafOf(parentDir(f.name)) : '';
+				return [f.id, { leaf, dir }] as const;
+			})
+		);
 	});
 
 	/** Recently opened files that no longer have a tab: reopening them is one click. */
@@ -138,11 +231,71 @@ export class FileStore {
 		const visible = this.openTabFiles.map((f) => f.id);
 		if (visible.length <= 1) return;
 		const at = visible.indexOf(id);
-		this.openTabs = this.openTabs.filter((t) => t !== id);
+		this.#dropTab(id);
 		if (id === this.activeId) {
 			const next = visible[at + 1] ?? visible[at - 1];
 			if (next) void this.openFile(next);
 		}
+	}
+
+	/** Whether closing is offered at all: the strip never empties itself. */
+	readonly canCloseTab = $derived(this.openTabFiles.length > 1);
+
+	closeOtherTabs(id: string): void {
+		for (const f of this.openTabFiles) if (f.id !== id) this.#dropTab(f.id);
+		if (id !== this.activeId) void this.openFile(id);
+	}
+
+	closeTabsToRight(id: string): void {
+		const visible = this.openTabFiles.map((f) => f.id);
+		const at = visible.indexOf(id);
+		if (at === -1) return;
+		for (const victim of visible.slice(at + 1)) this.#dropTab(victim);
+		if (!visible.slice(0, at + 1).includes(this.activeId)) void this.openFile(id);
+	}
+
+	/** Close everything but the active file: an empty strip has nothing to show. */
+	closeAllTabs(): void {
+		this.closeOtherTabs(this.activeId);
+	}
+
+	/** Reopen the most recently closed tab (⌘⌥T), skipping files that are gone. */
+	reopenClosedTab(): void {
+		while (this.#closedTabs.length) {
+			const id = this.#closedTabs[this.#closedTabs.length - 1];
+			this.#closedTabs = this.#closedTabs.slice(0, -1);
+			if (this.files.some((f) => f.id === id)) {
+				if (!this.openTabs.includes(id)) this.openTabs = [...this.openTabs, id];
+				void this.openFile(id);
+				return;
+			}
+		}
+	}
+
+	/** Drag-reorder: put `id` where `beforeId` sits (end of the strip when null). */
+	moveTab(id: string, beforeId: string | null): void {
+		const order = this.openTabFiles.map((f) => f.id);
+		const from = order.indexOf(id);
+		if (from === -1 || id === beforeId) return;
+		order.splice(from, 1);
+		const to = beforeId === null ? order.length : order.indexOf(beforeId);
+		order.splice(to === -1 ? order.length : to, 0, id);
+		this.openTabs = order;
+	}
+
+	/** Step through the strip. Wraps, so ⌘⌥→ off the end lands on the first tab. */
+	cycleTab(direction: 1 | -1): void {
+		const order = this.openTabFiles.map((f) => f.id);
+		if (order.length < 2) return;
+		const at = order.indexOf(this.activeId);
+		void this.openFile(order[(at + direction + order.length) % order.length]);
+	}
+
+	/** ⌘1…⌘8 by position; ⌘9 is "the last one", as everywhere else. */
+	selectTabAt(index: number): void {
+		const order = this.openTabFiles.map((f) => f.id);
+		const id = index >= 8 ? order[order.length - 1] : order[index];
+		if (id) void this.openFile(id);
 	}
 
 	get hasProject(): boolean {
@@ -200,6 +353,10 @@ export class FileStore {
 	// The whole LaTeX family (sources, .bib, .toc, .aux …) gets the format toolbar;
 	// markdown / plain text / code do not.
 	readonly activeHasToolbar = $derived(this.activeKind === 'latex');
+	/** Whether the active file can open in the Visual editor at all. */
+	readonly activeVisual = $derived(
+		this.activeEditable && isVisualEditable(this.activeFile?.name ?? '')
+	);
 
 	// Project name shown in chrome: the open folder's name, else the prop default.
 	// A getter (not `$derived`) so it can reference the constructor-assigned
@@ -462,6 +619,7 @@ export class FileStore {
 			this.files = this.files.map((x) =>
 				x.id === f.id ? { ...x, id: newAbs, name: newRel, path: newAbs } : x
 			);
+			this.#remapTab(f.id, newAbs);
 			if (wasActive) this.activeId = newAbs;
 			if (wasMain) {
 				this.mainId = newAbs;
@@ -485,6 +643,7 @@ export class FileStore {
 			void this.writeManifest();
 		}
 		if (victim.id === this.activeId) this.activeId = '';
+		this.#dropTab(victim.id, false);
 		this.files = this.files.filter((x) => x.id !== victim.id);
 	}
 
@@ -533,6 +692,9 @@ export class FileStore {
 		let nextActive = this.activeId;
 		let nextMain = this.mainId;
 		let mainMoved = false;
+		// Collected, then applied in one pass: remapping inside the map would rebuild
+		// `openTabs` once per moved file.
+		const remapped: [string, string][] = [];
 		this.files = this.files.map((f) => {
 			if (f.name !== srcPath && !f.name.startsWith(prefix)) return f;
 			const newName = newPath + f.name.slice(srcPath.length);
@@ -543,10 +705,16 @@ export class FileStore {
 					nextMain = newAbs;
 					mainMoved = true;
 				}
+				remapped.push([f.id, newAbs]);
 				return { ...f, id: newAbs, name: newName, path: newAbs };
 			}
 			return { ...f, name: newName };
 		});
+		if (remapped.length) {
+			const moves = new Map(remapped);
+			this.openTabs = this.openTabs.map((t) => moves.get(t) ?? t);
+			this.recentIds = this.recentIds.map((r) => moves.get(r) ?? r);
+		}
 		this.extraFolders = this.extraFolders.map((p) =>
 			p === srcPath ? newPath : p.startsWith(prefix) ? newPath + p.slice(srcPath.length) : p
 		);
@@ -670,6 +838,7 @@ export class FileStore {
 		const removed = this.files.filter((f) => f.name === path || f.name.startsWith(prefix));
 		const hadMain = removed.some((f) => f.id === this.mainId);
 		const hadActive = removed.some((f) => f.id === this.activeId);
+		for (const f of removed) this.#dropTab(f.id, false);
 		this.files = this.files.filter((f) => !(f.name === path || f.name.startsWith(prefix)));
 		this.extraFolders = this.extraFolders.filter((p) => !(p === path || p.startsWith(prefix)));
 		if (hadMain) {
@@ -724,6 +893,7 @@ export class FileStore {
 			this.files = this.files.map((f) =>
 				f.id === id ? { ...f, id: newAbs, name: newRel, path: newAbs } : f
 			);
+			this.#remapTab(id, newAbs);
 			if (id === this.activeId) this.activeId = newAbs;
 			if (wasMain) {
 				this.mainId = newAbs;
@@ -759,6 +929,7 @@ export class FileStore {
 			}
 		}
 		const wasActive = id === this.activeId;
+		this.#dropTab(id, false);
 		this.files = remaining;
 		if (id === this.mainId) {
 			this.mainId = null;
@@ -854,8 +1025,14 @@ export class FileStore {
 			const focusId = focusPath
 				? this.files.find((f) => samePath(f.path, focusPath))?.id
 				: undefined;
-			const first = focusId ?? this.mainId ?? this.files[0]?.id;
 			this.activeId = '';
+			// The strip belongs to the project, not the window: reopening a folder
+			// restores the files you had open in it, and the one you left off in.
+			this.openTabs = [];
+			this.recentIds = [];
+			const last = this.restoreTabs(root);
+			// A launch path is an explicit request and outranks where you left off.
+			const first = focusId ?? last ?? this.mainId ?? this.files[0]?.id;
 			if (first) await this.openFile(first, true);
 			else this.source = '';
 			toast.success(`Opened ${baseName(root)}`);

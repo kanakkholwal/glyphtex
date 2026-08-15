@@ -20,7 +20,7 @@ export const LAYOUT_KEYS = {
 /**
  * Where you are in *this* window: which panel is open, which surface you're on.
  * Session-scoped so a second tab on another project opens clean instead of
- * inheriting — and so `visual` can never strand a fresh tab on the specimen pane.
+ * inheriting, so `visual` can never strand a fresh tab on the specimen pane.
  */
 export const TAB_CONTEXT: StoragePolicy = { storage: 'session' };
 

@@ -85,6 +85,9 @@ export type SearchMatch = {
 
 /** The imperative surface a `CodeEditor` exposes via `bind:this`. */
 export type EditorApi = {
+	/** False while the editor module is still loading: its methods no-op until
+	 *  then, so a queued reveal has to wait rather than be dropped. */
+	ready?: () => boolean;
 	wrapSelection: (before: string, after?: string) => void;
 	insertText: (text: string) => void;
 	selectedText: () => string;
@@ -103,6 +106,41 @@ export type EditorApi = {
 	) => void;
 	replaceAllMatches: (o: SearchOptions, replacement: string) => number;
 	clearSearch: () => void;
+};
+
+// --- Command definitions ----------------------------------------------------
+/**
+ * One invocable action. The controller declares these once; the command palette
+ * is what renders them. (They used to also feed a File/Edit/View menu tree in the
+ * header, which cost three levels of hover for every action.)
+ */
+export type MenuAction = {
+	type?: 'item';
+	label: string;
+	shortcut?: string;
+	checked?: boolean;
+	disabled?: boolean;
+	run?: () => void;
+	/** Item edits the document: put the caret back in the editor afterwards. */
+	refocusEditor?: boolean;
+};
+export type MenuSeparator = { type: 'separator' };
+export type MenuEntry = MenuAction | MenuSeparator;
+/** A named group of actions, e.g. "File". The name becomes the palette's group. */
+export type Menu = { label: string; items: MenuEntry[] };
+
+/**
+ * What the Visual pane exposes to the chrome around it. Deliberately small: the
+ * block editor's structural inserts belong to its own slash menu, not to a menu
+ * bar that cannot know where the caret is.
+ */
+export type VisualApi = {
+	undo: () => void;
+	redo: () => void;
+	canUndo: () => boolean;
+	canRedo: () => boolean;
+	/** Apply an inline mark to the selection (`bold`, `italic`, …). */
+	mark: (id: string) => void;
 };
 
 // --- Compilation ------------------------------------------------------------

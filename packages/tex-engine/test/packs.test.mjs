@@ -134,6 +134,20 @@ describe('resolveMissing', () => {
 		assert.deepEqual(unsupported, []);
 	});
 
+	test("ignores listings' non-existent numbered driver probes", () => {
+		// listings.sty probes lstlang0.sty / lstmisc0.sty, which no TeX Live ever
+		// shipped; the real drivers are in core. These must not read as unsupported.
+		const { unsupported } = resolveMissing(INDEX, ['lstlang0.sty', 'lstmisc0.sty']);
+		assert.deepEqual(unsupported, []);
+	});
+
+	test('still reports a real listings driver as missing', () => {
+		// The 0-probe filter must be exact: a genuinely absent lstlang2.sty is a
+		// real gap, not a benign probe.
+		const { unsupported } = resolveMissing(INDEX, ['lstlang2.sty']);
+		assert.deepEqual(unsupported, ['lstlang2.sty']);
+	});
+
 	test('still reports a genuinely unavailable package', () => {
 		const { unsupported } = resolveMissing(INDEX, ['exotic.sty', 'weird.cls']);
 		assert.deepEqual(unsupported, ['exotic.sty', 'weird.cls']);
