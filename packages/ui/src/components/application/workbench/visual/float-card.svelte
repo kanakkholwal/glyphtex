@@ -33,7 +33,8 @@
 		ctrl,
 		tex,
 		onpatch,
-		onopensource
+		onopensource,
+		onatom
 	}: {
 		block: FloatBlock;
 		source: string;
@@ -43,6 +44,8 @@
 		 *  to put `\usepackage{wrapfig}` in the preamble. */
 		onpatch: (patches: (Patch | null)[]) => void;
 		onopensource: () => void;
+		/** A cell's maths or citation was clicked; the pane owns that editor. */
+		onatom?: (element: HTMLElement) => void;
 	} = $props();
 
 	const isTable = $derived(block.environment.startsWith('table'));
@@ -151,6 +154,24 @@
 		{ id: 'raggedright', label: 'Align left', icon: IconAlignLeft },
 		{ id: 'centering', label: 'Centre', icon: IconAlignCenter },
 		{ id: 'raggedleft', label: 'Align right', icon: IconAlignRight }
+	];
+
+	/** LaTeX names the command; the card has to name a direction. */
+	const PLACEMENT_OF: Record<string, 'left' | 'center' | 'right'> = {
+		centering: 'center',
+		raggedright: 'left',
+		raggedleft: 'right'
+	};
+	const PLACE: Record<string, string> = {
+		left: 'justify-start',
+		center: 'justify-center',
+		right: 'justify-end'
+	};
+
+	const RULE_STYLES = [
+		{ id: 'none', label: 'None' },
+		{ id: 'rows', label: 'Rows' },
+		{ id: 'grid', label: 'Grid' }
 	];
 
 	const PLACEMENTS = [
@@ -283,7 +304,13 @@
 
 	{#if isTable}
 		{#if grid}
-			<TableGrid {grid} tex={tex!} onpatch={(patch) => onpatch([patch])} />
+			<TableGrid
+				{grid}
+				tex={tex!}
+				align={PLACEMENT_OF[alignment ?? 'raggedright']}
+				{onatom}
+				onpatch={(patch) => onpatch([patch])}
+			/>
 		{:else}
 			<div class="text-muted-foreground px-4 py-3 text-xs">
 				This table uses spanning cells or a column spec the grid editor cannot represent, so it is
@@ -291,7 +318,9 @@
 			</div>
 		{/if}
 	{:else}
-		<div class="flex min-h-28 items-center justify-center px-4 py-4">
+		<div
+			class="flex min-h-28 items-center px-4 py-4 {PLACE[PLACEMENT_OF[alignment ?? 'centering']]}"
+		>
 			{#if preview}
 				<img
 					src={preview}
@@ -333,15 +362,24 @@
 			{/each}
 			<span class="bg-border/70 mx-1.5 h-4 w-px"></span>
 		{:else if grid}
+			{@const style = grid.borders ? 'grid' : grid.ruleAfter ? 'rows' : 'none'}
 			<span class="text-faint mr-1 text-xs">Rules</span>
-			<button
-				type="button"
-				aria-pressed={grid.ruleAfter}
-				class="{CHIP} {grid.ruleAfter ? ON : OFF}"
-				onclick={() => onpatch([tex!.setTableRules(grid, !grid.ruleAfter)])}
-			>
-				{grid.ruleAfter ? 'On' : 'Off'}
-			</button>
+			{#each RULE_STYLES as option (option.id)}
+				<button
+					type="button"
+					aria-pressed={style === option.id}
+					class="{CHIP} {style === option.id ? ON : OFF}"
+					onclick={() =>
+						onpatch([
+							tex!.setTableStyle(grid, {
+								rules: option.id !== 'none',
+								borders: option.id === 'grid'
+							})
+						])}
+				>
+					{option.label}
+				</button>
+			{/each}
 			<span class="bg-border/70 mx-1.5 h-4 w-px"></span>
 		{/if}
 

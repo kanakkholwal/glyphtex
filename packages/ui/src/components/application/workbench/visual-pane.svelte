@@ -85,12 +85,35 @@
 			.catch((error) => (parseError = String(error)));
 	});
 
+	/** The file `doc` was parsed from. Plain, not `$state`: the parse effect writes
+	 *  it and must not re-run on its own write. */
+	let docFile: string | null = null;
+
 	// Parsing a long chapter costs ~170ms, far too much per keystroke, so an
 	// external change (the LaTeX view, a file switch) is debounced.
 	$effect(() => {
+		const file = files.activeId;
 		const source = files.source;
 		const module = tex;
-		if (!module || source === selfWritten) return;
+		if (!module) return;
+
+		// A file switch is a different document, not a new state of this one: drop
+		// the blocks and every overlay anchored into them, or the previous chapter
+		// stays on screen (and clickable) for the whole debounce.
+		if (file !== docFile) {
+			docFile = file;
+			selfWritten = null;
+			doc = undefined;
+			parseError = undefined;
+			draftAfter = null;
+			slash = null;
+			atom = null;
+			blockMenu = null;
+			selectionRect = null;
+		} else if (source === selfWritten) {
+			return;
+		}
+
 		let cancelled = false;
 		const timer = setTimeout(() => {
 			if (cancelled) return;
@@ -110,37 +133,57 @@
 	// --- Undo -------------------------------------------------------------------
 	// Visual edits bypass the LaTeX view's history (they are applied as external
 	// updates there), so this pane keeps its own.
-	const undoStack: string[] = [];
-	const redoStack: string[] = [];
-	let coalesceKey = '';
-	let coalesceAt = 0;
+	//
+	// Per file, not per pane: the stack holds whole-source snapshots, so one shared
+	// stack means ⌘Z after a file switch writes the *other* file's source into this
+	// one. Keyed by file id, and thrown away when its tab closes.
+	type History = { undo: string[]; redo: string[]; coalesceKey: string; coalesceAt: number };
+	const histories = new Map<string, History>();
+
+	function history(): History {
+		const id = files.activeId;
+		let entry = histories.get(id);
+		if (!entry) histories.set(id, (entry = { undo: [], redo: [], coalesceKey: '', coalesceAt: 0 }));
+		return entry;
+	}
+
+	// Its own effect, not part of the parse: reading the tab strip in there would
+	// re-parse the document every time any tab opened or closed.
+	$effect(() => {
+		const live = new Set(files.openTabFiles.map((f) => f.id));
+		for (const id of histories.keys()) if (!live.has(id)) histories.delete(id);
+	});
 
 	// Bounded by bytes, not entries: a thesis is a megabyte a snapshot, and 200 of
 	// those is a quarter of a gigabyte held for an undo nobody will reach for.
 	const UNDO_BUDGET = 8_000_000;
 
 	function pushUndo(source: string, coalesce?: string) {
+		const entry = history();
 		const now = Date.now();
 		// Typing into one block is a single undo step, not one per keystroke.
-		if (coalesce && coalesce === coalesceKey && now - coalesceAt < 1000) {
-			coalesceAt = now;
+		if (coalesce && coalesce === entry.coalesceKey && now - entry.coalesceAt < 1000) {
+			entry.coalesceAt = now;
 			return;
 		}
-		undoStack.push(source);
-		let held = undoStack.reduce((sum, entry) => sum + entry.length, 0);
-		while (undoStack.length > 1 && (held > UNDO_BUDGET || undoStack.length > 200)) {
-			held -= undoStack.shift()!.length;
+		entry.undo.push(source);
+		let held = entry.undo.reduce((sum, snapshot) => sum + snapshot.length, 0);
+		while (entry.undo.length > 1 && (held > UNDO_BUDGET || entry.undo.length > 200)) {
+			held -= entry.undo.shift()!.length;
 		}
-		redoStack.length = 0;
-		coalesceKey = coalesce ?? '';
-		coalesceAt = now;
+		entry.redo.length = 0;
+		entry.coalesceKey = coalesce ?? '';
+		entry.coalesceAt = now;
 	}
 
-	function restore(from: string[], to: string[]) {
+	function restore(direction: 'undo' | 'redo') {
+		const entry = history();
+		const from = direction === 'undo' ? entry.undo : entry.redo;
+		const to = direction === 'undo' ? entry.redo : entry.undo;
 		const previous = from.pop();
 		if (previous === undefined || !tex) return;
 		to.push(files.source);
-		coalesceKey = '';
+		entry.coalesceKey = '';
 		selfWritten = previous;
 		files.source = previous;
 		doc = tex.parseTexDoc(previous);
@@ -151,10 +194,10 @@
 		const key = event.key.toLowerCase();
 		if (key === 'z' && !event.shiftKey) {
 			event.preventDefault();
-			restore(undoStack, redoStack);
+			restore('undo');
 		} else if (key === 'y' || (key === 'z' && event.shiftKey)) {
 			event.preventDefault();
-			restore(redoStack, undoStack);
+			restore('redo');
 		}
 	}
 
@@ -546,6 +589,8 @@
 	const QUOTE_ENVIRONMENTS = ['quote', 'quotation', 'verse'];
 	/** Where a `\usepackage` a control needs would go. */
 	const preambleEnd = $derived(doc?.preamble.span.to ?? 0);
+	/** Any floating surface is up, so the per-block chrome should stand down. */
+	const overlayOpen = $derived(!!slash || !!atom || !!blockMenu);
 
 	function runBlockAction(action: BlockAction) {
 		const open = blockMenu;
@@ -609,7 +654,24 @@
 	function runSelectionCommand(id: string) {
 		const host = document.activeElement as HTMLElement | null;
 		const selected = document.getSelection()?.toString() ?? '';
-		if (!host?.hasAttribute('data-block-editor') || !selected) return;
+		if (!host?.hasAttribute('data-block-editor')) return;
+
+		// Before the empty-selection guard: a range over a `contenteditable=false`
+		// atom reports no text, and the link is exactly such an atom.
+		if (id === 'unlink') {
+			// Replace the atom with the words it was wrapping, rather than deleting
+			// the sentence the reader was pointing at.
+			const range = document.getSelection()?.getRangeAt(0);
+			const link = [...host.querySelectorAll('[data-atom="link"]')].find((element) =>
+				range?.intersectsNode(element)
+			);
+			if (!link) return;
+			link.replaceWith(document.createTextNode(link.getAttribute('data-src') || ''));
+			host.dispatchEvent(new Event('input', { bubbles: true }));
+			selectionRect = null;
+			return;
+		}
+		if (!selected) return;
 
 		if (NATIVE_MARKS[id]) {
 			// Tags, not inline styles: a style attribute has no LaTeX command behind it.
@@ -943,6 +1005,7 @@
 			{tex}
 			source={files.source}
 			onpatch={applyBlockPatch}
+			onatom={(element) => openAtom(index, element)}
 			onopensource={() => openInSource(block)}
 		/>
 	{:else}
@@ -1058,14 +1121,29 @@
 						block.kind === 'quote' ||
 						block.kind === 'list' ||
 						block.kind === 'float'}
-					<div class="group/block relative">
+					<div class="group/block relative" data-block-wrapper>
+						<!-- Where you are, without moving anything: a hairline in the gutter
+						     rather than a background, which would fight the prose. Driven by
+						     focus-within like the gutter beside it, so the two can never
+						     disagree about which block is live. -->
+						<span
+							aria-hidden="true"
+							class="group-focus-within/block:bg-brand/50 absolute top-0 -left-4 h-full w-0.5 rounded-full bg-transparent transition-colors"
+						></span>
 						<!-- The gutter lives in the article's own left padding, so it is never
 						     clipped however narrow the pane gets. The block's top margin
 						     collapses through this wrapper, which is what lines the controls up
 						     with the first line of text. Out of the tab order: tabbing a long
-						     document should walk its prose, not two buttons per block. -->
+						     document should walk its prose, not two buttons per block.
+
+						     Hidden while a menu is open: the pointer is over the menu, not the
+						     document, and two sets of controls competing for the same click is
+						     what makes a surface feel busy. -->
 						<div
-							class="pointer-events-none absolute top-0 -left-14 z-10 flex w-14 items-start justify-end gap-px pr-1.5 opacity-0 transition-opacity group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100 group-hover/block:pointer-events-auto group-hover/block:opacity-100"
+							data-block-gutter
+							class="pointer-events-none absolute top-0 -left-14 z-10 flex w-14 items-start justify-end gap-px pr-1.5 opacity-0 transition-opacity {overlayOpen
+								? ''
+								: 'group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100 group-hover/block:pointer-events-auto group-hover/block:opacity-100'}"
 						>
 							<button
 								type="button"

@@ -5,6 +5,7 @@ import {
 	applyPatches,
 	deleteTableColumn,
 	deleteTableRow,
+	cellRules,
 	ensurePackage,
 	floatAlignment,
 	floatLabel,
@@ -12,7 +13,9 @@ import {
 	floatWidth,
 	insertTableColumn,
 	insertTableRow,
+	parseInlineFragment,
 	parseTexDoc,
+	printInlines,
 	printTable,
 	readTable,
 	setEnvironment,
@@ -25,6 +28,7 @@ import {
 	setTableCell,
 	setTableColumnAlign,
 	setTableRules,
+	setTableStyle,
 	templateSource
 } from './.build/tex-doc.mjs';
 
@@ -151,6 +155,57 @@ describe('editing a table', () => {
 	test('column alignment is written into the spec', () => {
 		const read = after(setTableColumnAlign(grid(), 1, 'c'));
 		assert.deepEqual(read.columns, ['l', 'c']);
+	});
+
+	test('a cell holding markup reads as runs, not as characters', () => {
+		const src = body(
+			'\\begin{tabular}{l l}\n  \\textbf{SCP code} & \\emph{Description} \\\\\n  AMI & \\textbf{Anterior} infarction\n\\end{tabular}'
+		);
+		const read = readTable(src, first(src));
+		const runs = parseInlineFragment(read.rows[0].cells[0].text);
+		assert.equal(runs.length, 1);
+		assert.equal(runs[0].kind, 'mark');
+		assert.equal(runs[0].mark, 'bold');
+		// And back out byte for byte, or a cell edit would strip its own formatting.
+		assert.equal(printInlines(runs), '\\textbf{SCP code}');
+		const mixed = parseInlineFragment(read.rows[1].cells[1].text);
+		assert.equal(printInlines(mixed), '\\textbf{Anterior} infarction');
+	});
+
+	test('nested marks on one run survive a round trip', () => {
+		const runs = parseInlineFragment('\\textbf{\\textit{both}} and \\textsc{\\texttt{two}}');
+		assert.equal(printInlines(runs), '\\textbf{\\textit{both}} and \\textsc{\\texttt{two}}');
+	});
+
+	test('vertical rules are read from the spec and written back', () => {
+		const src = body('\\begin{tabular}{|l|c|}\n  \\hline\n  a & b \\\\\n  \\hline\n\\end{tabular}');
+		const grid = readTable(src, first(src));
+		assert.equal(grid.borders, true);
+		assert.deepEqual(grid.columns, ['l', 'c']);
+		const off = applyPatch(src, setTableStyle(grid, { rules: true, borders: false }));
+		assert.match(off, /\\begin\{tabular\}\{l c\}/);
+		assert.match(off, /\\hline/);
+		const grid2 = readTable(off, first(off));
+		const back = applyPatch(off, setTableStyle(grid2, { rules: false, borders: true }));
+		assert.match(back, /\\begin\{tabular\}\{\|l\|c\|\}/);
+		assert.ok(!back.includes('\\hline'));
+	});
+
+	test('the rules a cell shows are the rules the table will print', () => {
+		const src = body('\\begin{tabular}{|l|l|}\n  \\hline\n  a & b \\\\\n  c & d\n\\end{tabular}');
+		const grid = readTable(src, first(src));
+		assert.deepEqual(cellRules(grid, 0, 0), {
+			top: true,
+			bottom: false,
+			left: true,
+			right: true
+		});
+		assert.deepEqual(cellRules(grid, 1, 1), {
+			top: false,
+			bottom: false,
+			left: false,
+			right: true
+		});
 	});
 
 	test('rules can be turned off and back on', () => {

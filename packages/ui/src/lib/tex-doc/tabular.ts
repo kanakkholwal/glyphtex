@@ -255,15 +255,45 @@ export function setTableColumnAlign(grid: TableGrid, at: number, align: ColumnAl
 	);
 }
 
-/** Toggle the horizontal rules on and off as a set: a half-ruled table is a
- *  hand-tuned choice, and this control is for the common one. */
-export function setTableRules(grid: TableGrid, on: boolean): Patch {
+/**
+ * The rules a table draws, as one edit. Horizontal rules are `\hline`s and
+ * vertical ones are `|` in the column spec, but they are a single choice to the
+ * reader, and two patches over the same span would cancel each other out.
+ *
+ * Set as a group: a half-ruled table is a hand-tuned choice this control is not
+ * for, and booktabs-style top/head/bottom is what the rest want.
+ */
+export function setTableStyle(
+	grid: TableGrid,
+	style: { rules: boolean; borders: boolean }
+): Patch | null {
+	if (style.rules === grid.ruleAfter && style.borders === grid.borders) return null;
 	return {
 		...grid.span,
 		insert: printTable({
 			...grid,
-			rows: grid.rows.map((row, i) => ({ ...row, ruleBefore: on && (i === 0 || i === 1) })),
-			ruleAfter: on
+			borders: style.borders,
+			rows: grid.rows.map((row, i) => ({
+				...row,
+				ruleBefore: style.rules && (i === 0 || i === 1)
+			})),
+			ruleAfter: style.rules
 		})
+	};
+}
+
+/** Horizontal rules alone, for callers that do not care about the verticals. */
+export function setTableRules(grid: TableGrid, on: boolean): Patch | null {
+	return setTableStyle(grid, { rules: on, borders: grid.borders });
+}
+
+/** Whether a cell has a rule drawn along each edge, so the grid on screen shows
+ *  the same lines the compiled table will. */
+export function cellRules(grid: TableGrid, row: number, column: number) {
+	return {
+		top: row === 0 && grid.rows[0].ruleBefore,
+		bottom: row === grid.rows.length - 1 ? grid.ruleAfter : grid.rows[row + 1].ruleBefore,
+		left: grid.borders && column === 0,
+		right: grid.borders
 	};
 }

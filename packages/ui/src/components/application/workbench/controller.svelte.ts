@@ -9,8 +9,16 @@ import { CompileStore } from './compile.svelte';
 import { FileStore } from './files.svelte';
 import { LayoutStore } from './layout.svelte';
 import { NotesStore } from './notes.svelte';
+import { baseName } from './paths';
 import { SearchStore } from './search.svelte';
-import type { CompileFilesFn, CompileFn, CompileProjectFn, GlyphFile, SaveFileFn } from './types';
+import type {
+	CompileFilesFn,
+	CompileFn,
+	CompileProjectFn,
+	DocMode,
+	GlyphFile,
+	SaveFileFn
+} from './types';
 
 /** A file or folder the user asked to save out of the workbench. */
 export type DownloadRequest = {
@@ -127,7 +135,8 @@ export class WorkbenchController {
 			git: props.git,
 			gitRoot: props.gitRoot,
 			initialFiles: props.initialFiles,
-			projectName: props.projectName ?? 'glyphtex-project'
+			projectName: props.projectName ?? 'glyphtex-project',
+			scope: props.documentId ?? props.projectName ?? 'glyphtex-project'
 		});
 		this.layout = new LayoutStore({
 			git: props.git,
@@ -154,6 +163,31 @@ export class WorkbenchController {
 
 		// Opening a project closes any diff left over from the previous one.
 		this.files.onProjectLoaded = () => this.layout.closeDiff();
+	}
+
+	// --- Which editor is actually on screen ---
+	// Getters, not `$derived`: they read constructor-assigned stores, which a field
+	// initializer would touch before the constructor runs.
+	/** Whether the active file has a document body the block editor can show. A
+	 *  `.bib`, a `.md` or a PNG does not, and parsing one as LaTeX would corrupt it. */
+	get visualAllowed(): boolean {
+		return this.files.activeVisual;
+	}
+
+	/** Why Visual is unavailable, for the mode switch's tooltip. */
+	get visualBlockedReason(): string | null {
+		if (this.visualAllowed) return null;
+		const name = this.files.activeFile?.name;
+		return name ? `Visual editing is for .tex files: ${baseName(name)} opens as source` : null;
+	}
+
+	/**
+	 * The surface to render. `layout.docMode` is what the user picked and is kept
+	 * as-is, so opening a `.bib` and coming back returns you to Visual rather than
+	 * silently demoting the preference.
+	 */
+	get docMode(): DocMode {
+		return this.layout.docMode === 'visual' && this.visualAllowed ? 'visual' : 'latex';
 	}
 
 	// --- Open / import (host hook, else the desktop ProjectHost) ---
@@ -421,6 +455,30 @@ export class WorkbenchController {
 					},
 					{ type: 'separator' },
 					{
+						label: 'Next Open File',
+						shortcut: shortcutLabel('next-tab'),
+						disabled: this.files.openTabFiles.length < 2,
+						run: () => this.files.cycleTab(1)
+					},
+					{
+						label: 'Previous Open File',
+						shortcut: shortcutLabel('prev-tab'),
+						disabled: this.files.openTabFiles.length < 2,
+						run: () => this.files.cycleTab(-1)
+					},
+					{
+						label: 'Close Open File',
+						shortcut: shortcutLabel('close-tab'),
+						disabled: !this.files.canCloseTab,
+						run: () => this.files.closeTab(this.files.activeId)
+					},
+					{
+						label: 'Reopen Closed File',
+						shortcut: shortcutLabel('reopen-tab'),
+						run: () => this.files.reopenClosedTab()
+					},
+					{ type: 'separator' },
+					{
 						label: 'Sync to PDF',
 						shortcut: shortcutLabel('sync-pdf'),
 						run: () => this.compile.syncToPdf()
@@ -473,10 +531,21 @@ export class WorkbenchController {
 	onKeydown(e: KeyboardEvent): void {
 		// Cheap early-out: every app shortcut carries a Mod (⌘/Ctrl).
 		if (!(e.ctrlKey || e.metaKey)) return;
+		// ⌘1…⌘9 by position. Matched here rather than as nine registry entries,
+		// which would be nine near-identical rows in the shortcuts dialog.
+		if (!e.shiftKey && !e.altKey && /^[1-9]$/.test(e.key)) {
+			e.preventDefault();
+			this.files.selectTabAt(Number(e.key) - 1);
+			return;
+		}
 		const actions: Array<[string, () => void]> = [
 			// Save-all before save so ⌘⇧S isn't shadowed by the ⌘S match.
 			['save-all', () => void this.files.saveAll()],
 			['save', () => void this.files.saveActive()],
+			['next-tab', () => this.files.cycleTab(1)],
+			['prev-tab', () => this.files.cycleTab(-1)],
+			['close-tab', () => this.files.closeTab(this.files.activeId)],
+			['reopen-tab', () => this.files.reopenClosedTab()],
 			['compile', () => this.compile.runCompile(true)],
 			['sync-pdf', () => this.compile.syncToPdf()],
 			['quick-open', () => (this.layout.paletteOpen = true)],

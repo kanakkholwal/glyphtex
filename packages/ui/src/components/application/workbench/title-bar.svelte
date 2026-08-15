@@ -14,8 +14,6 @@
 		IconFolderOpen,
 		IconFolderShare,
 		IconLayoutBottombar,
-		IconLayoutSidebar,
-		IconLayoutSidebarRight,
 		IconLoader2,
 		IconPencil,
 		IconSearch
@@ -192,11 +190,11 @@
 	<BranchMenu head={files.head} onopenpanel={() => layout.selectView('git')} />
 
 	<span class="bg-border mx-1.5 h-4 w-px shrink-0" aria-hidden="true"></span>
-	<ModeSwitch {layout} />
+	<ModeSwitch {ctrl} />
 
 	<div class="min-w-2 flex-1"></div>
 
-	{#if layout.docMode === 'latex'}
+	{#if ctrl.docMode === 'latex'}
 		<div class="mr-1 hidden shrink-0 items-center gap-0.5 md:flex">
 			{#if compile.canCompile}
 				<CompileControl {ctrl} />
@@ -243,20 +241,8 @@
 			</span>
 		{/if}
 
-		<Button
-			variant="ghost"
-			size="icon-sm"
-			title="Toggle sidebar ({shortcutLabel('toggle-sidebar')})"
-			aria-label="Toggle sidebar"
-			aria-pressed={!layout.panelCollapsed}
-			onclick={() => (layout.panelCollapsed = !layout.panelCollapsed)}
-		>
-			{#if layout.sidebarRight}
-				<IconLayoutSidebarRight class={layout.panelCollapsed ? 'opacity-60' : ''} />
-			{:else}
-				<IconLayoutSidebar class={layout.panelCollapsed ? 'opacity-60' : ''} />
-			{/if}
-		</Button>
+		<!-- The sidebar toggle lives on the tab rail now: it sits on the panel's own
+		     seam instead of a thousand pixels away on the opposite edge. -->
 		<Button
 			variant="ghost"
 			size="icon-sm"

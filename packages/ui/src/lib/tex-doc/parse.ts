@@ -270,6 +270,15 @@ function blockInlines(nodes: Node[], source: string): Inline[] {
 	return trimRuns(parseInlines(nodes, source));
 }
 
+/**
+ * Read a snippet that is not a block of its own: a table cell, where `\textbf{…}`
+ * has to render as bold rather than as the six characters someone typed.
+ */
+export function parseInlineFragment(source: string): Inline[] {
+	if (!source.trim()) return [];
+	return blockInlines(children(parseMinimal(source) as unknown as Node), source);
+}
+
 // --- Blocks ------------------------------------------------------------------
 
 /**

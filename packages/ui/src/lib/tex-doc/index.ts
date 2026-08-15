@@ -1,4 +1,4 @@
-export { parseTexDoc } from './parse';
+export { parseInlineFragment, parseTexDoc } from './parse';
 export { escapeText, printBlock, printInlines, sectionCommand } from './print';
 export {
 	applyPatch,
@@ -32,6 +32,7 @@ export {
 } from './edit';
 export type { FloatAlignment, Patch } from './edit';
 export {
+	cellRules,
 	deleteTableColumn,
 	deleteTableRow,
 	insertTableColumn,
@@ -40,7 +41,8 @@ export {
 	readTable,
 	setTableCell,
 	setTableColumnAlign,
-	setTableRules
+	setTableRules,
+	setTableStyle
 } from './tabular';
 export type { ColumnAlign, TableCell, TableGrid, TableRow } from './tabular';
 export {

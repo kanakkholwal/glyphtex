@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ColumnAlign, Patch, TableGrid } from '@glyphtex/ui/tex-doc';
+	import type { ColumnAlign, Inline, Patch, TableGrid } from '@glyphtex/ui/tex-doc';
 	import {
 		IconAlignCenter,
 		IconAlignLeft,
@@ -12,21 +12,31 @@
 		IconTrash
 	} from '@tabler/icons-svelte';
 
+	import BlockEditor from './block-editor.svelte';
+
 	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
 
 	/**
 	 * A `tabular` edited as a grid. The handles live in the table itself rather
 	 * than in a floating overlay, so a column control is always exactly as wide as
 	 * its column however the browser lays the table out.
+	 *
+	 * A cell is a full inline editor, not a text box: `\textbf{…}` in a header has
+	 * to read as bold here, and the format bar has to work inside it.
 	 */
 	let {
 		grid,
 		tex,
-		onpatch
+		align = 'left',
+		onpatch,
+		onatom
 	}: {
 		grid: TableGrid;
 		tex: TexDocModule;
+		/** How the float places the table on the page, mirrored here. */
+		align?: 'left' | 'center' | 'right';
 		onpatch: (patch: Patch | null) => void;
+		onatom?: (el: HTMLElement) => void;
 	} = $props();
 
 	let menu = $state<{ axis: 'row' | 'column'; index: number; x: number; y: number } | null>(null);
@@ -38,6 +48,23 @@
 	];
 
 	const JUSTIFY: Record<string, string> = { l: 'text-left', c: 'text-center', r: 'text-right' };
+	const PLACE: Record<string, string> = {
+		left: 'justify-start',
+		center: 'justify-center',
+		right: 'justify-end'
+	};
+
+	// Parsing is cheap per cell but a long table reparses on every keystroke in the
+	// document, so the results are kept.
+	const parsed = new Map<string, Inline[]>();
+	function runsOf(text: string): Inline[] {
+		let runs = parsed.get(text);
+		if (!runs) {
+			runs = tex.parseInlineFragment(text);
+			parsed.set(text, runs);
+		}
+		return runs;
+	}
 
 	function openMenu(axis: 'row' | 'column', index: number, event: MouseEvent) {
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -49,28 +76,8 @@
 		onpatch(patch);
 	}
 
-	/** Write the cell's text in only while the caret is somewhere else: a live
-	 *  edit would otherwise be overwritten by the source it just produced. */
-	function cellText(node: HTMLElement, text: string) {
-		const sync = (next: string) => {
-			if (document.activeElement !== node && node.textContent !== next) node.textContent = next;
-		};
-		sync(text);
-		return { update: sync };
-	}
-
-	function commitCell(row: number, column: number, event: FocusEvent) {
-		const node = event.currentTarget as HTMLElement;
-		onpatch(tex.setTableCell(grid, row, column, node.textContent ?? ''));
-	}
-
-	function onCellKeyDown(event: KeyboardEvent) {
-		// Enter would put a line break inside a cell, which is not a thing a
-		// `tabular` cell can hold. Tab walks to the next one, as in every grid.
-		if (event.key === 'Enter') {
-			event.preventDefault();
-			(event.currentTarget as HTMLElement).blur();
-		}
+	function commitCell(row: number, column: number, runs: Inline[]) {
+		onpatch(tex.setTableCell(grid, row, column, tex.printInlines(runs)));
 	}
 
 	const HANDLE =
@@ -79,7 +86,7 @@
 		'text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-[0.8125rem]';
 </script>
 
-<div class="group/table overflow-x-auto px-3 py-2">
+<div class="group/table flex overflow-x-auto px-3 py-2 {PLACE[align]}">
 	<table class="border-separate border-spacing-0 text-sm">
 		<tbody>
 			<tr>
@@ -88,6 +95,7 @@
 					<td class="p-0">
 						<button
 							type="button"
+							tabindex="-1"
 							class="{HANDLE} h-3.5 w-full"
 							aria-label="Column {c + 1} actions"
 							onclick={(e) => openMenu('column', c, e)}
@@ -99,6 +107,7 @@
 				<td class="p-0 pl-1">
 					<button
 						type="button"
+						tabindex="-1"
 						class="{HANDLE} size-3.5"
 						aria-label="Add column"
 						title="Add column"
@@ -114,6 +123,7 @@
 					<td class="p-0 pr-1">
 						<button
 							type="button"
+							tabindex="-1"
 							class="{HANDLE} h-full w-3.5"
 							aria-label="Row {r + 1} actions"
 							onclick={(e) => openMenu('row', r, e)}
@@ -122,21 +132,26 @@
 						</button>
 					</td>
 					{#each row.cells as cell, c (c)}
+						{@const rules = tex.cellRules(grid, r, c)}
+						<!-- The borders come from the model, so the grid on screen shows the
+						     lines the compiled table will have, and no others. -->
 						<td
-							class="border-border min-w-24 border-b px-2.5 py-1.5 {JUSTIFY[grid.columns[c]] ??
-								'text-left'} {r === 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}"
+							class="border-border min-w-24 px-2.5 py-1.5 {JUSTIFY[grid.columns[c]] ??
+								'text-left'} {r === 0
+								? 'text-foreground font-medium'
+								: 'text-muted-foreground'} {rules.top ? 'border-t' : ''} {rules.bottom
+								? 'border-b'
+								: ''} {rules.left ? 'border-l' : ''} {rules.right ? 'border-r' : ''}"
 						>
-							<span
-								contenteditable="true"
-								role="textbox"
-								tabindex="0"
-								aria-label="Row {r + 1}, column {c + 1}"
-								data-table-cell
-								class="focus-visible:bg-accent/60 block rounded-sm outline-none"
-								use:cellText={cell.text}
-								onblur={(e) => commitCell(r, c, e)}
-								onkeydown={onCellKeyDown}
-							></span>
+							<BlockEditor
+								runs={runsOf(cell.text)}
+								tag="span"
+								commitOn="blur"
+								class="focus-visible:bg-accent/60 block rounded-sm"
+								label="Row {r + 1}, column {c + 1}"
+								oninput={(runs) => commitCell(r, c, runs)}
+								onatom={(el) => onatom?.(el)}
+							/>
 						</td>
 					{/each}
 					<td></td>
@@ -148,6 +163,7 @@
 				<td class="p-0 pt-1" colspan={grid.columns.length}>
 					<button
 						type="button"
+						tabindex="-1"
 						class="{HANDLE} h-3.5 w-full"
 						aria-label="Add row"
 						title="Add row"
@@ -184,6 +200,9 @@
 				>
 					<Icon size={14} class="shrink-0" />
 					{align.label}
+					{#if grid.columns[m.index] === align.id}
+						<span class="bg-brand ml-auto size-1.5 rounded-full"></span>
+					{/if}
 				</button>
 			{/each}
 			<div class="bg-border/70 my-1 h-px"></div>

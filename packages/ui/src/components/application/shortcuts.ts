@@ -1,5 +1,6 @@
 export type ShortcutCategory =
 	| 'Files & project'
+	| 'Open files'
 	| 'Editing'
 	| 'Search'
 	| 'Compile & preview'
@@ -29,6 +30,24 @@ export const SHORTCUTS: Shortcut[] = [
 	{ id: 'new-file', label: 'New file', category: 'Files & project', combos: ['Mod+N'] },
 	{ id: 'save', label: 'Save', category: 'Files & project', combos: ['Mod+S'] },
 	{ id: 'save-all', label: 'Save all', category: 'Files & project', combos: ['Mod+Shift+S'] },
+
+	// All Alt-based: browsers own Mod+W, Mod+Shift+W and Mod+Shift+T, and a
+	// shortcut that closes the whole window is not a tab shortcut.
+	{
+		id: 'next-tab',
+		label: 'Next open file',
+		category: 'Open files',
+		combos: ['Mod+Alt+ArrowRight']
+	},
+	{
+		id: 'prev-tab',
+		label: 'Previous open file',
+		category: 'Open files',
+		combos: ['Mod+Alt+ArrowLeft']
+	},
+	{ id: 'close-tab', label: 'Close open file', category: 'Open files', combos: ['Mod+Alt+W'] },
+	{ id: 'reopen-tab', label: 'Reopen closed file', category: 'Open files', combos: ['Mod+Alt+T'] },
+	{ id: 'go-to-tab', label: 'Go to open file 1…9', category: 'Open files', combos: ['Mod+1'] },
 
 	{ id: 'undo', label: 'Undo', category: 'Editing', combos: ['Mod+Z'] },
 	{ id: 'redo', label: 'Redo', category: 'Editing', combos: ['Mod+Shift+Z', 'Mod+Y'] },
@@ -70,7 +89,9 @@ const TOKEN_LABEL: Record<string, { mac: string; other: string }> = {
 	Mod: { mac: '⌘', other: 'Ctrl' },
 	Shift: { mac: '⇧', other: 'Shift' },
 	Alt: { mac: '⌥', other: 'Alt' },
-	Enter: { mac: '↵', other: 'Enter' }
+	Enter: { mac: '↵', other: 'Enter' },
+	ArrowLeft: { mac: '←', other: '←' },
+	ArrowRight: { mac: '→', other: '→' }
 };
 
 function tokenLabel(token: string, mac: boolean): string {
@@ -111,7 +132,10 @@ function comboMatches(e: KeyboardEvent, combo: string, mac: boolean): boolean {
 	if (wantAlt !== e.altKey) return false;
 
 	if (key === 'Enter') return e.key === 'Enter';
-	return e.key.toLowerCase() === key.toLowerCase();
+	if (e.key.toLowerCase() === key.toLowerCase()) return true;
+	// Alt rewrites `key` on macOS (⌥W arrives as "∑"), so fall back to the
+	// physical key. `code` is layout-dependent, which is why it isn't the default.
+	return wantAlt && e.code === (key.length === 1 ? `Key${key.toUpperCase()}` : key);
 }
 
 /** True when a keyboard event matches any combo of the given shortcut id. */

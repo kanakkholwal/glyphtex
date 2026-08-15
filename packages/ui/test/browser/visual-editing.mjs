@@ -33,21 +33,6 @@ const article = fs.readFileSync(
 );
 const source = editorDoc;
 
-async function loadSource(text, marker) {
-	for (let attempt = 0; attempt < 3; attempt++) {
-		await clearModals();
-		await focusDoc();
-		await key('a', 'KeyA', 65, 2);
-		await sleep(150);
-		await send('Input.insertText', { text });
-		await sleep(900);
-		if ((await source())?.includes(marker)) return true;
-	}
-	return false;
-}
-
-check('fixture loads in the LaTeX view', await loadSource(article, 'Consistency of Estimators'));
-
 const toVisual = async () => {
 	await ev(
 		`(() => { const b = [...document.querySelectorAll('button')].find(x => /^visual$/i.test((x.textContent||'').trim())); b?.click(); return !!b; })()`
@@ -68,6 +53,24 @@ const toLatex = async () => {
 	}
 	return false;
 };
+
+async function loadSource(text, marker) {
+	// The source only exists in the LaTeX view, and a section that ended in visual
+	// mode would otherwise type into nothing and fail three checks later.
+	await toLatex();
+	for (let attempt = 0; attempt < 3; attempt++) {
+		await clearModals();
+		await focusDoc();
+		await key('a', 'KeyA', 65, 2);
+		await sleep(150);
+		await send('Input.insertText', { text });
+		await sleep(900);
+		if ((await source())?.includes(marker)) return true;
+	}
+	return false;
+}
+
+check('fixture loads in the LaTeX view', await loadSource(article, 'Consistency of Estimators'));
 
 check('visual mode renders editable blocks', await toVisual());
 
@@ -321,11 +324,11 @@ await sleep(300);
 check(
 	'the format bar has an overflow with the rest of the marks',
 	(await ev(
-		`document.querySelectorAll('[aria-label="More formatting"][role="menu"] [role="menuitem"]').length`
+		`document.querySelectorAll('[aria-label="More formatting"][role="menu"] [role="menuitemcheckbox"]').length`
 	)) >= 7
 );
 await ev(`(() => {
-  const item = [...document.querySelectorAll('[role="menuitem"]')].find(i => i.textContent.includes('Small caps'));
+  const item = [...document.querySelectorAll('[role="menuitemcheckbox"]')].find(i => i.textContent.includes('Small caps'));
   item?.click();
   return !!item;
 })()`);
@@ -336,6 +339,162 @@ check(
 	/\\textsc\{/.test((await source()) ?? ''),
 	JSON.stringify((await source())?.match(/\\text(sc|it)\{[^}]*\}/)?.[0])
 );
+
+// --- The bar reports the selection as well as changing it ---------------------
+check('reload for the bar state checks', await loadSource(article, 'Consistency of Estimators'));
+await toVisual();
+await sleep(500);
+const selectWord = () =>
+	ev(`(() => {
+  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
+  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
+  el.focus();
+  const r = document.createRange();
+  r.setStart(node, 0); r.setEnd(node, 4);
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  document.dispatchEvent(new Event('selectionchange'));
+  return true;
+})()`);
+await selectWord();
+await sleep(400);
+const barOrder = await ev(
+	`[...document.querySelectorAll('[aria-label="Format selection"] > button')].map(b => b.getAttribute('aria-label'))`
+);
+check(
+	'bold, italic and underline sit together, then the objects, then the link',
+	JSON.stringify(barOrder) ===
+		JSON.stringify([
+			'Bold',
+			'Italic',
+			'Underline',
+			'Monospace',
+			'Inline maths',
+			'Link',
+			'More formatting'
+		]),
+	JSON.stringify(barOrder)
+);
+check(
+	'nothing reads as on before anything is applied',
+	await ev(
+		`[...document.querySelectorAll('[aria-label="Format selection"] > button')].every(b => b.getAttribute('aria-pressed') !== 'true')`
+	)
+);
+
+// Two marks on the same words, then the bar has to show both.
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Format selection"] [aria-label="Bold"]'); b?.click(); return !!b; })()`
+);
+await sleep(400);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Format selection"] [aria-label="Italic"]'); b?.click(); return !!b; })()`
+);
+await sleep(400);
+const stacked = await ev(`(() => {
+  const bar = document.querySelector('[aria-label="Format selection"]');
+  const on = [...bar.querySelectorAll('button')].filter(b => b.getAttribute('aria-pressed') === 'true');
+  return on.map(b => b.getAttribute('aria-label'));
+})()`);
+check(
+	'two marks on one selection both show as on',
+	stacked.includes('Bold') && stacked.includes('Italic'),
+	JSON.stringify(stacked)
+);
+await toLatex();
+check(
+	'and both reach the source, nested',
+	/\\text(bf|it)\{\\text(bf|it)\{/.test((await source()) ?? ''),
+	JSON.stringify((await source())?.match(/\\text(bf|it)\{[^}]*\}[^\n]{0,20}/)?.[0])
+);
+
+// A link can be taken off again without deleting the words it wrapped.
+await toVisual();
+await sleep(500);
+await selectWord();
+await sleep(400);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Format selection"] [aria-label="Link"]'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('[role="dialog"] button')].find(x => x.textContent.trim() === 'Apply'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+await toLatex();
+check('the Link control writes an \\href', /\\href\{/.test((await source()) ?? ''));
+
+await toVisual();
+await sleep(500);
+const overLink = await ev(`(() => {
+  const link = document.querySelector('[data-atom="link"]');
+  if (!link) return false;
+  const host = link.closest('[data-block-editor]');
+  host.focus();
+  const r = document.createRange();
+  r.selectNode(link);
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  document.dispatchEvent(new Event('selectionchange'));
+  return true;
+})()`);
+await sleep(400);
+check(
+	'selecting a link swaps the control for Unlink',
+	overLink && (await ev(`!!document.querySelector('[aria-label="Remove link"]')`))
+);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Remove link"]'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+await toLatex();
+const unlinked = await source();
+check('unlinking removes the command but keeps the words', !/\\href\{/.test(unlinked ?? ''));
+
+// --- The gutter stands down while a menu owns the pointer ---------------------
+await toVisual();
+await sleep(500);
+// The pane re-renders for a beat after the mode switch, which drops the focus
+// this section is about. Land it, then check.
+for (let i = 0; i < 10; i++) {
+	await caretInBlock(1);
+	await sleep(200);
+	if (await ev(`!!document.querySelector('[data-block-wrapper]:focus-within')`)) break;
+}
+const gutterVisible = () =>
+	ev(`(() => {
+  const g = document.querySelector('[data-block-wrapper]:focus-within [data-block-gutter]');
+  return g ? getComputedStyle(g).opacity : 'no gutter';
+})()`);
+const gutterOn = await gutterVisible();
+check('the gutter shows on the focused block', gutterOn === '1', String(gutterOn));
+check(
+	'the focused block carries an active marker, and only that block',
+	await ev(
+		`(() => {
+		  const w = document.activeElement.closest('[data-block-wrapper]');
+		  if (!w) return false;
+		  const bar = w.querySelector('span[aria-hidden]');
+		  const lit = getComputedStyle(bar).backgroundColor;
+		  return lit !== 'rgba(0, 0, 0, 0)' && !lit.includes('/ 0)');
+		})()`
+	)
+);
+await ev(
+	`(() => {
+	  const w = document.querySelector('[data-block-wrapper]:focus-within');
+	  const b = w?.querySelector('[aria-label="Block actions"]');
+	  b?.click();
+	  return !!b;
+	})()`
+);
+await sleep(400);
+const gutterOff = await gutterVisible();
+check(
+	'the gutter hides once its menu is open',
+	gutterOff === '0' || gutterOff === 'no gutter',
+	String(gutterOff)
+);
+await key('Escape', 'Escape', 27);
+await sleep(300);
 
 // --- Atoms are editable, not read-only holes ----------------------------------
 check('reload for the atom checks', await loadSource(article, 'Consistency of Estimators'));
@@ -467,7 +626,7 @@ const TABLE_DOC = [
 	'  \\centering',
 	'  \\begin{tabular}{l l}',
 	'    \\hline',
-	'    Header 1 & Header 2 \\\\',
+	'    \\textbf{Header 1} & Header 2 \\\\',
 	'    \\hline',
 	'    Cell 1 & Cell 2 \\\\',
 	'    Cell 3 & Cell 4 \\\\',
@@ -489,7 +648,7 @@ await sleep(600);
 
 const shape = () =>
 	ev(`(() => {
-  const cells = [...document.querySelectorAll('[data-table-cell]')];
+  const cells = [...document.querySelectorAll('td [data-block-editor]')];
   return { cells: cells.length, texts: cells.map(c => c.textContent.trim()) };
 })()`);
 const grid0 = await shape();
@@ -499,12 +658,27 @@ check(
 	grid0.texts.join('|') === 'Header 1|Header 2|Cell 1|Cell 2|Cell 3|Cell 4',
 	JSON.stringify(grid0.texts)
 );
+// The header is `\textbf{…}` in the source. Showing those six characters is what
+// a text box does; a cell has to render them.
+check(
+	'a cell renders its formatting instead of printing the macro',
+	await ev(
+		`!!document.querySelector('td [data-block-editor] strong') && !document.querySelector('td [data-block-editor]').textContent.includes('textbf')`
+	),
+	await ev(`document.querySelector('td [data-block-editor]').innerHTML`)
+);
+check(
+	'vertical rules are absent when the spec has no pipes',
+	await ev(
+		`[...document.querySelectorAll('td')].every(t => !getComputedStyle(t).borderRightWidth.startsWith('1'))`
+	)
+);
 
 await ev(`(() => {
-  const cell = document.querySelectorAll('[data-table-cell]')[3];
+  const cell = document.querySelectorAll('td [data-block-editor]')[3];
   cell.focus();
   cell.textContent = 'Edited cell';
-  cell.dispatchEvent(new FocusEvent('blur'));
+  cell.blur();
   return true;
 })()`);
 await sleep(700);
@@ -558,6 +732,28 @@ check(
 	'column alignment lands in the spec',
 	/\\begin\{tabular\}\{l c l\}/.test((await source()) ?? ''),
 	JSON.stringify((await source())?.match(/\\begin\{tabular\}\{[^}]*\}/)?.[0])
+);
+
+// --- Vertical rules exist, in both directions ---------------------------------
+await toVisual();
+await sleep(500);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('figure button')].find(x => x.textContent.trim() === 'Grid'); b?.click(); return !!b; })()`
+);
+await sleep(700);
+await toLatex();
+check(
+	'the Grid style writes pipes into the column spec',
+	/\\begin\{tabular\}\{\|l\|c\|l\|\}/.test((await source()) ?? ''),
+	JSON.stringify((await source())?.match(/\\begin\{tabular\}\{[^}]*\}/)?.[0])
+);
+await toVisual();
+await sleep(600);
+check(
+	'and the grid on screen draws them too',
+	await ev(
+		`[...document.querySelectorAll('td')].some(t => getComputedStyle(t).borderRightWidth.startsWith('1'))`
+	)
 );
 
 // --- A figure with no caption can still be given one --------------------------
@@ -663,7 +859,13 @@ check('and loads the package it needs', /\\usepackage\{wrapfig\}/.test(wrapped ?
 
 // --- Undo ---------------------------------------------------------------------
 await toVisual();
-await caretInBlock(0);
+// The pane keeps re-rendering for a beat after the switch, which drops the caret;
+// typing into nothing would make this check pass for the wrong reason.
+for (let i = 0; i < 10; i++) {
+	await caretInBlock(0);
+	await sleep(200);
+	if (await ev(`!!document.querySelector('[data-block-wrapper]:focus-within')`)) break;
+}
 await typeText('ZZZ');
 await sleep(500);
 await key('z', 'KeyZ', 90, 2);
