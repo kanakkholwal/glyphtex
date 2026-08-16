@@ -1,4 +1,5 @@
 import type { Diagnostic, PackDefinition } from 'glyphtex-engine';
+import { CompileCache, signature } from './compile-cache';
 import { loadManifest, openEngineCache } from './tex/manifest';
 import type { CompileFile, UnsentRequest, WorkerRequest, WorkerResponse } from './tex/protocol';
 
@@ -128,6 +129,11 @@ function bytesToBase64(bytes: Uint8Array): string {
 	return btoa(binary);
 }
 
+// Only clean successes are cached. A recovered compile that still reported
+// missing packs must recompile after the user installs them, and a failure is
+// where the user is actively editing — neither is stable input→output.
+const compileCache = new CompileCache<CompileOutcome>();
+
 /** Single-file compile; the multi-file path with one `main.tex` mounted. */
 export function compileLatex(source: string): Promise<CompileOutcome> {
 	return compileFiles([{ name: 'main.tex', text: source }], 'main.tex', 'scratch');
@@ -153,6 +159,13 @@ export async function compileFiles(
 		return { error: `The main file "${entry}" is not part of this document.` };
 	}
 
+	// Nothing changed since the last clean build of this document: return it
+	// without waking the engine. This is the common "compile fired but the source
+	// is identical" case (auto-compile on an idle timer, or Compile pressed twice).
+	const sig = signature(files, entry);
+	const cached = compileCache.get(docId, sig);
+	if (cached) return cached;
+
 	let response: WorkerResponse;
 	try {
 		response = await send({ type: 'compile', files, entry, docId });
@@ -170,13 +183,19 @@ export async function compileFiles(
 
 	// Show any PDF TeX produced even on error: it recovers and still typesets.
 	if (response.pdf && response.pdf.byteLength > 0) {
-		return {
+		const outcome: CompileOutcome = {
 			pdf: bytesToBase64(response.pdf),
 			log: response.log,
 			diagnostics: response.diagnostics,
 			missingPacks: response.missingPacks,
 			unsupportedFiles: response.unsupportedFiles
 		};
+		// Cache only a clean success: a build still wanting packs must recompile
+		// once they are installed, so its output is not input-stable.
+		if (!response.missingPacks?.length && !response.unsupportedFiles?.length) {
+			compileCache.set(docId, sig, outcome);
+		}
+		return outcome;
 	}
 
 	return {
@@ -199,4 +218,6 @@ export async function installPacks(
 ): Promise<void> {
 	if (typeof window === 'undefined') throw new Error('Package sets install in the browser.');
 	await send({ type: 'installPacks', packIds }, onProgress);
+	// The same source now compiles differently, so no cached result is valid.
+	compileCache.clear();
 }
