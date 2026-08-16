@@ -47,15 +47,21 @@ for (const [subpath, target] of Object.entries(pkg.exports)) {
 		problems.push(`exports["${subpath}"] -> ${target} does not exist`);
 }
 
-const packed = JSON.parse(
+// npm 12 changed `pack --json` from an array to an object keyed by package name.
+const packOutput = JSON.parse(
 	execFileSync("npm", ["pack", "--dry-run", "--json"], {
 		cwd: pkgRoot,
 		encoding: "utf8",
 		shell: process.platform === "win32"
 	})
-)[0];
-note("tarball", `${(packed.size / 1048576).toFixed(2)} MB (${packed.entryCount} files)`);
-note("unpacked", `${(packed.unpackedSize / 1048576).toFixed(2)} MB`);
+);
+const packed = (Array.isArray(packOutput) ? packOutput : Object.values(packOutput))[0];
+if (typeof packed?.size !== "number") {
+	problems.push("could not read 'npm pack --json' output — its shape changed again");
+} else {
+	note("tarball", `${(packed.size / 1048576).toFixed(2)} MB (${packed.entryCount} files)`);
+	note("unpacked", `${(packed.unpackedSize / 1048576).toFixed(2)} MB`);
+}
 
 if (problems.length) {
 	console.error(`\n${problems.length} problem(s):`);

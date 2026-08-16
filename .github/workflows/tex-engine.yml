@@ -344,9 +344,11 @@ jobs:
           fi
 
       # Trusted publishing needs npm >= 11.5.1; the Node 24 image can ship older.
+      # Pinned to the 11.x major: `@latest` silently pulled npm 12, whose
+      # `pack --json` output shape broke the preflight script mid-release.
       - name: Ensure npm supports trusted publishing
         if: steps.published.outputs.skip == 'false'
-        run: npm install -g npm@latest
+        run: npm install -g "npm@^11.5.1"
 
       # No --provenance and no NODE_AUTH_TOKEN: with trusted publishing npm
       # exchanges the job's OIDC token for a short-lived credential and attaches
