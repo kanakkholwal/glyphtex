@@ -15,7 +15,8 @@
 	import ScmFooter from './side-panel/scm-footer.svelte';
 	import SearchView from './side-panel/search-view.svelte';
 	import { SidePanelStore } from './side-panel/store.svelte';
-	import type { ActivityView, FileMeta, SearchMatch, SearchOptions } from './side-panel/types';
+	import { treeState } from './side-panel/tree-state.svelte';
+	import type { ActivityView, FileMeta, SearchMatch, SearchOptions, Sel } from './side-panel/types';
 
 	/**
 	 * SidePanel: content for the active rail view. Explorer stacks the file tree,
@@ -38,6 +39,7 @@
 		widthPx = 300,
 		source = '',
 		cursorLine = 1,
+		scope = '',
 		engine,
 		git,
 		gitRoot = null,
@@ -60,6 +62,11 @@
 		ondeletefolder,
 		onnewfilein,
 		onnewfolderin,
+		oncreate,
+		onmoveitems,
+		ondeleteitems,
+		onduplicatefile,
+		oncopypath,
 		ondownloadfile,
 		ondownloadfolder,
 		ongotoline,
@@ -96,6 +103,8 @@
 		source?: string;
 		/** Where the caret is, so the Outline can mark the section you are in. */
 		cursorLine?: number;
+		/** Stable key for this document's persisted folder state. */
+		scope?: string;
 		engine?: EngineManager;
 		/** Host-injected Git backend. Enables the Source Control view. */
 		git?: GitProvider;
@@ -132,6 +141,15 @@
 		onnewfilein?: (dir: string) => void;
 		/** Create a new subfolder inside `dir`. */
 		onnewfolderin?: (dir: string) => void;
+		/** Create at a full relative path, named in the tree before it exists. */
+		oncreate?: (rel: string, kind: 'file' | 'folder') => void;
+		/** Batch move; runs sequentially so conflict prompts cannot stack. */
+		onmoveitems?: (items: Sel[], targetDir: string) => void;
+		/** Batch delete behind one confirmation. */
+		ondeleteitems?: (items: Sel[]) => void;
+		onduplicatefile?: (id: string) => void;
+		/** Copy a file or folder's project-relative path. */
+		oncopypath?: (rel: string) => void;
 		/** Save one file to disk. Omitted hides the Explorer's Download item. */
 		ondownloadfile?: (id: string) => void;
 		/** Save a folder as a .zip. Omitted hides the Explorer's Download item. */
@@ -190,18 +208,28 @@
 		getSource: () => source,
 		getCursorLine: () => cursorLine,
 		getProjectName: () => projectName,
+		getDirtyIds: () => dirtyIds,
+		getScope: () => scope || projectName,
 		onopen,
 		onnew,
 		onnewfolder,
 		onnewfilein,
 		onnewfolderin,
+		oncreate,
 		ondeletefile,
 		ondeletefolder,
 		onmovefile,
 		onmovefolder,
+		onmoveitems,
+		ondeleteitems,
+		onduplicatefile,
 		onsearch,
 		onregistershell
 	});
+
+	// Folder state is per document. Loading it here (not in the constructor) means
+	// opening another project swaps the tree instead of inheriting the last one's.
+	$effect(() => treeState.load(scope || projectName));
 </script>
 
 <aside
@@ -244,17 +272,12 @@
 						{projectPath}
 						{activeId}
 						{mainId}
-						{dirtyIds}
-						{hasProject}
 						{onrenamefile}
-						{ondeletefile}
 						{onsetmain}
-						{onmovefile}
-						{onmovefolder}
 						{onrenamefolder}
-						{ondeletefolder}
 						{ondownloadfile}
 						{ondownloadfolder}
+						{oncopypath}
 					/>
 
 					<!-- Outline and Recent live under the tree rather than behind rail tabs:

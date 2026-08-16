@@ -7,6 +7,8 @@ import {
 } from '../file-kinds';
 import type { GitHeadInfo, GitProvider } from '../git-panel.svelte';
 import type { ProjectHost } from '../project';
+import { treeState } from '../side-panel/tree-state.svelte';
+import type { Sel } from '../side-panel/types';
 import { safeStorage } from '@glyphtex/ui/persisted-state';
 import { settings } from '@glyphtex/ui/settings';
 import { toast } from '@glyphtex/ui/sonner';
@@ -533,6 +535,131 @@ export class FileStore {
 		this.extraFolders = [...this.extraFolders, rel];
 	}
 
+	/** Create at an exact relative path, named in the Explorer before it existed.
+	 *  A clash is suffixed rather than rejected: the draft row is already gone, so
+	 *  there is nothing left on screen to correct. */
+	async createAt(rel: string, kind: 'file' | 'folder'): Promise<void> {
+		this.syncBuffer();
+		const dir = dirOf(rel);
+		const leaf = leafOf(rel).trim();
+		if (!leaf) return;
+		const path = (unique: string) => (dir ? `${dir}/${unique}` : unique);
+
+		if (kind === 'folder') {
+			const target = path(this.uniqueFolder(dir, leaf));
+			if (this.project && this.projectRoot) {
+				try {
+					await this.project.createEntry(joinPath(this.projectRoot, target), true);
+				} catch (e) {
+					toast.error(`Could not create folder: ${e}`);
+					return;
+				}
+			}
+			this.extraFolders = [...this.extraFolders, target];
+			return;
+		}
+
+		const target = path(this.uniqueLeaf(dir, leaf));
+		if (this.project && this.projectRoot) {
+			const abs = joinPath(this.projectRoot, target);
+			try {
+				await this.project.createEntry(abs, false);
+			} catch (e) {
+				toast.error(`Could not create file: ${e}`);
+				return;
+			}
+			this.files = [
+				...this.files,
+				{ id: abs, name: target, content: '', path: abs, loaded: true, saved: '' }
+			];
+			this.activeId = abs;
+			this.source = '';
+			return;
+		}
+		this.untitledCount += 1;
+		const id = `file-${this.untitledCount}`;
+		this.files = [...this.files, { id, name: target, content: '', saved: '' }];
+		this.activeId = id;
+		this.source = '';
+	}
+
+	/** Copy a file beside itself, "name (2).tex" style. */
+	async duplicateFile(id: string): Promise<void> {
+		this.syncBuffer();
+		const source = this.files.find((f) => f.id === id);
+		if (!source) return;
+		const dir = dirOf(source.name);
+		const rel = dir
+			? `${dir}/${this.uniqueLeaf(dir, leafOf(source.name))}`
+			: this.uniqueLeaf('', leafOf(source.name));
+		const content = source.id === this.activeId ? this.source : source.content;
+		if (this.project && this.projectRoot) {
+			const abs = joinPath(this.projectRoot, rel);
+			try {
+				await this.project.createEntry(abs, false);
+				await this.project.writeFile(abs, content);
+			} catch (e) {
+				toast.error(`Duplicate failed: ${e}`);
+				return;
+			}
+			this.files = [
+				...this.files,
+				{ id: abs, name: rel, content, path: abs, loaded: true, saved: content }
+			];
+			return;
+		}
+		this.untitledCount += 1;
+		this.files = [
+			...this.files,
+			{ id: `file-${this.untitledCount}`, name: rel, content, saved: content }
+		];
+	}
+
+	/** Move a whole selection. Sequential on purpose: each item can raise its own
+	 *  name-conflict prompt, and the dialog is a single slot. */
+	async moveItems(items: Sel[], targetDir: string): Promise<void> {
+		for (const item of items) {
+			if (item.type === 'folder') await this.moveFolder(item.path, targetDir);
+			else await this.moveFile(item.id, targetDir);
+		}
+	}
+
+	/** Delete a whole selection behind one confirmation. */
+	async deleteItems(items: Sel[]): Promise<void> {
+		if (!items.length) return;
+		if (items.length === 1) {
+			const only = items[0];
+			if (only.type === 'folder') return this.deleteFolder(only.path);
+			return this.deleteFile(only.id);
+		}
+		const folders = items.filter((i) => i.type === 'folder').length;
+		const files = items.length - folders;
+		const parts = [
+			files ? `${files} file${files > 1 ? 's' : ''}` : '',
+			folders ? `${folders} folder${folders > 1 ? 's' : ''}` : ''
+		].filter(Boolean);
+		const ok = await this.askConfirm(
+			'Delete items',
+			`Delete ${parts.join(' and ')}? This cannot be undone.`,
+			'Delete'
+		);
+		if (!ok) return;
+		// Folders first: deleting one may remove files also listed here, and a
+		// second pass over a vanished id would report a spurious failure.
+		const ordered = [...items].sort((a, b) => (a.type === b.type ? 0 : a.type === 'folder' ? -1 : 1));
+		let failed = 0;
+		for (const item of ordered) {
+			try {
+				if (item.type === 'folder') await this.removeFolder(item.path);
+				else if (this.files.some((f) => f.id === item.id)) await this.removeFile(item.id);
+			} catch {
+				failed += 1;
+			}
+		}
+		if (failed) toast.error(`${failed} item${failed > 1 ? 's' : ''} could not be deleted.`);
+		else toast.success('Deleted');
+	}
+
 	// --- Conflict-name helpers ------------------------------------------------
 	relExists(rel: string, exceptId?: string): boolean {
 		return this.files.some((f) => f.id !== exceptId && f.name.toLowerCase() === rel.toLowerCase());
@@ -677,6 +804,9 @@ export class FileStore {
 	 * folder move and folder rename. */
 	async relocateFolder(srcPath: string, newPath: string): Promise<void> {
 		this.syncBuffer();
+		// The Explorer keys expanded folders by path, so a rename or move would
+		// otherwise strand that state on a path that no longer exists.
+		treeState.remap(srcPath, newPath);
 		if (this.project && this.projectRoot) {
 			try {
 				await this.project.rename(
@@ -834,6 +964,7 @@ export class FileStore {
 		if (this.project && this.projectRoot) {
 			await this.project.remove(joinPath(this.projectRoot, path));
 		}
+		treeState.drop(path);
 		const prefix = `${path}/`;
 		const removed = this.files.filter((f) => f.name === path || f.name.startsWith(prefix));
 		const hadMain = removed.some((f) => f.id === this.mainId);
@@ -904,31 +1035,14 @@ export class FileStore {
 		this.files = this.files.map((f) => (f.id === id ? { ...f, name: newRel } : f));
 	}
 
-	async deleteFile(id: string): Promise<void> {
-		const remaining = this.files.filter((f) => f.id !== id);
-		if (remaining.length === 0 && !this.project) {
-			toast.error("Can't delete the last file in a project.");
-			return;
-		}
+	/** Remove one file (disk + state), no prompt. Throws so a batch caller can
+	 *  count the failures instead of firing a toast per item. */
+	async removeFile(id: string): Promise<void> {
 		const target = this.files.find((f) => f.id === id);
-		const ok = await this.askConfirm(
-			'Delete file',
-			`Delete “${baseName(target?.name ?? '')}”? This cannot be undone.`,
-			'Delete'
-		);
-		if (!ok) return;
-		if (this.project) {
-			const t = this.files.find((f) => f.id === id);
-			if (t?.path) {
-				try {
-					await this.project.remove(t.path);
-				} catch (e) {
-					toast.error(`Delete failed: ${e}`);
-					return;
-				}
-			}
-		}
+		if (!target) return;
+		if (this.project && target.path) await this.project.remove(target.path);
 		const wasActive = id === this.activeId;
+		const remaining = this.files.filter((f) => f.id !== id);
 		this.#dropTab(id, false);
 		this.files = remaining;
 		if (id === this.mainId) {
@@ -942,7 +1056,26 @@ export class FileStore {
 				this.source = '';
 			}
 		}
-		toast.success('Deleted');
+	}
+
+	async deleteFile(id: string): Promise<void> {
+		if (this.files.length === 1 && !this.project) {
+			toast.error("Can't delete the last file in a project.");
+			return;
+		}
+		const target = this.files.find((f) => f.id === id);
+		const ok = await this.askConfirm(
+			'Delete file',
+			`Delete “${baseName(target?.name ?? '')}”? This cannot be undone.`,
+			'Delete'
+		);
+		if (!ok) return;
+		try {
+			await this.removeFile(id);
+			toast.success('Deleted');
+		} catch (e) {
+			toast.error(`Delete failed: ${e}`);
+		}
 	}
 
 	/** Mark a file as the compile target and remember it in the `.glyx` manifest. */

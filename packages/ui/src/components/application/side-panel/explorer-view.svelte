@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
-	import { IconChevronRight, IconFolder, IconPlus } from '@tabler/icons-svelte';
+	import { IconChevronRight, IconFolder, IconPlus, IconSearch, IconX } from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
+	import { MediaQuery } from 'svelte/reactivity';
 	import { slide } from 'svelte/transition';
 
 	import FileTree from '../file-tree.svelte';
@@ -13,17 +14,12 @@
 		projectPath = null,
 		activeId,
 		mainId,
-		dirtyIds,
-		hasProject,
 		onrenamefile,
-		ondeletefile,
 		onsetmain,
-		onmovefile,
-		onmovefolder,
 		onrenamefolder,
-		ondeletefolder,
 		ondownloadfile,
-		ondownloadfolder
+		ondownloadfolder,
+		oncopypath
 	}: {
 		store: SidePanelStore;
 		projectName: string;
@@ -31,18 +27,18 @@
 		projectPath?: string | null;
 		activeId: string;
 		mainId: string | null;
-		dirtyIds: Set<string>;
-		hasProject: boolean;
 		onrenamefile?: (id: string, name: string) => void;
-		ondeletefile?: (id: string) => void;
 		onsetmain?: (id: string) => void;
-		onmovefile?: (id: string, targetDir: string) => void;
-		onmovefolder?: (path: string, targetDir: string) => void;
 		onrenamefolder?: (path: string, name: string) => void;
-		ondeletefolder?: (path: string) => void;
 		ondownloadfile?: (id: string) => void;
 		ondownloadfolder?: (path: string) => void;
+		oncopypath?: (rel: string) => void;
 	} = $props();
+
+	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
+	const reveal = $derived(reduced.current ? { duration: 0 } : { duration: 200, easing: cubicOut });
+
+	let filterEl = $state<HTMLInputElement>();
 </script>
 
 {#if store.rootNodes.length > 0}
@@ -54,14 +50,14 @@
 			? 'bg-brand-subtle ring-brand/40 ring-1 ring-inset'
 			: 'hover:bg-accent hover:text-foreground'}"
 		aria-expanded={store.rootExpanded}
-		ondragover={(e) => store.rootDragOverHandler(e)}
+		ondragover={(e) => store.dragOverRoot(e)}
 		ondragleave={() => (store.rootDragOver = false)}
 		ondrop={(e) => store.rootDrop(e)}
 		onclick={() => (store.rootExpanded = !store.rootExpanded)}
 	>
 		<IconChevronRight
 			size={14}
-			class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {store.rootExpanded
+			class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none {store.rootExpanded
 				? 'rotate-90'
 				: ''}"
 		/>
@@ -73,7 +69,8 @@
 		</p>
 	{/if}
 {/if}
-{#if store.rootNodes.length === 0}
+
+{#if store.rootNodes.length === 0 && !store.draft}
 	<div class="flex flex-col items-center gap-3 px-4 py-10 text-center">
 		<div class="text-faint">
 			<IconFolder size={40} stroke={1.25} />
@@ -89,27 +86,60 @@
 		</Button>
 	</div>
 {:else if store.rootExpanded}
-	<div transition:slide={{ duration: 200, easing: cubicOut }}>
+	<div transition:slide={reveal}>
+		{#if store.showTreeFilter}
+			<div class="relative px-0.5 pb-1">
+				<IconSearch
+					size={13}
+					class="text-faint pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
+				/>
+				<input
+					bind:this={filterEl}
+					bind:value={store.treeFilter}
+					class="bg-surface-soft border-border/60 text-foreground placeholder:text-faint h-7 w-full rounded-md border pr-7 pl-7 text-xs outline-none focus:border-(--ring)"
+					placeholder="Filter files"
+					spellcheck="false"
+					aria-label="Filter files by name"
+					onkeydown={(e) => {
+						if (e.key === 'Escape') {
+							store.treeFilter = '';
+							filterEl?.blur();
+						}
+					}}
+				/>
+				{#if store.treeFilter}
+					<button
+						type="button"
+						class="text-faint hover:text-foreground absolute top-1/2 right-2 grid size-4 -translate-y-1/2 place-items-center rounded"
+						aria-label="Clear filter"
+						onclick={() => {
+							store.treeFilter = '';
+							filterEl?.focus();
+						}}
+					>
+						<IconX size={12} />
+					</button>
+				{/if}
+			</div>
+		{/if}
+
+		{#if store.treeFilter && store.rows.length === 0}
+			<p class="text-faint px-3 py-6 text-center text-xs">
+				Nothing matches “{store.treeFilter}”.
+			</p>
+		{/if}
+
 		<FileTree
-			nodes={store.rootNodes}
+			{store}
 			{activeId}
 			{mainId}
-			{dirtyIds}
-			selectedPath={store.selectedFolderPath}
-			open={store.treeOpen}
 			onopen={(id) => store.selectFile(id)}
-			onselectfolder={(path) => store.selectFolder(path)}
 			onrename={(id, name) => onrenamefile?.(id, name)}
-			ondelete={(id) => ondeletefile?.(id)}
 			onsetmain={(id) => onsetmain?.(id)}
-			{onmovefile}
-			{onmovefolder}
 			{onrenamefolder}
-			{ondeletefolder}
 			{ondownloadfile}
 			{ondownloadfolder}
-			onnewfilein={(dir) => store.newFileIn(dir)}
-			onnewfolderin={(dir) => store.newFolderIn(dir)}
+			{oncopypath}
 		/>
 	</div>
 {/if}

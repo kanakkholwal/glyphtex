@@ -121,12 +121,8 @@ function plainText(nodes: Node[]): string {
 
 // --- Inline runs -------------------------------------------------------------
 
-/**
- * How far an unmodelled macro's arguments reach: every `{…}` and `[…]` that
- * follows it with nothing in between. Stopping at the first one turned
- * `\textcolor{red}{word}` into `\textcolor{red}word`, which changes what the
- * document says.
- */
+/** How far an unmodelled macro's arguments reach. Stopping at the first group
+ *  turned `\textcolor{red}{word}` into `\textcolor{red}word`. */
 function argumentsEnd(nodes: Node[], start: number): number {
 	let j = start;
 	for (;;) {
@@ -136,8 +132,11 @@ function argumentsEnd(nodes: Node[], start: number): number {
 			continue;
 		}
 		if (node?.type === 'string' && node.content === '[') {
+			// Bounded: an unclosed `[` in prose would otherwise scan to the end of the
+			// paragraph once per macro.
+			const limit = Math.min(nodes.length, j + 64);
 			let k = j + 1;
-			while (k < nodes.length) {
+			while (k < limit) {
 				const inside = nodes[k];
 				if (inside.type === 'parbreak' || inside.type === 'comment') break;
 				if (inside.type === 'string' && inside.content === ']') break;
@@ -611,11 +610,8 @@ function foldLabels(blocks: Block[]): Block[] {
 	return out;
 }
 
-/**
- * Demote any block our printer cannot reproduce. Fidelity is a claim about the
- * content, not about the kind: a paragraph holding a macro we do not model would
- * otherwise be rewritten from a projection that lost part of it.
- */
+/** Demote any block our printer cannot reproduce: fidelity is a claim about the
+ *  content, not about the kind. */
 function guardFidelity(blocks: Block[], source: string): Block[] {
 	const settle = (text: string) => text.replace(/\s+/g, ' ').trim();
 	return blocks.map((block) => {

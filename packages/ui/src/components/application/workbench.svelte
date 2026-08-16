@@ -115,9 +115,15 @@
 				ondeletefolder={(p) => files.deleteFolder(p)}
 				onnewfilein={(dir) => files.newFile(dir)}
 				onnewfolderin={(dir) => files.newFolder(dir)}
+				oncreate={(rel, kind) => files.createAt(rel, kind)}
+				onmoveitems={(items, dir) => files.moveItems(items, dir)}
+				ondeleteitems={(items) => files.deleteItems(items)}
+				onduplicatefile={(id) => files.duplicateFile(id)}
+				oncopypath={(rel) => ctrl.copyPath(rel)}
 				ondownloadfile={ctrl.onDownload ? (id) => ctrl.downloadFile(id) : undefined}
 				ondownloadfolder={ctrl.onDownload ? (p) => ctrl.downloadFolder(p) : undefined}
 				dirtyIds={files.dirtyIds}
+				scope={files.projectRoot ?? files.displayName}
 				ongotoline={(n) => ctrl.goToLine(n)}
 				onregistershell={files.project?.registerShellIntegration
 					? () => files.registerShell()

@@ -4,6 +4,7 @@ import type { PaletteCommand } from '../command-palette.svelte';
 import type { ProjectHost } from '../project';
 import { matchShortcut, shortcutLabel } from '../shortcuts';
 import { settings } from '@glyphtex/ui/settings';
+import { toast } from '@glyphtex/ui/sonner';
 
 import { CompileStore } from './compile.svelte';
 import { FileStore } from './files.svelte';
@@ -233,6 +234,19 @@ export class WorkbenchController {
 	/** Project-wide search. Distinct from ⌘F, which is find-in-file. */
 	searchProject(): void {
 		this.layout.selectView('search');
+	}
+
+	/** Copy a file's path. Absolute where there is a folder on disk, since that is
+	 *  the form you would paste into a terminal. */
+	async copyPath(rel: string): Promise<void> {
+		const root = this.files.projectRoot;
+		const text = root ? `${root}/${rel}`.replace(/\\/g, '/') : rel;
+		try {
+			await navigator.clipboard.writeText(text);
+			toast.success('Path copied');
+		} catch {
+			toast.error('Could not copy the path.');
+		}
 	}
 
 	/** Outline / go-to-line, routed to the surface on screen. Visual has no

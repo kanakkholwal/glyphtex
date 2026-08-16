@@ -98,7 +98,13 @@ export function inlinesToHtml(runs: Inline[]): string {
 				break;
 			case 'cite': {
 				const keys = run.raw ?? run.keys.join(', ');
-				out += atom('cite', keys, run.command, `[${run.keys.join(', ')}]`, `\\${run.command}{${keys}}`);
+				out += atom(
+					'cite',
+					keys,
+					run.command,
+					`[${run.keys.join(', ')}]`,
+					`\\${run.command}{${keys}}`
+				);
 				break;
 			}
 			case 'ref':
@@ -217,7 +223,11 @@ function atomRun(el: Element): Inline {
 		case 'footnote':
 			return { kind: 'footnote', source: src };
 		case 'comment':
-			return { kind: 'comment', text: src, sameline: el.getAttribute('data-sameline') === '1' };
+			return {
+				kind: 'comment',
+				text: src,
+				sameline: el.getAttribute('data-sameline') === '1'
+			};
 		default:
 			return { kind: 'raw', source: src };
 	}

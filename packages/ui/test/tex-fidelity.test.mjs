@@ -19,8 +19,8 @@ describe('inline LaTeX survives being written back', () => {
 	const CASES = {
 		'two-argument macro': 'See \\textcolor{red}{this bit} for detail.',
 		'optional then mandatory': 'A \\includegraphics[width=1cm]{logo} inline.',
-		'siunitx': 'Held at \\SI{298.15}{\\kelvin} throughout.',
-		'hyperref': 'See \\hyperref[sec:a]{that section}.',
+		siunitx: 'Held at \\SI{298.15}{\\kelvin} throughout.',
+		hyperref: 'See \\hyperref[sec:a]{that section}.',
 		'font switch in a group': 'Some {\\bfseries bold text} and more.',
 		'bare grouping': 'A {tricky} word.',
 		'nested braces in one argument': 'Use \\mycmd{a {b} c} here.',

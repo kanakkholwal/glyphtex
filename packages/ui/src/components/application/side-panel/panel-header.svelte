@@ -9,6 +9,7 @@
 	} from '@glyphtex/ui/dropdown-menu';
 	import { settings } from '@glyphtex/ui/settings';
 	import {
+		IconCrosshair,
 		IconDots,
 		IconFilePlus,
 		IconPhotoPlus,
@@ -112,6 +113,9 @@
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 					{/if}
+					<DropdownMenuItem onSelect={() => store.revealActive()}>
+						<IconCrosshair class="text-muted-foreground" /> Reveal open file
+					</DropdownMenuItem>
 					{#if store.folderPaths.length}
 						<DropdownMenuItem onSelect={() => store.toggleCollapseAll()}>
 							<IconFold class="text-muted-foreground" />

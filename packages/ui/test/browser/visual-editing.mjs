@@ -957,9 +957,7 @@ check(
 );
 check(
 	'and it offers no caret to type into',
-	await ev(
-		`!document.querySelector('[data-locked-block]')?.querySelector('[data-block-editor]')`
-	)
+	await ev(`!document.querySelector('[data-locked-block]')?.querySelector('[data-block-editor]')`)
 );
 
 check(

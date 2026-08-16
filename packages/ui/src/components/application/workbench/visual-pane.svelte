@@ -196,11 +196,8 @@
 		historyTick += 1;
 	}
 
-	/**
-	 * Re-read source this pane has already written. A throw here would leave the
-	 * file changed and the blocks describing the text before it, so the next patch
-	 * would land at the wrong offsets: show the error and hand over to the source.
-	 */
+	/** Re-read source this pane has already written. A throw would leave the file
+	 *  changed and the spans describing the text before it. */
 	function reparse(source: string): boolean {
 		if (!tex) return false;
 		try {
