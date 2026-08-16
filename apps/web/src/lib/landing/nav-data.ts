@@ -15,7 +15,9 @@ const DOWNLOAD: NavLink = { label: 'Desktop app', href: '/download' };
 const WORKSPACE: NavLink = { label: 'Browser workspace', href: '/workspace' };
 const PRIVACY: NavLink = { label: 'Privacy', href: '/privacy' };
 
-export const navLinks: NavLink[] = [ENGINE, DOWNLOAD];
+export const navLinks: NavLink[] = [
+	// ENGINE, DOWNLOAD
+];
 
 export const footerCols: { title: string; links: NavLink[] }[] = [
 	{ title: 'Product', links: [HOW, COMPILE, AUDIENCE, INSTITUTIONS, FAQ] },

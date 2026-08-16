@@ -49,13 +49,6 @@
 		return () => node.removeEventListener('keydown', onKeydown);
 	}
 
-	// The nav-data hrefs are typed as `string`. Internal routes need
-	// resolve() so the type-safe router is happy and the lint is silent;
-	// external links pass through untouched. The cast widens resolve's
-	// type-safe signature (literal route union) to plain string so data-
-	// driven hrefs can flow through, and the explicit protocol check below
-	// keeps us from handing non-routes (mailto:, tel:, http(s)://, //cdn…)
-	// to resolve() at runtime: SvelteKit's runtime guard rejects those.
 	const resolveAny = resolve as (route: string) => string;
 	function hrefFor(href: string, external = false): string {
 		if (external) return href;
@@ -120,22 +113,7 @@
 		</ul>
 
 		<div class="col-start-3 flex items-center justify-end gap-1.5">
-			<Button
-				href={repo}
-				target="_blank"
-				rel="noopener noreferrer"
-				size="sm"
-				variant="ghost"
-				class="hidden gap-1.5 text-base font-medium text-foreground md:inline-flex"
-			>
-				<IconBrandGithub class="size-4" />
-				GitHub
-			</Button>
-			<ThemeToggle size="icon-sm" />
-			<!-- Was "Download". The desktop app is still a prototype, so the header
-			     points at the workspace until there is a release worth shipping.
-			     The label matches the page CTAs exactly: two names for one URL
-			     reads as two destinations. -->
+
 			<Button href={resolve('/workspace')} variant="default" class="min-w-0 px-4">
 				Open the workspace
 			</Button>

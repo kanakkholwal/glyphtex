@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import type { ResolvedPathname } from '$app/types';
-	import { Logo } from '@glyphtex/ui/logo';
 	import { footerCols, footerSocials } from '$lib/landing/nav-data';
+	import { Logo } from '@glyphtex/ui/logo';
 	import { IconBrandGithub, IconMail } from '@tabler/icons-svelte';
 
 	const home = resolve('/');
@@ -57,9 +57,6 @@
 
 			<div class="grid gap-10 sm:grid-cols-3 md:col-span-8">
 				{#each footerCols as col (col.title)}
-					<!-- The column label is a <p>, not a heading: these are generic
-					     ("Product", "Company") and would sit in the document outline
-					     alongside the page's real section headings. -->
 					<nav aria-label={col.title}>
 						<p class="text-sm text-muted-foreground">{col.title}</p>
 						<ul class="mt-4 space-y-3">
@@ -69,7 +66,7 @@
 										href={hrefFor(link.href, link.external)}
 										target={link.external ? '_blank' : undefined}
 										rel={link.external ? 'noopener noreferrer' : undefined}
-										class="text-base font-medium text-foreground transition-colors hover:text-foreground"
+										class="text-base font-medium text-foreground transition-colors hover:text-foreground hover:underline"
 									>
 										{link.label}
 									</a>
