@@ -1,9 +1,9 @@
 <script lang="ts" module>
-	import type { Project } from '@glyphtex/ui/projects';
+	import type { Project } from "@glyphtex/ui/projects";
 	export type { Project };
 
 	/** A rail destination. Each one is a real route when the host supplies hrefs. */
-	export type Scope = 'all' | 'recent' | 'starred' | 'templates';
+	export type Scope = "all" | "recent" | "starred" | "templates";
 </script>
 
 <script lang="ts">

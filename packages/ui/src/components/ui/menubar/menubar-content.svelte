@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Menubar as MenubarPrimitive } from 'bits-ui';
-	import { CRAFT_OVERLAY_ANIMATION, cn } from '@glyphtex/ui/utils';
+	import { Menubar as MenubarPrimitive } from "bits-ui";
+	import { CRAFT_OVERLAY_ANIMATION, cn } from "@glyphtex/ui/utils";
 
 	let {
 		ref = $bindable(null),
 		class: className,
-		align = 'start',
+		align = "start",
 		sideOffset = 6,
 		alignOffset = -2,
 		...restProps

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PdfViewController } from './controller.svelte';
+	import type { PdfViewController } from "./controller.svelte";
 
 	/** Page thumbnails down the preview's outer edge. Pages paint as they scroll
 	 *  into the rail, so a 400-page document doesn't render 400 canvases up front. */
@@ -44,15 +44,15 @@
 					if (n) paint(n);
 				}
 			},
-			{ root, rootMargin: '240px 0px' }
+			{ root, rootMargin: "240px 0px" }
 		);
-		for (const el of root.querySelectorAll<HTMLElement>('[data-page]')) io.observe(el);
+		for (const el of root.querySelectorAll<HTMLElement>("[data-page]")) io.observe(el);
 		return () => io.disconnect();
 	});
 
 	// Follow the viewport: scrolling the PDF keeps the matching thumbnail visible.
 	$effect(() => {
-		listEl?.querySelector(`[data-page="${current}"]`)?.scrollIntoView({ block: 'nearest' });
+		listEl?.querySelector(`[data-page="${current}"]`)?.scrollIntoView({ block: "nearest" });
 	});
 </script>
 

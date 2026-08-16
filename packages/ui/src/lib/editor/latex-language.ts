@@ -1,14 +1,14 @@
-import { LanguageSupport, StreamLanguage, type StreamParser } from '@codemirror/language';
-import { stex } from '@codemirror/legacy-modes/mode/stex';
-import type { StringStream } from '@codemirror/language';
+import { LanguageSupport, StreamLanguage, type StreamParser } from "@codemirror/language";
+import { stex } from "@codemirror/legacy-modes/mode/stex";
+import type { StringStream } from "@codemirror/language";
 
-import { latexCompletionSource } from './latex-complete';
-import { latexHover } from './latex-hover';
-import { latexFolding } from './latex-fold';
-import { latexSemantics } from './latex-semantic';
-import { latexStickyHeadings } from './latex-sticky';
+import { latexCompletionSource } from "./latex-complete";
+import { latexHover } from "./latex-hover";
+import { latexFolding } from "./latex-fold";
+import { latexSemantics } from "./latex-semantic";
+import { latexStickyHeadings } from "./latex-sticky";
 
-export const LATEX_ID = 'latex';
+export const LATEX_ID = "latex";
 
 /** Environments whose bodies are not LaTeX and must not be highlighted. */
 const VERBATIM_ENVS = /^\s*\\begin\s*\{(verbatim\*?|lstlisting|minted|Verbatim|alltt|comment)\}/;
@@ -39,7 +39,7 @@ const latexParser: StreamParser<VerbatimState> = {
 				// Fall through: the \end line itself is real LaTeX again.
 			} else {
 				stream.skipToEnd();
-				return 'comment';
+				return "comment";
 			}
 		} else if (stream.sol()) {
 			const open = VERBATIM_ENVS.exec(stream.string);
@@ -55,11 +55,11 @@ const latexParser: StreamParser<VerbatimState> = {
 	},
 
 	languageData: {
-		commentTokens: { line: '%' },
-		closeBrackets: { brackets: ['{', '[', '(', '$'] },
+		commentTokens: { line: "%" },
+		closeBrackets: { brackets: ["{", "[", "(", "$"] },
 		// `\command` counts as one word, so double-click selects the whole control
 		// sequence and completion filters against the backslash already typed.
-		wordChars: '\\@'
+		wordChars: "\\@"
 	}
 };
 

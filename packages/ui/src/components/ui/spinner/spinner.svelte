@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { IconLoader } from '@tabler/icons-svelte';
-	import type { SVGAttributes } from 'svelte/elements';
+	import { cn } from "@glyphtex/ui/utils";
+	import { IconLoader } from "@tabler/icons-svelte";
+	import type { SVGAttributes } from "svelte/elements";
 
 	let {
 		class: className,
-		role = 'status',
+		role = "status",
 		// we add name, color, and stroke for compatibility with different icon libraries props
 		name,
 		color,
 		stroke,
-		'aria-label': ariaLabel = 'Loading',
+		"aria-label": ariaLabel = "Loading",
 		...restProps
 	}: SVGAttributes<SVGSVGElement> = $props();
 </script>

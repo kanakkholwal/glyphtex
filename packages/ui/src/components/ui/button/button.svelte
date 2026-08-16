@@ -1,7 +1,7 @@
 <script lang="ts" module>
-	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
-	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
-	import { tv, type VariantProps } from 'tailwind-variants';
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
+	import { tv, type VariantProps } from "tailwind-variants";
 
 	/**
 	 * Button: Raycast-density variants built on shadcn semantic tokens.
@@ -19,49 +19,49 @@
 	 */
 	export const buttonVariants = tv({
 		base: [
-			'group/button inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap cursor-pointer user-select-none',
-			'rounded-md border border-border/40 bg-clip-padding font-medium outline-none select-none',
+			"group/button inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap cursor-pointer user-select-none",
+			"rounded-md border border-border/40 bg-clip-padding font-medium outline-none select-none",
 			// Never `transition-all`: it animates layout properties too, and on a
 			// pressed button that is a reflow per frame.
-			'transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out',
-			'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3',
-			'aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-3',
-			'dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
+			"transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out",
+			"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
+			"aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-3",
+			"dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
 			// Press feedback only: growing on hover makes dense toolbars twitch.
 			// 0.97, not 0.99: on a 44px CTA the latter is 0.4px of travel.
-			'active:scale-[0.97] active:duration-100',
-			'disabled:pointer-events-none disabled:opacity-50',
+			"active:scale-[0.97] active:duration-100",
+			"disabled:pointer-events-none disabled:opacity-50",
 			"[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-		].join(' '),
+		].join(" "),
 		variants: {
 			variant: {
 				default:
-					'bg-primary text-primary-foreground border-transparent shadow-craft-sm hover:bg-primary/95',
+					"bg-primary text-primary-foreground border-transparent shadow-craft-sm hover:bg-primary/95",
 				default_soft:
-					'bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20',
+					"bg-primary/8 text-primary border-primary/10 hover:bg-primary/12 dark:bg-primary/10 dark:hover:bg-primary/20",
 				// Marketing CTAs only: in app chrome the emphasis colour is ink (`default`).
-				brand: 'bg-brand text-brand-foreground border-transparent hover:bg-brand-hover',
+				brand: "bg-brand text-brand-foreground border-transparent hover:bg-brand-hover",
 				brand_soft:
-					'bg-brand/10 text-brand border-transparent hover:bg-brand/15 dark:bg-brand/15 dark:hover:bg-brand/25',
+					"bg-brand/10 text-brand border-transparent hover:bg-brand/15 dark:bg-brand/15 dark:hover:bg-brand/25",
 				secondary:
-					'border-secondary bg-secondary text-secondary-foreground border-border/30 shadow-craft-sm hover:bg-muted/50',
-				outline: 'border-border bg-card text-foreground hover:bg-accent hover:border-border',
+					"border-secondary bg-secondary text-secondary-foreground border-border/30 shadow-craft-sm hover:bg-muted/50",
+				outline: "border-border bg-card text-foreground hover:bg-accent hover:border-border",
 				ghost:
-					'border-transparent hover:bg-muted/40 hover:text-accent-foreground dark:hover:bg-accent/50',
-				link: 'text-primary underline-offset-4 hover:underline hover:scale-100',
+					"border-transparent hover:bg-muted/40 hover:text-accent-foreground dark:hover:bg-accent/50",
+				link: "text-primary underline-offset-4 hover:underline hover:scale-100",
 				destructive:
-					'bg-destructive text-destructive-foreground shadow-craft-sm hover:bg-destructive/90 focus-visible:ring-destructive/20',
+					"bg-destructive text-destructive-foreground shadow-craft-sm hover:bg-destructive/90 focus-visible:ring-destructive/20",
 				destructive_soft:
-					'bg-destructive/10 text-destructive border-destructive/10 hover:bg-destructive/15',
-				success: 'bg-success text-success-foreground shadow-craft-sm hover:bg-success/90',
-				success_soft: 'bg-success/10 text-success border-success/10 hover:bg-success/15',
-				warning: 'bg-warning text-warning-foreground shadow-craft-sm hover:bg-warning/90',
-				warning_soft: 'bg-warning/10 text-warning border-warning/10 hover:bg-warning/15',
-				info: 'bg-info text-info-foreground shadow-craft-sm hover:bg-info/90',
-				info_soft: 'bg-info/10 text-info border-info/10 hover:bg-info/15',
-				raw: 'border-0 p-0 h-auto w-auto hover:scale-100 active:scale-100',
-				dark: 'bg-foreground text-background shadow-craft-sm hover:bg-foreground/90',
-				light: 'bg-white text-black shadow-craft-sm dark:bg-black dark:text-white'
+					"bg-destructive/10 text-destructive border-destructive/10 hover:bg-destructive/15",
+				success: "bg-success text-success-foreground shadow-craft-sm hover:bg-success/90",
+				success_soft: "bg-success/10 text-success border-success/10 hover:bg-success/15",
+				warning: "bg-warning text-warning-foreground shadow-craft-sm hover:bg-warning/90",
+				warning_soft: "bg-warning/10 text-warning border-warning/10 hover:bg-warning/15",
+				info: "bg-info text-info-foreground shadow-craft-sm hover:bg-info/90",
+				info_soft: "bg-info/10 text-info border-info/10 hover:bg-info/15",
+				raw: "border-0 p-0 h-auto w-auto hover:scale-100 active:scale-100",
+				dark: "bg-foreground text-background shadow-craft-sm hover:bg-foreground/90",
+				light: "bg-white text-black shadow-craft-sm dark:bg-black dark:text-white"
 			},
 			size: {
 				// CTA sizes: 8px rect, 16px/500 label, 156px min width.
@@ -73,21 +73,21 @@
 				sm: "h-8 rounded-md px-3 text-sm gap-1.5 [&_svg:not([class*='size-'])]:size-4",
 				xs: "h-6 rounded-md px-2 text-xs gap-1.5 [&_svg:not([class*='size-'])]:size-3.5",
 				icon: "size-9 rounded-md [&_svg:not([class*='size-'])]:size-5",
-				'icon-sm': "size-8 rounded-md [&_svg:not([class*='size-'])]:size-4",
-				'icon-xs': "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3.5",
-				'icon-lg': "size-11 rounded-lg [&_svg:not([class*='size-'])]:size-5",
-				'icon-xl': "size-14 rounded-2xl [&_svg:not([class*='size-'])]:size-6",
-				raw: ''
+				"icon-sm": "size-8 rounded-md [&_svg:not([class*='size-'])]:size-4",
+				"icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3.5",
+				"icon-lg": "size-11 rounded-lg [&_svg:not([class*='size-'])]:size-5",
+				"icon-xl": "size-14 rounded-2xl [&_svg:not([class*='size-'])]:size-6",
+				raw: ""
 			}
 		},
 		defaultVariants: {
-			variant: 'default',
-			size: 'default'
+			variant: "default",
+			size: "default"
 		}
 	});
 
-	export type ButtonVariant = VariantProps<typeof buttonVariants>['variant'];
-	export type ButtonSize = VariantProps<typeof buttonVariants>['size'];
+	export type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
+	export type ButtonSize = VariantProps<typeof buttonVariants>["size"];
 
 	export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
 		WithElementRef<HTMLAnchorAttributes> & {

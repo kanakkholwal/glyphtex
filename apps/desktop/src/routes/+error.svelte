@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-	import { Button } from '@glyphtex/ui/button';
-	import { Logo } from '@glyphtex/ui/logo';
+	import { page } from "$app/state";
+	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
+	import { Button } from "@glyphtex/ui/button";
+	import { Logo } from "@glyphtex/ui/logo";
 	import {
 		IconAlertTriangle,
 		IconArrowLeft,
@@ -11,20 +11,20 @@
 		IconFileUnknown,
 		IconHome,
 		IconRefresh
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
 	const status = $derived(page.status);
-	const message = $derived(page.error?.message || 'An unexpected error occurred.');
+	const message = $derived(page.error?.message || "An unexpected error occurred.");
 	const isNotFound = $derived(status === 404);
 	const isServer = $derived(status >= 500);
 
 	const title = $derived(
-		isNotFound ? 'Page not found' : isServer ? 'Something broke' : 'Something went wrong'
+		isNotFound ? "Page not found" : isServer ? "Something broke" : "Something went wrong"
 	);
 	const desc = $derived(
 		isNotFound
-			? 'That view no longer exists. Your projects are on disk, exactly where you left them.'
-			: 'GlyphTeX hit an unexpected error. Nothing writes to your project on a failed load, so your files are intact.'
+			? "That view no longer exists. Your projects are on disk, exactly where you left them."
+			: "GlyphTeX hit an unexpected error. Nothing writes to your project on a failed load, so your files are intact."
 	);
 </script>
 

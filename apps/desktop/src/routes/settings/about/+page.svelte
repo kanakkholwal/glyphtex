@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { updater } from '$lib/updater.svelte';
-	import { Badge } from '@glyphtex/ui/badge';
-	import { Button } from '@glyphtex/ui/button';
-	import { Logo } from '@glyphtex/ui/logo';
-	import { SettingsSection } from '@glyphtex/ui/settings-section';
-	import { Spinner } from '@glyphtex/ui/spinner';
-	import { onMount } from 'svelte';
+	import { updater } from "$lib/updater.svelte";
+	import { Badge } from "@glyphtex/ui/badge";
+	import { Button } from "@glyphtex/ui/button";
+	import { Logo } from "@glyphtex/ui/logo";
+	import { SettingsSection } from "@glyphtex/ui/settings-section";
+	import { Spinner } from "@glyphtex/ui/spinner";
+	import { onMount } from "svelte";
 
-	let appVersion = $state('0.1.0');
+	let appVersion = $state("0.1.0");
 
 	onMount(async () => {
 		try {
-			const { getVersion } = await import('@tauri-apps/api/app');
+			const { getVersion } = await import("@tauri-apps/api/app");
 			appVersion = await getVersion();
 		} catch {
 			/* non-Tauri / web: keep the fallback */
@@ -21,20 +21,20 @@
 	// A human line describing the updater state, shown under the action.
 	const updateLine = $derived.by(() => {
 		switch (updater.status) {
-			case 'checking':
-				return 'Checking for updates…';
-			case 'up-to-date':
+			case "checking":
+				return "Checking for updates…";
+			case "up-to-date":
 				return "You're on the latest version.";
-			case 'update-available':
+			case "update-available":
 				return `Version ${updater.version} is available: see the prompt to download.`;
-			case 'downloading':
+			case "downloading":
 				return `Downloading update… ${Math.round(updater.progress * 100)}%`;
-			case 'ready':
-				return 'Update downloaded: restart to apply.';
-			case 'error':
-				return updater.error ?? 'Update check failed.';
+			case "ready":
+				return "Update downloaded: restart to apply.";
+			case "error":
+				return updater.error ?? "Update check failed.";
 			default:
-				return 'GlyphTeX checks for updates automatically on launch.';
+				return "GlyphTeX checks for updates automatically on launch.";
 		}
 	});
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import type { ComponentProps } from 'svelte';
-	import { Textarea } from '../textarea';
+	import { cn } from "@glyphtex/ui/utils";
+	import type { ComponentProps } from "svelte";
+	import { Textarea } from "../textarea";
 
 	let {
 		ref = $bindable(null),

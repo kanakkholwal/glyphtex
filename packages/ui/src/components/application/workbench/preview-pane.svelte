@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
 		DropdownMenuItem,
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
-	import { Logo } from '@glyphtex/ui/logo';
-	import { settings } from '@glyphtex/ui/settings';
-	import { Spinner } from '@glyphtex/ui/spinner';
+	} from "@glyphtex/ui/dropdown-menu";
+	import { Logo } from "@glyphtex/ui/logo";
+	import { settings } from "@glyphtex/ui/settings";
+	import { Spinner } from "@glyphtex/ui/spinner";
 	import {
 		IconChevronDown,
 		IconChevronLeft,
@@ -20,12 +20,12 @@
 		IconMinus,
 		IconPlus,
 		IconSearch
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import PdfView from '../pdf-view.svelte';
-	import { shortcutLabel } from '../shortcuts';
-	import type { WorkbenchController } from './controller.svelte';
-	import { ZOOM_PRESETS } from './types';
+	import PdfView from "../pdf-view.svelte";
+	import { shortcutLabel } from "../shortcuts";
+	import type { WorkbenchController } from "./controller.svelte";
+	import { ZOOM_PRESETS } from "./types";
 
 	/**
 	 * Preview pane: the PDF column. Its toolbar navigates the rendered document

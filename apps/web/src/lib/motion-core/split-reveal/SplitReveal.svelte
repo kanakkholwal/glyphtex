@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { gsap } from 'gsap';
-	import { SplitText } from 'gsap/SplitText';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
-	import type { Snippet } from 'svelte';
-	import { onMount } from 'svelte';
-	import { ensureMotionCoreEase, registerPluginOnce } from '../helpers/gsap';
-	import { cn } from '../utils/cn';
+	import { gsap } from "gsap";
+	import { SplitText } from "gsap/SplitText";
+	import { ScrollTrigger } from "gsap/ScrollTrigger";
+	import type { Snippet } from "svelte";
+	import { onMount } from "svelte";
+	import { ensureMotionCoreEase, registerPluginOnce } from "../helpers/gsap";
+	import { cn } from "../utils/cn";
 
-	type SplitMode = 'lines' | 'words' | 'chars';
+	type SplitMode = "lines" | "words" | "chars";
 
 	interface ModeSettings {
 		duration?: number;
@@ -71,10 +71,10 @@
 
 	let {
 		children,
-		class: className = '',
-		mode = 'lines' as SplitMode,
+		class: className = "",
+		mode = "lines" as SplitMode,
 		config,
-		as = 'div' as keyof HTMLElementTagNameMap,
+		as = "div" as keyof HTMLElementTagNameMap,
 		delay = 0,
 		triggerOnScroll = false,
 		scrollElement,
@@ -102,12 +102,12 @@
 	};
 
 	$effect(() => {
-		if (typeof window === 'undefined') return;
+		if (typeof window === "undefined") return;
 
 		const node = wrapperRef;
 		if (!node) return;
 		const resolvedScroller =
-			typeof scrollElement === 'string'
+			typeof scrollElement === "string"
 				? document.querySelector<HTMLElement>(scrollElement)
 				: scrollElement instanceof HTMLElement
 					? scrollElement
@@ -119,15 +119,15 @@
 
 		const ctx = gsap.context(() => {
 			split = SplitText.create(node, {
-				type: 'lines, words, chars',
+				type: "lines, words, chars",
 				tag: as,
-				mask: 'lines'
+				mask: "lines"
 			});
 
 			targets =
-				mode === 'lines'
+				mode === "lines"
 					? (split.lines ?? [])
-					: mode === 'words'
+					: mode === "words"
 						? (split.words ?? [])
 						: (split.chars ?? []);
 
@@ -139,14 +139,14 @@
 				yPercent: 0,
 				duration: resolvedConfig.duration,
 				stagger: resolvedConfig.stagger,
-				ease: 'motion-core-ease',
+				ease: "motion-core-ease",
 				lazy: false,
 				delay: delay,
 				scrollTrigger: triggerOnScroll
 					? {
 							trigger: node,
 							scroller,
-							start: 'top 85%'
+							start: "top 85%"
 						}
 					: undefined
 			});

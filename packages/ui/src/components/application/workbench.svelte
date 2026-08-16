@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	// Public type kept stable for `@glyphtex/ui/application` consumers.
-	export type { ViewMode } from './workbench/types';
+	export type { ViewMode } from "./workbench/types";
 </script>
 
 <script lang="ts">

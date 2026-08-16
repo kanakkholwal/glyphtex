@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { settings } from '@glyphtex/ui/settings';
+	import { Button } from "@glyphtex/ui/button";
+	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconArrowBackUp,
 		IconChevronRight,
@@ -9,13 +9,13 @@
 		IconFolderOpen,
 		IconMinus,
 		IconPlus
-	} from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { slide } from 'svelte/transition';
+	} from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { slide } from "svelte/transition";
 
-	import type { GitPanelStore } from './store.svelte';
-	import { indent, leaf } from './tree';
-	import { STATUS_CLASS, STATUS_LABEL, type GitChange, type TreeNode } from './types';
+	import type { GitPanelStore } from "./store.svelte";
+	import { indent, leaf } from "./tree";
+	import { STATUS_CLASS, STATUS_LABEL, type GitChange, type TreeNode } from "./types";
 
 	/**
 	 * One changes section's file list: either a flat list or a nested folder
@@ -32,7 +32,7 @@
 		store: GitPanelStore;
 		items: GitChange[];
 		nodes: TreeNode[];
-		action: 'stage' | 'unstage';
+		action: "stage" | "unstage";
 		activeDiffPath?: string | null;
 	} = $props();
 </script>

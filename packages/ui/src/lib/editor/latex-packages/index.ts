@@ -1,4 +1,4 @@
-import type { LatexCommand, LatexEnvironment } from '../latex-data';
+import type { LatexCommand, LatexEnvironment } from "../latex-data";
 
 export type PackageData = {
 	commands: readonly LatexCommand[];
@@ -7,26 +7,26 @@ export type PackageData = {
 
 /** Package name → loader. Vite code-splits each dynamic import into its own chunk. */
 export const PACKAGE_LOADERS: Readonly<Record<string, () => Promise<PackageData>>> = {
-	tikz: () => import('./tikz').then((m) => m.data),
-	pgfplots: () => import('./pgfplots').then((m) => m.data),
-	biblatex: () => import('./biblatex').then((m) => m.data),
-	natbib: () => import('./natbib').then((m) => m.data),
-	siunitx: () => import('./siunitx').then((m) => m.data),
-	beamer: () => import('./beamer').then((m) => m.data),
-	listings: () => import('./listings').then((m) => m.data),
-	minted: () => import('./minted').then((m) => m.data),
-	hyperref: () => import('./hyperref').then((m) => m.data),
-	cleveref: () => import('./cleveref').then((m) => m.data),
-	booktabs: () => import('./booktabs').then((m) => m.data),
-	enumitem: () => import('./enumitem').then((m) => m.data),
-	geometry: () => import('./geometry').then((m) => m.data),
-	xcolor: () => import('./xcolor').then((m) => m.data),
-	graphicx: () => import('./graphicx').then((m) => m.data),
-	algorithm2e: () => import('./algorithm2e').then((m) => m.data),
-	amsthm: () => import('./amsthm').then((m) => m.data),
-	mathtools: () => import('./mathtools').then((m) => m.data),
-	subcaption: () => import('./subcaption').then((m) => m.data),
-	todonotes: () => import('./todonotes').then((m) => m.data)
+	tikz: () => import("./tikz").then((m) => m.data),
+	pgfplots: () => import("./pgfplots").then((m) => m.data),
+	biblatex: () => import("./biblatex").then((m) => m.data),
+	natbib: () => import("./natbib").then((m) => m.data),
+	siunitx: () => import("./siunitx").then((m) => m.data),
+	beamer: () => import("./beamer").then((m) => m.data),
+	listings: () => import("./listings").then((m) => m.data),
+	minted: () => import("./minted").then((m) => m.data),
+	hyperref: () => import("./hyperref").then((m) => m.data),
+	cleveref: () => import("./cleveref").then((m) => m.data),
+	booktabs: () => import("./booktabs").then((m) => m.data),
+	enumitem: () => import("./enumitem").then((m) => m.data),
+	geometry: () => import("./geometry").then((m) => m.data),
+	xcolor: () => import("./xcolor").then((m) => m.data),
+	graphicx: () => import("./graphicx").then((m) => m.data),
+	algorithm2e: () => import("./algorithm2e").then((m) => m.data),
+	amsthm: () => import("./amsthm").then((m) => m.data),
+	mathtools: () => import("./mathtools").then((m) => m.data),
+	subcaption: () => import("./subcaption").then((m) => m.data),
+	todonotes: () => import("./todonotes").then((m) => m.data)
 };
 
 /** Packages we have data for, for the `\usepackage{}` suggestion detail. */

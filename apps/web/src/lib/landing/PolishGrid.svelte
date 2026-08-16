@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Reveal } from '@glyphtex/ui/reveal';
+	import { Reveal } from "@glyphtex/ui/reveal";
 
 	// Step 2's capability grid. This used to cycle a highlight through the cards
 	// on a 2.2s interval, which re-rasterised body text on a `scale(1.015)` every
@@ -7,7 +7,7 @@
 	// their own case; motion is limited to the one-shot scroll reveal.
 
 	type Feature = {
-		icon: typeof import('@tabler/icons-svelte').IconBolt;
+		icon: typeof import("@tabler/icons-svelte").IconBolt;
 		title: string;
 		description: string;
 	};

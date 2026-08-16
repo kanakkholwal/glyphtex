@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import type { ComponentProps } from 'svelte';
-	import { Input } from '../input';
+	import { cn } from "@glyphtex/ui/utils";
+	import type { ComponentProps } from "svelte";
+	import { Input } from "../input";
 
 	let {
 		ref = $bindable(null),
-		value = $bindable(''),
+		value = $bindable(""),
 		class: className,
 		...restProps
 	}: ComponentProps<typeof Input> = $props();

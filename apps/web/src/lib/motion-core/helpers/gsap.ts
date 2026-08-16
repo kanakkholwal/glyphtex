@@ -1,10 +1,10 @@
-import { gsap } from 'gsap';
-import { CustomEase } from 'gsap/dist/CustomEase';
+import { gsap } from "gsap";
+import { CustomEase } from "gsap/dist/CustomEase";
 
 const registeredPlugins = new Set<object>();
 
-const MOTION_CORE_EASE_NAME = 'motion-core-ease';
-const MOTION_CORE_EASE_CURVE = '0.625, 0.05, 0, 1';
+const MOTION_CORE_EASE_NAME = "motion-core-ease";
+const MOTION_CORE_EASE_CURVE = "0.625, 0.05, 0, 1";
 
 let motionCoreEaseRegistered = false;
 

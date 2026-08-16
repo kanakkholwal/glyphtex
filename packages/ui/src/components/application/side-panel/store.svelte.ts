@@ -1,10 +1,10 @@
-import { activeOutlineRow, baseLevel, buildOutlineRows, parseOutline, sectionAt } from '../outline';
-import { canDropInto, droppable, getDrag, setDrag, type DndItem } from '../file-dnd';
-import type { ActivityView } from './types';
-import type { TreeNode } from '../file-tree.svelte';
+import { activeOutlineRow, baseLevel, buildOutlineRows, parseOutline, sectionAt } from "../outline";
+import { canDropInto, droppable, getDrag, setDrag, type DndItem } from "../file-dnd";
+import type { ActivityView } from "./types";
+import type { TreeNode } from "../file-tree.svelte";
 
-import { isGeneratedFile } from '../file-kinds';
-import { settings } from '@glyphtex/ui/settings';
+import { isGeneratedFile } from "../file-kinds";
+import { settings } from "@glyphtex/ui/settings";
 import {
 	buildTree,
 	collectFolderPaths,
@@ -13,9 +13,9 @@ import {
 	hideGenerated,
 	rowKeyToSel,
 	type TreeRow
-} from './tree';
-import { treeState } from './tree-state.svelte';
-import type { FileMeta, SearchOptions, Sel } from './types';
+} from "./tree";
+import { treeState } from "./tree-state.svelte";
+import type { FileMeta, SearchOptions, Sel } from "./types";
 
 export type SidePanelDeps = {
 	getView: () => ActivityView;
@@ -34,7 +34,7 @@ export type SidePanelDeps = {
 	onnewfilein?: (dir: string) => void;
 	onnewfolderin?: (dir: string) => void;
 	/** Create at a full relative path, named in the tree before it exists. */
-	oncreate?: (rel: string, kind: 'file' | 'folder') => void;
+	oncreate?: (rel: string, kind: "file" | "folder") => void;
 	ondeletefile?: (id: string) => void;
 	ondeletefolder?: (path: string) => void;
 	onmovefile?: (id: string, targetDir: string) => void;
@@ -71,18 +71,18 @@ export class SidePanelStore {
 	rootDragOver = $state(false);
 	/** Substring filter over the tree. Distinct from the Search view, which lists
 	 *  matches found *inside* files. */
-	treeFilter = $state('');
+	treeFilter = $state("");
 	/** A row being named before the file or folder exists. */
-	draft = $state<{ dir: string; kind: 'file' | 'folder' } | null>(null);
+	draft = $state<{ dir: string; kind: "file" | "folder" } | null>(null);
 	/** Row the keyboard focus sits on. One tab stop for the whole tree. */
 	focusedKey = $state<string | null>(null);
 
 	// --- Settings: shell-integration button feedback ---------------------------
-	shellStatus = $state<'idle' | 'busy' | 'done'>('idle');
+	shellStatus = $state<"idle" | "busy" | "done">("idle");
 
 	// --- Find / replace form ---------------------------------------------------
-	query = $state('');
-	replace = $state('');
+	query = $state("");
+	replace = $state("");
 	matchCase = $state(false);
 	wholeWord = $state(false);
 	useRegex = $state(false);
@@ -101,13 +101,13 @@ export class SidePanelStore {
 	// referencing `#d` before its initialization. They still read reactive props.
 	get heading(): string {
 		const view = this.#d.getView();
-		return view === 'files'
-			? 'Project'
-			: view === 'search'
-				? 'Search'
-				: view === 'git'
-					? 'Source Control'
-					: 'Settings';
+		return view === "files"
+			? "Project"
+			: view === "search"
+				? "Search"
+				: view === "git"
+					? "Source Control"
+					: "Settings";
 	}
 
 	get rootNodes(): TreeNode[] {
@@ -145,7 +145,7 @@ export class SidePanelStore {
 	}
 	set selected(value: Sel | null) {
 		treeState.selectedKeys = value
-			? [value.type === 'folder' ? `d:${value.path}` : `f:${value.id}`]
+			? [value.type === "folder" ? `d:${value.path}` : `f:${value.id}`]
 			: [];
 		treeState.anchor = treeState.selectedKeys[0] ?? null;
 	}
@@ -160,12 +160,12 @@ export class SidePanelStore {
 	// Fall back to the open file when nothing was explicitly clicked.
 	get effectiveSel(): Sel | null {
 		return (
-			this.selected ?? (this.#d.getActiveId() ? { type: 'file', id: this.#d.getActiveId() } : null)
+			this.selected ?? (this.#d.getActiveId() ? { type: "file", id: this.#d.getActiveId() } : null)
 		);
 	}
 	get selectedFolderPath(): string | null {
 		const sel = this.selected;
-		return sel?.type === 'folder' ? sel.path : null;
+		return sel?.type === "folder" ? sel.path : null;
 	}
 
 	/**
@@ -201,11 +201,11 @@ export class SidePanelStore {
 	// parent, or '' (project root).
 	get targetDir(): string {
 		const s = this.effectiveSel;
-		if (!s) return '';
-		if (s.type === 'folder') return s.path;
-		const name = this.#d.getFiles().find((f) => f.id === s.id)?.name ?? '';
-		const i = name.lastIndexOf('/');
-		return i === -1 ? '' : name.slice(0, i);
+		if (!s) return "";
+		if (s.type === "folder") return s.path;
+		const name = this.#d.getFiles().find((f) => f.id === s.id)?.name ?? "";
+		const i = name.lastIndexOf("/");
+		return i === -1 ? "" : name.slice(0, i);
 	}
 
 	// Outline (sectioning): pure derive from the active file's text. Fields, not
@@ -239,21 +239,21 @@ export class SidePanelStore {
 	 *  many files to scan, or nesting deep enough to hide them. */
 	get showTreeFilter(): boolean {
 		if (!this.rootNodes.length) return false;
-		return this.#d.getFiles().length >= 8 || this.folderPaths.some((p) => p.includes('/'));
+		return this.#d.getFiles().length >= 8 || this.folderPaths.some((p) => p.includes("/"));
 	}
 
 	// The file the matches belong to (search runs over the active document).
 	get activeFileName(): string {
-		const name = this.#d.getFiles().find((f) => f.id === this.#d.getActiveId())?.name ?? '';
-		const i = name.lastIndexOf('/');
+		const name = this.#d.getFiles().find((f) => f.id === this.#d.getActiveId())?.name ?? "";
+		const i = name.lastIndexOf("/");
 		return (i === -1 ? name : name.slice(i + 1)) || this.#d.getProjectName();
 	}
 
 	readonly findOptions = $derived([
 		{
-			key: 'case',
-			label: 'Aa',
-			title: 'Match case',
+			key: "case",
+			label: "Aa",
+			title: "Match case",
 			on: this.matchCase,
 			toggle: () => {
 				this.matchCase = !this.matchCase;
@@ -261,9 +261,9 @@ export class SidePanelStore {
 			}
 		},
 		{
-			key: 'word',
-			label: 'W',
-			title: 'Whole word',
+			key: "word",
+			label: "W",
+			title: "Whole word",
 			on: this.wholeWord,
 			toggle: () => {
 				this.wholeWord = !this.wholeWord;
@@ -271,9 +271,9 @@ export class SidePanelStore {
 			}
 		},
 		{
-			key: 'regex',
-			label: '.*',
-			title: 'Regular expression',
+			key: "regex",
+			label: ".*",
+			title: "Regular expression",
 			on: this.useRegex,
 			toggle: () => {
 				this.useRegex = !this.useRegex;
@@ -296,21 +296,21 @@ export class SidePanelStore {
 	}
 	/** Fold every sibling of `path`, leaving one branch open (⌥click a chevron). */
 	collapseSiblings(path: string): void {
-		const parent = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
+		const parent = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
 		const siblings = this.folderPaths.filter((p) => {
 			if (p === path) return false;
-			const at = p.lastIndexOf('/');
-			return (at === -1 ? '' : p.slice(0, at)) === parent;
+			const at = p.lastIndexOf("/");
+			return (at === -1 ? "" : p.slice(0, at)) === parent;
 		});
 		treeState.setMany(siblings, false);
 		treeState.set(path, true);
 	}
 	selectFile(id: string): void {
-		this.selected = { type: 'file', id };
+		this.selected = { type: "file", id };
 		this.#d.onopen?.(id);
 	}
 	selectFolder(path: string): void {
-		this.selected = { type: 'folder', path };
+		this.selected = { type: "folder", path };
 	}
 	/** Scroll the open file into view, expanding whatever hides it. */
 	revealActive(): void {
@@ -318,21 +318,21 @@ export class SidePanelStore {
 		const file = this.#d.getFiles().find((f) => f.id === id);
 		if (!file) return;
 		treeState.revealPath(file.name);
-		this.treeFilter = '';
-		this.selected = { type: 'file', id };
+		this.treeFilter = "";
+		this.selected = { type: "file", id };
 		this.focusedKey = `f:${id}`;
 	}
 	createFileHere(): void {
-		this.startDraft('file');
+		this.startDraft("file");
 	}
 	createFolderHere(): void {
-		this.startDraft('folder');
+		this.startDraft("folder");
 	}
 	/** Name it in the tree first, then create it. Creating an "Untitled" and then
 	 *  renaming it was two steps, and left a stray file if you changed your mind. */
-	startDraft(kind: 'file' | 'folder', dir = this.targetDir): void {
+	startDraft(kind: "file" | "folder", dir = this.targetDir): void {
 		if (dir) treeState.set(dir, true);
-		this.treeFilter = '';
+		this.treeFilter = "";
 		this.draft = { dir, kind };
 	}
 	commitDraft(name: string): void {
@@ -350,20 +350,20 @@ export class SidePanelStore {
 				: [];
 		if (!items.length) return;
 		if (this.#d.ondeleteitems) this.#d.ondeleteitems(items);
-		else if (items[0].type === 'folder') this.#d.ondeletefolder?.(items[0].path);
+		else if (items[0].type === "folder") this.#d.ondeletefolder?.(items[0].path);
 		else this.#d.ondeletefile?.(items[0].id);
 		this.selected = null;
 	}
 	duplicateSelected(): void {
 		const sel = this.effectiveSel;
-		if (sel?.type === 'file') this.#d.onduplicatefile?.(sel.id);
+		if (sel?.type === "file") this.#d.onduplicatefile?.(sel.id);
 	}
 	/** Create inside `dir` specifically, whatever is selected. */
 	newFileIn(dir: string): void {
-		this.startDraft('file', dir);
+		this.startDraft("file", dir);
 	}
 	newFolderIn(dir: string): void {
-		this.startDraft('folder', dir);
+		this.startDraft("folder", dir);
 	}
 	toggleCollapseAll(): void {
 		const collapse = this.anyFolderOpen; // any open → collapse all, else expand all
@@ -373,15 +373,15 @@ export class SidePanelStore {
 	// --- Drops -----------------------------------------------------------------
 	dragOverRoot(e: DragEvent): void {
 		if (!getDrag().length) return;
-		const ok = canDropInto('');
+		const ok = canDropInto("");
 		e.preventDefault();
-		if (e.dataTransfer) e.dataTransfer.dropEffect = ok ? 'move' : 'none';
+		if (e.dataTransfer) e.dataTransfer.dropEffect = ok ? "move" : "none";
 		this.rootDragOver = ok;
 	}
 	rootDrop(e: DragEvent): void {
 		e.preventDefault();
 		this.rootDragOver = false;
-		this.dropInto('');
+		this.dropInto("");
 	}
 	/** Move whatever is being dragged into `dir`, skipping the items that cannot. */
 	dropInto(dir: string): void {
@@ -389,10 +389,10 @@ export class SidePanelStore {
 		setDrag(null);
 		if (!items.length) return;
 		const sel: Sel[] = items.map((it) =>
-			it.kind === 'file' ? { type: 'file', id: it.id } : { type: 'folder', path: it.path }
+			it.kind === "file" ? { type: "file", id: it.id } : { type: "folder", path: it.path }
 		);
 		if (this.#d.onmoveitems) this.#d.onmoveitems(sel, dir);
-		else if (items[0].kind === 'file') this.#d.onmovefile?.(items[0].id, dir);
+		else if (items[0].kind === "file") this.#d.onmovefile?.(items[0].id, dir);
 		else this.#d.onmovefolder?.(items[0].path, dir);
 	}
 	/** Payload for a drag started on `key`: the whole selection when the grabbed
@@ -402,19 +402,19 @@ export class SidePanelStore {
 		const files = this.#d.getFiles();
 		return keys.map((k) => {
 			const sel = rowKeyToSel(k);
-			if (sel.type === 'folder')
-				return { kind: 'folder', path: sel.path, name: sel.path.split('/').pop() ?? sel.path };
+			if (sel.type === "folder")
+				return { kind: "folder", path: sel.path, name: sel.path.split("/").pop() ?? sel.path };
 			const name = files.find((f) => f.id === sel.id)?.name ?? sel.id;
-			return { kind: 'file', id: sel.id, name };
+			return { kind: "file", id: sel.id, name };
 		});
 	}
 
 	// --- Settings: shell integration -------------------------------------------
 	async addShellIntegration(): Promise<void> {
-		if (this.shellStatus === 'busy' || !this.#d.onregistershell) return;
-		this.shellStatus = 'busy';
+		if (this.shellStatus === "busy" || !this.#d.onregistershell) return;
+		this.shellStatus = "busy";
 		const ok = await this.#d.onregistershell();
-		this.shellStatus = ok ? 'done' : 'idle';
+		this.shellStatus = ok ? "done" : "idle";
 	}
 
 	// --- Search ----------------------------------------------------------------
@@ -432,7 +432,7 @@ export class SidePanelStore {
 		if (this.query) this.emitSearch();
 	}
 	clearSearchView(): void {
-		this.query = '';
+		this.query = "";
 		this.emitSearch(); // empty query → host clears matches + highlight
 		this.resultsCollapsed = false;
 		this.searchInputEl?.focus();

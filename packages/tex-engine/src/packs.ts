@@ -50,29 +50,29 @@ export function defaultPacks(index: PackIndex): PackDefinition[] {
 }
 
 function isStringArray(value: unknown): value is string[] {
-	return Array.isArray(value) && value.every((v) => typeof v === 'string');
+	return Array.isArray(value) && value.every((v) => typeof v === "string");
 }
 
 function isPackDefinition(value: unknown): value is PackDefinition {
-	if (typeof value !== 'object' || value === null) return false;
+	if (typeof value !== "object" || value === null) return false;
 	const p = value as PackDefinition;
 	return (
-		typeof p.id === 'string' &&
-		typeof p.label === 'string' &&
-		typeof p.description === 'string' &&
+		typeof p.id === "string" &&
+		typeof p.label === "string" &&
+		typeof p.description === "string" &&
 		isStringArray(p.packages) &&
 		isStringArray(p.requires) &&
-		typeof p.optional === 'boolean' &&
-		typeof p.bytes === 'number' &&
-		typeof p.hash === 'string'
+		typeof p.optional === "boolean" &&
+		typeof p.bytes === "number" &&
+		typeof p.hash === "string"
 	);
 }
 
 // Throws rather than returning a partial index: silently under-reporting what is
 // installable reads to the user as "that package is not supported".
 export function parsePackIndex(value: unknown): PackIndex {
-	if (typeof value !== 'object' || value === null) {
-		throw new Error('The package index is malformed.');
+	if (typeof value !== "object" || value === null) {
+		throw new Error("The package index is malformed.");
 	}
 	const index = value as PackIndex;
 
@@ -82,14 +82,14 @@ export function parsePackIndex(value: unknown): PackIndex {
 		);
 	}
 	if (!Array.isArray(index.packs) || !index.packs.every(isPackDefinition)) {
-		throw new Error('The package index contains a malformed pack.');
+		throw new Error("The package index contains a malformed pack.");
 	}
 	if (
-		typeof index.provides !== 'object' ||
+		typeof index.provides !== "object" ||
 		index.provides === null ||
-		Object.values(index.provides).some((v) => typeof v !== 'string')
+		Object.values(index.provides).some((v) => typeof v !== "string")
 	) {
-		throw new Error('The package index has a malformed file map.');
+		throw new Error("The package index has a malformed file map.");
 	}
 
 	const ids = new Set(index.packs.map((p) => p.id));

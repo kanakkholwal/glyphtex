@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { EngineSettings } from '@glyphtex/ui/application';
-	import { engineManager } from '$lib/engine';
+	import { EngineSettings } from "@glyphtex/ui/application";
+	import { engineManager } from "$lib/engine";
 </script>
 
 <div class="flex flex-col gap-8">

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { IconChevronRight } from '@tabler/icons-svelte';
-	import type { Snippet } from 'svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { slide } from 'svelte/transition';
+	import { IconChevronRight } from "@tabler/icons-svelte";
+	import type { Snippet } from "svelte";
+	import { cubicOut } from "svelte/easing";
+	import { slide } from "svelte/transition";
 
 	/** Collapsible section inside the side panel (Outline, Recent, …). */
 	let {

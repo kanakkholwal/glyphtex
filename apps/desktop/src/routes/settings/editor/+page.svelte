@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '@glyphtex/ui/select';
-	import { SettingsField } from '@glyphtex/ui/settings-field';
-	import { SettingsSection } from '@glyphtex/ui/settings-section';
-	import { SliderControl } from '@glyphtex/ui/slider-control';
-	import { Switch } from '@glyphtex/ui/switch';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from "@glyphtex/ui/select";
+	import { SettingsField } from "@glyphtex/ui/settings-field";
+	import { SettingsSection } from "@glyphtex/ui/settings-section";
+	import { SliderControl } from "@glyphtex/ui/slider-control";
+	import { Switch } from "@glyphtex/ui/switch";
 	import {
 		AUTO_SAVE_LABELS,
 		EDITOR_FONT_LABELS,
 		settings,
 		type AutoSaveMode,
 		type EditorFont
-	} from '@glyphtex/ui/settings';
+	} from "@glyphtex/ui/settings";
 
 	const fontOpts = (Object.keys(EDITOR_FONT_LABELS) as EditorFont[]).map((id) => ({
 		value: id,

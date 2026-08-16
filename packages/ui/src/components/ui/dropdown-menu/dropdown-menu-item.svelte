@@ -1,23 +1,23 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
+	import { cn } from "@glyphtex/ui/utils";
+	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
 	import {
 		dropdownMenuItemSizeVariants,
 		getDropdownMenuSize,
 		type DropdownMenuSize
-	} from './context';
+	} from "./context";
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		inset,
 		size,
-		variant = 'default',
+		variant = "default",
 		...restProps
 	}: DropdownMenuPrimitive.ItemProps & {
 		inset?: boolean;
 		size?: DropdownMenuSize;
-		variant?: 'default' | 'destructive';
+		variant?: "default" | "destructive";
 	} = $props();
 
 	// Inherit from <Content size="…"> unless overridden per-item.

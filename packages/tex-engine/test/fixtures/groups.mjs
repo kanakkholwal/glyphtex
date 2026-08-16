@@ -8,11 +8,11 @@
 /** @type {GroupFixture[]} */
 export const GROUP_FIXTURES = [
 	{
-		id: 'core',
-		label: 'Core compiler',
+		id: "core",
+		label: "Core compiler",
 		documents: [
 			{
-				label: 'article',
+				label: "article",
 				source: String.raw`\documentclass{article}
 \begin{document}
 \section{Heading}
@@ -23,7 +23,7 @@ Plain text, \emph{emphasis}, and a footnote.\footnote{Like this.}
 				// The base/near-universal packages that open most real preambles.
 				// A bare fixture left these out of core, so documents failed on
 				// inputenc/fontenc — files present in every TeX install but not ours.
-				label: 'essential preamble',
+				label: "essential preamble",
 				source: String.raw`\documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -37,7 +37,7 @@ Text with \texttrademark{} and \S symbols.
 \end{document}`
 			},
 			{
-				label: 'report',
+				label: "report",
 				source: String.raw`\documentclass{report}
 \begin{document}
 \chapter{First chapter}
@@ -46,7 +46,7 @@ Report class uses chapters.
 \end{document}`
 			},
 			{
-				label: 'book',
+				label: "book",
 				source: String.raw`\documentclass{book}
 \begin{document}
 \frontmatter
@@ -60,7 +60,7 @@ Book class distinguishes front and main matter.
 				// A size option pulls a different size*.clo and a different Computer
 				// Modern design size. Every other fixture takes the 10pt default, so
 				// 12pt shipped broken: size12.clo and cmr12 were never requested.
-				label: 'class size options',
+				label: "class size options",
 				source: String.raw`\documentclass[12pt,fleqn]{report}
 \begin{document}
 \chapter{Twelve point}
@@ -70,11 +70,11 @@ Body text at a size no other fixture asks for, with maths $\sum_{i=1}^{n} x_i^2$
 		]
 	},
 	{
-		id: 'math',
-		label: 'Math',
+		id: "math",
+		label: "Math",
 		documents: [
 			{
-				label: 'amsmath + amssymb + mathtools',
+				label: "amsmath + amssymb + mathtools",
 				source: String.raw`\documentclass{article}
 \usepackage{amsmath,amssymb,mathtools}
 \begin{document}
@@ -91,11 +91,11 @@ Symbols: $\alpha\beta\gamma \in \mathbb{R}, \forall x \leq \aleph_0$.
 		]
 	},
 	{
-		id: 'graphics',
-		label: 'Graphics & color',
+		id: "graphics",
+		label: "Graphics & color",
 		documents: [
 			{
-				label: 'graphicx + xcolor',
+				label: "graphicx + xcolor",
 				source: String.raw`\documentclass{article}
 \usepackage{graphicx,xcolor}
 \begin{document}
@@ -107,13 +107,13 @@ Symbols: $\alpha\beta\gamma \in \mathbb{R}, \forall x \leq \aleph_0$.
 		]
 	},
 	{
-		id: 'tables',
-		label: 'Tables',
+		id: "tables",
+		label: "Tables",
 		documents: [
 			{
 				// caption alongside longtable on purpose: caption loads ltcaption.sty
 				// only when longtable is present, so neither package alone reaches it.
-				label: 'booktabs + tabularx + array + longtable + multirow + caption',
+				label: "booktabs + tabularx + array + longtable + multirow + caption",
 				source: String.raw`\documentclass{article}
 \usepackage{booktabs,tabularx,array,longtable,multirow,caption}
 \begin{document}
@@ -134,11 +134,11 @@ Symbols: $\alpha\beta\gamma \in \mathbb{R}, \forall x \leq \aleph_0$.
 		]
 	},
 	{
-		id: 'layout',
-		label: 'Layout & links',
+		id: "layout",
+		label: "Layout & links",
 		documents: [
 			{
-				label: 'geometry + hyperref + enumitem + caption',
+				label: "geometry + hyperref + enumitem + caption",
 				source: String.raw`\documentclass{article}
 \usepackage[margin=2cm]{geometry}
 \usepackage{hyperref,enumitem,caption}
@@ -154,7 +154,7 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
 \end{document}`
 			},
 			{
-				label: 'subcaption + cleveref',
+				label: "subcaption + cleveref",
 				source: String.raw`\documentclass{article}
 \usepackage{graphicx,caption,subcaption}
 \usepackage{hyperref}
@@ -173,14 +173,14 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
 		]
 	},
 	{
-		id: 'drawing',
-		label: 'Diagrams & plots',
+		id: "drawing",
+		label: "Diagrams & plots",
 		documents: [
 			{
 				// The libraries are loaded by name, so this names the ones real
 				// diagrams reach for. The bundle globs the whole set; this proves
 				// the set is usable rather than merely present.
-				label: 'tikz + pgfplots + libraries',
+				label: "tikz + pgfplots + libraries",
 				source: String.raw`\documentclass{article}
 \usepackage{tikz,pgfplots}
 \usetikzlibrary{arrows.meta,calc,fit,backgrounds,positioning,shapes.geometric}
@@ -202,11 +202,11 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
 		]
 	},
 	{
-		id: 'slides',
-		label: 'Presentations',
+		id: "slides",
+		label: "Presentations",
 		documents: [
 			{
-				label: 'beamer',
+				label: "beamer",
 				source: String.raw`\documentclass{beamer}
 \begin{document}
 \begin{frame}{Title slide}
@@ -224,7 +224,7 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
 				// A real deck's preamble. The small sizes are the point: beamer's sans
 				// at \tiny asks for ec-lmss8, whose T1 metrics the plain lm* glob missed,
 				// and the whole document then typeset into nullfont.
-				label: 'beamer + T1 sans at small sizes',
+				label: "beamer + T1 sans at small sizes",
 				source: String.raw`\documentclass[11pt]{beamer}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -251,11 +251,11 @@ See \hyperref[sec:one]{this section} and \url{https://example.com}.
 		]
 	},
 	{
-		id: 'code',
-		label: 'Code & algorithms',
+		id: "code",
+		label: "Code & algorithms",
 		documents: [
 			{
-				label: 'listings + algorithm2e',
+				label: "listings + algorithm2e",
 				source: String.raw`\documentclass{article}
 \usepackage{listings}
 \usepackage[ruled,vlined]{algorithm2e}
@@ -275,11 +275,11 @@ int main(void) { return 0; }
 		]
 	},
 	{
-		id: 'typography',
-		label: 'Typography',
+		id: "typography",
+		label: "Typography",
 		documents: [
 			{
-				label: 'microtype + lmodern + siunitx',
+				label: "microtype + lmodern + siunitx",
 				source: String.raw`\documentclass{article}
 \usepackage{microtype}
 \usepackage{lmodern}

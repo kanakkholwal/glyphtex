@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	// LaTeX-only for now. Typst returns later as an add-on engine.
-	export type EditorEngine = 'latex';
+	export type EditorEngine = "latex";
 
 	const SAMPLE_LATEX = String.raw`% GlyphTeX document
 \documentclass{article}

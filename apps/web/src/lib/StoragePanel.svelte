@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		Dialog,
 		DialogContent,
@@ -7,9 +7,9 @@
 		DialogFooter,
 		DialogHeader,
 		DialogTitle
-	} from '@glyphtex/ui/dialog';
+	} from "@glyphtex/ui/dialog";
 
-	import { totalBytes } from '$lib/storage/projects';
+	import { totalBytes } from "$lib/storage/projects";
 	import {
 		PER_FILE_BYTES,
 		PER_PROJECT_BYTES,
@@ -19,7 +19,7 @@
 		requestPersistence,
 		storageStatus,
 		type StorageStatus
-	} from '$lib/storage/quota';
+	} from "$lib/storage/quota";
 
 	let { open = $bindable(false) }: { open?: boolean } = $props();
 
@@ -52,9 +52,9 @@
 			if (granted) return;
 			const permission = await persistencePermission();
 			refused =
-				permission === 'denied'
-					? 'Your browser blocked this permission for this site. Re-allow it in site settings, then try again.'
-					: 'The browser declined for now. Chrome grants this once a site is bookmarked or installed, or after you have used it a few times.';
+				permission === "denied"
+					? "Your browser blocked this permission for this site. Re-allow it in site settings, then try again."
+					: "The browser declined for now. Chrome grants this once a site is bookmarked or installed, or after you have used it a few times.";
 		} finally {
 			asking = false;
 		}

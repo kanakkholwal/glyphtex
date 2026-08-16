@@ -1,6 +1,6 @@
-import { invoke } from '@tauri-apps/api/core';
-import { settings } from '@glyphtex/ui/settings';
-import { isTauriRuntime } from '$lib/runtime';
+import { invoke } from "@tauri-apps/api/core";
+import { settings } from "@glyphtex/ui/settings";
+import { isTauriRuntime } from "$lib/runtime";
 
 /** Shape returned by the Rust `compile_latex` / `compile_project` commands.
  *  Mirrors `CompileResult` in src-tauri/src/compile.rs field-for-field (snake_case;
@@ -30,10 +30,10 @@ export type CompileOutcome = {
  */
 export async function compileLatex(source: string): Promise<CompileOutcome> {
 	if (!isTauriRuntime()) {
-		return { error: 'Compilation runs in the GlyphTeX desktop app.' };
+		return { error: "Compilation runs in the GlyphTeX desktop app." };
 	}
 	try {
-		const res = await invoke<RawCompileResult>('compile_latex', {
+		const res = await invoke<RawCompileResult>("compile_latex", {
 			source,
 			shellEscape: settings.shellEscape,
 			engine: settings.engineKind,
@@ -48,13 +48,13 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
 			};
 		return {
 			log: res.log,
-			error: res.message ?? 'Compilation failed.',
+			error: res.message ?? "Compilation failed.",
 			hint: res.hint ?? undefined
 		};
 	} catch (e) {
 		// An exception here is an IPC/backend failure, not a normal compile error
 		// (those return success=false). Plain message; raw detail in the log (§5).
-		return { error: 'Could not run the compiler.', log: String(e) };
+		return { error: "Could not run the compiler.", log: String(e) };
 	}
 }
 
@@ -65,10 +65,10 @@ export async function compileLatex(source: string): Promise<CompileOutcome> {
  */
 export async function compileProject(root: string, mainRel: string): Promise<CompileOutcome> {
 	if (!isTauriRuntime()) {
-		return { error: 'Compilation runs in the GlyphTeX desktop app.' };
+		return { error: "Compilation runs in the GlyphTeX desktop app." };
 	}
 	try {
-		const res = await invoke<RawCompileResult>('compile_project', {
+		const res = await invoke<RawCompileResult>("compile_project", {
 			root,
 			main: mainRel,
 			shellEscape: settings.shellEscape,
@@ -84,11 +84,11 @@ export async function compileProject(root: string, mainRel: string): Promise<Com
 			};
 		return {
 			log: res.log,
-			error: res.message ?? 'Compilation failed.',
+			error: res.message ?? "Compilation failed.",
 			hint: res.hint ?? undefined
 		};
 	} catch (e) {
 		// IPC/backend failure (see compileLatex): plain message, raw in the log (§5).
-		return { error: 'Could not run the compiler.', log: String(e) };
+		return { error: "Could not run the compiler.", log: String(e) };
 	}
 }

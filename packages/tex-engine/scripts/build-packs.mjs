@@ -8,53 +8,53 @@
 // not already provide.
 //
 // See PACKS.md for the design. Requires TeX Live on PATH (use WSL on Windows).
-import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { TexEngine } from '../dist/index.js';
-import { PACK_FIXTURES } from '../test/fixtures/packs.mjs';
-import { packTarGz } from './lib/targz.mjs';
-import { globTexmf } from './lib/texmf.mjs';
+import { TexEngine } from "../dist/index.js";
+import { PACK_FIXTURES } from "../test/fixtures/packs.mjs";
+import { packTarGz } from "./lib/targz.mjs";
+import { globTexmf } from "./lib/texmf.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const pkgRoot = resolve(here, '..');
+const pkgRoot = resolve(here, "..");
 
 const argv = process.argv.slice(2);
 function flag(name, fallback) {
 	const i = argv.indexOf(name);
 	return i === -1 ? fallback : resolve(argv[i + 1]);
 }
-const bundleDir = flag('--bundle', null);
-const outDir = flag('--out', resolve(pkgRoot, '../../crates/tectonic-wasm/output/packs'));
+const bundleDir = flag("--bundle", null);
+const outDir = flag("--out", resolve(pkgRoot, "../../crates/tectonic-wasm/output/packs"));
 const wasmPath = flag(
-	'--wasm',
-	resolve(pkgRoot, '../../crates/tectonic-wasm/output/tectonic_wasm.wasm')
+	"--wasm",
+	resolve(pkgRoot, "../../crates/tectonic-wasm/output/tectonic_wasm.wasm")
 );
 
 if (!bundleDir || !existsSync(bundleDir)) {
-	console.error('usage: node scripts/build-packs.mjs --bundle <core-dir> [--out <dir>]');
-	console.error('The core bundle directory is required: packs are built as the difference');
-	console.error('from it, so without it every pack would duplicate the whole of core.');
+	console.error("usage: node scripts/build-packs.mjs --bundle <core-dir> [--out <dir>]");
+	console.error("The core bundle directory is required: packs are built as the difference");
+	console.error("from it, so without it every pack would duplicate the whole of core.");
 	process.exit(1);
 }
 try {
-	execFileSync('kpsewhich', ['--version'], { stdio: 'ignore' });
+	execFileSync("kpsewhich", ["--version"], { stdio: "ignore" });
 } catch {
-	console.error('kpsewhich not found — a TeX Live installation is required (use WSL on Windows).');
+	console.error("kpsewhich not found — a TeX Live installation is required (use WSL on Windows).");
 	process.exit(1);
 }
 
-const config = JSON.parse(readFileSync(resolve(pkgRoot, 'packs.config.json'), 'utf8'));
+const config = JSON.parse(readFileSync(resolve(pkgRoot, "packs.config.json"), "utf8"));
 
 const lookup = new Map();
 function kpse(name) {
 	if (lookup.has(name)) return lookup.get(name);
 	let path = null;
 	try {
-		const found = execFileSync('kpsewhich', [name], { encoding: 'utf8' }).trim();
+		const found = execFileSync("kpsewhich", [name], { encoding: "utf8" }).trim();
 		if (found && existsSync(found)) path = found;
 	} catch {
 		/* TeX probes speculatively; most of these never exist */
@@ -68,7 +68,7 @@ function kpse(name) {
 // output directory when written.
 function isBareName(name) {
 	return (
-		name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.'
+		name !== "" && !name.includes("/") && !name.includes("\\") && name !== ".." && name !== "."
 	);
 }
 
@@ -86,7 +86,7 @@ const fixtures = new Map(PACK_FIXTURES.map((f) => [f.id, f]));
 for (const pack of config.packs) {
 	if (!fixtures.has(pack.id)) {
 		console.error(`pack "${pack.id}" has no fixture in test/fixtures/packs.mjs.`);
-		console.error('Every pack needs a compiling document — a manifest entry proves nothing.');
+		console.error("Every pack needs a compiling document — a manifest entry proves nothing.");
 		process.exit(1);
 	}
 }
@@ -112,9 +112,9 @@ for (const pack of config.packs) {
 	// against them and our copy wins over any same-named TeX Live file.
 	let vendored = 0;
 	if (pack.vendor) {
-		const vdir = resolve(pkgRoot, 'vendor', pack.vendor);
+		const vdir = resolve(pkgRoot, "vendor", pack.vendor);
 		for (const name of readdirSync(vdir)) {
-			if (name === 'NOTICE.md' || !isBareName(name)) continue;
+			if (name === "NOTICE.md" || !isBareName(name)) continue;
 			const path = join(vdir, name);
 			if (!statSync(path).isFile()) continue;
 			extra.set(name, new Uint8Array(readFileSync(path)));
@@ -172,11 +172,11 @@ for (const pack of config.packs) {
 		// Companions are the fixture's own inputs, never pack content: a .bib
 		// belongs to the document, so it must not be collected into the tarball.
 		for (const [name, text] of Object.entries(companions)) engine.addFile(name, text);
-		engine.addFile('main.tex', source);
+		engine.addFile("main.tex", source);
 
 		let result;
 		try {
-			result = engine.compile({ entry: 'main.tex' });
+			result = engine.compile({ entry: "main.tex" });
 		} catch (error) {
 			lastMessage = String(error.message).slice(0, 120);
 			break;
@@ -188,8 +188,8 @@ for (const pack of config.packs) {
 		let gained = 0;
 		if (!pack.vendor) for (const name of result.missingFiles) if (add(name)) gained++;
 
-		const pdf = result.status === 'failed' ? null : engine.pdf();
-		const ok = result.status !== 'failed' && result.status !== 'errors' && pdf && pdf.length > 1000;
+		const pdf = result.status === "failed" ? null : engine.pdf();
+		const ok = result.status !== "failed" && result.status !== "errors" && pdf && pdf.length > 1000;
 		if (ok) {
 			converged = true;
 			break;
@@ -203,7 +203,7 @@ for (const pack of config.packs) {
 				// `foo.sty.aux`, `foo.sty.clo` and so on. Listing those buries the
 				// one name that matters under a dozen that do not exist anywhere.
 				.filter((n) => !/\.(sty|cls|def)\.[a-z]+$/.test(n));
-			const errors = result.diagnostics.filter((d) => d.severity === 'error');
+			const errors = result.diagnostics.filter((d) => d.severity === "error");
 			if (errors.length) lastMessage = errors[0].message;
 			break;
 		}
@@ -214,7 +214,7 @@ for (const pack of config.packs) {
 		if (unresolved.length) {
 			console.error(`${unresolved.length} file(s) are not in this TeX Live:`);
 			for (const n of unresolved.slice(0, 15)) console.error(`  ${n}`);
-			console.error('Install the packages providing them:  tlmgr install <package>');
+			console.error("Install the packages providing them:  tlmgr install <package>");
 		}
 		process.exit(1);
 	}
@@ -233,14 +233,14 @@ for (const pack of config.packs) {
 	});
 	if (unshipped.length) {
 		console.error(
-			`\npack "${pack.id}" lists ${unshipped.join(', ')} but ships neither .sty nor .cls.`
+			`\npack "${pack.id}" lists ${unshipped.join(", ")} but ships neither .sty nor .cls.`
 		);
 		console.error(`Add them to test/fixtures/packs.mjs (${pack.id}) so convergence collects them.`);
 		process.exit(1);
 	}
 
 	const { gz, raw, count } = packTarGz(extra);
-	const hash = createHash('sha256').update(gz).digest('hex').slice(0, 16);
+	const hash = createHash("sha256").update(gz).digest("hex").slice(0, 16);
 	writeFileSync(resolve(outDir, `pack-${pack.id}.tar.gz`), gz);
 
 	for (const name of extra.keys()) {
@@ -268,9 +268,9 @@ for (const pack of config.packs) {
 		hash
 	});
 
-	const deps = requires.size > 0 ? `  requires ${[...requires].join(', ')}` : '';
-	const inc = included > 0 ? `  +${included} included` : '';
-	const ven = vendored > 0 ? `  +${vendored} vendored` : '';
+	const deps = requires.size > 0 ? `  requires ${[...requires].join(", ")}` : "";
+	const inc = included > 0 ? `  +${included} included` : "";
+	const ven = vendored > 0 ? `  +${vendored} vendored` : "";
 	console.log(
 		`  ${pack.id.padEnd(13)} ${String(count).padStart(4)} files  ` +
 			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz${deps}${inc}${ven}`
@@ -278,7 +278,7 @@ for (const pack of config.packs) {
 }
 
 const index = { version: 1, packs: built, provides };
-writeFileSync(resolve(outDir, 'packs-index.json'), JSON.stringify(index, null, '\t') + '\n');
+writeFileSync(resolve(outDir, "packs-index.json"), JSON.stringify(index, null, "\t") + "\n");
 
 const total = built.reduce((n, p) => n + p.bytes, 0);
 console.log(

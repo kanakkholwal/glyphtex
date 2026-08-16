@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	export type BlockAction = 'above' | 'below' | 'convert' | 'source' | 'delete';
+	export type BlockAction = "above" | "below" | "convert" | "source" | "delete";
 </script>
 
 <script lang="ts">

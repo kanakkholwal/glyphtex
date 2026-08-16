@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '@glyphtex/ui/select';
-	import { SettingsField } from '@glyphtex/ui/settings-field';
-	import { SettingsSection } from '@glyphtex/ui/settings-section';
-	import { settings, type Appearance, type SidebarPosition } from '@glyphtex/ui/settings';
+	import { Select, SelectContent, SelectItem, SelectTrigger } from "@glyphtex/ui/select";
+	import { SettingsField } from "@glyphtex/ui/settings-field";
+	import { SettingsSection } from "@glyphtex/ui/settings-section";
+	import { settings, type Appearance, type SidebarPosition } from "@glyphtex/ui/settings";
 
 	const appearanceOpts: { value: Appearance; label: string }[] = [
-		{ value: 'light', label: 'Light' },
-		{ value: 'dark', label: 'Dark' },
-		{ value: 'system', label: 'System' }
+		{ value: "light", label: "Light" },
+		{ value: "dark", label: "Dark" },
+		{ value: "system", label: "System" }
 	];
 	const sidebarOpts: { value: SidebarPosition; label: string }[] = [
-		{ value: 'left', label: 'Left' },
-		{ value: 'right', label: 'Right' }
+		{ value: "left", label: "Left" },
+		{ value: "right", label: "Right" }
 	];
 </script>
 

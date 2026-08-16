@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { nextIndex, pillWidth, splitLetters } from './text-flip';
+	import { cn } from "@glyphtex/ui/utils";
+	import { nextIndex, pillWidth, splitLetters } from "./text-flip";
 
 	type Props = {
 		words?: string[];
@@ -11,28 +11,28 @@
 		class?: string;
 		textClass?: string;
 		/** `brand` tints the pill and its type with the signal colour. */
-		tone?: 'neutral' | 'brand';
+		tone?: "neutral" | "brand";
 	};
 
 	let {
-		words = ['better', 'modern', 'beautiful', 'awesome'],
+		words = ["better", "modern", "beautiful", "awesome"],
 		interval = 3000,
 		animationDuration = 600,
-		class: className = '',
-		textClass = '',
-		tone = 'neutral'
+		class: className = "",
+		textClass = "",
+		tone = "neutral"
 	}: Props = $props();
 
 	let index = $state(0);
 	let widths = $state<number[]>([]);
 	let measureEls = $state<(HTMLElement | undefined)[]>([]);
 
-	const word = $derived(words[index] ?? '');
+	const word = $derived(words[index] ?? "");
 	const activeWidth = $derived(widths[index] ?? 0);
 
 	const reducedMotion =
-		typeof window !== 'undefined' &&
-		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+		typeof window !== "undefined" &&
+		window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 	$effect(() => {
 		const els = measureEls.filter((el): el is HTMLElement => !!el);

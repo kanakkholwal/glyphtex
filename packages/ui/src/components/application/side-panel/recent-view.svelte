@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { IconFile, IconFileText, IconFileTypePdf, IconPhotoPlus } from '@tabler/icons-svelte';
+	import { IconFile, IconFileText, IconFileTypePdf, IconPhotoPlus } from "@tabler/icons-svelte";
 
-	import { classifyFile, type FileKind } from '../file-kinds';
-	import type { FileMeta } from './types';
+	import { classifyFile, type FileKind } from "../file-kinds";
+	import type { FileMeta } from "./types";
 
 	/** Files opened earlier in this session that no longer have a tab. */
 	let { files = [], onopen }: { files?: FileMeta[]; onopen?: (id: string) => void } = $props();
@@ -16,7 +16,7 @@
 		binary: IconFile
 	};
 
-	const leaf = (name: string) => name.slice(name.lastIndexOf('/') + 1);
+	const leaf = (name: string) => name.slice(name.lastIndexOf("/") + 1);
 </script>
 
 <ul class="flex flex-col py-0.5">

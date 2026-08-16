@@ -1,62 +1,62 @@
 <script lang="ts">
-	import { Container, Section } from '$lib/landing';
-	import SiteFooter from '$lib/SiteFooter.svelte';
-	import SiteHeader from '$lib/SiteHeader.svelte';
-	import { CONTACT_EMAIL, REPO_URL } from '$lib/landing/nav-data';
+	import { Container, Section } from "$lib/landing";
+	import SiteFooter from "$lib/SiteFooter.svelte";
+	import SiteHeader from "$lib/SiteHeader.svelte";
+	import { CONTACT_EMAIL, REPO_URL } from "$lib/landing/nav-data";
 
-	const updated = '23 July 2026';
+	const updated = "23 July 2026";
 
 	// Mirrors the closed union in `$lib/analytics/types.ts`. If an event is added
 	// there without a row here, this page is out of date.
 	const events: { name: string; when: string; data: string }[] = [
 		{
-			name: 'page_view',
-			when: 'You open or navigate to a page on this site.',
-			data: 'Path, page title, referrer.'
+			name: "page_view",
+			when: "You open or navigate to a page on this site.",
+			data: "Path, page title, referrer."
 		},
 		{
-			name: 'cta_* / download_click / engine_cta_*',
-			when: 'You click a call-to-action or a download link.',
-			data: 'Which button, and for downloads the platform and release version.'
+			name: "cta_* / download_click / engine_cta_*",
+			when: "You click a call-to-action or a download link.",
+			data: "Which button, and for downloads the platform and release version."
 		},
 		{
-			name: 'document_created',
-			when: 'You create, import, or clone a document.',
-			data: 'Where it came from (blank, zip, folder, Git clone) and a file-count bucket.'
+			name: "document_created",
+			when: "You create, import, or clone a document.",
+			data: "Where it came from (blank, zip, folder, Git clone) and a file-count bucket."
 		},
 		{
-			name: 'document_opened / document_exported',
-			when: 'You open a document, or export it as a zip.',
-			data: 'A file-count bucket.'
+			name: "document_opened / document_exported",
+			when: "You open a document, or export it as a zip.",
+			data: "A file-count bucket."
 		},
 		{
-			name: 'document_renamed / document_duplicated / document_deleted / document_starred',
-			when: 'You perform that action on a document.',
-			data: 'Nothing beyond the fact that it happened.'
+			name: "document_renamed / document_duplicated / document_deleted / document_starred",
+			when: "You perform that action on a document.",
+			data: "Nothing beyond the fact that it happened."
 		},
 		{
-			name: 'compile_finished',
-			when: 'A compile finishes.',
-			data: 'Whether a PDF was produced, how long it took, a file-count bucket, and the number of diagnostics and missing package sets.'
+			name: "compile_finished",
+			when: "A compile finishes.",
+			data: "Whether a PDF was produced, how long it took, a file-count bucket, and the number of diagnostics and missing package sets."
 		},
 		{
-			name: 'engine_installed',
-			when: 'The LaTeX engine finishes its one-time download.',
-			data: 'Nothing beyond the fact that it happened.'
+			name: "engine_installed",
+			when: "The LaTeX engine finishes its one-time download.",
+			data: "Nothing beyond the fact that it happened."
 		},
 		{
-			name: 'git_action',
-			when: 'You initialise, commit, push, pull, or clone in source control.',
-			data: 'Which of those actions, and whether a pull hit conflicts.'
+			name: "git_action",
+			when: "You initialise, commit, push, pull, or clone in source control.",
+			data: "Which of those actions, and whether a pull hit conflicts."
 		}
 	];
 
 	const never = [
-		'The contents of any document, ever. Nothing you type is transmitted.',
-		'Document names, file names, folder names, or the text of any compile error.',
-		'Git remote URLs, repository names, branch names, or commit messages.',
-		'Access tokens or any other credential.',
-		'Your files, which stay in your browser’s local storage on your own device.'
+		"The contents of any document, ever. Nothing you type is transmitted.",
+		"Document names, file names, folder names, or the text of any compile error.",
+		"Git remote URLs, repository names, branch names, or commit messages.",
+		"Access tokens or any other credential.",
+		"Your files, which stay in your browser’s local storage on your own device."
 	];
 </script>
 

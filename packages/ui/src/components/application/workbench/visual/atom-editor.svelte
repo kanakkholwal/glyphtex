@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack } from "svelte";
 
-	import { Button } from '@glyphtex/ui/button';
-	import { IconLinkOff, IconTrash } from '@tabler/icons-svelte';
+	import { Button } from "@glyphtex/ui/button";
+	import { IconLinkOff, IconTrash } from "@tabler/icons-svelte";
 
 	/** Edits one atom in place. These are the parts of a paragraph you can see but
 	 *  could never type into. */
@@ -22,38 +22,38 @@
 	} = $props();
 
 	const KINDS: Record<string, { title: string; hint: string }> = {
-		math: { title: 'Maths', hint: 'LaTeX between the dollar signs' },
-		cite: { title: 'Citation', hint: 'Comma-separated BibTeX keys' },
-		ref: { title: 'Cross-reference', hint: 'The label it points at' },
-		label: { title: 'Anchor', hint: 'The name other blocks reference' },
-		link: { title: 'Link', hint: 'Shown text and its address' },
-		footnote: { title: 'Footnote', hint: 'LaTeX, written back as typed' },
-		comment: { title: 'Comment', hint: 'Kept in the source, never printed' },
-		raw: { title: 'Not modelled', hint: 'Raw LaTeX, written back exactly' }
+		math: { title: "Maths", hint: "LaTeX between the dollar signs" },
+		cite: { title: "Citation", hint: "Comma-separated BibTeX keys" },
+		ref: { title: "Cross-reference", hint: "The label it points at" },
+		label: { title: "Anchor", hint: "The name other blocks reference" },
+		link: { title: "Link", hint: "Shown text and its address" },
+		footnote: { title: "Footnote", hint: "LaTeX, written back as typed" },
+		comment: { title: "Comment", hint: "Kept in the source, never printed" },
+		raw: { title: "Not modelled", hint: "Raw LaTeX, written back exactly" }
 	};
 
 	// Six symbols, matching the LaTeX toolbar's Math menu, so neither mode can do
 	// something the other cannot.
 	const SYMBOLS = [
-		{ label: 'a/b', insert: '\\frac{a}{b}' },
-		{ label: '√', insert: '\\sqrt{x}' },
-		{ label: '∑', insert: '\\sum_{i=1}^{n} ' },
-		{ label: '∏', insert: '\\prod_{i=1}^{n} ' },
-		{ label: '∫', insert: '\\int_{a}^{b} ' },
-		{ label: 'lim', insert: '\\lim_{x \\to 0} ' }
+		{ label: "a/b", insert: "\\frac{a}{b}" },
+		{ label: "√", insert: "\\sqrt{x}" },
+		{ label: "∑", insert: "\\sum_{i=1}^{n} " },
+		{ label: "∏", insert: "\\prod_{i=1}^{n} " },
+		{ label: "∫", insert: "\\int_{a}^{b} " },
+		{ label: "lim", insert: "\\lim_{x \\to 0} " }
 	];
 
-	const kind = $derived(target.getAttribute('data-atom') ?? 'raw');
+	const kind = $derived(target.getAttribute("data-atom") ?? "raw");
 	const meta = $derived(KINDS[kind] ?? KINDS.raw);
-	const isLink = $derived(kind === 'link');
+	const isLink = $derived(kind === "link");
 
 	// Follows its atom rather than closing: the panel holds unapplied text, and a
 	// stray wheel event used to throw it away.
 	let scrolled = $state(0);
 	$effect(() => {
 		const bump = () => scrolled++;
-		window.addEventListener('scroll', bump, true);
-		return () => window.removeEventListener('scroll', bump, true);
+		window.addEventListener("scroll", bump, true);
+		return () => window.removeEventListener("scroll", bump, true);
 	});
 	const rect = $derived.by(() => {
 		void scrolled;
@@ -62,8 +62,8 @@
 
 	// Seeded once on open. The panel is keyed by the atom it edits, so a different
 	// atom mounts a fresh instance rather than reusing this value.
-	let value = $state(untrack(() => target.getAttribute('data-src') ?? ''));
-	let url = $state(untrack(() => target.getAttribute('data-url') ?? ''));
+	let value = $state(untrack(() => target.getAttribute("data-src") ?? ""));
+	let url = $state(untrack(() => target.getAttribute("data-url") ?? ""));
 	let input = $state<HTMLInputElement>();
 
 	$effect(() => {
@@ -76,10 +76,10 @@
 	}
 
 	function onKeyDown(event: KeyboardEvent) {
-		if (event.key === 'Enter') {
+		if (event.key === "Enter") {
 			event.preventDefault();
 			apply();
-		} else if (event.key === 'Escape') {
+		} else if (event.key === "Escape") {
 			event.preventDefault();
 			onclose();
 		}
@@ -98,12 +98,12 @@
 		});
 	}
 
-	const height = $derived(132 + (isLink ? 38 : 0) + (kind === 'math' ? 34 : 0));
+	const height = $derived(132 + (isLink ? 38 : 0) + (kind === "math" ? 34 : 0));
 	const top = $derived(
 		rect.bottom + height > window.innerHeight ? rect.top - height - 6 : rect.bottom + 6
 	);
 	const FIELD =
-		'border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1.5 font-mono text-sm outline-none';
+		"border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1.5 font-mono text-sm outline-none";
 </script>
 
 <svelte:window onresize={onclose} />

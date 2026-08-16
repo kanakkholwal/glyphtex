@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
-	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
-	import type { ComponentProps } from 'svelte';
-	import DropdownMenuPortal from './dropdown-menu-portal.svelte';
+	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
+	import type { ComponentProps } from "svelte";
+	import DropdownMenuPortal from "./dropdown-menu-portal.svelte";
 
 	let {
 		ref = $bindable(null),

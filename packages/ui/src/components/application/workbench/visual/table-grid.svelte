@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ColumnAlign, Inline, Patch, TableGrid } from '@glyphtex/ui/tex-doc';
+	import type { ColumnAlign, Inline, Patch, TableGrid } from "@glyphtex/ui/tex-doc";
 	import {
 		IconAlignCenter,
 		IconAlignLeft,
@@ -10,18 +10,18 @@
 		IconArrowBarToUp,
 		IconPlus,
 		IconTrash
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import BlockEditor from './block-editor.svelte';
+	import BlockEditor from "./block-editor.svelte";
 
-	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
+	type TexDocModule = typeof import("@glyphtex/ui/tex-doc");
 
 	/** Handles live in the table itself, so a column control is always exactly as
 	 *  wide as its column however the browser lays the table out. */
 	let {
 		grid,
 		tex,
-		align = 'left',
+		align = "left",
 		onpatch,
 		oncellpatch,
 		onatom
@@ -29,7 +29,7 @@
 		grid: TableGrid;
 		tex: TexDocModule;
 		/** How the float places the table on the page, mirrored here. */
-		align?: 'left' | 'center' | 'right';
+		align?: "left" | "center" | "right";
 		/** A structural change: the whole tabular is reprinted and reparsed. */
 		onpatch: (patch: Patch | null) => void;
 		/** A cell's own text: one span, no reparse, so the grid is not rebuilt
@@ -38,19 +38,19 @@
 		onatom?: (el: HTMLElement) => void;
 	} = $props();
 
-	let menu = $state<{ axis: 'row' | 'column'; index: number; x: number; y: number } | null>(null);
+	let menu = $state<{ axis: "row" | "column"; index: number; x: number; y: number } | null>(null);
 
 	const ALIGNS: { id: ColumnAlign; label: string; icon: typeof IconAlignLeft }[] = [
-		{ id: 'l', label: 'Align left', icon: IconAlignLeft },
-		{ id: 'c', label: 'Align centre', icon: IconAlignCenter },
-		{ id: 'r', label: 'Align right', icon: IconAlignRight }
+		{ id: "l", label: "Align left", icon: IconAlignLeft },
+		{ id: "c", label: "Align centre", icon: IconAlignCenter },
+		{ id: "r", label: "Align right", icon: IconAlignRight }
 	];
 
-	const JUSTIFY: Record<string, string> = { l: 'text-left', c: 'text-center', r: 'text-right' };
+	const JUSTIFY: Record<string, string> = { l: "text-left", c: "text-center", r: "text-right" };
 	const PLACE: Record<string, string> = {
-		left: 'justify-start',
-		center: 'justify-center',
-		right: 'justify-end'
+		left: "justify-start",
+		center: "justify-center",
+		right: "justify-end"
 	};
 
 	// Parsing is cheap per cell but a long table reparses on every keystroke in the
@@ -68,7 +68,7 @@
 		return runs;
 	}
 
-	function openMenu(axis: 'row' | 'column', index: number, event: MouseEvent) {
+	function openMenu(axis: "row" | "column", index: number, event: MouseEvent) {
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
 		menu = { axis, index, x: rect.left, y: rect.bottom + 4 };
 	}
@@ -85,9 +85,9 @@
 	}
 
 	const HANDLE =
-		'text-faint hover:bg-accent hover:text-foreground flex items-center justify-center rounded-sm opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100';
+		"text-faint hover:bg-accent hover:text-foreground flex items-center justify-center rounded-sm opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100";
 	const ITEM =
-		'text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-[0.8125rem]';
+		"text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-[0.8125rem]";
 </script>
 
 <div class="group/table flex overflow-x-auto px-3 py-2 {PLACE[align]}">

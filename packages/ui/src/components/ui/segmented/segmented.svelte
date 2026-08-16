@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface SegmentedOption<T extends string = string> {
 		value: T;
@@ -16,12 +16,12 @@
 		value: T;
 		onValueChange: (next: T) => void;
 		/** Sets the row size. Default `sm`. */
-		size?: 'xs' | 'sm' | 'md';
+		size?: "xs" | "sm" | "md";
 		/** Stretch each segment to equal flex-1 width. Default true. */
 		fill?: boolean;
 		disabled?: boolean;
 		class?: string;
-		'aria-label'?: string;
+		"aria-label"?: string;
 	}
 </script>
 

@@ -1,4 +1,4 @@
-import { PersistedState } from './persisted-state.svelte';
+import { PersistedState } from "./persisted-state.svelte";
 
 /** One file inside a project (matches the Workbench's internal file shape). */
 export type ProjectFile = { id: string; name: string; content: string };
@@ -17,7 +17,7 @@ export type Project = {
 	starred?: boolean;
 };
 
-const STARTER_TEX = String.raw`% ${''}New document
+const STARTER_TEX = String.raw`% ${""}New document
 \documentclass{article}
 \usepackage{amsmath}
 \usepackage{graphicx} % \includegraphics for figures
@@ -38,14 +38,14 @@ Start writing here.
 // Seed shown on first run so the home page is never empty.
 const SEED: Project[] = [
 	{
-		id: 'sample-thesis',
-		name: 'Thesis draft',
+		id: "sample-thesis",
+		name: "Thesis draft",
 		createdAt: 1_736_000_000_000,
 		updatedAt: 1_736_000_000_000,
 		files: [
 			{
-				id: 'main',
-				name: 'main.tex',
+				id: "main",
+				name: "main.tex",
 				content: String.raw`\documentclass[12pt]{report}
 \usepackage{amsmath}
 
@@ -63,25 +63,25 @@ const SEED: Project[] = [
 `
 			},
 			{
-				id: 'intro',
-				name: 'chapters/introduction.tex',
+				id: "intro",
+				name: "chapters/introduction.tex",
 				content: String.raw`\chapter{Introduction}
 
 This chapter motivates keeping unpublished research on your own machine.
 `
 			},
-			{ id: 'refs', name: 'references.bib', content: '' }
+			{ id: "refs", name: "references.bib", content: "" }
 		]
 	},
 	{
-		id: 'sample-notes',
-		name: 'Lecture notes',
+		id: "sample-notes",
+		name: "Lecture notes",
 		createdAt: 1_736_100_000_000,
 		updatedAt: 1_736_100_000_000,
 		files: [
 			{
-				id: 'main',
-				name: 'main.tex',
+				id: "main",
+				name: "main.tex",
 				content: String.raw`\documentclass{article}
 \usepackage{amsmath}
 
@@ -98,12 +98,12 @@ We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$
 /** CSS-ident-safe `view-transition-name` shared by a project's home card and its
  *  editor surface, so the two morph into one another. */
 export function projectViewTransitionName(id: string): string {
-	return `proj-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+	return `proj-${id.replace(/[^a-zA-Z0-9_-]/g, "")}`;
 }
 
-function uid(prefix = 'p'): string {
+function uid(prefix = "p"): string {
 	try {
-		if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+		if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
 	} catch {
 		/* fall through */
 	}
@@ -113,7 +113,7 @@ function uid(prefix = 'p'): string {
 /** Reactive source of truth for every project, persisted to local storage and
  *  synced across windows. Read `projects.list`; mutations write through. */
 class ProjectsStore {
-	#store = new PersistedState<Project[]>('glyphtex:projects', SEED);
+	#store = new PersistedState<Project[]>("glyphtex:projects", SEED);
 
 	/** Most-recently-edited first. */
 	get list(): Project[] {
@@ -125,12 +125,12 @@ class ProjectsStore {
 	}
 
 	/** Create a project (with a starter document) and return it. */
-	create(name = 'Untitled project'): Project {
+	create(name = "Untitled project"): Project {
 		const now = Date.now();
 		const project: Project = {
 			id: uid(),
 			name,
-			files: [{ id: 'main', name: 'main.tex', content: STARTER_TEX }],
+			files: [{ id: "main", name: "main.tex", content: STARTER_TEX }],
 			createdAt: now,
 			updatedAt: now
 		};
@@ -149,9 +149,9 @@ class ProjectsStore {
 		const now = Date.now();
 		const base =
 			root
-				.replace(/[\\/]+$/, '')
+				.replace(/[\\/]+$/, "")
 				.split(/[\\/]/)
-				.pop() || 'project';
+				.pop() || "project";
 		const project: Project = {
 			id: uid(),
 			name: name ?? base,

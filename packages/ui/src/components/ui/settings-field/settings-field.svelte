@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface SettingsFieldProps {
 		/** Field label. */
@@ -8,9 +8,9 @@
 		description?: string;
 		/** `row` = label left / control right (forms, wide settings page).
 		 *  `stack` = control below the label (full-width controls, narrow panels). */
-		layout?: 'row' | 'stack';
+		layout?: "row" | "stack";
 		/** `md` = settings page; `sm` = compact (editor sidebar panel). */
-		size?: 'sm' | 'md';
+		size?: "sm" | "md";
 		/** `for` of the control, so clicking the label focuses it. */
 		for?: string;
 		class?: string;

@@ -3,18 +3,18 @@
 // XeTeX font loading and `\IfFileExists` probes never surface in `missingFiles`,
 // so an enumerable set (lmodern's fonts, beamer's themes) has to be pulled in
 // wholesale. `*` is the only wildcard.
-import { execFileSync } from 'node:child_process';
-import { readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { execFileSync } from "node:child_process";
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 
-const TEXMF = execFileSync('kpsewhich', ['-var-value=TEXMFDIST'], { encoding: 'utf8' }).trim();
+const TEXMF = execFileSync("kpsewhich", ["-var-value=TEXMFDIST"], { encoding: "utf8" }).trim();
 
 // Macros and .fd files live under tex/, fonts under fonts/, and BibTeX's .bst
 // styles under bibtex/ — a tree of its own that neither of the others reaches.
-export function globTexmf(patterns, subdirs = ['tex', 'fonts', 'bibtex']) {
+export function globTexmf(patterns, subdirs = ["tex", "fonts", "bibtex"]) {
 	if (!patterns || patterns.length === 0) return new Map();
 	const res = patterns.map(
-		(p) => new RegExp('^' + p.replace(/[.]/g, '\\$&').replace(/\*/g, '.*') + '$')
+		(p) => new RegExp("^" + p.replace(/[.]/g, "\\$&").replace(/\*/g, ".*") + "$")
 	);
 	const out = new Map();
 	const walk = (dir) => {

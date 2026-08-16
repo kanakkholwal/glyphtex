@@ -1,15 +1,15 @@
 <script lang="ts">
-	import type { WithoutChildrenOrChild } from '@glyphtex/ui/utils';
-	import { CRAFT_OVERLAY_ANIMATION, cn } from '@glyphtex/ui/utils';
-	import { Tooltip as TooltipPrimitive } from 'bits-ui';
-	import type { ComponentProps } from 'svelte';
-	import TooltipPortal from './tooltip-portal.svelte';
+	import type { WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import { CRAFT_OVERLAY_ANIMATION, cn } from "@glyphtex/ui/utils";
+	import { Tooltip as TooltipPrimitive } from "bits-ui";
+	import type { ComponentProps } from "svelte";
+	import TooltipPortal from "./tooltip-portal.svelte";
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		sideOffset = 0,
-		side = 'top',
+		side = "top",
 		children,
 		arrowClasses,
 		portalProps,

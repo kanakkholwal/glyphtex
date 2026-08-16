@@ -1,20 +1,20 @@
 export type GitIdentity = { name: string; email: string };
 
-const NAME_KEY = 'glyphtex.git.name';
-const EMAIL_KEY = 'glyphtex.git.email';
-const PROXY_KEY = 'glyphtex.git.corsProxy';
+const NAME_KEY = "glyphtex.git.name";
+const EMAIL_KEY = "glyphtex.git.email";
+const PROXY_KEY = "glyphtex.git.corsProxy";
 
 /** GitHub and GitLab serve smart-HTTP without CORS headers, so every fetch/pull/push
  *  is relayed. This public relay sees the traffic, hence user-editable. */
-export const DEFAULT_CORS_PROXY = 'https://cors.isomorphic-git.org';
+export const DEFAULT_CORS_PROXY = "https://cors.isomorphic-git.org";
 
-const DEFAULT_IDENTITY: GitIdentity = { name: 'GlyphTeX user', email: 'user@glyphtex.local' };
+const DEFAULT_IDENTITY: GitIdentity = { name: "GlyphTeX user", email: "user@glyphtex.local" };
 
 const read = (key: string): string => {
 	try {
-		return localStorage.getItem(key)?.trim() ?? '';
+		return localStorage.getItem(key)?.trim() ?? "";
 	} catch {
-		return '';
+		return "";
 	}
 };
 
@@ -44,11 +44,11 @@ export const hasIdentity = (): boolean => Boolean(read(NAME_KEY) && read(EMAIL_K
 
 export function getCorsProxy(): string | undefined {
 	const stored = read(PROXY_KEY);
-	if (stored === 'none') return undefined;
+	if (stored === "none") return undefined;
 	return stored || DEFAULT_CORS_PROXY;
 }
 
 export function setCorsProxy(url: string): void {
-	const clean = url.trim().replace(/\/+$/, '');
-	write(PROXY_KEY, clean || '');
+	const clean = url.trim().replace(/\/+$/, "");
+	write(PROXY_KEY, clean || "");
 }

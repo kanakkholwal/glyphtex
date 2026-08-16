@@ -4,9 +4,9 @@
 //  - sticky headings must track the scroll position, not freeze on the first one
 //  - visual mode must project the real document, not a specimen
 // Editing in visual mode lives in visual-editing.mjs.
-import fs from 'node:fs';
-import path from 'node:path';
-import { connect, sleep } from './harness.mjs';
+import fs from "node:fs";
+import path from "node:path";
+import { connect, sleep } from "./harness.mjs";
 
 const {
 	send,
@@ -25,11 +25,11 @@ const {
 
 const route = await openProject();
 check(
-	'project opens in the LaTeX view',
-	route.includes('/projects/') && (await ev(`!!document.querySelector('.cm-content')`)),
+	"project opens in the LaTeX view",
+	route.includes("/projects/") && (await ev(`!!document.querySelector('.cm-content')`)),
 	route
 );
-check('editor takes focus from a click', await focusDoc());
+check("editor takes focus from a click", await focusDoc());
 
 const docText = () => ev(`document.querySelector('.cm-content').innerText`);
 const clickMenuItem = async (text) => {
@@ -50,11 +50,11 @@ const clickMenuItem = async (text) => {
 const beforeBold = await docText();
 await clickSel('[aria-label="Bold"]');
 check(
-	'Bold inserts \\textbf',
-	(await docText()).includes('\\textbf{') && (await docText()) !== beforeBold
+	"Bold inserts \\textbf",
+	(await docText()).includes("\\textbf{") && (await docText()) !== beforeBold
 );
 check(
-	'Bold leaves focus in the editor',
+	"Bold leaves focus in the editor",
 	(await focusInfo()).isContent,
 	JSON.stringify(await focusInfo())
 );
@@ -63,92 +63,92 @@ check(
 await clickSel('[aria-label="Heading"]');
 await sleep(400);
 check(
-	'Heading menu opens',
+	"Heading menu opens",
 	await ev(`!!document.querySelector('[data-slot="dropdown-menu-content"]')`)
 );
-await clickMenuItem('Section');
+await clickMenuItem("Section");
 await sleep(400);
-check('Section inserts \\section', (await docText()).includes('\\section{'));
+check("Section inserts \\section", (await docText()).includes("\\section{"));
 check(
-	'menu item leaves focus in the editor',
+	"menu item leaves focus in the editor",
 	(await focusInfo()).isContent,
 	JSON.stringify(await focusInfo())
 );
 
 // --- Selection is wrapped, and survives --------------------------------------
 await focusDoc();
-await key('End', 'End', 35, 2);
-await key('Enter', 'Enter', 13);
-await typeText('needle');
-await key('Home', 'Home', 36, 8);
+await key("End", "End", 35, 2);
+await key("Enter", "Enter", 13);
+await typeText("needle");
+await key("Home", "Home", 36, 8);
 await sleep(250);
 await clickSel('[aria-label="Bold"]');
-check('Bold wraps the selected text', /\\textbf\{needle\}/.test(await docText()));
+check("Bold wraps the selected text", /\\textbf\{needle\}/.test(await docText()));
 check(
-	'the wrapped text stays selected',
-	(await ev(`window.getSelection().toString()`)) === 'needle'
+	"the wrapped text stays selected",
+	(await ev(`window.getSelection().toString()`)) === "needle"
 );
 
 // --- A block goes on its own line, not spliced mid-paragraph -----------------
 await focusDoc();
-await key('End', 'End', 35, 2);
-await key('Enter', 'Enter', 13);
-await typeText('Hello');
+await key("End", "End", 35, 2);
+await key("Enter", "Enter", 13);
+await typeText("Hello");
 await sleep(200);
 await clickSel('[aria-label="List"]');
 await sleep(400);
-await clickMenuItem('Bulleted list');
-const listed = (await docText()).replace(/\r/g, '');
+await clickMenuItem("Bulleted list");
+const listed = (await docText()).replace(/\r/g, "");
 check(
-	'block insert starts on its own line',
+	"block insert starts on its own line",
 	/Hello\n\\begin\{itemize\}/.test(listed),
-	JSON.stringify(listed.slice(listed.lastIndexOf('Hello'), listed.lastIndexOf('Hello') + 32))
+	JSON.stringify(listed.slice(listed.lastIndexOf("Hello"), listed.lastIndexOf("Hello") + 32))
 );
-check('block insert leaves focus in the editor', (await focusInfo()).isContent);
+check("block insert leaves focus in the editor", (await focusInfo()).isContent);
 
 // --- Find bar keeps its own focus -------------------------------------------
 await focusDoc();
-await key('f', 'KeyF', 70, 2);
+await key("f", "KeyF", 70, 2);
 await sleep(700);
 const findOpen = await ev(
 	`!!document.querySelector('input[placeholder*="Find" i], input[aria-label*="Find" i]')`
 );
-check('Ctrl+F opens the find bar', findOpen);
+check("Ctrl+F opens the find bar", findOpen);
 if (findOpen) {
 	const beforeFind = await docText();
-	await typeText('e');
+	await typeText("e");
 	await sleep(500);
-	await key('Enter', 'Enter', 13);
+	await key("Enter", "Enter", 13);
 	const first = await focusInfo();
-	await key('Enter', 'Enter', 13);
+	await key("Enter", "Enter", 13);
 	const second = await focusInfo();
-	check('find: focus stays in the input after Enter', first.tag === 'input', JSON.stringify(first));
+	check("find: focus stays in the input after Enter", first.tag === "input", JSON.stringify(first));
 	// Regression guard: if focus jumps to the editor, the second Enter types a
 	// newline into the user's document instead of finding the next match.
-	check('find: focus survives a second Enter', second.tag === 'input', JSON.stringify(second));
-	check('find: Enter never edits the document', (await docText()) === beforeFind);
-	await key('Escape', 'Escape', 27);
+	check("find: focus survives a second Enter", second.tag === "input", JSON.stringify(second));
+	check("find: Enter never edits the document", (await docText()) === beforeFind);
+	await key("Escape", "Escape", 27);
 	await sleep(300);
 }
 
 // --- Load a realistic document for the remaining checks ----------------------
 const fixture = fs.readFileSync(
-	path.join(import.meta.dirname, '..', 'fixtures', 'article.tex'),
-	'utf8'
+	path.join(import.meta.dirname, "..", "fixtures", "article.tex"),
+	"utf8"
 );
 let loaded = false;
 for (let attempt = 0; attempt < 3 && !loaded; attempt++) {
 	await clearModals();
 	await focusDoc();
-	await key('a', 'KeyA', 65, 2);
+	await key("a", "KeyA", 65, 2);
 	await sleep(200);
-	await send('Input.insertText', { text: fixture });
+	await send("Input.insertText", { text: fixture });
 	await sleep(1200);
 	loaded = await ev(
 		`document.querySelector('.cm-content').innerText.includes('Consistency of Estimators')`
 	);
 }
-check('fixture document loads', loaded);
+check("fixture document loads", loaded);
 
 // --- Sticky headings track the scroll position -------------------------------
 // Scroll by a fraction of the range: a fixed pixel target clamps on a short
@@ -175,18 +175,18 @@ const stickyAt = async (fraction) => {
 	return previous;
 };
 const atTop = await stickyAt(0);
-check('sticky: nothing pinned at the top of the document', atTop?.hidden, JSON.stringify(atTop));
+check("sticky: nothing pinned at the top of the document", atTop?.hidden, JSON.stringify(atTop));
 const inSection = await stickyAt(0.55);
 // Regression guard: reading layout inside update() throws, CodeMirror disables
 // the plugin, and the strip then freezes on whatever it showed first.
 check(
-	'sticky: pins the enclosing \\section',
+	"sticky: pins the enclosing \\section",
 	inSection && inSection.rows >= 1 && /section\{/.test(inSection.text),
 	JSON.stringify(inSection)
 );
 check(
-	'sticky: shows the real source line, not a stripped title',
-	!!inSection && inSection.text.includes('\\section{'),
+	"sticky: shows the real source line, not a stripped title",
+	!!inSection && inSection.text.includes("\\section{"),
 	JSON.stringify(inSection?.text)
 );
 
@@ -195,7 +195,7 @@ await ev(
 	`(() => { const b = [...document.querySelectorAll('button')].find(x => /^visual$/i.test((x.textContent||'').trim())); b?.click(); return !!b; })()`
 );
 await sleep(4000);
-check('visual pane renders', await ev(`!!document.querySelector('[aria-label="Visual editor"]')`));
+check("visual pane renders", await ev(`!!document.querySelector('[aria-label="Visual editor"]')`));
 
 const shape = await ev(`(() => {
   const a = document.querySelector('.glyphtex-doc');
@@ -208,15 +208,15 @@ const shape = await ev(`(() => {
     strayLabels: [...a.querySelectorAll('p')].filter(p => /^#?\\S*$/.test(p.innerText.trim()) && p.innerText.includes('sec:')).length,
   };
 })()`);
-check('projects the sectioning ladder', shape && shape.headings >= 4, JSON.stringify(shape));
+check("projects the sectioning ladder", shape && shape.headings >= 4, JSON.stringify(shape));
 check(
-	'projects lists and the figure',
+	"projects lists and the figure",
 	shape && shape.lists >= 2 && shape.figures >= 1,
 	JSON.stringify(shape)
 );
-check('a standalone \\label never becomes its own paragraph', shape && shape.strayLabels === 0);
+check("a standalone \\label never becomes its own paragraph", shape && shape.strayLabels === 0);
 check(
-	'preamble is summarised, not projected as body',
+	"preamble is summarised, not projected as body",
 	await ev(
 		`(() => { const a = document.querySelector('.glyphtex-doc'); return a ? !/documentclass|usepackage/.test(a.textContent) : false; })()`
 	)
@@ -230,11 +230,11 @@ const opened = await ev(`(() => {
   target?.click();
   return !!target;
 })()`);
-check('an unmodelled block is clickable', opened);
+check("an unmodelled block is clickable", opened);
 await sleep(2500);
-check('clicking it opens the LaTeX view', await ev(`!!document.querySelector('.cm-content')`));
+check("clicking it opens the LaTeX view", await ev(`!!document.querySelector('.cm-content')`));
 check(
-	'and selects that block in the source',
+	"and selects that block in the source",
 	/\\begin\{/.test(await ev(`window.getSelection().toString()`)),
 	JSON.stringify((await ev(`window.getSelection().toString()`)).slice(0, 40))
 );

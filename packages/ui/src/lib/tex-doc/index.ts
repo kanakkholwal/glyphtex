@@ -1,5 +1,5 @@
-export { parseInlineFragment, parseTexDoc } from './parse';
-export { escapeText, printBlock, printInlines, sectionCommand } from './print';
+export { parseInlineFragment, parseTexDoc } from "./parse";
+export { escapeText, printBlock, printInlines, sectionCommand } from "./print";
 export {
 	applyPatch,
 	applyPatches,
@@ -30,8 +30,8 @@ export {
 	setListItem,
 	setListItems,
 	splitParagraph
-} from './edit';
-export type { FloatAlignment, Patch } from './edit';
+} from "./edit";
+export type { FloatAlignment, Patch } from "./edit";
 export {
 	cellRules,
 	deleteTableColumn,
@@ -44,8 +44,8 @@ export {
 	setTableColumnAlign,
 	setTableRules,
 	setTableStyle
-} from './tabular';
-export type { ColumnAlign, TableCell, TableGrid, TableRow } from './tabular';
+} from "./tabular";
+export type { ColumnAlign, TableCell, TableGrid, TableRow } from "./tabular";
 export {
 	BLOCK_TEMPLATES,
 	CARET,
@@ -53,9 +53,9 @@ export {
 	expandTemplate,
 	inlineTemplate,
 	templateSource
-} from './templates';
-export type { BlockTemplate, InlineTemplate, TemplateGroup } from './templates';
-export { SECTION_COMMANDS } from './types';
+} from "./templates";
+export type { BlockTemplate, InlineTemplate, TemplateGroup } from "./templates";
+export { SECTION_COMMANDS } from "./types";
 export type {
 	Block,
 	CodeBlock,
@@ -71,4 +71,4 @@ export type {
 	RawBlock,
 	Span,
 	TexDoc
-} from './types';
+} from "./types";

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { RadioGroup as RadioGroupPrimitive } from 'bits-ui';
+	import { cn } from "@glyphtex/ui/utils";
+	import { RadioGroup as RadioGroupPrimitive } from "bits-ui";
 
 	let {
 		ref = $bindable(null),
 		class: className,
-		value = $bindable(''),
+		value = $bindable(""),
 		...restProps
 	}: RadioGroupPrimitive.RootProps = $props();
 </script>

@@ -1,5 +1,5 @@
-import { buildRegex, expandReplacement } from '../code-editor/search';
-import type { SearchMatch, SearchOptions } from './types';
+import { buildRegex, expandReplacement } from "../code-editor/search";
+import type { SearchMatch, SearchOptions } from "./types";
 
 /** One file's matches, in document order. */
 export type FileMatches = { id: string; name: string; matches: SearchMatch[] };
@@ -58,17 +58,17 @@ export function skipSummary(s: SearchSkips): string {
 		const [a, b] = s.vendorDirs;
 		const rest = s.vendorDirs.length - 2;
 		const where = !b ? a : rest > 0 ? `${a}, ${b} and ${rest} more` : `${a} and ${b}`;
-		parts.push(`${s.vendorFiles} file${s.vendorFiles === 1 ? '' : 's'} in ${where}`);
+		parts.push(`${s.vendorFiles} file${s.vendorFiles === 1 ? "" : "s"} in ${where}`);
 	}
 	if (s.unreadable)
-		parts.push(`${s.unreadable} file${s.unreadable === 1 ? '' : 's'} that could not be read`);
-	return parts.length ? `Not searched: ${parts.join(', ')}.` : '';
+		parts.push(`${s.unreadable} file${s.unreadable === 1 ? "" : "s"} that could not be read`);
+	return parts.length ? `Not searched: ${parts.join(", ")}.` : "";
 }
 
 /** Why a pattern will not compile, so the panel can say so instead of "No results". */
 export function patternError(o: SearchOptions): string | undefined {
 	if (!o.query) return undefined;
-	return buildRegex(o) ? undefined : 'Invalid regular expression';
+	return buildRegex(o) ? undefined : "Invalid regular expression";
 }
 
 /** Offsets each line starts at, so a match resolves to line/column in O(log n). */
@@ -97,7 +97,7 @@ export function scanText(text: string, re: RegExp, limit: number): SearchMatch[]
 	re.lastIndex = 0;
 	let m: RegExpExecArray | null;
 	while ((m = re.exec(text))) {
-		if (m[0] === '') {
+		if (m[0] === "") {
 			re.lastIndex++; // zero-width matches would loop forever
 			continue;
 		}
@@ -125,7 +125,7 @@ export function scanText(text: string, re: RegExp, limit: number): SearchMatch[]
 export function scanFiles(inputs: SearchInput[], o: SearchOptions, cap = MATCH_CAP): ScanResult {
 	if (!o.query) return EMPTY_SCAN;
 	const re = buildRegex(o);
-	if (!re) return { ...EMPTY_SCAN, error: 'Invalid regular expression' };
+	if (!re) return { ...EMPTY_SCAN, error: "Invalid regular expression" };
 
 	const groups: FileMatches[] = [];
 	const otherGroups: FileMatches[] = [];

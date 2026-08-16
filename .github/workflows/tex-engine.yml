@@ -13,6 +13,11 @@ on:
       - "crates/**"
       - "packages/tex-engine/**"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. tex-engine-v0.x.x)"
+        required: true
+        type: string
 
 concurrency:
   group: tex-engine-${{ github.ref }}
@@ -90,7 +95,6 @@ jobs:
         with:
           submodules: recursive
 
-  
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: "1.94"
@@ -106,7 +110,6 @@ jobs:
         with:
           workspaces: crates/tectonic-wasm
 
-     
       - name: Cache Emscripten sysroot additions
         uses: actions/cache@v4
         with:
@@ -159,10 +162,8 @@ jobs:
           pnpm install --ignore-workspace --frozen-lockfile=false
           pnpm build
 
-
       - name: Verify bundle satisfies the manifest
         run: cd packages/tex-engine && pnpm bundle:verify /tmp/bundle
-
 
       - name: Test
         env:
@@ -172,7 +173,6 @@ jobs:
           # `node --test` still exits 0 — a green job that ran zero tests.
           GLYPHTEX_REQUIRE_ENGINE: "1"
         run: cd packages/tex-engine && pnpm test
-
 
   crate:
     name: Publish crate to crates.io
@@ -266,7 +266,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           cache: pnpm
-          package-manager-cache: false  # never use caching in release builds
+          package-manager-cache: false # never use caching in release builds
 
       - name: Derive version from tag
         id: version

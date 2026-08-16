@@ -17,24 +17,24 @@ export type EntryChoice = {
 
 const TEX_PATH = /\.(tex|ltx|rnw)$/i;
 
-const depthOf = (path: string) => path.split('/').length - 1;
-const baseOf = (path: string) => path.slice(path.lastIndexOf('/') + 1).replace(TEX_PATH, '');
+const depthOf = (path: string) => path.split("/").length - 1;
+const baseOf = (path: string) => path.slice(path.lastIndexOf("/") + 1).replace(TEX_PATH, "");
 
 // A root's own name, by convention. Ranked, so `main.tex` beats `paper.tex`
 // when a project carries both.
 const CONVENTIONAL = [
-	'main',
-	'thesis',
-	'dissertation',
-	'paper',
-	'manuscript',
-	'root',
-	'master',
-	'document',
-	'report',
-	'article',
-	'index',
-	'book'
+	"main",
+	"thesis",
+	"dissertation",
+	"paper",
+	"manuscript",
+	"root",
+	"master",
+	"document",
+	"report",
+	"article",
+	"index",
+	"book"
 ];
 
 /**
@@ -47,7 +47,7 @@ const CONVENTIONAL = [
  */
 function isRoot(text: string | undefined): boolean {
 	if (!text) return false;
-	const live = text.replace(/(^|[^\\])%.*$/gm, '$1');
+	const live = text.replace(/(^|[^\\])%.*$/gm, "$1");
 	return /\\documentclass\s*[[{]/.test(live) || /\\begin\s*\{document\}/.test(live);
 }
 
@@ -67,7 +67,7 @@ function compare(a: EntryInput, b: EntryInput): number {
 	return (
 		depthOf(a.path) - depthOf(b.path) ||
 		rank(a) - rank(b) ||
-		a.path.localeCompare(b.path, 'en', { sensitivity: 'base' })
+		a.path.localeCompare(b.path, "en", { sensitivity: "base" })
 	);
 }
 
@@ -82,7 +82,7 @@ function compare(a: EntryInput, b: EntryInput): number {
 export function pickEntry(files: readonly EntryInput[]): EntryChoice {
 	const tex = files.filter((f) => TEX_PATH.test(f.path));
 	if (tex.length === 0) {
-		return { entry: files[0]?.path ?? 'main.tex', candidates: [], confident: false };
+		return { entry: files[0]?.path ?? "main.tex", candidates: [], confident: false };
 	}
 
 	const declared = tex.filter((f) => isRoot(f.text) && !isSubfile(f.text));

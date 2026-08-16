@@ -1,12 +1,12 @@
-import type { GitChange, TreeNode } from './types';
+import type { GitChange, TreeNode } from "./types";
 
 /** Nests a flat change list into folders, VS Code-style. */
 export function buildTree(items: GitChange[]): TreeNode[] {
-	const root: TreeNode = { name: '', path: '', isFile: false, children: [] };
+	const root: TreeNode = { name: "", path: "", isFile: false, children: [] };
 	for (const c of items) {
-		const parts = c.path.split('/');
+		const parts = c.path.split("/");
 		let node = root;
-		let acc = '';
+		let acc = "";
 		parts.forEach((part, i) => {
 			acc = acc ? `${acc}/${part}` : part;
 			const isFile = i === parts.length - 1;
@@ -43,12 +43,12 @@ function sortNodes(nodes: TreeNode[]): TreeNode[] {
 /** Indentation matching the Explorer tree. */
 export const indent = (d: number) => `${d * 12 + 8}px`;
 /** Last path segment (the file name without its directory). */
-export const leaf = (p: string) => p.split('/').pop() ?? p;
+export const leaf = (p: string) => p.split("/").pop() ?? p;
 
 /** Short, locale-aware commit date (e.g. "Jun 27"). */
 export function whenLabel(secs: number): string {
 	return new Date(secs * 1000).toLocaleDateString(undefined, {
-		month: 'short',
-		day: 'numeric'
+		month: "short",
+		day: "numeric"
 	});
 }

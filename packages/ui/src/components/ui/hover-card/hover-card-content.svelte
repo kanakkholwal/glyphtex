@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
-	import { LinkPreview as HoverCardPrimitive } from 'bits-ui';
-	import type { ComponentProps } from 'svelte';
-	import HoverCardPortal from './hover-card-portal.svelte';
+	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import { LinkPreview as HoverCardPrimitive } from "bits-ui";
+	import type { ComponentProps } from "svelte";
+	import HoverCardPortal from "./hover-card-portal.svelte";
 
 	let {
 		ref = $bindable(null),
 		class: className,
-		align = 'center',
+		align = "center",
 		sideOffset = 4,
 		portalProps,
 		preventScroll = false,

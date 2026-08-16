@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import SiteFooter from '$lib/SiteFooter.svelte';
-	import SiteHeader from '$lib/SiteHeader.svelte';
-	import { Button } from '@glyphtex/ui/button';
-	import { Reveal } from '@glyphtex/ui/reveal';
-	import { Container, Section } from '$lib/landing';
+	import { resolve } from "$app/paths";
+	import SiteFooter from "$lib/SiteFooter.svelte";
+	import SiteHeader from "$lib/SiteHeader.svelte";
+	import { Button } from "@glyphtex/ui/button";
+	import { Reveal } from "@glyphtex/ui/reveal";
+	import { Container, Section } from "$lib/landing";
 	import {
 		IconAlertTriangle,
 		IconArrowRight,
@@ -19,18 +19,18 @@
 		IconInfoCircle,
 		IconShieldCheck,
 		IconTerminal2
-	} from '@tabler/icons-svelte';
-	import { onMount } from 'svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { fly } from 'svelte/transition';
-	import { track } from '$lib/analytics';
+	} from "@tabler/icons-svelte";
+	import { onMount } from "svelte";
+	import { cubicOut } from "svelte/easing";
+	import { fly } from "svelte/transition";
+	import { track } from "$lib/analytics";
 
-	const owner = 'kanakkholwal';
-	const repoName = 'glyphtex';
+	const owner = "kanakkholwal";
+	const repoName = "glyphtex";
 	const repo = `https://github.com/${owner}/${repoName}`;
 	const releases = `${repo}/releases`;
 
-	type OS = 'mac' | 'windows' | 'linux' | null;
+	type OS = "mac" | "windows" | "linux" | null;
 	let detected = $state<OS>(null);
 
 	// Live release data, pulled from GitHub Releases so the buttons point at the
@@ -38,43 +38,43 @@
 	type Asset = { name: string; url: string; size: number; kind: string };
 	type Grouped = { mac: Asset[]; windows: Asset[]; linux: Asset[] };
 
-	let status = $state<'loading' | 'ready' | 'empty' | 'error'>('loading');
-	let version = $state('');
-	let publishedAt = $state('');
+	let status = $state<"loading" | "ready" | "empty" | "error">("loading");
+	let version = $state("");
+	let publishedAt = $state("");
 	let assets = $state<Grouped>({ mac: [], windows: [], linux: [] });
 
 	const releasedOn = $derived(
 		publishedAt
 			? new Date(publishedAt).toLocaleDateString(undefined, {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric'
+					year: "numeric",
+					month: "short",
+					day: "numeric"
 				})
-			: ''
+			: ""
 	);
 
 	function humanSize(bytes: number) {
-		if (!bytes) return '';
+		if (!bytes) return "";
 		const mb = bytes / 1024 / 1024;
 		return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 	}
 
 	function archLabel(n: string) {
-		if (n.includes('aarch64') || n.includes('arm64')) return 'Apple Silicon';
-		if (n.includes('x64') || n.includes('x86_64') || n.includes('intel')) return 'Intel';
-		return 'Universal';
+		if (n.includes("aarch64") || n.includes("arm64")) return "Apple Silicon";
+		if (n.includes("x64") || n.includes("x86_64") || n.includes("intel")) return "Intel";
+		return "Universal";
 	}
 
 	// Map a release asset filename to a platform + human label, skipping the
 	// updater bundles / signatures / manifest that are not direct downloads.
 	function classify(name: string): { os: keyof Grouped; kind: string } | null {
 		const n = name.toLowerCase();
-		if (n.endsWith('.sig') || n.endsWith('.json') || n.endsWith('.app.tar.gz')) return null;
-		if (n.endsWith('.dmg')) return { os: 'mac', kind: `${archLabel(n)} (.dmg)` };
-		if (n.endsWith('.exe')) return { os: 'windows', kind: 'Installer (.exe)' };
-		if (n.endsWith('.msi')) return { os: 'windows', kind: 'Installer (.msi)' };
-		if (n.endsWith('.appimage')) return { os: 'linux', kind: 'AppImage' };
-		if (n.endsWith('.deb')) return { os: 'linux', kind: 'Debian (.deb)' };
+		if (n.endsWith(".sig") || n.endsWith(".json") || n.endsWith(".app.tar.gz")) return null;
+		if (n.endsWith(".dmg")) return { os: "mac", kind: `${archLabel(n)} (.dmg)` };
+		if (n.endsWith(".exe")) return { os: "windows", kind: "Installer (.exe)" };
+		if (n.endsWith(".msi")) return { os: "windows", kind: "Installer (.msi)" };
+		if (n.endsWith(".appimage")) return { os: "linux", kind: "AppImage" };
+		if (n.endsWith(".deb")) return { os: "linux", kind: "Debian (.deb)" };
 		return null;
 	}
 
@@ -85,25 +85,25 @@
 	type RawRelease = { tag_name: string; published_at: string; assets: RawAsset[] };
 
 	function parseRelease(data: unknown): RawRelease {
-		if (!data || typeof data !== 'object') throw new Error('Malformed release response.');
+		if (!data || typeof data !== "object") throw new Error("Malformed release response.");
 		const o = data as Record<string, unknown>;
 		const assets: RawAsset[] = Array.isArray(o.assets)
 			? o.assets.flatMap((raw): RawAsset[] => {
-					if (!raw || typeof raw !== 'object') return [];
+					if (!raw || typeof raw !== "object") return [];
 					const a = raw as Record<string, unknown>;
 					const name = a.name;
 					const url = a.browser_download_url;
 					// Reject anything that isn't a named asset on an https GitHub URL.
-					if (typeof name !== 'string' || typeof url !== 'string') return [];
-					if (!url.startsWith('https://')) return [];
+					if (typeof name !== "string" || typeof url !== "string") return [];
+					if (!url.startsWith("https://")) return [];
 					return [
-						{ name, browser_download_url: url, size: typeof a.size === 'number' ? a.size : 0 }
+						{ name, browser_download_url: url, size: typeof a.size === "number" ? a.size : 0 }
 					];
 				})
 			: [];
 		return {
-			tag_name: typeof o.tag_name === 'string' ? o.tag_name : '',
-			published_at: typeof o.published_at === 'string' ? o.published_at : '',
+			tag_name: typeof o.tag_name === "string" ? o.tag_name : "",
+			published_at: typeof o.published_at === "string" ? o.published_at : "",
 			assets
 		};
 	}
@@ -111,7 +111,7 @@
 	async function loadLatestRelease() {
 		try {
 			const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/releases/latest`, {
-				headers: { Accept: 'application/vnd.github+json' }
+				headers: { Accept: "application/vnd.github+json" }
 			});
 			if (!res.ok) throw new Error(`GitHub API ${res.status}`);
 			const release = parseRelease(await res.json());
@@ -130,14 +130,14 @@
 			}
 			assets = grouped;
 			const total = grouped.mac.length + grouped.windows.length + grouped.linux.length;
-			status = total > 0 ? 'ready' : 'empty';
+			status = total > 0 ? "ready" : "empty";
 		} catch {
-			status = 'error';
+			status = "error";
 		}
 	}
 
 	function trackDownload(platform: string, asset: string) {
-		track('download_click', { platform, asset, version: version || 'unknown' });
+		track("download_click", { platform, asset, version: version || "unknown" });
 	}
 
 	// macOS install helper. The build is not Apple-notarized yet, so a freshly
@@ -146,37 +146,37 @@
 	// so the step is built and kept hidden behind this flag. Flip it to true once
 	// `brew tap kanakkholwal/glyphtex` + the glyphtex cask are live.
 	const showHomebrew = false;
-	const brewCmd = 'brew install --cask kanakkholwal/glyphtex/glyphtex';
-	const quarantineCmd = 'xattr -dr com.apple.quarantine /Applications/GlyphTeX.app';
+	const brewCmd = "brew install --cask kanakkholwal/glyphtex/glyphtex";
+	const quarantineCmd = "xattr -dr com.apple.quarantine /Applications/GlyphTeX.app";
 
 	type MacStep = { title: string; body: string; code?: string; done?: string };
 	const macSteps: MacStep[] = [
 		...(showHomebrew
 			? [
 					{
-						title: 'Fastest: install with Homebrew',
-						body: 'One line grabs the right build for your chip and keeps it updated. It clears the Gatekeeper warning too, so skip the steps below.',
+						title: "Fastest: install with Homebrew",
+						body: "One line grabs the right build for your chip and keeps it updated. It clears the Gatekeeper warning too, so skip the steps below.",
 						code: brewCmd,
-						done: 'Installed this way?: You are done. Skip the .dmg steps below.'
+						done: "Installed this way?: You are done. Skip the .dmg steps below."
 					} satisfies MacStep
 				]
 			: []),
 		{
-			title: 'Download the .dmg for your chip',
-			body: 'Apple Silicon for M1 and later. Intel for older Macs. Check under Apple menu, About This Mac.'
+			title: "Download the .dmg for your chip",
+			body: "Apple Silicon for M1 and later. Intel for older Macs. Check under Apple menu, About This Mac."
 		},
 		{
-			title: 'Drag GlyphTeX into Applications',
-			body: 'Open the .dmg and drop GlyphTeX into your Applications folder, the same as any other Mac app.'
+			title: "Drag GlyphTeX into Applications",
+			body: "Open the .dmg and drop GlyphTeX into your Applications folder, the same as any other Mac app."
 		},
 		{
-			title: 'Clear the Gatekeeper warning, once',
-			body: 'GlyphTeX is not notarized yet, so the first launch can warn that it is damaged or from an unidentified developer. This line clears the quarantine flag.',
+			title: "Clear the Gatekeeper warning, once",
+			body: "GlyphTeX is not notarized yet, so the first launch can warn that it is damaged or from an unidentified developer. This line clears the quarantine flag.",
 			code: quarantineCmd
 		},
 		{
-			title: 'Open GlyphTeX',
-			body: 'Launch from Applications or Spotlight. macOS will not ask again. Reinstalling from a .dmg brings the warning back, so run the line once more.'
+			title: "Open GlyphTeX",
+			body: "Launch from Applications or Spotlight. macOS will not ask again. Reinstalling from a .dmg brings the warning back, so run the line once more."
 		}
 	];
 
@@ -198,46 +198,46 @@
 
 	onMount(() => {
 		const ua = navigator.userAgent.toLowerCase();
-		if (ua.includes('mac')) detected = 'mac';
-		else if (ua.includes('win')) detected = 'windows';
-		else if (ua.includes('linux') || ua.includes('x11')) detected = 'linux';
+		if (ua.includes("mac")) detected = "mac";
+		else if (ua.includes("win")) detected = "windows";
+		else if (ua.includes("linux") || ua.includes("x11")) detected = "linux";
 		// Open the macOS guide automatically for Mac visitors; others can expand it.
-		macOpen = detected === 'mac';
+		macOpen = detected === "mac";
 		loadLatestRelease();
 	});
 
 	const platforms = [
 		{
-			id: 'mac' as const,
+			id: "mac" as const,
 			icon: IconBrandApple,
-			name: 'macOS',
-			detail: 'Apple silicon and Intel',
-			file: '.dmg disk image'
+			name: "macOS",
+			detail: "Apple silicon and Intel",
+			file: ".dmg disk image"
 		},
 		{
-			id: 'windows' as const,
+			id: "windows" as const,
 			icon: IconBrandWindows,
-			name: 'Windows',
-			detail: 'Windows 10 and 11, 64-bit',
-			file: '.exe installer'
+			name: "Windows",
+			detail: "Windows 10 and 11, 64-bit",
+			file: ".exe installer"
 		},
 		{
-			id: 'linux' as const,
+			id: "linux" as const,
 			icon: IconBrandDebian,
-			name: 'Linux',
-			detail: 'AppImage and .deb',
-			file: 'x86_64 build'
+			name: "Linux",
+			detail: "AppImage and .deb",
+			file: "x86_64 build"
 		}
 	];
 
 	// Prototype scope, stated plainly. Nothing here is a promise about the current build.
 	const included = [
-		'The LaTeX engine, built in.',
-		'Live preview, file tree, search, command palette.',
-		'A Git client: stage, commit, diff, history, push.',
-		'Runs locally. Compiles offline.',
-		'No account, no analytics.',
-		'Missing everything shipped since these builds were cut.'
+		"The LaTeX engine, built in.",
+		"Live preview, file tree, search, command palette.",
+		"A Git client: stage, commit, diff, history, push.",
+		"Runs locally. Compiles offline.",
+		"No account, no analytics.",
+		"Missing everything shipped since these builds were cut."
 	];
 </script>
 

@@ -1,8 +1,8 @@
 <script lang="ts" module>
 	/** Where GlyphTeX lives: kept here so the About box and any future "Help"
 	 * surface read the same canonical links. */
-	export const GLYPHTEX_REPO = 'https://github.com/kanakkholwal/glyphtex';
-	export const GLYPHTEX_SITE = 'https://glyphtex.nexonauts.com';
+	export const GLYPHTEX_REPO = "https://github.com/kanakkholwal/glyphtex";
+	export const GLYPHTEX_SITE = "https://glyphtex.nexonauts.com";
 </script>
 
 <script lang="ts">

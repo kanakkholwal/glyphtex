@@ -3,4 +3,4 @@
 /**
  * Severity of a single parsed log message.
  */
-export type Severity = 'error' | 'warning' | 'info';
+export type Severity = "error" | "warning" | "info";

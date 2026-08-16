@@ -10,31 +10,31 @@
 //
 // Run via: `pnpm --filter @glyphtex/desktop tectonic:setup`
 
-import { copyFileSync, existsSync } from 'node:fs';
-import { arch, platform } from 'node:os';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { downloadTectonic, DEFAULT_TECTONIC_VERSION } from '../release/download-tectonic.mjs';
+import { copyFileSync, existsSync } from "node:fs";
+import { arch, platform } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { downloadTectonic, DEFAULT_TECTONIC_VERSION } from "../release/download-tectonic.mjs";
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const binariesDir = join(repoRoot, 'apps/desktop/src-tauri/binaries');
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const binariesDir = join(repoRoot, "apps/desktop/src-tauri/binaries");
 
 /** Map the running Node host to the Rust target triple Tectonic releases use. */
 function hostTriple() {
 	const p = platform();
 	const a = arch();
-	if (p === 'win32' && a === 'x64') return 'x86_64-pc-windows-msvc';
-	if (p === 'darwin' && a === 'arm64') return 'aarch64-apple-darwin';
-	if (p === 'darwin' && a === 'x64') return 'x86_64-apple-darwin';
-	if (p === 'linux' && a === 'x64') return 'x86_64-unknown-linux-gnu';
-	if (p === 'linux' && a === 'arm64') return 'aarch64-unknown-linux-musl';
+	if (p === "win32" && a === "x64") return "x86_64-pc-windows-msvc";
+	if (p === "darwin" && a === "arm64") return "aarch64-apple-darwin";
+	if (p === "darwin" && a === "x64") return "x86_64-apple-darwin";
+	if (p === "linux" && a === "x64") return "x86_64-unknown-linux-gnu";
+	if (p === "linux" && a === "arm64") return "aarch64-unknown-linux-musl";
 	throw new Error(`Unsupported host for Tectonic sidecar: ${p}/${a}`);
 }
 
 async function main() {
 	const triple = hostTriple();
-	const isWindows = triple.includes('windows');
-	const ext = isWindows ? '.exe' : '';
+	const isWindows = triple.includes("windows");
+	const ext = isWindows ? ".exe" : "";
 	const sidecar = join(binariesDir, `tectonic-${triple}${ext}`);
 
 	if (existsSync(sidecar)) {

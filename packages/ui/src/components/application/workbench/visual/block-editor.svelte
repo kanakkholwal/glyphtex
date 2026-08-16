@@ -1,24 +1,24 @@
 <script lang="ts" module>
 	/** Markdown-ish prefixes that convert a block as you type, Notion-style. */
 	const INPUT_RULES: { pattern: RegExp; template: string }[] = [
-		{ pattern: /^#\s$/, template: 'section' },
-		{ pattern: /^##\s$/, template: 'subsection' },
-		{ pattern: /^###\s$/, template: 'subsubsection' },
-		{ pattern: /^[-*+]\s$/, template: 'itemize' },
-		{ pattern: /^1[.)]\s$/, template: 'enumerate' },
-		{ pattern: /^>\s$/, template: 'quote' },
-		{ pattern: /^```$/, template: 'verbatim' },
-		{ pattern: /^\$\$$/, template: 'equation' }
+		{ pattern: /^#\s$/, template: "section" },
+		{ pattern: /^##\s$/, template: "subsection" },
+		{ pattern: /^###\s$/, template: "subsubsection" },
+		{ pattern: /^[-*+]\s$/, template: "itemize" },
+		{ pattern: /^1[.)]\s$/, template: "enumerate" },
+		{ pattern: /^>\s$/, template: "quote" },
+		{ pattern: /^```$/, template: "verbatim" },
+		{ pattern: /^\$\$$/, template: "equation" }
 	];
 
 	/** Where a freshly focused block should put its caret: either end, or a
 	 *  character offset. A merge has to land the caret on the seam. */
-	export type CaretTarget = 'start' | 'end' | number;
+	export type CaretTarget = "start" | "end" | number;
 
 	export function placeCaret(el: HTMLElement, where: CaretTarget): void {
 		const range = document.createRange();
 		range.selectNodeContents(el);
-		if (typeof where === 'number') {
+		if (typeof where === "number") {
 			let remaining = where;
 			const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
 			let node = walker.nextNode();
@@ -33,7 +33,7 @@
 			}
 			range.collapse(true);
 		} else {
-			range.collapse(where === 'start');
+			range.collapse(where === "start");
 		}
 		const selection = window.getSelection();
 		selection?.removeAllRanges();

@@ -3,12 +3,12 @@ import {
 	deleteProject,
 	renameProject,
 	type StoredProject
-} from '$lib/storage/projects';
-import { rootFor } from './fs';
-import { gitProvider } from './provider';
+} from "$lib/storage/projects";
+import { rootFor } from "./fs";
+import { gitProvider } from "./provider";
 
-export { gitProvider, onWorkingTreeChanged } from './provider';
-export { rootFor as gitRootFor, projectIdFrom } from './fs';
+export { gitProvider, onWorkingTreeChanged } from "./provider";
+export { rootFor as gitRootFor, projectIdFrom } from "./fs";
 export {
 	DEFAULT_CORS_PROXY,
 	getCorsProxy,
@@ -17,12 +17,12 @@ export {
 	setCorsProxy,
 	setIdentity,
 	type GitIdentity
-} from './settings';
+} from "./settings";
 
 /** The repo folder name from a clone URL (last path segment, minus `.git`). */
 export function repoNameFrom(url: string): string {
-	const last = url.trim().replace(/\/+$/, '').split(/[/:]/).pop() ?? '';
-	return last.replace(/\.git$/i, '') || 'Cloned repository';
+	const last = url.trim().replace(/\/+$/, "").split(/[/:]/).pop() ?? "";
+	return last.replace(/\.git$/i, "") || "Cloned repository";
 }
 
 /** Clone into a fresh document. The empty project exists first so the working tree

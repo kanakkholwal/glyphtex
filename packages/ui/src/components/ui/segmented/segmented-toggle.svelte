@@ -7,12 +7,12 @@
 		onLabel?: string;
 		/** Label for the "off" segment. Default `Off`. */
 		offLabel?: string;
-		size?: 'xs' | 'sm' | 'md';
+		size?: "xs" | "sm" | "md";
 		/** Stretch to fill parent width. Default false (compact). */
 		fill?: boolean;
 		disabled?: boolean;
 		class?: string;
-		'aria-label'?: string;
+		"aria-label"?: string;
 	}
 </script>
 

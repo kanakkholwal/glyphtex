@@ -1,17 +1,17 @@
 <script lang="ts">
-	import type { HTMLAttributes } from 'svelte/elements';
-	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		children,
-		size = 'default',
-		tone = 'default',
+		size = "default",
+		tone = "default",
 		...restProps
 	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
-		size?: 'default' | 'sm';
-		tone?: 'default' | 'default_soft' | 'editorial';
+		size?: "default" | "sm";
+		tone?: "default" | "default_soft" | "editorial";
 	} = $props();
 </script>
 

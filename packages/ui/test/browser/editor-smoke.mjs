@@ -1,20 +1,20 @@
 // Must not import the editor modules: under Vite that loads a second copy and
 // registers the language twice, surfacing as duplicated suggestions.
-const CDP = process.env.CDP || 'http://127.0.0.1:9333';
+const CDP = process.env.CDP || "http://127.0.0.1:9333";
 // The workspace list, not a document: /editor no longer exists, and a project
 // URL carries an id that differs per profile. The run opens or creates one.
-const PAGE = process.env.PAGE || 'http://localhost:5173/workspace';
+const PAGE = process.env.PAGE || "http://localhost:5173/workspace";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const list = await (await fetch(`${CDP}/json/list`)).json();
-const page = list.find((t) => t.type === 'page' && t.webSocketDebuggerUrl);
-if (!page) throw new Error('no CDP page target');
+const page = list.find((t) => t.type === "page" && t.webSocketDebuggerUrl);
+if (!page) throw new Error("no CDP page target");
 const ws = new WebSocket(page.webSocketDebuggerUrl);
-await new Promise((r) => ws.addEventListener('open', r, { once: true }));
+await new Promise((r) => ws.addEventListener("open", r, { once: true }));
 
 let id = 0;
 const pending = new Map();
-ws.addEventListener('message', (e) => {
+ws.addEventListener("message", (e) => {
 	const m = JSON.parse(e.data);
 	if (m.id && pending.has(m.id)) {
 		pending.get(m.id)(m);
@@ -28,21 +28,21 @@ const send = (method, params = {}) =>
 		ws.send(JSON.stringify({ id: n, method, params }));
 	});
 const evaluate = async (expression) => {
-	const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+	const r = await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
 	const d = r.result?.exceptionDetails;
 	if (d) throw new Error(d.exception?.description ?? d.text);
 	return r.result?.result?.value;
 };
 
 const results = [];
-const check = (name, pass, detail = '') => {
+const check = (name, pass, detail = "") => {
 	results.push({ name, pass });
-	console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? `  · ${detail}` : ''}`);
+	console.log(`${pass ? "PASS" : "FAIL"}  ${name}${detail ? `  · ${detail}` : ""}`);
 };
 
-await send('Runtime.enable');
-await send('Page.enable');
-await send('Emulation.setDeviceMetricsOverride', {
+await send("Runtime.enable");
+await send("Page.enable");
+await send("Emulation.setDeviceMetricsOverride", {
 	width: 1400,
 	height: 900,
 	deviceScaleFactor: 1,
@@ -50,14 +50,14 @@ await send('Emulation.setDeviceMetricsOverride', {
 });
 // A Chrome window sitting behind another reports itself hidden, and synthetic
 // mouse events then leave the focus on `body`: every keystroke goes nowhere.
-await send('Page.bringToFront');
-await send('Emulation.setFocusEmulationEnabled', { enabled: true });
-await send('Storage.clearDataForOrigin', { origin: new URL(PAGE).origin, storageTypes: 'all' });
-await send('Page.navigate', { url: PAGE });
+await send("Page.bringToFront");
+await send("Emulation.setFocusEmulationEnabled", { enabled: true });
+await send("Storage.clearDataForOrigin", { origin: new URL(PAGE).origin, storageTypes: "all" });
+await send("Page.navigate", { url: PAGE });
 await sleep(2500);
 // `clearDataForOrigin` leaves sessionStorage alone, and the doc mode lives there.
 // Without this the run inherits whichever mode the last one left behind.
-await evaluate('sessionStorage.clear()');
+await evaluate("sessionStorage.clear()");
 await sleep(2500);
 
 // A fresh profile has no documents, so make one to open the editor on.
@@ -75,7 +75,7 @@ for (let i = 0; i < 80; i++) {
 	mounted = await evaluate(`!!document.querySelector('.cm-content')`).catch(() => false);
 	if (mounted) break;
 }
-check('CodeMirror editor mounts', mounted);
+check("CodeMirror editor mounts", mounted);
 if (!mounted) {
 	ws.close();
 	process.exit(1);
@@ -85,10 +85,10 @@ await sleep(1500);
 const box = await evaluate(
 	`(() => { const r = document.querySelector('.cm-editor').getBoundingClientRect(); return {w: Math.round(r.width), h: Math.round(r.height)}; })()`
 );
-check('editor has non-zero size', box.w > 100 && box.h > 100, `${box.w}x${box.h}`);
+check("editor has non-zero size", box.w > 100 && box.h > 100, `${box.w}x${box.h}`);
 
 const bg = await evaluate(`getComputedStyle(document.querySelector('.cm-editor')).backgroundColor`);
-check('Islands Dark background', /rgb\(25,\s*25,\s*25\)/.test(bg), bg);
+check("Islands Dark background", /rgb\(25,\s*25,\s*25\)/.test(bg), bg);
 
 // CodeMirror emits generated class names (ͼ…) per highlight tag, so distinctness
 // is the only stable assertion: exact names change when the theme is rebuilt.
@@ -98,7 +98,7 @@ const tokens = await evaluate(`(() => {
 	return { spans: spans.length, distinct: classes.size };
 })()`);
 check(
-	'grammar produces distinct token classes',
+	"grammar produces distinct token classes",
 	tokens.distinct > 2,
 	`${tokens.distinct} classes / ${tokens.spans} spans`
 );
@@ -115,12 +115,12 @@ await sleep(300);
 const target = await evaluate(
 	`(() => { const r = document.querySelector('.cm-content').getBoundingClientRect(); return {x: Math.round(r.x + 40), y: Math.round(r.y + 10)}; })()`
 );
-for (const type of ['mousePressed', 'mouseReleased']) {
-	await send('Input.dispatchMouseEvent', {
+for (const type of ["mousePressed", "mouseReleased"]) {
+	await send("Input.dispatchMouseEvent", {
 		type,
 		x: target.x,
 		y: target.y,
-		button: 'left',
+		button: "left",
 		clickCount: 1
 	});
 }
@@ -130,34 +130,34 @@ const focused = await evaluate(`(() => {
 	if (document.activeElement !== content) content?.focus();
 	return document.activeElement === content;
 })()`);
-check('the editor takes focus', focused);
+check("the editor takes focus", focused);
 
 for (const [key, code, vk] of [
-	['End', 'End', 35],
-	['Enter', 'Enter', 13]
+	["End", "End", 35],
+	["Enter", "Enter", 13]
 ]) {
-	await send('Input.dispatchKeyEvent', {
-		type: 'keyDown',
+	await send("Input.dispatchKeyEvent", {
+		type: "keyDown",
 		key,
 		code,
 		windowsVirtualKeyCode: vk,
-		modifiers: key === 'End' ? 2 : 0
+		modifiers: key === "End" ? 2 : 0
 	});
-	await send('Input.dispatchKeyEvent', {
-		type: 'keyUp',
+	await send("Input.dispatchKeyEvent", {
+		type: "keyUp",
 		key,
 		code,
 		windowsVirtualKeyCode: vk,
-		modifiers: key === 'End' ? 2 : 0
+		modifiers: key === "End" ? 2 : 0
 	});
 	await sleep(200);
 }
 
 async function type(text) {
 	for (const ch of text) {
-		await send('Input.dispatchKeyEvent', { type: 'keyDown', key: ch });
-		await send('Input.dispatchKeyEvent', { type: 'char', text: ch, unmodifiedText: ch, key: ch });
-		await send('Input.dispatchKeyEvent', { type: 'keyUp', key: ch });
+		await send("Input.dispatchKeyEvent", { type: "keyDown", key: ch });
+		await send("Input.dispatchKeyEvent", { type: "char", text: ch, unmodifiedText: ch, key: ch });
+		await send("Input.dispatchKeyEvent", { type: "keyUp", key: ch });
 		await sleep(90);
 	}
 	await sleep(1100);
@@ -172,56 +172,56 @@ const widgetState = () =>
 	};
 })()`);
 
-await type(String.fromCharCode(92) + 'fra');
+await type(String.fromCharCode(92) + "fra");
 const cmd = await widgetState();
-check('completion popup opens on a partial command', cmd.visible, cmd.rows.slice(0, 3).join(' | '));
+check("completion popup opens on a partial command", cmd.visible, cmd.rows.slice(0, 3).join(" | "));
 check(
-	'offers \\frac',
-	cmd.rows.some((r) => r.includes('frac')),
-	cmd.rows[0] ?? '(none)'
+	"offers \\frac",
+	cmd.rows.some((r) => r.includes("frac")),
+	cmd.rows[0] ?? "(none)"
 );
 check(
-	'no duplicate suggestions',
+	"no duplicate suggestions",
 	new Set(cmd.rows).size === cmd.rows.length,
 	`${cmd.rows.length} rows, ${new Set(cmd.rows).size} unique`
 );
 
-await send('Input.dispatchKeyEvent', {
-	type: 'keyDown',
-	key: 'Escape',
-	code: 'Escape',
+await send("Input.dispatchKeyEvent", {
+	type: "keyDown",
+	key: "Escape",
+	code: "Escape",
 	windowsVirtualKeyCode: 27
 });
-await send('Input.dispatchKeyEvent', {
-	type: 'keyUp',
-	key: 'Escape',
-	code: 'Escape',
+await send("Input.dispatchKeyEvent", {
+	type: "keyUp",
+	key: "Escape",
+	code: "Escape",
 	windowsVirtualKeyCode: 27
 });
 await sleep(200);
 for (let i = 0; i < 4; i++) {
-	await send('Input.dispatchKeyEvent', {
-		type: 'keyDown',
-		key: 'Backspace',
-		code: 'Backspace',
+	await send("Input.dispatchKeyEvent", {
+		type: "keyDown",
+		key: "Backspace",
+		code: "Backspace",
 		windowsVirtualKeyCode: 8
 	});
-	await send('Input.dispatchKeyEvent', {
-		type: 'keyUp',
-		key: 'Backspace',
-		code: 'Backspace',
+	await send("Input.dispatchKeyEvent", {
+		type: "keyUp",
+		key: "Backspace",
+		code: "Backspace",
 		windowsVirtualKeyCode: 8
 	});
 	await sleep(80);
 }
 
-await type(String.fromCharCode(92) + 'begin{itemi');
+await type(String.fromCharCode(92) + "begin{itemi");
 const env = await widgetState();
-check('environment completion inside \\begin{', env.visible, env.rows.slice(0, 3).join(' | '));
+check("environment completion inside \\begin{", env.visible, env.rows.slice(0, 3).join(" | "));
 check(
-	'offers itemize',
-	env.rows.some((r) => r.startsWith('itemize')),
-	env.rows[0] ?? '(none)'
+	"offers itemize",
+	env.rows.some((r) => r.startsWith("itemize")),
+	env.rows[0] ?? "(none)"
 );
 
 ws.close();

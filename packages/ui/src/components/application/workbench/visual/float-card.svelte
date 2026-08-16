@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import type { FloatAlignment, FloatBlock, Inline, Patch } from '@glyphtex/ui/tex-doc';
+	import { Button } from "@glyphtex/ui/button";
+	import type { FloatAlignment, FloatBlock, Inline, Patch } from "@glyphtex/ui/tex-doc";
 	import {
 		IconAlignCenter,
 		IconAlignLeft,
@@ -11,14 +11,14 @@
 		IconSettings,
 		IconTable,
 		IconUpload
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import { classifyFile } from '../../file-kinds';
-	import type { WorkbenchController } from '../controller.svelte';
-	import BlockEditor from './block-editor.svelte';
-	import TableGrid from './table-grid.svelte';
+	import { classifyFile } from "../../file-kinds";
+	import type { WorkbenchController } from "../controller.svelte";
+	import BlockEditor from "./block-editor.svelte";
+	import TableGrid from "./table-grid.svelte";
 
-	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
+	type TexDocModule = typeof import("@glyphtex/ui/tex-doc");
 
 	/** Every control patches the one command it owns, so placement, subfigures and
 	 *  hand-tuned spacing survive an edit to the caption beside them. */
@@ -47,19 +47,19 @@
 		onatom?: (element: HTMLElement) => void;
 	} = $props();
 
-	const isTable = $derived(block.environment.startsWith('table'));
-	const isWrapped = $derived(block.environment.startsWith('wrap'));
+	const isTable = $derived(block.environment.startsWith("table"));
+	const isWrapped = $derived(block.environment.startsWith("wrap"));
 
 	// LaTeX conventionally omits the extension so the driver can choose the file;
 	// the preview has to put it back to find the bytes.
-	const EXTENSIONS = ['', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.pdf'];
+	const EXTENSIONS = ["", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".pdf"];
 
 	// Remembers which extension answered, so remounting a document full of figures
 	// does not repeat eight rejected reads per figure.
 	const resolved = new Map<string, string | null>();
 
 	const imageFiles = $derived(
-		ctrl.files.files.filter((f) => classifyFile(f.name) === 'image').map((f) => f.name)
+		ctrl.files.files.filter((f) => classifyFile(f.name) === "image").map((f) => f.name)
 	);
 
 	let preview = $state<string>();
@@ -116,13 +116,13 @@
 	const slice = $derived(source.slice(block.span.from, block.span.to));
 	const grid = $derived(tex && isTable ? tex.readTable(source, block) : null);
 	const width = $derived(
-		/\\includegraphics\s*\*?\s*\[[^\]]*?width\s*=\s*([^,\]]+)[^\]]*\]/.exec(slice)?.[1].trim() ?? ''
+		/\\includegraphics\s*\*?\s*\[[^\]]*?width\s*=\s*([^,\]]+)[^\]]*\]/.exec(slice)?.[1].trim() ?? ""
 	);
 	const alignment = $derived<FloatAlignment>(
 		(/\\(centering|raggedright|raggedleft)\b/.exec(slice)?.[1] as FloatAlignment) ?? null
 	);
-	const placement = $derived(/^\\begin\s*\{[^}]*\}[ \t]*\[([^\]]*)\]/.exec(slice)?.[1] ?? '');
-	const label = $derived(/\\label\s*\{([^}]*)\}/.exec(slice)?.[1] ?? '');
+	const placement = $derived(/^\\begin\s*\{[^}]*\}[ \t]*\[([^\]]*)\]/.exec(slice)?.[1] ?? "");
+	const label = $derived(/\\label\s*\{([^}]*)\}/.exec(slice)?.[1] ?? "");
 
 	const one = (make: (t: TexDocModule) => Patch | null) => {
 		if (tex) onpatch([make(tex)]);
@@ -132,86 +132,86 @@
 		picking = false;
 		// Strip the extension: that is what LaTeX wants, and it keeps the source
 		// portable across the drivers that pick their own format.
-		one((t) => t.setFloatGraphic(source, block, path.replace(/\.[^./]+$/, '')));
+		one((t) => t.setFloatGraphic(source, block, path.replace(/\.[^./]+$/, "")));
 	}
 
 	async function uploadImage() {
 		picking = false;
-		const added = await ctrl.onAddFiles?.('image/*');
+		const added = await ctrl.onAddFiles?.("image/*");
 		const first = Array.isArray(added) ? added[0] : undefined;
 		if (first) chooseImage(first);
 	}
 
 	const WIDTHS = [
-		{ value: '0.4\\linewidth', label: '40%' },
-		{ value: '0.6\\linewidth', label: '60%' },
-		{ value: '0.8\\linewidth', label: '80%' },
-		{ value: '\\linewidth', label: 'Full' }
+		{ value: "0.4\\linewidth", label: "40%" },
+		{ value: "0.6\\linewidth", label: "60%" },
+		{ value: "0.8\\linewidth", label: "80%" },
+		{ value: "\\linewidth", label: "Full" }
 	];
 
 	const ALIGNS: { id: FloatAlignment; label: string; icon: typeof IconAlignLeft }[] = [
-		{ id: 'raggedright', label: 'Align left', icon: IconAlignLeft },
-		{ id: 'centering', label: 'Centre', icon: IconAlignCenter },
-		{ id: 'raggedleft', label: 'Align right', icon: IconAlignRight }
+		{ id: "raggedright", label: "Align left", icon: IconAlignLeft },
+		{ id: "centering", label: "Centre", icon: IconAlignCenter },
+		{ id: "raggedleft", label: "Align right", icon: IconAlignRight }
 	];
 
 	/** LaTeX names the command; the card has to name a direction. */
-	const PLACEMENT_OF: Record<string, 'left' | 'center' | 'right'> = {
-		centering: 'center',
-		raggedright: 'left',
-		raggedleft: 'right'
+	const PLACEMENT_OF: Record<string, "left" | "center" | "right"> = {
+		centering: "center",
+		raggedright: "left",
+		raggedleft: "right"
 	};
 	const PLACE: Record<string, string> = {
-		left: 'justify-start',
-		center: 'justify-center',
-		right: 'justify-end'
+		left: "justify-start",
+		center: "justify-center",
+		right: "justify-end"
 	};
 
 	const RULE_STYLES = [
-		{ id: 'none', label: 'None' },
-		{ id: 'rows', label: 'Rows' },
-		{ id: 'grid', label: 'Grid' }
+		{ id: "none", label: "None" },
+		{ id: "rows", label: "Rows" },
+		{ id: "grid", label: "Grid" }
 	];
 
 	const PLACEMENTS = [
-		{ value: 'h', label: 'Here' },
-		{ value: 't', label: 'Top' },
-		{ value: 'b', label: 'Bottom' },
-		{ value: 'p', label: 'Own page' },
-		{ value: 'htbp', label: 'Anywhere' }
+		{ value: "h", label: "Here" },
+		{ value: "t", label: "Top" },
+		{ value: "b", label: "Bottom" },
+		{ value: "p", label: "Own page" },
+		{ value: "htbp", label: "Anywhere" }
 	];
 
 	const WRAPS = [
-		{ value: '', label: 'None' },
-		{ value: 'l', label: 'Text right' },
-		{ value: 'r', label: 'Text left' }
+		{ value: "", label: "None" },
+		{ value: "l", label: "Text right" },
+		{ value: "r", label: "Text left" }
 	];
 
 	/** Wrapping needs a package the document may not load yet, so the toggle
 	 *  carries that edit with it rather than producing source that will not build. */
 	function setWrap(side: string) {
 		if (!tex) return;
-		const preambleEnd = source.indexOf('\\begin{document}');
+		const preambleEnd = source.indexOf("\\begin{document}");
 		onpatch([
-			side && preambleEnd > 0 ? tex.ensurePackage(source, preambleEnd, 'wrapfig') : null,
-			tex.setFloatWrap(source, block, (side || null) as 'l' | 'r' | null)
+			side && preambleEnd > 0 ? tex.ensurePackage(source, preambleEnd, "wrapfig") : null,
+			tex.setFloatWrap(source, block, (side || null) as "l" | "r" | null)
 		]);
 	}
 
 	/** A label is a key, not prose: anything that would need escaping inside
 	 *  `\label{…}` is dropped rather than written and left to fail at compile. */
-	const labelKey = (value: string) => value.replace(/[\\{}%#$&~^_\s]+/g, '-').replace(/^-|-$/g, '');
+	const labelKey = (value: string) => value.replace(/[\\{}%#$&~^_\s]+/g, "-").replace(/^-|-$/g, "");
 
 	// Read off the source, not off `block.caption`: a caption keystroke patches one
 	// span without reparsing, so the model is a moment behind and the slice is not.
-	const captionText = $derived(tex ? (tex.floatCaption(source, block) ?? '') : '');
+	const captionText = $derived(tex ? (tex.floatCaption(source, block) ?? "") : "");
 	const captionRuns = $derived(tex ? tex.parseInlineFragment(captionText) : []);
 
 	/** Printed like any other inline content, which is what escapes a typed `%`
 	 *  instead of commenting out the rest of the float. */
 	function commitCaption(runs: Inline[]) {
 		if (!tex) return;
-		const text = tex.printInlines(runs).replace(/\s+/g, ' ').trim();
+		const text = tex.printInlines(runs).replace(/\s+/g, " ").trim();
 		if (text === captionText.trim()) return;
 		const patch = tex.setFloatCaption(source, block, text);
 		if (onlocalpatch) onlocalpatch(patch);
@@ -219,11 +219,11 @@
 	}
 
 	const CHIP =
-		'flex h-7 min-w-9 items-center justify-center rounded px-2 text-xs transition-colors';
-	const OFF = 'text-muted-foreground hover:text-foreground hover:bg-accent/60';
-	const ON = 'bg-accent text-foreground';
+		"flex h-7 min-w-9 items-center justify-center rounded px-2 text-xs transition-colors";
+	const OFF = "text-muted-foreground hover:text-foreground hover:bg-accent/60";
+	const ON = "bg-accent text-foreground";
 	const FIELD =
-		'border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1 text-xs outline-none';
+		"border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1 text-xs outline-none";
 </script>
 
 <!-- No `overflow-hidden`: the card's own popovers open past its edges, and

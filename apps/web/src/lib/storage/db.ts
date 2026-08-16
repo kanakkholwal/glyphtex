@@ -1,9 +1,9 @@
-const DB_NAME = 'glyphtex';
+const DB_NAME = "glyphtex";
 const DB_VERSION = 1;
 
-export const PROJECTS = 'projects';
-export const FILES = 'files';
-export const BY_PROJECT = 'byProject';
+export const PROJECTS = "projects";
+export const FILES = "files";
+export const BY_PROJECT = "byProject";
 
 let open: Promise<IDBDatabase> | null = null;
 
@@ -14,7 +14,7 @@ export class StorageError extends Error {
 		readonly cause?: unknown
 	) {
 		super(message);
-		this.name = 'StorageError';
+		this.name = "StorageError";
 	}
 }
 
@@ -26,9 +26,9 @@ function request<T>(req: IDBRequest<T>): Promise<T> {
 }
 
 export function openDb(): Promise<IDBDatabase> {
-	if (typeof indexedDB === 'undefined') {
+	if (typeof indexedDB === "undefined") {
 		return Promise.reject(
-			new StorageError('This browser has no IndexedDB, so documents cannot be saved.')
+			new StorageError("This browser has no IndexedDB, so documents cannot be saved.")
 		);
 	}
 
@@ -38,11 +38,11 @@ export function openDb(): Promise<IDBDatabase> {
 		req.onupgradeneeded = () => {
 			const db = req.result;
 			if (!db.objectStoreNames.contains(PROJECTS)) {
-				db.createObjectStore(PROJECTS, { keyPath: 'id' });
+				db.createObjectStore(PROJECTS, { keyPath: "id" });
 			}
 			if (!db.objectStoreNames.contains(FILES)) {
-				const files = db.createObjectStore(FILES, { keyPath: 'key' });
-				files.createIndex(BY_PROJECT, 'projectId', { unique: false });
+				const files = db.createObjectStore(FILES, { keyPath: "key" });
+				files.createIndex(BY_PROJECT, "projectId", { unique: false });
 			}
 		};
 
@@ -56,9 +56,9 @@ export function openDb(): Promise<IDBDatabase> {
 			};
 			resolve(db);
 		};
-		req.onerror = () => reject(new StorageError('Could not open local storage.', req.error));
+		req.onerror = () => reject(new StorageError("Could not open local storage.", req.error));
 		req.onblocked = () =>
-			reject(new StorageError('Another GlyphTeX tab is holding storage open. Close it and retry.'));
+			reject(new StorageError("Another GlyphTeX tab is holding storage open. Close it and retry."));
 	}).catch((error) => {
 		open = null;
 		throw error;
@@ -78,7 +78,7 @@ export async function tx<T>(
 
 	const done = new Promise<void>((resolve, reject) => {
 		t.oncomplete = () => resolve();
-		t.onabort = () => reject(t.error ?? new Error('aborted'));
+		t.onabort = () => reject(t.error ?? new Error("aborted"));
 		t.onerror = () => reject(t.error);
 	});
 
@@ -99,11 +99,11 @@ export async function tx<T>(
 	try {
 		await done;
 	} catch (error) {
-		const quota = error instanceof DOMException && error.name === 'QuotaExceededError';
+		const quota = error instanceof DOMException && error.name === "QuotaExceededError";
 		throw new StorageError(
 			quota
-				? 'Out of browser storage. Delete a document or some images and try again.'
-				: 'Could not save to local storage.',
+				? "Out of browser storage. Delete a document or some images and try again."
+				: "Could not save to local storage.",
 			error
 		);
 	}

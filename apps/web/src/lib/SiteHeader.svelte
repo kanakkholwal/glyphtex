@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { Button } from '@glyphtex/ui/button';
-	import { Logo } from '@glyphtex/ui/logo';
-	import { navLinks, REPO_URL } from '$lib/landing/nav-data';
-	import { IconBrandGithub, IconMenu2, IconX } from '@tabler/icons-svelte';
+	import { resolve } from "$app/paths";
+	import { Button } from "@glyphtex/ui/button";
+	import { Logo } from "@glyphtex/ui/logo";
+	import { navLinks, REPO_URL } from "$lib/landing/nav-data";
+	import { IconBrandGithub, IconMenu2, IconX } from "@tabler/icons-svelte";
 
-	const home = resolve('/');
+	const home = resolve("/");
 	const repo = REPO_URL;
 
 	let open = $state(false);
@@ -23,14 +23,14 @@
 	// until it closes.
 	function menuFocus(node: HTMLElement) {
 		const focusables = () =>
-			Array.from(node.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(
+			Array.from(node.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")).filter(
 				(el) => el.offsetParent !== null
 			);
 
 		focusables()[0]?.focus();
 
 		function onKeydown(event: KeyboardEvent) {
-			if (event.key !== 'Tab') return;
+			if (event.key !== "Tab") return;
 			const items = focusables();
 			if (items.length === 0) return;
 			const first = items[0];
@@ -44,15 +44,15 @@
 			}
 		}
 
-		node.addEventListener('keydown', onKeydown);
-		return () => node.removeEventListener('keydown', onKeydown);
+		node.addEventListener("keydown", onKeydown);
+		return () => node.removeEventListener("keydown", onKeydown);
 	}
 
 	const resolveAny = resolve as (route: string) => string;
 	function hrefFor(href: string, external = false): string {
 		if (external) return href;
 		// Internal paths must start with a single `/` and have no scheme.
-		if (!href.startsWith('/') || href.startsWith('//')) return href;
+		if (!href.startsWith("/") || href.startsWith("//")) return href;
 		return resolveAny(href);
 	}
 
@@ -60,13 +60,13 @@
 	let scrolled = $state(false);
 
 	$effect(() => {
-		if (typeof window === 'undefined') return;
+		if (typeof window === "undefined") return;
 		const onScroll = () => {
 			scrolled = window.scrollY > 80;
 		};
 		onScroll();
-		window.addEventListener('scroll', onScroll, { passive: true });
-		return () => window.removeEventListener('scroll', onScroll);
+		window.addEventListener("scroll", onScroll, { passive: true });
+		return () => window.removeEventListener("scroll", onScroll);
 	});
 </script>
 

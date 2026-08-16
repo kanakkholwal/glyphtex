@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
+	import { cn } from "@glyphtex/ui/utils";
 
 	// Step 1's "Open the project you already have" mock. A faux file-tree on
 	// the left and a tiny preview pane on the right, styled in the app's
@@ -11,23 +11,23 @@
 		class?: string;
 	};
 
-	let { class: className = '' }: Props = $props();
+	let { class: className = "" }: Props = $props();
 
-	type Entry = { icon: 'file' | 'folder' | 'chapter'; name: string; active?: boolean };
+	type Entry = { icon: "file" | "folder" | "chapter"; name: string; active?: boolean };
 
 	const tree: Entry[] = [
-		{ icon: 'folder', name: 'thesis/' },
-		{ icon: 'file', name: 'main.tex', active: true },
-		{ icon: 'file', name: 'references.bib' },
-		{ icon: 'folder', name: 'chapters/' },
-		{ icon: 'chapter', name: 'intro.tex' },
-		{ icon: 'chapter', name: 'methods.tex' },
-		{ icon: 'chapter', name: 'results.tex' }
+		{ icon: "folder", name: "thesis/" },
+		{ icon: "file", name: "main.tex", active: true },
+		{ icon: "file", name: "references.bib" },
+		{ icon: "folder", name: "chapters/" },
+		{ icon: "chapter", name: "intro.tex" },
+		{ icon: "chapter", name: "methods.tex" },
+		{ icon: "chapter", name: "results.tex" }
 	];
 
 	const reducedMotion =
-		typeof window !== 'undefined' &&
-		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+		typeof window !== "undefined" &&
+		window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 	let selected = $state(1);
 

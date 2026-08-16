@@ -14,7 +14,7 @@ function str(block: Uint8Array, at: number, len: number): string {
 	const raw = block.subarray(at, at + len);
 	let end = raw.indexOf(0);
 	if (end === -1) end = raw.length;
-	return decoder.decode(raw.subarray(0, end)).replace(/[\s\0]+$/, '');
+	return decoder.decode(raw.subarray(0, end)).replace(/[\s\0]+$/, "");
 }
 
 // Sizes are octal ASCII, except GNU's base-256 form flagged by the first byte's
@@ -26,7 +26,7 @@ function size(block: Uint8Array): number {
 		return n;
 	}
 	const text = str(block, SIZE.at, SIZE.len);
-	return text === '' ? 0 : parseInt(text, 8);
+	return text === "" ? 0 : parseInt(text, 8);
 }
 
 /** A block of all zero bytes marks the end of the archive. */
@@ -52,7 +52,7 @@ export function untar(archive: Uint8Array): Map<string, Uint8Array> {
 		if (isZeroBlock(header)) break;
 
 		const magic = str(header, MAGIC.at, MAGIC.len);
-		if (magic !== 'ustar' && magic !== '') {
+		if (magic !== "ustar" && magic !== "") {
 			throw new Error(`not a tar archive (bad magic "${magic}" at byte ${offset - BLOCK})`);
 		}
 
@@ -61,9 +61,9 @@ export function untar(archive: Uint8Array): Map<string, Uint8Array> {
 		const dataEnd = offset + Math.ceil(length / BLOCK) * BLOCK;
 		const type = String.fromCharCode(header[TYPEFLAG] || 0x30);
 
-		if (type === 'L') {
+		if (type === "L") {
 			// GNU long name: this entry's *body* is the name of the next entry.
-			pendingName = decoder.decode(archive.subarray(offset, offset + length)).replace(/\0+$/, '');
+			pendingName = decoder.decode(archive.subarray(offset, offset + length)).replace(/\0+$/, "");
 			offset = dataEnd;
 			continue;
 		}
@@ -77,13 +77,13 @@ export function untar(archive: Uint8Array): Map<string, Uint8Array> {
 		} else {
 			name = str(header, NAME.at, NAME.len);
 			const prefix = str(header, PREFIX.at, PREFIX.len);
-			if (prefix !== '') name = `${prefix}/${name}`;
+			if (prefix !== "") name = `${prefix}/${name}`;
 		}
 
 		// '0' and NUL are regular files; other types carry nothing the engine needs.
-		if (type === '0' || type === '\0') {
-			const flat = name.replace(/^\.\//, '').split('/').pop() ?? name;
-			if (flat !== '') {
+		if (type === "0" || type === "\0") {
+			const flat = name.replace(/^\.\//, "").split("/").pop() ?? name;
+			if (flat !== "") {
 				// slice(), not subarray(): the entries outlive the archive buffer,
 				// which we want the GC to reclaim once extraction finishes.
 				files.set(flat, archive.slice(offset, offset + length));
@@ -110,18 +110,18 @@ function isGzipped(bytes: Uint8Array): boolean {
 export async function gunzip(bytes: Uint8Array): Promise<Uint8Array> {
 	if (!isGzipped(bytes)) return bytes;
 
-	if (typeof DecompressionStream === 'undefined') {
-		throw new Error('This browser cannot decompress the TeX bundle (no DecompressionStream).');
+	if (typeof DecompressionStream === "undefined") {
+		throw new Error("This browser cannot decompress the TeX bundle (no DecompressionStream).");
 	}
 
 	try {
 		const stream = new Blob([bytes as BlobPart])
 			.stream()
-			.pipeThrough(new DecompressionStream('gzip'));
+			.pipeThrough(new DecompressionStream("gzip"));
 		return new Uint8Array(await new Response(stream).arrayBuffer());
 	} catch (cause) {
 		// A stream error surfaces from `Response` as a bare "Failed to fetch",
 		// which reads like a network problem and sends debugging the wrong way.
-		throw new Error('The TeX bundle is corrupt and could not be decompressed.', { cause });
+		throw new Error("The TeX bundle is corrupt and could not be decompressed.", { cause });
 	}
 }

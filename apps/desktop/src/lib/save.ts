@@ -1,6 +1,6 @@
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeFile } from '@tauri-apps/plugin-fs';
-import { isTauriRuntime } from '$lib/runtime';
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
+import { isTauriRuntime } from "$lib/runtime";
 
 /**
  * Save bytes to disk via Tauri's native "Save As" dialog (`plugin-dialog`) and
@@ -14,12 +14,12 @@ export async function saveFile(
 	bytes: Uint8Array,
 	opts: { filename: string; extensions?: string[] }
 ): Promise<boolean> {
-	const extensions = opts.extensions ?? ['pdf'];
+	const extensions = opts.extensions ?? ["pdf"];
 
 	if (!isTauriRuntime()) {
 		const blob = new Blob([bytes as BlobPart]);
 		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
+		const a = document.createElement("a");
 		a.href = url;
 		a.download = opts.filename;
 		a.click();
@@ -29,7 +29,7 @@ export async function saveFile(
 
 	const path = await save({
 		defaultPath: opts.filename,
-		filters: [{ name: extensions.join('/').toUpperCase(), extensions }]
+		filters: [{ name: extensions.join("/").toUpperCase(), extensions }]
 	});
 	if (!path) return false; // user dismissed the dialog
 

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Tooltip, TooltipContent, TooltipTrigger } from '@glyphtex/ui/tooltip';
-	import { IconCode, IconPencil } from '@tabler/icons-svelte';
+	import { Tooltip, TooltipContent, TooltipTrigger } from "@glyphtex/ui/tooltip";
+	import { IconCode, IconPencil } from "@tabler/icons-svelte";
 
-	import type { WorkbenchController } from './controller.svelte';
-	import type { DocMode } from './types';
+	import type { WorkbenchController } from "./controller.svelte";
+	import type { DocMode } from "./types";
 
 	/** The document's two editors. Top-level and always visible: everything else
 	 *  in the bar is a control *within* whichever one you picked. */
@@ -13,12 +13,12 @@
 
 	const modes: { value: DocMode; label: string; icon: typeof IconPencil; hint?: string }[] = [
 		{
-			value: 'visual',
-			label: 'Visual',
+			value: "visual",
+			label: "Visual",
 			icon: IconPencil,
-			hint: 'Write without the markup. Anything it cannot rewrite is left exactly as you typed it.'
+			hint: "Write without the markup. Anything it cannot rewrite is left exactly as you typed it."
 		},
-		{ value: 'latex', label: 'LaTeX', icon: IconCode }
+		{ value: "latex", label: "LaTeX", icon: IconCode }
 	];
 </script>
 

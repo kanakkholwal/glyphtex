@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Drawer as DrawerPrimitive } from 'vaul-svelte';
-	import DrawerPortal from './drawer-portal.svelte';
-	import DrawerOverlay from './drawer-overlay.svelte';
-	import { cn } from '@glyphtex/ui/utils';
-	import type { ComponentProps } from 'svelte';
-	import type { WithoutChildrenOrChild } from '@glyphtex/ui/utils';
+	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+	import DrawerPortal from "./drawer-portal.svelte";
+	import DrawerOverlay from "./drawer-overlay.svelte";
+	import { cn } from "@glyphtex/ui/utils";
+	import type { ComponentProps } from "svelte";
+	import type { WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 
 	let {
 		ref = $bindable(null),

@@ -1,28 +1,28 @@
-import { foldService } from '@codemirror/language';
-import type { Extension } from '@codemirror/state';
+import { foldService } from "@codemirror/language";
+import type { Extension } from "@codemirror/state";
 
 /** Sectioning commands, outermost first: the index is the nesting rank. */
 const SECTION_RANK = [
-	'part',
-	'chapter',
-	'section',
-	'subsection',
-	'subsubsection',
-	'paragraph',
-	'subparagraph'
+	"part",
+	"chapter",
+	"section",
+	"subsection",
+	"subsubsection",
+	"paragraph",
+	"subparagraph"
 ] as const;
 
 const SECTION_RE = new RegExp(
-	`^\\s*\\\\(${SECTION_RANK.join('|')})\\*?\\s*(?:\\[[^\\]]*\\])?\\s*\\{`
+	`^\\s*\\\\(${SECTION_RANK.join("|")})\\*?\\s*(?:\\[[^\\]]*\\])?\\s*\\{`
 );
 const ENVIRONMENT_RE = /^\s*\\(begin|end)\s*\{([^}]+)\}/;
 
 /** Strip a trailing `%` comment, respecting `\%`. */
 function withoutComment(line: string): string {
 	for (let i = 0; i < line.length; i++) {
-		if (line[i] !== '%') continue;
+		if (line[i] !== "%") continue;
 		let backslashes = 0;
-		for (let j = i - 1; j >= 0 && line[j] === '\\'; j--) backslashes++;
+		for (let j = i - 1; j >= 0 && line[j] === "\\"; j--) backslashes++;
 		if (backslashes % 2 === 0) return line.slice(0, i);
 	}
 	return line;
@@ -45,7 +45,7 @@ function splitLines(text: string): Line[] {
 	const lines: Line[] = [];
 	let from = 0;
 	for (;;) {
-		const nl = text.indexOf('\n', from);
+		const nl = text.indexOf("\n", from);
 		const to = nl === -1 ? text.length : nl;
 		lines.push({ text: withoutComment(text.slice(from, to)), from, to });
 		if (nl === -1) break;
@@ -58,12 +58,12 @@ function splitLines(text: string): Line[] {
 function readBraced(text: string, open: number): string {
 	let depth = 0;
 	for (let i = open; i < text.length; i++) {
-		if (text[i] === '\\') {
+		if (text[i] === "\\") {
 			i++;
 			continue;
 		}
-		if (text[i] === '{') depth++;
-		else if (text[i] === '}' && --depth === 0) return text.slice(open + 1, i);
+		if (text[i] === "{") depth++;
+		else if (text[i] === "}" && --depth === 0) return text.slice(open + 1, i);
 	}
 	return text.slice(open + 1);
 }
@@ -72,11 +72,11 @@ function readBraced(text: string, open: number): string {
 function cleanTitle(raw: string): string {
 	return (
 		raw
-			.replace(/\\(label|index|footnote)\s*\{[^}]*\}/g, '')
-			.replace(/\\[a-zA-Z]+\*?/g, '')
-			.replace(/[{}]/g, '')
-			.replace(/\s+/g, ' ')
-			.trim() || 'Untitled'
+			.replace(/\\(label|index|footnote)\s*\{[^}]*\}/g, "")
+			.replace(/\\[a-zA-Z]+\*?/g, "")
+			.replace(/[{}]/g, "")
+			.replace(/\s+/g, " ")
+			.trim() || "Untitled"
 	);
 }
 
@@ -85,7 +85,7 @@ function findHeadings(lines: Line[]): (Heading & { index: number })[] {
 	for (let i = 0; i < lines.length; i++) {
 		const match = SECTION_RE.exec(lines[i].text);
 		if (!match) continue;
-		const open = lines[i].text.indexOf('{', match.index);
+		const open = lines[i].text.indexOf("{", match.index);
 		headings.push({
 			rank: SECTION_RANK.indexOf(match[1] as (typeof SECTION_RANK)[number]),
 			title: open === -1 ? match[1] : cleanTitle(readBraced(lines[i].text, open)),
@@ -126,7 +126,7 @@ function computeFolds(text: string): Map<number, number> {
 	for (let i = 0; i < lines.length; i++) {
 		const match = ENVIRONMENT_RE.exec(lines[i].text);
 		if (!match) continue;
-		if (match[1] === 'begin') {
+		if (match[1] === "begin") {
 			open.push({ name: match[2], index: i });
 			continue;
 		}

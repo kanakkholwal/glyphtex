@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { settings, type Appearance } from '@glyphtex/ui/settings';
-	import { Button, type ButtonSize } from '@glyphtex/ui/button';
-	import { IconSun, IconMoon, IconDeviceDesktop } from '@tabler/icons-svelte';
+	import { settings, type Appearance } from "@glyphtex/ui/settings";
+	import { Button, type ButtonSize } from "@glyphtex/ui/button";
+	import { IconSun, IconMoon, IconDeviceDesktop } from "@tabler/icons-svelte";
 
 	/**
 	 * ThemeToggle: cycles light → dark → system. Reads/writes the settings
 	 * store, so a change here syncs to every other window/tab instantly.
 	 * Lightweight (no editor deps): safe to drop in the marketing nav.
 	 */
-	let { class: className = '', size = 'icon-sm' }: { class?: string; size?: ButtonSize } = $props();
+	let { class: className = "", size = "icon-sm" }: { class?: string; size?: ButtonSize } = $props();
 
 	const labels: Record<Appearance, string> = {
-		light: 'Light',
-		dark: 'Dark',
-		system: 'System'
+		light: "Light",
+		dark: "Dark",
+		system: "System"
 	};
 </script>
 

@@ -1,4 +1,4 @@
-import { safeStorage } from '@glyphtex/ui/persisted-state';
+import { safeStorage } from "@glyphtex/ui/persisted-state";
 
 const storageKey = (scope: string) => `glyphtex:tree:${scope}`;
 
@@ -10,7 +10,7 @@ const storageKey = (scope: string) => `glyphtex:tree:${scope}`;
  * channel with the side panel's store.
  */
 class TreeState {
-	#scope = '';
+	#scope = "";
 	open = $state<Record<string, boolean>>({});
 
 	/** Selected rows as `TreeRow` keys, in the order they were picked. */
@@ -21,7 +21,7 @@ class TreeState {
 	/** Top-level folders start open, deeper ones closed: enough to show a project's
 	 *  shape without unrolling a whole thesis on first paint. */
 	isOpen(path: string): boolean {
-		return this.open[path] ?? !path.includes('/');
+		return this.open[path] ?? !path.includes("/");
 	}
 	set(path: string, value: boolean): void {
 		this.open = { ...this.open, [path]: value };
@@ -41,10 +41,10 @@ class TreeState {
 	/** Expand every folder on the way to `rel`, so a reveal cannot land on a row
 	 *  that is still hidden. Does not touch `rel` itself. */
 	revealPath(rel: string): void {
-		const parts = rel.split('/');
+		const parts = rel.split("/");
 		parts.pop();
 		const dirs: string[] = [];
-		let cur = '';
+		let cur = "";
 		for (const part of parts) {
 			cur = cur ? `${cur}/${part}` : part;
 			dirs.push(cur);
@@ -93,7 +93,7 @@ class TreeState {
 		const saved = scope
 			? safeStorage.get<Record<string, boolean> | null>(storageKey(scope), null)
 			: null;
-		this.open = saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+		this.open = saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
 		this.selectedKeys = [];
 		this.anchor = null;
 	}

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { page } from '$app/state';
-	import { Button } from '@glyphtex/ui/button';
-	import { Logo } from '@glyphtex/ui/logo';
+	import { resolve } from "$app/paths";
+	import { page } from "$app/state";
+	import { Button } from "@glyphtex/ui/button";
+	import { Logo } from "@glyphtex/ui/logo";
 	import {
 		IconAlertTriangle,
 		IconArrowLeft,
@@ -13,25 +13,25 @@
 		IconHome,
 		IconPlayerPlay,
 		IconRefresh
-	} from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { fly } from 'svelte/transition';
+	} from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { fly } from "svelte/transition";
 
-	const repo = 'https://github.com/kanakkholwal/glyphtex';
+	const repo = "https://github.com/kanakkholwal/glyphtex";
 
 	const status = $derived(page.status);
-	const message = $derived(page.error?.message || 'An unexpected error occurred.');
+	const message = $derived(page.error?.message || "An unexpected error occurred.");
 	const isNotFound = $derived(status === 404);
 	const isServer = $derived(status >= 500);
 
 	const title = $derived(
-		isNotFound ? 'This page has moved on.' : isServer ? 'Something broke.' : 'Something went wrong.'
+		isNotFound ? "This page has moved on." : isServer ? "Something broke." : "Something went wrong."
 	);
-	const tagline = $derived(isNotFound ? 'Nothing was lost.' : 'Your work is untouched.');
+	const tagline = $derived(isNotFound ? "Nothing was lost." : "Your work is untouched.");
 	const desc = $derived(
 		isNotFound
-			? 'The link is dead or the page was renamed. Your documents live in this browser and are exactly where you left them.'
-			: 'GlyphTeX hit an unexpected error. Nothing writes to your documents on a failed page load, so what you have saved is intact.'
+			? "The link is dead or the page was renamed. Your documents live in this browser and are exactly where you left them."
+			: "GlyphTeX hit an unexpected error. Nothing writes to your documents on a failed page load, so what you have saved is intact."
 	);
 </script>
 

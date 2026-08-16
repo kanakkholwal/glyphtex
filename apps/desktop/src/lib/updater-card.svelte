@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { Spinner } from '@glyphtex/ui/spinner';
-	import { IconAlertTriangle, IconCircleCheck, IconDownload, IconX } from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { fly } from 'svelte/transition';
-	import { updater } from './updater.svelte';
+	import { Button } from "@glyphtex/ui/button";
+	import { Spinner } from "@glyphtex/ui/spinner";
+	import { IconAlertTriangle, IconCircleCheck, IconDownload, IconX } from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { fly } from "svelte/transition";
+	import { updater } from "./updater.svelte";
 
 	const pct = $derived(Math.round(updater.progress * 100));
 </script>

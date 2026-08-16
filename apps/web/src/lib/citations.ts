@@ -30,7 +30,7 @@ function selectsBibtexBackend(text: string): boolean {
  * A `%` is only a comment when unescaped; `\%` is a literal percent.
  */
 function stripComments(source: string): string {
-	return source.replace(/(^|[^\\])%.*$/gm, '$1');
+	return source.replace(/(^|[^\\])%.*$/gm, "$1");
 }
 
 /**
@@ -45,7 +45,7 @@ export function needsBiber(source: string): boolean {
 }
 
 /** The one-line edit that makes a Biber document compile in the browser. */
-export const BIBTEX_BACKEND_FIX = '\\usepackage[backend=bibtex]{biblatex}';
+export const BIBTEX_BACKEND_FIX = "\\usepackage[backend=bibtex]{biblatex}";
 
 export function needsBibliographyProcessor(source: string): boolean {
 	return needsBiber(source);

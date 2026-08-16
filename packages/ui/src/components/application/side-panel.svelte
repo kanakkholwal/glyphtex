@@ -1,22 +1,22 @@
 <script lang="ts">
-	import { settings } from '@glyphtex/ui/settings';
-	import { IconGitBranch } from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { MediaQuery } from 'svelte/reactivity';
-	import { fly } from 'svelte/transition';
+	import { settings } from "@glyphtex/ui/settings";
+	import { IconGitBranch } from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { MediaQuery } from "svelte/reactivity";
+	import { fly } from "svelte/transition";
 
-	import type { EngineManager } from './engine-settings.svelte';
-	import GitPanel, { type GitHeadInfo, type GitProvider } from './git-panel.svelte';
-	import ExplorerView from './side-panel/explorer-view.svelte';
-	import OutlineView from './side-panel/outline-view.svelte';
-	import PanelHeader from './side-panel/panel-header.svelte';
-	import PanelSection from './side-panel/panel-section.svelte';
-	import RecentView from './side-panel/recent-view.svelte';
-	import ScmFooter from './side-panel/scm-footer.svelte';
-	import SearchView from './side-panel/search-view.svelte';
-	import { SidePanelStore } from './side-panel/store.svelte';
-	import { treeState } from './side-panel/tree-state.svelte';
-	import type { ActivityView, FileMeta, SearchOptions, Sel } from './side-panel/types';
+	import type { EngineManager } from "./engine-settings.svelte";
+	import GitPanel, { type GitHeadInfo, type GitProvider } from "./git-panel.svelte";
+	import ExplorerView from "./side-panel/explorer-view.svelte";
+	import OutlineView from "./side-panel/outline-view.svelte";
+	import PanelHeader from "./side-panel/panel-header.svelte";
+	import PanelSection from "./side-panel/panel-section.svelte";
+	import RecentView from "./side-panel/recent-view.svelte";
+	import ScmFooter from "./side-panel/scm-footer.svelte";
+	import SearchView from "./side-panel/search-view.svelte";
+	import { SidePanelStore } from "./side-panel/store.svelte";
+	import { treeState } from "./side-panel/tree-state.svelte";
+	import type { ActivityView, FileMeta, SearchOptions, Sel } from "./side-panel/types";
 	import {
 		EMPTY_SCAN,
 		NO_SKIPS,
@@ -24,7 +24,7 @@
 		type Hit,
 		type ScanResult,
 		type SearchSkips
-	} from './workbench/project-search';
+	} from "./workbench/project-search";
 
 	/**
 	 * SidePanel: content for the active rail view. Explorer stacks the file tree,
@@ -34,20 +34,20 @@
 	 * {@link SidePanelStore}; each view is its own component.
 	 */
 	let {
-		view = 'files',
+		view = "files",
 		files = [],
 		folders = [],
 		recent = [],
-		activeId = '',
+		activeId = "",
 		mainId = null,
-		projectName = 'Project',
+		projectName = "Project",
 		projectPath = null,
 		head = null,
 		hasProject = false,
 		widthPx = 300,
-		source = '',
+		source = "",
 		cursorLine = 1,
-		scope = '',
+		scope = "",
 		engine,
 		git,
 		gitRoot = null,
@@ -159,7 +159,7 @@
 		/** Create a new subfolder inside `dir`. */
 		onnewfolderin?: (dir: string) => void;
 		/** Create at a full relative path, named in the tree before it exists. */
-		oncreate?: (rel: string, kind: 'file' | 'folder') => void;
+		oncreate?: (rel: string, kind: "file" | "folder") => void;
 		/** Batch move; runs sequentially so conflict prompts cannot stack. */
 		onmoveitems?: (items: Sel[], targetDir: string) => void;
 		/** Batch delete behind one confirmation. */
@@ -206,13 +206,13 @@
 
 	// Views slide toward the tab you picked, so the panel reads as one strip you
 	// are moving along rather than three unrelated screens.
-	const ORDER: ActivityView[] = ['files', 'search', 'git'];
-	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
+	const ORDER: ActivityView[] = ["files", "search", "git"];
+	const reduced = new MediaQuery("prefers-reduced-motion: reduce");
 	let dir = $state(1);
 	// Without a Git backend the Changes tab is hidden, so a persisted `git` view
 	// would strand the panel on an empty state with no tab to leave by.
 	$effect(() => {
-		if (view === 'git' && !(git && gitRoot)) onselectview?.('files');
+		if (view === "git" && !(git && gitRoot)) onselectview?.("files");
 	});
 
 	// Deliberately the initial value: this only ever tracks the *previous* view so

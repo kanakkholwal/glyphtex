@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Workbench } from '@glyphtex/ui/application';
-	import { compileLatex, compileProject } from '$lib/compile';
-	import { engineManager } from '$lib/engine';
-	import { gitProvider } from '$lib/git';
-	import { launch } from '$lib/launch';
-	import { projectHost } from '$lib/project';
-	import { saveFile } from '$lib/save';
+	import { Workbench } from "@glyphtex/ui/application";
+	import { compileLatex, compileProject } from "$lib/compile";
+	import { engineManager } from "$lib/engine";
+	import { gitProvider } from "$lib/git";
+	import { launch } from "$lib/launch";
+	import { projectHost } from "$lib/project";
+	import { saveFile } from "$lib/save";
 
 	// The path the app shell routed us here to open (file-association launch).
 	// Captured once at mount; the Workbench resolves folder / .tex / .glyx itself.

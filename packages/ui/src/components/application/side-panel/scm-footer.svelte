@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { IconArrowDown, IconArrowUp, IconGitBranch } from '@tabler/icons-svelte';
+	import { IconArrowDown, IconArrowUp, IconGitBranch } from "@tabler/icons-svelte";
 
-	import type { GitHeadInfo } from '../git-panel.svelte';
+	import type { GitHeadInfo } from "../git-panel.svelte";
 
 	/** Branch state at the foot of the panel: the one place it is always visible. */
 	let { head, onopen }: { head?: GitHeadInfo | null; onopen?: () => void } = $props();

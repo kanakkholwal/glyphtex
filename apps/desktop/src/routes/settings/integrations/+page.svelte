@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { Badge } from '@glyphtex/ui/badge';
-	import { Button } from '@glyphtex/ui/button';
-	import { SettingsField } from '@glyphtex/ui/settings-field';
-	import { SettingsSection } from '@glyphtex/ui/settings-section';
-	import { Spinner } from '@glyphtex/ui/spinner';
-	import { toast } from '@glyphtex/ui/sonner';
-	import { IconCheck, IconCloud } from '@tabler/icons-svelte';
-	import { onMount } from 'svelte';
-	import { projectHost } from '$lib/project';
+	import { Badge } from "@glyphtex/ui/badge";
+	import { Button } from "@glyphtex/ui/button";
+	import { SettingsField } from "@glyphtex/ui/settings-field";
+	import { SettingsSection } from "@glyphtex/ui/settings-section";
+	import { Spinner } from "@glyphtex/ui/spinner";
+	import { toast } from "@glyphtex/ui/sonner";
+	import { IconCheck, IconCloud } from "@tabler/icons-svelte";
+	import { onMount } from "svelte";
+	import { projectHost } from "$lib/project";
 
 	// Reflect the *actual* OS state, queried on mount, so re-visiting the page
 	// never falsely offers "Add" for an entry that's already registered.
@@ -21,7 +21,7 @@
 		try {
 			registered = (await projectHost.shellIntegrationRegistered?.()) ?? false;
 		} catch (e) {
-			console.error('[integrations] shell integration status check failed', e);
+			console.error("[integrations] shell integration status check failed", e);
 			registered = false;
 		}
 	});
@@ -32,11 +32,11 @@
 		try {
 			const msg = await projectHost.registerShellIntegration?.();
 			registered = true;
-			toast.success(msg ?? 'Added “Open with GlyphTeX” to the folder menu.');
+			toast.success(msg ?? "Added “Open with GlyphTeX” to the folder menu.");
 		} catch (e) {
 			// Plain language for the toast; raw cause to the console (§5).
-			console.error('[integrations] register shell integration failed', e);
-			toast.error('Could not add “Open with GlyphTeX” to the folder menu.');
+			console.error("[integrations] register shell integration failed", e);
+			toast.error("Could not add “Open with GlyphTeX” to the folder menu.");
 		} finally {
 			busy = false;
 		}
@@ -48,10 +48,10 @@
 		try {
 			const msg = await projectHost.unregisterShellIntegration?.();
 			registered = false;
-			toast.success(msg ?? 'Removed “Open with GlyphTeX” from the folder menu.');
+			toast.success(msg ?? "Removed “Open with GlyphTeX” from the folder menu.");
 		} catch (e) {
-			console.error('[integrations] unregister shell integration failed', e);
-			toast.error('Could not remove “Open with GlyphTeX” from the folder menu.');
+			console.error("[integrations] unregister shell integration failed", e);
+			toast.error("Could not remove “Open with GlyphTeX” from the folder menu.");
 		} finally {
 			busy = false;
 		}

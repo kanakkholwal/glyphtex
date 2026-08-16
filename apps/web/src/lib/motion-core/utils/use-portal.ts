@@ -1,4 +1,4 @@
-import { tick } from 'svelte';
+import { tick } from "svelte";
 
 /**
  * Usage: <div use:portal={'css selector'} or use:portal={document.body}>
@@ -6,12 +6,12 @@ import { tick } from 'svelte';
  * @param node
  * @param target
  */
-export function portal(node: HTMLElement, target: string | HTMLElement = 'body') {
+export function portal(node: HTMLElement, target: string | HTMLElement = "body") {
 	let targetEl: HTMLElement | null;
 
 	async function update(newTarget: string | HTMLElement) {
 		target = newTarget;
-		if (typeof target === 'string') {
+		if (typeof target === "string") {
 			targetEl = document.querySelector(target);
 			if (targetEl === null) {
 				await tick();
@@ -28,7 +28,7 @@ export function portal(node: HTMLElement, target: string | HTMLElement = 'body')
 		} else {
 			throw new Error(
 				`Unknown portal target type: ${
-					target === null ? 'null' : typeof target
+					target === null ? "null" : typeof target
 				}. Allowed types: string (CSS selector) or HTMLElement.`
 			);
 		}

@@ -8,7 +8,7 @@
 		IconLinkOff,
 		IconMath,
 		IconUnderline
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
 	/** Formatting bar over a live selection. Mousedown is suppressed throughout:
 	 *  taking focus would collapse the selection it is about to act on. */
@@ -16,34 +16,34 @@
 
 	const GROUPS = [
 		[
-			{ id: 'bold', icon: IconBold, label: 'Bold', keys: 'Ctrl+B' },
-			{ id: 'italic', icon: IconItalic, label: 'Italic', keys: 'Ctrl+I' },
-			{ id: 'underline', icon: IconUnderline, label: 'Underline', keys: 'Ctrl+U' }
+			{ id: "bold", icon: IconBold, label: "Bold", keys: "Ctrl+B" },
+			{ id: "italic", icon: IconItalic, label: "Italic", keys: "Ctrl+I" },
+			{ id: "underline", icon: IconUnderline, label: "Underline", keys: "Ctrl+U" }
 		],
 		[
-			{ id: 'code', icon: IconCode, label: 'Monospace', keys: '' },
-			{ id: 'math', icon: IconMath, label: 'Inline maths', keys: '' }
+			{ id: "code", icon: IconCode, label: "Monospace", keys: "" },
+			{ id: "math", icon: IconMath, label: "Inline maths", keys: "" }
 		]
 	];
 
 	const MORE = [
-		{ id: 'smallcaps', label: 'Small caps', hint: '\\textsc' },
-		{ id: 'emph', label: 'Emphasis', hint: '\\emph' },
-		{ id: 'strike', label: 'Strikethrough', hint: '\\sout' },
-		{ id: 'sans', label: 'Sans serif', hint: '\\textsf' },
-		{ id: 'superscript', label: 'Superscript', hint: '\\textsuperscript' },
-		{ id: 'subscript', label: 'Subscript', hint: '\\textsubscript' },
-		{ id: 'clear', label: 'Clear formatting', hint: '' }
+		{ id: "smallcaps", label: "Small caps", hint: "\\textsc" },
+		{ id: "emph", label: "Emphasis", hint: "\\emph" },
+		{ id: "strike", label: "Strikethrough", hint: "\\sout" },
+		{ id: "sans", label: "Sans serif", hint: "\\textsf" },
+		{ id: "superscript", label: "Superscript", hint: "\\textsuperscript" },
+		{ id: "subscript", label: "Subscript", hint: "\\textsubscript" },
+		{ id: "clear", label: "Clear formatting", hint: "" }
 	];
 
 	// The browser knows about the marks it applies itself; ours are on the DOM.
 	const NATIVE: Record<string, string> = {
-		bold: 'bold',
-		italic: 'italic',
-		underline: 'underline',
-		strike: 'strikeThrough',
-		superscript: 'superscript',
-		subscript: 'subscript'
+		bold: "bold",
+		italic: "italic",
+		underline: "underline",
+		strike: "strikeThrough",
+		superscript: "superscript",
+		subscript: "subscript"
 	};
 
 	/** Recomputed whenever the rect changes, which is once per selection. */
@@ -62,10 +62,10 @@
 		let host: Element | null = null;
 		while (node && node !== document.body) {
 			const element = node as Element;
-			const mark = element.getAttribute?.('data-mark');
+			const mark = element.getAttribute?.("data-mark");
 			if (mark) on.add(mark);
-			if (element.getAttribute?.('data-atom') === 'link') on.add('link');
-			if (element.hasAttribute?.('data-block-editor')) host = element;
+			if (element.getAttribute?.("data-atom") === "link") on.add("link");
+			if (element.hasAttribute?.("data-block-editor")) host = element;
 			node = element.parentNode;
 		}
 		// A selection dragged over a link starts in the text before it, so the walk
@@ -73,7 +73,7 @@
 		if (host && selection?.rangeCount) {
 			const range = selection.getRangeAt(0);
 			for (const link of host.querySelectorAll('[data-atom="link"]'))
-				if (range.intersectsNode(link)) on.add('link');
+				if (range.intersectsNode(link)) on.add("link");
 		}
 		return on;
 	});
@@ -89,7 +89,7 @@
 	const top = $derived(rect.top > 48 ? rect.top - 38 : rect.bottom + 8);
 
 	const BUTTON =
-		'flex size-[26px] items-center justify-center rounded transition-colors hover:bg-accent hover:text-foreground';
+		"flex size-[26px] items-center justify-center rounded transition-colors hover:bg-accent hover:text-foreground";
 
 	function run(id: string) {
 		more = false;

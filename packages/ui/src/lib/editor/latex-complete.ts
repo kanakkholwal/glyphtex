@@ -3,10 +3,10 @@ import {
 	type Completion,
 	type CompletionContext,
 	type CompletionResult
-} from '@codemirror/autocomplete';
+} from "@codemirror/autocomplete";
 
-import { describeEntry } from './bibtex';
-import { inMathContext, scanDocument } from './latex-analyze';
+import { describeEntry } from "./bibtex";
+import { inMathContext, scanDocument } from "./latex-analyze";
 import {
 	LATEX_CLASSES,
 	LATEX_COMMANDS,
@@ -14,9 +14,9 @@ import {
 	LATEX_PACKAGES,
 	type LatexCommand,
 	type LatexEnvironment
-} from './latex-data';
-import { ensurePackages, loadedPackageData } from './latex-packages';
-import { workspaceBibEntries, workspaceLabels } from './latex-workspace';
+} from "./latex-data";
+import { ensurePackages, loadedPackageData } from "./latex-packages";
+import { workspaceBibEntries, workspaceLabels } from "./latex-workspace";
 
 const REF_COMMANDS =
 	/\\(ref|eqref|autoref|pageref|nameref|cref|Cref|crefrange|labelcref|vref)\s*\{[^}]*$/;
@@ -55,8 +55,8 @@ function mergeByName<T extends { name: string }>(...sources: readonly T[][]): T[
 }
 
 function boostFor(item: { context?: string }, math: boolean): number {
-	const ctx = item.context ?? 'both';
-	return ctx === 'both' || (math ? ctx === 'math' : ctx === 'text') ? 1 : -1;
+	const ctx = item.context ?? "both";
+	return ctx === "both" || (math ? ctx === "math" : ctx === "text") ? 1 : -1;
 }
 
 /**
@@ -84,7 +84,7 @@ function environmentItems(text: string, lineBefore: string, from: number): Latex
 
 	const userDefined: LatexEnvironment[] = scanDocument(text).environments.map((name) => ({
 		name,
-		detail: 'Defined in this document'
+		detail: "Defined in this document"
 	}));
 
 	return mergeByName<LatexEnvironment>(
@@ -92,17 +92,17 @@ function environmentItems(text: string, lineBefore: string, from: number): Latex
 		[...loadedPackageData().environments],
 		userDefined
 	).map((env) => {
-		const body = env.body ?? '\n\t$0\n';
+		const body = env.body ?? "\n\t$0\n";
 		// `\end{` only ever needs the name; `\begin{` gets the whole block, which is
 		// what makes environments pleasant to type.
-		const whole = closing !== 'end';
+		const whole = closing !== "end";
 		return {
 			label: env.name,
 			detail: env.detail,
 			insert: whole ? `${env.name}}${body}\\end{${env.name}}` : env.name,
 			isSnippet: whole,
 			boost: boostFor(env, math),
-			type: 'class'
+			type: "class"
 		};
 	});
 }
@@ -118,7 +118,7 @@ function labelItems(text: string): LatexCompletion[] {
 			detail: `\\label on line ${label.line}`,
 			insert: label.name,
 			boost: 1,
-			type: 'variable'
+			type: "variable"
 		});
 	}
 
@@ -130,7 +130,7 @@ function labelItems(text: string): LatexCompletion[] {
 			insert: label.name,
 			// Labels from other files rank below the ones in view.
 			boost: 0,
-			type: 'variable'
+			type: "variable"
 		});
 	}
 
@@ -149,7 +149,7 @@ function citationItems(text: string): LatexCompletion[] {
 			info: entry.source ? `From ${entry.source}` : undefined,
 			insert: entry.key,
 			boost: 1,
-			type: 'constant'
+			type: "constant"
 		});
 	}
 
@@ -162,7 +162,7 @@ function citationItems(text: string): LatexCompletion[] {
 			detail: `Cited on line ${citation.line}`,
 			insert: citation.key,
 			boost: 0,
-			type: 'constant'
+			type: "constant"
 		});
 	}
 
@@ -202,7 +202,7 @@ function commandItems(text: string, lineBefore: string): LatexCompletion[] {
 		insert: `\\${command.snippet ?? command.name}`,
 		isSnippet: Boolean(command.snippet),
 		boost: boostFor(command, math),
-		type: command.snippet ? 'function' : 'keyword'
+		type: command.snippet ? "function" : "keyword"
 	}));
 }
 
@@ -215,11 +215,11 @@ export function latexCompletions(text: string, pos: number): LatexCompletions | 
 	// chunk; the next keystroke sees the newly loaded data.
 	void ensurePackages(scanDocument(text).packages);
 
-	const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+	const lineStart = text.lastIndexOf("\n", pos - 1) + 1;
 	const lineBefore = text.slice(lineStart, pos);
 
 	// The word inside the current braces, so typing narrows the list.
-	const braceWord = /([^{,\s]*)$/.exec(lineBefore)?.[1] ?? '';
+	const braceWord = /([^{,\s]*)$/.exec(lineBefore)?.[1] ?? "";
 	const braceFrom = pos - braceWord.length;
 
 	if (BEGIN_END.test(lineBefore)) {
@@ -232,10 +232,10 @@ export function latexCompletions(text: string, pos: number): LatexCompletions | 
 		return { from: braceFrom, options: citationItems(text) };
 	}
 	if (USEPACKAGE.test(lineBefore)) {
-		return { from: braceFrom, options: simpleItems(LATEX_PACKAGES, 'namespace') };
+		return { from: braceFrom, options: simpleItems(LATEX_PACKAGES, "namespace") };
 	}
 	if (DOCUMENTCLASS.test(lineBefore)) {
-		return { from: braceFrom, options: simpleItems(LATEX_CLASSES, 'namespace') };
+		return { from: braceFrom, options: simpleItems(LATEX_CLASSES, "namespace") };
 	}
 
 	const partial = PARTIAL_COMMAND.exec(lineBefore);

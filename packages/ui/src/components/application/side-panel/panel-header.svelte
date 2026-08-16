@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		DropdownMenu,
 		DropdownMenuCheckboxItem,
@@ -7,8 +7,8 @@
 		DropdownMenuItem,
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
-	import { settings } from '@glyphtex/ui/settings';
+	} from "@glyphtex/ui/dropdown-menu";
+	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconCrosshair,
 		IconDots,
@@ -23,11 +23,11 @@
 		IconRefresh,
 		IconSearchOff,
 		IconTrash
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import type { SidePanelStore } from './store.svelte';
-	import type { ActivityView } from './types';
-	import ViewTabs from './view-tabs.svelte';
+	import type { SidePanelStore } from "./store.svelte";
+	import type { ActivityView } from "./types";
+	import ViewTabs from "./view-tabs.svelte";
 
 	/**
 	 * Side-panel header: the view tabs plus the active view's action buttons

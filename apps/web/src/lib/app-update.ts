@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from "$app/environment";
 
 // A newer build is deployed when the service worker finds a changed
 // service-worker.js and installs it. With skipWaiting removed (see
@@ -10,7 +10,7 @@ let reloading = false;
 function messageWaiting(reg: ServiceWorkerRegistration): boolean {
 	const worker = reg.waiting;
 	if (!worker) return false;
-	worker.postMessage('SKIP_WAITING');
+	worker.postMessage("SKIP_WAITING");
 	return true;
 }
 
@@ -23,7 +23,7 @@ function messageWaiting(reg: ServiceWorkerRegistration): boolean {
  * long-lived editor tab notices a deploy without a manual reload.
  */
 export function watchForUpdate(onAvailable: () => void): () => void {
-	if (!browser || !('serviceWorker' in navigator)) return () => {};
+	if (!browser || !("serviceWorker" in navigator)) return () => {};
 
 	let registration: ServiceWorkerRegistration | undefined;
 	let interval: ReturnType<typeof setInterval> | undefined;
@@ -37,7 +37,7 @@ export function watchForUpdate(onAvailable: () => void): () => void {
 	const check = () => registration?.update().catch(() => {});
 
 	const onVisible = () => {
-		if (document.visibilityState === 'visible') void check();
+		if (document.visibilityState === "visible") void check();
 	};
 	const onOnline = () => void check();
 
@@ -45,10 +45,10 @@ export function watchForUpdate(onAvailable: () => void): () => void {
 		.then((reg) => {
 			registration = reg;
 			announce();
-			reg.addEventListener('updatefound', () => {
+			reg.addEventListener("updatefound", () => {
 				const installing = reg.installing;
-				installing?.addEventListener('statechange', () => {
-					if (installing.state === 'installed') announce();
+				installing?.addEventListener("statechange", () => {
+					if (installing.state === "installed") announce();
 				});
 			});
 			// Six deploys a day would still only be a handful of HEAD-ish requests;
@@ -57,13 +57,13 @@ export function watchForUpdate(onAvailable: () => void): () => void {
 		})
 		.catch(() => {});
 
-	document.addEventListener('visibilitychange', onVisible);
-	window.addEventListener('online', onOnline);
+	document.addEventListener("visibilitychange", onVisible);
+	window.addEventListener("online", onOnline);
 
 	return () => {
 		if (interval) clearInterval(interval);
-		document.removeEventListener('visibilitychange', onVisible);
-		window.removeEventListener('online', onOnline);
+		document.removeEventListener("visibilitychange", onVisible);
+		window.removeEventListener("online", onOnline);
 	};
 }
 
@@ -83,9 +83,9 @@ export async function applyUpdate(): Promise<void> {
 		location.reload();
 	};
 
-	if (!browser || !('serviceWorker' in navigator)) return reload();
+	if (!browser || !("serviceWorker" in navigator)) return reload();
 
-	navigator.serviceWorker.addEventListener('controllerchange', reload);
+	navigator.serviceWorker.addEventListener("controllerchange", reload);
 	// Another tab on the old build can keep the new worker waiting indefinitely.
 	// Reload anyway: the network still serves the newest assets.
 	setTimeout(reload, HANDOVER_TIMEOUT_MS);

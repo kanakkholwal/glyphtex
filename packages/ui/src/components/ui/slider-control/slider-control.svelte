@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface SliderControlProps {
 		label: string;
@@ -26,7 +26,7 @@
 	function decimalsForStep(step: number): number {
 		if (!Number.isFinite(step) || step <= 0) return 0;
 		const str = step.toString();
-		const idx = str.indexOf('.');
+		const idx = str.indexOf(".");
 		return idx === -1 ? 0 : str.length - idx - 1;
 	}
 

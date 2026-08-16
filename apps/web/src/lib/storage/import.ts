@@ -1,34 +1,34 @@
-import { importIgnore } from './ignore';
-import { PER_FILE_BYTES, PER_PROJECT_BYTES, formatBytes } from './quota';
-import { normalisePath, type NewFile } from './projects';
-import { readZip } from './zip';
+import { importIgnore } from "./ignore";
+import { PER_FILE_BYTES, PER_PROJECT_BYTES, formatBytes } from "./quota";
+import { normalisePath, type NewFile } from "./projects";
+import { readZip } from "./zip";
 
 /** Everything else is stored as bytes, so an unknown type can't be corrupted. */
 const TEXT_EXTENSIONS = new Set([
-	'tex',
-	'ltx',
-	'bib',
-	'cls',
-	'sty',
-	'bst',
-	'clo',
-	'def',
-	'cfg',
-	'txt',
-	'md',
-	'csv',
-	'tsv',
-	'json',
-	'yml',
-	'yaml',
-	'xml',
-	'svg',
-	'rnw',
-	'gitignore'
+	"tex",
+	"ltx",
+	"bib",
+	"cls",
+	"sty",
+	"bst",
+	"clo",
+	"def",
+	"cfg",
+	"txt",
+	"md",
+	"csv",
+	"tsv",
+	"json",
+	"yml",
+	"yaml",
+	"xml",
+	"svg",
+	"rnw",
+	"gitignore"
 ]);
 
 export const isTextPath = (path: string) =>
-	TEXT_EXTENSIONS.has(path.split('.').pop()?.toLowerCase() ?? '');
+	TEXT_EXTENSIONS.has(path.split(".").pop()?.toLowerCase() ?? "");
 
 export type ImportResult = {
 	files: NewFile[];
@@ -43,8 +43,8 @@ export type ImportResult = {
 
 /** Drops a single shared top-level folder, which most archives wrap everything in. */
 function stripCommonRoot(paths: string[]): (path: string) => string {
-	const roots = new Set(paths.map((p) => p.split('/')[0]));
-	if (roots.size !== 1 || paths.every((p) => !p.includes('/'))) return (p) => p;
+	const roots = new Set(paths.map((p) => p.split("/")[0]));
+	if (roots.size !== 1 || paths.every((p) => !p.includes("/"))) return (p) => p;
 	const root = `${[...roots][0]}/`;
 	return (p) => (p.startsWith(root) ? p.slice(root.length) : p);
 }
@@ -56,12 +56,12 @@ function collect(
 ): ImportResult {
 	const named = raw.filter((f) => f.path);
 	const strip = stripRoot ? stripCommonRoot(named.map((f) => f.path)) : (p: string) => p;
-	const suggested = raw.length ? raw[0].path.split('/')[0] : fallbackName;
+	const suggested = raw.length ? raw[0].path.split("/")[0] : fallbackName;
 
 	// The project's own .gitignore is read after root-stripping, so a `/build` rule
 	// anchors to the project root rather than the archive's wrapper folder.
-	const decoderForRules = new TextDecoder('utf-8', { fatal: false });
-	const gitignore = named.find((f) => strip(f.path) === '.gitignore');
+	const decoderForRules = new TextDecoder("utf-8", { fatal: false });
+	const gitignore = named.find((f) => strip(f.path) === ".gitignore");
 	const ignores = importIgnore(gitignore && decoderForRules.decode(gitignore.bytes));
 
 	let ignored = 0;
@@ -73,7 +73,7 @@ function collect(
 
 	const files: NewFile[] = [];
 	const skipped: string[] = [];
-	const decoder = new TextDecoder('utf-8', { fatal: false });
+	const decoder = new TextDecoder("utf-8", { fatal: false });
 	let total = 0;
 
 	for (const entry of usable) {
@@ -101,32 +101,32 @@ function collect(
 	const name = (
 		usable.length && strip(usable[0].path) !== usable[0].path ? suggested : fallbackName
 	)
-		.replace(/\.zip$/i, '')
+		.replace(/\.zip$/i, "")
 		.trim();
 
-	return { files, name: name || 'Imported', skipped, ignored };
+	return { files, name: name || "Imported", skipped, ignored };
 }
 
 export async function importZipFile(file: File): Promise<ImportResult> {
 	const entries = await readZip(new Uint8Array(await file.arrayBuffer()));
-	if (entries.length === 0) throw new Error('That .zip is empty.');
+	if (entries.length === 0) throw new Error("That .zip is empty.");
 	return collect(
-		entries.map((e) => ({ path: e.path.replace(/\\/g, '/'), bytes: e.data })),
-		file.name.replace(/\.zip$/i, '')
+		entries.map((e) => ({ path: e.path.replace(/\\/g, "/"), bytes: e.data })),
+		file.name.replace(/\.zip$/i, "")
 	);
 }
 
 /** A dropped folder's files (from `filesFromDataTransfer`), imported as a project. */
 export async function importFolder(files: File[]): Promise<ImportResult> {
-	if (files.length === 0) throw new Error('That folder is empty.');
+	if (files.length === 0) throw new Error("That folder is empty.");
 
 	const raw = await Promise.all(
 		files.map(async (file) => ({
-			path: droppedPath(file).replace(/\\/g, '/'),
+			path: droppedPath(file).replace(/\\/g, "/"),
 			bytes: new Uint8Array(await file.arrayBuffer())
 		}))
 	);
-	const root = raw[0]?.path.split('/')[0] ?? 'Imported';
+	const root = raw[0]?.path.split("/")[0] ?? "Imported";
 	return collect(raw, root);
 }
 
@@ -143,7 +143,7 @@ type FsEntry = {
 const readFile = (entry: FsEntry) =>
 	new Promise<File>((resolve, reject) => entry.file!(resolve, reject));
 
-const readDir = (reader: ReturnType<NonNullable<FsEntry['createReader']>>) =>
+const readDir = (reader: ReturnType<NonNullable<FsEntry["createReader"]>>) =>
 	new Promise<FsEntry[]>((resolve, reject) => reader.readEntries(resolve, reject));
 
 /** Recurse a dropped directory entry, keeping each file's path within it. */
@@ -151,7 +151,7 @@ async function walkEntry(entry: FsEntry, out: File[]): Promise<void> {
 	if (entry.isFile && entry.file) {
 		const file = await readFile(entry);
 		// fullPath starts with '/'; the relative path drives the stored tree.
-		Object.defineProperty(file, '_glyphtexPath', { value: entry.fullPath.replace(/^\//, '') });
+		Object.defineProperty(file, "_glyphtexPath", { value: entry.fullPath.replace(/^\//, "") });
 		out.push(file);
 		return;
 	}
@@ -171,7 +171,7 @@ async function walkEntry(entry: FsEntry, out: File[]): Promise<void> {
  * (supported in Firefox, Chrome, Safari, Edge). Falls back to the flat list.
  */
 export async function filesFromDataTransfer(dt: DataTransfer): Promise<File[]> {
-	const items = Array.from(dt.items).filter((i) => i.kind === 'file');
+	const items = Array.from(dt.items).filter((i) => i.kind === "file");
 	const getEntry = (item: DataTransferItem): FsEntry | null =>
 		(item as unknown as { webkitGetAsEntry?: () => FsEntry | null }).webkitGetAsEntry?.() ?? null;
 
@@ -203,7 +203,7 @@ const droppedPath = (file: File): string => {
 /** Loose files dropped or picked into an open document (images, .tex, folders). */
 export async function importLooseFiles(
 	list: FileList | File[],
-	intoDir = ''
+	intoDir = ""
 ): Promise<ImportResult> {
 	const picked = Array.from(list);
 	const raw = await Promise.all(
@@ -217,6 +217,6 @@ export async function importLooseFiles(
 	);
 	// Keep folder structure as dropped: a `figures/` folder stays `figures/*`
 	// inside the document rather than being flattened to the root.
-	const result = collect(raw, 'Imported', false);
-	return { ...result, name: 'Imported' };
+	const result = collect(raw, "Imported", false);
+	return { ...result, name: "Imported" };
 }

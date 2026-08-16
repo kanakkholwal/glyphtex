@@ -4,7 +4,7 @@ import {
 	writeFiles,
 	type NewFile,
 	type StoredFile
-} from '$lib/storage/projects';
+} from "$lib/storage/projects";
 import {
 	dirName,
 	gitFs,
@@ -17,18 +17,18 @@ import {
 	unlinkIfPresent,
 	writeBytes,
 	type PromiseFs
-} from './fs';
+} from "./fs";
 
 const encoder = new TextEncoder();
 
 function bytesOf(f: StoredFile): Uint8Array {
-	return f.data ?? encoder.encode(f.text ?? '');
+	return f.data ?? encoder.encode(f.text ?? "");
 }
 
 /** Bytes back to a string, or null when they aren't valid UTF-8 (a real binary). */
 function asText(data: Uint8Array): string | null {
 	try {
-		return new TextDecoder('utf-8', { fatal: true }).decode(data);
+		return new TextDecoder("utf-8", { fatal: true }).decode(data);
 	} catch {
 		return null;
 	}

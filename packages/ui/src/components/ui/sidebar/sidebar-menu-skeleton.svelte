@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
-	import { Skeleton } from '../skeleton';
-	import type { HTMLAttributes } from 'svelte/elements';
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import { Skeleton } from "../skeleton";
+	import type { HTMLAttributes } from "svelte/elements";
 
 	let {
 		ref = $bindable(null),

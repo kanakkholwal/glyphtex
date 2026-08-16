@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, type ButtonSize } from '@glyphtex/ui/button';
+	import { Button, type ButtonSize } from "@glyphtex/ui/button";
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
@@ -7,8 +7,8 @@
 		DropdownMenuSeparator,
 		DropdownMenuShortcut,
 		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
-	import { toast } from '@glyphtex/ui/sonner';
+	} from "@glyphtex/ui/dropdown-menu";
+	import { toast } from "@glyphtex/ui/sonner";
 	import {
 		IconCheck,
 		IconChevronDown,
@@ -17,7 +17,7 @@
 		IconDownload,
 		IconFileTypePdf,
 		IconFileZip
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 	/**
 	 * ExportMenu: Export / Share. Every export goes through the host-injected
 	 * `saveFile` (desktop = Tauri's native "Save As") when present, else a plain
@@ -27,13 +27,13 @@
 	 * (delegated to the host via `onExportZip`).
 	 */
 	let {
-		source = '',
-		filename = 'main.tex',
+		source = "",
+		filename = "main.tex",
 		pdfBytes,
 		saveFile,
 		onExportZip,
 		canExportZip = false,
-		size = 'sm',
+		size = "sm",
 		compact = false
 	}: {
 		source?: string;
@@ -52,7 +52,7 @@
 		compact?: boolean;
 	} = $props();
 
-	const baseName = $derived(filename.replace(/\.[^./\\]+$/, '') || 'document');
+	const baseName = $derived(filename.replace(/\.[^./\\]+$/, "") || "document");
 
 	// Save via the host's native dialog when available (desktop = Tauri), else a
 	// plain browser download. Stays quiet if the user cancels the dialog.
@@ -65,7 +65,7 @@
 			}
 			const blob = new Blob([bytes as BlobPart]);
 			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
+			const a = document.createElement("a");
 			a.href = url;
 			a.download = name;
 			a.click();
@@ -82,13 +82,13 @@
 		// The PDF is the compiled artefact: without bytes there's nothing to save.
 		// The menu item is disabled in that state, so this is a belt-and-braces guard.
 		if (!pdfBytes) {
-			toast.info('Compile the document first to export its PDF.');
+			toast.info("Compile the document first to export its PDF.");
 			return;
 		}
-		saveOrDownload(pdfBytes, `${baseName}.pdf`, ['pdf']);
+		saveOrDownload(pdfBytes, `${baseName}.pdf`, ["pdf"]);
 	}
 	const exportTex = () =>
-		saveOrDownload(new TextEncoder().encode(source), `${baseName}.tex`, ['tex']);
+		saveOrDownload(new TextEncoder().encode(source), `${baseName}.tex`, ["tex"]);
 
 	async function exportZip() {
 		if (!onExportZip) return;
@@ -99,10 +99,10 @@
 		try {
 			await navigator.clipboard.writeText(source);
 			copied = true;
-			toast.success('Source copied to clipboard');
+			toast.success("Source copied to clipboard");
 			setTimeout(() => (copied = false), 1500);
 		} catch {
-			toast.error('Could not copy: clipboard blocked');
+			toast.error("Could not copy: clipboard blocked");
 		}
 	}
 
@@ -119,15 +119,15 @@
 	const items = $derived<Item[]>([
 		{
 			icon: IconFileTypePdf,
-			label: 'Export PDF',
-			hint: pdfBytes ? 'Save' : 'Compile first',
+			label: "Export PDF",
+			hint: pdfBytes ? "Save" : "Compile first",
 			disabled: !pdfBytes,
 			run: exportPdf
 		},
 		{
 			icon: IconCode,
-			label: 'Export .tex',
-			hint: 'Current file',
+			label: "Export .tex",
+			hint: "Current file",
 			run: exportTex
 		},
 		// Zip the whole working directory: only when a folder project is open
@@ -137,8 +137,8 @@
 					{ separator: true } as Item,
 					{
 						icon: IconFileZip,
-						label: 'Export as Zip',
-						hint: canExportZip ? 'Project' : 'Open a folder',
+						label: "Export as Zip",
+						hint: canExportZip ? "Project" : "Open a folder",
 						disabled: !canExportZip,
 						run: exportZip
 					} as Item
@@ -147,7 +147,7 @@
 		{ separator: true } as Item,
 		{
 			icon: copied ? IconCheck : IconCopy,
-			label: copied ? 'Copied' : 'Copy source',
+			label: copied ? "Copied" : "Copy source",
 			run: copySource
 		}
 	]);

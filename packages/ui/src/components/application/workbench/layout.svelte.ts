@@ -1,11 +1,11 @@
-import type { ActivityView } from '../side-panel/types';
-import { classifyFile, editorLanguage } from '../file-kinds';
-import type { GitProvider } from '../git-panel.svelte';
-import { PersistedState } from '@glyphtex/ui/persisted-state';
-import { settings } from '@glyphtex/ui/settings';
-import { toast } from '@glyphtex/ui/sonner';
+import type { ActivityView } from "../side-panel/types";
+import { classifyFile, editorLanguage } from "../file-kinds";
+import type { GitProvider } from "../git-panel.svelte";
+import { PersistedState } from "@glyphtex/ui/persisted-state";
+import { settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
-import { GEOMETRY, LAYOUT_KEYS, PREFERENCE, TAB_CONTEXT } from './layout-storage';
+import { GEOMETRY, LAYOUT_KEYS, PREFERENCE, TAB_CONTEXT } from "./layout-storage";
 
 import type {
 	DiffTarget,
@@ -16,7 +16,7 @@ import type {
 	SplitDirection,
 	ViewMode,
 	VisualApi
-} from './types';
+} from "./types";
 
 export type LayoutDeps = {
 	git?: GitProvider;
@@ -32,13 +32,13 @@ export class LayoutStore {
 	readonly #getProjectRoot: () => string | null;
 
 	// Persisted chrome. Storage area per field is decided in `layout-storage.ts`.
-	#activeView = new PersistedState<ActivityView>(LAYOUT_KEYS.activeView, 'files', TAB_CONTEXT);
+	#activeView = new PersistedState<ActivityView>(LAYOUT_KEYS.activeView, "files", TAB_CONTEXT);
 	#panelCollapsed = new PersistedState<boolean>(LAYOUT_KEYS.panelCollapsed, false, TAB_CONTEXT);
-	#docMode = new PersistedState<DocMode>(LAYOUT_KEYS.docMode, 'latex', TAB_CONTEXT);
-	#viewMode = new PersistedState<ViewMode>(LAYOUT_KEYS.viewMode, 'split', TAB_CONTEXT);
-	#dockTab = new PersistedState<DockTab>(LAYOUT_KEYS.dockTab, 'problems', TAB_CONTEXT);
-	#rightPanel = new PersistedState<RightPanel>(LAYOUT_KEYS.rightPanel, 'none', TAB_CONTEXT);
-	#splitDir = new PersistedState<SplitDirection>(LAYOUT_KEYS.splitDir, 'horizontal', PREFERENCE);
+	#docMode = new PersistedState<DocMode>(LAYOUT_KEYS.docMode, "latex", TAB_CONTEXT);
+	#viewMode = new PersistedState<ViewMode>(LAYOUT_KEYS.viewMode, "split", TAB_CONTEXT);
+	#dockTab = new PersistedState<DockTab>(LAYOUT_KEYS.dockTab, "problems", TAB_CONTEXT);
+	#rightPanel = new PersistedState<RightPanel>(LAYOUT_KEYS.rightPanel, "none", TAB_CONTEXT);
+	#splitDir = new PersistedState<SplitDirection>(LAYOUT_KEYS.splitDir, "horizontal", PREFERENCE);
 	#thumbsOpen = new PersistedState<boolean>(LAYOUT_KEYS.thumbsOpen, true, PREFERENCE);
 	#splitPct = new PersistedState<number>(LAYOUT_KEYS.splitPct, 52, GEOMETRY);
 	#sidebarW = new PersistedState<number>(LAYOUT_KEYS.sidebarW, 300, GEOMETRY);
@@ -167,14 +167,14 @@ export class LayoutStore {
 	}
 
 	get notesOpen(): boolean {
-		return this.rightPanel === 'notes';
+		return this.rightPanel === "notes";
 	}
 	set notesOpen(open: boolean) {
-		this.rightPanel = open ? 'notes' : 'none';
+		this.rightPanel = open ? "notes" : "none";
 	}
 
-	toggleRightPanel(panel: Exclude<RightPanel, 'none'>): void {
-		this.rightPanel = this.rightPanel === panel ? 'none' : panel;
+	toggleRightPanel(panel: Exclude<RightPanel, "none">): void {
+		this.rightPanel = this.rightPanel === panel ? "none" : panel;
 	}
 
 	/** PDF thumbnail rail, on the preview's outer edge. */
@@ -197,16 +197,16 @@ export class LayoutStore {
 	readonly maxSidebar = $derived(Math.max(200, Math.round(this.shellW * 0.3)));
 	readonly sidebarWidth = $derived(Math.min(this.sidebarW, this.maxSidebar));
 	// VS Code-style: the activity bar + side panel can dock on either edge.
-	readonly sidebarRight = $derived(settings.sidebarPosition === 'right');
+	readonly sidebarRight = $derived(settings.sidebarPosition === "right");
 
 	readonly diffLanguage = $derived(
-		this.diffTarget ? editorLanguage(classifyFile(this.diffTarget.path)) : 'plain'
+		this.diffTarget ? editorLanguage(classifyFile(this.diffTarget.path)) : "plain"
 	);
 
 	/** Observe the shell width so the sidebar cap tracks the window. Called from
 	 *  the component inside a `$effect`; returns its cleanup. */
 	observeShell(): (() => void) | void {
-		if (!this.shellEl || typeof ResizeObserver === 'undefined') return;
+		if (!this.shellEl || typeof ResizeObserver === "undefined") return;
 		const ro = new ResizeObserver(() => {
 			if (this.shellEl) this.shellW = this.shellEl.getBoundingClientRect().width;
 		});
@@ -215,7 +215,7 @@ export class LayoutStore {
 	}
 
 	startResize(): void {
-		if (this.viewMode === 'split') this.dragging = true;
+		if (this.viewMode === "split") this.dragging = true;
 	}
 	startSidebarResize(): void {
 		this.resizingSidebar = true;
@@ -239,10 +239,10 @@ export class LayoutStore {
 			this.sidebarW = Math.min(this.maxSidebar, Math.max(200, w));
 			return;
 		}
-		if (!this.dragging || this.viewMode !== 'split' || !this.bodyEl) return;
+		if (!this.dragging || this.viewMode !== "split" || !this.bodyEl) return;
 		const rect = this.bodyEl.getBoundingClientRect();
 		const pct =
-			this.splitDir === 'vertical'
+			this.splitDir === "vertical"
 				? ((e.clientY - rect.top) / rect.height) * 100
 				: ((e.clientX - rect.left) / rect.width) * 100;
 		this.splitPct = Math.min(72, Math.max(28, pct));
@@ -271,8 +271,8 @@ export class LayoutStore {
 			const v = await this.#git.fileVersions(root, path, staged);
 			this.diffTarget = { path, staged, ...v };
 			// Reveal the editor pane: neither the PDF nor the visual surface has one.
-			this.docMode = 'latex';
-			if (this.viewMode === 'preview') this.viewMode = 'split';
+			this.docMode = "latex";
+			if (this.viewMode === "preview") this.viewMode = "split";
 		} catch (e) {
 			toast.error(`Could not open diff: ${e}`);
 		}

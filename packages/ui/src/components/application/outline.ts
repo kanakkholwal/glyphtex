@@ -25,7 +25,7 @@ const SECTION_RE =
 /** Drop a trailing line comment (first unescaped `%`). */
 function stripComment(line: string): string {
 	for (let i = 0; i < line.length; i++) {
-		if (line[i] === '%' && line[i - 1] !== '\\') return line.slice(0, i);
+		if (line[i] === "%" && line[i - 1] !== "\\") return line.slice(0, i);
 	}
 	return line;
 }
@@ -33,11 +33,11 @@ function stripComment(line: string): string {
 /** Read a brace-balanced argument starting just after the opening `{`. */
 function readBraced(line: string, start: number): string {
 	let depth = 1;
-	let out = '';
+	let out = "";
 	for (let i = start; i < line.length; i++) {
 		const c = line[i];
-		if (c === '{') depth++;
-		else if (c === '}') {
+		if (c === "{") depth++;
+		else if (c === "}") {
 			depth--;
 			if (depth === 0) break;
 		}
@@ -49,12 +49,12 @@ function readBraced(line: string, start: number): string {
 /** Strip inline LaTeX markup so the title reads as plain text. */
 function cleanTitle(raw: string): string {
 	const text = raw
-		.replace(/\\(label|index|footnote)\s*\{[^}]*\}/g, '') // drop noise args
-		.replace(/\\[a-zA-Z]+\*?/g, '') // drop remaining commands
-		.replace(/[{}]/g, '')
-		.replace(/\s+/g, ' ')
+		.replace(/\\(label|index|footnote)\s*\{[^}]*\}/g, "") // drop noise args
+		.replace(/\\[a-zA-Z]+\*?/g, "") // drop remaining commands
+		.replace(/[{}]/g, "")
+		.replace(/\s+/g, " ")
 		.trim();
-	return text || 'Untitled';
+	return text || "Untitled";
 }
 
 /**
@@ -66,13 +66,13 @@ function cleanTitle(raw: string): string {
  */
 export function parseOutline(src: string, maxLines = 20_000): OutlineItem[] {
 	if (!src) return [];
-	const lines = src.split('\n');
+	const lines = src.split("\n");
 	const limit = Math.min(lines.length, maxLines);
 	const items: OutlineItem[] = [];
 
 	for (let ln = 0; ln < limit; ln++) {
 		const line = stripComment(lines[ln]);
-		if (line.indexOf('\\') === -1) continue;
+		if (line.indexOf("\\") === -1) continue;
 		SECTION_RE.lastIndex = 0;
 		let m: RegExpExecArray | null;
 		while ((m = SECTION_RE.exec(line))) {
@@ -158,7 +158,7 @@ export function sectionAt(items: OutlineItem[], line: number): number {
 export function lineAt(src: string, offset: number): number {
 	const end = Math.min(offset, src.length);
 	let line = 1;
-	for (let i = 0; i < end; i++) if (src[i] === '\n') line++;
+	for (let i = 0; i < end; i++) if (src[i] === "\n") line++;
 	return line;
 }
 
@@ -166,7 +166,7 @@ export function lineAt(src: string, offset: number): number {
 export function offsetOfLine(src: string, line: number): number {
 	let at = 0;
 	for (let n = 1; n < line; n++) {
-		const next = src.indexOf('\n', at);
+		const next = src.indexOf("\n", at);
 		if (next === -1) return src.length;
 		at = next + 1;
 	}

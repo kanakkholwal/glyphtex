@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		Dialog,
 		DialogContent,
@@ -7,10 +7,10 @@
 		DialogFooter,
 		DialogHeader,
 		DialogTitle
-	} from '@glyphtex/ui/dialog';
-	import { IconAlertTriangle, IconChevronRight } from '@tabler/icons-svelte';
+	} from "@glyphtex/ui/dialog";
+	import { IconAlertTriangle, IconChevronRight } from "@tabler/icons-svelte";
 
-	import type { GitPanelStore } from './store.svelte';
+	import type { GitPanelStore } from "./store.svelte";
 
 	/**
 	 * Remote error dialog (our own UI, not the native one). Plain-language title +

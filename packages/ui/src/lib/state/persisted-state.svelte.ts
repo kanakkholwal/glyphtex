@@ -1,11 +1,11 @@
-type StorageArea = 'local' | 'session';
+type StorageArea = "local" | "session";
 
 export interface Serializer<T> {
 	serialize: (value: T) => string;
 	deserialize: (raw: string) => T;
 }
 
-export type PersistedErrorContext = 'read' | 'deserialize' | 'write' | 'remove';
+export type PersistedErrorContext = "read" | "deserialize" | "write" | "remove";
 
 export interface PersistedStateOptions<T> {
 	/** Which web storage to back onto. Defaults to `"local"`. */
@@ -29,7 +29,7 @@ export interface PersistedStateOptions<T> {
 	onError?: (error: unknown, context: PersistedErrorContext, key: string) => void;
 }
 
-const SAME_DOC_EVENT = 'glyphtex:persisted-state';
+const SAME_DOC_EVENT = "glyphtex:persisted-state";
 
 interface SameDocDetail {
 	key: string;
@@ -39,10 +39,10 @@ interface SameDocDetail {
 
 let instanceCounter = 0;
 
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-	if (typeof value !== 'object' || value === null) return false;
+	if (typeof value !== "object" || value === null) return false;
 	const proto = Object.getPrototypeOf(value);
 	return proto === Object.prototype || proto === null;
 }
@@ -55,14 +55,14 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 export function inferSerializer<T>(initialValue: T): Serializer<T> {
 	const type = typeof initialValue;
 
-	if (type === 'string') {
+	if (type === "string") {
 		return {
 			serialize: (v) => v as unknown as string,
 			deserialize: (raw) => raw as unknown as T
 		};
 	}
 
-	if (type === 'number') {
+	if (type === "number") {
 		return {
 			serialize: (v) => String(v),
 			deserialize: (raw) => {
@@ -72,10 +72,10 @@ export function inferSerializer<T>(initialValue: T): Serializer<T> {
 		};
 	}
 
-	if (type === 'boolean') {
+	if (type === "boolean") {
 		return {
 			serialize: (v) => String(v),
-			deserialize: (raw) => (raw === 'true') as unknown as T
+			deserialize: (raw) => (raw === "true") as unknown as T
 		};
 	}
 
@@ -89,7 +89,7 @@ export function inferSerializer<T>(initialValue: T): Serializer<T> {
 			// An array key that deserialized to a non-array is corrupt: bail to
 			// the initial via the caller's catch.
 			if (Array.isArray(initialValue) && !Array.isArray(parsed)) {
-				throw new TypeError('expected an array');
+				throw new TypeError("expected an array");
 			}
 			// Stale / partial object shapes keep their defaults for missing keys.
 			if (isPlainObject(initialValue) && isPlainObject(parsed)) {
@@ -108,7 +108,7 @@ export class PersistedState<T> {
 	#storage: StorageArea;
 	#serializer: Serializer<T>;
 	#syncTabs: boolean;
-	#onError?: PersistedStateOptions<T>['onError'];
+	#onError?: PersistedStateOptions<T>["onError"];
 	#id = ++instanceCounter;
 
 	#current = $state<T>() as T;
@@ -119,7 +119,7 @@ export class PersistedState<T> {
 	constructor(key: string, initialValue: T, options: PersistedStateOptions<T> = {}) {
 		this.#key = key;
 		this.#initial = initialValue;
-		this.#storage = options.storage ?? 'local';
+		this.#storage = options.storage ?? "local";
 		this.#serializer = options.serializer ?? inferSerializer(initialValue);
 		this.#syncTabs = options.syncTabs ?? true;
 		this.#onError = options.onError;
@@ -148,7 +148,7 @@ export class PersistedState<T> {
 			try {
 				this.#area().removeItem(this.#key);
 			} catch (error) {
-				this.#onError?.(error, 'remove', this.#key);
+				this.#onError?.(error, "remove", this.#key);
 			}
 		}
 		this.#broadcast();
@@ -161,14 +161,14 @@ export class PersistedState<T> {
 	 */
 	dispose(): void {
 		if (!isBrowser) return;
-		if (this.#onStorage) window.removeEventListener('storage', this.#onStorage);
+		if (this.#onStorage) window.removeEventListener("storage", this.#onStorage);
 		if (this.#onSameDoc) window.removeEventListener(SAME_DOC_EVENT, this.#onSameDoc);
 		this.#onStorage = undefined;
 		this.#onSameDoc = undefined;
 	}
 
 	#area(): Storage {
-		return this.#storage === 'session' ? window.sessionStorage : window.localStorage;
+		return this.#storage === "session" ? window.sessionStorage : window.localStorage;
 	}
 
 	#read(): T {
@@ -179,7 +179,7 @@ export class PersistedState<T> {
 			raw = this.#area().getItem(this.#key);
 		} catch (error) {
 			// Storage disabled entirely (some private modes throw on access).
-			this.#onError?.(error, 'read', this.#key);
+			this.#onError?.(error, "read", this.#key);
 			return this.#initial;
 		}
 
@@ -188,7 +188,7 @@ export class PersistedState<T> {
 		try {
 			return this.#serializer.deserialize(raw);
 		} catch (error) {
-			this.#onError?.(error, 'deserialize', this.#key);
+			this.#onError?.(error, "deserialize", this.#key);
 			return this.#initial;
 		}
 	}
@@ -199,7 +199,7 @@ export class PersistedState<T> {
 			this.#area().setItem(this.#key, this.#serializer.serialize(value));
 		} catch (error) {
 			// Quota exceeded / private mode: best effort, the rune still updated.
-			this.#onError?.(error, 'write', this.#key);
+			this.#onError?.(error, "write", this.#key);
 		}
 	}
 
@@ -231,7 +231,7 @@ export class PersistedState<T> {
 			this.#current = this.#read();
 		};
 
-		window.addEventListener('storage', this.#onStorage);
+		window.addEventListener("storage", this.#onStorage);
 		window.addEventListener(SAME_DOC_EVENT, this.#onSameDoc);
 	}
 }
@@ -255,7 +255,7 @@ interface SafeStorageOptions<T> {
 }
 
 function area(storage: StorageArea): Storage {
-	return storage === 'session' ? window.sessionStorage : window.localStorage;
+	return storage === "session" ? window.sessionStorage : window.localStorage;
 }
 
 /**
@@ -267,14 +267,14 @@ function area(storage: StorageArea): Storage {
 export const safeStorage = {
 	get<T>(key: string, fallback: T, options: SafeStorageOptions<T> = {}): T {
 		if (!isBrowser) return fallback;
-		const storage = options.storage ?? 'local';
+		const storage = options.storage ?? "local";
 		const serializer = options.serializer ?? inferSerializer(fallback);
 
 		let raw: string | null;
 		try {
 			raw = area(storage).getItem(key);
 		} catch (error) {
-			options.onError?.(error, 'read', key);
+			options.onError?.(error, "read", key);
 			return fallback;
 		}
 		if (raw === null) return fallback;
@@ -282,32 +282,32 @@ export const safeStorage = {
 		try {
 			return serializer.deserialize(raw);
 		} catch (error) {
-			options.onError?.(error, 'deserialize', key);
+			options.onError?.(error, "deserialize", key);
 			return fallback;
 		}
 	},
 
 	set<T>(key: string, value: T, options: SafeStorageOptions<T> = {}): void {
 		if (!isBrowser) return;
-		const storage = options.storage ?? 'local';
+		const storage = options.storage ?? "local";
 		const serializer = options.serializer ?? inferSerializer(value);
 		try {
 			area(storage).setItem(key, serializer.serialize(value));
 		} catch (error) {
-			options.onError?.(error, 'write', key);
+			options.onError?.(error, "write", key);
 		}
 	},
 
 	remove(
 		key: string,
-		options: Pick<SafeStorageOptions<unknown>, 'storage' | 'onError'> = {}
+		options: Pick<SafeStorageOptions<unknown>, "storage" | "onError"> = {}
 	): void {
 		if (!isBrowser) return;
-		const storage = options.storage ?? 'local';
+		const storage = options.storage ?? "local";
 		try {
 			area(storage).removeItem(key);
 		} catch (error) {
-			options.onError?.(error, 'remove', key);
+			options.onError?.(error, "remove", key);
 		}
 	}
 };

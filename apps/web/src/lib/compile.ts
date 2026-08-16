@@ -1,7 +1,7 @@
-import type { Diagnostic, PackDefinition } from 'glyphtex-engine';
-import { CompileCache, signature } from './compile-cache';
-import { loadManifest, openEngineCache } from './tex/manifest';
-import type { CompileFile, UnsentRequest, WorkerRequest, WorkerResponse } from './tex/protocol';
+import type { Diagnostic, PackDefinition } from "glyphtex-engine";
+import { CompileCache, signature } from "./compile-cache";
+import { loadManifest, openEngineCache } from "./tex/manifest";
+import type { CompileFile, UnsentRequest, WorkerRequest, WorkerResponse } from "./tex/protocol";
 
 export type { CompileFile };
 
@@ -38,26 +38,26 @@ const pending = new Map<
 function getWorker(): Worker {
 	if (worker) return worker;
 
-	worker = new Worker(new URL('./tex/worker.ts', import.meta.url), { type: 'module' });
+	worker = new Worker(new URL("./tex/worker.ts", import.meta.url), { type: "module" });
 
 	worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
 		const response = event.data;
 		const entry = pending.get(response.id);
 		if (!entry) return;
 
-		if (response.type === 'progress') {
+		if (response.type === "progress") {
 			entry.onProgress?.({ loaded: response.loaded, total: response.total, label: response.label });
 			return; // more messages to come for this id
 		}
 
 		pending.delete(response.id);
-		if (response.type === 'error') entry.reject(new Error(response.message));
+		if (response.type === "error") entry.reject(new Error(response.message));
 		else entry.resolve(response);
 	};
 
 	// A worker-level error answers nothing, so reject every in-flight request.
 	worker.onerror = (event) => {
-		const error = new Error(event.message || 'The LaTeX engine worker stopped unexpectedly.');
+		const error = new Error(event.message || "The LaTeX engine worker stopped unexpectedly.");
 		for (const [id, entry] of pending) {
 			pending.delete(id);
 			entry.reject(error);
@@ -105,8 +105,8 @@ export async function engineReady(): Promise<boolean> {
  * Throws with a user-facing message if the download fails.
  */
 export async function installEngine(onProgress?: (p: InstallProgress) => void): Promise<void> {
-	if (typeof window === 'undefined') throw new Error('Install runs in the browser.');
-	await send({ type: 'install' }, onProgress);
+	if (typeof window === "undefined") throw new Error("Install runs in the browser.");
+	await send({ type: "install" }, onProgress);
 }
 
 /**
@@ -114,14 +114,14 @@ export async function installEngine(onProgress?: (p: InstallProgress) => void): 
  * Errors are swallowed; a real compile surfaces them properly.
  */
 export function warmEngine(): void {
-	if (typeof window === 'undefined') return;
-	void send({ type: 'install' }).catch(() => {
+	if (typeof window === "undefined") return;
+	void send({ type: "install" }).catch(() => {
 		/* a real compile will report the failure */
 	});
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
-	let binary = '';
+	let binary = "";
 	const chunk = 0x8000;
 	for (let i = 0; i < bytes.length; i += chunk) {
 		binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
@@ -136,7 +136,7 @@ const compileCache = new CompileCache<CompileOutcome>();
 
 /** Single-file compile; the multi-file path with one `main.tex` mounted. */
 export function compileLatex(source: string): Promise<CompileOutcome> {
-	return compileFiles([{ name: 'main.tex', text: source }], 'main.tex', 'scratch');
+	return compileFiles([{ name: "main.tex", text: source }], "main.tex", "scratch");
 }
 
 /**
@@ -152,8 +152,8 @@ export async function compileFiles(
 	entry: string,
 	docId: string
 ): Promise<CompileOutcome> {
-	if (typeof window === 'undefined') {
-		return { error: 'Compilation runs in the browser.' };
+	if (typeof window === "undefined") {
+		return { error: "Compilation runs in the browser." };
 	}
 	if (!files.some((f) => f.name === entry)) {
 		return { error: `The main file "${entry}" is not part of this document.` };
@@ -168,17 +168,17 @@ export async function compileFiles(
 
 	let response: WorkerResponse;
 	try {
-		response = await send({ type: 'compile', files, entry, docId });
+		response = await send({ type: "compile", files, entry, docId });
 	} catch (e) {
 		// Plain-language message for the user; raw detail goes in the log (AGENTS.md rule #5).
 		return {
-			error: 'Could not start the LaTeX engine. Check your connection and reload.',
+			error: "Could not start the LaTeX engine. Check your connection and reload.",
 			log: e instanceof Error ? e.message : String(e)
 		};
 	}
 
-	if (response.type !== 'compiled') {
-		return { error: 'The LaTeX engine returned an unexpected response.' };
+	if (response.type !== "compiled") {
+		return { error: "The LaTeX engine returned an unexpected response." };
 	}
 
 	// Show any PDF TeX produced even on error: it recovers and still typesets.
@@ -204,7 +204,7 @@ export async function compileFiles(
 		missingPacks: response.missingPacks,
 		unsupportedFiles: response.unsupportedFiles,
 		error:
-			response.message ?? 'LaTeX compilation failed: no PDF was produced. See the Problems panel.'
+			response.message ?? "LaTeX compilation failed: no PDF was produced. See the Problems panel."
 	};
 }
 
@@ -216,8 +216,8 @@ export async function installPacks(
 	packIds: string[],
 	onProgress?: (p: InstallProgress) => void
 ): Promise<void> {
-	if (typeof window === 'undefined') throw new Error('Package sets install in the browser.');
-	await send({ type: 'installPacks', packIds }, onProgress);
+	if (typeof window === "undefined") throw new Error("Package sets install in the browser.");
+	await send({ type: "installPacks", packIds }, onProgress);
 	// The same source now compiles differently, so no cached result is valid.
 	compileCache.clear();
 }

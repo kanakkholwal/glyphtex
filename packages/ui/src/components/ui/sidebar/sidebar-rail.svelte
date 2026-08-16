@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
-	import type { HTMLAttributes } from 'svelte/elements';
-	import { useSidebar } from './context.svelte';
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { useSidebar } from "./context.svelte";
 
 	let {
 		ref = $bindable(null),

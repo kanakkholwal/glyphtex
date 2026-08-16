@@ -14,14 +14,14 @@
 	}
 
 	const DEFAULT_SWATCHES: string[] = [
-		'#3b82f6',
-		'#ef4444',
-		'#22c55e',
-		'#f59e0b',
-		'#a855f7',
-		'#ec4899',
-		'#06b6d4',
-		'#ffffff'
+		"#3b82f6",
+		"#ef4444",
+		"#22c55e",
+		"#f59e0b",
+		"#a855f7",
+		"#ec4899",
+		"#06b6d4",
+		"#ffffff"
 	];
 
 	function clamp01(v: number): number {
@@ -68,13 +68,13 @@
 	}
 
 	export function formatHex(r: number, g: number, b: number, a: number): string {
-		const rh = r.toString(16).padStart(2, '0');
-		const gh = g.toString(16).padStart(2, '0');
-		const bh = b.toString(16).padStart(2, '0');
+		const rh = r.toString(16).padStart(2, "0");
+		const gh = g.toString(16).padStart(2, "0");
+		const bh = b.toString(16).padStart(2, "0");
 		if (a >= 1) return `#${rh}${gh}${bh}`;
 		const ah = Math.round(clamp01(a) * 255)
 			.toString(16)
-			.padStart(2, '0');
+			.padStart(2, "0");
 		return `#${rh}${gh}${bh}${ah}`;
 	}
 

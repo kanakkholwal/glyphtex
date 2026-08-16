@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
-	import { registerPluginOnce } from '../helpers/gsap';
-	import { cn } from '../utils/cn';
-	import type { Snippet } from 'svelte';
+	import { onMount } from "svelte";
+	import { gsap } from "gsap";
+	import { ScrollTrigger } from "gsap/ScrollTrigger";
+	import { registerPluginOnce } from "../helpers/gsap";
+	import { cn } from "../utils/cn";
+	import type { Snippet } from "svelte";
 
 	interface Props {
 		/**
@@ -65,7 +65,7 @@
 		const containerElement = container;
 
 		const cards = Array.from(
-			containerElement.querySelectorAll('.card-stack-item')
+			containerElement.querySelectorAll(".card-stack-item")
 		) as HTMLElement[];
 
 		if (cards.length === 0) return;
@@ -73,7 +73,7 @@
 		const ctx = gsap.context(() => {
 			const lastCard = cards[cards.length - 1];
 			const resolvedScroller =
-				typeof scrollElement === 'string'
+				typeof scrollElement === "string"
 					? document.querySelector<HTMLElement>(scrollElement)
 					: scrollElement instanceof HTMLElement
 						? scrollElement
@@ -95,9 +95,9 @@
 				const cardTop = topOffset + index * offset;
 
 				gsap.set(card, {
-					transformOrigin: 'top center',
+					transformOrigin: "top center",
 					zIndex: index,
-					position: 'sticky',
+					position: "sticky",
 					top: `${cardTop}px`
 				});
 
@@ -106,7 +106,7 @@
 						trigger: card,
 						start: `top top+=${cardTop}`,
 						endTrigger: containerElement,
-						end: 'bottom bottom',
+						end: "bottom bottom",
 						scrub: true,
 						scroller,
 						invalidateOnRefresh: true
@@ -118,7 +118,7 @@
 				if (index < cards.length - 1) {
 					tl.to(card, {
 						scale: targetScale,
-						ease: 'none'
+						ease: "none"
 					});
 				}
 			});

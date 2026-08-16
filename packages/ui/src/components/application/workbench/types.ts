@@ -1,12 +1,12 @@
 /** Top-level surface. `visual` is the WYSIWYG editor over the same source; the
  *  LaTeX text stays the truth in both (see `visual-pane.svelte`). */
-export type DocMode = 'visual' | 'latex';
+export type DocMode = "visual" | "latex";
 
 /** How the LaTeX surface is laid out. Only meaningful when `docMode` is `latex`. */
-export type ViewMode = 'editor' | 'split' | 'preview';
+export type ViewMode = "editor" | "split" | "preview";
 
 /** Split axis: side by side, or editor above preview. */
-export type SplitDirection = 'horizontal' | 'vertical';
+export type SplitDirection = "horizontal" | "vertical";
 
 /** Result returned by the host's compile bridges (single-file or project). */
 export type CompileResult = {
@@ -108,7 +108,7 @@ export type EditorApi = {
  * header, which cost three levels of hover for every action.)
  */
 export type MenuAction = {
-	type?: 'item';
+	type?: "item";
 	label: string;
 	shortcut?: string;
 	checked?: boolean;
@@ -117,7 +117,7 @@ export type MenuAction = {
 	/** Item edits the document: put the caret back in the editor afterwards. */
 	refocusEditor?: boolean;
 };
-export type MenuSeparator = { type: 'separator' };
+export type MenuSeparator = { type: "separator" };
 export type MenuEntry = MenuAction | MenuSeparator;
 /** A named group of actions, e.g. "File". The name becomes the palette's group. */
 export type Menu = { label: string; items: MenuEntry[] };
@@ -137,7 +137,7 @@ export type VisualApi = {
 };
 
 // --- Compilation ------------------------------------------------------------
-export type CompileStatus = 'idle' | 'compiling' | 'success' | 'error';
+export type CompileStatus = "idle" | "compiling" | "success" | "error";
 
 /** One finished compile, kept for the build-stats sparkline. */
 export type BuildRecord = { ms: number; ok: boolean; bytes: number; at: number };
@@ -146,13 +146,13 @@ export type BuildRecord = { ms: number; ok: boolean; bytes: number; at: number }
 export const BUILD_HISTORY_LIMIT = 24;
 
 // --- Bottom dock ------------------------------------------------------------
-export type DockTab = 'problems' | 'logs' | 'stats' | 'history';
+export type DockTab = "problems" | "logs" | "stats" | "history";
 
 /** What the right-edge column is showing. */
-export type RightPanel = 'none' | 'notes' | 'settings';
+export type RightPanel = "none" | "notes" | "settings";
 
 // --- Explorer move / folder conflict prompts --------------------------------
-export type ConflictAction = 'replace' | 'rename' | 'skip' | 'merge';
+export type ConflictAction = "replace" | "rename" | "skip" | "merge";
 export type ConflictChoice = {
 	action: ConflictAction;
 	newName?: string;
@@ -164,7 +164,7 @@ export type ConflictChoice = {
  */
 export type Pending =
 	| {
-			kind: 'conflict';
+			kind: "conflict";
 			name: string;
 			isFolder: boolean;
 			/** Offer "Merge" (folder-into-folder). */
@@ -174,7 +174,7 @@ export type Pending =
 			resolve: (c: ConflictChoice) => void;
 	  }
 	| {
-			kind: 'confirm';
+			kind: "confirm";
 			title: string;
 			message: string;
 			confirmLabel: string;
@@ -225,10 +225,10 @@ export const SAMPLE_BIB = String.raw`@article{glyph2026,
  * /editor route, or a quick demo).
  */
 export const DEMO_FILES: GlyphFile[] = [
-	{ id: 'main', name: 'main.tex', content: SAMPLE_LATEX },
+	{ id: "main", name: "main.tex", content: SAMPLE_LATEX },
 	{
-		id: 'intro',
-		name: 'sections/introduction.tex',
+		id: "intro",
+		name: "sections/introduction.tex",
 		content: String.raw`\section{Introduction}
 
 Local-first typesetting keeps your unpublished work on your own machine.
@@ -236,14 +236,14 @@ This section motivates the approach.
 `
 	},
 	{
-		id: 'results',
-		name: 'sections/results.tex',
+		id: "results",
+		name: "sections/results.tex",
 		content: String.raw`\section{Results}
 
 We observe that $\hat{\theta}$ is consistent, with $\alpha$ scaling as $\beta^2$.
 `
 	},
-	{ id: 'refs', name: 'references.bib', content: SAMPLE_BIB }
+	{ id: "refs", name: "references.bib", content: SAMPLE_BIB }
 ];
 
 /** PDF preview zoom presets (percent). */

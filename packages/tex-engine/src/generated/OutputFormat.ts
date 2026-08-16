@@ -3,4 +3,4 @@
 /**
  * Which artifact the caller wants.
  */
-export type OutputFormat = 'pdf' | 'xdv';
+export type OutputFormat = "pdf" | "xdv";

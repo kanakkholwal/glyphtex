@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { Collapsible as CollapsiblePrimitive } from 'bits-ui';
+	import { cn } from "@glyphtex/ui/utils";
+	import { Collapsible as CollapsiblePrimitive } from "bits-ui";
 
 	let {
 		ref = $bindable(null),

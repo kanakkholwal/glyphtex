@@ -1,4 +1,4 @@
-export type LatexSeverity = 'error' | 'warning' | 'info';
+export type LatexSeverity = "error" | "warning" | "info";
 
 export interface LatexProblem {
 	severity: LatexSeverity;
@@ -27,13 +27,13 @@ export function parseLatexLog(log: string | undefined, fallback?: string): Latex
 	const out: LatexProblem[] = [];
 	const seen = new Set<string>();
 	const push = (p: LatexProblem) => {
-		const key = `${p.severity}|${p.line ?? ''}|${p.message}`;
+		const key = `${p.severity}|${p.line ?? ""}|${p.message}`;
 		if (seen.has(key)) return;
 		seen.add(key);
 		out.push(p);
 	};
 
-	const lines = (log ?? '').split(/\r?\n/);
+	const lines = (log ?? "").split(/\r?\n/);
 
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
@@ -42,21 +42,21 @@ export function parseLatexLog(log: string | undefined, fallback?: string): Latex
 		const tect = TECTONIC.exec(line);
 		if (tect) {
 			push({
-				severity: tect[1] === 'error' ? 'error' : 'warning',
+				severity: tect[1] === "error" ? "error" : "warning",
 				message: tect[2].trim() || tect[1]
 			});
 			continue;
 		}
 
 		// TeX error block: "! message" then a later "l.<n> ...".
-		if (line.startsWith('! ')) {
+		if (line.startsWith("! ")) {
 			const message =
 				line
 					.slice(2)
-					.replace(/\.$/, '')
-					.replace(/^LaTeX Error:\s*/, '')
-					.replace(/^Package \S+ Error:\s*/, '')
-					.trim() || 'TeX error';
+					.replace(/\.$/, "")
+					.replace(/^LaTeX Error:\s*/, "")
+					.replace(/^Package \S+ Error:\s*/, "")
+					.trim() || "TeX error";
 			let ln: number | undefined;
 			for (let j = i + 1; j < Math.min(i + 16, lines.length); j++) {
 				const m = L_NUM.exec(lines[j].trimStart());
@@ -65,7 +65,7 @@ export function parseLatexLog(log: string | undefined, fallback?: string): Latex
 					break;
 				}
 			}
-			push({ severity: 'error', message, line: ln });
+			push({ severity: "error", message, line: ln });
 			continue;
 		}
 
@@ -81,8 +81,8 @@ export function parseLatexLog(log: string | undefined, fallback?: string): Latex
 					const cont = lines[j];
 					if (!cont.trim()) break;
 					const more = ON_INPUT_LINE.exec(cont);
-					const clean = cont.replace(/^\([^)]*\)\s*/, '').trim(); // strip "(pkg)" gutter
-					if (clean) msg += ' ' + clean;
+					const clean = cont.replace(/^\([^)]*\)\s*/, "").trim(); // strip "(pkg)" gutter
+					if (clean) msg += " " + clean;
 					if (more) {
 						ln = parseInt(more[1], 10);
 						i = j;
@@ -91,10 +91,10 @@ export function parseLatexLog(log: string | undefined, fallback?: string): Latex
 				}
 			}
 			msg = msg
-				.replace(/\s*on input line \d+\.?\s*$/, '')
-				.replace(/\.$/, '')
+				.replace(/\s*on input line \d+\.?\s*$/, "")
+				.replace(/\.$/, "")
 				.trim();
-			push({ severity: 'warning', message: msg || 'LaTeX warning', line: ln });
+			push({ severity: "warning", message: msg || "LaTeX warning", line: ln });
 			continue;
 		}
 
@@ -102,7 +102,7 @@ export function parseLatexLog(log: string | undefined, fallback?: string): Latex
 		if (BADBOX.test(line)) {
 			const m = AT_LINES.exec(line);
 			push({
-				severity: 'info',
+				severity: "info",
 				message: line.trim(),
 				line: m ? parseInt(m[1], 10) : undefined
 			});
@@ -110,7 +110,7 @@ export function parseLatexLog(log: string | undefined, fallback?: string): Latex
 	}
 
 	if (out.length === 0 && fallback?.trim()) {
-		push({ severity: 'error', message: fallback.trim() });
+		push({ severity: "error", message: fallback.trim() });
 	}
 
 	return out.slice(0, 300);
@@ -121,8 +121,8 @@ export function summarizeProblems(problems: LatexProblem[]): ProblemSummary {
 	let warnings = 0;
 	let infos = 0;
 	for (const p of problems) {
-		if (p.severity === 'error') errors++;
-		else if (p.severity === 'warning') warnings++;
+		if (p.severity === "error") errors++;
+		else if (p.severity === "warning") warnings++;
 		else infos++;
 	}
 	return { errors, warnings, infos, total: problems.length };

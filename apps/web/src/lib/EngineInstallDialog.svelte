@@ -5,10 +5,10 @@
 		DialogHeader,
 		DialogTitle,
 		DialogDescription
-	} from '@glyphtex/ui/dialog';
-	import { Button } from '@glyphtex/ui/button';
-	import { IconCpu, IconLoader2, IconAlertTriangle, IconWifiOff } from '@tabler/icons-svelte';
-	import { installEngine, type InstallProgress } from '$lib/compile';
+	} from "@glyphtex/ui/dialog";
+	import { Button } from "@glyphtex/ui/button";
+	import { IconCpu, IconLoader2, IconAlertTriangle, IconWifiOff } from "@tabler/icons-svelte";
+	import { installEngine, type InstallProgress } from "$lib/compile";
 
 	let { open = $bindable(false), ondone }: { open?: boolean; ondone?: () => void } = $props();
 

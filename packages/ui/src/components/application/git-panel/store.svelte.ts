@@ -1,5 +1,5 @@
-import { describeError } from './errors';
-import { buildTree } from './tree';
+import { describeError } from "./errors";
+import { buildTree } from "./tree";
 import type {
 	GitChange,
 	GitCommitEntry,
@@ -10,7 +10,7 @@ import type {
 	GitSettings,
 	SectionKey,
 	SyncAction
-} from './types';
+} from "./types";
 
 export type GitPanelDeps = {
 	git?: GitProvider;
@@ -30,7 +30,7 @@ export class GitPanelStore {
 	head = $state<GitHeadInfo | undefined>(undefined);
 	changes = $state<GitChange[]>([]);
 	commits = $state<GitCommitEntry[]>([]);
-	message = $state('');
+	message = $state("");
 
 	loading = $state(false);
 	busy = $state(false);
@@ -38,29 +38,29 @@ export class GitPanelStore {
 
 	// Remotes
 	remotes = $state<GitRemote[]>([]);
-	token = $state('');
+	token = $state("");
 	showToken = $state(false);
 	remoteMsg = $state<string | undefined>(undefined);
 	// The remote half (push/pull/sync/remote edits) shells out to the system git.
 	// Detect it up front so those actions explain themselves instead of failing.
 	gitMissing = $state(false);
 	// Which remote fetch/pull/push act on; falls back to origin / first.
-	selectedRemote = $state('');
+	selectedRemote = $state("");
 
 	// Inline remote editing / adding (no custom dialog: native confirm for removal).
 	editingRemote = $state<string | null>(null);
-	editName = $state('');
-	editUrl = $state('');
+	editName = $state("");
+	editUrl = $state("");
 	addingRemote = $state(false);
-	newRemoteName = $state('origin');
-	newRemoteUrl = $state('');
+	newRemoteName = $state("origin");
+	newRemoteUrl = $state("");
 
 	// Commit identity + relay, when the host lets the panel edit them.
 	settings = $state<GitSettings | undefined>(undefined);
 	showSettings = $state(false);
-	authorName = $state('');
-	authorEmail = $state('');
-	proxyUrl = $state('');
+	authorName = $state("");
+	authorEmail = $state("");
+	proxyUrl = $state("");
 
 	// Changes view: which folders are collapsed (tree mode).
 	collapsed = $state(new Set<string>());
@@ -85,7 +85,7 @@ export class GitPanelStore {
 	// --- Derived views --------------------------------------------------------
 	readonly activeRemote = $derived(
 		this.remotes.find((r) => r.name === this.selectedRemote) ??
-			this.remotes.find((r) => r.name === 'origin') ??
+			this.remotes.find((r) => r.name === "origin") ??
 			this.remotes[0]
 	);
 	readonly hasRemote = $derived(this.remotes.length > 0);
@@ -96,7 +96,7 @@ export class GitPanelStore {
 	readonly unstagedTree = $derived(buildTree(this.unstaged));
 
 	// Unresolved merge conflicts block committing until they're resolved + staged.
-	readonly hasConflicts = $derived(this.changes.some((c) => c.status === 'conflicted'));
+	readonly hasConflicts = $derived(this.changes.some((c) => c.status === "conflicted"));
 	readonly canCommit = $derived(
 		this.isRepo &&
 			!this.busy &&
@@ -119,12 +119,12 @@ export class GitPanelStore {
 	// the tree is clean, become Push / Pull / Sync if local & remote differ.
 	readonly syncAction = $derived<SyncAction>(
 		this.head?.ahead && this.head?.behind
-			? 'sync'
+			? "sync"
 			: this.head?.ahead
-				? 'push'
+				? "push"
 				: this.head?.behind
-					? 'pull'
-					: 'none'
+					? "pull"
+					: "none"
 	);
 
 	// --- Helpers --------------------------------------------------------------
@@ -152,7 +152,7 @@ export class GitPanelStore {
 		if (!t) return base;
 		try {
 			const u = new URL(base);
-			u.username = 'x-access-token';
+			u.username = "x-access-token";
 			u.password = t;
 			return u.toString();
 		} catch {
@@ -162,8 +162,8 @@ export class GitPanelStore {
 
 	/** Native OS confirm (desktop) with a window.confirm fallback (web). */
 	async #askConfirm(msg: string): Promise<boolean> {
-		if (this.#git?.confirm) return this.#git.confirm(msg, 'GlyphTeX');
-		return typeof window !== 'undefined' ? window.confirm(msg) : true;
+		if (this.#git?.confirm) return this.#git.confirm(msg, "GlyphTeX");
+		return typeof window !== "undefined" ? window.confirm(msg) : true;
 	}
 
 	// --- Data loading / detection (driven by the component's effects) ---------
@@ -258,9 +258,9 @@ export class GitPanelStore {
 		void this.#run(async () => {
 			const msg =
 				this.message.trim() ||
-				(this.head?.merging ? `Merge ${this.head?.upstream ?? 'remote branch'}` : '');
+				(this.head?.merging ? `Merge ${this.head?.upstream ?? "remote branch"}` : "");
 			await this.#git!.commit(this.#getRoot()!, msg);
-			this.message = '';
+			this.message = "";
 		});
 	}
 
@@ -272,9 +272,9 @@ export class GitPanelStore {
 		// Up-front, plain-language gate: skip the doomed attempt when git is absent.
 		if (this.gitMissing) {
 			this.gitError = {
-				title: 'Git isn’t installed',
+				title: "Git isn’t installed",
 				message:
-					'Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphTeX and try again.'
+					"Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphTeX and try again."
 			};
 			return;
 		}
@@ -296,42 +296,42 @@ export class GitPanelStore {
 	#requireRemote(op: string): boolean {
 		if (this.activeRemote) return true;
 		this.gitError = {
-			title: 'No remote configured',
-			message: 'Add a remote below before you can ' + op.toLowerCase() + '.'
+			title: "No remote configured",
+			message: "Add a remote below before you can " + op.toLowerCase() + "."
 		};
 		return false;
 	}
 
 	doFetch(): void {
-		if (!this.#requireRemote('Fetch')) return;
-		void this.#runRemote('Fetch', async () => {
+		if (!this.#requireRemote("Fetch")) return;
+		void this.#runRemote("Fetch", async () => {
 			await this.#git!.fetch(this.#getRoot()!, this.#authedUrl());
-			this.remoteMsg = 'Fetched.';
+			this.remoteMsg = "Fetched.";
 		});
 	}
 	doPull(): void {
-		if (!this.#requireRemote('Pull')) return;
-		void this.#runRemote('Pull', async () => {
+		if (!this.#requireRemote("Pull")) return;
+		void this.#runRemote("Pull", async () => {
 			this.remoteMsg =
-				(await this.#git!.pull(this.#getRoot()!, this.#authedUrl())) || 'Already up to date.';
+				(await this.#git!.pull(this.#getRoot()!, this.#authedUrl())) || "Already up to date.";
 		});
 	}
 	doPush(): void {
-		if (!this.#requireRemote('Push')) return;
-		void this.#runRemote('Push', async () => {
+		if (!this.#requireRemote("Push")) return;
+		void this.#runRemote("Push", async () => {
 			this.remoteMsg =
 				(await this.#git!.push(
 					this.#getRoot()!,
 					this.#authedUrl(),
 					this.head?.branch ?? undefined,
 					this.activeRemote?.name
-				)) || 'Pushed.';
+				)) || "Pushed.";
 		});
 	}
 	/** Pull (merge) then push: VS Code's "Sync Changes". Surfaces conflicts. */
 	doSync(): void {
-		if (!this.#requireRemote('Sync')) return;
-		void this.#runRemote('Sync', async () => {
+		if (!this.#requireRemote("Sync")) return;
+		void this.#runRemote("Sync", async () => {
 			const r = await this.#git!.sync(
 				this.#getRoot()!,
 				this.#authedUrl(),
@@ -339,17 +339,17 @@ export class GitPanelStore {
 				this.activeRemote?.name
 			);
 			if (r.conflicts) {
-				this.gitError = { title: 'Merge conflicts', message: r.message };
+				this.gitError = { title: "Merge conflicts", message: r.message };
 			} else {
-				this.remoteMsg = r.message || 'Synced with remote.';
+				this.remoteMsg = r.message || "Synced with remote.";
 			}
 		});
 	}
 	/** Run whatever the smart primary button currently represents. */
 	runPrimarySync(): void {
-		if (this.syncAction === 'push') this.doPush();
-		else if (this.syncAction === 'pull') this.doPull();
-		else if (this.syncAction === 'sync') this.doSync();
+		if (this.syncAction === "push") this.doPush();
+		else if (this.syncAction === "pull") this.doPull();
+		else if (this.syncAction === "sync") this.doSync();
 	}
 
 	// --- Remote management ----------------------------------------------------
@@ -363,7 +363,7 @@ export class GitPanelStore {
 		const name = this.editName.trim();
 		const url = this.editUrl.trim();
 		if (!name || !url) return;
-		void this.#runRemote('Update remote', async () => {
+		void this.#runRemote("Update remote", async () => {
 			if (url !== r.url) await this.#git!.remoteSetUrl(this.#getRoot()!, r.name, url);
 			if (name !== r.name) {
 				await this.#git!.remoteRename(this.#getRoot()!, r.name, name);
@@ -373,31 +373,31 @@ export class GitPanelStore {
 		});
 	}
 	removeRemote(r: GitRemote): void {
-		void this.#runRemote('Remove remote', async () => {
+		void this.#runRemote("Remove remote", async () => {
 			if (!(await this.#askConfirm(`Remove remote “${r.name}”?\n${r.url}`))) return;
 			await this.#git!.remoteRemove(this.#getRoot()!, r.name);
-			if (this.selectedRemote === r.name) this.selectedRemote = '';
+			if (this.selectedRemote === r.name) this.selectedRemote = "";
 		});
 	}
 	addRemote(): void {
 		const name = this.newRemoteName.trim();
 		const url = this.newRemoteUrl.trim();
 		if (!name || !url) return;
-		void this.#runRemote('Add remote', async () => {
+		void this.#runRemote("Add remote", async () => {
 			await this.#git!.remoteAdd(this.#getRoot()!, name, url);
 			this.selectedRemote = name;
 			this.addingRemote = false;
-			this.newRemoteName = 'origin';
-			this.newRemoteUrl = '';
+			this.newRemoteName = "origin";
+			this.newRemoteUrl = "";
 		});
 	}
 
 	// --- Identity / relay -----------------------------------------------------
 	/** Open the editor seeded from the host's current values. */
 	startEditSettings(): void {
-		this.authorName = this.settings?.chosen ? this.settings.name : '';
-		this.authorEmail = this.settings?.chosen ? this.settings.email : '';
-		this.proxyUrl = this.settings?.corsProxy ?? '';
+		this.authorName = this.settings?.chosen ? this.settings.name : "";
+		this.authorEmail = this.settings?.chosen ? this.settings.email : "";
+		this.proxyUrl = this.settings?.corsProxy ?? "";
 		this.showSettings = true;
 	}
 

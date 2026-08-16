@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
-	import type { ComponentProps } from 'svelte';
+	import { cn } from "@glyphtex/ui/utils";
+	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
+	import type { ComponentProps } from "svelte";
 
 	let {
 		ref = $bindable(null),

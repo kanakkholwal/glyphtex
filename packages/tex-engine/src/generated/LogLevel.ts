@@ -3,4 +3,4 @@
 /**
  * How much the engine should write to stderr.
  */
-export type LogLevel = 'silent' | 'error' | 'info' | 'trace';
+export type LogLevel = "silent" | "error" | "info" | "trace";

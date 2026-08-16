@@ -1,17 +1,17 @@
-import type { EngineManager } from '../engine-settings.svelte';
-import type { GitProvider } from '../git-panel.svelte';
-import type { PaletteCommand } from '../command-palette.svelte';
-import type { ProjectHost } from '../project';
-import { matchShortcut, shortcutLabel } from '../shortcuts';
-import { settings } from '@glyphtex/ui/settings';
-import { toast } from '@glyphtex/ui/sonner';
+import type { EngineManager } from "../engine-settings.svelte";
+import type { GitProvider } from "../git-panel.svelte";
+import type { PaletteCommand } from "../command-palette.svelte";
+import type { ProjectHost } from "../project";
+import { matchShortcut, shortcutLabel } from "../shortcuts";
+import { settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
-import { CompileStore } from './compile.svelte';
-import { FileStore } from './files.svelte';
-import { LayoutStore } from './layout.svelte';
-import { NotesStore } from './notes.svelte';
-import { baseName } from './paths';
-import { SearchStore } from './search.svelte';
+import { CompileStore } from "./compile.svelte";
+import { FileStore } from "./files.svelte";
+import { LayoutStore } from "./layout.svelte";
+import { NotesStore } from "./notes.svelte";
+import { baseName } from "./paths";
+import { SearchStore } from "./search.svelte";
 import type {
 	CompileFilesFn,
 	CompileFn,
@@ -21,11 +21,11 @@ import type {
 	Menu,
 	MenuAction,
 	SaveFileFn
-} from './types';
+} from "./types";
 
 /** A file or folder the user asked to save out of the workbench. */
 export type DownloadRequest = {
-	kind: 'file' | 'folder';
+	kind: "file" | "folder";
 	/** Suggested download name: the leaf; a folder arrives zipped. */
 	name: string;
 	/** Project-relative paths to include. */
@@ -35,7 +35,7 @@ export type DownloadRequest = {
 };
 
 export type WorkbenchProps = {
-	platform?: 'web' | 'desktop';
+	platform?: "web" | "desktop";
 	compile?: CompileFn;
 	/** Compile a multi-file project on disk (desktop), so `\input` /
 	 *  `\includegraphics` / `\bibliography` resolve. */
@@ -93,7 +93,7 @@ export type WorkbenchProps = {
 };
 
 export class WorkbenchController {
-	readonly platform: 'web' | 'desktop';
+	readonly platform: "web" | "desktop";
 	readonly statusNote?: string;
 	readonly engine?: EngineManager;
 	readonly backHref?: string;
@@ -117,7 +117,7 @@ export class WorkbenchController {
 	readonly #openPathOnMount?: string;
 
 	constructor(props: WorkbenchProps) {
-		this.platform = props.platform ?? 'web';
+		this.platform = props.platform ?? "web";
 		this.statusNote = props.statusNote;
 		this.engine = props.engine;
 		this.backHref = props.backHref;
@@ -138,8 +138,8 @@ export class WorkbenchController {
 			git: props.git,
 			gitRoot: props.gitRoot,
 			initialFiles: props.initialFiles,
-			projectName: props.projectName ?? 'glyphtex-project',
-			scope: props.documentId ?? props.projectName ?? 'glyphtex-project'
+			projectName: props.projectName ?? "glyphtex-project",
+			scope: props.documentId ?? props.projectName ?? "glyphtex-project"
 		});
 		this.layout = new LayoutStore({
 			git: props.git,
@@ -182,7 +182,7 @@ export class WorkbenchController {
 	/** You asked for Visual and got source instead. The mode switch greys out, but
 	 *  that is hover-only: the pane has to say so where you are actually looking. */
 	get visualDemoted(): boolean {
-		return this.layout.docMode === 'visual' && !this.visualAllowed;
+		return this.layout.docMode === "visual" && !this.visualAllowed;
 	}
 
 	get visualBlockedReason(): string | null {
@@ -197,7 +197,7 @@ export class WorkbenchController {
 	 * silently demoting the preference.
 	 */
 	get docMode(): DocMode {
-		return this.layout.docMode === 'visual' && this.visualAllowed ? 'visual' : 'latex';
+		return this.layout.docMode === "visual" && this.visualAllowed ? "visual" : "latex";
 	}
 
 	/**
@@ -208,7 +208,7 @@ export class WorkbenchController {
 	get commands(): PaletteCommand[] {
 		return this.menus.flatMap((menu) =>
 			menu.items
-				.filter((item): item is MenuAction => item.type !== 'separator')
+				.filter((item): item is MenuAction => item.type !== "separator")
 				.map((item) => ({
 					id: `${menu.label}:${item.label}`,
 					group: menu.label,
@@ -216,7 +216,7 @@ export class WorkbenchController {
 					label:
 						item.checked === undefined
 							? item.label
-							: `${item.label} (${item.checked ? 'on' : 'off'})`,
+							: `${item.label} (${item.checked ? "on" : "off"})`,
 					shortcut: item.shortcut,
 					disabled: item.disabled,
 					run: () => item.run?.()
@@ -233,17 +233,17 @@ export class WorkbenchController {
 	}
 	/** Inline emphasis. The block editor toggles a real mark; the source editor
 	 *  wraps the selection in the command that produces one. */
-	mark(id: 'bold' | 'italic'): void {
+	mark(id: "bold" | "italic"): void {
 		if (this.layout.visualApi) this.layout.visualApi.mark(id);
-		else this.layout.editor?.wrapSelection(id === 'bold' ? '\\textbf{' : '\\textit{', '}');
+		else this.layout.editor?.wrapSelection(id === "bold" ? "\\textbf{" : "\\textit{", "}");
 	}
 
 	/** Project-wide search. Distinct from ⌘F, which is find-in-file. */
 	searchProject(): void {
-		this.layout.selectView('search');
+		this.layout.selectView("search");
 		// Seed from the selection so "find this word everywhere" is one keystroke.
-		const selected = this.layout.editor?.selectedText?.() ?? '';
-		if (selected && !selected.includes('\n')) {
+		const selected = this.layout.editor?.selectedText?.() ?? "";
+		if (selected && !selected.includes("\n")) {
 			void this.search.runProjectSearch({ ...this.search.projectOpts, query: selected });
 		}
 	}
@@ -256,33 +256,33 @@ export class WorkbenchController {
 		if (!total) return;
 		if (files > 1) {
 			const ok = await this.files.askConfirm(
-				'Replace across files',
+				"Replace across files",
 				`Replace ${total} matches in ${files} files? Undo works per file, not in one step.`,
-				'Replace all'
+				"Replace all"
 			);
 			if (!ok) return;
 		}
 		const n = await this.search.replaceAllProject(replace);
-		toast.success(`Replaced ${n} ${n === 1 ? 'match' : 'matches'}`);
+		toast.success(`Replaced ${n} ${n === 1 ? "match" : "matches"}`);
 	}
 
 	/** Copy a file's path. Absolute where there is a folder on disk, since that is
 	 *  the form you would paste into a terminal. */
 	async copyPath(rel: string): Promise<void> {
 		const root = this.files.projectRoot;
-		const text = root ? `${root}/${rel}`.replace(/\\/g, '/') : rel;
+		const text = root ? `${root}/${rel}`.replace(/\\/g, "/") : rel;
 		try {
 			await navigator.clipboard.writeText(text);
-			toast.success('Path copied');
+			toast.success("Path copied");
 		} catch {
-			toast.error('Could not copy the path.');
+			toast.error("Could not copy the path.");
 		}
 	}
 
 	/** Outline / go-to-line, routed to the surface on screen. Visual has no
 	 *  CodeMirror handle, so the jump is queued for its block list instead. */
 	goToLine(line: number): void {
-		if (this.docMode !== 'visual') {
+		if (this.docMode !== "visual") {
 			this.layout.editor?.goToLine(line);
 			return;
 		}
@@ -317,8 +317,8 @@ export class WorkbenchController {
 		this.files.syncBuffer();
 		await this.files.saveActive();
 		this.onDownload({
-			kind: 'file',
-			name: file.name.slice(file.name.lastIndexOf('/') + 1),
+			kind: "file",
+			name: file.name.slice(file.name.lastIndexOf("/") + 1),
 			paths: [file.name]
 		});
 	}
@@ -332,8 +332,8 @@ export class WorkbenchController {
 		const paths = this.files.files.map((f) => f.name).filter((n) => n.startsWith(prefix));
 		if (paths.length === 0) return;
 		this.onDownload({
-			kind: 'folder',
-			name: path.slice(path.lastIndexOf('/') + 1),
+			kind: "folder",
+			name: path.slice(path.lastIndexOf("/") + 1),
 			paths,
 			root: path
 		});
@@ -345,66 +345,66 @@ export class WorkbenchController {
 	get menus(): Menu[] {
 		return [
 			{
-				label: 'File',
+				label: "File",
 				items: [
 					{
-						label: 'New File',
-						shortcut: shortcutLabel('new-file'),
+						label: "New File",
+						shortcut: shortcutLabel("new-file"),
 						run: () => this.files.newFile()
 					},
 					{
-						label: 'Open File…',
-						shortcut: shortcutLabel('quick-open'),
+						label: "Open File…",
+						shortcut: shortcutLabel("quick-open"),
 						run: () => (this.layout.paletteOpen = true)
 					},
 					...(this.onOpenProject
 						? [
 								{
-									label: 'Open Project…',
+									label: "Open Project…",
 									run: () => this.onOpenProject?.()
 								}
 							]
 						: []),
 					{
-						label: 'Open Folder…',
-						shortcut: shortcutLabel('open-folder'),
+						label: "Open Folder…",
+						shortcut: shortcutLabel("open-folder"),
 						disabled: !this.canOpenFolder,
 						run: () => this.openFolder()
 					},
 					...(this.onAddFiles
 						? [
 								{
-									label: 'Add Files…',
-									run: () => this.onAddFiles?.('')
+									label: "Add Files…",
+									run: () => this.onAddFiles?.("")
 								},
 								{
-									label: 'Add Images…',
-									run: () => this.onAddFiles?.('image/*')
+									label: "Add Images…",
+									run: () => this.onAddFiles?.("image/*")
 								}
 							]
 						: []),
-					{ type: 'separator' as const },
+					{ type: "separator" as const },
 					{
-						label: 'Import Project…',
+						label: "Import Project…",
 						disabled: !this.canImportProject,
 						run: () => this.importProject()
 					},
 					{
 						// Web supplies its own in-memory zip export; desktop writes to disk.
-						label: 'Export as Zip',
+						label: "Export as Zip",
 						disabled: this.onExportProject ? false : !this.files.project || !this.files.projectRoot,
 						run: () => (this.onExportProject ? this.onExportProject() : this.files.exportProject())
 					},
-					{ type: 'separator' },
+					{ type: "separator" },
 					{
-						label: 'Save',
-						shortcut: shortcutLabel('save'),
+						label: "Save",
+						shortcut: shortcutLabel("save"),
 						disabled: !this.files.activeDirty,
 						run: () => void this.files.saveActive()
 					},
 					{
-						label: 'Save All',
-						shortcut: shortcutLabel('save-all'),
+						label: "Save All",
+						shortcut: shortcutLabel("save-all"),
 						disabled: this.files.dirtyIds.size === 0,
 						run: () => void this.files.saveAll()
 					}
@@ -413,190 +413,190 @@ export class WorkbenchController {
 				]
 			},
 			{
-				label: 'Edit',
+				label: "Edit",
 				// Routed through `layout.editing`, not the CodeMirror handle: in Visual
 				// that handle does not exist, so every item here used to silently no-op
 				// while still looking live.
 				items: [
 					{
-						label: 'Undo',
-						shortcut: shortcutLabel('undo'),
+						label: "Undo",
+						shortcut: shortcutLabel("undo"),
 						disabled: !this.layout.undoable,
 						refocusEditor: true,
 						run: () => this.undo()
 					},
 					{
-						label: 'Redo',
-						shortcut: shortcutLabel('redo'),
+						label: "Redo",
+						shortcut: shortcutLabel("redo"),
 						disabled: !this.layout.redoable,
 						refocusEditor: true,
 						run: () => this.redo()
 					},
-					{ type: 'separator' },
-					{ label: 'Bold', refocusEditor: true, run: () => this.mark('bold') },
-					{ label: 'Italic', refocusEditor: true, run: () => this.mark('italic') },
+					{ type: "separator" },
+					{ label: "Bold", refocusEditor: true, run: () => this.mark("bold") },
+					{ label: "Italic", refocusEditor: true, run: () => this.mark("italic") },
 					// Structural inserts are source edits. In Visual the block editor's
 					// own "/" menu places them, because it knows where the caret is.
 					...(this.layout.visualApi
 						? []
 						: [
-								{ type: 'separator' as const },
+								{ type: "separator" as const },
 								{
-									label: 'Insert Section',
+									label: "Insert Section",
 									refocusEditor: true,
 									// wrapSelection, not insertText: this leaves the caret inside the
 									// braces, where the title goes, rather than past the newline.
-									run: () => this.layout.editor?.wrapSelection('\\section{', '}')
+									run: () => this.layout.editor?.wrapSelection("\\section{", "}")
 								},
 								{
-									label: 'Insert List',
+									label: "Insert List",
 									refocusEditor: true,
 									run: () =>
-										this.layout.editor?.insertText('\\begin{itemize}\n  \\item \n\\end{itemize}\n')
+										this.layout.editor?.insertText("\\begin{itemize}\n  \\item \n\\end{itemize}\n")
 								},
 								{
-									label: 'Insert Equation',
+									label: "Insert Equation",
 									refocusEditor: true,
 									run: () =>
-										this.layout.editor?.insertText('\\begin{equation}\n  \n\\end{equation}\n')
+										this.layout.editor?.insertText("\\begin{equation}\n  \n\\end{equation}\n")
 								}
 							]),
-					{ type: 'separator' },
+					{ type: "separator" },
 					{
-						label: 'Find in File',
-						shortcut: shortcutLabel('find'),
+						label: "Find in File",
+						shortcut: shortcutLabel("find"),
 						disabled: Boolean(this.layout.visualApi),
 						run: () => this.search.openFind()
 					},
 					{
-						label: 'Search in Project',
-						shortcut: shortcutLabel('search-project'),
+						label: "Search in Project",
+						shortcut: shortcutLabel("search-project"),
 						run: () => this.searchProject()
 					}
 				]
 			},
 			{
-				label: 'View',
+				label: "View",
 				items: [
 					{
-						label: 'Explorer',
-						checked: !this.layout.panelCollapsed && this.layout.activeView === 'files',
-						run: () => this.layout.selectView('files')
+						label: "Explorer",
+						checked: !this.layout.panelCollapsed && this.layout.activeView === "files",
+						run: () => this.layout.selectView("files")
 					},
 					{
-						label: 'Search',
-						checked: !this.layout.panelCollapsed && this.layout.activeView === 'search',
-						run: () => this.layout.selectView('search')
+						label: "Search",
+						checked: !this.layout.panelCollapsed && this.layout.activeView === "search",
+						run: () => this.layout.selectView("search")
 					},
 					{
-						label: 'Source Control',
-						checked: !this.layout.panelCollapsed && this.layout.activeView === 'git',
-						run: () => this.layout.selectView('git')
+						label: "Source Control",
+						checked: !this.layout.panelCollapsed && this.layout.activeView === "git",
+						run: () => this.layout.selectView("git")
 					},
-					{ type: 'separator' },
+					{ type: "separator" },
 					{
-						label: 'Editor',
-						checked: this.layout.viewMode === 'editor',
-						run: () => (this.layout.viewMode = 'editor')
-					},
-					{
-						label: 'Split',
-						checked: this.layout.viewMode === 'split',
-						run: () => (this.layout.viewMode = 'split')
+						label: "Editor",
+						checked: this.layout.viewMode === "editor",
+						run: () => (this.layout.viewMode = "editor")
 					},
 					{
-						label: 'Preview',
-						checked: this.layout.viewMode === 'preview',
-						run: () => (this.layout.viewMode = 'preview')
-					},
-					{ type: 'separator' },
-					{
-						label: 'Split Side by Side',
-						checked: this.layout.splitDir === 'horizontal',
-						disabled: this.layout.viewMode !== 'split',
-						run: () => (this.layout.splitDir = 'horizontal')
+						label: "Split",
+						checked: this.layout.viewMode === "split",
+						run: () => (this.layout.viewMode = "split")
 					},
 					{
-						label: 'Split Stacked',
-						checked: this.layout.splitDir === 'vertical',
-						disabled: this.layout.viewMode !== 'split',
-						run: () => (this.layout.splitDir = 'vertical')
+						label: "Preview",
+						checked: this.layout.viewMode === "preview",
+						run: () => (this.layout.viewMode = "preview")
 					},
-					{ type: 'separator' },
+					{ type: "separator" },
 					{
-						label: 'Toggle Sidebar',
-						shortcut: shortcutLabel('toggle-sidebar'),
+						label: "Split Side by Side",
+						checked: this.layout.splitDir === "horizontal",
+						disabled: this.layout.viewMode !== "split",
+						run: () => (this.layout.splitDir = "horizontal")
+					},
+					{
+						label: "Split Stacked",
+						checked: this.layout.splitDir === "vertical",
+						disabled: this.layout.viewMode !== "split",
+						run: () => (this.layout.splitDir = "vertical")
+					},
+					{ type: "separator" },
+					{
+						label: "Toggle Sidebar",
+						shortcut: shortcutLabel("toggle-sidebar"),
 						checked: !this.layout.panelCollapsed,
 						run: () => (this.layout.panelCollapsed = !this.layout.panelCollapsed)
 					},
 					{
-						label: 'Toggle Panel',
+						label: "Toggle Panel",
 						checked: this.compile.showProblems,
 						run: () => (this.compile.showProblems = !this.compile.showProblems)
 					},
 					{
-						label: 'Notes',
+						label: "Notes",
 						checked: this.layout.notesOpen,
 						run: () => (this.layout.notesOpen = !this.layout.notesOpen)
 					},
 					{
-						label: 'PDF Thumbnails',
+						label: "PDF Thumbnails",
 						checked: this.layout.thumbsOpen,
-						disabled: this.layout.viewMode === 'editor',
+						disabled: this.layout.viewMode === "editor",
 						run: () => (this.layout.thumbsOpen = !this.layout.thumbsOpen)
 					}
 				]
 			},
 			{
-				label: 'Go',
+				label: "Go",
 				items: [
 					{
-						label: 'Go to File…',
-						shortcut: shortcutLabel('quick-open'),
+						label: "Go to File…",
+						shortcut: shortcutLabel("quick-open"),
 						run: () => (this.layout.paletteOpen = true)
 					},
-					{ type: 'separator' },
+					{ type: "separator" },
 					{
-						label: 'Next Open File',
-						shortcut: shortcutLabel('next-tab'),
+						label: "Next Open File",
+						shortcut: shortcutLabel("next-tab"),
 						disabled: this.files.openTabFiles.length < 2,
 						run: () => this.files.cycleTab(1)
 					},
 					{
-						label: 'Previous Open File',
-						shortcut: shortcutLabel('prev-tab'),
+						label: "Previous Open File",
+						shortcut: shortcutLabel("prev-tab"),
 						disabled: this.files.openTabFiles.length < 2,
 						run: () => this.files.cycleTab(-1)
 					},
 					{
-						label: 'Close Open File',
-						shortcut: shortcutLabel('close-tab'),
+						label: "Close Open File",
+						shortcut: shortcutLabel("close-tab"),
 						disabled: !this.files.canCloseTab,
 						run: () => this.files.closeTab(this.files.activeId)
 					},
 					{
-						label: 'Reopen Closed File',
-						shortcut: shortcutLabel('reopen-tab'),
+						label: "Reopen Closed File",
+						shortcut: shortcutLabel("reopen-tab"),
 						run: () => this.files.reopenClosedTab()
 					},
-					{ type: 'separator' },
+					{ type: "separator" },
 					{
-						label: 'Sync to PDF',
-						shortcut: shortcutLabel('sync-pdf'),
+						label: "Sync to PDF",
+						shortcut: shortcutLabel("sync-pdf"),
 						run: () => this.compile.syncToPdf()
 					}
 				]
 			},
 			{
-				label: 'Help',
+				label: "Help",
 				items: [
 					{
-						label: 'Keyboard Shortcuts',
+						label: "Keyboard Shortcuts",
 						run: () => (this.layout.shortcutsOpen = true)
 					},
-					{ type: 'separator' },
+					{ type: "separator" },
 					{
-						label: 'About GlyphTeX',
+						label: "About GlyphTeX",
 						run: () => (this.layout.aboutOpen = true)
 					}
 				]
@@ -619,24 +619,24 @@ export class WorkbenchController {
 		}
 		const actions: Array<[string, () => void]> = [
 			// Save-all before save so ⌘⇧S isn't shadowed by the ⌘S match.
-			['save-all', () => void this.files.saveAll()],
-			['save', () => void this.files.saveActive()],
-			['next-tab', () => this.files.cycleTab(1)],
-			['prev-tab', () => this.files.cycleTab(-1)],
-			['close-tab', () => this.files.closeTab(this.files.activeId)],
-			['reopen-tab', () => this.files.reopenClosedTab()],
-			['compile', () => this.compile.runCompile(true)],
-			['sync-pdf', () => this.compile.syncToPdf()],
-			['quick-open', () => (this.layout.paletteOpen = true)],
+			["save-all", () => void this.files.saveAll()],
+			["save", () => void this.files.saveActive()],
+			["next-tab", () => this.files.cycleTab(1)],
+			["prev-tab", () => this.files.cycleTab(-1)],
+			["close-tab", () => this.files.closeTab(this.files.activeId)],
+			["reopen-tab", () => this.files.reopenClosedTab()],
+			["compile", () => this.compile.runCompile(true)],
+			["sync-pdf", () => this.compile.syncToPdf()],
+			["quick-open", () => (this.layout.paletteOpen = true)],
 			// Search-project before find so ⇧⌘F isn't shadowed by the ⌘F match.
-			['search-project', () => this.searchProject()],
-			['find', () => this.search.openFind()],
-			['new-file', () => void this.files.newFile()],
-			['toggle-sidebar', () => (this.layout.panelCollapsed = !this.layout.panelCollapsed)],
-			['toggle-panel', () => (this.compile.showProblems = !this.compile.showProblems)],
-			['toggle-notes', () => (this.layout.notesOpen = !this.layout.notesOpen)]
+			["search-project", () => this.searchProject()],
+			["find", () => this.search.openFind()],
+			["new-file", () => void this.files.newFile()],
+			["toggle-sidebar", () => (this.layout.panelCollapsed = !this.layout.panelCollapsed)],
+			["toggle-panel", () => (this.compile.showProblems = !this.compile.showProblems)],
+			["toggle-notes", () => (this.layout.notesOpen = !this.layout.notesOpen)]
 		];
-		if (this.files.project) actions.push(['open-folder', () => void this.files.openFolder()]);
+		if (this.files.project) actions.push(["open-folder", () => void this.files.openFolder()]);
 		for (const [id, run] of actions) {
 			if (matchShortcut(e, id)) {
 				e.preventDefault();
@@ -649,7 +649,7 @@ export class WorkbenchController {
 	// "On focus change" auto-save: persist when the window loses focus. (Switching
 	// files is handled in openFile, which saves whenever auto-save isn't off.)
 	onWindowBlur(): void {
-		if (settings.autoSave === 'onFocusChange') void this.files.saveActive();
+		if (settings.autoSave === "onFocusChange") void this.files.saveActive();
 	}
 
 	// --- Side-effect drivers (run from the component's `$effect`s) ---
@@ -666,7 +666,7 @@ export class WorkbenchController {
 	/** "After delay" auto-save: persist the active file a beat after typing stops. */
 	armAutoSave(): (() => void) | void {
 		void this.files.source; // track edits
-		if (settings.autoSave !== 'afterDelay') return;
+		if (settings.autoSave !== "afterDelay") return;
 		const f = this.files.files.find((x) => x.id === this.files.activeId);
 		if (!f || !this.files.fileDirty(f)) return;
 		const t = setTimeout(() => void this.files.saveActive(), settings.autoSaveDelayMs);

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { IconTrash, IconX } from '@tabler/icons-svelte';
+	import { Button } from "@glyphtex/ui/button";
+	import { IconTrash, IconX } from "@tabler/icons-svelte";
 
-	import SettingsView from '../side-panel/settings-view.svelte';
-	import type { WorkbenchController } from './controller.svelte';
-	import NotesPanel from './notes-panel.svelte';
+	import SettingsView from "../side-panel/settings-view.svelte";
+	import type { WorkbenchController } from "./controller.svelte";
+	import NotesPanel from "./notes-panel.svelte";
 
 	/** Notes and Settings share one docked column on the right edge, in both
 	 *  editors. Two rail entries and two layout columns became one of each. */
@@ -14,16 +14,16 @@
 	const files = $derived(ctrl.files);
 	const notes = $derived(ctrl.notes);
 
-	const open = $derived(layout.rightPanel !== 'none');
-	const title = $derived(layout.rightPanel === 'notes' ? 'Notes' : 'Settings');
+	const open = $derived(layout.rightPanel !== "none");
+	const title = $derived(layout.rightPanel === "notes" ? "Notes" : "Settings");
 
-	let shellStatus = $state<'idle' | 'busy' | 'done'>('idle');
+	let shellStatus = $state<"idle" | "busy" | "done">("idle");
 	const canRegisterShell = $derived(Boolean(files.project?.registerShellIntegration));
 
 	async function addShellIntegration() {
-		if (shellStatus === 'busy') return;
-		shellStatus = 'busy';
-		shellStatus = (await files.registerShell()) ? 'done' : 'idle';
+		if (shellStatus === "busy") return;
+		shellStatus = "busy";
+		shellStatus = (await files.registerShell()) ? "done" : "idle";
 	}
 
 	const WIDTH_PX = 320;

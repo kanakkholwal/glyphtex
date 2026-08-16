@@ -1,13 +1,13 @@
-import type { SearchOptions } from './types';
+import type { SearchOptions } from "./types";
 
 /** Compiles `SearchOptions` into a global RegExp, escaping the query unless
  *  `regexp` is set. Returns null for an empty or invalid pattern. */
 export function buildRegex(o: SearchOptions): RegExp | null {
 	if (!o.query) return null;
-	let pat = o.regexp ? o.query : o.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	let pat = o.regexp ? o.query : o.query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 	if (o.wholeWord) pat = `\\b(?:${pat})\\b`;
 	try {
-		return new RegExp(pat, 'g' + (o.caseSensitive ? '' : 'i'));
+		return new RegExp(pat, "g" + (o.caseSensitive ? "" : "i"));
 	} catch {
 		return null; // invalid regex: caller shows no results
 	}
@@ -20,8 +20,8 @@ export function expandReplacement(
 	groups: (string | undefined)[]
 ): string {
 	return replacement.replace(/\$(\$|&|\d{1,2})/g, (_, token: string) => {
-		if (token === '$') return '$';
-		if (token === '&') return match;
-		return groups[parseInt(token, 10) - 1] ?? '';
+		if (token === "$") return "$";
+		if (token === "&") return match;
+		return groups[parseInt(token, 10) - 1] ?? "";
 	});
 }

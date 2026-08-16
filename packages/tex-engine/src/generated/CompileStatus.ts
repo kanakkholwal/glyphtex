@@ -6,4 +6,4 @@
  * `Spotless`/`Warnings`/`Errors` mirror TeX's own notion of severity and all
  * mean the engine ran to completion. Only `Failed` means no output at all.
  */
-export type CompileStatus = 'spotless' | 'warnings' | 'errors' | 'failed';
+export type CompileStatus = "spotless" | "warnings" | "errors" | "failed";

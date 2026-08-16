@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Switch as SwitchPrimitive } from 'bits-ui';
-	import { cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
+	import { Switch as SwitchPrimitive } from "bits-ui";
+	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 
 	/**
 	 * Switch: a Mac-native toggle. The track takes `--brand` when on, following

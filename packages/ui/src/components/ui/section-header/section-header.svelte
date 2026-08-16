@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { cn } from '@glyphtex/ui/utils';
+	import type { Snippet } from "svelte";
+	import { cn } from "@glyphtex/ui/utils";
 
 	/**
 	 * The one section-heading treatment for the marketing pages. Sizes come from
@@ -13,9 +13,9 @@
 		/** Second line, in the muted display voice. */
 		emphasis?: string;
 		description?: string;
-		align?: 'left' | 'center';
+		align?: "left" | "center";
 		/** Heading level. The page owns the outline; this component follows it. */
-		as?: 'h2' | 'h3';
+		as?: "h2" | "h3";
 		class?: string;
 		actions?: Snippet;
 	};
@@ -25,8 +25,8 @@
 		title,
 		emphasis,
 		description,
-		align = 'left',
-		as: Tag = 'h2',
+		align = "left",
+		as: Tag = "h2",
 		class: className,
 		actions
 	}: Props = $props();

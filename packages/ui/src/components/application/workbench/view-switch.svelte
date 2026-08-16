@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { Tooltip, TooltipContent, TooltipTrigger } from '@glyphtex/ui/tooltip';
-	import { IconCode, IconEye, IconLayoutColumns, IconLayoutRows } from '@tabler/icons-svelte';
+	import { Tooltip, TooltipContent, TooltipTrigger } from "@glyphtex/ui/tooltip";
+	import { IconCode, IconEye, IconLayoutColumns, IconLayoutRows } from "@tabler/icons-svelte";
 
-	import type { LayoutStore } from './layout.svelte';
-	import type { ViewMode } from './types';
+	import type { LayoutStore } from "./layout.svelte";
+	import type { ViewMode } from "./types";
 
 	/** How the LaTeX surface is laid out: source, PDF, or both. Icon-only: it sits
 	 *  next to the Visual/LaTeX switch, which already carries the words. */
 	let { layout }: { layout: LayoutStore } = $props();
 
 	const modes: { value: ViewMode; label: string; icon: typeof IconEye }[] = [
-		{ value: 'editor', label: 'Source only', icon: IconCode },
-		{ value: 'split', label: 'Source and PDF', icon: IconLayoutColumns },
-		{ value: 'preview', label: 'PDF only', icon: IconEye }
+		{ value: "editor", label: "Source only", icon: IconCode },
+		{ value: "split", label: "Source and PDF", icon: IconLayoutColumns },
+		{ value: "preview", label: "PDF only", icon: IconEye }
 	];
 </script>
 

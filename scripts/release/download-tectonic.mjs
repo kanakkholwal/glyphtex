@@ -16,7 +16,7 @@
 // the TECTONIC_VERSION env in the CI / release workflows so every build leg
 // ships the same engine. Bump deliberately — do NOT track "latest".
 
-import { spawnSync } from 'node:child_process';
+import { spawnSync } from "node:child_process";
 import {
 	chmodSync,
 	copyFileSync,
@@ -25,35 +25,35 @@ import {
 	readdirSync,
 	statSync,
 	writeFileSync
-} from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const TECTONIC_REPO = 'tectonic-typesetting/tectonic';
-export const DEFAULT_TECTONIC_VERSION = '0.16.9';
+const TECTONIC_REPO = "tectonic-typesetting/tectonic";
+export const DEFAULT_TECTONIC_VERSION = "0.16.9";
 
 /**
  * Download + extract Tectonic for one target triple into `dest`, named
  * `tectonic-<target>[.exe]`. Returns the absolute path written.
  */
 export async function downloadTectonic({ target, version = DEFAULT_TECTONIC_VERSION, dest }) {
-	if (!target) throw new Error('downloadTectonic: `target` (rust triple) is required');
-	if (!dest) throw new Error('downloadTectonic: `dest` directory is required');
+	if (!target) throw new Error("downloadTectonic: `target` (rust triple) is required");
+	if (!dest) throw new Error("downloadTectonic: `dest` directory is required");
 
-	const isWindows = target.includes('windows');
-	const ext = isWindows ? 'zip' : 'tar.gz';
-	const binName = isWindows ? 'tectonic.exe' : 'tectonic';
+	const isWindows = target.includes("windows");
+	const ext = isWindows ? "zip" : "tar.gz";
+	const binName = isWindows ? "tectonic.exe" : "tectonic";
 	const asset = `tectonic-${version}-${target}.${ext}`;
 	// The git tag is `tectonic@<version>`; `@` must be percent-encoded in the URL.
 	const url = `https://github.com/${TECTONIC_REPO}/releases/download/tectonic%40${version}/${asset}`;
 
 	mkdirSync(dest, { recursive: true });
-	const work = mkdtempSync(join(tmpdir(), 'tectonic-'));
+	const work = mkdtempSync(join(tmpdir(), "tectonic-"));
 	const archivePath = join(work, asset);
 
 	console.log(`↓ ${url}`);
-	const res = await fetch(url, { redirect: 'follow' });
+	const res = await fetch(url, { redirect: "follow" });
 	if (!res.ok) {
 		throw new Error(`Download failed (${res.status} ${res.statusText}): ${url}`);
 	}
@@ -62,7 +62,7 @@ export async function downloadTectonic({ target, version = DEFAULT_TECTONIC_VERS
 	// `tar -xf` autodetects the format: bsdtar (preinstalled on Windows runners)
 	// extracts .zip, and GNU/BSD tar on macOS/Linux extracts .tar.gz — so one
 	// command covers every platform without needing unzip / Expand-Archive.
-	const untar = spawnSync('tar', ['-xf', archivePath, '-C', work], { stdio: 'inherit' });
+	const untar = spawnSync("tar", ["-xf", archivePath, "-C", work], { stdio: "inherit" });
 	if (untar.status !== 0) {
 		throw new Error(`Extraction failed for ${asset} (tar exit ${untar.status})`);
 	}
@@ -100,9 +100,9 @@ function parseArgs(argv) {
 	const out = {};
 	for (let i = 0; i < argv.length; i += 1) {
 		const a = argv[i];
-		if (a === '--target') out.target = argv[++i];
-		else if (a === '--version') out.version = argv[++i];
-		else if (a === '--dest') out.dest = argv[++i];
+		if (a === "--target") out.target = argv[++i];
+		else if (a === "--version") out.version = argv[++i];
+		else if (a === "--dest") out.dest = argv[++i];
 	}
 	return out;
 }
@@ -110,11 +110,11 @@ function parseArgs(argv) {
 // Run as a CLI when invoked directly (not when imported).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 	const { target, version, dest } = parseArgs(process.argv.slice(2));
-	const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+	const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 	downloadTectonic({
 		target,
 		version: version || process.env.TECTONIC_VERSION || DEFAULT_TECTONIC_VERSION,
-		dest: dest || join(repoRoot, 'apps/desktop/src-tauri/binaries')
+		dest: dest || join(repoRoot, "apps/desktop/src-tauri/binaries")
 	}).catch((err) => {
 		console.error(`✗ ${err.message}`);
 		process.exit(1);

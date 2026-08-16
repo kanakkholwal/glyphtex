@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { cn, type WithElementRef, type WithoutChildren } from '@glyphtex/ui/utils';
-	import type { HTMLTextareaAttributes } from 'svelte/elements';
+	import { cn, type WithElementRef, type WithoutChildren } from "@glyphtex/ui/utils";
+	import type { HTMLTextareaAttributes } from "svelte/elements";
 
 	let {
 		ref = $bindable(null),
 		value = $bindable(),
 		class: className,
-		'data-slot': dataSlot = 'textarea',
+		"data-slot": dataSlot = "textarea",
 		...restProps
 	}: WithoutChildren<WithElementRef<HTMLTextareaAttributes>> = $props();
 </script>

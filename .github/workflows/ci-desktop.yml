@@ -1,13 +1,5 @@
 name: CI Desktop App
 
-# Per-push compile + lint + unit-test gate for the desktop app on all three
-# target OSes. `release-desktop.yml` already builds + bundles Windows/macOS/Linux,
-# but it only fires on `v*` tags — far too late to catch a change that broke a
-# platform you can't run locally. This workflow compiles and runs the (OS-
-# agnostic) Rust unit tests on every push/PR so cross-platform code stays green
-# while it's being written. Tectonic is bundled as a sidecar; here we never run
-# it, so empty placeholder sidecars are enough to satisfy the build.
-
 on:
   # Push is scoped to the default branch only; `pull_request` covers every other
   # branch. Running push on "**" as well caused a duplicate run whenever a commit
@@ -29,7 +21,6 @@ on:
   #     - "scripts/**"
   #     - ".github/workflows/ci-desktop.yml"
   workflow_dispatch:
-
 
 concurrency:
   group: ci-desktop-${{ github.ref }}

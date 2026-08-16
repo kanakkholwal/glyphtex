@@ -9,10 +9,10 @@
 		IconFolderOff,
 		IconReplace,
 		IconReplaceFilled
-	} from '@tabler/icons-svelte';
-	import { MediaQuery } from 'svelte/reactivity';
+	} from "@tabler/icons-svelte";
+	import { MediaQuery } from "svelte/reactivity";
 
-	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from '../search-ui';
+	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from "../search-ui";
 	import {
 		NO_SKIPS,
 		skipSummary,
@@ -20,9 +20,9 @@
 		type Hit,
 		type ScanResult,
 		type SearchSkips
-	} from '../workbench/project-search';
-	import { isDocumentFile } from '../file-kinds';
-	import type { SidePanelStore } from './store.svelte';
+	} from "../workbench/project-search";
+	import { isDocumentFile } from "../file-kinds";
+	import type { SidePanelStore } from "./store.svelte";
 
 	/**
 	 * Project search: find/replace across every file, with the toggles inside the
@@ -68,7 +68,7 @@
 		onreplaceall?: (replace: string) => void;
 	} = $props();
 
-	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
+	const reduced = new MediaQuery("prefers-reduced-motion: reduce");
 	let listEl = $state<HTMLElement>();
 	let replaceEl = $state<HTMLInputElement>();
 
@@ -93,23 +93,23 @@
 	$effect(() => {
 		void activeHit;
 		const el = listEl?.querySelector<HTMLElement>('[data-active="true"]');
-		el?.scrollIntoView({ block: 'nearest', behavior: reduced.current ? 'auto' : 'smooth' });
+		el?.scrollIntoView({ block: "nearest", behavior: reduced.current ? "auto" : "smooth" });
 	});
 
 	function onFindKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
+		if (e.key === "Enter") {
 			e.preventDefault();
 			if (e.shiftKey) onsearchprev?.();
 			else onsearchnext?.();
 			return;
 		}
-		if (e.key === 'Escape') {
+		if (e.key === "Escape") {
 			e.preventDefault();
 			store.clearSearchView();
 		}
 	}
 	function onReplaceKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
+		if (e.key === "Enter") {
 			e.preventDefault();
 			// Shift+Enter is replace-all: the same relationship Enter/Shift+Enter has
 			// in the find field, one level up in scope.
@@ -117,7 +117,7 @@
 			else onreplacecurrent?.(store.replace);
 			return;
 		}
-		if (e.key === 'Escape') {
+		if (e.key === "Escape") {
 			e.preventDefault();
 			store.searchInputEl?.focus();
 		}
@@ -126,13 +126,13 @@
 	/** One tab stop for the whole list; arrows move between matches. */
 	function onRowKeydown(e: KeyboardEvent, at: number) {
 		const step =
-			e.key === 'ArrowDown'
+			e.key === "ArrowDown"
 				? 1
-				: e.key === 'ArrowUp'
+				: e.key === "ArrowUp"
 					? -1
-					: e.key === 'Home'
+					: e.key === "Home"
 						? -at
-						: e.key === 'End'
+						: e.key === "End"
 							? rows.length - 1 - at
 							: null;
 		if (step === null) return;
@@ -141,7 +141,7 @@
 		if (!next) return;
 		const index = hitIndexOf(next.group, next.i);
 		if (index !== -1) ongotoresult?.(index);
-		listEl?.querySelectorAll<HTMLElement>('[data-row]')[at + step]?.focus();
+		listEl?.querySelectorAll<HTMLElement>("[data-row]")[at + step]?.focus();
 	}
 
 	// Autofocus the field when the Search view opens (e.g. via Shift+Ctrl/Cmd+F).

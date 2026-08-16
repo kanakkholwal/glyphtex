@@ -1,15 +1,15 @@
 <script lang="ts" module>
-	export type LogoSize = 'sm' | 'md' | 'lg' | 'xl';
+	export type LogoSize = "sm" | "md" | "lg" | "xl";
 	/** Glyph fill: `mono` (default, currentColor), brand `gradient`, or solid
 	 *  `white` / `dark` for placement on coloured surfaces. */
-	export type LogoTone = 'gradient' | 'mono' | 'white' | 'dark';
+	export type LogoTone = "gradient" | "mono" | "white" | "dark";
 
 	const MARK_PX: Record<LogoSize, number> = { sm: 20, md: 24, lg: 44, xl: 72 };
 	const TEXT_CLS: Record<LogoSize, string> = {
-		sm: 'text-sm',
-		md: 'text-base',
-		lg: 'text-2xl',
-		xl: 'text-4xl'
+		sm: "text-sm",
+		md: "text-base",
+		lg: "text-2xl",
+		xl: "text-4xl"
 	};
 </script>
 

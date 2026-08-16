@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
-	import { gsap } from 'gsap';
-	import { SplitText } from 'gsap/SplitText';
-	import { onMount } from 'svelte';
-	import type { ClassValue } from 'clsx';
+	import { untrack } from "svelte";
+	import { gsap } from "gsap";
+	import { SplitText } from "gsap/SplitText";
+	import { onMount } from "svelte";
+	import type { ClassValue } from "clsx";
 
-	import type { Snippet } from 'svelte';
-	import { ensureMotionCoreEase, registerPluginOnce } from '../helpers/gsap';
-	import { cn } from '../utils/cn';
-	import { portal } from '../utils/use-portal';
+	import type { Snippet } from "svelte";
+	import { ensureMotionCoreEase, registerPluginOnce } from "../helpers/gsap";
+	import { cn } from "../utils/cn";
+	import { portal } from "../utils/use-portal";
 
-	type MenuVariant = 'default' | 'muted';
+	type MenuVariant = "default" | "muted";
 
 	interface MenuLink {
 		/**
@@ -117,7 +117,7 @@
 		secondaryButton,
 		class: className,
 		classes,
-		portalTarget = 'body'
+		portalTarget = "body"
 	}: Props = $props();
 
 	let isOpen = $state(false);
@@ -179,15 +179,15 @@
 			const isMobile = width < 768;
 			const isTablet = width >= 768 && width < 1024;
 
-			let maxWidthOpen = '75%';
-			let maxWidthInitial = '50%';
+			let maxWidthOpen = "75%";
+			let maxWidthInitial = "50%";
 
 			if (isMobile) {
-				maxWidthOpen = '100%';
-				maxWidthInitial = '95%';
+				maxWidthOpen = "100%";
+				maxWidthInitial = "95%";
 			} else if (isTablet) {
-				maxWidthOpen = '85%';
-				maxWidthInitial = '70%';
+				maxWidthOpen = "85%";
+				maxWidthInitial = "70%";
 			}
 
 			ctx?.revert();
@@ -201,12 +201,12 @@
 					menuWrapperRef
 				) as HTMLElement[];
 
-				splits = linkElements.map((el) => SplitText.create(el, { type: 'lines', mask: 'lines' }));
+				splits = linkElements.map((el) => SplitText.create(el, { type: "lines", mask: "lines" }));
 				const allLines = splits.flatMap((s) => s.lines);
 
 				timeline = gsap.timeline({
 					paused: true,
-					defaults: { ease: 'motion-core-ease', duration: 0.5 }
+					defaults: { ease: "motion-core-ease", duration: 0.5 }
 				});
 
 				timeline
@@ -217,7 +217,7 @@
 							...(isMobile
 								? {
 										top: 0,
-										paddingTop: '0.5rem',
+										paddingTop: "0.5rem",
 										borderTopLeftRadius: 0,
 										borderTopRightRadius: 0
 									}
@@ -226,7 +226,7 @@
 						0
 					)
 					.to(overlayRef, { autoAlpha: 1 }, 0)
-					.to(menuWrapperRef, { height: 'auto', autoAlpha: 1 }, 0.2)
+					.to(menuWrapperRef, { height: "auto", autoAlpha: 1 }, 0.2)
 					.to([line1Ref, line2Ref], { y: 0, duration: 0.4 }, 0.2)
 					.to(line1Ref, { rotation: 45, duration: 0.4 }, 0.2)
 					.to(line2Ref, { rotation: -45, duration: 0.4 }, 0.2);

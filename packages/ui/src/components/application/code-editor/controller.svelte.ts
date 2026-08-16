@@ -4,7 +4,7 @@ import {
 	closeBrackets,
 	closeBracketsKeymap,
 	completionKeymap
-} from '@codemirror/autocomplete';
+} from "@codemirror/autocomplete";
 import {
 	defaultKeymap,
 	history,
@@ -13,10 +13,10 @@ import {
 	redoDepth,
 	undo,
 	undoDepth
-} from '@codemirror/commands';
-import { markdown } from '@codemirror/lang-markdown';
-import { bracketMatching, codeFolding, foldGutter, foldKeymap } from '@codemirror/language';
-import { highlightSelectionMatches } from '@codemirror/search';
+} from "@codemirror/commands";
+import { markdown } from "@codemirror/lang-markdown";
+import { bracketMatching, codeFolding, foldGutter, foldKeymap } from "@codemirror/language";
+import { highlightSelectionMatches } from "@codemirror/search";
 import {
 	Compartment,
 	EditorState,
@@ -24,7 +24,7 @@ import {
 	StateField,
 	Transaction,
 	type Extension
-} from '@codemirror/state';
+} from "@codemirror/state";
 import {
 	Decoration,
 	EditorView,
@@ -36,18 +36,18 @@ import {
 	lineNumbers,
 	rectangularSelection,
 	type DecorationSet
-} from '@codemirror/view';
-import { editorTheme, latex } from '@glyphtex/ui/editor';
+} from "@codemirror/view";
+import { editorTheme, latex } from "@glyphtex/ui/editor";
 
-import { applyCase } from '../case-preserve';
-import { buildRegex, expandReplacement } from './search';
-import type { SearchMatch, SearchOptions } from './types';
+import { applyCase } from "../case-preserve";
+import { buildRegex, expandReplacement } from "./search";
+import type { SearchMatch, SearchOptions } from "./types";
 
-export type EditorLanguage = 'latex' | 'markdown' | 'plain';
+export type EditorLanguage = "latex" | "markdown" | "plain";
 
 export type EditorInit = {
 	value: string;
-	theme: 'light' | 'dark';
+	theme: "light" | "dark";
 	language: EditorLanguage;
 	fontSize: number;
 	fontFamily: string;
@@ -65,7 +65,7 @@ export type CodeEditorCallbacks = {
 // --- Find/replace highlight --------------------------------------------------
 // The app owns its find panel, so matches are painted from a decoration set
 // rather than by @codemirror/search's own query state.
-const searchMark = Decoration.mark({ class: 'cm-searchMatch' });
+const searchMark = Decoration.mark({ class: "cm-searchMatch" });
 const setMatches = StateEffect.define<readonly { from: number; to: number }[]>();
 
 const searchField = StateField.define<DecorationSet>({
@@ -87,23 +87,23 @@ const searchField = StateField.define<DecorationSet>({
 });
 
 function languageExtension(lang: EditorLanguage): Extension {
-	if (lang === 'latex') return latex();
-	if (lang === 'markdown') return markdown();
+	if (lang === "latex") return latex();
+	if (lang === "markdown") return markdown();
 	return [];
 }
 
 // CM6 sizes to its content by default; the workbench panes are resizable, so the
 // view has to fill the host instead and scroll internally.
 const fillHost = EditorView.theme({
-	'&': { height: '100%' },
-	'.cm-scroller': { overflow: 'auto' },
-	'.cm-content': { paddingTop: '12px', paddingBottom: '12px' }
+	"&": { height: "100%" },
+	".cm-scroller": { overflow: "auto" },
+	".cm-content": { paddingTop: "12px", paddingBottom: "12px" }
 });
 
 function fontExtension(size: number, family: string): Extension {
 	return EditorView.theme({
-		'&': { fontSize: `${size}px` },
-		'.cm-scroller': { fontFamily: family, lineHeight: '1.6' }
+		"&": { fontSize: `${size}px` },
+		".cm-scroller": { fontFamily: family, lineHeight: "1.6" }
 	});
 }
 
@@ -163,9 +163,9 @@ export class CodeEditorController {
 			keymap.of([
 				// Enter inserts a newline; Tab accepts. Prose has far more Enter presses
 				// than accepted completions, and the reverse mapping eats paragraphs.
-				{ key: 'Tab', run: acceptCompletion },
+				{ key: "Tab", run: acceptCompletion },
 				...closeBracketsKeymap,
-				...completionKeymap.filter((b) => b.key !== 'Enter'),
+				...completionKeymap.filter((b) => b.key !== "Enter"),
 				...foldKeymap,
 				...historyKeymap,
 				...defaultKeymap
@@ -198,7 +198,7 @@ export class CodeEditorController {
 
 	// --- Live reconfiguration ---
 
-	reconfigureTheme(theme: 'light' | 'dark'): void {
+	reconfigureTheme(theme: "light" | "dark"): void {
 		this.view?.dispatch({ effects: this.#theme.reconfigure(editorTheme(theme)) });
 	}
 
@@ -276,8 +276,8 @@ export class CodeEditorController {
 		// A block snippet (one that closes its own line) belongs on a line of its
 		// own; splicing it mid-paragraph produces `Lorem \begin{itemize}…ipsum`.
 		const line = view.state.doc.lineAt(from);
-		const midLine = from > line.from && line.text.slice(0, from - line.from).trim() !== '';
-		const insert = text.endsWith('\n') && midLine ? `\n${text}` : text;
+		const midLine = from > line.from && line.text.slice(0, from - line.from).trim() !== "";
+		const insert = text.endsWith("\n") && midLine ? `\n${text}` : text;
 
 		view.dispatch({
 			changes: { from, to, insert },
@@ -292,7 +292,7 @@ export class CodeEditorController {
 
 	selectedText(): string {
 		const view = this.view;
-		if (!view) return '';
+		if (!view) return "";
 		const { from, to } = view.state.selection.main;
 		return view.state.sliceDoc(from, to);
 	}
@@ -319,7 +319,7 @@ export class CodeEditorController {
 		const target = view.state.doc.line(n);
 		view.dispatch({
 			selection: { anchor: target.from },
-			effects: EditorView.scrollIntoView(target.from, { y: 'center' })
+			effects: EditorView.scrollIntoView(target.from, { y: "center" })
 		});
 		view.focus();
 	}
@@ -339,7 +339,7 @@ export class CodeEditorController {
 		const out: SearchMatch[] = [];
 		let m: RegExpExecArray | null;
 		while ((m = re.exec(text)) && out.length < 5000) {
-			if (m[0] === '') {
+			if (m[0] === "") {
 				re.lastIndex++; // guard against zero-width matches
 				continue;
 			}
@@ -369,7 +369,7 @@ export class CodeEditorController {
 		const head = Math.max(0, Math.min(to, max));
 		view.dispatch({
 			selection: { anchor, head },
-			effects: EditorView.scrollIntoView(anchor, { y: 'nearest' })
+			effects: EditorView.scrollIntoView(anchor, { y: "nearest" })
 		});
 		if (opts.focus !== false) view.focus();
 	}
@@ -412,7 +412,7 @@ export class CodeEditorController {
 			});
 		} else {
 			// In regex mode keep $1/$& expansion; otherwise insert the literal text.
-			const repl = o.regexp ? replacement : replacement.replace(/\$/g, '$$$$');
+			const repl = o.regexp ? replacement : replacement.replace(/\$/g, "$$$$");
 			next = text.replace(re, repl);
 		}
 

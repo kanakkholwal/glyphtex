@@ -1,4 +1,4 @@
-import type { NewFile } from './projects';
+import type { NewFile } from "./projects";
 
 const MAIN = String.raw`\documentclass[11pt]{article}
 
@@ -30,7 +30,7 @@ This file is included from \texttt{main.tex}.
 
 export function starterFiles(): NewFile[] {
 	return [
-		{ path: 'main.tex', text: MAIN },
-		{ path: 'sections/notes.tex', text: NOTES }
+		{ path: "main.tex", text: MAIN },
+		{ path: "sections/notes.tex", text: NOTES }
 	];
 }

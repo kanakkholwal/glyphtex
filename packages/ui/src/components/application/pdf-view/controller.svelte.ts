@@ -39,7 +39,7 @@ export class PdfViewController {
 
 	// Find-in-PDF state.
 	findOpen = $state(false);
-	findQuery = $state('');
+	findQuery = $state("");
 	findCaseSensitive = $state(false);
 	findCurrent = $state(0);
 	findTotal = $state(0);
@@ -67,9 +67,9 @@ export class PdfViewController {
 
 	/** Lazily import pdf.js and construct the viewer. Call from `onMount`. */
 	async init(): Promise<void> {
-		this.#pdfjs = await import('pdfjs-dist');
-		this.#viewerMod = await import('pdfjs-dist/web/pdf_viewer.mjs');
-		const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
+		this.#pdfjs = await import("pdfjs-dist");
+		this.#viewerMod = await import("pdfjs-dist/web/pdf_viewer.mjs");
+		const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
 		this.#pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
 
 		const containerEl = this.containerEl;
@@ -80,7 +80,7 @@ export class PdfViewController {
 		this.#linkService = new this.#viewerMod.PDFLinkService({
 			eventBus: this.#eventBus,
 			externalLinkTarget: this.#viewerMod.LinkTarget.BLANK,
-			externalLinkRel: 'noopener'
+			externalLinkRel: "noopener"
 		});
 		this.#findController = new this.#viewerMod.PDFFindController({
 			eventBus: this.#eventBus,
@@ -99,9 +99,9 @@ export class PdfViewController {
 		});
 		this.#linkService.setViewer(this.#pdfViewer);
 
-		this.#eventBus.on('pagesinit', () => {
+		this.#eventBus.on("pagesinit", () => {
 			this.#pdfViewer.currentScaleValue = this.#cb.getFitMode()
-				? 'page-width'
+				? "page-width"
 				: this.#pdfViewer.currentScale;
 			// Restore scroll position across recompiles (don't jump to top).
 			if (this.#restoreRatio != null && containerEl) {
@@ -114,23 +114,23 @@ export class PdfViewController {
 			this.hasRendered = true;
 			this.loading = false;
 		});
-		this.#eventBus.on('pagechanging', (e: { pageNumber?: number }) => {
-			if (typeof e?.pageNumber === 'number') this.#cb.setPage(e.pageNumber);
+		this.#eventBus.on("pagechanging", (e: { pageNumber?: number }) => {
+			if (typeof e?.pageNumber === "number") this.#cb.setPage(e.pageNumber);
 		});
-		this.#eventBus.on('scalechanging', (e: { scale?: number }) => {
-			if (typeof e?.scale === 'number') this.#cb.setScalePct(Math.round(e.scale * 100));
+		this.#eventBus.on("scalechanging", (e: { scale?: number }) => {
+			if (typeof e?.scale === "number") this.#cb.setScalePct(Math.round(e.scale * 100));
 		});
 		const onMatches = (e: { matchesCount?: { current?: number; total?: number } }) => {
 			this.findCurrent = e?.matchesCount?.current ?? 0;
 			this.findTotal = e?.matchesCount?.total ?? 0;
 		};
-		this.#eventBus.on('updatefindmatchescount', onMatches);
-		this.#eventBus.on('updatefindcontrolstate', onMatches);
+		this.#eventBus.on("updatefindmatchescount", onMatches);
+		this.#eventBus.on("updatefindcontrolstate", onMatches);
 
 		// Refit on container resize while in a fit mode.
 		this.#resizeObserver = new ResizeObserver(() => {
 			if (this.#pdfViewer && this.#cb.getFitMode())
-				this.#pdfViewer.currentScaleValue = 'page-width';
+				this.#pdfViewer.currentScaleValue = "page-width";
 		});
 		this.#resizeObserver.observe(containerEl);
 
@@ -231,14 +231,14 @@ export class PdfViewController {
 		const onreverse = this.#cb.onreverse;
 		const pdfViewer = this.#pdfViewer;
 		if (!onreverse || !pdfViewer) return;
-		const pageEl = (e.target as HTMLElement).closest<HTMLElement>('.page');
+		const pageEl = (e.target as HTMLElement).closest<HTMLElement>(".page");
 		if (!pageEl) return;
-		const pageNumber = parseInt(pageEl.dataset.pageNumber ?? '', 10);
+		const pageNumber = parseInt(pageEl.dataset.pageNumber ?? "", 10);
 		const pageView = pdfViewer.getPageView(pageNumber - 1);
 		const viewport = pageView?.viewport;
 		if (!viewport) return;
 
-		const canvas = pageEl.querySelector('canvas') ?? pageEl;
+		const canvas = pageEl.querySelector("canvas") ?? pageEl;
 		const rect = canvas.getBoundingClientRect();
 		const vx = ((e.clientX - rect.left) / rect.width) * viewport.width;
 		const vy = ((e.clientY - rect.top) / rect.height) * viewport.height;
@@ -265,8 +265,8 @@ export class PdfViewController {
 		const wPx = loc.width > 0 ? loc.width * s : Math.max(24, pageDiv.clientWidth - leftPx);
 
 		if (this.#flashEl) this.#flashEl.remove();
-		const el = document.createElement('div');
-		el.className = 'glyphtex-sync-flash';
+		const el = document.createElement("div");
+		el.className = "glyphtex-sync-flash";
 		el.style.left = `${leftPx}px`;
 		el.style.top = `${topPx}px`;
 		el.style.width = `${wPx}px`;
@@ -281,7 +281,7 @@ export class PdfViewController {
 
 		this.containerEl.scrollTo({
 			top: Math.max(0, pageDiv.offsetTop + topPx - 100),
-			behavior: 'smooth'
+			behavior: "smooth"
 		});
 	}
 
@@ -299,7 +299,7 @@ export class PdfViewController {
 		cssWidth = 104
 	): Promise<void> {
 		const doc = this.#doc;
-		const ctx = canvas.getContext('2d');
+		const ctx = canvas.getContext("2d");
 		if (!doc || !ctx) return;
 		const token = this.#loadToken;
 		const page = await doc.getPage(pageNumber);
@@ -317,7 +317,7 @@ export class PdfViewController {
 	// --- Zoom -----------------------------------------------------------------
 	#fit(): void {
 		this.#cb.setFitMode(true);
-		if (this.#pdfViewer) this.#pdfViewer.currentScaleValue = 'page-width';
+		if (this.#pdfViewer) this.#pdfViewer.currentScaleValue = "page-width";
 	}
 	#zoomTo(scale: number): void {
 		if (!this.#pdfViewer) return;
@@ -344,9 +344,9 @@ export class PdfViewController {
 
 	// --- Find in PDF (PDFFindController) ---------------------------------------
 	runFind(again = false, findPrevious = false): void {
-		this.#eventBus?.dispatch('find', {
+		this.#eventBus?.dispatch("find", {
 			source: null,
-			type: again ? 'again' : '',
+			type: again ? "again" : "",
 			query: this.findQuery,
 			caseSensitive: this.findCaseSensitive,
 			entireWord: false,
@@ -366,7 +366,7 @@ export class PdfViewController {
 		else {
 			this.findCurrent = 0;
 			this.findTotal = 0;
-			this.#eventBus?.dispatch('findbarclose', { source: null });
+			this.#eventBus?.dispatch("findbarclose", { source: null });
 		}
 	}
 	toggleFindCase(): void {
@@ -374,11 +374,11 @@ export class PdfViewController {
 		this.onFindInput();
 	}
 	onFindKeydown(e: KeyboardEvent): void {
-		if (e.key === 'Enter') {
+		if (e.key === "Enter") {
 			e.preventDefault();
 			if (e.shiftKey) this.findPrev();
 			else this.findNext();
-		} else if (e.key === 'Escape') {
+		} else if (e.key === "Escape") {
 			e.preventDefault();
 			this.closeFind();
 		}
@@ -390,11 +390,11 @@ export class PdfViewController {
 	}
 	closeFind(): void {
 		this.findOpen = false;
-		this.#eventBus?.dispatch('findbarclose', { source: null });
+		this.#eventBus?.dispatch("findbarclose", { source: null });
 		this.containerEl?.focus?.();
 	}
 	onContainerKeydown(e: KeyboardEvent): void {
-		if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
+		if ((e.ctrlKey || e.metaKey) && (e.key === "f" || e.key === "F")) {
 			e.preventDefault();
 			e.stopPropagation();
 			this.openFind();

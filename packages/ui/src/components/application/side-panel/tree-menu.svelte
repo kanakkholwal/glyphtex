@@ -1,15 +1,15 @@
 <script lang="ts" module>
 	export type TreeAction =
-		| 'open'
-		| 'newfile'
-		| 'newfolder'
-		| 'main'
-		| 'duplicate'
-		| 'copy'
-		| 'rename'
-		| 'delete'
-		| 'download'
-		| 'siblings';
+		| "open"
+		| "newfile"
+		| "newfolder"
+		| "main"
+		| "duplicate"
+		| "copy"
+		| "rename"
+		| "delete"
+		| "download"
+		| "siblings";
 </script>
 
 <script lang="ts">

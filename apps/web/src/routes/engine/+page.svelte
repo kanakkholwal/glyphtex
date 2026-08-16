@@ -1,92 +1,92 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { track } from '$lib/analytics';
-	import { Container, Section } from '$lib/landing';
-	import { REPO_URL } from '$lib/landing/nav-data';
-	import SiteFooter from '$lib/SiteFooter.svelte';
-	import SiteHeader from '$lib/SiteHeader.svelte';
-	import { Button } from '@glyphtex/ui/button';
-	import { Reveal } from '@glyphtex/ui/reveal';
-	import { SectionHeader } from '@glyphtex/ui/section-header';
-	import { IconBrandGithub, IconBrandNpm, IconCheck, IconX } from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { fly } from 'svelte/transition';
+	import { resolve } from "$app/paths";
+	import { track } from "$lib/analytics";
+	import { Container, Section } from "$lib/landing";
+	import { REPO_URL } from "$lib/landing/nav-data";
+	import SiteFooter from "$lib/SiteFooter.svelte";
+	import SiteHeader from "$lib/SiteHeader.svelte";
+	import { Button } from "@glyphtex/ui/button";
+	import { Reveal } from "@glyphtex/ui/reveal";
+	import { SectionHeader } from "@glyphtex/ui/section-header";
+	import { IconBrandGithub, IconBrandNpm, IconCheck, IconX } from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { fly } from "svelte/transition";
 
 	// Measured against the artifacts this site ships, not estimated. Re-measure
 	// with `pnpm engine:refresh` and scripts/check-size-budget.sh before editing.
 	const stats = [
-		{ value: '1.07 MB', label: 'Engine, brotli' },
-		{ value: '~600 ms', label: 'Typical recompile' },
-		{ value: '1,534', label: 'TeX files bundled' },
-		{ value: '0', label: 'Network calls to compile' }
+		{ value: "1.07 MB", label: "Engine, brotli" },
+		{ value: "~600 ms", label: "Typical recompile" },
+		{ value: "1,534", label: "TeX files bundled" },
+		{ value: "0", label: "Network calls to compile" }
 	];
 
 	// Each entry is a real bug from the build log, kept short on purpose. The
 	// symptom is what we saw; the cause is what it actually was.
 	const buildLog = [
 		{
-			symptom: 'booktabs hung forever on an eight line document',
+			symptom: "booktabs hung forever on an eight line document",
 			cause:
-				'The font fallback guessed by matching size digits and handed XeTeX a Type1 outline where it asked for metrics.',
-			fix: 'Deleted the fallback. A missing file now reports itself.'
+				"The font fallback guessed by matching size digits and handed XeTeX a Type1 outline where it asked for metrics.",
+			fix: "Deleted the fallback. A missing file now reports itself."
 		},
 		{
-			symptom: '{\\Large ...} produced a valid 15 byte PDF with no page',
+			symptom: "{\\Large ...} produced a valid 15 byte PDF with no page",
 			cause:
-				'Same fallback, different failure mode. The exit code was still zero, so nothing looked wrong.',
-			fix: 'Compile status is now derived from the output, not the return value.'
+				"Same fallback, different failure mode. The exit code was still zero, so nothing looked wrong.",
+			fix: "Compile status is now derived from the output, not the return value."
 		},
 		{
-			symptom: 'siunitx was in the bundle and still did not work',
+			symptom: "siunitx was in the bundle and still did not work",
 			cause:
-				'Shipping a .sty file says nothing about its dependency closure. We were listing files and calling it coverage.',
-			fix: 'The bundle build compiles a real document per package group and loops on what it reports missing.'
+				"Shipping a .sty file says nothing about its dependency closure. We were listing files and calling it coverage.",
+			fix: "The bundle build compiles a real document per package group and loops on what it reports missing."
 		},
 		{
-			symptom: 'ec-lmss8.tfm not loadable, then rm-lmss8.tfm, then lmsans9-regular.otf',
+			symptom: "ec-lmss8.tfm not loadable, then rm-lmss8.tfm, then lmsans9-regular.otf",
 			cause:
-				'Latin Modern ships under nine encoding prefixes. Every glob we wrote caught some of them.',
-			fix: 'Took the whole family. Costs a few megabytes, ends the class of bug.'
+				"Latin Modern ships under nine encoding prefixes. Every glob we wrote caught some of them.",
+			fix: "Took the whole family. Costs a few megabytes, ends the class of bug."
 		},
 		{
-			symptom: '\\partokencontext was undefined under microtype',
+			symptom: "\\partokencontext was undefined under microtype",
 			cause:
-				'A primitive the engine did not have but the format expected, from a version skew between the two.',
-			fix: 'A \\newcount shim injected when we dump the format.'
+				"A primitive the engine did not have but the format expected, from a version skew between the two.",
+			fix: "A \\newcount shim injected when we dump the format."
 		},
 		{
-			symptom: 'Opening a second project showed the first one errors',
+			symptom: "Opening a second project showed the first one errors",
 			cause:
-				'The worker reused one engine across documents and served the previous PDF when a compile failed.',
-			fix: 'Mount state is keyed by document. Switching unmounts the old file set before the new one lands.'
+				"The worker reused one engine across documents and served the previous PDF when a compile failed.",
+			fix: "Mount state is keyed by document. Switching unmounts the old file set before the new one lands."
 		}
 	];
 
 	const pipeline = [
 		{
-			step: '01',
-			title: 'Mount',
-			body: 'Your project and the TeX distribution land in one in-memory filesystem.'
+			step: "01",
+			title: "Mount",
+			body: "Your project and the TeX distribution land in one in-memory filesystem."
 		},
 		{
-			step: '02',
-			title: 'Typeset',
-			body: 'XeTeX runs and writes page data plus the .aux and .toc intermediates.'
+			step: "02",
+			title: "Typeset",
+			body: "XeTeX runs and writes page data plus the .aux and .toc intermediates."
 		},
 		{
-			step: '03',
-			title: 'Bibliography',
-			body: 'If the .aux contains \\bibdata, BibTeX reads it and your .bib and writes the .bbl.'
+			step: "03",
+			title: "Bibliography",
+			body: "If the .aux contains \\bibdata, BibTeX reads it and your .bib and writes the .bbl."
 		},
 		{
-			step: '04',
-			title: 'Converge',
-			body: 'Passes repeat while the intermediates keep changing, so references settle.'
+			step: "04",
+			title: "Converge",
+			body: "Passes repeat while the intermediates keep changing, so references settle."
 		},
 		{
-			step: '05',
-			title: 'Render',
-			body: 'xdvipdfmx turns page data into a PDF with fonts subset and embedded.'
+			step: "05",
+			title: "Render",
+			body: "xdvipdfmx turns page data into a PDF with fonts subset and embedded."
 		}
 	];
 
@@ -94,39 +94,39 @@
 	// open source and solves the problem it set out to solve.
 	const landscape = [
 		{
-			name: 'LaTeX.js',
-			engine: 'JavaScript reimplementation',
-			files: 'Built in macros',
+			name: "LaTeX.js",
+			engine: "JavaScript reimplementation",
+			files: "Built in macros",
 			offline: true,
-			note: 'Renders to HTML. Fast and small, and not aiming at PDF fidelity.'
+			note: "Renders to HTML. Fast and small, and not aiming at PDF fidelity."
 		},
 		{
-			name: 'texlive.js',
-			engine: 'pdfTeX via Emscripten',
-			files: 'Bundled data package',
+			name: "texlive.js",
+			engine: "pdfTeX via Emscripten",
+			files: "Bundled data package",
 			offline: true,
-			note: 'The original proof that TeX compiles to the web at all.'
+			note: "The original proof that TeX compiles to the web at all."
 		},
 		{
-			name: 'SwiftLaTeX',
-			engine: 'pdfTeX and XeTeX via Emscripten',
-			files: 'Fetched per compile',
+			name: "SwiftLaTeX",
+			engine: "pdfTeX and XeTeX via Emscripten",
+			files: "Fetched per compile",
 			offline: false,
-			note: 'Package lookups hit a server mid-compile, so a connection is required.'
+			note: "Package lookups hit a server mid-compile, so a connection is required."
 		},
 		{
-			name: 'busytex',
-			engine: 'Full TeX Live toolchain',
-			files: 'Large data packages',
+			name: "busytex",
+			engine: "Full TeX Live toolchain",
+			files: "Large data packages",
 			offline: true,
-			note: 'The most complete toolchain, at a size that suits a workbench more than a page load.'
+			note: "The most complete toolchain, at a size that suits a workbench more than a page load."
 		},
 		{
-			name: 'GlyphTeX',
-			engine: 'Tectonic XeTeX, xdvipdfmx, BibTeX',
-			files: 'Prebundled, packs on demand',
+			name: "GlyphTeX",
+			engine: "Tectonic XeTeX, xdvipdfmx, BibTeX",
+			files: "Prebundled, packs on demand",
 			offline: true,
-			note: 'Optimised for first load and for being wrong out loud when a file is missing.',
+			note: "Optimised for first load and for being wrong out loud when a file is missing.",
 			ours: true
 		}
 	];
@@ -134,18 +134,18 @@
 	const limits = [
 		{
 			works: false,
-			title: 'Biber',
-			body: 'A Perl program with no WebAssembly build. biblatex works with backend=bibtex, and the workspace tells you that one line change instead of quietly dropping your bibliography.'
+			title: "Biber",
+			body: "A Perl program with no WebAssembly build. biblatex works with backend=bibtex, and the workspace tells you that one line change instead of quietly dropping your bibliography."
 		},
 		{
 			works: false,
-			title: 'Shell-escape',
-			body: 'Packages that run external programs mid-compile cannot work. WebAssembly has no way to start a subprocess.'
+			title: "Shell-escape",
+			body: "Packages that run external programs mid-compile cannot work. WebAssembly has no way to start a subprocess."
 		},
 		{
 			works: true,
-			title: 'Everything a normal paper needs',
-			body: 'Math, figures, TikZ and pgfplots, tables, beamer, hyperref, microtype, cross-references, and BibTeX bibliographies.'
+			title: "Everything a normal paper needs",
+			body: "Math, figures, TikZ and pgfplots, tables, beamer, hyperref, microtype, cross-references, and BibTeX bibliographies."
 		}
 	];
 </script>

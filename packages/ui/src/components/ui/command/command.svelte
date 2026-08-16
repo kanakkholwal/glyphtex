@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { Command as CommandPrimitive } from 'bits-ui';
+	import { cn } from "@glyphtex/ui/utils";
+	import { Command as CommandPrimitive } from "bits-ui";
 
 	export type CommandRootApi = CommandPrimitive.Root;
 
 	let {
 		api = $bindable(null),
 		ref = $bindable(null),
-		value = $bindable(''),
+		value = $bindable(""),
 		class: className,
 		...restProps
 	}: CommandPrimitive.RootProps & {

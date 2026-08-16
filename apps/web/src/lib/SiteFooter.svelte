@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import type { ResolvedPathname } from '$app/types';
-	import { footerCols, footerSocials } from '$lib/landing/nav-data';
-	import { Logo } from '@glyphtex/ui/logo';
-	import { IconBrandGithub, IconMail } from '@tabler/icons-svelte';
+	import { resolve } from "$app/paths";
+	import type { ResolvedPathname } from "$app/types";
+	import { footerCols, footerSocials } from "$lib/landing/nav-data";
+	import { Logo } from "@glyphtex/ui/logo";
+	import { IconBrandGithub, IconMail } from "@tabler/icons-svelte";
 
-	const home = resolve('/');
+	const home = resolve("/");
 	const year = new Date().getFullYear();
 
 	const socialIcons = {
@@ -17,7 +17,7 @@
 
 	function hrefFor(href: string, external = false): ResolvedPathname | string {
 		if (external) return href as string;
-		if (!href.startsWith('/') || href.startsWith('//')) return href as ResolvedPathname;
+		if (!href.startsWith("/") || href.startsWith("//")) return href as ResolvedPathname;
 		return resolveAny(href);
 	}
 </script>

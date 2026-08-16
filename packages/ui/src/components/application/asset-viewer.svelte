@@ -1,17 +1,17 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { Spinner } from '@glyphtex/ui/spinner';
+	import { Button } from "@glyphtex/ui/button";
+	import { Spinner } from "@glyphtex/ui/spinner";
 	import {
 		IconAlertTriangle,
 		IconEyeOff,
 		IconFileOff,
 		IconFolderShare,
 		IconRefresh
-	} from '@tabler/icons-svelte';
-	import { Image } from '@unpic/svelte';
+	} from "@tabler/icons-svelte";
+	import { Image } from "@unpic/svelte";
 
-	import type { FileKind } from './file-kinds';
-	import PdfView from './pdf-view.svelte';
+	import type { FileKind } from "./file-kinds";
+	import PdfView from "./pdf-view.svelte";
 
 	/** Renders a non-text file (image, PDF, or an unpreviewable fallback card). Bytes
 	 *  are read lazily through the host; without a reader everything falls back. */
@@ -36,16 +36,16 @@
 		onreveal?: () => void;
 	} = $props();
 
-	const leaf = $derived(name.slice(name.lastIndexOf('/') + 1));
-	const ext = $derived(leaf.slice(leaf.lastIndexOf('.') + 1).toLowerCase());
+	const leaf = $derived(name.slice(name.lastIndexOf("/") + 1));
+	const ext = $derived(leaf.slice(leaf.lastIndexOf(".") + 1).toLowerCase());
 
 	const IMG_MIME: Record<string, string> = {
-		svg: 'image/svg+xml',
-		jpg: 'image/jpeg',
-		jpeg: 'image/jpeg',
-		ico: 'image/x-icon',
-		tif: 'image/tiff',
-		tiff: 'image/tiff'
+		svg: "image/svg+xml",
+		jpg: "image/jpeg",
+		jpeg: "image/jpeg",
+		ico: "image/x-icon",
+		tif: "image/tiff",
+		tiff: "image/tiff"
 	};
 
 	let bytes = $state<Uint8Array | undefined>(undefined);
@@ -80,7 +80,7 @@
 		imgUrl = undefined;
 		imgSize = { w: 0, h: 0 };
 
-		if (k === 'binary' || !p || !reader) {
+		if (k === "binary" || !p || !reader) {
 			loading = false;
 			return;
 		}
@@ -92,7 +92,7 @@
 				const b = await reader(p);
 				if (cancelled) return;
 				bytes = b;
-				if (k === 'image') {
+				if (k === "image") {
 					createdUrl = URL.createObjectURL(new Blob([b as BlobPart], { type: mime }));
 					const size = await measure(createdUrl);
 					if (cancelled) return;
@@ -116,13 +116,13 @@
 	 * to share one message: "we can't read it", "we won't render it", and "this
 	 * host can't hand us bytes at all" need different next steps from the user.
 	 */
-	const fallback = $derived<'unreadable' | 'no-viewer' | 'no-reader' | null>(
+	const fallback = $derived<"unreadable" | "no-viewer" | "no-reader" | null>(
 		error || loadError
-			? 'unreadable'
-			: kind === 'binary'
-				? 'no-viewer'
+			? "unreadable"
+			: kind === "binary"
+				? "no-viewer"
 				: !assetKey || !readBytes
-					? 'no-reader'
+					? "no-reader"
 					: null
 	);
 	const reason = $derived(error ?? loadError);

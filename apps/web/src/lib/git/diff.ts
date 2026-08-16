@@ -1,4 +1,4 @@
-export type DiffOp = { type: ' ' | '-' | '+'; line: string };
+export type DiffOp = { type: " " | "-" | "+"; line: string };
 
 /** Above this the LCS table costs more memory than the diff is worth, so the
  *  changed region is reported as one wholesale replacement instead. */
@@ -7,10 +7,10 @@ const LCS_LIMIT = 2000;
 const CONTEXT = 3;
 
 function splitLines(text: string): string[] {
-	if (text === '') return [];
-	const lines = text.split('\n');
+	if (text === "") return [];
+	const lines = text.split("\n");
 	// A trailing newline terminates the last line rather than starting a new one.
-	if (lines[lines.length - 1] === '') lines.pop();
+	if (lines[lines.length - 1] === "") lines.pop();
 	return lines;
 }
 
@@ -19,8 +19,8 @@ function lcsOps(a: string[], b: string[]): DiffOp[] {
 	const m = b.length;
 	if (n > LCS_LIMIT || m > LCS_LIMIT) {
 		return [
-			...a.map((line): DiffOp => ({ type: '-', line })),
-			...b.map((line): DiffOp => ({ type: '+', line }))
+			...a.map((line): DiffOp => ({ type: "-", line })),
+			...b.map((line): DiffOp => ({ type: "+", line }))
 		];
 	}
 
@@ -40,17 +40,17 @@ function lcsOps(a: string[], b: string[]): DiffOp[] {
 	let j = 0;
 	while (i < n && j < m) {
 		if (a[i] === b[j]) {
-			ops.push({ type: ' ', line: a[i] });
+			ops.push({ type: " ", line: a[i] });
 			i++;
 			j++;
 		} else if (table[(i + 1) * width + j] >= table[i * width + j + 1]) {
-			ops.push({ type: '-', line: a[i++] });
+			ops.push({ type: "-", line: a[i++] });
 		} else {
-			ops.push({ type: '+', line: b[j++] });
+			ops.push({ type: "+", line: b[j++] });
 		}
 	}
-	while (i < n) ops.push({ type: '-', line: a[i++] });
-	while (j < m) ops.push({ type: '+', line: b[j++] });
+	while (i < n) ops.push({ type: "-", line: a[i++] });
+	while (j < m) ops.push({ type: "+", line: b[j++] });
 	return ops;
 }
 
@@ -70,21 +70,21 @@ export function unifiedDiff(
 	opts: { binary?: boolean; added?: boolean; deleted?: boolean } = {}
 ): string {
 	if (opts.binary) return `diff --git a/${path} b/${path}\nBinary files differ\n`;
-	if (original === modified) return '';
+	if (original === modified) return "";
 
 	const ops = diffLines(original, modified);
 	const header =
 		`diff --git a/${path} b/${path}\n` +
-		`--- ${opts.added ? '/dev/null' : `a/${path}`}\n` +
-		`+++ ${opts.deleted ? '/dev/null' : `b/${path}`}\n`;
+		`--- ${opts.added ? "/dev/null" : `a/${path}`}\n` +
+		`+++ ${opts.deleted ? "/dev/null" : `b/${path}`}\n`;
 
 	const body = hunks(ops);
-	return body ? header + body : '';
+	return body ? header + body : "";
 }
 
 function hunks(ops: DiffOp[]): string {
-	const changed = ops.map((o) => o.type !== ' ');
-	if (!changed.includes(true)) return '';
+	const changed = ops.map((o) => o.type !== " ");
+	if (!changed.includes(true)) return "";
 
 	// Group changes that are within 2*CONTEXT of each other into one hunk, so their
 	// context lines don't overlap into duplicated output.
@@ -107,15 +107,15 @@ function hunks(ops: DiffOp[]): string {
 	const starts: Array<[number, number]> = [];
 	for (let i = 0; i < ops.length; i++) {
 		starts.push([oldLine, newLine]);
-		if (ops[i].type !== '+') oldLine++;
-		if (ops[i].type !== '-') newLine++;
+		if (ops[i].type !== "+") oldLine++;
+		if (ops[i].type !== "-") newLine++;
 	}
 
-	let out = '';
+	let out = "";
 	for (const [start, end] of groups) {
 		const slice = ops.slice(start, end + 1);
-		const oldCount = slice.filter((o) => o.type !== '+').length;
-		const newCount = slice.filter((o) => o.type !== '-').length;
+		const oldCount = slice.filter((o) => o.type !== "+").length;
+		const newCount = slice.filter((o) => o.type !== "-").length;
 		const [oldStart, newStart] = starts[start];
 		out += `@@ -${oldCount ? oldStart : 0},${oldCount} +${newCount ? newStart : 0},${newCount} @@\n`;
 		for (const op of slice) out += `${op.type}${op.line}\n`;

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { IconChevronRight } from '@tabler/icons-svelte';
+	import { IconChevronRight } from "@tabler/icons-svelte";
 
-	import type { GitPanelStore } from './store.svelte';
-	import type { SectionKey } from './types';
+	import type { GitPanelStore } from "./store.svelte";
+	import type { SectionKey } from "./types";
 
 	/**
 	 * Collapsible section header (chevron + uppercase title), like the Explorer's

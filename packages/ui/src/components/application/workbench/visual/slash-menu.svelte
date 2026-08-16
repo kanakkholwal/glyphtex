@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	export type InsertPick = { type: 'block' | 'inline'; id: string };
+	export type InsertPick = { type: "block" | "inline"; id: string };
 </script>
 
 <script lang="ts">

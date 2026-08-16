@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
-	import { IconChevronUp } from '@tabler/icons-svelte';
-	import { Select as SelectPrimitive } from 'bits-ui';
+	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import { IconChevronUp } from "@tabler/icons-svelte";
+	import { Select as SelectPrimitive } from "bits-ui";
 
 	let {
 		ref = $bindable(null),

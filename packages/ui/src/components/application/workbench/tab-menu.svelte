@@ -1,13 +1,13 @@
 <script lang="ts" module>
 	export type TabAction =
-		| 'close'
-		| 'others'
-		| 'right'
-		| 'all'
-		| 'main'
-		| 'copy'
-		| 'reveal'
-		| 'split';
+		| "close"
+		| "others"
+		| "right"
+		| "all"
+		| "main"
+		| "copy"
+		| "reveal"
+		| "split";
 </script>
 
 <script lang="ts">

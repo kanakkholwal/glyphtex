@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
 		DropdownMenuItem,
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
-	import { toast } from '@glyphtex/ui/sonner';
-	import { Logo } from '@glyphtex/ui/logo';
-	import { Tooltip, TooltipContent, TooltipTrigger } from '@glyphtex/ui/tooltip';
+	} from "@glyphtex/ui/dropdown-menu";
+	import { toast } from "@glyphtex/ui/sonner";
+	import { Logo } from "@glyphtex/ui/logo";
+	import { Tooltip, TooltipContent, TooltipTrigger } from "@glyphtex/ui/tooltip";
 	import {
 		IconCheck,
 		IconChevronDown,
@@ -20,16 +20,16 @@
 		IconLoader2,
 		IconPencil,
 		IconSearch
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import ExportMenu from '../export-menu.svelte';
-	import { shortcutLabel } from '../shortcuts';
-	import BranchMenu from './branch-menu.svelte';
-	import CompileControl from './compile-control.svelte';
-	import type { WorkbenchController } from './controller.svelte';
-	import ModeSwitch from './mode-switch.svelte';
-	import PageMenu from './page-menu.svelte';
-	import type { SaveFileFn } from './types';
+	import ExportMenu from "../export-menu.svelte";
+	import { shortcutLabel } from "../shortcuts";
+	import BranchMenu from "./branch-menu.svelte";
+	import CompileControl from "./compile-control.svelte";
+	import type { WorkbenchController } from "./controller.svelte";
+	import ModeSwitch from "./mode-switch.svelte";
+	import PageMenu from "./page-menu.svelte";
+	import type { SaveFileFn } from "./types";
 
 	/** The workbench's one full-width bar: where you are (back link / document /
 	 *  branch), which editor you're in, and building. Everything that acts on the
@@ -49,7 +49,7 @@
 	const compile = $derived(ctrl.compile);
 
 	let renaming = $state(false);
-	let draft = $state('');
+	let draft = $state("");
 	let field = $state<HTMLInputElement>();
 
 	function startRename(): void {
@@ -66,16 +66,16 @@
 	}
 
 	async function copyLink(): Promise<void> {
-		if (typeof location === 'undefined' || !navigator.clipboard) return;
+		if (typeof location === "undefined" || !navigator.clipboard) return;
 		try {
 			await navigator.clipboard.writeText(location.href);
-			toast.success('Link copied');
+			toast.success("Link copied");
 		} catch {
-			toast.error('Could not copy the link');
+			toast.error("Could not copy the link");
 		}
 	}
 
-	const crumbSep = 'text-faint shrink-0 select-none';
+	const crumbSep = "text-faint shrink-0 select-none";
 </script>
 
 {#snippet slash()}

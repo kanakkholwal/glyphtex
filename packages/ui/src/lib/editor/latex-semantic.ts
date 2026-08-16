@@ -1,16 +1,16 @@
-import { StateEffect, StateField, type Extension } from '@codemirror/state';
-import { Decoration, EditorView, ViewPlugin, type DecorationSet } from '@codemirror/view';
+import { StateEffect, StateField, type Extension } from "@codemirror/state";
+import { Decoration, EditorView, ViewPlugin, type DecorationSet } from "@codemirror/view";
 
-import { analyzeSemantics, type SemanticKind, type SemanticToken } from './latex-analyze';
+import { analyzeSemantics, type SemanticKind, type SemanticToken } from "./latex-analyze";
 
 /** Delay after the last keystroke before the whole document is re-analysed. */
 const DEBOUNCE_MS = 220;
 
 const MARKS: Record<SemanticKind, Decoration> = {
-	macro: Decoration.mark({ class: 'cm-tex-macro' }),
-	unknownMacro: Decoration.mark({ class: 'cm-tex-unknown' }),
-	danglingRef: Decoration.mark({ class: 'cm-tex-dangling' }),
-	resolvedRef: Decoration.mark({ class: 'cm-tex-resolved' })
+	macro: Decoration.mark({ class: "cm-tex-macro" }),
+	unknownMacro: Decoration.mark({ class: "cm-tex-unknown" }),
+	danglingRef: Decoration.mark({ class: "cm-tex-dangling" }),
+	resolvedRef: Decoration.mark({ class: "cm-tex-resolved" })
 };
 
 const setTokens = StateEffect.define<readonly SemanticToken[]>();

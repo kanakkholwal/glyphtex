@@ -130,15 +130,15 @@ function parseRecord(
 	payload: string
 ): { tag: number; line: number; h: number; v: number; w: number; ht: number; dp: number } | null {
 	// payload: "tag,line:h,v" with an optional ":width,height,depth".
-	const parts = payload.split(':');
+	const parts = payload.split(":");
 	if (parts.length < 2) return null;
 
-	const tl = parts[0].split(',');
+	const tl = parts[0].split(",");
 	if (tl.length < 2) return null;
 	const tag = parseInt(tl[0], 10);
 	const line = parseInt(tl[1], 10);
 
-	const hv = parts[1].split(',');
+	const hv = parts[1].split(",");
 	if (hv.length < 2) return null;
 	const h = parseInt(hv[0], 10);
 	const v = parseInt(hv[1], 10);
@@ -149,7 +149,7 @@ function parseRecord(
 		ht = 0,
 		dp = 0;
 	if (parts[2]) {
-		const whd = parts[2].split(',');
+		const whd = parts[2].split(",");
 		w = parseInt(whd[0], 10) || 0;
 		ht = parseInt(whd[1], 10) || 0;
 		dp = parseInt(whd[2], 10) || 0;
@@ -169,11 +169,11 @@ export function parseSyncTex(text: string): SyncTexMap {
 	let i = 0;
 	for (; i < lines.length; i++) {
 		const ln = lines[i];
-		if (ln.startsWith('Unit:')) unit = parseFloat(ln.slice(5)) || 1;
-		else if (ln.startsWith('Magnification:')) mag = parseFloat(ln.slice(14)) || 1000;
-		else if (ln.startsWith('X Offset:')) xoff = parseFloat(ln.slice(9)) || 0;
-		else if (ln.startsWith('Y Offset:')) yoff = parseFloat(ln.slice(9)) || 0;
-		else if (ln === 'Content:') {
+		if (ln.startsWith("Unit:")) unit = parseFloat(ln.slice(5)) || 1;
+		else if (ln.startsWith("Magnification:")) mag = parseFloat(ln.slice(14)) || 1000;
+		else if (ln.startsWith("X Offset:")) xoff = parseFloat(ln.slice(9)) || 0;
+		else if (ln.startsWith("Y Offset:")) yoff = parseFloat(ln.slice(9)) || 0;
+		else if (ln === "Content:") {
 			i++;
 			break;
 		}
@@ -188,14 +188,14 @@ export function parseSyncTex(text: string): SyncTexMap {
 		if (!ln) continue;
 		const c = ln[0];
 
-		if (c === '{' || c === '}') {
-			if (c === '{') {
+		if (c === "{" || c === "}") {
+			if (c === "{") {
 				const n = parseInt(ln.slice(1), 10);
 				if (Number.isFinite(n)) page = Math.abs(n);
 			}
 			continue;
 		}
-		if (c === ')' || c === ']') continue; // box close: no payload
+		if (c === ")" || c === "]") continue; // box close: no payload
 
 		// Any record line: "<type>tag,line:h,v[:w,h,d]". Non-records (Input:, !238,
 		// <, >) fail the strict parse and are skipped.

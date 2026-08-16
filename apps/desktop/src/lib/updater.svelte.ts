@@ -1,5 +1,5 @@
-import type { Update } from '@tauri-apps/plugin-updater';
-import { isTauriRuntime } from '$lib/runtime';
+import type { Update } from "@tauri-apps/plugin-updater";
+import { isTauriRuntime } from "$lib/runtime";
 
 /**
  * Auto-updater store (desktop only).
@@ -15,16 +15,16 @@ import { isTauriRuntime } from '$lib/runtime';
  * the browser (web build) where the Tauri plugins don't exist.
  */
 export type UpdaterStatus =
-	| 'idle'
-	| 'checking'
-	| 'up-to-date'
-	| 'update-available'
-	| 'downloading'
-	| 'ready'
-	| 'error';
+	| "idle"
+	| "checking"
+	| "up-to-date"
+	| "update-available"
+	| "downloading"
+	| "ready"
+	| "error";
 
 function createUpdaterStore() {
-	let status = $state<UpdaterStatus>('idle');
+	let status = $state<UpdaterStatus>("idle");
 	let version = $state<string | null>(null);
 	let notes = $state<string | null>(null);
 	let progress = $state(0); // 0..1, only meaningful while downloading
@@ -43,27 +43,27 @@ function createUpdaterStore() {
 		let total = 0;
 		let received = 0;
 		progress = 0;
-		status = 'downloading';
+		status = "downloading";
 		try {
 			await update.download((ev) => {
 				switch (ev.event) {
-					case 'Started':
+					case "Started":
 						total = ev.data.contentLength ?? 0;
 						break;
-					case 'Progress':
+					case "Progress":
 						received += ev.data.chunkLength;
 						progress = total > 0 ? Math.min(received / total, 1) : 0;
 						break;
-					case 'Finished':
+					case "Finished":
 						progress = 1;
 						break;
 				}
 			});
-			status = 'ready';
+			status = "ready";
 		} catch (e) {
-			console.error('[updater] download failed', e);
+			console.error("[updater] download failed", e);
 			error = e instanceof Error ? e.message : String(e);
-			status = 'error';
+			status = "error";
 		}
 	}
 
@@ -76,21 +76,21 @@ function createUpdaterStore() {
 		if (import.meta.env.DEV || !isTauriRuntime()) {
 			if (isManual) {
 				manual = true;
-				status = 'up-to-date';
+				status = "up-to-date";
 			}
 			return;
 		}
-		if (status === 'checking' || status === 'downloading') return;
+		if (status === "checking" || status === "downloading") return;
 		manual = isManual;
 		error = null;
-		status = 'checking';
+		status = "checking";
 		try {
-			const { check } = await import('@tauri-apps/plugin-updater');
+			const { check } = await import("@tauri-apps/plugin-updater");
 			const found = await check();
 			if (!found) {
 				update = null;
 				version = null;
-				status = 'up-to-date';
+				status = "up-to-date";
 				return;
 			}
 			update = found;
@@ -98,11 +98,11 @@ function createUpdaterStore() {
 			notes = found.body ?? null;
 			dismissed = false;
 			// Don't auto-download: surface the card and wait for the user.
-			status = 'update-available';
+			status = "update-available";
 		} catch (e) {
-			console.error('[updater] check failed', e);
+			console.error("[updater] check failed", e);
 			error = e instanceof Error ? e.message : String(e);
-			status = 'error';
+			status = "error";
 		}
 	}
 
@@ -137,10 +137,10 @@ function createUpdaterStore() {
 		get visible() {
 			if (dismissed) return false;
 			return (
-				status === 'update-available' ||
-				status === 'downloading' ||
-				status === 'ready' ||
-				status === 'error'
+				status === "update-available" ||
+				status === "downloading" ||
+				status === "ready" ||
+				status === "error"
 			);
 		},
 
@@ -166,16 +166,16 @@ function createUpdaterStore() {
 
 		/** Install the downloaded update and relaunch. */
 		async installAndRelaunch() {
-			if (!update || status !== 'ready' || installing) return;
+			if (!update || status !== "ready" || installing) return;
 			installing = true;
 			try {
 				await update.install();
-				const { relaunch } = await import('@tauri-apps/plugin-process');
+				const { relaunch } = await import("@tauri-apps/plugin-process");
 				await relaunch();
 			} catch (e) {
-				console.error('[updater] install failed', e);
+				console.error("[updater] install failed", e);
 				error = e instanceof Error ? e.message : String(e);
-				status = 'error';
+				status = "error";
 				installing = false;
 			}
 		}

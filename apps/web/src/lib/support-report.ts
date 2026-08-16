@@ -14,10 +14,10 @@ const DECLARATIONS =
 
 /** Stop at `\begin{document}`: nothing after it is a declaration. */
 export function preambleDeclarations(source: string, limit = 40): string[] {
-	const preamble = source.split(/\\begin\s*\{document\}/)[0] ?? '';
+	const preamble = source.split(/\\begin\s*\{document\}/)[0] ?? "";
 	const found = preamble.match(DECLARATIONS) ?? [];
 	// A trailing `%` comment on a declaration line can hold anything.
-	return found.map((line) => line.replace(/(?<!\\)%.*$/, '').trimEnd()).slice(0, limit);
+	return found.map((line) => line.replace(/(?<!\\)%.*$/, "").trimEnd()).slice(0, limit);
 }
 
 export type SupportReport = {
@@ -32,46 +32,46 @@ export type SupportReport = {
 };
 
 function environment(report: SupportReport): string[] {
-	const lines = [`- Engine: ${report.engine ?? 'on-device (Tectonic/WASM)'}`, `- Build: web`];
+	const lines = [`- Engine: ${report.engine ?? "on-device (Tectonic/WASM)"}`, `- Build: web`];
 	if (report.appVersion) lines.push(`- Version: ${report.appVersion}`);
-	if (typeof navigator !== 'undefined') lines.push(`- Browser: ${navigator.userAgent}`);
+	if (typeof navigator !== "undefined") lines.push(`- Browser: ${navigator.userAgent}`);
 	if (report.fileCount) lines.push(`- Document: ${report.fileCount} files`);
 	return lines;
 }
 
 export function buildSupportBody(report: SupportReport): string {
-	const declarations = preambleDeclarations(report.mainSource ?? '');
+	const declarations = preambleDeclarations(report.mainSource ?? "");
 	const out = [
-		'### Files the engine could not resolve',
-		'',
+		"### Files the engine could not resolve",
+		"",
 		...report.unsupportedFiles.map((f) => `- \`${f}\``),
-		''
+		""
 	];
 
 	if (declarations.length) {
-		out.push('### Declarations that requested them', '', '```tex', ...declarations, '```', '');
+		out.push("### Declarations that requested them", "", "```tex", ...declarations, "```", "");
 	}
 
 	out.push(
-		'### Environment',
-		'',
+		"### Environment",
+		"",
 		...environment(report),
-		'',
-		'---',
-		'',
-		'_Only the class and package declarations above were copied from the document._',
-		'_No prose, data, maths, file names or comments are included._',
-		'',
-		'<!-- Anything else that would help? -->'
+		"",
+		"---",
+		"",
+		"_Only the class and package declarations above were copied from the document._",
+		"_No prose, data, maths, file names or comments are included._",
+		"",
+		"<!-- Anything else that would help? -->"
 	);
-	return out.join('\n');
+	return out.join("\n");
 }
 
 export function supportIssueUrl(repoUrl: string, report: SupportReport): string {
 	const params = new URLSearchParams({
-		title: `Package support: ${report.unsupportedFiles.join(', ')}`,
+		title: `Package support: ${report.unsupportedFiles.join(", ")}`,
 		body: buildSupportBody(report),
-		labels: 'package-support'
+		labels: "package-support"
 	});
 	return `${repoUrl}/issues/new?${params.toString()}`;
 }

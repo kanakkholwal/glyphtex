@@ -8,24 +8,24 @@ import {
 	isVisualEditable,
 	vendorDirOf,
 	type FileKind
-} from '../file-kinds';
-import type { GitHeadInfo, GitProvider } from '../git-panel.svelte';
-import type { ProjectHost } from '../project';
-import { treeState } from '../side-panel/tree-state.svelte';
-import type { Sel } from '../side-panel/types';
-import { safeStorage } from '@glyphtex/ui/persisted-state';
-import { settings } from '@glyphtex/ui/settings';
-import { toast } from '@glyphtex/ui/sonner';
+} from "../file-kinds";
+import type { GitHeadInfo, GitProvider } from "../git-panel.svelte";
+import type { ProjectHost } from "../project";
+import { treeState } from "../side-panel/tree-state.svelte";
+import type { Sel } from "../side-panel/types";
+import { safeStorage } from "@glyphtex/ui/persisted-state";
+import { settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
-import { baseName, dirOf, joinPath, leafOf, parentDir, samePath, splitExt } from './paths';
-import type { SearchInput, SearchSkips } from './project-search';
+import { baseName, dirOf, joinPath, leafOf, parentDir, samePath, splitExt } from "./paths";
+import type { SearchInput, SearchSkips } from "./project-search";
 import {
 	DEMO_FILES,
 	type ConflictAction,
 	type ConflictChoice,
 	type GlyphFile,
 	type Pending
-} from './types';
+} from "./types";
 
 export type FileStoreDeps = {
 	project?: ProjectHost;
@@ -53,13 +53,13 @@ export class FileStore {
 	readonly #projectName: string;
 
 	files = $state<GlyphFile[]>([]);
-	activeId = $state('main');
+	activeId = $state("main");
 	/** Ids of files with an open editor tab, in tab order. */
 	openTabs = $state<string[]>([]);
 	/** Ids of recently opened files, newest first: drives the Recent section. */
 	recentIds = $state<string[]>([]);
 	/** Live buffer for the active file. */
-	source = $state('');
+	source = $state("");
 	untitledCount = $state(0);
 	// Freshly created folders that hold no files yet: shown in the Explorer tree
 	// (forward-slash relative paths) until a file lands in them.
@@ -117,7 +117,7 @@ export class FileStore {
 
 	// --- Explorer conflict / confirm modal ------------------------------------
 	pending = $state<Pending | null>(null);
-	conflictName = $state('');
+	conflictName = $state("");
 	applyToAll = $state(false);
 
 	constructor(deps: FileStoreDeps) {
@@ -127,13 +127,13 @@ export class FileStore {
 		this.#projectName = deps.projectName;
 		const seed = deps.initialFiles?.length ? deps.initialFiles : DEMO_FILES;
 		this.files = seed.map((f) => ({ ...f, saved: f.content }));
-		this.activeId = seed[0]?.id ?? 'main';
+		this.activeId = seed[0]?.id ?? "main";
 		this.openTabs = this.activeId ? [this.activeId] : [];
-		this.source = seed[0]?.content ?? '';
+		this.source = seed[0]?.content ?? "";
 		const last = this.restoreTabs(deps.scope ?? deps.projectName);
 		if (last) {
 			this.activeId = last;
-			this.source = this.files.find((f) => f.id === last)?.content ?? '';
+			this.source = this.files.find((f) => f.id === last)?.content ?? "";
 		}
 	}
 
@@ -163,7 +163,7 @@ export class FileStore {
 
 	// The document key the strip is stored under. Re-pointed by `restoreTabs` when
 	// a folder is opened, so tabs follow the project rather than the window.
-	#tabScope = '';
+	#tabScope = "";
 
 	/**
 	 * Load this document's tab strip. Ids that no longer resolve are dropped.
@@ -176,10 +176,10 @@ export class FileStore {
 		const ids = Array.isArray(saved?.tabs) ? saved.tabs : [];
 		if (!ids.length) return null;
 		const known = new Set(this.files.map((f) => f.id));
-		const live = ids.filter((id) => typeof id === 'string' && known.has(id));
+		const live = ids.filter((id) => typeof id === "string" && known.has(id));
 		if (!live.length) return null;
 		this.openTabs = live.includes(this.activeId) ? live : [...live, this.activeId].filter(Boolean);
-		return known.has(saved?.active ?? '') ? (saved?.active ?? null) : null;
+		return known.has(saved?.active ?? "") ? (saved?.active ?? null) : null;
 	}
 
 	/** Write the strip back. Called from an effect that tracks `openTabs`. */
@@ -219,7 +219,7 @@ export class FileStore {
 		return new Map(
 			this.openTabFiles.map((f) => {
 				const leaf = baseName(f.name);
-				const dir = (counts.get(leaf) ?? 0) > 1 ? leafOf(parentDir(f.name)) : '';
+				const dir = (counts.get(leaf) ?? 0) > 1 ? leafOf(parentDir(f.name)) : "";
 				return [f.id, { leaf, dir }] as const;
 			})
 		);
@@ -344,7 +344,7 @@ export class FileStore {
 		const active = this.files.find((f) => f.id === this.activeId) ?? this.files[0];
 		if (!active) return;
 		this.activeId = active.id;
-		this.source = active.content ?? '';
+		this.source = active.content ?? "";
 		if (!this.openTabs.includes(active.id)) this.openTabs = [active.id];
 	}
 
@@ -352,24 +352,24 @@ export class FileStore {
 	readonly activeFile = $derived(this.files.find((f) => f.id === this.activeId) ?? this.files[0]);
 	readonly activeKind = $derived<FileKind>(
 		!this.activeFile
-			? 'text'
+			? "text"
 			: this.unreadableIds.has(this.activeFile.id)
-				? 'binary'
+				? "binary"
 				: classifyFile(this.activeFile.name)
 	);
 	readonly activeEditable = $derived(isEditable(this.activeKind));
 	readonly activeLanguage = $derived(editorLanguage(this.activeKind));
 	// The whole LaTeX family (sources, .bib, .toc, .aux …) gets the format toolbar;
 	// markdown / plain text / code do not.
-	readonly activeHasToolbar = $derived(this.activeKind === 'latex');
+	readonly activeHasToolbar = $derived(this.activeKind === "latex");
 	/** Whether the active file can open in the Visual editor at all. */
 	readonly activeVisual = $derived(
-		this.activeEditable && isVisualEditable(this.activeFile?.name ?? '')
+		this.activeEditable && isVisualEditable(this.activeFile?.name ?? "")
 	);
 	/** Compiler output. Shown read-only: anything typed here dies at the next build. */
-	readonly activeGenerated = $derived(isGeneratedFile(this.activeFile?.name ?? ''));
+	readonly activeGenerated = $derived(isGeneratedFile(this.activeFile?.name ?? ""));
 	/** Why the active file could not be read, when that is why it has no editor. */
-	readonly activeLoadError = $derived(this.loadErrors.get(this.activeFile?.id ?? ''));
+	readonly activeLoadError = $derived(this.loadErrors.get(this.activeFile?.id ?? ""));
 
 	// Project name shown in chrome: the open folder's name, else the prop default.
 	// A getter (not `$derived`) so it can reference the constructor-assigned
@@ -384,7 +384,7 @@ export class FileStore {
 	);
 	readonly activeDirty = $derived(this.activeFile ? this.dirtyIds.has(this.activeFile.id) : false);
 
-	readonly lineCount = $derived(this.source.split('\n').length);
+	readonly lineCount = $derived(this.source.split("\n").length);
 	readonly charCount = $derived(this.source.length);
 	readonly wordCount = $derived(this.source.trim() ? this.source.trim().split(/\s+/).length : 0);
 
@@ -533,7 +533,7 @@ export class FileStore {
 		// Commit the outgoing buffer: always to memory; to disk unless auto-save is
 		// off (so a file switch persists under "after delay" / "on focus change").
 		this.syncBuffer();
-		if (settings.autoSave !== 'off') await this.saveActive();
+		if (settings.autoSave !== "off") await this.saveActive();
 		this.activeId = id;
 		this.recentIds = [id, ...this.recentIds.filter((r) => r !== id)].slice(0, 12);
 		if (!this.openTabs.includes(id)) this.openTabs = [...this.openTabs, id];
@@ -545,11 +545,11 @@ export class FileStore {
 		// lazily as bytes by the AssetViewer, so we never read them as text here.
 		const editable = f ? isEditable(classifyFile(f.name)) : true;
 		if (f) await this.ensureLoaded(f);
-		this.source = f && editable && !this.unreadableIds.has(f.id) ? (f.content ?? '') : '';
+		this.source = f && editable && !this.unreadableIds.has(f.id) ? (f.content ?? "") : "";
 	}
 
 	// --- New file / folder ----------------------------------------------------
-	async newFile(dir = ''): Promise<void> {
+	async newFile(dir = ""): Promise<void> {
 		this.syncBuffer();
 		const relFor = (n: number) => (dir ? `${dir}/untitled-${n}.tex` : `untitled-${n}.tex`);
 		if (this.project && this.projectRoot) {
@@ -570,10 +570,10 @@ export class FileStore {
 			}
 			this.files = [
 				...this.files,
-				{ id: abs, name: rel, content: '', path: abs, loaded: true, saved: '' }
+				{ id: abs, name: rel, content: "", path: abs, loaded: true, saved: "" }
 			];
 			this.activeId = abs;
-			this.source = '';
+			this.source = "";
 			return;
 		}
 		this.untitledCount += 1;
@@ -583,9 +583,9 @@ export class FileStore {
 			rel = relFor(this.untitledCount);
 		}
 		const id = `untitled-${this.untitledCount}`;
-		this.files = [...this.files, { id, name: rel, content: '', saved: '' }];
+		this.files = [...this.files, { id, name: rel, content: "", saved: "" }];
 		this.activeId = id;
-		this.source = '';
+		this.source = "";
 	}
 
 	// Existing folder paths (forward-slashed) derived from the file list + the
@@ -593,8 +593,8 @@ export class FileStore {
 	existingFolderPaths(): Set<string> {
 		const set = new Set(this.extraFolders);
 		for (const f of this.files) {
-			const parts = f.name.split('/');
-			let cur = '';
+			const parts = f.name.split("/");
+			let cur = "";
 			for (let i = 0; i < parts.length - 1; i++) {
 				cur = cur ? `${cur}/${parts[i]}` : parts[i];
 				set.add(cur);
@@ -603,10 +603,10 @@ export class FileStore {
 		return set;
 	}
 
-	async newFolder(dir = ''): Promise<void> {
+	async newFolder(dir = ""): Promise<void> {
 		const taken = this.existingFolderPaths();
 		const relFor = (n: number) => {
-			const leaf = n === 1 ? 'new-folder' : `new-folder-${n}`;
+			const leaf = n === 1 ? "new-folder" : `new-folder-${n}`;
 			return dir ? `${dir}/${leaf}` : leaf;
 		};
 		let n = 1;
@@ -628,14 +628,14 @@ export class FileStore {
 	/** Create at an exact relative path, named in the Explorer before it existed.
 	 *  A clash is suffixed rather than rejected: the draft row is already gone, so
 	 *  there is nothing left on screen to correct. */
-	async createAt(rel: string, kind: 'file' | 'folder'): Promise<void> {
+	async createAt(rel: string, kind: "file" | "folder"): Promise<void> {
 		this.syncBuffer();
 		const dir = dirOf(rel);
 		const leaf = leafOf(rel).trim();
 		if (!leaf) return;
 		const path = (unique: string) => (dir ? `${dir}/${unique}` : unique);
 
-		if (kind === 'folder') {
+		if (kind === "folder") {
 			const target = path(this.uniqueFolder(dir, leaf));
 			if (this.project && this.projectRoot) {
 				try {
@@ -660,17 +660,17 @@ export class FileStore {
 			}
 			this.files = [
 				...this.files,
-				{ id: abs, name: target, content: '', path: abs, loaded: true, saved: '' }
+				{ id: abs, name: target, content: "", path: abs, loaded: true, saved: "" }
 			];
 			this.activeId = abs;
-			this.source = '';
+			this.source = "";
 			return;
 		}
 		this.untitledCount += 1;
 		const id = `file-${this.untitledCount}`;
-		this.files = [...this.files, { id, name: target, content: '', saved: '' }];
+		this.files = [...this.files, { id, name: target, content: "", saved: "" }];
 		this.activeId = id;
-		this.source = '';
+		this.source = "";
 	}
 
 	/** Copy a file beside itself, "name (2).tex" style. */
@@ -681,7 +681,7 @@ export class FileStore {
 		const dir = dirOf(source.name);
 		const rel = dir
 			? `${dir}/${this.uniqueLeaf(dir, leafOf(source.name))}`
-			: this.uniqueLeaf('', leafOf(source.name));
+			: this.uniqueLeaf("", leafOf(source.name));
 		const content = source.id === this.activeId ? this.source : source.content;
 		if (this.project && this.projectRoot) {
 			const abs = joinPath(this.projectRoot, rel);
@@ -709,7 +709,7 @@ export class FileStore {
 	 *  name-conflict prompt, and the dialog is a single slot. */
 	async moveItems(items: Sel[], targetDir: string): Promise<void> {
 		for (const item of items) {
-			if (item.type === 'folder') await this.moveFolder(item.path, targetDir);
+			if (item.type === "folder") await this.moveFolder(item.path, targetDir);
 			else await this.moveFile(item.id, targetDir);
 		}
 	}
@@ -719,37 +719,37 @@ export class FileStore {
 		if (!items.length) return;
 		if (items.length === 1) {
 			const only = items[0];
-			if (only.type === 'folder') return this.deleteFolder(only.path);
+			if (only.type === "folder") return this.deleteFolder(only.path);
 			return this.deleteFile(only.id);
 		}
-		const folders = items.filter((i) => i.type === 'folder').length;
+		const folders = items.filter((i) => i.type === "folder").length;
 		const files = items.length - folders;
 		const parts = [
-			files ? `${files} file${files > 1 ? 's' : ''}` : '',
-			folders ? `${folders} folder${folders > 1 ? 's' : ''}` : ''
+			files ? `${files} file${files > 1 ? "s" : ""}` : "",
+			folders ? `${folders} folder${folders > 1 ? "s" : ""}` : ""
 		].filter(Boolean);
 		const ok = await this.askConfirm(
-			'Delete items',
-			`Delete ${parts.join(' and ')}? This cannot be undone.`,
-			'Delete'
+			"Delete items",
+			`Delete ${parts.join(" and ")}? This cannot be undone.`,
+			"Delete"
 		);
 		if (!ok) return;
 		// Folders first: deleting one may remove files also listed here, and a
 		// second pass over a vanished id would report a spurious failure.
 		const ordered = [...items].sort((a, b) =>
-			a.type === b.type ? 0 : a.type === 'folder' ? -1 : 1
+			a.type === b.type ? 0 : a.type === "folder" ? -1 : 1
 		);
 		let failed = 0;
 		for (const item of ordered) {
 			try {
-				if (item.type === 'folder') await this.removeFolder(item.path);
+				if (item.type === "folder") await this.removeFolder(item.path);
 				else if (this.files.some((f) => f.id === item.id)) await this.removeFile(item.id);
 			} catch {
 				failed += 1;
 			}
 		}
-		if (failed) toast.error(`${failed} item${failed > 1 ? 's' : ''} could not be deleted.`);
-		else toast.success('Deleted');
+		if (failed) toast.error(`${failed} item${failed > 1 ? "s" : ""} could not be deleted.`);
+		else toast.success("Deleted");
 	}
 
 	// --- Conflict-name helpers ------------------------------------------------
@@ -788,7 +788,7 @@ export class FileStore {
 		this.applyToAll = false;
 		return new Promise((resolve) => {
 			this.pending = {
-				kind: 'conflict',
+				kind: "conflict",
 				name,
 				isFolder,
 				canMerge: !!opts.canMerge,
@@ -799,7 +799,7 @@ export class FileStore {
 	}
 	askConfirm(title: string, message: string, confirmLabel: string): Promise<boolean> {
 		return new Promise((resolve) => {
-			this.pending = { kind: 'confirm', title, message, confirmLabel, resolve };
+			this.pending = { kind: "confirm", title, message, confirmLabel, resolve };
 		});
 	}
 	resolveConflict(action: ConflictAction, newName?: string): void {
@@ -807,19 +807,19 @@ export class FileStore {
 		const all = this.applyToAll;
 		this.pending = null;
 		this.applyToAll = false;
-		if (p?.kind === 'conflict') p.resolve({ action, newName, applyToAll: all });
+		if (p?.kind === "conflict") p.resolve({ action, newName, applyToAll: all });
 	}
 	resolveConfirm(ok: boolean): void {
 		const p = this.pending;
 		this.pending = null;
-		if (p?.kind === 'confirm') p.resolve(ok);
+		if (p?.kind === "confirm") p.resolve(ok);
 	}
 	cancelPending(): void {
 		const p = this.pending;
 		this.pending = null;
 		this.applyToAll = false;
-		if (p?.kind === 'conflict') p.resolve({ action: 'skip' });
-		else if (p?.kind === 'confirm') p.resolve(false);
+		if (p?.kind === "conflict") p.resolve({ action: "skip" });
+		else if (p?.kind === "confirm") p.resolve(false);
 	}
 
 	// --- Rename / move / delete -----------------------------------------------
@@ -861,7 +861,7 @@ export class FileStore {
 			this.mainId = null;
 			void this.writeManifest();
 		}
-		if (victim.id === this.activeId) this.activeId = '';
+		if (victim.id === this.activeId) this.activeId = "";
 		this.#dropTab(victim.id, false);
 		this.files = this.files.filter((x) => x.id !== victim.id);
 	}
@@ -875,11 +875,11 @@ export class FileStore {
 		if (newRel.toLowerCase() === f.name.toLowerCase()) return; // no-op
 		if (this.relExists(newRel, id)) {
 			const res = await this.askConflict(leaf, false, this.uniqueLeaf(targetDir, leaf));
-			if (res.action === 'skip') return;
-			if (res.action === 'rename') {
+			if (res.action === "skip") return;
+			if (res.action === "rename") {
 				const nl = this.uniqueLeaf(targetDir, (res.newName || leaf).trim() || leaf);
 				newRel = targetDir ? `${targetDir}/${nl}` : nl;
-			} else if (res.action === 'replace') {
+			} else if (res.action === "replace") {
 				try {
 					await this.removeRel(newRel, id);
 				} catch (e) {
@@ -889,7 +889,7 @@ export class FileStore {
 			}
 		}
 		const finalId = await this.applyRename(f, newRel);
-		if (finalId && this.activeId === '') await this.openFile(finalId, true);
+		if (finalId && this.activeId === "") await this.openFile(finalId, true);
 	}
 
 	/** Move every file under `srcPath` to `newPath` (disk + state). Shared by
@@ -955,15 +955,15 @@ export class FileStore {
 			const res = await this.askConflict(name, true, this.uniqueFolder(targetDir, name), {
 				canMerge: true
 			});
-			if (res.action === 'skip') return;
-			if (res.action === 'merge') {
+			if (res.action === "skip") return;
+			if (res.action === "merge") {
 				await this.mergeFolder(srcPath, newPath);
 				return;
 			}
-			if (res.action === 'rename') {
+			if (res.action === "rename") {
 				const nn = this.uniqueFolder(targetDir, (res.newName || name).trim() || name);
 				newPath = targetDir ? `${targetDir}/${nn}` : nn;
-			} else if (res.action === 'replace') {
+			} else if (res.action === "replace") {
 				try {
 					await this.removeFolder(newPath);
 				} catch (e) {
@@ -1001,11 +1001,11 @@ export class FileStore {
 					});
 					if (choice.applyToAll) batch = choice;
 				}
-				if (choice.action === 'skip') continue;
-				if (choice.action === 'rename') {
+				if (choice.action === "skip") continue;
+				if (choice.action === "rename") {
 					const nl = this.uniqueLeaf(dirOf(newRel), leafOf(newRel));
 					newRel = dirOf(newRel) ? `${dirOf(newRel)}/${nl}` : nl;
-				} else if (choice.action === 'replace') {
+				} else if (choice.action === "replace") {
 					try {
 						await this.removeRel(newRel, cur.id);
 					} catch (e) {
@@ -1016,7 +1016,7 @@ export class FileStore {
 			}
 			const finalId = await this.applyRename(cur, newRel);
 			if (finalId) moved += 1;
-			if (finalId && this.activeId === '') await this.openFile(finalId, true);
+			if (finalId && this.activeId === "") await this.openFile(finalId, true);
 		}
 
 		// Remap empty subfolders of src into dst; drop the src folder itself.
@@ -1036,7 +1036,7 @@ export class FileStore {
 				/* best-effort: empty dir cleanup */
 			}
 		}
-		toast.success(`Merged ${moved} file${moved === 1 ? '' : 's'}`);
+		toast.success(`Merged ${moved} file${moved === 1 ? "" : "s"}`);
 	}
 
 	async renameFolder(srcPath: string, newLeaf: string): Promise<void> {
@@ -1071,8 +1071,8 @@ export class FileStore {
 		if (hadActive) {
 			if (this.files[0]) await this.openFile(this.files[0].id, true);
 			else {
-				this.activeId = '';
-				this.source = '';
+				this.activeId = "";
+				this.source = "";
 			}
 		}
 	}
@@ -1080,16 +1080,16 @@ export class FileStore {
 	async deleteFolder(path: string): Promise<void> {
 		const prefix = `${path}/`;
 		const count = this.files.filter((f) => f.name === path || f.name.startsWith(prefix)).length;
-		const tail = count ? ` and its ${count} file${count > 1 ? 's' : ''}` : '';
+		const tail = count ? ` and its ${count} file${count > 1 ? "s" : ""}` : "";
 		const ok = await this.askConfirm(
-			'Delete folder',
+			"Delete folder",
 			`Delete “${leafOf(path)}”${tail}? This cannot be undone.`,
-			'Delete'
+			"Delete"
 		);
 		if (!ok) return;
 		try {
 			await this.removeFolder(path);
-			toast.success('Deleted');
+			toast.success("Deleted");
 		} catch (e) {
 			toast.error(`Delete failed: ${e}`);
 		}
@@ -1101,8 +1101,8 @@ export class FileStore {
 		const target = this.files.find((f) => f.id === id);
 		const leaf = newLeaf.trim();
 		if (!target || !leaf || leaf === baseName(target.name)) return;
-		const slash = target.name.lastIndexOf('/');
-		const dir = slash === -1 ? '' : target.name.slice(0, slash + 1);
+		const slash = target.name.lastIndexOf("/");
+		const dir = slash === -1 ? "" : target.name.slice(0, slash + 1);
 		const newRel = dir + leaf;
 		if (this.project && this.projectRoot && target.path) {
 			const newAbs = joinPath(this.projectRoot, newRel);
@@ -1144,8 +1144,8 @@ export class FileStore {
 		if (wasActive) {
 			if (remaining[0]) await this.openFile(remaining[0].id, true);
 			else {
-				this.activeId = '';
-				this.source = '';
+				this.activeId = "";
+				this.source = "";
 			}
 		}
 	}
@@ -1157,14 +1157,14 @@ export class FileStore {
 		}
 		const target = this.files.find((f) => f.id === id);
 		const ok = await this.askConfirm(
-			'Delete file',
-			`Delete “${baseName(target?.name ?? '')}”? This cannot be undone.`,
-			'Delete'
+			"Delete file",
+			`Delete “${baseName(target?.name ?? "")}”? This cannot be undone.`,
+			"Delete"
 		);
 		if (!ok) return;
 		try {
 			await this.removeFile(id);
-			toast.success('Deleted');
+			toast.success("Deleted");
 		} catch (e) {
 			toast.error(`Delete failed: ${e}`);
 		}
@@ -1175,7 +1175,7 @@ export class FileStore {
 		this.mainId = id;
 		await this.writeManifest();
 		toast.success(
-			`${baseName(this.files.find((f) => f.id === id)?.name ?? '')} is now the main file`
+			`${baseName(this.files.find((f) => f.id === id)?.name ?? "")} is now the main file`
 		);
 	}
 
@@ -1206,11 +1206,11 @@ export class FileStore {
 	/** Pick the main file from a manifest, else a sensible heuristic. */
 	async resolveMain(list: { abs: string; rel: string }[]): Promise<string | null> {
 		if (!this.project) return null;
-		const glyx = list.find((f) => f.rel.toLowerCase().endsWith('.glyx'));
+		const glyx = list.find((f) => f.rel.toLowerCase().endsWith(".glyx"));
 		if (glyx) {
 			try {
 				const m = JSON.parse(await this.project.readFile(glyx.abs));
-				if (m && typeof m.main === 'string') {
+				if (m && typeof m.main === "string") {
 					const hit = list.find((f) => f.rel === m.main);
 					if (hit) return hit.abs;
 				}
@@ -1218,11 +1218,11 @@ export class FileStore {
 				/* fall through to heuristics */
 			}
 		}
-		const mainTex = list.find((f) => f.rel.toLowerCase() === 'main.tex');
+		const mainTex = list.find((f) => f.rel.toLowerCase() === "main.tex");
 		if (mainTex) return mainTex.abs;
 		const rootTex = list.find((f) => /^[^/]+\.tex$/i.test(f.rel));
 		if (rootTex) return rootTex.abs;
-		const anyTex = list.find((f) => f.rel.toLowerCase().endsWith('.tex'));
+		const anyTex = list.find((f) => f.rel.toLowerCase().endsWith(".tex"));
 		return anyTex?.abs ?? list[0]?.abs ?? null;
 	}
 
@@ -1236,11 +1236,11 @@ export class FileStore {
 			this.onProjectLoaded?.(); // close any diff from the previous project
 			this.projectRoot = root;
 			// `.glyx` manifest is project metadata: keep it on disk, hide from the tree.
-			const visible = list.filter((f) => !f.rel.toLowerCase().endsWith('.glyx'));
+			const visible = list.filter((f) => !f.rel.toLowerCase().endsWith(".glyx"));
 			this.files = visible.map((f) => ({
 				id: f.abs,
 				name: f.rel,
-				content: '',
+				content: "",
 				path: f.abs,
 				loaded: false
 			}));
@@ -1250,7 +1250,7 @@ export class FileStore {
 			const focusId = focusPath
 				? this.files.find((f) => samePath(f.path, focusPath))?.id
 				: undefined;
-			this.activeId = '';
+			this.activeId = "";
 			// The strip belongs to the project, not the window: reopening a folder
 			// restores the files you had open in it, and the one you left off in.
 			this.openTabs = [];
@@ -1259,7 +1259,7 @@ export class FileStore {
 			// A launch path is an explicit request and outranks where you left off.
 			const first = focusId ?? last ?? this.mainId ?? this.files[0]?.id;
 			if (first) await this.openFile(first, true);
-			else this.source = '';
+			else this.source = "";
 			toast.success(`Opened ${baseName(root)}`);
 		} catch (e) {
 			toast.error(`Could not open project: ${e}`);
@@ -1270,7 +1270,7 @@ export class FileStore {
 	async openPath(p: string): Promise<void> {
 		if (!this.project) return;
 		const lower = p.toLowerCase();
-		if (lower.endsWith('.glyx')) {
+		if (lower.endsWith(".glyx")) {
 			await this.loadProject(parentDir(p));
 		} else if (/\.[a-z0-9]+$/i.test(lower)) {
 			await this.loadProject(parentDir(p), p);
@@ -1281,7 +1281,7 @@ export class FileStore {
 
 	async openFolder(): Promise<void> {
 		if (!this.project) return;
-		const root = await this.project.pickFolder('Open LaTeX project folder');
+		const root = await this.project.pickFolder("Open LaTeX project folder");
 		if (root) await this.loadProject(root);
 	}
 
@@ -1299,7 +1299,7 @@ export class FileStore {
 
 	async exportProject(): Promise<void> {
 		if (!this.project || !this.projectRoot) {
-			toast.info('Open a project folder first to export it.');
+			toast.info("Open a project folder first to export it.");
 			return;
 		}
 		await this.saveAll();
@@ -1308,7 +1308,7 @@ export class FileStore {
 				this.projectRoot,
 				`${baseName(this.projectRoot)}.zip`
 			);
-			if (ok) toast.success('Exported project as ZIP');
+			if (ok) toast.success("Exported project as ZIP");
 		} catch (e) {
 			toast.error(`Export failed: ${e}`);
 		}

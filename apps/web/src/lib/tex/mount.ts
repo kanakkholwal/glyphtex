@@ -1,4 +1,4 @@
-import type { CompileFile } from './protocol';
+import type { CompileFile } from "./protocol";
 
 /** The slice of the engine that mounting touches. */
 export interface MountTarget {
@@ -55,7 +55,7 @@ export function mountDocument(
 	}
 	if (switching) engine.clearOutputs();
 
-	for (const file of files) engine.addFile(file.name, file.data ?? file.text ?? '');
+	for (const file of files) engine.addFile(file.name, file.data ?? file.text ?? "");
 
 	return { doc: docId, files: incoming };
 }

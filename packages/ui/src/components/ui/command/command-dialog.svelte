@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
-	import type { Command as CommandPrimitive, Dialog as DialogPrimitive } from 'bits-ui';
-	import type { Snippet } from 'svelte';
-	import * as Dialog from '../dialog';
-	import Command from './command.svelte';
+	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import type { Command as CommandPrimitive, Dialog as DialogPrimitive } from "bits-ui";
+	import type { Snippet } from "svelte";
+	import * as Dialog from "../dialog";
+	import Command from "./command.svelte";
 
 	let {
 		open = $bindable(false),
 		ref = $bindable(null),
-		value = $bindable(''),
-		title = 'Command Palette',
-		description = 'Search for a command to run...',
+		value = $bindable(""),
+		title = "Command Palette",
+		description = "Search for a command to run...",
 		showCloseButton = false,
 		portalProps,
 		children,

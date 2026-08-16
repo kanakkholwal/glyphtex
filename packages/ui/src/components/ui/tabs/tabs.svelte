@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { Tabs as TabsPrimitive } from 'bits-ui';
+	import { cn } from "@glyphtex/ui/utils";
+	import { Tabs as TabsPrimitive } from "bits-ui";
 
 	let {
 		ref = $bindable(null),
-		value = $bindable(''),
+		value = $bindable(""),
 		class: className,
 		...restProps
 	}: TabsPrimitive.RootProps = $props();

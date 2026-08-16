@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
+	import { cn } from "@glyphtex/ui/utils";
+	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
 
 	let {
 		ref = $bindable(null),

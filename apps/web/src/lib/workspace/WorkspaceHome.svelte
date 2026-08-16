@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-	import { ProjectsHome, type Scope } from '@glyphtex/ui/application';
-	import { toast } from '@glyphtex/ui/sonner';
-	import { onMount } from 'svelte';
+	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
+	import { ProjectsHome, type Scope } from "@glyphtex/ui/application";
+	import { toast } from "@glyphtex/ui/sonner";
+	import { onMount } from "svelte";
 
-	import { bucket, track, type DocumentSource } from '$lib/analytics';
-	import { cloneToProject } from '$lib/git';
-	import StoragePanel from '$lib/StoragePanel.svelte';
-	import { toProjectCard } from '$lib/storage/bridge';
+	import { bucket, track, type DocumentSource } from "$lib/analytics";
+	import { cloneToProject } from "$lib/git";
+	import StoragePanel from "$lib/StoragePanel.svelte";
+	import { toProjectCard } from "$lib/storage/bridge";
 	import {
 		filesFromDataTransfer,
 		importFolder,
 		importZipFile,
 		type ImportResult
-	} from '$lib/storage/import';
+	} from "$lib/storage/import";
 	import {
 		createProject,
 		deleteProject,
@@ -23,24 +23,24 @@
 		renameProject,
 		setStarred,
 		type StoredProject
-	} from '$lib/storage/projects';
-	import { requestPersistence, storageStatus } from '$lib/storage/quota';
-	import { starterFiles } from '$lib/storage/template';
+	} from "$lib/storage/projects";
+	import { requestPersistence, storageStatus } from "$lib/storage/quota";
+	import { starterFiles } from "$lib/storage/template";
 
-	let { scope = 'all' }: { scope?: Scope } = $props();
+	let { scope = "all" }: { scope?: Scope } = $props();
 
 	const scopeHrefs: Record<Scope, string> = {
-		all: resolve('/workspace'),
-		recent: resolve('/workspace/recent'),
-		starred: resolve('/workspace/starred'),
-		templates: resolve('/workspace/templates')
+		all: resolve("/workspace"),
+		recent: resolve("/workspace/recent"),
+		starred: resolve("/workspace/starred"),
+		templates: resolve("/workspace/templates")
 	};
 
 	const titles: Record<Scope, string> = {
-		all: 'All projects',
-		recent: 'Recent',
-		starred: 'Starred',
-		templates: 'Templates'
+		all: "All projects",
+		recent: "Recent",
+		starred: "Starred",
+		templates: "Templates"
 	};
 
 	let stored = $state<StoredProject[]>([]);
@@ -53,7 +53,7 @@
 	function report(error: unknown, fallback: string): void {
 		const message = error instanceof Error ? error.message : fallback;
 		toast.error(message);
-		console.error('[GlyphTeX]', error);
+		console.error("[GlyphTeX]", error);
 	}
 
 	// Whole-origin usage (engine cache included), not just documents: that is the
@@ -73,7 +73,7 @@
 		try {
 			await refresh();
 		} catch (error) {
-			failure = error instanceof Error ? error.message : 'Could not read saved documents.';
+			failure = error instanceof Error ? error.message : "Could not read saved documents.";
 		} finally {
 			loading = false;
 		}
@@ -94,28 +94,28 @@
 			if (files.length === 0) {
 				toast.error(
 					ignored > 0
-						? 'Everything in there was build output or ignored by .gitignore.'
-						: 'Nothing in there could be imported.'
+						? "Everything in there was build output or ignored by .gitignore."
+						: "Nothing in there could be imported."
 				);
 				return;
 			}
 			const project = await createProject(name, files);
-			track('document_created', { source, files: bucket(files.length) });
+			track("document_created", { source, files: bucket(files.length) });
 			await refresh();
 			void requestPersistence();
 			// Ignored files are expected (node_modules, build output), so they get a
 			// count; skipped ones hit a real limit and are named.
-			const aside = ignored > 0 ? ` Ignored ${ignored} build/ignored files.` : '';
+			const aside = ignored > 0 ? ` Ignored ${ignored} build/ignored files.` : "";
 			if (skipped.length > 0) {
 				toast.warning(
-					`Imported ${files.length} files. Skipped ${skipped.length}: ${skipped.slice(0, 3).join(', ')}${skipped.length > 3 ? '…' : ''}${aside}`
+					`Imported ${files.length} files. Skipped ${skipped.length}: ${skipped.slice(0, 3).join(", ")}${skipped.length > 3 ? "…" : ""}${aside}`
 				);
 			} else {
 				toast.success(`Imported ${files.length} files.${aside}`);
 			}
 			open(project.id);
 		} catch (error) {
-			report(error, 'Could not import that.');
+			report(error, "Could not import that.");
 		} finally {
 			importing = false;
 		}
@@ -123,14 +123,14 @@
 
 	function pickZip(event: Event): void {
 		const file = (event.currentTarget as HTMLInputElement).files?.[0];
-		if (file) void runImport(() => importZipFile(file), 'import_zip');
-		if (zipInput) zipInput.value = '';
+		if (file) void runImport(() => importZipFile(file), "import_zip");
+		if (zipInput) zipInput.value = "";
 	}
 
 	function pickFolder(event: Event): void {
 		const picked = Array.from((event.currentTarget as HTMLInputElement).files ?? []);
-		if (picked.length > 0) void runImport(() => importFolder(picked), 'import_folder');
-		if (folderInput) folderInput.value = '';
+		if (picked.length > 0) void runImport(() => importFolder(picked), "import_folder");
+		if (folderInput) folderInput.value = "";
 	}
 
 	async function onDrop(event: DragEvent): Promise<void> {
@@ -141,28 +141,28 @@
 		// A single .zip imports as an archive; anything else (incl. a whole folder,
 		// read recursively) imports as loose files preserving structure.
 		if (dropped.length === 1 && /\.zip$/i.test(dropped[0].name)) {
-			void runImport(() => importZipFile(dropped[0]), 'import_zip');
+			void runImport(() => importZipFile(dropped[0]), "import_zip");
 			return;
 		}
 		const files = await filesFromDataTransfer(event.dataTransfer);
-		if (files.length > 0) void runImport(() => importFolder(files), 'import_folder');
+		if (files.length > 0) void runImport(() => importFolder(files), "import_folder");
 	}
 
 	function onDragOver(event: DragEvent): void {
-		if (!event.dataTransfer?.types.includes('Files')) return;
+		if (!event.dataTransfer?.types.includes("Files")) return;
 		event.preventDefault();
 		dragging = true;
 	}
 
 	async function handleCreate(): Promise<string | void> {
 		try {
-			const project = await createProject('Untitled', starterFiles());
-			track('document_created', { source: 'blank' });
+			const project = await createProject("Untitled", starterFiles());
+			track("document_created", { source: "blank" });
 			await refresh();
 			void requestPersistence();
 			return project.id;
 		} catch (error) {
-			report(error, 'Could not create the document.');
+			report(error, "Could not create the document.");
 		}
 	}
 
@@ -170,12 +170,12 @@
 	async function cloneRepo(url: string): Promise<void> {
 		try {
 			const project = await cloneToProject(url);
-			track('document_created', { source: 'git_clone' });
-			track('git_action', { action: 'clone' });
+			track("document_created", { source: "git_clone" });
+			track("git_action", { action: "clone" });
 			await requestPersistence();
 			open(project.id);
 		} catch (error) {
-			report(error, 'Could not clone that repository.');
+			report(error, "Could not clone that repository.");
 		}
 	}
 
@@ -186,40 +186,40 @@
 	async function rename(id: string, name: string): Promise<void> {
 		try {
 			await renameProject(id, name);
-			track('document_renamed');
+			track("document_renamed");
 			await refresh();
 		} catch (error) {
-			report(error, 'Could not rename the document.');
+			report(error, "Could not rename the document.");
 		}
 	}
 
 	async function duplicate(id: string): Promise<void> {
 		try {
 			await duplicateProject(id);
-			track('document_duplicated');
+			track("document_duplicated");
 			await refresh();
 		} catch (error) {
-			report(error, 'Could not duplicate the document.');
+			report(error, "Could not duplicate the document.");
 		}
 	}
 
 	async function star(id: string, starred: boolean): Promise<void> {
 		try {
 			await setStarred(id, starred);
-			track('document_starred', { starred });
+			track("document_starred", { starred });
 			await refresh();
 		} catch (error) {
-			report(error, 'Could not update the star.');
+			report(error, "Could not update the star.");
 		}
 	}
 
 	async function remove(id: string): Promise<void> {
 		try {
 			await deleteProject(id);
-			track('document_deleted');
+			track("document_deleted");
 			await refresh();
 		} catch (error) {
-			report(error, 'Could not delete the document.');
+			report(error, "Could not delete the document.");
 		}
 	}
 </script>

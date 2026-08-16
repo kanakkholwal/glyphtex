@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { navigating } from '$app/state';
-	import { cubicOut } from 'svelte/easing';
-	import { Tween } from 'svelte/motion';
+	import { navigating } from "$app/state";
+	import { cubicOut } from "svelte/easing";
+	import { Tween } from "svelte/motion";
 
 	/**
 	 * Top-of-page navigation progress bar: same UX as Vercel/Linear.
@@ -16,7 +16,7 @@
 	 */
 
 	let {
-		color = 'var(--color-primary)',
+		color = "var(--color-primary)",
 		height = 3,
 		trickleSpeed = 200,
 		minimum = 0.08,

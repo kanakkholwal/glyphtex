@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
-	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
-	import type { ComponentProps } from 'svelte';
+	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
+	import type { ComponentProps } from "svelte";
 	import {
 		dropdownMenuContentSizeVariants,
 		setDropdownMenuSize,
 		type DropdownMenuSize
-	} from './context';
-	import DropdownMenuPortal from './dropdown-menu-portal.svelte';
+	} from "./context";
+	import DropdownMenuPortal from "./dropdown-menu-portal.svelte";
 
 	let {
 		ref = $bindable(null),
 		sideOffset = 4,
-		align = 'start',
-		size = 'default',
+		align = "start",
+		size = "default",
 		portalProps,
 		class: className,
 		preventScroll = false,

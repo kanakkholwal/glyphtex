@@ -1,7 +1,7 @@
-import { parsePackIndex, type InstalledPack, type PackIndex } from 'glyphtex-engine';
-import { openEngineCache } from './manifest';
+import { parsePackIndex, type InstalledPack, type PackIndex } from "glyphtex-engine";
+import { openEngineCache } from "./manifest";
 
-const INDEX_URL = '/engine/packs/packs-index.json';
+const INDEX_URL = "/engine/packs/packs-index.json";
 
 /** Cache key for a pack, keyed on content hash so a rebuilt pack misses. */
 function packUrl(id: string, hash: string): string {
@@ -14,7 +14,7 @@ export async function loadPackIndex(): Promise<PackIndex | null> {
 	const cache = await openEngineCache();
 
 	try {
-		const response = await fetch(INDEX_URL, { cache: 'no-cache' });
+		const response = await fetch(INDEX_URL, { cache: "no-cache" });
 		if (!response.ok) throw new Error(`pack index ${response.status}`);
 		const index = parsePackIndex(await response.clone().json());
 		await cache?.put(INDEX_URL, response).catch(() => {});

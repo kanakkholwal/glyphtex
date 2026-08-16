@@ -13,28 +13,28 @@ export class ZipError extends Error {
 		readonly cause?: unknown
 	) {
 		super(message);
-		this.name = 'ZipError';
+		this.name = "ZipError";
 	}
 }
 
 async function inflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
-	if (typeof DecompressionStream === 'undefined') {
-		throw new ZipError('This browser cannot decompress .zip files.');
+	if (typeof DecompressionStream === "undefined") {
+		throw new ZipError("This browser cannot decompress .zip files.");
 	}
 	try {
 		const stream = new Blob([bytes as BlobPart])
 			.stream()
-			.pipeThrough(new DecompressionStream('deflate-raw'));
+			.pipeThrough(new DecompressionStream("deflate-raw"));
 		return new Uint8Array(await new Response(stream).arrayBuffer());
 	} catch (cause) {
-		throw new ZipError('A file inside the .zip is corrupt.', cause);
+		throw new ZipError("A file inside the .zip is corrupt.", cause);
 	}
 }
 
 async function deflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
 	const stream = new Blob([bytes as BlobPart])
 		.stream()
-		.pipeThrough(new CompressionStream('deflate-raw'));
+		.pipeThrough(new CompressionStream("deflate-raw"));
 	return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
@@ -45,7 +45,7 @@ function findEocd(view: DataView): number {
 		const at = view.byteLength - i;
 		if (view.getUint32(at, true) === EOCD_SIG) return at;
 	}
-	throw new ZipError('That file is not a .zip archive.');
+	throw new ZipError("That file is not a .zip archive.");
 }
 
 export async function readZip(bytes: Uint8Array): Promise<ZipEntry[]> {
@@ -55,7 +55,7 @@ export async function readZip(bytes: Uint8Array): Promise<ZipEntry[]> {
 	// Zip64 keeps the real counts in a separate record; the 32-bit fields are
 	// saturated. Rejecting is honest: silently reading 65535 entries is not.
 	if (view.getUint32(eocd - 20, true) === ZIP64_LOCATOR_SIG) {
-		throw new ZipError('Zip64 archives are not supported yet.');
+		throw new ZipError("Zip64 archives are not supported yet.");
 	}
 
 	const count = view.getUint16(eocd + 10, true);
@@ -65,7 +65,7 @@ export async function readZip(bytes: Uint8Array): Promise<ZipEntry[]> {
 
 	for (let i = 0; i < count; i++) {
 		if (view.getUint32(at, true) !== CENTRAL_SIG) {
-			throw new ZipError('The .zip directory is damaged.');
+			throw new ZipError("The .zip directory is damaged.");
 		}
 		const method = view.getUint16(at + 10, true);
 		const compressedSize = view.getUint32(at + 20, true);
@@ -77,7 +77,7 @@ export async function readZip(bytes: Uint8Array): Promise<ZipEntry[]> {
 		at += 46 + nameLen + extraLen + commentLen;
 
 		// Directory markers carry no content.
-		if (path.endsWith('/')) continue;
+		if (path.endsWith("/")) continue;
 
 		if (view.getUint32(localAt, true) !== LOCAL_SIG) {
 			throw new ZipError(`"${path}" is damaged inside the .zip.`);

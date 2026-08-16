@@ -8,15 +8,15 @@
 		IconPlus,
 		IconTarget,
 		IconX
-	} from '@tabler/icons-svelte';
-	import { Tooltip, TooltipContent, TooltipTrigger } from '@glyphtex/ui/tooltip';
-	import { toast } from '@glyphtex/ui/sonner';
-	import { tick } from 'svelte';
+	} from "@tabler/icons-svelte";
+	import { Tooltip, TooltipContent, TooltipTrigger } from "@glyphtex/ui/tooltip";
+	import { toast } from "@glyphtex/ui/sonner";
+	import { tick } from "svelte";
 
-	import { classifyFile, type FileKind } from '../file-kinds';
-	import { shortcutLabel } from '../shortcuts';
-	import type { FileStore } from './files.svelte';
-	import TabMenu, { type TabAction } from './tab-menu.svelte';
+	import { classifyFile, type FileKind } from "../file-kinds";
+	import { shortcutLabel } from "../shortcuts";
+	import type { FileStore } from "./files.svelte";
+	import TabMenu, { type TabAction } from "./tab-menu.svelte";
 
 	/** The open-file strip. Shared chrome: it says which file you are editing, in
 	 *  either editor, so switching surface never changes the answer. */
@@ -25,7 +25,7 @@
 	let {
 		files,
 		onnew,
-		controls = 'glyphtex-doc-surface'
+		controls = "glyphtex-doc-surface"
 	}: {
 		files: FileStore;
 		onnew?: () => void;
@@ -75,7 +75,7 @@
 			queueMicrotask(() => (pillSettled = true));
 			// Opening a file from the Explorer or ⌘K can activate a tab scrolled out
 			// of the strip; without this the click reads as a no-op.
-			live.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+			live.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
 		});
 	});
 
@@ -86,7 +86,7 @@
 		if (!el) return;
 		const measure = () => (overflowing = el.scrollWidth > el.clientWidth + 1);
 		void tick().then(measure);
-		if (typeof ResizeObserver === 'undefined') return;
+		if (typeof ResizeObserver === "undefined") return;
 		const ro = new ResizeObserver(measure);
 		ro.observe(el);
 		return () => ro.disconnect();
@@ -157,16 +157,16 @@
 
 	function onKeyDown(event: KeyboardEvent, id: string): void {
 		const at = order.indexOf(id);
-		if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+		if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
 			event.preventDefault();
-			activate(order[(at + (event.key === 'ArrowRight' ? 1 : -1) + order.length) % order.length]);
-		} else if (event.key === 'Home' || event.key === 'End') {
+			activate(order[(at + (event.key === "ArrowRight" ? 1 : -1) + order.length) % order.length]);
+		} else if (event.key === "Home" || event.key === "End") {
 			event.preventDefault();
-			activate(event.key === 'Home' ? order[0] : order[order.length - 1]);
-		} else if (event.key === 'Delete' || event.key === 'Backspace') {
+			activate(event.key === "Home" ? order[0] : order[order.length - 1]);
+		} else if (event.key === "Delete" || event.key === "Backspace") {
 			event.preventDefault();
 			files.closeTab(id);
-		} else if (event.key === 'F10' && event.shiftKey) {
+		} else if (event.key === "F10" && event.shiftKey) {
 			event.preventDefault();
 			const r = tabEls[id]?.getBoundingClientRect();
 			if (r) menu = { x: r.left, y: r.bottom, id };
@@ -179,18 +179,18 @@
 		menu = null;
 		if (!open) return;
 		const file = files.files.find((f) => f.id === open.id);
-		if (action === 'close') files.closeTab(open.id);
-		else if (action === 'others') files.closeOtherTabs(open.id);
-		else if (action === 'right') files.closeTabsToRight(open.id);
-		else if (action === 'all') files.closeAllTabs();
-		else if (action === 'main') void files.setMain(open.id);
-		else if (action === 'reveal') {
+		if (action === "close") files.closeTab(open.id);
+		else if (action === "others") files.closeOtherTabs(open.id);
+		else if (action === "right") files.closeTabsToRight(open.id);
+		else if (action === "all") files.closeAllTabs();
+		else if (action === "main") void files.setMain(open.id);
+		else if (action === "reveal") {
 			if (file?.path) void files.project?.revealInOS?.(file.path);
-		} else if (action === 'copy') {
+		} else if (action === "copy") {
 			void navigator.clipboard
-				?.writeText(file?.path ?? file?.name ?? '')
-				.then(() => toast.success('Path copied'))
-				.catch(() => toast.error('Could not copy the path'));
+				?.writeText(file?.path ?? file?.name ?? "")
+				.then(() => toast.success("Path copied"))
+				.catch(() => toast.error("Could not copy the path"));
 		}
 	}
 </script>

@@ -1,14 +1,14 @@
-import { isGeneratedFile } from '../file-kinds';
-import type { TreeNode } from '../file-tree.svelte';
-import type { Sel } from './types';
+import { isGeneratedFile } from "../file-kinds";
+import type { TreeNode } from "../file-tree.svelte";
+import type { Sel } from "./types";
 
 type FileMeta = { id: string; name: string };
 
 /** A row key back to the selection it stands for. */
 export function rowKeyToSel(key: string): Sel {
-	return key.startsWith('d:')
-		? { type: 'folder', path: key.slice(2) }
-		: { type: 'file', id: key.slice(2) };
+	return key.startsWith("d:")
+		? { type: "folder", path: key.slice(2) }
+		: { type: "file", id: key.slice(2) };
 }
 
 /** Nests file names split on "/" into folders. `extraFolders` injects folders with no
@@ -19,15 +19,15 @@ export function buildTree(items: FileMeta[], extraFolders: string[] = []): TreeN
 
 	function ensureFolder(path: string): TreeNode[] {
 		let level = root;
-		let cur = '';
-		for (const part of path.split('/')) {
+		let cur = "";
+		for (const part of path.split("/")) {
 			if (!part) continue;
 			cur = cur ? `${cur}/${part}` : part;
 			let children = folderChildren.get(cur);
 			if (!children) {
 				children = [];
 				folderChildren.set(cur, children);
-				level.push({ type: 'folder', name: part, path: cur, children });
+				level.push({ type: "folder", name: part, path: cur, children });
 			}
 			level = children;
 		}
@@ -35,22 +35,22 @@ export function buildTree(items: FileMeta[], extraFolders: string[] = []): TreeN
 	}
 
 	for (const f of items) {
-		const parts = f.name.split('/');
+		const parts = f.name.split("/");
 		const leaf = parts.pop() ?? f.name;
-		const level = parts.length ? ensureFolder(parts.join('/')) : root;
-		level.push({ type: 'file', id: f.id, name: leaf });
+		const level = parts.length ? ensureFolder(parts.join("/")) : root;
+		level.push({ type: "file", id: f.id, name: leaf });
 	}
 	for (const p of extraFolders) if (p) ensureFolder(p);
 
 	function sort(nodes: TreeNode[]) {
 		nodes.sort((a, b) =>
 			a.type !== b.type
-				? a.type === 'folder'
+				? a.type === "folder"
 					? -1
 					: 1
 				: a.name.localeCompare(b.name, undefined, { numeric: true })
 		);
-		for (const n of nodes) if (n.type === 'folder') sort(n.children);
+		for (const n of nodes) if (n.type === "folder") sort(n.children);
 	}
 	sort(root);
 	return root;
@@ -59,7 +59,7 @@ export function buildTree(items: FileMeta[], extraFolders: string[] = []): TreeN
 /** Flatten the tree to every folder path (depth-first). */
 export function collectFolderPaths(nodes: TreeNode[], acc: string[] = []): string[] {
 	for (const n of nodes)
-		if (n.type === 'folder') {
+		if (n.type === "folder") {
 			acc.push(n.path);
 			collectFolderPaths(n.children, acc);
 		}
@@ -94,7 +94,7 @@ export function flattenTree(
 	function walk(list: TreeNode[], depth: number, parent: string): boolean {
 		let dirty = false;
 		for (const node of list) {
-			if (node.type === 'file') {
+			if (node.type === "file") {
 				const own = dirtyIds.has(node.id);
 				dirty ||= own;
 				rows.push({
@@ -127,7 +127,7 @@ export function flattenTree(
 		return dirty;
 	}
 
-	walk(nodes, 0, '');
+	walk(nodes, 0, "");
 	return rows;
 }
 
@@ -137,7 +137,7 @@ export function hideGenerated(nodes: TreeNode[], activeId: string): TreeNode[] {
 	const keep = (list: TreeNode[]): TreeNode[] => {
 		const out: TreeNode[] = [];
 		for (const node of list) {
-			if (node.type === 'file') {
+			if (node.type === "file") {
 				if (node.id === activeId || !isGeneratedFile(node.name)) out.push(node);
 				continue;
 			}
@@ -158,7 +158,7 @@ export function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
 	const keep = (list: TreeNode[]): TreeNode[] => {
 		const out: TreeNode[] = [];
 		for (const node of list) {
-			if (node.type === 'file') {
+			if (node.type === "file") {
 				if (node.name.toLowerCase().includes(needle)) out.push(node);
 				continue;
 			}

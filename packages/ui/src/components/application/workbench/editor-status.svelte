@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { settings } from '@glyphtex/ui/settings';
-	import { IconAlertTriangle, IconCheck } from '@tabler/icons-svelte';
+	import { settings } from "@glyphtex/ui/settings";
+	import { IconAlertTriangle, IconCheck } from "@tabler/icons-svelte";
 
-	import type { WorkbenchController } from './controller.svelte';
+	import type { WorkbenchController } from "./controller.svelte";
 
 	/** Status line for the editor column: everything here describes the open
 	 *  document, not the app. App-wide state lives in the title bar. Fields drop
@@ -15,13 +15,13 @@
 	const compile = $derived(ctrl.compile);
 
 	const LANGUAGE: Record<string, string> = {
-		latex: 'LaTeX',
-		markdown: 'Markdown',
-		plain: 'Plain text'
+		latex: "LaTeX",
+		markdown: "Markdown",
+		plain: "Plain text"
 	};
 
 	// Monaco normalises to LF on edit, so this reports what was loaded.
-	const eol = $derived(files.source.includes('\r\n') ? 'CRLF' : 'LF');
+	const eol = $derived(files.source.includes("\r\n") ? "CRLF" : "LF");
 	const { errors, warnings } = $derived(compile.problemSummary);
 	const diagnostics = $derived(errors + warnings);
 </script>

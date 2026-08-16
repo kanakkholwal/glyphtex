@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { IconChevronDown, IconChevronUp, IconX } from '@tabler/icons-svelte';
+	import { IconChevronDown, IconChevronUp, IconX } from "@tabler/icons-svelte";
 
-	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from '../search-ui';
-	import type { PdfViewController } from './controller.svelte';
+	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from "../search-ui";
+	import type { PdfViewController } from "./controller.svelte";
 
 	/** Find-in-PDF bar (matches the editor find bar); driven by the controller. */
 	let { ctrl }: { ctrl: PdfViewController } = $props();

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Dialog as DialogPrimitive } from 'bits-ui';
-	import DialogPortal from './dialog-portal.svelte';
-	import type { Snippet } from 'svelte';
-	import * as Dialog from '.';
-	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from '@glyphtex/ui/utils';
-	import type { ComponentProps } from 'svelte';
-	import { Button } from '../button';
-	import { IconX } from '@tabler/icons-svelte';
+	import { Dialog as DialogPrimitive } from "bits-ui";
+	import DialogPortal from "./dialog-portal.svelte";
+	import type { Snippet } from "svelte";
+	import * as Dialog from ".";
+	import { CRAFT_OVERLAY_ANIMATION, cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import type { ComponentProps } from "svelte";
+	import { Button } from "../button";
+	import { IconX } from "@tabler/icons-svelte";
 
 	let {
 		ref = $bindable(null),

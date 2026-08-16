@@ -3,7 +3,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-import { build, files, version } from '$service-worker';
+import { build, files, version } from "$service-worker";
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
@@ -12,10 +12,10 @@ const CACHE = `glyphtex-cache-${version}`;
 
 // Owned by src/lib/tex/worker.ts and deliberately not build-versioned: a deploy
 // must never wipe the ~15 MB compiler. Entries are keyed by engine content hash.
-const ENGINE_CACHE = 'glyphtex-engine';
+const ENGINE_CACHE = "glyphtex-engine";
 
 // `/engine/*` is excluded: ~15 MB the install dialog asks consent for first.
-const PRECACHE = [...build, ...files].filter((p) => !p.startsWith('/engine/'));
+const PRECACHE = [...build, ...files].filter((p) => !p.startsWith("/engine/"));
 
 // `caches.open` can reject (private windows, blocked site data); callers must
 // degrade to "no caching today" rather than failing every request on the page.
@@ -27,7 +27,7 @@ async function openCache(name: string): Promise<Cache | null> {
 	}
 }
 
-sw.addEventListener('install', (event) => {
+sw.addEventListener("install", (event) => {
 	event.waitUntil(
 		(async () => {
 			const cache = await openCache(CACHE);
@@ -44,11 +44,11 @@ sw.addEventListener('install', (event) => {
 // The update banner clicks through to here: activate now, and `clients.claim`
 // in `activate` plus the page's controllerchange listener reload onto the new
 // build.
-sw.addEventListener('message', (event) => {
-	if (event.data === 'SKIP_WAITING') void sw.skipWaiting();
+sw.addEventListener("message", (event) => {
+	if (event.data === "SKIP_WAITING") void sw.skipWaiting();
 });
 
-sw.addEventListener('activate', (event) => {
+sw.addEventListener("activate", (event) => {
 	event.waitUntil(
 		(async () => {
 			// Drop old app-shell caches, keeping the current one and the engine cache.
@@ -64,16 +64,16 @@ sw.addEventListener('activate', (event) => {
 	);
 });
 
-sw.addEventListener('fetch', (event) => {
+sw.addEventListener("fetch", (event) => {
 	const { request } = event;
-	if (request.method !== 'GET') return;
+	if (request.method !== "GET") return;
 
 	const url = new URL(request.url);
-	if (!url.protocol.startsWith('http')) return;
+	if (!url.protocol.startsWith("http")) return;
 
 	// Engine artifacts pass through: the TeX worker owns ENGINE_CACHE, and caching
 	// them here too would duplicate ~15 MB and let the copies disagree on version.
-	if (url.pathname.startsWith('/engine/')) return;
+	if (url.pathname.startsWith("/engine/")) return;
 
 	event.respondWith(
 		(async () => {
@@ -90,7 +90,7 @@ sw.addEventListener('fetch', (event) => {
 			// Everything else: network-first, fall back to cache when offline.
 			try {
 				const response = await fetch(request);
-				const isCacheable = response.status === 200 && response.type === 'basic';
+				const isCacheable = response.status === 200 && response.type === "basic";
 				// Never awaited or rejected: a full quota must not fail the request.
 				if (isCacheable) void cache.put(request, response.clone()).catch(() => {});
 				return response;

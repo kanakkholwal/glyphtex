@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
-	import type { HTMLAttributes } from 'svelte/elements';
-	import type { Snippet } from 'svelte';
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import type { HTMLAttributes } from "svelte/elements";
+	import type { Snippet } from "svelte";
 
 	let {
 		ref = $bindable(null),
@@ -18,7 +18,7 @@
 			"bg-muted gap-2 rounded-lg border px-2.5 text-sm font-medium [&_svg:not([class*='size-'])]:size-4 flex items-center [&_svg]:pointer-events-none",
 			className
 		),
-		'data-slot': 'button-group-text'
+		"data-slot": "button-group-text"
 	});
 </script>
 

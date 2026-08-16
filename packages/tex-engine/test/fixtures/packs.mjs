@@ -18,7 +18,7 @@
 /** @type {PackFixture[]} */
 export const PACK_FIXTURES = [
 	{
-		id: 'writing',
+		id: "writing",
 		source: String.raw`\documentclass{report}
 \usepackage{fancyhdr,titlesec,titling,setspace,parskip,lastpage,appendix,abstract}
 \usepackage{titletoc,tocloft,emptypage,ragged2e,secdot}
@@ -46,7 +46,7 @@ export const PACK_FIXTURES = [
 \end{document}`
 	},
 	{
-		id: 'figures',
+		id: "figures",
 		source: String.raw`\documentclass{article}
 \usepackage{graphicx,float,wrapfig,subfig,rotating,placeins,adjustbox}
 \usepackage{pdflscape,afterpage,pdfpages,eso-pic}
@@ -68,7 +68,7 @@ around it rather than simply sitting above.
 \end{document}`
 	},
 	{
-		id: 'boxes',
+		id: "boxes",
 		source: String.raw`\documentclass{article}
 \usepackage{tcolorbox}
 \tcbuselibrary{skins,breakable}
@@ -82,7 +82,7 @@ A second box with explicit colours.
 \end{document}`
 	},
 	{
-		id: 'review',
+		id: "review",
 		source: String.raw`\documentclass{article}
 \usepackage{todonotes,soul,ulem,cancel}
 \begin{document}
@@ -92,7 +92,7 @@ $\cancel{x} + y$
 \end{document}`
 	},
 	{
-		id: 'science',
+		id: "science",
 		source: String.raw`\documentclass{article}
 \usepackage{amsmath,physics,mhchem}
 \begin{document}
@@ -101,7 +101,7 @@ $\vb{a} \cdot \vb{b}$, $\dv{f}{x}$, $\pdv{f}{y}$.
 \end{document}`
 	},
 	{
-		id: 'tables-plus',
+		id: "tables-plus",
 		// Striped tables come from xcolor's `table` option, which loads colortbl —
 		// absent it, \rowcolor and \rowcolors are both undefined.
 		source: String.raw`\documentclass{article}
@@ -126,9 +126,9 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
 		// is the route with the deeper dependency closure — it is what drags in
 		// logreq and the blx-* internals that a glob would have to guess at.
 		// natbib is a single file the pack's include list carries instead.
-		id: 'references',
+		id: "references",
 		files: {
-			'refs.bib': String.raw`@book{knuth1984,
+			"refs.bib": String.raw`@book{knuth1984,
   author    = {Donald E. Knuth},
   title     = {The {\TeX}book},
   publisher = {Addison-Wesley},
@@ -145,7 +145,7 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
 \end{document}`
 	},
 	{
-		id: 'drafting',
+		id: "drafting",
 		source: String.raw`\documentclass{article}
 \usepackage{lipsum,blindtext,xstring}
 \usepackage{paralist,enumitem}
@@ -157,7 +157,7 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
 \end{document}`
 	},
 	{
-		id: 'algorithms',
+		id: "algorithms",
 		source: String.raw`\documentclass{article}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
@@ -181,7 +181,7 @@ $\begin{pNiceMatrix} a & b \\ c & d \end{pNiceMatrix}$
 		// set \documentclass once, so one document cannot exercise three of them.
 		// IEEEtrantools is deliberately not loaded here — it refuses to run under
 		// IEEEtran, which already provides the same environments.
-		id: 'journal-classes',
+		id: "journal-classes",
 		source: String.raw`\documentclass[conference]{IEEEtran}
 \begin{document}
 \title{A Conference Paper}
@@ -197,7 +197,7 @@ Body text set in the IEEE conference class.
 	{
 		// Madrid pulls a chain (whale, orchid, rounded, infolines); the `include`
 		// glob then adds the other themes the fixture never touches.
-		id: 'beamer-themes',
+		id: "beamer-themes",
 		source: String.raw`\documentclass{beamer}
 \usetheme{Madrid}
 \begin{document}
@@ -210,7 +210,7 @@ Body text set in the IEEE conference class.
 		// Exercises the T1 Type1 path — roman, sans, mono, bold, italic — so the
 		// PDF must embed lmodern outlines. The `include` glob (applied before this
 		// compiles) supplies the .pfb the font loader needs.
-		id: 'fonts-latinmodern',
+		id: "fonts-latinmodern",
 		source: String.raw`\documentclass{article}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -224,7 +224,7 @@ Body text set in the IEEE conference class.
 		// All three FA5 fonts: free-solid (\faHome, \faStar, \faHeart), brands
 		// (\faGithub), and the named form (\faIcon). The vendored shim renders from
 		// the upstream codepoint mapping, so no \XeTeXglyphname enumeration runs.
-		id: 'icons',
+		id: "icons",
 		source: String.raw`\documentclass{article}
 \usepackage{fontawesome5}
 \begin{document}

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { cubicOut } from 'svelte/easing';
-	import { slide } from 'svelte/transition';
+	import { cubicOut } from "svelte/easing";
+	import { slide } from "svelte/transition";
 
-	import SectionHeader from './section-header.svelte';
-	import type { GitPanelStore } from './store.svelte';
-	import { whenLabel } from './tree';
+	import SectionHeader from "./section-header.svelte";
+	import type { GitPanelStore } from "./store.svelte";
+	import { whenLabel } from "./tree";
 
 	/** Commit history: recent commits (hash · summary · date). */
 	let { store }: { store: GitPanelStore } = $props();

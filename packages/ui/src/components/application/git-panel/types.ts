@@ -90,15 +90,15 @@ export type GitProvider = {
 	 *  global `.gitconfig`) leave it out and the panel hides the section. */
 	settings?: {
 		get: () => Promise<GitSettings>;
-		save: (next: Omit<GitSettings, 'chosen'>) => Promise<void>;
+		save: (next: Omit<GitSettings, "chosen">) => Promise<void>;
 	};
 };
 
 /** Collapsible top-level sections (like the Explorer's Files / Outline). */
-export type SectionKey = 'staged' | 'changes' | 'remotes' | 'history';
+export type SectionKey = "staged" | "changes" | "remotes" | "history";
 
 /** What the smart primary button does once the tree is clean. */
-export type SyncAction = 'push' | 'pull' | 'sync' | 'none';
+export type SyncAction = "push" | "pull" | "sync" | "none";
 
 export type TreeNode = {
 	/** Display segment: a folder may be a compressed chain like `src/lib`. */
@@ -114,21 +114,21 @@ export type TreeNode = {
 export type GitErrorInfo = { title: string; message: string; details?: string };
 
 export const STATUS_LABEL: Record<string, string> = {
-	modified: 'M',
-	deleted: 'D',
-	untracked: 'U',
-	added: 'A',
-	renamed: 'R',
-	conflicted: '!'
+	modified: "M",
+	deleted: "D",
+	untracked: "U",
+	added: "A",
+	renamed: "R",
+	conflicted: "!"
 };
 export const STATUS_CLASS: Record<string, string> = {
-	modified: 'text-warning',
-	deleted: 'text-destructive',
-	untracked: 'text-success',
-	added: 'text-success',
-	renamed: 'text-brand',
-	conflicted: 'text-destructive'
+	modified: "text-warning",
+	deleted: "text-destructive",
+	untracked: "text-success",
+	added: "text-success",
+	renamed: "text-brand",
+	conflicted: "text-destructive"
 };
 
 export const INPUT_CLS =
-	'border-border bg-background focus:ring-brand/40 w-full rounded border px-2 py-1 text-xs outline-none focus:ring-2';
+	"border-border bg-background focus:ring-brand/40 w-full rounded border px-2 py-1 text-xs outline-none focus:ring-2";

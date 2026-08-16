@@ -1,5 +1,5 @@
-import { createImports, ExitStatus, type EngineIo } from './imports.js';
-import type { CompileOptions, CompileResult } from './generated/index.js';
+import { createImports, ExitStatus, type EngineIo } from "./imports.js";
+import type { CompileOptions, CompileResult } from "./generated/index.js";
 
 /**
  * ABI version this wrapper is written against.
@@ -48,15 +48,15 @@ export class EngineError extends Error {
 		readonly code?: number
 	) {
 		super(message);
-		this.name = 'EngineError';
+		this.name = "EngineError";
 	}
 }
 
 const ERROR_CODES: Record<number, string> = {
-	[-1]: 'invalid pointer or length',
-	[-2]: 'argument was not valid UTF-8',
-	[-3]: 'options JSON could not be parsed',
-	[-4]: 'the engine is spent — a previous compile trapped and left it unusable'
+	[-1]: "invalid pointer or length",
+	[-2]: "argument was not valid UTF-8",
+	[-3]: "options JSON could not be parsed",
+	[-4]: "the engine is spent — a previous compile trapped and left it unusable"
 };
 
 /** Status code the module returns once its session can no longer be used. */
@@ -77,11 +77,11 @@ const POISONED = -4;
 export class EnginePoisonedError extends EngineError {
 	constructor() {
 		super(
-			'the TeX engine is no longer usable: an earlier compile crashed inside the ' +
-				'module. Load a new engine instance to continue.',
+			"the TeX engine is no longer usable: an earlier compile crashed inside the " +
+				"module. Load a new engine instance to continue.",
 			POISONED
 		);
-		this.name = 'EnginePoisonedError';
+		this.name = "EnginePoisonedError";
 	}
 }
 
@@ -92,7 +92,7 @@ export class TexEngine {
 	readonly #encoder = new TextEncoder();
 	readonly #decoder = new TextDecoder();
 	/** Job name of the most recent compile; the default for pdf() and log(). */
-	#jobname = 'main';
+	#jobname = "main";
 
 	private constructor(exports: EngineExports) {
 		this.#exports = exports;
@@ -139,14 +139,14 @@ export class TexEngine {
 		// different source — nl5887's original, say, which exports tectonic_* —
 		// otherwise fails as "undefined is not a function" from deep inside
 		// load(), which says nothing about the actual mismatch.
-		if (typeof exports.glyphtex_abi_version !== 'function') {
+		if (typeof exports.glyphtex_abi_version !== "function") {
 			const found = Object.keys(instance.exports)
-				.filter((n) => !n.startsWith('__') && n !== 'memory')
+				.filter((n) => !n.startsWith("__") && n !== "memory")
 				.slice(0, 8);
 			throw new EngineError(
-				'this module does not export the GlyphTeX engine ABI ' +
-					`(glyphtex_abi_version is missing; it exports ${found.join(', ')}). ` +
-					'It was built from different source than this wrapper.'
+				"this module does not export the GlyphTeX engine ABI " +
+					`(glyphtex_abi_version is missing; it exports ${found.join(", ")}). ` +
+					"It was built from different source than this wrapper."
 			);
 		}
 
@@ -162,12 +162,12 @@ export class TexEngine {
 
 	/** How many files are currently in the virtual filesystem. */
 	get fileCount(): number {
-		return this.#check(this.#exports.glyphtex_file_count(), 'read the file count');
+		return this.#check(this.#exports.glyphtex_file_count(), "read the file count");
 	}
 
 	/** Add or replace a file. Accepts a string (encoded UTF-8) or raw bytes. */
 	addFile(name: string, data: Uint8Array | string): void {
-		const bytes = typeof data === 'string' ? this.#encoder.encode(data) : data;
+		const bytes = typeof data === "string" ? this.#encoder.encode(data) : data;
 		const namePtr = this.#write(this.#encoder.encode(name));
 		const dataPtr = this.#write(bytes);
 		try {
@@ -210,12 +210,12 @@ export class TexEngine {
 
 	/** Drop every input file. */
 	clearFiles(): void {
-		this.#check(this.#exports.glyphtex_clear_files(), 'clear the input files');
+		this.#check(this.#exports.glyphtex_clear_files(), "clear the input files");
 	}
 
 	/** Discard the previous compile's auxiliary files, forcing a cold build. */
 	clearOutputs(): void {
-		this.#check(this.#exports.glyphtex_clear_outputs(), 'clear the previous outputs');
+		this.#check(this.#exports.glyphtex_clear_outputs(), "clear the previous outputs");
 	}
 
 	/**
@@ -237,16 +237,16 @@ export class TexEngine {
 			const result = this.#readResult();
 			// A negative code means the request itself was unusable; the result
 			// still carries the explanation, so prefer its message.
-			if (rc < 0 && result.status !== 'failed') {
-				throw this.#error('compile request rejected', rc);
+			if (rc < 0 && result.status !== "failed") {
+				throw this.#error("compile request rejected", rc);
 			}
 			// Remember the job name the engine actually used, so pdf() and log()
 			// work without the caller restating it. Taken from the produced file
 			// names rather than recomputed from the request, because the
 			// derivation rule lives in Rust and must not be duplicated here.
-			const artifact = result.outputs.find((o) => o.kind === 'pdf' || o.kind === 'log');
+			const artifact = result.outputs.find((o) => o.kind === "pdf" || o.kind === "log");
 			if (artifact) {
-				this.#jobname = artifact.name.replace(/\.[^.]+$/, '');
+				this.#jobname = artifact.name.replace(/\.[^.]+$/, "");
 			}
 			return result;
 		} finally {
@@ -298,7 +298,7 @@ export class TexEngine {
 		const ptr = this.#exports.glyphtex_result_ptr();
 		const len = this.#exports.glyphtex_result_len();
 		if (len === 0) {
-			throw new EngineError('engine returned an empty result');
+			throw new EngineError("engine returned an empty result");
 		}
 		// Build the view after the call — a growing memory detaches older ones.
 		const json = this.#decoder.decode(new Uint8Array(this.#exports.memory.buffer, ptr, len));
@@ -341,6 +341,6 @@ export class TexEngine {
 function isResponseLike(source: WasmSource): source is Response | Promise<Response> {
 	return (
 		source instanceof Response ||
-		(typeof source === 'object' && source !== null && 'then' in source)
+		(typeof source === "object" && source !== null && "then" in source)
 	);
 }

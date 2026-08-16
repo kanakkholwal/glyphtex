@@ -1,8 +1,8 @@
-import type { Extension } from '@codemirror/state';
-import { hoverTooltip } from '@codemirror/view';
+import type { Extension } from "@codemirror/state";
+import { hoverTooltip } from "@codemirror/view";
 
-import { LATEX_COMMANDS } from './latex-data';
-import { loadedPackageData } from './latex-packages';
+import { LATEX_COMMANDS } from "./latex-data";
+import { loadedPackageData } from "./latex-packages";
 
 export type LatexHover = {
 	from: number;
@@ -17,8 +17,8 @@ const COMMAND = /\\([a-zA-Z@]+)/g;
 
 /** Describe the command spanning `pos`, or null when the cursor is over prose. */
 export function latexHoverAt(text: string, pos: number): LatexHover | null {
-	const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
-	const lineEnd = text.indexOf('\n', pos);
+	const lineStart = text.lastIndexOf("\n", pos - 1) + 1;
+	const lineEnd = text.indexOf("\n", pos);
 	const line = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd);
 	const column = pos - lineStart;
 
@@ -57,23 +57,23 @@ export function latexHover(): Extension {
 			end: hit.to,
 			above: true,
 			create() {
-				const dom = document.createElement('div');
-				dom.className = 'cm-latex-hover';
+				const dom = document.createElement("div");
+				dom.className = "cm-latex-hover";
 
-				const head = dom.appendChild(document.createElement('div'));
-				head.className = 'cm-latex-hover-head';
-				const code = head.appendChild(document.createElement('code'));
+				const head = dom.appendChild(document.createElement("div"));
+				head.className = "cm-latex-hover-head";
+				const code = head.appendChild(document.createElement("code"));
 				code.textContent = `\\${hit.name}`;
 				head.appendChild(document.createTextNode(` ${hit.detail}`));
 
 				if (hit.doc) {
-					const body = dom.appendChild(document.createElement('div'));
-					body.className = 'cm-latex-hover-body';
+					const body = dom.appendChild(document.createElement("div"));
+					body.className = "cm-latex-hover-body";
 					body.textContent = hit.doc;
 				}
 				if (hit.package) {
-					const from = dom.appendChild(document.createElement('div'));
-					from.className = 'cm-latex-hover-source';
+					const from = dom.appendChild(document.createElement("div"));
+					from.className = "cm-latex-hover-source";
 					from.textContent = `Provided by ${hit.package}`;
 				}
 				return { dom };

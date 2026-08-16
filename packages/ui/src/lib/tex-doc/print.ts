@@ -1,4 +1,4 @@
-import { SECTION_COMMANDS, type Block, type Inline } from './types';
+import { SECTION_COMMANDS, type Block, type Inline } from "./types";
 
 /**
  * Blocks → LaTeX.
@@ -17,9 +17,9 @@ import { SECTION_COMMANDS, type Block, type Inline } from './types';
 const ESCAPABLE = /[\\^~%&#_${}]/g;
 
 const ESCAPED: Record<string, string> = {
-	'\\': '\\textbackslash{}',
-	'^': '\\textasciicircum{}',
-	'~': '\\textasciitilde{}'
+	"\\": "\\textbackslash{}",
+	"^": "\\textasciicircum{}",
+	"~": "\\textasciitilde{}"
 };
 
 /** Escape a literal text run so it survives a LaTeX round-trip unchanged. */
@@ -28,39 +28,39 @@ export function escapeText(text: string): string {
 }
 
 export function printInlines(runs: Inline[]): string {
-	let out = '';
+	let out = "";
 	for (const run of runs) {
 		switch (run.kind) {
-			case 'text':
+			case "text":
 				out += escapeText(run.text);
 				break;
-			case 'mark':
+			case "mark":
 				out += `\\${run.command}{${printInlines(run.content)}}`;
 				break;
-			case 'math':
+			case "math":
 				out += run.paren ? `\\(${run.source}\\)` : `$${run.source}$`;
 				break;
-			case 'cite':
-				out += `\\${run.command}{${run.raw ?? run.keys.join(', ')}}`;
+			case "cite":
+				out += `\\${run.command}{${run.raw ?? run.keys.join(", ")}}`;
 				break;
-			case 'ref':
+			case "ref":
 				out += `\\${run.command}{${run.target}}`;
 				break;
-			case 'label':
+			case "label":
 				out += `\\label{${run.name}}`;
 				break;
-			case 'link':
-				out += run.command === 'url' ? `\\url{${run.url}}` : `\\href{${run.url}}{${run.text}}`;
+			case "link":
+				out += run.command === "url" ? `\\url{${run.url}}` : `\\href{${run.url}}{${run.text}}`;
 				break;
-			case 'footnote':
+			case "footnote":
 				out += `\\footnote{${run.source}}`;
 				break;
-			case 'comment':
+			case "comment":
 				// The trailing newline is load-bearing: without it the rest of the
 				// paragraph ends up inside the comment.
-				out += `${run.sameline ? ' ' : '\n'}%${run.text.replace(/[\r\n]+/g, ' ')}\n`;
+				out += `${run.sameline ? " " : "\n"}%${run.text.replace(/[\r\n]+/g, " ")}\n`;
 				break;
-			case 'raw':
+			case "raw":
 				out += run.source;
 				break;
 		}
@@ -70,21 +70,21 @@ export function printInlines(runs: Inline[]): string {
 
 /** Trailing `\label`s, each on its own line, matching how they were folded in. */
 function printLabels(block: Block): string {
-	return (block.labels ?? []).map((name) => `\n\\label{${name}}`).join('');
+	return (block.labels ?? []).map((name) => `\n\\label{${name}}`).join("");
 }
 
 export function sectionCommand(level: number, starred = false): string {
 	const name = SECTION_COMMANDS[Math.min(Math.max(level, 0), SECTION_COMMANDS.length - 1)];
-	return `\\${name}${starred ? '*' : ''}`;
+	return `\\${name}${starred ? "*" : ""}`;
 }
 
-function printListItems(block: Extract<Block, { kind: 'list' }>): string {
+function printListItems(block: Extract<Block, { kind: "list" }>): string {
 	return block.items
 		.map((item) => {
-			const term = block.description && item.term ? `[${item.term}]` : '';
+			const term = block.description && item.term ? `[${item.term}]` : "";
 			return `  \\item${term} ${printInlines(item.content)}`.trimEnd();
 		})
-		.join('\n');
+		.join("\n");
 }
 
 /**
@@ -93,16 +93,16 @@ function printListItems(block: Extract<Block, { kind: 'list' }>): string {
  * TikZ picture next to it.
  */
 export function printBlock(block: Block, source: string): string {
-	if (block.fidelity !== 'native') return source.slice(block.span.from, block.span.to);
+	if (block.fidelity !== "native") return source.slice(block.span.from, block.span.to);
 
 	switch (block.kind) {
-		case 'heading':
+		case "heading":
 			return `${sectionCommand(block.level, block.starred)}{${printInlines(block.title)}}${printLabels(block)}`;
-		case 'paragraph':
+		case "paragraph":
 			return `${printInlines(block.content)}${printLabels(block)}`;
-		case 'list':
+		case "list":
 			return `\\begin{${block.environment}}\n${printListItems(block)}\n\\end{${block.environment}}${printLabels(block)}`;
-		case 'quote':
+		case "quote":
 			return `\\begin{${block.environment}}\n${printInlines(block.content)}\n\\end{${block.environment}}${printLabels(block)}`;
 		default:
 			return source.slice(block.span.from, block.span.to);

@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import { track } from '$lib/analytics';
-	import { Container, ContainerTextFlip, Section, ShowcasePanel } from '$lib/landing';
-	import EditorMock from '$lib/landing/EditorMock.svelte';
-	import { CONTACT_EMAIL } from '$lib/landing/nav-data';
-	import PolishGrid from '$lib/landing/PolishGrid.svelte';
-	import { techLogos } from '$lib/landing/tech-logos';
-	import SiteFooter from '$lib/SiteFooter.svelte';
-	import SiteHeader from '$lib/SiteHeader.svelte';
-	import { Button } from '@glyphtex/ui/button';
-	import { Reveal } from '@glyphtex/ui/reveal';
-	import { SectionHeader } from '@glyphtex/ui/section-header';
+	import { resolve } from "$app/paths";
+	import { track } from "$lib/analytics";
+	import { Container, ContainerTextFlip, Section, ShowcasePanel } from "$lib/landing";
+	import EditorMock from "$lib/landing/EditorMock.svelte";
+	import { CONTACT_EMAIL } from "$lib/landing/nav-data";
+	import PolishGrid from "$lib/landing/PolishGrid.svelte";
+	import { techLogos } from "$lib/landing/tech-logos";
+	import SiteFooter from "$lib/SiteFooter.svelte";
+	import SiteHeader from "$lib/SiteHeader.svelte";
+	import { Button } from "@glyphtex/ui/button";
+	import { Reveal } from "@glyphtex/ui/reveal";
+	import { SectionHeader } from "@glyphtex/ui/section-header";
 	import {
 		IconArrowRight,
 		IconBook2,
@@ -40,31 +40,31 @@
 		IconUserOff,
 		IconUsersGroup,
 		IconWriting
-	} from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { fly, slide } from 'svelte/transition';
+	} from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { fly, slide } from "svelte/transition";
 
-	const repo = 'https://github.com/kanakkholwal/glyphtex';
-	const CTA_LABEL = 'Open the workspace';
-	const workspace = resolve('/workspace');
+	const repo = "https://github.com/kanakkholwal/glyphtex";
+	const CTA_LABEL = "Open the workspace";
+	const workspace = resolve("/workspace");
 
-	const rotatingWords = ['thesis.', 'paper.', 'manuscript.', 'lecture notes.'];
+	const rotatingWords = ["thesis.", "paper.", "manuscript.", "lecture notes."];
 
 	const reducedMotion =
-		typeof window !== 'undefined' &&
-		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+		typeof window !== "undefined" &&
+		window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 	const heroAssurances = [
-		{ icon: IconInfinity, label: 'Free forever' },
-		{ icon: IconUserOff, label: 'No account' },
-		{ icon: IconBrowser, label: 'Runs in your browser' },
-		{ icon: IconLock, label: 'Files stay on your device' }
+		{ icon: IconInfinity, label: "Free forever" },
+		{ icon: IconUserOff, label: "No account" },
+		{ icon: IconBrowser, label: "Runs in your browser" },
+		{ icon: IconLock, label: "Files stay on your device" }
 	];
 
 	const openSourceClaims = [
-		{ icon: IconBrandGithub, label: 'GPLv3 open source' },
-		{ icon: IconGitBranch, label: 'Plain .tex under plain Git' },
-		{ icon: IconCloudOff, label: 'Compiles with the network off' }
+		{ icon: IconBrandGithub, label: "GPLv3 open source" },
+		{ icon: IconGitBranch, label: "Plain .tex under plain Git" },
+		{ icon: IconCloudOff, label: "Compiles with the network off" }
 	];
 
 	type PainPoint = { id: string; title: string; icon: typeof IconClock };
@@ -72,158 +72,158 @@
 	// Titles only. Each one is a complete thought, and a supporting sentence under
 	// every card turned a scannable list into four paragraphs.
 	const painPoints: PainPoint[] = [
-		{ id: 'queue', title: 'A compile queue between you and your PDF.', icon: IconClock },
-		{ id: 'license', title: 'Per-seat licences that lock out a co-author.', icon: IconLock },
-		{ id: 'privacy', title: 'Unpublished drafts on someone else’s server.', icon: IconShield },
-		{ id: 'history', title: 'Revision history behind a paid tier.', icon: IconHistory }
+		{ id: "queue", title: "A compile queue between you and your PDF.", icon: IconClock },
+		{ id: "license", title: "Per-seat licences that lock out a co-author.", icon: IconLock },
+		{ id: "privacy", title: "Unpublished drafts on someone else’s server.", icon: IconShield },
+		{ id: "history", title: "Revision history behind a paid tier.", icon: IconHistory }
 	];
 
 	const solutions = [
-		'Compiles on your machine. No queue.',
-		'Free forever. No seats to count.',
-		'Drafts stay on your disk.',
-		'Open a tab and write.'
+		"Compiles on your machine. No queue.",
+		"Free forever. No seats to count.",
+		"Drafts stay on your disk.",
+		"Open a tab and write."
 	];
 
 	const polishFeatures = [
 		{
 			icon: IconWriting,
-			title: 'Auto-compile on save',
-			description: 'The PDF rebuilds as you type.'
+			title: "Auto-compile on save",
+			description: "The PDF rebuilds as you type."
 		},
 		{
 			icon: IconStack3,
-			title: 'Preview beside source',
-			description: 'Errors land next to the line that caused them.'
+			title: "Preview beside source",
+			description: "Errors land next to the line that caused them."
 		},
 		{
 			icon: IconFileText,
-			title: 'Bibliographies that build',
-			description: 'BibTeX runs in the engine, offline.'
+			title: "Bibliographies that build",
+			description: "BibTeX runs in the engine, offline."
 		},
 		{
 			icon: IconSearch,
-			title: 'Project-wide find',
-			description: 'One keystroke searches every .tex and .bib.'
+			title: "Project-wide find",
+			description: "One keystroke searches every .tex and .bib."
 		}
 	];
 
 	const openSources = [
 		{
 			icon: IconFileText,
-			title: 'Overleaf export',
-			description: 'Drop the .zip in. The folder structure stays intact.'
+			title: "Overleaf export",
+			description: "Drop the .zip in. The folder structure stays intact."
 		},
 		{
 			icon: IconGitBranch,
-			title: 'Git repository',
-			description: 'Point at an existing repo. Pull, push, history.'
+			title: "Git repository",
+			description: "Point at an existing repo. Pull, push, history."
 		},
 		{
 			icon: IconFolders,
-			title: 'Plain .tex folder',
-			description: 'Chapters, figures, a .bib. Open it and write.'
+			title: "Plain .tex folder",
+			description: "Chapters, figures, a .bib. Open it and write."
 		}
 	];
 
 	const trackFeatures = [
 		{
 			icon: IconGitBranch,
-			title: 'Built-in Git UI',
-			description: 'Stage, commit, branch, merge. Without leaving the editor.'
+			title: "Built-in Git UI",
+			description: "Stage, commit, branch, merge. Without leaving the editor."
 		},
 		{
 			icon: IconLock,
-			title: 'No history paywall',
-			description: 'Every revision, forever.'
+			title: "No history paywall",
+			description: "Every revision, forever."
 		},
 		{
 			icon: IconBrandGithub,
-			title: 'Your own remote',
-			description: 'GitHub, GitLab, Gitea, or a university server.'
+			title: "Your own remote",
+			description: "GitHub, GitLab, Gitea, or a university server."
 		}
 	];
 
 	const commits = [
-		{ msg: 'Final revisions · chapter 5', hash: 'c7d8e9f', when: 'today' },
-		{ msg: 'Add citation · Smith 2024', hash: 'e4f5a6b', when: '2 days ago' },
-		{ msg: 'Draft · conclusion', hash: 'a1b2c3d', when: 'last week' },
-		{ msg: 'Fix typo · section 3.2', hash: '9f8e7d6', when: 'last month' }
+		{ msg: "Final revisions · chapter 5", hash: "c7d8e9f", when: "today" },
+		{ msg: "Add citation · Smith 2024", hash: "e4f5a6b", when: "2 days ago" },
+		{ msg: "Draft · conclusion", hash: "a1b2c3d", when: "last week" },
+		{ msg: "Fix typo · section 3.2", hash: "9f8e7d6", when: "last month" }
 	];
 
 	const audienceCards = [
 		{
 			icon: IconBook2,
-			title: 'PhD students',
-			body: 'A thesis that compiles on a plane, with every revision kept for the viva.'
+			title: "PhD students",
+			body: "A thesis that compiles on a plane, with every revision kept for the viva."
 		},
 		{
 			icon: IconSchool,
-			title: 'Professors',
-			body: 'Notes and handouts versioned across semesters. Hand the source to a TA.'
+			title: "Professors",
+			body: "Notes and handouts versioned across semesters. Hand the source to a TA."
 		},
 		{
 			icon: IconUsersGroup,
-			title: 'Research groups',
-			body: 'One repo, individual commits, one source of truth for the manuscript.'
+			title: "Research groups",
+			body: "One repo, individual commits, one source of truth for the manuscript."
 		}
 	];
 
 	const institutionCards = [
-		{ icon: IconLicense, title: 'No licence server', body: 'Nothing to procure or renew.' },
-		{ icon: IconShieldLock, title: 'Nothing leaves the device', body: 'No vendor holds the data.' },
+		{ icon: IconLicense, title: "No licence server", body: "Nothing to procure or renew." },
+		{ icon: IconShieldLock, title: "Nothing leaves the device", body: "No vendor holds the data." },
 		{
 			icon: IconDeviceDesktop,
-			title: 'Runs on managed machines',
-			body: 'No install, no admin rights.'
+			title: "Runs on managed machines",
+			body: "No install, no admin rights."
 		},
-		{ icon: IconSchool, title: 'Ready for a cohort', body: 'No accounts to provision or revoke.' },
+		{ icon: IconSchool, title: "Ready for a cohort", body: "No accounts to provision or revoke." },
 		{
 			icon: IconPackageExport,
-			title: 'Archival by default',
-			body: 'Plain .tex and .bib under Git.'
+			title: "Archival by default",
+			body: "Plain .tex and .bib under Git."
 		},
-		{ icon: IconServer, title: 'Self-hostable', body: 'Point the Git proxy at your own host.' }
+		{ icon: IconServer, title: "Self-hostable", body: "Point the Git proxy at your own host." }
 	];
 
 	const institutionStats = [
-		{ value: '$0', label: 'per seat, per year' },
-		{ value: '0', label: 'accounts to provision' },
-		{ value: 'GPLv3', label: 'licence review, once' }
+		{ value: "$0", label: "per seat, per year" },
+		{ value: "0", label: "accounts to provision" },
+		{ value: "GPLv3", label: "licence review, once" }
 	];
 
 	// Prefilled so the first reply already carries the details we need to answer.
 	const institutionMailto = `${CONTACT_EMAIL}?subject=${encodeURIComponent(
-		'GlyphTeX for our department'
+		"GlyphTeX for our department"
 	)}&body=${encodeURIComponent(
-		'Institution:\nDepartment:\nRough number of writers:\nWhat IT needs to sign off on:\n'
+		"Institution:\nDepartment:\nRough number of writers:\nWhat IT needs to sign off on:\n"
 	)}`;
 
 	type Faq = { q: string; a: string };
 	const faqs: Faq[] = [
 		{
-			q: 'Can I bring my Overleaf project across?',
-			a: 'Yes. Export the .zip and drop it in. The source stays plain .tex and .bib, and you can export the folder again any time.'
+			q: "Can I bring my Overleaf project across?",
+			a: "Yes. Export the .zip and drop it in. The source stays plain .tex and .bib, and you can export the folder again any time."
 		},
 		{
-			q: 'Does biblatex work?: What about biber?',
-			a: 'BibTeX is in the engine, so biblatex with backend=bibtex builds a real reference list offline. Biber is a Perl program with no WebAssembly build, so it needs the desktop app. The browser names the one line that fixes it.'
+			q: "Does biblatex work?: What about biber?",
+			a: "BibTeX is in the engine, so biblatex with backend=bibtex builds a real reference list offline. Biber is a Perl program with no WebAssembly build, so it needs the desktop app. The browser names the one line that fixes it."
 		},
 		{
-			q: 'Will it handle a 300-page thesis?',
-			a: 'Yes. Chapters and includes work, and the outline mirrors them. It compiles on your hardware, so your machine is the only limit.'
+			q: "Will it handle a 300-page thesis?",
+			a: "Yes. Chapters and includes work, and the outline mirrors them. It compiles on your hardware, so your machine is the only limit."
 		},
 		{
-			q: 'Does it work offline?',
-			a: 'Yes. The engine downloads once, then compiles in the tab with no network. Files live in browser storage on your device.'
+			q: "Does it work offline?",
+			a: "Yes. The engine downloads once, then compiles in the tab with no network. Files live in browser storage on your device."
 		},
 		{
-			q: 'How do collaborators share a manuscript?',
-			a: 'Through Git. Stage, commit, and push to GitHub, GitLab, Gitea, or a university server. Browsers cannot reach Git directly, so the workspace relays through a proxy you can self-host.'
+			q: "How do collaborators share a manuscript?",
+			a: "Through Git. Stage, commit, and push to GitHub, GitLab, Gitea, or a university server. Browsers cannot reach Git directly, so the workspace relays through a proxy you can self-host."
 		},
 		{
-			q: 'Can I use it on a managed university machine?',
-			a: 'Yes. The workspace is a web page, so there is nothing to install and no admin rights to request.'
+			q: "Can I use it on a managed university machine?",
+			a: "Yes. The workspace is a web page, so there is nothing to install and no admin rights to request."
 		}
 	];
 

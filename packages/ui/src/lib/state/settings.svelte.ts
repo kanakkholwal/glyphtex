@@ -1,14 +1,14 @@
-import { PersistedState } from './persisted-state.svelte';
+import { PersistedState } from "./persisted-state.svelte";
 
-export type Appearance = 'light' | 'dark' | 'system';
-export type ResolvedTheme = 'light' | 'dark';
-export type EditorFont = 'jetbrains' | 'geist';
+export type Appearance = "light" | "dark" | "system";
+export type ResolvedTheme = "light" | "dark";
+export type EditorFont = "jetbrains" | "geist";
 /** Source Control changes layout: flat list vs collapsible folder tree. */
-export type GitView = 'tree' | 'list';
+export type GitView = "tree" | "list";
 /** Diff editor layout: side-by-side (two panes) vs inline (unified). */
-export type DiffView = 'side' | 'inline';
+export type DiffView = "side" | "inline";
 /** Which side of the workbench the activity bar + side panel dock on. */
-export type SidebarPosition = 'left' | 'right';
+export type SidebarPosition = "left" | "right";
 /**
  * When edits are written back to disk (VS Code parity):
  *  - `off`: only on an explicit save (⌘/Ctrl+S).
@@ -18,22 +18,22 @@ export type SidebarPosition = 'left' | 'right';
  * Compilation always uses the last *saved* content, so this also controls when
  * the preview refreshes.
  */
-export type AutoSaveMode = 'off' | 'afterDelay' | 'onFocusChange';
+export type AutoSaveMode = "off" | "afterDelay" | "onFocusChange";
 
 export const AUTO_SAVE_LABELS: Record<AutoSaveMode, string> = {
-	off: 'Off',
-	afterDelay: 'After delay',
-	onFocusChange: 'On focus change'
+	off: "Off",
+	afterDelay: "After delay",
+	onFocusChange: "On focus change"
 };
 /** Which compile engine to use. `tectonic` = bundled; `system` = local TeX install. */
-export type EngineKind = 'tectonic' | 'system';
+export type EngineKind = "tectonic" | "system";
 /** TeX program latexmk drives when {@link EngineKind} is `system`. */
-export type TexProgram = 'pdflatex' | 'xelatex' | 'lualatex';
+export type TexProgram = "pdflatex" | "xelatex" | "lualatex";
 
 export const TEX_PROGRAM_LABELS: Record<TexProgram, string> = {
-	pdflatex: 'pdfLaTeX',
-	xelatex: 'XeLaTeX',
-	lualatex: 'LuaLaTeX'
+	pdflatex: "pdfLaTeX",
+	xelatex: "XeLaTeX",
+	lualatex: "LuaLaTeX"
 };
 
 /** Editor monospace font stacks (all self-hosted via @fontsource, offline-safe). */
@@ -42,12 +42,12 @@ export const EDITOR_FONT_STACKS: Record<EditorFont, string> = {
 	geist: "'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace"
 };
 export const EDITOR_FONT_LABELS: Record<EditorFont, string> = {
-	jetbrains: 'JetBrains Mono',
-	geist: 'Geist Mono'
+	jetbrains: "JetBrains Mono",
+	geist: "Geist Mono"
 };
 
 /** Typeface of the reading surface (visual editor, PDF chrome): not the code pane. */
-export type DocFont = 'default' | 'serif' | 'mono';
+export type DocFont = "default" | "serif" | "mono";
 
 /** Serif is a system stack, not a webfont: nothing ships a serif face offline, and
  *  a network font would break the "works on a plane" promise for a taste option. */
@@ -57,9 +57,9 @@ export const DOC_FONT_STACKS: Record<DocFont, string> = {
 	mono: "'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace"
 };
 export const DOC_FONT_LABELS: Record<DocFont, string> = {
-	default: 'Default',
-	serif: 'Serif',
-	mono: 'Mono'
+	default: "Default",
+	serif: "Serif",
+	mono: "Mono"
 };
 
 export interface EditorSettings {
@@ -97,16 +97,16 @@ export interface EditorSettings {
 }
 
 export const EDITOR_DEFAULTS: EditorSettings = {
-	font: 'jetbrains',
+	font: "jetbrains",
 	fontSize: 13,
 	lineWrapping: false,
 	autoCompile: true,
-	autoSave: 'afterDelay',
+	autoSave: "afterDelay",
 	autoSaveDelayMs: 1000,
 	shellEscape: false,
-	engineKind: 'tectonic',
-	texProgram: 'pdflatex',
-	docFont: 'default',
+	engineKind: "tectonic",
+	texProgram: "pdflatex",
+	docFont: "default",
 	docSmallText: false,
 	docFullWidth: false,
 	hideGenerated: false
@@ -118,25 +118,25 @@ export const COMPILE_DEBOUNCE_MS = 650;
 /** Delays offered for "After delay" auto-save. */
 export const AUTO_SAVE_DELAYS = [500, 1000, 2000, 5000, 10000] as const;
 
-export const APPEARANCE_KEY = 'glyphtex:appearance';
-export const EDITOR_KEY = 'glyphtex:editor';
-export const GIT_VIEW_KEY = 'glyphtex:git-view';
-export const DIFF_VIEW_KEY = 'glyphtex:diff-view';
-export const SIDEBAR_POSITION_KEY = 'glyphtex:sidebar-position';
+export const APPEARANCE_KEY = "glyphtex:appearance";
+export const EDITOR_KEY = "glyphtex:editor";
+export const GIT_VIEW_KEY = "glyphtex:git-view";
+export const DIFF_VIEW_KEY = "glyphtex:diff-view";
+export const SIDEBAR_POSITION_KEY = "glyphtex:sidebar-position";
 
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined";
 
 /** Appearance and editor preferences, persisted and synced live across every window
  *  on the origin: change the theme in one and the others follow within a tick. */
 class SettingsStore {
-	#appearance = new PersistedState<Appearance>(APPEARANCE_KEY, 'system');
+	#appearance = new PersistedState<Appearance>(APPEARANCE_KEY, "system");
 	#editor = new PersistedState<EditorSettings>(EDITOR_KEY, EDITOR_DEFAULTS);
-	#gitView = new PersistedState<GitView>(GIT_VIEW_KEY, 'tree');
-	#diffView = new PersistedState<DiffView>(DIFF_VIEW_KEY, 'side');
-	#sidebarPosition = new PersistedState<SidebarPosition>(SIDEBAR_POSITION_KEY, 'left');
+	#gitView = new PersistedState<GitView>(GIT_VIEW_KEY, "tree");
+	#diffView = new PersistedState<DiffView>(DIFF_VIEW_KEY, "side");
+	#sidebarPosition = new PersistedState<SidebarPosition>(SIDEBAR_POSITION_KEY, "left");
 
 	/** OS preference. Light on the server; corrected on the client. */
-	#system = $state<ResolvedTheme>('light');
+	#system = $state<ResolvedTheme>("light");
 	#mediaBound = false;
 
 	constructor() {
@@ -146,10 +146,10 @@ class SettingsStore {
 	#bindMedia() {
 		if (this.#mediaBound) return;
 		this.#mediaBound = true;
-		const mq = window.matchMedia('(prefers-color-scheme: dark)');
-		this.#system = mq.matches ? 'dark' : 'light';
-		mq.addEventListener('change', (e) => {
-			this.#system = e.matches ? 'dark' : 'light';
+		const mq = window.matchMedia("(prefers-color-scheme: dark)");
+		this.#system = mq.matches ? "dark" : "light";
+		mq.addEventListener("change", (e) => {
+			this.#system = e.matches ? "dark" : "light";
 		});
 	}
 
@@ -169,7 +169,7 @@ class SettingsStore {
 	/** What the UI should actually render (`system` collapsed to light/dark). */
 	get resolved(): ResolvedTheme {
 		const a = this.#appearance.current;
-		return a === 'system' ? this.#system : a;
+		return a === "system" ? this.#system : a;
 	}
 
 	/** Desktop feeds the native OS theme here (Tauri), overriding matchMedia. */
@@ -179,12 +179,12 @@ class SettingsStore {
 
 	/** Flip between light and dark relative to what's currently shown. */
 	toggle() {
-		this.appearance = this.resolved === 'dark' ? 'light' : 'dark';
+		this.appearance = this.resolved === "dark" ? "light" : "dark";
 	}
 
 	/** Step light → dark → system → light. */
 	cycle() {
-		const order: Appearance[] = ['light', 'dark', 'system'];
+		const order: Appearance[] = ["light", "dark", "system"];
 		const i = order.indexOf(this.#appearance.current);
 		this.appearance = order[(i + 1) % order.length];
 	}
@@ -195,10 +195,10 @@ class SettingsStore {
 	 */
 	apply() {
 		if (!isBrowser) return;
-		const dark = this.resolved === 'dark';
+		const dark = this.resolved === "dark";
 		const root = document.documentElement;
-		root.classList.toggle('dark', dark);
-		root.style.colorScheme = dark ? 'dark' : 'light';
+		root.classList.toggle("dark", dark);
+		root.style.colorScheme = dark ? "dark" : "light";
 	}
 
 	// --- editor preferences ---------------------------------------------------
@@ -247,7 +247,7 @@ class SettingsStore {
 		this.patchEditor({ autoSaveDelayMs: value });
 	}
 	get autoSave(): AutoSaveMode {
-		return this.#editor.current.autoSave ?? 'afterDelay';
+		return this.#editor.current.autoSave ?? "afterDelay";
 	}
 	set autoSave(value: AutoSaveMode) {
 		this.patchEditor({ autoSave: value });
@@ -261,14 +261,14 @@ class SettingsStore {
 	}
 
 	get engineKind(): EngineKind {
-		return this.#editor.current.engineKind ?? 'tectonic';
+		return this.#editor.current.engineKind ?? "tectonic";
 	}
 	set engineKind(value: EngineKind) {
 		this.patchEditor({ engineKind: value });
 	}
 
 	get texProgram(): TexProgram {
-		return this.#editor.current.texProgram ?? 'pdflatex';
+		return this.#editor.current.texProgram ?? "pdflatex";
 	}
 	set texProgram(value: TexProgram) {
 		this.patchEditor({ texProgram: value });
@@ -276,7 +276,7 @@ class SettingsStore {
 
 	// --- reading surface ------------------------------------------------------
 	get docFont(): DocFont {
-		return this.#editor.current.docFont ?? 'default';
+		return this.#editor.current.docFont ?? "default";
 	}
 	set docFont(value: DocFont) {
 		this.patchEditor({ docFont: value });

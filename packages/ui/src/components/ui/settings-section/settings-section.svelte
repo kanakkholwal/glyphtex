@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface SettingsSectionProps {
 		/** Group title: rendered as the card header. Omit for a headerless card. */

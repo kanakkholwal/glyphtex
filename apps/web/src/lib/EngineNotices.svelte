@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		Dialog,
 		DialogContent,
@@ -7,8 +7,8 @@
 		DialogFooter,
 		DialogHeader,
 		DialogTitle
-	} from '@glyphtex/ui/dialog';
-	import { toast } from '@glyphtex/ui/sonner';
+	} from "@glyphtex/ui/dialog";
+	import { toast } from "@glyphtex/ui/sonner";
 	import {
 		IconAlertTriangle,
 		IconBrandGithub,
@@ -16,15 +16,15 @@
 		IconPackage,
 		IconRefresh,
 		IconX
-	} from '@tabler/icons-svelte';
-	import type { PackDefinition } from 'glyphtex-engine';
-	import { cubicOut } from 'svelte/easing';
-	import { SvelteSet } from 'svelte/reactivity';
-	import { fly } from 'svelte/transition';
+	} from "@tabler/icons-svelte";
+	import type { PackDefinition } from "glyphtex-engine";
+	import { cubicOut } from "svelte/easing";
+	import { SvelteSet } from "svelte/reactivity";
+	import { fly } from "svelte/transition";
 
-	import { BIBTEX_BACKEND_FIX } from '$lib/citations';
-	import { REPO_URL } from '$lib/landing/nav-data';
-	import { buildSupportBody, supportIssueUrl } from '$lib/support-report';
+	import { BIBTEX_BACKEND_FIX } from "$lib/citations";
+	import { REPO_URL } from "$lib/landing/nav-data";
+	import { buildSupportBody, supportIssueUrl } from "$lib/support-report";
 
 	let {
 		missingPacks = [],
@@ -33,7 +33,7 @@
 		installing = false,
 		updateAvailable = false,
 		error,
-		mainSource = '',
+		mainSource = "",
 		fileCount,
 		onadd,
 		onupdate
@@ -61,8 +61,8 @@
 	const dismissed = new SvelteSet<string>();
 	const show = (id: string) => !dismissed.has(id);
 	// A different set of unsupported files is a different notice.
-	const unsupportedId = $derived(`unsupported:${unsupportedFiles.join(',')}`);
-	const missingId = $derived(`missing:${missingPacks.map((p) => p.id).join(',')}`);
+	const unsupportedId = $derived(`unsupported:${unsupportedFiles.join(",")}`);
+	const missingId = $derived(`missing:${missingPacks.map((p) => p.id).join(",")}`);
 
 	// The click is answered by a page reload, so this is the only feedback there
 	// is until it lands. It stays set on the way out: clearing it would flash the
@@ -84,16 +84,16 @@
 	async function copyReport() {
 		try {
 			await navigator.clipboard.writeText(reportBody);
-			toast.success('Report copied');
+			toast.success("Report copied");
 		} catch {
-			toast.error('Could not copy: clipboard blocked');
+			toast.error("Could not copy: clipboard blocked");
 		}
 	}
 
 	// Same card as a toast: same radius, border, shadow and plain 16px icon, so
 	// the app has one notification language.
 	const card =
-		'border-border bg-card text-foreground pointer-events-auto flex items-start gap-2.5 rounded-lg border p-3 shadow-craft-lg';
+		"border-border bg-card text-foreground pointer-events-auto flex items-start gap-2.5 rounded-lg border p-3 shadow-craft-lg";
 </script>
 
 <!-- Corner cards, not a banner strip: each of these used to push the whole

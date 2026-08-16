@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { Checkbox } from '@glyphtex/ui/checkbox';
-	import { IconNotes, IconPlus, IconTrash, IconX } from '@tabler/icons-svelte';
+	import { Button } from "@glyphtex/ui/button";
+	import { Checkbox } from "@glyphtex/ui/checkbox";
+	import { IconNotes, IconPlus, IconTrash, IconX } from "@tabler/icons-svelte";
 
-	import { relativeTime, stripTags, type NoteFilter, type NotesStore } from './notes.svelte';
+	import { relativeTime, stripTags, type NoteFilter, type NotesStore } from "./notes.svelte";
 
 	/** Per-document checklist, stored on this device. A `#tag` anywhere in the
 	 *  text becomes a chip. */
@@ -19,9 +19,9 @@
 	} = $props();
 
 	const filters = $derived<{ id: NoteFilter; label: string; count?: number }[]>([
-		{ id: 'all', label: 'All', count: notes.notes.length },
-		{ id: 'open', label: 'Open', count: notes.openCount },
-		{ id: 'done', label: 'Done', count: notes.doneCount }
+		{ id: "all", label: "All", count: notes.notes.length },
+		{ id: "open", label: "Open", count: notes.openCount },
+		{ id: "done", label: "Done", count: notes.doneCount }
 	]);
 
 	let field = $state<HTMLInputElement>();

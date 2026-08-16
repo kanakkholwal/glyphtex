@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Extension } from '@codemirror/state';
+	import type { Extension } from "@codemirror/state";
 
 	/**
 	 * DiffView: read-only diff of two texts.
@@ -9,19 +9,19 @@
 	 * document it came from.
 	 */
 	let {
-		original = '',
-		modified = '',
-		mode = 'side' as 'side' | 'inline',
-		theme = 'light' as 'light' | 'dark',
-		language = 'latex' as 'latex' | 'markdown' | 'plain',
+		original = "",
+		modified = "",
+		mode = "side" as "side" | "inline",
+		theme = "light" as "light" | "dark",
+		language = "latex" as "latex" | "markdown" | "plain",
 		fontSize = 13,
 		fontFamily = "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace"
 	}: {
 		original?: string;
 		modified?: string;
-		mode?: 'side' | 'inline';
-		theme?: 'light' | 'dark';
-		language?: 'latex' | 'markdown' | 'plain';
+		mode?: "side" | "inline";
+		theme?: "light" | "dark";
+		language?: "latex" | "markdown" | "plain";
 		fontSize?: number;
 		fontFamily?: string;
 	} = $props();
@@ -42,20 +42,20 @@
 		void (async () => {
 			const [{ MergeView, unifiedMergeView }, { markdown }, state, view6, glyph] =
 				await Promise.all([
-					import('@codemirror/merge'),
-					import('@codemirror/lang-markdown'),
-					import('@codemirror/state'),
-					import('@codemirror/view'),
-					import('@glyphtex/ui/editor')
+					import("@codemirror/merge"),
+					import("@codemirror/lang-markdown"),
+					import("@codemirror/state"),
+					import("@codemirror/view"),
+					import("@glyphtex/ui/editor")
 				]);
 			if (disposed) return;
 
 			const { EditorState } = state;
 			const { EditorView, lineNumbers } = view6;
 			const language: Extension =
-				props.language === 'latex'
+				props.language === "latex"
 					? glyph.latex({ sticky: false })
-					: props.language === 'markdown'
+					: props.language === "markdown"
 						? markdown()
 						: [];
 
@@ -64,8 +64,8 @@
 				EditorView.editable.of(false),
 				EditorState.readOnly.of(true),
 				EditorView.theme({
-					'&': { height: '100%', fontSize: `${props.fontSize}px` },
-					'.cm-scroller': { fontFamily: props.fontFamily, lineHeight: '1.6', overflow: 'auto' }
+					"&": { height: "100%", fontSize: `${props.fontSize}px` },
+					".cm-scroller": { fontFamily: props.fontFamily, lineHeight: "1.6", overflow: "auto" }
 				}),
 				glyph.editorTheme(props.theme),
 				language
@@ -75,7 +75,7 @@
 			const collapseUnchanged = { margin: 3, minSize: 4 };
 
 			view =
-				props.mode === 'side'
+				props.mode === "side"
 					? new MergeView({
 							parent,
 							a: { doc: props.original, extensions: base },
@@ -99,7 +99,7 @@
 							})
 						});
 		})().catch((error) => {
-			console.error('[GlyphTeX] the diff view failed to load:', error);
+			console.error("[GlyphTeX] the diff view failed to load:", error);
 		});
 
 		return () => {

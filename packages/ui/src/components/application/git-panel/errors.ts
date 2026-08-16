@@ -1,4 +1,4 @@
-import type { GitErrorInfo } from './types';
+import type { GitErrorInfo } from "./types";
 
 /** Turns a raw gix / system-git error into a plain-language title and message, keeping
  *  the original text as collapsible details. */
@@ -7,9 +7,9 @@ export function describeError(raw: string, op: string): GitErrorInfo {
 	const details = raw.trim() || undefined;
 	if (/install git/.test(e))
 		return {
-			title: 'Git isn’t installed',
+			title: "Git isn’t installed",
 			message:
-				'Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphTeX and try again.',
+				"Syncing with a remote needs Git installed on your computer. Install it from git-scm.com, then reopen GlyphTeX and try again.",
 			details
 		};
 	if (
@@ -18,9 +18,9 @@ export function describeError(raw: string, op: string): GitErrorInfo {
 		)
 	)
 		return {
-			title: 'Remote not found',
+			title: "Remote not found",
 			message:
-				'This remote may have been removed or renamed. Add or pick a remote below, then try again.',
+				"This remote may have been removed or renamed. Add or pick a remote below, then try again.",
 			details
 		};
 	if (
@@ -29,18 +29,18 @@ export function describeError(raw: string, op: string): GitErrorInfo {
 		)
 	)
 		return {
-			title: 'You don’t have push access',
+			title: "You don’t have push access",
 			message:
-				'You can’t push to this repository: it isn’t yours to write to. Fork it to your own account, then point the remote at your fork (Remote → edit) and push there.',
+				"You can’t push to this repository: it isn’t yours to write to. Fork it to your own account, then point the remote at your fork (Remote → edit) and push there.",
 			details
 		};
 	// Browser hosts relay remote traffic through a CORS proxy; when it's off or
 	// unreachable the failure surfaces as an opaque network error, not a git one.
 	if (/cors|failed to fetch|networkerror when attempting|blocked by/.test(e))
 		return {
-			title: 'The relay didn’t answer',
+			title: "The relay didn’t answer",
 			message:
-				'Browsers can’t reach Git servers directly, so this went through a relay that didn’t respond. Check the relay address under the author settings, or try again.',
+				"Browsers can’t reach Git servers directly, so this went through a relay that didn’t respond. Check the relay address under the author settings, or try again.",
 			details
 		};
 	if (
@@ -49,8 +49,8 @@ export function describeError(raw: string, op: string): GitErrorInfo {
 		)
 	)
 		return {
-			title: 'Authentication failed',
-			message: 'Check your access token and that it has access to this repository.',
+			title: "Authentication failed",
+			message: "Check your access token and that it has access to this repository.",
 			details
 		};
 	if (
@@ -59,8 +59,8 @@ export function describeError(raw: string, op: string): GitErrorInfo {
 		)
 	)
 		return {
-			title: 'Can’t reach the remote',
-			message: 'Couldn’t connect. Check your internet connection and the remote URL.',
+			title: "Can’t reach the remote",
+			message: "Couldn’t connect. Check your internet connection and the remote URL.",
 			details
 		};
 	if (
@@ -68,22 +68,22 @@ export function describeError(raw: string, op: string): GitErrorInfo {
 			e
 		)
 	)
-		return op === 'Pull'
+		return op === "Pull"
 			? {
-					title: 'Can’t fast-forward',
+					title: "Can’t fast-forward",
 					message:
-						'Your branch and the remote have moved apart, so this isn’t a simple update. Resolve the divergence before pulling.',
+						"Your branch and the remote have moved apart, so this isn’t a simple update. Resolve the divergence before pulling.",
 					details
 				}
 			: {
-					title: 'Push rejected',
+					title: "Push rejected",
 					message:
-						'The remote has changes you don’t have yet. Pull the latest changes first, then push again.',
+						"The remote has changes you don’t have yet. Pull the latest changes first, then push again.",
 					details
 				};
 	return {
 		title: `${op} failed`,
-		message: 'Something went wrong with this Git operation.',
+		message: "Something went wrong with this Git operation.",
 		details
 	};
 }

@@ -23,7 +23,7 @@ export type StorageStatus = {
 
 export async function storageStatus(): Promise<StorageStatus> {
 	const empty: StorageStatus = { usage: 0, quota: 0, ratio: 0, persisted: false, unknown: true };
-	if (typeof navigator === 'undefined' || !navigator.storage?.estimate) return empty;
+	if (typeof navigator === "undefined" || !navigator.storage?.estimate) return empty;
 
 	try {
 		const { usage = 0, quota = 0 } = await navigator.storage.estimate();
@@ -40,7 +40,7 @@ export async function storageStatus(): Promise<StorageStatus> {
  * gesture-less call just resolves false without ever asking.
  */
 export async function requestPersistence(): Promise<boolean> {
-	if (typeof navigator === 'undefined' || !navigator.storage?.persist) return false;
+	if (typeof navigator === "undefined" || !navigator.storage?.persist) return false;
 	try {
 		if (await navigator.storage.persisted?.()) return true;
 		return await navigator.storage.persist();
@@ -54,21 +54,21 @@ export async function requestPersistence(): Promise<boolean> {
  * hard `denied` (asking again is pointless) from `prompt` (Chrome's engagement
  * heuristics not met yet). `unsupported` in Safari/Firefox, which do not expose it.
  */
-export async function persistencePermission(): Promise<PermissionState | 'unsupported'> {
-	if (typeof navigator === 'undefined' || !navigator.permissions?.query) return 'unsupported';
+export async function persistencePermission(): Promise<PermissionState | "unsupported"> {
+	if (typeof navigator === "undefined" || !navigator.permissions?.query) return "unsupported";
 	try {
 		const status = await navigator.permissions.query({
-			name: 'persistent-storage' as PermissionName
+			name: "persistent-storage" as PermissionName
 		});
 		return status.state;
 	} catch {
-		return 'unsupported';
+		return "unsupported";
 	}
 }
 
 export function formatBytes(bytes: number): string {
-	if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
-	const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+	if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+	const units = ["B", "KB", "MB", "GB", "TB"];
 	const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
 	const value = bytes / 1024 ** i;
 	return `${value >= 10 || i === 0 ? Math.round(value) : value.toFixed(1)} ${units[i]}`;

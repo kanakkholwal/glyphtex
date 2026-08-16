@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { IconAlertTriangle, IconUser } from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { slide } from 'svelte/transition';
+	import { Button } from "@glyphtex/ui/button";
+	import { IconAlertTriangle, IconUser } from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { slide } from "svelte/transition";
 
-	import type { GitPanelStore } from './store.svelte';
-	import { INPUT_CLS } from './types';
+	import type { GitPanelStore } from "./store.svelte";
+	import { INPUT_CLS } from "./types";
 
 	/** Commit identity, plus the relay remote requests go through where the host
 	 *  needs one. Hidden entirely when the host manages these itself. */

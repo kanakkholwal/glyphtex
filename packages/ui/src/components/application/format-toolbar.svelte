@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
@@ -7,10 +7,10 @@
 		DropdownMenuSeparator,
 		DropdownMenuShortcut,
 		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
+	} from "@glyphtex/ui/dropdown-menu";
 	// Imported from the standalone templates module, not `@glyphtex/ui/tex-doc`:
 	// that entry pulls in unified-latex, which the LaTeX view must not bundle.
-	import { templateSource } from '@glyphtex/ui/tex-templates';
+	import { templateSource } from "@glyphtex/ui/tex-templates";
 	import {
 		IconBold,
 		IconChevronDown,
@@ -23,7 +23,7 @@
 		IconPlus,
 		IconTypography,
 		IconUnderline
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
 	/**
 	 * FormatToolbar: a rich LaTeX formatting bar. The most common actions are
@@ -43,7 +43,7 @@
 	} = $props();
 
 	const w =
-		(before: string, after = '') =>
+		(before: string, after = "") =>
 		() =>
 			wrap?.(before, after);
 	const i = (text: string) => () => insert?.(text);
@@ -69,146 +69,146 @@
 	type Cmd = { label: string; hint?: string; run: () => void };
 	type ButtonCmd = { icon: typeof IconBold; label: string; run: () => void };
 	type Cluster =
-		| { kind: 'group'; actions: ButtonCmd[] }
-		| { kind: 'menu'; icon: typeof IconBold; label: string; items: (Cmd | 'sep')[] };
+		| { kind: "group"; actions: ButtonCmd[] }
+		| { kind: "menu"; icon: typeof IconBold; label: string; items: (Cmd | "sep")[] };
 
 	const clusters: Cluster[] = [
 		{
-			kind: 'group',
+			kind: "group",
 			actions: [
-				{ icon: IconBold, label: 'Bold', run: w('\\textbf{', '}') },
-				{ icon: IconItalic, label: 'Italic', run: w('\\textit{', '}') },
-				{ icon: IconUnderline, label: 'Underline', run: w('\\underline{', '}') }
+				{ icon: IconBold, label: "Bold", run: w("\\textbf{", "}") },
+				{ icon: IconItalic, label: "Italic", run: w("\\textit{", "}") },
+				{ icon: IconUnderline, label: "Underline", run: w("\\underline{", "}") }
 			]
 		},
 		{
-			kind: 'menu',
+			kind: "menu",
 			icon: IconTypography,
-			label: 'Text style',
+			label: "Text style",
 			items: [
-				{ label: 'Emphasis', hint: '\\emph{}', run: w('\\emph{', '}') },
-				{ label: 'Small caps', hint: '\\textsc{}', run: w('\\textsc{', '}') },
-				{ label: 'Monospace', hint: '\\texttt{}', run: w('\\texttt{', '}') },
-				{ label: 'Sans serif', hint: '\\textsf{}', run: w('\\textsf{', '}') },
-				{ label: 'Strikethrough', hint: '\\sout{}', run: w('\\sout{', '}') },
-				'sep',
-				{ label: 'Superscript', hint: '\\textsuperscript{}', run: w('\\textsuperscript{', '}') },
-				{ label: 'Subscript', hint: '\\textsubscript{}', run: w('\\textsubscript{', '}') }
+				{ label: "Emphasis", hint: "\\emph{}", run: w("\\emph{", "}") },
+				{ label: "Small caps", hint: "\\textsc{}", run: w("\\textsc{", "}") },
+				{ label: "Monospace", hint: "\\texttt{}", run: w("\\texttt{", "}") },
+				{ label: "Sans serif", hint: "\\textsf{}", run: w("\\textsf{", "}") },
+				{ label: "Strikethrough", hint: "\\sout{}", run: w("\\sout{", "}") },
+				"sep",
+				{ label: "Superscript", hint: "\\textsuperscript{}", run: w("\\textsuperscript{", "}") },
+				{ label: "Subscript", hint: "\\textsubscript{}", run: w("\\textsubscript{", "}") }
 			]
 		},
 		{
-			kind: 'menu',
+			kind: "menu",
 			icon: IconHeading,
-			label: 'Heading',
+			label: "Heading",
 			items: [
-				{ label: 'Part', hint: '\\part{}', run: w('\\part{', '}') },
-				{ label: 'Chapter', hint: '\\chapter{}', run: w('\\chapter{', '}') },
-				{ label: 'Section', hint: '\\section{}', run: w('\\section{', '}') },
-				{ label: 'Subsection', hint: '\\subsection{}', run: w('\\subsection{', '}') },
-				{ label: 'Subsubsection', hint: '\\subsubsection{}', run: w('\\subsubsection{', '}') },
-				{ label: 'Paragraph', hint: '\\paragraph{}', run: w('\\paragraph{', '}') },
-				{ label: 'Subparagraph', hint: '\\subparagraph{}', run: w('\\subparagraph{', '}') }
+				{ label: "Part", hint: "\\part{}", run: w("\\part{", "}") },
+				{ label: "Chapter", hint: "\\chapter{}", run: w("\\chapter{", "}") },
+				{ label: "Section", hint: "\\section{}", run: w("\\section{", "}") },
+				{ label: "Subsection", hint: "\\subsection{}", run: w("\\subsection{", "}") },
+				{ label: "Subsubsection", hint: "\\subsubsection{}", run: w("\\subsubsection{", "}") },
+				{ label: "Paragraph", hint: "\\paragraph{}", run: w("\\paragraph{", "}") },
+				{ label: "Subparagraph", hint: "\\subparagraph{}", run: w("\\subparagraph{", "}") }
 			]
 		},
 		{
-			kind: 'menu',
+			kind: "menu",
 			icon: IconList,
-			label: 'List',
+			label: "List",
 			items: [
 				{
-					label: 'Bulleted list',
-					hint: 'itemize',
-					run: t('itemize')
+					label: "Bulleted list",
+					hint: "itemize",
+					run: t("itemize")
 				},
 				{
-					label: 'Numbered list',
-					hint: 'enumerate',
-					run: t('enumerate')
+					label: "Numbered list",
+					hint: "enumerate",
+					run: t("enumerate")
 				},
 				{
-					label: 'Description list',
-					hint: 'description',
-					run: t('description')
+					label: "Description list",
+					hint: "description",
+					run: t("description")
 				}
 			]
 		},
 		{
-			kind: 'group',
+			kind: "group",
 			actions: [
-				{ icon: IconMath, label: 'Inline math', run: w('$', '$') },
-				{ icon: IconMathFunction, label: 'Display math', run: w('\\[\n  ', '\n\\]') }
+				{ icon: IconMath, label: "Inline math", run: w("$", "$") },
+				{ icon: IconMathFunction, label: "Display math", run: w("\\[\n  ", "\n\\]") }
 			]
 		},
 		{
-			kind: 'menu',
+			kind: "menu",
 			icon: IconMathSymbols,
-			label: 'Math',
+			label: "Math",
 			items: [
 				{
-					label: 'Equation',
-					hint: 'equation',
-					run: t('equation')
+					label: "Equation",
+					hint: "equation",
+					run: t("equation")
 				},
 				{
-					label: 'Aligned',
-					hint: 'align',
-					run: t('align')
+					label: "Aligned",
+					hint: "align",
+					run: t("align")
 				},
-				'sep',
-				{ label: 'Fraction', hint: '\\frac{}{}', run: w('\\frac{', '}{}') },
-				{ label: 'Square root', hint: '\\sqrt{}', run: w('\\sqrt{', '}') },
-				{ label: 'Summation', hint: '\\sum', run: i('\\sum_{i=1}^{n} ') },
-				{ label: 'Product', hint: '\\prod', run: i('\\prod_{i=1}^{n} ') },
-				{ label: 'Integral', hint: '\\int', run: i('\\int_{a}^{b} ') },
-				{ label: 'Limit', hint: '\\lim', run: i('\\lim_{x \\to 0} ') },
-				'sep',
-				{ label: 'Matrix', hint: 'pmatrix', run: t('matrix') },
-				{ label: 'Cases', hint: 'cases', run: t('cases') }
+				"sep",
+				{ label: "Fraction", hint: "\\frac{}{}", run: w("\\frac{", "}{}") },
+				{ label: "Square root", hint: "\\sqrt{}", run: w("\\sqrt{", "}") },
+				{ label: "Summation", hint: "\\sum", run: i("\\sum_{i=1}^{n} ") },
+				{ label: "Product", hint: "\\prod", run: i("\\prod_{i=1}^{n} ") },
+				{ label: "Integral", hint: "\\int", run: i("\\int_{a}^{b} ") },
+				{ label: "Limit", hint: "\\lim", run: i("\\lim_{x \\to 0} ") },
+				"sep",
+				{ label: "Matrix", hint: "pmatrix", run: t("matrix") },
+				{ label: "Cases", hint: "cases", run: t("cases") }
 			]
 		},
 		{
-			kind: 'menu',
+			kind: "menu",
 			icon: IconPlus,
-			label: 'Insert',
+			label: "Insert",
 			items: [
-				{ label: 'Link', hint: '\\href{}{}', run: w('\\href{https://example.com}{', '}') },
-				{ label: 'Footnote', hint: '\\footnote{}', run: w('\\footnote{', '}') },
-				{ label: 'Citation', hint: '\\cite{}', run: w('\\cite{', '}') },
-				{ label: 'Cross-reference', hint: '\\ref{}', run: w('\\ref{', '}') },
-				{ label: 'Label', hint: '\\label{}', run: w('\\label{', '}') },
-				'sep',
+				{ label: "Link", hint: "\\href{}{}", run: w("\\href{https://example.com}{", "}") },
+				{ label: "Footnote", hint: "\\footnote{}", run: w("\\footnote{", "}") },
+				{ label: "Citation", hint: "\\cite{}", run: w("\\cite{", "}") },
+				{ label: "Cross-reference", hint: "\\ref{}", run: w("\\ref{", "}") },
+				{ label: "Label", hint: "\\label{}", run: w("\\label{", "}") },
+				"sep",
 				{
-					label: 'Sample paragraph',
-					hint: 'text',
-					run: t('sample')
+					label: "Sample paragraph",
+					hint: "text",
+					run: t("sample")
 				},
 				{
-					label: 'Figure',
-					hint: 'figure',
+					label: "Figure",
+					hint: "figure",
 					// example-image ships with the mwe package: a real placeholder graphic
 					// so the inserted figure renders immediately. Swap for your own file.
-					run: t('figure')
+					run: t("figure")
 				},
 				{
-					label: 'Table',
-					hint: 'tabular',
-					run: t('table')
+					label: "Table",
+					hint: "tabular",
+					run: t("table")
 				},
 				{
-					label: 'Code block',
-					hint: 'verbatim',
-					run: t('verbatim')
+					label: "Code block",
+					hint: "verbatim",
+					run: t("verbatim")
 				},
 				{
-					label: 'Block quote',
-					hint: 'quote',
-					run: t('quote')
+					label: "Block quote",
+					hint: "quote",
+					run: t("quote")
 				}
 			]
 		}
 	];
 
-	const isSep = (x: Cmd | 'sep'): x is 'sep' => x === 'sep';
+	const isSep = (x: Cmd | "sep"): x is "sep" => x === "sep";
 </script>
 
 <!-- Ghost throughout: bordered chips here read as a second, competing toolbar next

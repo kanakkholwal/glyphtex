@@ -1,5 +1,5 @@
-import type { Patch } from './edit';
-import type { Block, Span } from './types';
+import type { Patch } from "./edit";
+import type { Block, Span } from "./types";
 
 // A `tabular` read as a grid. Only plain ones: a `\multicolumn`, `\multirow`,
 // nested environment or `*{n}{…}` spec makes {@link readTable} return null.
@@ -18,7 +18,7 @@ export type TableGrid = {
 	ruleAfter: boolean;
 };
 
-export type ColumnAlign = 'l' | 'c' | 'r';
+export type ColumnAlign = "l" | "c" | "r";
 
 const UNSUPPORTED = /\\(multicolumn|multirow|cline|begin)\b/;
 const TABULAR = /\\begin\{(tabular\*?|tabularx|longtable)\}[ \t]*(?:\[[^\]]*\])?[ \t]*\{/;
@@ -28,12 +28,12 @@ const RULE = /^\\(hline|toprule|midrule|bottomrule)\b/;
 function group(text: string, open: number): { body: string; end: number } | null {
 	let depth = 0;
 	for (let i = open; i < text.length; i++) {
-		if (text[i] === '\\') {
+		if (text[i] === "\\") {
 			i++;
 			continue;
 		}
-		if (text[i] === '{') depth++;
-		else if (text[i] === '}' && --depth === 0) return { body: text.slice(open + 1, i), end: i + 1 };
+		if (text[i] === "{") depth++;
+		else if (text[i] === "}" && --depth === 0) return { body: text.slice(open + 1, i), end: i + 1 };
 	}
 	return null;
 }
@@ -43,15 +43,15 @@ function columnsOf(spec: string): string[] | null {
 	const out: string[] = [];
 	for (let i = 0; i < spec.length; i++) {
 		const char = spec[i];
-		if (char === '|' || /\s/.test(char)) continue;
+		if (char === "|" || /\s/.test(char)) continue;
 		// `*{3}{l}` and `@{…}` change the column count in ways this grid cannot
 		// represent, so the whole table falls back to source editing.
-		if (char === '*' || char === '@' || char === '!') return null;
-		if ('lcrX'.includes(char)) {
+		if (char === "*" || char === "@" || char === "!") return null;
+		if ("lcrX".includes(char)) {
 			out.push(char);
 			continue;
 		}
-		if ('pmb'.includes(char) && spec[i + 1] === '{') {
+		if ("pmb".includes(char) && spec[i + 1] === "{") {
 			const arg = group(spec, i + 1);
 			if (!arg) return null;
 			out.push(spec.slice(i, arg.end));
@@ -90,7 +90,7 @@ function scanRows(
 		// the whole table falls back to source editing instead.
 		if (texts.length > columns) overfull = true;
 		while (texts.length < columns)
-			texts.push({ text: '', span: { from: offset + to, to: offset + to } });
+			texts.push({ text: "", span: { from: offset + to, to: offset + to } });
 		rows.push({ cells: texts.slice(0, columns), ruleBefore });
 		cells = [];
 		ruleBefore = false;
@@ -98,12 +98,12 @@ function scanRows(
 
 	for (let i = 0; i < body.length; i++) {
 		const char = body[i];
-		if (char === '\\') {
+		if (char === "\\") {
 			const rest = body.slice(i);
 			const rule = RULE.exec(rest);
 			if (rule && depth === 0) {
 				// A rule between rows, not part of a cell: skip it and remember it.
-				if (cells.length === 0 && body.slice(start, i).trim() === '') {
+				if (cells.length === 0 && body.slice(start, i).trim() === "") {
 					ruleBefore = true;
 					i += rule[0].length - 1;
 					start = i + 1;
@@ -111,12 +111,12 @@ function scanRows(
 					continue;
 				}
 			}
-			if (rest.startsWith('\\\\') && depth === 0) {
+			if (rest.startsWith("\\\\") && depth === 0) {
 				pushRow(i);
 				i += 1;
-				while (body[i + 1] === '*' || body[i + 1] === '[') {
-					if (body[i + 1] === '[') {
-						const close = body.indexOf(']', i);
+				while (body[i + 1] === "*" || body[i + 1] === "[") {
+					if (body[i + 1] === "[") {
+						const close = body.indexOf("]", i);
 						if (close === -1) return null;
 						i = close;
 					} else i++;
@@ -128,14 +128,14 @@ function scanRows(
 			i++;
 			continue;
 		}
-		if (char === '{') depth++;
-		else if (char === '}') depth--;
-		else if (char === '&' && depth === 0) {
+		if (char === "{") depth++;
+		else if (char === "}") depth--;
+		else if (char === "&" && depth === 0) {
 			pushCell(i);
 			start = i + 1;
 		}
 	}
-	if (body.slice(start).trim() !== '' || cells.length) pushRow(body.length);
+	if (body.slice(start).trim() !== "" || cells.length) pushRow(body.length);
 	return rows.length && !overfull ? { rows, ruleAfter } : null;
 }
 
@@ -156,7 +156,7 @@ export function readTable(source: string, block: Block): TableGrid | null {
 	if (endAt === -1 || endAt < spec.end) return null;
 
 	const body = text.slice(spec.end, endAt);
-	if (UNSUPPORTED.test(body) || body.includes('%')) return null;
+	if (UNSUPPORTED.test(body) || body.includes("%")) return null;
 	const scan = scanRows(body, block.span.from + spec.end, columns.length);
 	if (!scan) return null;
 
@@ -164,22 +164,22 @@ export function readTable(source: string, block: Block): TableGrid | null {
 		span: { from: block.span.from + begin.index, to: block.span.from + endAt + endTag.length },
 		environment,
 		columns,
-		borders: spec.body.includes('|'),
+		borders: spec.body.includes("|"),
 		rows: scan.rows,
 		ruleAfter: scan.ruleAfter
 	};
 }
 
 export function printTable(grid: TableGrid): string {
-	const spec = grid.borders ? `|${grid.columns.join('|')}|` : grid.columns.join(' ');
+	const spec = grid.borders ? `|${grid.columns.join("|")}|` : grid.columns.join(" ");
 	const lines: string[] = [`\\begin{${grid.environment}}{${spec}}`];
 	for (const row of grid.rows) {
-		if (row.ruleBefore) lines.push('  \\hline');
-		lines.push(`  ${row.cells.map((c) => c.text).join(' & ')} \\\\`);
+		if (row.ruleBefore) lines.push("  \\hline");
+		lines.push(`  ${row.cells.map((c) => c.text).join(" & ")} \\\\`);
 	}
-	if (grid.ruleAfter) lines.push('  \\hline');
+	if (grid.ruleAfter) lines.push("  \\hline");
 	lines.push(`\\end{${grid.environment}}`);
-	return lines.join('\n');
+	return lines.join("\n");
 }
 
 const reprint = (grid: TableGrid, rows: TableRow[], columns = grid.columns): Patch => ({
@@ -202,8 +202,8 @@ export function setTableCell(
 	// `&` would open a column that is not in the spec and `\\` would end the row.
 	// Everything else passes through, so `\textbf{x}` in a cell still works.
 	const safe = text
-		.replace(/\\\\/g, ' ')
-		.replace(/(?<!\\)&/g, '\\&')
+		.replace(/\\\\/g, " ")
+		.replace(/(?<!\\)&/g, "\\&")
 		.trim();
 	if (safe === target.text) return null;
 	return { ...target.span, insert: ` ${safe} ` };
@@ -211,7 +211,7 @@ export function setTableCell(
 
 export function insertTableRow(grid: TableGrid, at: number): Patch {
 	const rows = grid.rows.slice();
-	rows.splice(at, 0, { cells: grid.columns.map(() => cell('')), ruleBefore: false });
+	rows.splice(at, 0, { cells: grid.columns.map(() => cell("")), ruleBefore: false });
 	return reprint(grid, rows);
 }
 
@@ -225,10 +225,10 @@ export function deleteTableRow(grid: TableGrid, at: number): Patch | null {
 
 export function insertTableColumn(grid: TableGrid, at: number): Patch {
 	const columns = grid.columns.slice();
-	columns.splice(at, 0, 'l');
+	columns.splice(at, 0, "l");
 	const rows = grid.rows.map((row) => {
 		const cells = row.cells.slice();
-		cells.splice(at, 0, cell(''));
+		cells.splice(at, 0, cell(""));
 		return { ...row, cells };
 	});
 	return reprint(grid, rows, columns);

@@ -1,6 +1,6 @@
 <script lang="ts" module>
-	export type TreeFile = { type: 'file'; id: string; name: string };
-	export type TreeFolder = { type: 'folder'; name: string; path: string; children: TreeNode[] };
+	export type TreeFile = { type: "file"; id: string; name: string };
+	export type TreeFolder = { type: "folder"; name: string; path: string; children: TreeNode[] };
 	export type TreeNode = TreeFile | TreeFolder;
 
 	/** How long a drag has to hover a collapsed folder before it springs open. */

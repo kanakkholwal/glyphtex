@@ -1,25 +1,25 @@
 <script lang="ts">
-	import { goto, onNavigate } from '$app/navigation';
-	import { resolve } from '$app/paths';
-	import { launch } from '$lib/launch';
-	import { prefetchCommonPackagesOnce } from '$lib/prefetch';
-	import { projectHost } from '$lib/project';
-	import { initTauriTheme } from '$lib/tauri-theme';
-	import { updater } from '$lib/updater.svelte';
-	import UpdaterCard from '$lib/updater-card.svelte';
-	import { NavProgress } from '@glyphtex/ui/nav-progress';
-	import { settings } from '@glyphtex/ui/settings';
-	import { onMount, tick } from 'svelte';
-	import './layout.css';
+	import { goto, onNavigate } from "$app/navigation";
+	import { resolve } from "$app/paths";
+	import { launch } from "$lib/launch";
+	import { prefetchCommonPackagesOnce } from "$lib/prefetch";
+	import { projectHost } from "$lib/project";
+	import { initTauriTheme } from "$lib/tauri-theme";
+	import { updater } from "$lib/updater.svelte";
+	import UpdaterCard from "$lib/updater-card.svelte";
+	import { NavProgress } from "@glyphtex/ui/nav-progress";
+	import { settings } from "@glyphtex/ui/settings";
+	import { onMount, tick } from "svelte";
+	import "./layout.css";
 
 	let { children } = $props();
 
 	// Dismiss the boot splash (in app.html) once the app has mounted.
 	onMount(async () => {
 		await tick();
-		const boot = document.getElementById('boot');
+		const boot = document.getElementById("boot");
 		if (!boot) return;
-		boot.classList.add('boot-leaving');
+		boot.classList.add("boot-leaving");
 		setTimeout(() => boot.remove(), 300);
 	});
 
@@ -41,12 +41,12 @@
 	// morphs into the editor (and collapses back on return). Skipped when the
 	// API is unavailable or the user prefers reduced motion.
 	onNavigate((navigation) => {
-		if (typeof document === 'undefined' || !document.startViewTransition) return;
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		if (typeof document === "undefined" || !document.startViewTransition) return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 		// Tag the direction so CSS can react (e.g. the logo pulses when we land
 		// back on the projects home).
-		const toHome = navigation.to?.url.pathname === '/';
-		document.documentElement.dataset.vt = toHome ? 'to-home' : 'to-editor';
+		const toHome = navigation.to?.url.pathname === "/";
+		document.documentElement.dataset.vt = toHome ? "to-home" : "to-editor";
 		return new Promise((settle) => {
 			const transition = document.startViewTransition(async () => {
 				settle();
@@ -68,7 +68,7 @@
 				const p = await projectHost.takeLaunchPath?.();
 				if (p) {
 					launch.path = p;
-					await goto(resolve('/editor/folder'));
+					await goto(resolve("/editor/folder"));
 				}
 			} catch {
 				/* no launch path */
@@ -76,7 +76,7 @@
 			try {
 				unlisten = await projectHost.onOpenPath?.((path) => {
 					launch.path = path;
-					void goto(resolve('/editor/folder'));
+					void goto(resolve("/editor/folder"));
 				});
 			} catch {
 				/* event bridge unavailable */

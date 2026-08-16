@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { ButtonGroup } from '@glyphtex/ui/button-group';
+	import { Button } from "@glyphtex/ui/button";
+	import { ButtonGroup } from "@glyphtex/ui/button-group";
 	import {
 		DropdownMenu,
 		DropdownMenuCheckboxItem,
@@ -11,8 +11,8 @@
 		DropdownMenuSeparator,
 		DropdownMenuShortcut,
 		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
-	import { settings } from '@glyphtex/ui/settings';
+	} from "@glyphtex/ui/dropdown-menu";
+	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconAlertTriangleFilled,
 		IconCheck,
@@ -20,10 +20,10 @@
 		IconLoader2,
 		IconPlayerPlayFilled,
 		IconTarget
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import { shortcutLabel } from '../shortcuts';
-	import type { WorkbenchController } from './controller.svelte';
+	import { shortcutLabel } from "../shortcuts";
+	import type { WorkbenchController } from "./controller.svelte";
 
 	/** Build the document: the action, its live status, and what it builds from.
 	 *  The status is the control that opens the log it is summarising. */
@@ -33,7 +33,7 @@
 	const compile = $derived(ctrl.compile);
 
 	// Candidate root files, so a multi-file document can pick which one compiles.
-	const texFiles = $derived(files.files.filter((f) => f.name.endsWith('.tex')));
+	const texFiles = $derived(files.files.filter((f) => f.name.endsWith(".tex")));
 	const mainName = $derived(files.files.find((f) => f.id === files.mainId)?.name);
 </script>
 

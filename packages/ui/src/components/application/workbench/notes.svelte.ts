@@ -1,4 +1,4 @@
-import { safeStorage } from '@glyphtex/ui/persisted-state';
+import { safeStorage } from "@glyphtex/ui/persisted-state";
 
 /** A checklist item pinned to one document. */
 export type Note = {
@@ -9,7 +9,7 @@ export type Note = {
 	at: number;
 };
 
-export type NoteFilter = 'all' | 'open' | 'done';
+export type NoteFilter = "all" | "open" | "done";
 
 const TAG = /#([\p{L}\p{N}][\p{L}\p{N}_-]*)/gu;
 const storageKey = (scope: string) => `glyphtex:notes:${scope}`;
@@ -20,15 +20,15 @@ export function extractTags(text: string): string[] {
 }
 export function stripTags(text: string): string {
 	return text
-		.replace(TAG, '')
-		.replace(/\s{2,}/g, ' ')
+		.replace(TAG, "")
+		.replace(/\s{2,}/g, " ")
 		.trim();
 }
 
 /** Coarse relative time: notes only ever need "when, roughly". */
 export function relativeTime(at: number, now = Date.now()): string {
 	const s = Math.max(0, Math.round((now - at) / 1000));
-	if (s < 45) return 'Just now';
+	if (s < 45) return "Just now";
 	const m = Math.round(s / 60);
 	if (m < 60) return `${m}m ago`;
 	const h = Math.round(m / 60);
@@ -45,12 +45,12 @@ export class NotesStore {
 	readonly #getScope: () => string;
 
 	notes = $state<Note[]>([]);
-	draft = $state('');
-	filter = $state<NoteFilter>('all');
+	draft = $state("");
+	filter = $state<NoteFilter>("all");
 
 	// Plain field: comparing against it inside `sync` must not make the effect
 	// re-run when it changes.
-	#scope = '';
+	#scope = "";
 
 	constructor(getScope: () => string) {
 		this.#getScope = getScope;
@@ -63,7 +63,7 @@ export class NotesStore {
 		this.#scope = scope;
 		this.notes = safeStorage
 			.get<Note[]>(storageKey(scope), [])
-			.filter((n): n is Note => Boolean(n && typeof n.text === 'string'));
+			.filter((n): n is Note => Boolean(n && typeof n.text === "string"));
 	}
 
 	#persist(): void {
@@ -73,9 +73,9 @@ export class NotesStore {
 	readonly openCount = $derived(this.notes.filter((n) => !n.done).length);
 	readonly doneCount = $derived(this.notes.length - this.openCount);
 	readonly visible = $derived(
-		this.filter === 'all'
+		this.filter === "all"
 			? this.notes
-			: this.notes.filter((n) => (this.filter === 'done' ? n.done : !n.done))
+			: this.notes.filter((n) => (this.filter === "done" ? n.done : !n.done))
 	);
 
 	add(): void {
@@ -91,7 +91,7 @@ export class NotesStore {
 			},
 			...this.notes
 		];
-		this.draft = '';
+		this.draft = "";
 		this.#persist();
 	}
 

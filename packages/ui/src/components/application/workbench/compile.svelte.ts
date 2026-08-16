@@ -4,13 +4,13 @@ import {
 	summarizeProblems,
 	type SyncTexLocation,
 	type SyncTexMap
-} from '@glyphtex/ui/editor';
-import { COMPILE_DEBOUNCE_MS, settings } from '@glyphtex/ui/settings';
-import { toast } from '@glyphtex/ui/sonner';
+} from "@glyphtex/ui/editor";
+import { COMPILE_DEBOUNCE_MS, settings } from "@glyphtex/ui/settings";
+import { toast } from "@glyphtex/ui/sonner";
 
-import type { FileStore } from './files.svelte';
-import type { LayoutStore } from './layout.svelte';
-import { baseName } from './paths';
+import type { FileStore } from "./files.svelte";
+import type { LayoutStore } from "./layout.svelte";
+import { baseName } from "./paths";
 import {
 	BUILD_HISTORY_LIMIT,
 	type BuildRecord,
@@ -19,7 +19,7 @@ import {
 	type CompileProjectFn,
 	type CompileStatus,
 	type SaveFileFn
-} from './types';
+} from "./types";
 
 /** Shown when a compile is attempted with no engine wired up yet. Named so the
  *  message can be recognised and cleared once one appears. */
@@ -46,13 +46,13 @@ export class CompileStore {
 	readonly #saveFile?: SaveFileFn;
 
 	compiling = $state(false);
-	compileStatus = $state<CompileStatus>('idle');
+	compileStatus = $state<CompileStatus>("idle");
 	lastCompileMs = $state<number | null>(null);
 	pdfUrl = $state<string | undefined>(undefined);
 	pdfBytes = $state<Uint8Array | undefined>(undefined);
 	synctex = $state<SyncTexMap | undefined>(undefined);
 	compileError = $state<string | undefined>(undefined);
-	compileLog = $state('');
+	compileLog = $state("");
 	// Actionable hint for a recognized engine limitation (e.g. biber/biblatex
 	// skew, 0-DPI JPEG): shown as a banner above the Problems list.
 	compileHint = $state<string | undefined>(undefined);
@@ -114,16 +114,16 @@ export class CompileStore {
 
 	readonly compileLabel = $derived(
 		!this.canCompile
-			? 'Compiler not ready'
-			: this.compileStatus === 'compiling'
-				? 'Compiling…'
-				: this.compileStatus === 'error'
-					? 'Compile error'
-					: this.compileStatus === 'success'
+			? "Compiler not ready"
+			: this.compileStatus === "compiling"
+				? "Compiling…"
+				: this.compileStatus === "error"
+					? "Compile error"
+					: this.compileStatus === "success"
 						? this.lastCompileMs != null
 							? `Compiled in ${(this.lastCompileMs / 1000).toFixed(1)}s`
-							: 'Compiled'
-						: 'Ready'
+							: "Compiled"
+						: "Ready"
 	);
 
 	#base64ToBytes(b64: string): Uint8Array {
@@ -147,20 +147,20 @@ export class CompileStore {
 		const srcName =
 			this.#files.files.find((f) => f.id === this.#files.mainId)?.name ??
 			this.#files.activeFile?.name ??
-			'document';
-		const base = baseName(srcName).replace(/\.[^./\\]+$/, '') || 'document';
+			"document";
+		const base = baseName(srcName).replace(/\.[^./\\]+$/, "") || "document";
 		const filename = `${base}.pdf`;
 		try {
 			if (this.#saveFile) {
 				const saved = await this.#saveFile(bytes, {
 					filename,
-					extensions: ['pdf']
+					extensions: ["pdf"]
 				});
 				if (saved) toast.success(`Saved ${filename}`);
 				return; // false = user cancelled the dialog → stay quiet
 			}
 			if (!this.pdfUrl) return;
-			const a = document.createElement('a');
+			const a = document.createElement("a");
 			a.href = this.pdfUrl;
 			a.download = filename;
 			a.click();
@@ -173,7 +173,7 @@ export class CompileStore {
 	/** Forward sync: caret line → scroll/flash the matching region in the PDF. */
 	syncToPdf(): void {
 		if (!this.synctex) {
-			toast.info('Compile first to sync to the PDF.');
+			toast.info("Compile first to sync to the PDF.");
 			return;
 		}
 		const loc = this.synctex.forward(this.#layout.cursor.line);
@@ -181,7 +181,7 @@ export class CompileStore {
 			toast.info(`No PDF location for line ${this.#layout.cursor.line}.`);
 			return;
 		}
-		if (this.#layout.viewMode === 'editor') this.#layout.viewMode = 'split';
+		if (this.#layout.viewMode === "editor") this.#layout.viewMode = "split";
 		this.pdfView?.revealLocation(loc);
 	}
 
@@ -203,8 +203,8 @@ export class CompileStore {
 	async runCompile(manual = false): Promise<void> {
 		if (!this.canCompile) {
 			this.compileError = NOT_READY;
-			this.compileStatus = 'error';
-			if (manual && this.#layout.viewMode === 'editor') this.#layout.viewMode = 'split';
+			this.compileStatus = "error";
+			if (manual && this.#layout.viewMode === "editor") this.#layout.viewMode = "split";
 			return;
 		}
 		// A manual compile commits the current edits first, so it always reflects
@@ -215,7 +215,7 @@ export class CompileStore {
 			this.#pendingRecompile = true;
 			return;
 		}
-		if (manual && this.#layout.viewMode === 'editor') this.#layout.viewMode = 'split';
+		if (manual && this.#layout.viewMode === "editor") this.#layout.viewMode = "split";
 		this.compiling = true;
 		try {
 			do {
@@ -227,13 +227,13 @@ export class CompileStore {
 				// `source` untouched, so skipping there would miss real changes.
 				const singleFile = !useProject && !compileFiles;
 				if (!manual && singleFile && snapshot === this.#lastCompiledSource) break;
-				this.compileStatus = 'compiling';
+				this.compileStatus = "compiling";
 				const started = performance.now();
 				const root = this.#files.projectRoot;
 				// Resolved per run, not captured: the host can supply a compiler after
 				// mount (the web app does, once the engine is installed).
 				const compileFn = this.#getCompile();
-				const entry = this.#files.files.find((f) => f.id === this.#files.mainId)?.name ?? '';
+				const entry = this.#files.files.find((f) => f.id === this.#files.mainId)?.name ?? "";
 				const out =
 					useProject && this.#compileProject && root
 						? await this.#compileProject(root, entry)
@@ -241,9 +241,9 @@ export class CompileStore {
 							? await compileFiles(this.#files.files, entry)
 							: compileFn
 								? await compileFn(snapshot)
-								: { error: 'No compiler available.' };
+								: { error: "No compiler available." };
 				this.lastCompileMs = Math.round(performance.now() - started);
-				this.compileLog = out.log ?? '';
+				this.compileLog = out.log ?? "";
 				this.compileHint = out.hint;
 				if (this.compileHint) this.showProblems = true; // make the hint visible
 
@@ -262,19 +262,19 @@ export class CompileStore {
 					const bytes = this.#base64ToBytes(out.pdf);
 					this.pdfBytes = bytes;
 					this.pdfUrl = URL.createObjectURL(
-						new Blob([bytes as BlobPart], { type: 'application/pdf' })
+						new Blob([bytes as BlobPart], { type: "application/pdf" })
 					);
 					this.synctex = out.synctex ? parseSyncTex(out.synctex) : undefined;
 					this.compileError = undefined;
-					this.compileStatus = 'success';
+					this.compileStatus = "success";
 					this.#lastCompiledSource = snapshot;
 					this.#record(this.lastCompileMs, true, bytes.byteLength);
 					// A best-effort PDF can still carry errors (e.g. an undefined macro
 					// that the engine recovered from). Surface them like Overleaf does.
 					if (this.problemSummary.errors > 0) this.showProblems = true;
 				} else {
-					this.compileError = out.error ?? 'Compilation failed.';
-					this.compileStatus = 'error';
+					this.compileError = out.error ?? "Compilation failed.";
+					this.compileStatus = "error";
 					this.showProblems = true; // surface failures immediately
 					this.#record(this.lastCompileMs, false, 0);
 				}
@@ -282,9 +282,9 @@ export class CompileStore {
 		} catch (e) {
 			this.compileError = String(e);
 			this.compileHint = undefined;
-			this.compileStatus = 'error';
+			this.compileStatus = "error";
 			this.showProblems = true;
-			console.error('[GlyphTeX] compile threw:', e);
+			console.error("[GlyphTeX] compile threw:", e);
 		} finally {
 			this.compiling = false;
 		}
@@ -301,7 +301,7 @@ export class CompileStore {
 		// auto-compile off nothing else would ever clear it.
 		if (this.canCompile && this.compileError === NOT_READY) {
 			this.compileError = undefined;
-			this.compileStatus = 'idle';
+			this.compileStatus = "idle";
 		}
 
 		if (!this.canCompile || !auto) return;

@@ -1,6 +1,6 @@
-import { commandArg } from './parse';
-import { printBlock, printInlines } from './print';
-import type { Block, Inline, Span } from './types';
+import { commandArg } from "./parse";
+import { printBlock, printInlines } from "./print";
+import type { Block, Inline, Span } from "./types";
 
 // Source patches for block edits: a splice over one block's span, so everything
 // outside it survives byte for byte.
@@ -31,16 +31,16 @@ export function replaceBlock(source: string, block: Block, next: Block): Patch {
 
 /** Replace a block's inline content, keeping everything else about it. */
 export function setInlines(source: string, block: Block, content: Inline[]): Patch | null {
-	if (block.kind === 'paragraph') return replaceBlock(source, block, { ...block, content });
-	if (block.kind === 'heading') return replaceBlock(source, block, { ...block, title: content });
-	if (block.kind === 'quote') return replaceBlock(source, block, { ...block, content });
+	if (block.kind === "paragraph") return replaceBlock(source, block, { ...block, content });
+	if (block.kind === "heading") return replaceBlock(source, block, { ...block, title: content });
+	if (block.kind === "quote") return replaceBlock(source, block, { ...block, content });
 	return null;
 }
 
 /** Replace one item's inline content in a list. */
 export function setListItem(
 	source: string,
-	block: Extract<Block, { kind: 'list' }>,
+	block: Extract<Block, { kind: "list" }>,
 	index: number,
 	content: Inline[]
 ): Patch {
@@ -50,8 +50,8 @@ export function setListItem(
 
 export function setListItems(
 	source: string,
-	block: Extract<Block, { kind: 'list' }>,
-	items: Extract<Block, { kind: 'list' }>['items']
+	block: Extract<Block, { kind: "list" }>,
+	items: Extract<Block, { kind: "list" }>["items"]
 ): Patch {
 	return replaceBlock(source, block, { ...block, items });
 }
@@ -67,13 +67,13 @@ export function splitParagraph(block: Block, left: Inline[], right: Inline[]): P
 
 /** Append `block`'s content to the end of `previous` and drop the separator. */
 export function mergeIntoPrevious(source: string, previous: Block, block: Block): Patch | null {
-	if (previous.fidelity !== 'native' || block.kind !== 'paragraph') return null;
+	if (previous.fidelity !== "native" || block.kind !== "paragraph") return null;
 
 	const tail = block.content;
 	const merged =
-		previous.kind === 'heading'
+		previous.kind === "heading"
 			? printBlock({ ...previous, title: [...previous.title, ...tail] }, source)
-			: previous.kind === 'paragraph'
+			: previous.kind === "paragraph"
 				? printBlock({ ...previous, content: [...previous.content, ...tail] }, source)
 				: null;
 	if (merged === null) return null;
@@ -101,7 +101,7 @@ export function deleteBlock(source: string, block: Block): Patch {
 		const leading = /\n[ \t]*\n$/.exec(source.slice(0, from));
 		if (leading) from -= leading[0].length;
 	}
-	return { from, to, insert: '' };
+	return { from, to, insert: "" };
 }
 
 // --- Floats -------------------------------------------------------------------
@@ -134,14 +134,14 @@ function insertBeforeEnd(source: string, block: Block, text: string): Patch {
 	const inner = source.slice(block.span.from, block.span.to);
 	const end = /\n([ \t]*)\\end\s*\{[^}]*\}[ \t]*$/.exec(inner);
 	const at = block.span.from + (end ? end.index : inner.length);
-	return { from: at, to: at, insert: `\n${end?.[1] ?? ''}  ${text}` };
+	return { from: at, to: at, insert: `\n${end?.[1] ?? ""}  ${text}` };
 }
 
 /** The float's caption argument, read with balanced braces so a `\textbf` inside
  *  it does not cut it short. */
 export function floatCaption(source: string, block: Block): string | null {
 	const inner = source.slice(block.span.from, block.span.to);
-	const at = commandArg(inner, 'caption');
+	const at = commandArg(inner, "caption");
 	return at ? inner.slice(at.from, at.to) : null;
 }
 
@@ -149,7 +149,7 @@ export function floatCaption(source: string, block: Block): string | null {
  *  removes the command: an empty `\caption{}` still prints "Figure 1:". */
 export function setFloatCaption(source: string, block: Block, caption: string): Patch | null {
 	const inner = source.slice(block.span.from, block.span.to);
-	const at = commandArg(inner, 'caption');
+	const at = commandArg(inner, "caption");
 	if (!at) return caption.trim() ? insertBeforeEnd(source, block, `\\caption{${caption}}`) : null;
 	if (caption.trim())
 		return { from: block.span.from + at.from, to: block.span.from + at.to, insert: caption };
@@ -172,7 +172,7 @@ export function setFloatLabel(source: string, block: Block, label: string): Patc
 function removeRange(source: string, floor: number, from: number, to: number): Patch {
 	const before = /\n[ \t]*$/.exec(source.slice(floor, from));
 	if (before && /^[ \t]*(\n|$)/.test(source.slice(to))) from -= before[0].length;
-	return { from, to, insert: '' };
+	return { from, to, insert: "" };
 }
 
 function removeCommand(source: string, block: Block, pattern: RegExp): Patch | null {
@@ -202,7 +202,7 @@ export function setFloatWidth(source: string, block: Block, width: string): Patc
 	return {
 		from: block.span.from + at[0],
 		to: block.span.from + at[1],
-		insert: `[${keys ? `${keys}, ` : ''}width=${width}]`
+		insert: `[${keys ? `${keys}, ` : ""}width=${width}]`
 	};
 }
 
@@ -224,10 +224,10 @@ export function setFloatPlacement(source: string, block: Block, placement: strin
 	const at = match.indices?.[1];
 	const from = block.span.from + (at ? at[0] : match[0].length);
 	const to = block.span.from + (at ? at[1] : match[0].length);
-	return { from, to, insert: placement ? `[${placement}]` : '' };
+	return { from, to, insert: placement ? `[${placement}]` : "" };
 }
 
-export type FloatAlignment = 'centering' | 'raggedright' | 'raggedleft' | null;
+export type FloatAlignment = "centering" | "raggedright" | "raggedleft" | null;
 
 export function floatAlignment(source: string, block: Block): FloatAlignment {
 	const found = ALIGNMENT.exec(source.slice(block.span.from, block.span.to))?.[1];
@@ -239,7 +239,7 @@ export function setFloatAlignment(
 	block: Block,
 	alignment: FloatAlignment
 ): Patch | null {
-	const existing = patchInside(source, block, ALIGNMENT, alignment ?? '');
+	const existing = patchInside(source, block, ALIGNMENT, alignment ?? "");
 	if (existing) return alignment ? existing : removeCommand(source, block, ALIGNMENT);
 	if (!alignment) return null;
 	// First thing inside the environment, which is where it has to be to apply to
@@ -254,8 +254,8 @@ export function setFloatAlignment(
 export function setFloatWrap(
 	source: string,
 	block: Block,
-	side: 'l' | 'r' | null,
-	width = '0.45\\linewidth'
+	side: "l" | "r" | null,
+	width = "0.45\\linewidth"
 ): Patch | null {
 	const inner = source.slice(block.span.from, block.span.to);
 	const begin =
@@ -268,7 +268,7 @@ export function setFloatWrap(
 		.slice(begin[0].length)
 		.replace(
 			/\\end\s*\{(figure\*?|wrapfigure)\}[ \t]*$/,
-			`\\end{${side ? 'wrapfigure' : 'figure'}}`
+			`\\end{${side ? "wrapfigure" : "figure"}}`
 		);
 	return { ...block.span, insert: head + rest };
 }
@@ -303,9 +303,9 @@ export function envOption(source: string, block: Block, key: string): string | n
 	const options = PLACEMENT.exec(source.slice(block.span.from, block.span.to))?.[1];
 	const found = options
 		?.slice(1, -1)
-		.split(',')
+		.split(",")
 		.find((pair) => pair.trim().startsWith(`${key}=`));
-	return found ? found.split('=').slice(1).join('=').trim() : null;
+	return found ? found.split("=").slice(1).join("=").trim() : null;
 }
 
 /** Set or clear one option, leaving the others in the order they were written. */
@@ -319,33 +319,33 @@ export function setEnvOption(
 	const match = PLACEMENT.exec(inner);
 	if (!match) return null;
 	const at = match.indices?.[1];
-	const pairs = (at ? inner.slice(at[0] + 1, at[1] - 1) : '')
-		.split(',')
+	const pairs = (at ? inner.slice(at[0] + 1, at[1] - 1) : "")
+		.split(",")
 		.map((pair) => pair.trim())
 		.filter((pair) => pair && !pair.startsWith(`${key}=`));
 	if (value) pairs.push(`${key}=${value}`);
 	return {
 		from: block.span.from + (at ? at[0] : match[0].length),
 		to: block.span.from + (at ? at[1] : match[0].length),
-		insert: pairs.length ? `[${pairs.join(', ')}]` : ''
+		insert: pairs.length ? `[${pairs.join(", ")}]` : ""
 	};
 }
 
 /** `\[ … \]` has no number to turn on, so switching it on promotes it to an
  *  `equation`; the rest are one star away. */
 export function setMathNumbered(source: string, block: Block, on: boolean): Patch | null {
-	if (block.kind !== 'math') return null;
+	if (block.kind !== "math") return null;
 	const environment = block.environment;
 	if (!environment) {
 		if (!on) return null;
 		const inner = source.slice(block.span.from, block.span.to);
-		const body = inner.replace(/^\\\[/, '').replace(/\\\]$/, '');
+		const body = inner.replace(/^\\\[/, "").replace(/\\\]$/, "");
 		return { ...block.span, insert: `\\begin{equation}${body}\\end{equation}` };
 	}
-	const starred = environment.endsWith('*');
+	const starred = environment.endsWith("*");
 	if (starred === !on) return null;
 	return setEnvironment(source, block, on ? environment.slice(0, -1) : `${environment}*`);
 }
 
-export { BLOCK_TEMPLATES, CARET, expandTemplate, templateSource } from './templates';
-export type { BlockTemplate } from './templates';
+export { BLOCK_TEMPLATES, CARET, expandTemplate, templateSource } from "./templates";
+export type { BlockTemplate } from "./templates";

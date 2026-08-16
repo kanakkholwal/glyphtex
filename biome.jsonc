@@ -20,6 +20,9 @@
 			"!**/static",
 			"!**/src-tauri/gen",
 			"!packages/tex-engine/wasm",
+			// Verbatim ts-rs output; tex-engine.yml diffs it against a fresh
+			// `pnpm generate`, so formatting it would fail that gate.
+			"!packages/tex-engine/src/generated",
 			// Rust, plus the tectonic/emsdk submodules' vendored JS.
 			"!crates",
 			"!pnpm-lock.yaml"
@@ -32,7 +35,7 @@
 	},
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "single",
+			"quoteStyle": "double",
 			"trailingCommas": "none",
 			"arrowParentheses": "always"
 		}
@@ -73,7 +76,9 @@
 			"correctness": {
 				"noUnusedVariables": {
 					"level": "warn",
-					"options": { "ignoreRestSiblings": true }
+					"options": {
+						"ignoreRestSiblings": true
+					}
 				},
 				"noUnusedImports": "warn",
 				"noUnusedFunctionParameters": "off",

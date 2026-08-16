@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import { tv, type VariantProps } from 'tailwind-variants';
+	import { tv, type VariantProps } from "tailwind-variants";
 
 	export const buttonGroupVariants = tv({
 		// `md` is `--radius` (8px), which is what Buttons carry. It used to round the
@@ -8,17 +8,17 @@
 		variants: {
 			orientation: {
 				horizontal:
-					'[&>[data-slot]:not(:has(~[data-slot]))]:rounded-r-md! [&>[data-slot]]:rounded-r-none [&>[data-slot]~[data-slot]]:rounded-l-none [&>[data-slot]~[data-slot]]:border-l-0',
+					"[&>[data-slot]:not(:has(~[data-slot]))]:rounded-r-md! [&>[data-slot]]:rounded-r-none [&>[data-slot]~[data-slot]]:rounded-l-none [&>[data-slot]~[data-slot]]:border-l-0",
 				vertical:
-					'[&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-md! flex-col [&>[data-slot]]:rounded-b-none [&>[data-slot]~[data-slot]]:rounded-t-none [&>[data-slot]~[data-slot]]:border-t-0'
+					"[&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-md! flex-col [&>[data-slot]]:rounded-b-none [&>[data-slot]~[data-slot]]:rounded-t-none [&>[data-slot]~[data-slot]]:border-t-0"
 			}
 		},
 		defaultVariants: {
-			orientation: 'horizontal'
+			orientation: "horizontal"
 		}
 	});
 
-	export type ButtonGroupOrientation = VariantProps<typeof buttonGroupVariants>['orientation'];
+	export type ButtonGroupOrientation = VariantProps<typeof buttonGroupVariants>["orientation"];
 </script>
 
 <script lang="ts">

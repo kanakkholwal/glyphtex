@@ -1,6 +1,6 @@
-import { LATEX_COMMANDS } from './latex-data';
-import { loadedPackageData } from './latex-packages';
-import { workspaceBibEntries, workspaceLabels } from './latex-workspace';
+import { LATEX_COMMANDS } from "./latex-data";
+import { loadedPackageData } from "./latex-packages";
+import { workspaceBibEntries, workspaceLabels } from "./latex-workspace";
 
 /**
  * Editor-agnostic LaTeX analysis: everything the completion, hover, semantic and
@@ -19,14 +19,14 @@ export type DocumentSymbols = {
 export function withoutComments(text: string): string {
 	return text.replace(
 		/(^|[^\\])(%.*)$/gm,
-		(_m, prefix: string, comment: string) => prefix + ' '.repeat(comment.length)
+		(_m, prefix: string, comment: string) => prefix + " ".repeat(comment.length)
 	);
 }
 
 /** 1-based line numbers for a sorted-ascending list of offsets, in one pass. */
 function lineIndex(text: string): (offset: number) => number {
 	const starts: number[] = [0];
-	for (let i = 0; i < text.length; i++) if (text[i] === '\n') starts.push(i + 1);
+	for (let i = 0; i < text.length; i++) if (text[i] === "\n") starts.push(i + 1);
 	return (offset) => {
 		let lo = 0;
 		let hi = starts.length - 1;
@@ -78,7 +78,7 @@ export function scanDocument(text: string): DocumentSymbols {
 		symbols.citations.push({ key: m[1], line })
 	);
 	collect(/\\(?:no)?cite[a-z]*\s*(?:\[[^\]]*\])*\s*\{([^}]+)\}/g, (m, line) => {
-		for (const key of m[1].split(',')) {
+		for (const key of m[1].split(",")) {
 			const trimmed = key.trim();
 			if (trimmed) symbols.citations.push({ key: trimmed, line });
 		}
@@ -89,7 +89,7 @@ export function scanDocument(text: string): DocumentSymbols {
 	);
 	collect(/\\newenvironment\s*\{([^}]+)\}/g, (m) => symbols.environments.push(m[1]));
 	collect(/\\(?:usepackage|RequirePackage)\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}/g, (m) => {
-		for (const name of m[1].split(',')) {
+		for (const name of m[1].split(",")) {
 			const trimmed = name.trim();
 			if (trimmed) symbols.packages.push(trimmed);
 		}
@@ -112,54 +112,54 @@ export function scanDocument(text: string): DocumentSymbols {
 export function inMathContext(textBefore: string): boolean {
 	let dollars = 0;
 	for (let i = 0; i < textBefore.length; i++) {
-		if (textBefore[i] !== '$') continue;
+		if (textBefore[i] !== "$") continue;
 		// A `$` is a delimiter unless it is escaped by an odd run of backslashes.
 		let backslashes = 0;
-		for (let j = i - 1; j >= 0 && textBefore[j] === '\\'; j--) backslashes++;
+		for (let j = i - 1; j >= 0 && textBefore[j] === "\\"; j--) backslashes++;
 		if (backslashes % 2 === 0) dollars++;
 	}
 	if (dollars % 2 === 1) return true;
 
-	const lastOpen = Math.max(textBefore.lastIndexOf('\\['), textBefore.lastIndexOf('\\('));
-	const lastClose = Math.max(textBefore.lastIndexOf('\\]'), textBefore.lastIndexOf('\\)'));
+	const lastOpen = Math.max(textBefore.lastIndexOf("\\["), textBefore.lastIndexOf("\\("));
+	const lastClose = Math.max(textBefore.lastIndexOf("\\]"), textBefore.lastIndexOf("\\)"));
 	if (lastOpen > lastClose) return true;
 
 	const mathEnv =
 		/\\(begin|end)\s*\{(equation|align|gather|multline|displaymath|eqnarray|flalign|alignat)\*?\}/g;
 	let depth = 0;
 	let m: RegExpExecArray | null;
-	while ((m = mathEnv.exec(textBefore))) depth += m[1] === 'begin' ? 1 : -1;
+	while ((m = mathEnv.exec(textBefore))) depth += m[1] === "begin" ? 1 : -1;
 	return depth > 0;
 }
 
 // --- Semantic analysis -------------------------------------------------------
 
-export type SemanticKind = 'macro' | 'unknownMacro' | 'danglingRef' | 'resolvedRef';
+export type SemanticKind = "macro" | "unknownMacro" | "danglingRef" | "resolvedRef";
 export type SemanticToken = { offset: number; length: number; kind: SemanticKind };
 
 // Never flagged regardless of the dataset: TeX primitives and anything the
 // grammar already treats as structural.
 const ALWAYS_KNOWN = new Set([
-	'begin',
-	'end',
-	'documentclass',
-	'usepackage',
-	'RequirePackage',
-	'newcommand',
-	'renewcommand',
-	'providecommand',
-	'newenvironment',
-	'renewenvironment',
-	'DeclareMathOperator',
-	'newtheorem',
-	'def',
-	'let',
-	'input',
-	'include',
-	'item',
-	'label',
-	'left',
-	'right'
+	"begin",
+	"end",
+	"documentclass",
+	"usepackage",
+	"RequirePackage",
+	"newcommand",
+	"renewcommand",
+	"providecommand",
+	"newenvironment",
+	"renewenvironment",
+	"DeclareMathOperator",
+	"newtheorem",
+	"def",
+	"let",
+	"input",
+	"include",
+	"item",
+	"label",
+	"left",
+	"right"
 ]);
 
 const REF_CALL = /\\(ref|eqref|autoref|pageref|nameref|cref|Cref|vref|labelcref)\s*\{([^}]*)\}/g;
@@ -202,9 +202,9 @@ export function analyzeSemantics(source: string): SemanticToken[] {
 	while ((m = COMMAND.exec(text))) {
 		const name = m[1];
 		if (userDefined.has(name)) {
-			found.push({ offset: m.index, length: m[0].length, kind: 'macro' });
+			found.push({ offset: m.index, length: m[0].length, kind: "macro" });
 		} else if (!known.has(name)) {
-			found.push({ offset: m.index, length: m[0].length, kind: 'unknownMacro' });
+			found.push({ offset: m.index, length: m[0].length, kind: "unknownMacro" });
 		}
 	}
 
@@ -218,7 +218,7 @@ export function analyzeSemantics(source: string): SemanticToken[] {
 			found.push({
 				offset: m.index + m[0].length - inner.length - 1,
 				length: inner.length,
-				kind: labels.has(inner.trim()) ? 'resolvedRef' : 'danglingRef'
+				kind: labels.has(inner.trim()) ? "resolvedRef" : "danglingRef"
 			});
 		}
 	}
@@ -232,13 +232,13 @@ export function analyzeSemantics(source: string): SemanticToken[] {
 			// A \cite can hold several comma-separated keys; each is judged on its
 			// own, at its own offset within the braces.
 			let cursor = 0;
-			for (const part of inner.split(',')) {
+			for (const part of inner.split(",")) {
 				const trimmed = part.trim();
 				if (trimmed) {
 					found.push({
 						offset: listStart + cursor + part.indexOf(trimmed),
 						length: trimmed.length,
-						kind: citations.has(trimmed) ? 'resolvedRef' : 'danglingRef'
+						kind: citations.has(trimmed) ? "resolvedRef" : "danglingRef"
 					});
 				}
 				cursor += part.length + 1; // + the comma

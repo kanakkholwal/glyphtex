@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		DropdownMenu,
 		DropdownMenuCheckboxItem,
@@ -12,7 +12,7 @@
 		DropdownMenuSubContent,
 		DropdownMenuSubTrigger,
 		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
+	} from "@glyphtex/ui/dropdown-menu";
 	import {
 		AUTO_SAVE_LABELS,
 		DOC_FONT_LABELS,
@@ -21,7 +21,7 @@
 		type Appearance,
 		type AutoSaveMode,
 		type DocFont
-	} from '@glyphtex/ui/settings';
+	} from "@glyphtex/ui/settings";
 	import {
 		IconArrowsHorizontal,
 		IconCode,
@@ -38,10 +38,10 @@
 		IconSun,
 		IconTextSize,
 		IconTextWrap
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import type { WorkbenchController } from './controller.svelte';
-	import type { ViewMode } from './types';
+	import type { WorkbenchController } from "./controller.svelte";
+	import type { ViewMode } from "./types";
 
 	/** How *this view* is presented, and nothing else. Mode-aware, because half of a
 	 *  canvas menu means nothing while you're editing source. Anything that acts on
@@ -49,28 +49,28 @@
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 
 	const layout = $derived(ctrl.layout);
-	const visual = $derived(ctrl.docMode === 'visual');
+	const visual = $derived(ctrl.docMode === "visual");
 
-	const fonts: DocFont[] = ['default', 'serif', 'mono'];
+	const fonts: DocFont[] = ["default", "serif", "mono"];
 	const layouts: { value: ViewMode; label: string; icon: typeof IconEye }[] = [
-		{ value: 'editor', label: 'Source', icon: IconCode },
-		{ value: 'split', label: 'Split', icon: IconLayoutColumns },
-		{ value: 'preview', label: 'PDF', icon: IconEye }
+		{ value: "editor", label: "Source", icon: IconCode },
+		{ value: "split", label: "Split", icon: IconLayoutColumns },
+		{ value: "preview", label: "PDF", icon: IconEye }
 	];
 
-	const autoSaveModes: AutoSaveMode[] = ['off', 'afterDelay', 'onFocusChange'];
+	const autoSaveModes: AutoSaveMode[] = ["off", "afterDelay", "onFocusChange"];
 
 	const appearances: { value: Appearance; label: string; icon: typeof IconSun }[] = [
-		{ value: 'light', label: 'Light', icon: IconSun },
-		{ value: 'dark', label: 'Dark', icon: IconMoon },
-		{ value: 'system', label: 'System', icon: IconDeviceDesktop }
+		{ value: "light", label: "Light", icon: IconSun },
+		{ value: "dark", label: "Dark", icon: IconMoon },
+		{ value: "system", label: "System", icon: IconDeviceDesktop }
 	];
 	const AppearanceIcon = $derived(
 		appearances.find((a) => a.value === settings.appearance)?.icon ?? IconDeviceDesktop
 	);
 
 	const tile =
-		'flex flex-1 flex-col items-center gap-1 rounded-md py-2 transition-colors cursor-pointer';
+		"flex flex-1 flex-col items-center gap-1 rounded-md py-2 transition-colors cursor-pointer";
 </script>
 
 <DropdownMenu>

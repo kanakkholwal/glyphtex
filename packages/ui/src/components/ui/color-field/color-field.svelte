@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface ColorFieldProps {
 		/** Row label (e.g. "Color", "Background"). */
@@ -18,7 +18,7 @@
 		icon?: Snippet;
 		disabled?: boolean;
 		/** Bits-UI popover alignment. Defaults to `start`. */
-		align?: 'start' | 'center' | 'end';
+		align?: "start" | "center" | "end";
 		class?: string;
 	}
 

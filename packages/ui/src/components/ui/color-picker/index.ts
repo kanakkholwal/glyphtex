@@ -5,7 +5,7 @@ import Root, {
 	rgbToHsl,
 	type ColorPickerProps,
 	type ColorValue
-} from './color-picker.svelte';
+} from "./color-picker.svelte";
 
 export {
 	Root,

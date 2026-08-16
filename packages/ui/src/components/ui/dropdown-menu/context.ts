@@ -1,34 +1,34 @@
-import { getContext, setContext } from 'svelte';
-import { tv, type VariantProps } from 'tailwind-variants';
+import { getContext, setContext } from "svelte";
+import { tv, type VariantProps } from "tailwind-variants";
 
-const SIZE_KEY = Symbol.for('glyphtex-ui.dropdown-menu.size');
+const SIZE_KEY = Symbol.for("glyphtex-ui.dropdown-menu.size");
 
-export type DropdownMenuSize = 'sm' | 'default' | 'lg';
+export type DropdownMenuSize = "sm" | "default" | "lg";
 
 export function setDropdownMenuSize(size: DropdownMenuSize) {
 	setContext<DropdownMenuSize>(SIZE_KEY, size);
 }
 
 export function getDropdownMenuSize(): DropdownMenuSize {
-	return getContext<DropdownMenuSize>(SIZE_KEY) ?? 'default';
+	return getContext<DropdownMenuSize>(SIZE_KEY) ?? "default";
 }
 
 /** Padding / min-width applied to <Content>. */
 export const dropdownMenuContentSizeVariants = tv({
-	base: '',
+	base: "",
 	variants: {
 		size: {
-			sm: 'min-w-28 p-0.5 text-[11px]',
-			default: 'min-w-32 p-1',
-			lg: 'min-w-40 p-1.5 text-[14px]'
+			sm: "min-w-28 p-0.5 text-[11px]",
+			default: "min-w-32 p-1",
+			lg: "min-w-40 p-1.5 text-[14px]"
 		}
 	},
-	defaultVariants: { size: 'default' }
+	defaultVariants: { size: "default" }
 });
 
 /** Row sizing applied to <Item>, <CheckboxItem>, <RadioItem>, <SubTrigger>. */
 export const dropdownMenuItemSizeVariants = tv({
-	base: '',
+	base: "",
 	variants: {
 		size: {
 			sm: "h-7 gap-1.5 px-2 text-[11px] [&_svg:not([class*='size-'])]:size-3",
@@ -36,15 +36,15 @@ export const dropdownMenuItemSizeVariants = tv({
 			lg: "gap-2 px-2 py-1.5 text-[14px] [&_svg:not([class*='size-'])]:size-4"
 		},
 		variant: {
-			destructive: 'data-[state=on]:bg-destructive/10 [&_[data-state=on]_svg]:text-destructive',
-			warning: 'data-[state=on]:bg-warning/10 [&_[data-state=on]_svg]:text-warning',
-			primary: 'data-[state=on]:bg-primary/10 [&_[data-state=on]_svg]:text-primary',
-			secondary: 'data-[state=on]:bg-secondary/10 [&_[data-state=on]_svg]:text-secondary'
+			destructive: "data-[state=on]:bg-destructive/10 [&_[data-state=on]_svg]:text-destructive",
+			warning: "data-[state=on]:bg-warning/10 [&_[data-state=on]_svg]:text-warning",
+			primary: "data-[state=on]:bg-primary/10 [&_[data-state=on]_svg]:text-primary",
+			secondary: "data-[state=on]:bg-secondary/10 [&_[data-state=on]_svg]:text-secondary"
 		}
 	},
-	defaultVariants: { size: 'default' }
+	defaultVariants: { size: "default" }
 });
 
 export type DropdownMenuContentSizeVariant = VariantProps<
 	typeof dropdownMenuContentSizeVariants
->['size'];
+>["size"];

@@ -1,1 +1,1 @@
-export { default as NavProgress } from './nav-progress.svelte';
+export { default as NavProgress } from "./nav-progress.svelte";

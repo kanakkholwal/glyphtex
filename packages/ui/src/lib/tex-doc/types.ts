@@ -12,13 +12,13 @@ export type Span = { from: number; to: number };
 
 /** The sectioning ladder, indexed by {@link HeadingBlock.level}. */
 export const SECTION_COMMANDS = [
-	'part',
-	'chapter',
-	'section',
-	'subsection',
-	'subsubsection',
-	'paragraph',
-	'subparagraph'
+	"part",
+	"chapter",
+	"section",
+	"subsection",
+	"subsubsection",
+	"paragraph",
+	"subparagraph"
 ] as const;
 
 /**
@@ -26,44 +26,44 @@ export const SECTION_COMMANDS = [
  * `native` blocks round-trip through our own printer; `source` blocks render but
  * are edited as raw LaTeX; `raw` blocks are inert and open in the LaTeX view.
  */
-export type Fidelity = 'native' | 'source' | 'raw';
+export type Fidelity = "native" | "source" | "raw";
 
 export type MarkKind =
-	| 'bold'
-	| 'italic'
-	| 'emph'
-	| 'code'
-	| 'smallcaps'
-	| 'underline'
-	| 'strike'
-	| 'sans'
-	| 'superscript'
-	| 'subscript';
+	| "bold"
+	| "italic"
+	| "emph"
+	| "code"
+	| "smallcaps"
+	| "underline"
+	| "strike"
+	| "sans"
+	| "superscript"
+	| "subscript";
 
 /** Inline run inside a paragraph or heading. */
 export type Inline =
-	| { kind: 'text'; text: string }
+	| { kind: "text"; text: string }
 	/** `command` is the macro it came from, so `\textsc` is not reprinted as
 	 *  `\emph` when the block is written back. */
-	| { kind: 'mark'; mark: MarkKind; command: string; content: Inline[] }
+	| { kind: "mark"; mark: MarkKind; command: string; content: Inline[] }
 	/** `paren` is `\( … \)` rather than `$ … $`; both are inline maths, and an
 	 *  author who picked one does not want the other written back. */
-	| { kind: 'math'; source: string; paren?: boolean }
+	| { kind: "math"; source: string; paren?: boolean }
 	/** `raw` is the argument exactly as written, so `\cite{a,b}` does not come back
 	 *  with a space the author did not type. */
-	| { kind: 'cite'; command: string; keys: string[]; raw?: string }
-	| { kind: 'ref'; command: string; target: string }
-	| { kind: 'label'; name: string }
+	| { kind: "cite"; command: string; keys: string[]; raw?: string }
+	| { kind: "ref"; command: string; target: string }
+	| { kind: "label"; name: string }
 	/** `\href{url}{text}`, or `\url{url}` with no separate text. */
-	| { kind: 'link'; command: 'href' | 'url'; url: string; text: string }
+	| { kind: "link"; command: "href" | "url"; url: string; text: string }
 	/** The argument is kept as source, not runs: a footnote can hold anything, and
 	 *  writing it back verbatim is what keeps the round trip exact. */
-	| { kind: 'footnote'; source: string }
+	| { kind: "footnote"; source: string }
 	/** `sameline` is whether it followed text rather than starting its own line,
 	 *  which is the difference between a space and a newline before the `%`. */
-	| { kind: 'comment'; text: string; sameline: boolean }
+	| { kind: "comment"; text: string; sameline: boolean }
 	/** A command we do not model: shown as an inert chip, never rewritten. */
-	| { kind: 'raw'; source: string };
+	| { kind: "raw"; source: string };
 
 type BlockBase = {
 	span: Span;
@@ -77,7 +77,7 @@ type BlockBase = {
 };
 
 export type HeadingBlock = {
-	kind: 'heading';
+	kind: "heading";
 	/** 0 = part … 6 = subparagraph, matching the sectioning ladder. */
 	level: number;
 	/** `\section*`: unnumbered, and kept so write-back doesn't renumber the doc. */
@@ -86,12 +86,12 @@ export type HeadingBlock = {
 } & BlockBase;
 
 export type ParagraphBlock = {
-	kind: 'paragraph';
+	kind: "paragraph";
 	content: Inline[];
 } & BlockBase;
 
 export type ListBlock = {
-	kind: 'list';
+	kind: "list";
 	/** The source environment, so `enumerate*` and friends print back as written. */
 	environment: string;
 	ordered: boolean;
@@ -100,7 +100,7 @@ export type ListBlock = {
 } & BlockBase;
 
 export type MathBlock = {
-	kind: 'math';
+	kind: "math";
 	/** The body without its delimiters, for rendering. */
 	source: string;
 	/** `equation`, `align`, or null for `\[ … \]`. */
@@ -108,20 +108,20 @@ export type MathBlock = {
 } & BlockBase;
 
 export type CodeBlock = {
-	kind: 'code';
+	kind: "code";
 	source: string;
 	environment: string;
 } & BlockBase;
 
 export type QuoteBlock = {
-	kind: 'quote';
+	kind: "quote";
 	environment: string;
 	content: Inline[];
 } & BlockBase;
 
 /** A figure or table: rendered as a card, edited in the LaTeX view for now. */
 export type FloatBlock = {
-	kind: 'float';
+	kind: "float";
 	environment: string;
 	caption: string | null;
 	label: string | null;
@@ -131,7 +131,7 @@ export type FloatBlock = {
 
 /** Anything unmodelled. Never rewritten, never reformatted. */
 export type RawBlock = {
-	kind: 'raw';
+	kind: "raw";
 	/** What to call it in the chip: an environment or command name. */
 	label: string;
 	source: string;

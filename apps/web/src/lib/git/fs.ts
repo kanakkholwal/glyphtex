@@ -1,25 +1,25 @@
-import type LightningFS from '@isomorphic-git/lightning-fs';
+import type LightningFS from "@isomorphic-git/lightning-fs";
 
 export type GitFs = LightningFS;
-export type PromiseFs = LightningFS['promises'];
+export type PromiseFs = LightningFS["promises"];
 
 /** Every working tree lives under here, one directory per project id. */
-const MOUNT = '/glyphtex';
+const MOUNT = "/glyphtex";
 
 export const rootFor = (projectId: string) => `${MOUNT}/${projectId}`;
-export const projectIdFrom = (root: string) => root.split('/').filter(Boolean).pop() ?? '';
+export const projectIdFrom = (root: string) => root.split("/").filter(Boolean).pop() ?? "";
 
 let instance: Promise<GitFs> | null = null;
 
 /** lightning-fs needs IndexedDB, so it must never be pulled into the SSR bundle. */
 export function gitFs(): Promise<GitFs> {
-	instance ??= import('@isomorphic-git/lightning-fs').then((m) => new m.default('glyphtex-git'));
+	instance ??= import("@isomorphic-git/lightning-fs").then((m) => new m.default("glyphtex-git"));
 	return instance;
 }
 
 const errCode = (e: unknown) => (e as { code?: string } | null)?.code;
 
-export const isMissing = (e: unknown) => errCode(e) === 'ENOENT';
+export const isMissing = (e: unknown) => errCode(e) === "ENOENT";
 
 export async function exists(fs: PromiseFs, path: string): Promise<boolean> {
 	try {
@@ -32,21 +32,21 @@ export async function exists(fs: PromiseFs, path: string): Promise<boolean> {
 }
 
 export async function mkdirp(fs: PromiseFs, dir: string): Promise<void> {
-	let cur = '';
-	for (const part of dir.split('/').filter(Boolean)) {
+	let cur = "";
+	for (const part of dir.split("/").filter(Boolean)) {
 		cur += `/${part}`;
 		try {
 			await fs.mkdir(cur);
 		} catch (e) {
-			if (errCode(e) !== 'EEXIST') throw e;
+			if (errCode(e) !== "EEXIST") throw e;
 		}
 	}
 }
 
-export const dirName = (path: string) => path.slice(0, path.lastIndexOf('/')) || '/';
+export const dirName = (path: string) => path.slice(0, path.lastIndexOf("/")) || "/";
 
 /** Every file under `dir` as a forward-slash relative path. `.git` is never walked. */
-export async function listTree(fs: PromiseFs, dir: string, prefix = ''): Promise<string[]> {
+export async function listTree(fs: PromiseFs, dir: string, prefix = ""): Promise<string[]> {
 	let names: string[];
 	try {
 		names = await fs.readdir(dir);
@@ -57,7 +57,7 @@ export async function listTree(fs: PromiseFs, dir: string, prefix = ''): Promise
 
 	const out: string[] = [];
 	for (const name of names) {
-		if (name === '.git') continue;
+		if (name === ".git") continue;
 		const rel = prefix ? `${prefix}/${name}` : name;
 		const stat = await fs.lstat(`${dir}/${name}`);
 		if (stat.isDirectory()) out.push(...(await listTree(fs, `${dir}/${name}`, rel)));

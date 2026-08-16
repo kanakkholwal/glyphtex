@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { IconChartBar } from '@tabler/icons-svelte';
+	import { IconChartBar } from "@tabler/icons-svelte";
 
-	import type { CompileStore } from './compile.svelte';
+	import type { CompileStore } from "./compile.svelte";
 
 	/** Build time / pages / output for the last compile, plus a bar chart of recent
 	 *  build times so a slowdown shows up before it becomes annoying. */
@@ -19,7 +19,7 @@
 	const failed = $derived(builds.filter((b) => !b.ok).length);
 
 	function bytes(n: number): string {
-		if (!n) return 'None';
+		if (!n) return "None";
 		if (n < 1024) return `${n} B`;
 		if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
 		return `${(n / (1024 * 1024)).toFixed(1)} MB`;
@@ -27,16 +27,16 @@
 	const seconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
 	// `note` arrives as "Engine: on-device"; the label is the cell's own heading.
-	const engine = $derived(note?.replace(/^engine:\s*/i, '') ?? null);
+	const engine = $derived(note?.replace(/^engine:\s*/i, "") ?? null);
 
 	const stats = $derived([
 		{
-			label: 'Build time',
-			value: compile.lastCompileMs == null ? 'Not yet' : seconds(compile.lastCompileMs)
+			label: "Build time",
+			value: compile.lastCompileMs == null ? "Not yet" : seconds(compile.lastCompileMs)
 		},
-		{ label: 'Pages', value: compile.pdfNumPages ? String(compile.pdfNumPages) : 'None' },
-		{ label: 'Output', value: bytes(compile.outputBytes) },
-		...(engine ? [{ label: 'Engine', value: engine }] : [])
+		{ label: "Pages", value: compile.pdfNumPages ? String(compile.pdfNumPages) : "None" },
+		{ label: "Output", value: bytes(compile.outputBytes) },
+		...(engine ? [{ label: "Engine", value: engine }] : [])
 	]);
 </script>
 

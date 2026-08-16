@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Tooltip, TooltipContent, TooltipTrigger } from '@glyphtex/ui/tooltip';
-	import { IconLayoutSidebar, IconLayoutSidebarRight } from '@tabler/icons-svelte';
+	import { Tooltip, TooltipContent, TooltipTrigger } from "@glyphtex/ui/tooltip";
+	import { IconLayoutSidebar, IconLayoutSidebarRight } from "@tabler/icons-svelte";
 
-	import { shortcutLabel } from '../shortcuts';
-	import type { WorkbenchController } from './controller.svelte';
-	import EditorTabs from './editor-tabs.svelte';
+	import { shortcutLabel } from "../shortcuts";
+	import type { WorkbenchController } from "./controller.svelte";
+	import EditorTabs from "./editor-tabs.svelte";
 
 	/** Which file is open, and the panel seam beside it. It sits above the
 	 *  Visual/LaTeX split because the answer is the same in both: a mode is a lens
@@ -14,7 +14,7 @@
 
 	const files = $derived(ctrl.files);
 	const layout = $derived(ctrl.layout);
-	const quiet = $derived(ctrl.docMode === 'visual');
+	const quiet = $derived(ctrl.docMode === "visual");
 </script>
 
 {#snippet sidebarToggle()}

@@ -7,7 +7,7 @@
 		GitProvider,
 		GitRemote,
 		GitSettings
-	} from './git-panel/types';
+	} from "./git-panel/types";
 </script>
 
 <script lang="ts">

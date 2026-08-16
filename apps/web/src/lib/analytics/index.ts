@@ -1,13 +1,13 @@
-import { browser } from '$app/environment';
-import { gaProvider } from './ga';
-import type { AnalyticsEvent, AnalyticsProvider, EventParams } from './types';
+import { browser } from "$app/environment";
+import { gaProvider } from "./ga";
+import type { AnalyticsEvent, AnalyticsProvider, EventParams } from "./types";
 
-export type { AnalyticsEvent, AnalyticsProvider, DocumentSource, EventParams } from './types';
+export type { AnalyticsEvent, AnalyticsProvider, DocumentSource, EventParams } from "./types";
 
 /** Registry. Add a backend here and the rest of the app needs no changes. */
 const providers: AnalyticsProvider[] = [gaProvider];
 
-const OPT_OUT_KEY = 'glyphtex.analytics.optOut';
+const OPT_OUT_KEY = "glyphtex.analytics.optOut";
 
 const active = () => providers.filter((p) => p.enabled);
 
@@ -17,7 +17,7 @@ export const analyticsConfigured = (): boolean => active().length > 0;
 export function hasOptedOut(): boolean {
 	if (!browser) return false;
 	try {
-		return localStorage.getItem(OPT_OUT_KEY) === '1';
+		return localStorage.getItem(OPT_OUT_KEY) === "1";
 	} catch {
 		// Blocked site storage means we can't record a choice, so assume the
 		// stricter one rather than tracking someone who may have opted out before.
@@ -27,7 +27,7 @@ export function hasOptedOut(): boolean {
 
 export function setOptedOut(value: boolean): void {
 	try {
-		if (value) localStorage.setItem(OPT_OUT_KEY, '1');
+		if (value) localStorage.setItem(OPT_OUT_KEY, "1");
 		else localStorage.removeItem(OPT_OUT_KEY);
 	} catch {
 		/* nothing to persist to; `hasOptedOut` already fails closed */
@@ -79,9 +79,9 @@ export function track(name: AnalyticsEvent, params: EventParams = {}): void {
 
 /** Coarse buckets, so a document's size can be reported without its contents. */
 export function bucket(n: number): string {
-	if (n <= 1) return '1';
-	if (n <= 5) return '2-5';
-	if (n <= 20) return '6-20';
-	if (n <= 100) return '21-100';
-	return '100+';
+	if (n <= 1) return "1";
+	if (n <= 5) return "2-5";
+	if (n <= 20) return "6-20";
+	if (n <= 100) return "21-100";
+	return "100+";
 }

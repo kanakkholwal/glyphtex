@@ -8,12 +8,12 @@ import {
 	type CompileResult,
 	type PackDefinition,
 	type PackIndex
-} from 'glyphtex-engine';
-import { untar, gunzip } from './tar';
-import { loadManifest, openEngineCache } from './manifest';
-import { fetchPack, installedPacks, loadPackIndex } from './packs';
-import { emptyMount, mountDocument, shadowsBundle } from './mount';
-import type { WorkerRequest, WorkerResponse } from './protocol';
+} from "glyphtex-engine";
+import { untar, gunzip } from "./tar";
+import { loadManifest, openEngineCache } from "./manifest";
+import { fetchPack, installedPacks, loadPackIndex } from "./packs";
+import { emptyMount, mountDocument, shadowsBundle } from "./mount";
+import type { WorkerRequest, WorkerResponse } from "./protocol";
 
 const post = (message: WorkerResponse, transfer: Transferable[] = []) =>
 	self.postMessage(message, transfer);
@@ -48,13 +48,13 @@ async function fetchCached(
 
 	const cached = await cache?.match(key);
 	if (cached) {
-		report(total, total, 'Loading the compiler…');
+		report(total, total, "Loading the compiler…");
 		return new Uint8Array(await cached.arrayBuffer());
 	}
 
 	// Name the file in any failure: "Failed to fetch" alone is untraceable
 	// once there are several assets.
-	const name = url.split('/').pop() ?? url;
+	const name = url.split("/").pop() ?? url;
 	let response: Response;
 	try {
 		response = await fetch(key);
@@ -70,8 +70,8 @@ async function fetchCached(
 
 	// Under `Content-Encoding` the reader yields decoded bytes while both `total`
 	// and Content-Length describe the encoded size; 0 means unknowable, not zero.
-	const encoded = response.headers.get('content-encoding');
-	const declared = Number(response.headers.get('content-length'));
+	const encoded = response.headers.get("content-encoding");
+	const declared = Number(response.headers.get("content-length"));
 	const expected = encoded ? 0 : Number.isFinite(declared) && declared > 0 ? declared : total;
 
 	// Read incrementally so the dialog can show progress on a large download.
@@ -87,7 +87,7 @@ async function fetchCached(
 		if (done) break;
 		chunks.push(value);
 		loaded += value.byteLength;
-		report(loaded, expected, 'Downloading the compiler…');
+		report(loaded, expected, "Downloading the compiler…");
 	}
 
 	const bytes = new Uint8Array(loaded);
@@ -109,7 +109,7 @@ async function evictOldVersions(version: string): Promise<void> {
 	if (!cache) return;
 	for (const request of await cache.keys()) {
 		// Unversioned by design: it tells an offline client which version it has.
-		if (request.url.endsWith('/engine/manifest.json')) continue;
+		if (request.url.endsWith("/engine/manifest.json")) continue;
 		if (!request.url.includes(`v=${version}`)) await cache.delete(request);
 	}
 }
@@ -121,8 +121,8 @@ function boot(report: Report): Promise<TexEngine> {
 	booting ??= (async () => {
 		const manifest = await loadManifest();
 
-		const wasmBytes = manifest.files['tectonic_wasm.wasm'].bytes;
-		const bundleBytes = manifest.files['tectonic-bundle.tar.gz'].bytes;
+		const wasmBytes = manifest.files["tectonic_wasm.wasm"].bytes;
+		const bundleBytes = manifest.files["tectonic-bundle.tar.gz"].bytes;
 		const total = wasmBytes + bundleBytes;
 
 		// One running count across both files, so the bar never resets between
@@ -138,13 +138,13 @@ function boot(report: Report): Promise<TexEngine> {
 			};
 
 		const wasm = await fetchCached(
-			'/engine/tectonic_wasm.wasm',
+			"/engine/tectonic_wasm.wasm",
 			manifest.version,
 			wasmBytes,
 			relay(0)
 		);
 		const archive = await fetchCached(
-			'/engine/tectonic-bundle.tar.gz',
+			"/engine/tectonic-bundle.tar.gz",
 			manifest.version,
 			bundleBytes,
 			relay(read)
@@ -153,10 +153,10 @@ function boot(report: Report): Promise<TexEngine> {
 		// Past this point there is nothing left to measure, so the numbers hold
 		// still and only the label moves.
 		const settled = indeterminate ? 0 : total;
-		report(read, settled, 'Unpacking TeX packages…');
+		report(read, settled, "Unpacking TeX packages…");
 		const files = untar(await gunzip(archive));
 
-		report(read, settled, 'Starting the compiler…');
+		report(read, settled, "Starting the compiler…");
 		const started = await TexEngine.load(wasm);
 		bundleNames = new Set();
 		trackBundle(started, files);
@@ -212,15 +212,15 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 
 	try {
 		switch (request.type) {
-			case 'install': {
+			case "install": {
 				await boot((loaded, total, label) =>
-					post({ id: request.id, type: 'progress', loaded, total, label })
+					post({ id: request.id, type: "progress", loaded, total, label })
 				);
-				post({ id: request.id, type: 'installed' });
+				post({ id: request.id, type: "installed" });
 				break;
 			}
 
-			case 'compile': {
+			case "compile": {
 				let ready = await boot(() => {
 					/* the install flow is where the download is surfaced */
 				});
@@ -251,8 +251,8 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 					result = ready.compile(options);
 				}
 
-				const log = ready.log() ?? '';
-				const pdf = result.status === 'failed' ? undefined : ready.pdf();
+				const log = ready.log() ?? "";
+				const pdf = result.status === "failed" ? undefined : ready.pdf();
 
 				const output = pdf && pdf.byteLength > 0 ? pdf : undefined;
 
@@ -266,7 +266,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 				post(
 					{
 						id: request.id,
-						type: 'compiled',
+						type: "compiled",
 						pdf: output,
 						log,
 						diagnostics: result.diagnostics,
@@ -281,19 +281,19 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 				break;
 			}
 
-			case 'installPacks': {
+			case "installPacks": {
 				// Boot first: the packs have to go into a live engine, and booting
 				// here means "install a pack" works before the first compile.
 				const ready = await boot((loaded, total, label) =>
-					post({ id: request.id, type: 'progress', loaded, total, label })
+					post({ id: request.id, type: "progress", loaded, total, label })
 				);
-				if (!packIndex) throw new Error('No package sets are available in this deployment.');
+				if (!packIndex) throw new Error("No package sets are available in this deployment.");
 
 				for (const id of request.packIds) {
 					const pack = packIndex.packs.find((p: PackDefinition) => p.id === id);
 					post({
 						id: request.id,
-						type: 'progress',
+						type: "progress",
 						loaded: 0,
 						total: 0,
 						label: `Adding ${pack?.label ?? id}…`
@@ -301,7 +301,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 					trackBundle(ready, untar(await gunzip(await fetchPack(packIndex, id))));
 				}
 
-				post({ id: request.id, type: 'packsInstalled' });
+				post({ id: request.id, type: "packsInstalled" });
 				break;
 			}
 		}
@@ -311,7 +311,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 		if (error instanceof EnginePoisonedError) discardEngine();
 		// The message that crosses back is written for a user; the stack only
 		// exists here, so log it before it is lost (AGENTS.md rule #5).
-		console.error('[GlyphTeX] engine worker failed:', error);
-		post({ id: request.id, type: 'error', message: messageOf(error) });
+		console.error("[GlyphTeX] engine worker failed:", error);
+		post({ id: request.id, type: "error", message: messageOf(error) });
 	}
 };

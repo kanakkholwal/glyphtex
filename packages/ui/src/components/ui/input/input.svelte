@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
-	import type { HTMLInputAttributes, HTMLInputTypeAttribute } from 'svelte/elements';
+	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import type { HTMLInputAttributes, HTMLInputTypeAttribute } from "svelte/elements";
 
-	type InputType = Exclude<HTMLInputTypeAttribute, 'file'>;
+	type InputType = Exclude<HTMLInputTypeAttribute, "file">;
 
 	type Props = WithElementRef<
-		Omit<HTMLInputAttributes, 'type'> &
-			({ type: 'file'; files?: FileList } | { type?: InputType; files?: undefined })
+		Omit<HTMLInputAttributes, "type"> &
+			({ type: "file"; files?: FileList } | { type?: InputType; files?: undefined })
 	>;
 
 	let {
@@ -15,7 +15,7 @@
 		type,
 		files = $bindable(),
 		class: className,
-		'data-slot': dataSlot = 'input',
+		"data-slot": dataSlot = "input",
 		...restProps
 	}: Props = $props();
 </script>

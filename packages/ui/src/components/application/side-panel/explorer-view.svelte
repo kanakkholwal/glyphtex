@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { IconChevronRight, IconFolder, IconPlus, IconSearch, IconX } from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { MediaQuery } from 'svelte/reactivity';
-	import { slide } from 'svelte/transition';
+	import { Button } from "@glyphtex/ui/button";
+	import { IconChevronRight, IconFolder, IconPlus, IconSearch, IconX } from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { MediaQuery } from "svelte/reactivity";
+	import { slide } from "svelte/transition";
 
-	import FileTree from '../file-tree.svelte';
-	import type { SidePanelStore } from './store.svelte';
+	import FileTree from "../file-tree.svelte";
+	import type { SidePanelStore } from "./store.svelte";
 
 	let {
 		store,
@@ -35,7 +35,7 @@
 		oncopypath?: (rel: string) => void;
 	} = $props();
 
-	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
+	const reduced = new MediaQuery("prefers-reduced-motion: reduce");
 	const reveal = $derived(reduced.current ? { duration: 0 } : { duration: 200, easing: cubicOut });
 
 	let filterEl = $state<HTMLInputElement>();

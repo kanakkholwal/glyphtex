@@ -1,8 +1,8 @@
-import { applyCase } from '../case-preserve';
-import { toast } from '@glyphtex/ui/sonner';
+import { applyCase } from "../case-preserve";
+import { toast } from "@glyphtex/ui/sonner";
 
-import type { FileStore } from './files.svelte';
-import type { LayoutStore } from './layout.svelte';
+import type { FileStore } from "./files.svelte";
+import type { LayoutStore } from "./layout.svelte";
 import {
 	applyMatches,
 	EMPTY_SCAN,
@@ -13,8 +13,8 @@ import {
 	type Hit,
 	type ScanResult,
 	type SearchSkips
-} from './project-search';
-import type { SearchMatch, SearchOptions } from './types';
+} from "./project-search";
+import type { SearchMatch, SearchOptions } from "./types";
 
 export type SearchDeps = {
 	layout: LayoutStore;
@@ -39,8 +39,8 @@ export class SearchStore {
 	readonly #getSource: () => string;
 
 	searchOpts = $state<SearchOptions>({
-		query: '',
-		replace: '',
+		query: "",
+		replace: "",
 		caseSensitive: false,
 		wholeWord: false,
 		regexp: false
@@ -56,8 +56,8 @@ export class SearchStore {
 	// Deliberately separate from the find bar above: ⌘F is this file, ⇧⌘F is the
 	// project, and they must be able to hold different queries at once.
 	projectOpts = $state<SearchOptions>({
-		query: '',
-		replace: '',
+		query: "",
+		replace: "",
 		caseSensitive: false,
 		wholeWord: false,
 		regexp: false
@@ -213,11 +213,11 @@ export class SearchStore {
 	}
 
 	openFind(): void {
-		if (this.#layout.viewMode === 'preview') this.#layout.viewMode = 'split';
+		if (this.#layout.viewMode === "preview") this.#layout.viewMode = "split";
 		this.showFind = true;
 		// Seed from the current selection so "find this word" is one keystroke.
-		const sel = this.#layout.editor?.selectedText?.() ?? '';
-		if (sel && !sel.includes('\n')) {
+		const sel = this.#layout.editor?.selectedText?.() ?? "";
+		if (sel && !sel.includes("\n")) {
 			this.runSearch({ ...this.searchOpts, query: sel });
 		} else if (this.searchOpts.query) {
 			this.runSearch(this.searchOpts);
@@ -260,7 +260,7 @@ export class SearchStore {
 			try {
 				let pat = this.searchOpts.query;
 				if (this.searchOpts.wholeWord) pat = `\\b(?:${pat})\\b`;
-				const single = new RegExp(pat, this.searchOpts.caseSensitive ? '' : 'i');
+				const single = new RegExp(pat, this.searchOpts.caseSensitive ? "" : "i");
 				insert = matched.replace(single, replace);
 			} catch {
 				/* fall back to literal */
@@ -273,6 +273,6 @@ export class SearchStore {
 	replaceAll(replace: string): void {
 		const n = this.#layout.editor?.replaceAllMatches(this.searchOpts, replace) ?? 0;
 		this.runSearch({ ...this.searchOpts, replace });
-		toast.success(`Replaced ${n} ${n === 1 ? 'match' : 'matches'}`);
+		toast.success(`Replaced ${n} ${n === 1 ? "match" : "matches"}`);
 	}
 }

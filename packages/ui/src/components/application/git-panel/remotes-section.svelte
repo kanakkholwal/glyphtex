@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		IconCheck,
 		IconCloud,
@@ -7,13 +7,13 @@
 		IconPlus,
 		IconTrash,
 		IconX
-	} from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
-	import { slide } from 'svelte/transition';
+	} from "@tabler/icons-svelte";
+	import { cubicOut } from "svelte/easing";
+	import { slide } from "svelte/transition";
 
-	import SectionHeader from './section-header.svelte';
-	import type { GitPanelStore } from './store.svelte';
-	import { INPUT_CLS } from './types';
+	import SectionHeader from "./section-header.svelte";
+	import type { GitPanelStore } from "./store.svelte";
+	import { INPUT_CLS } from "./types";
 
 	/**
 	 * Remotes section: add / edit / switch / remove remotes, an optional access

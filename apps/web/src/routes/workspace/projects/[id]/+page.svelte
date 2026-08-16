@@ -1,37 +1,37 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-	import { Button } from '@glyphtex/ui/button';
-	import { Logo } from '@glyphtex/ui/logo';
+	import { page } from "$app/state";
+	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
+	import { Button } from "@glyphtex/ui/button";
+	import { Logo } from "@glyphtex/ui/logo";
 
-	import type { PackDefinition } from 'glyphtex-engine';
+	import type { PackDefinition } from "glyphtex-engine";
 	import {
 		Workbench,
 		type DownloadRequest,
 		type GlyphFile,
 		type WorkbenchController
-	} from '@glyphtex/ui/application';
-	import { toast } from '@glyphtex/ui/sonner';
-	import { onMount } from 'svelte';
-	import { SvelteMap } from 'svelte/reactivity';
+	} from "@glyphtex/ui/application";
+	import { toast } from "@glyphtex/ui/sonner";
+	import { onMount } from "svelte";
+	import { SvelteMap } from "svelte/reactivity";
 
-	import { bucket, track, type DocumentSource } from '$lib/analytics';
-	import { applyUpdate, watchForUpdate } from '$lib/app-update';
-	import { needsBiber } from '$lib/citations';
-	import { compileFiles, engineReady, installPacks, warmEngine } from '$lib/compile';
-	import EngineInstallDialog from '$lib/EngineInstallDialog.svelte';
-	import MainFileDialog from '$lib/MainFileDialog.svelte';
-	import EngineNotices from '$lib/EngineNotices.svelte';
-	import { onWorkingTreeChanged } from '$lib/git';
-	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from '$lib/storage/bridge';
+	import { bucket, track, type DocumentSource } from "$lib/analytics";
+	import { applyUpdate, watchForUpdate } from "$lib/app-update";
+	import { needsBiber } from "$lib/citations";
+	import { compileFiles, engineReady, installPacks, warmEngine } from "$lib/compile";
+	import EngineInstallDialog from "$lib/EngineInstallDialog.svelte";
+	import MainFileDialog from "$lib/MainFileDialog.svelte";
+	import EngineNotices from "$lib/EngineNotices.svelte";
+	import { onWorkingTreeChanged } from "$lib/git";
+	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from "$lib/storage/bridge";
 	import {
 		filesFromDataTransfer,
 		importFolder,
 		importLooseFiles,
 		importZipFile,
 		type ImportResult
-	} from '$lib/storage/import';
+	} from "$lib/storage/import";
 	import {
 		createProject,
 		getProject,
@@ -40,19 +40,19 @@
 		setEntry,
 		writeFiles,
 		type StoredProject
-	} from '$lib/storage/projects';
-	import { writeZip } from '$lib/storage/zip';
+	} from "$lib/storage/projects";
+	import { writeZip } from "$lib/storage/zip";
 
-	const id = $derived(page.params.id ?? '');
+	const id = $derived(page.params.id ?? "");
 
 	// One explicit status rather than a set of flags with loading as the fallback:
 	// any combination the flags didn't anticipate used to render as "loading" forever.
-	type LoadStatus = 'loading' | 'ready' | 'missing' | 'error';
+	type LoadStatus = "loading" | "ready" | "missing" | "error";
 
 	let project = $state<StoredProject | undefined>(undefined);
 	let initialFiles = $state<GlyphFile[] | undefined>(undefined);
-	let status = $state<LoadStatus>('loading');
-	let loadError = $state('');
+	let status = $state<LoadStatus>("loading");
+	let loadError = $state("");
 	let reloadToken = $state(0);
 	let saving = $state(false);
 
@@ -68,7 +68,7 @@
 	let fileInput = $state<HTMLInputElement>();
 	let zipInput = $state<HTMLInputElement>();
 	let folderInput = $state<HTMLInputElement>();
-	let accept = $state('');
+	let accept = $state("");
 
 	let missingPacks = $state<PackDefinition[]>([]);
 	let unsupportedFiles = $state<string[]>([]);
@@ -76,7 +76,7 @@
 	let installingPacks = $state(false);
 	let packError = $state<string | undefined>(undefined);
 	let updateAvailable = $state(false);
-	let mainFileSource = $state('');
+	let mainFileSource = $state("");
 
 	let lastCompiled = $state<{ files: GlyphFile[]; entry: string } | undefined>(undefined);
 
@@ -88,13 +88,13 @@
 		let stale = false;
 
 		void (async () => {
-			status = 'loading';
-			loadError = '';
+			status = "loading";
+			loadError = "";
 			try {
 				const found = await getProject(wanted);
 				if (stale) return;
 				if (!found) {
-					status = 'missing';
+					status = "missing";
 					return;
 				}
 				const files = await readFiles(wanted);
@@ -103,13 +103,13 @@
 				project = found;
 				initialFiles = toGlyphFiles(files);
 				latest = initialFiles;
-				status = 'ready';
-				track('document_opened', { files: bucket(files.length) });
+				status = "ready";
+				track("document_opened", { files: bucket(files.length) });
 			} catch (error) {
 				if (stale) return;
 				// An Error with an empty message would otherwise read as "no error".
-				loadError = (error instanceof Error && error.message) || 'Could not open this document.';
-				status = 'error';
+				loadError = (error instanceof Error && error.message) || "Could not open this document.";
+				status = "error";
 			}
 		})();
 
@@ -146,7 +146,7 @@
 		} catch (error) {
 			// Storage refused. Reloading anyway would lose the very work the notice
 			// promises to keep, so throw and let the card offer the button again.
-			toast.error('Could not save your work, so the update was not applied');
+			toast.error("Could not save your work, so the update was not applied");
 			throw error;
 		}
 		await applyUpdate();
@@ -165,7 +165,7 @@
 				const found = await getProject(id);
 				if (found) project = found;
 			} catch (error) {
-				toast.error(error instanceof Error ? error.message : 'Could not reload this document.');
+				toast.error(error instanceof Error ? error.message : "Could not reload this document.");
 			}
 		})
 	);
@@ -196,7 +196,7 @@
 				const match = ctrl?.files.files.find((f) => f.name === path);
 				if (match) void ctrl?.files.setMain(match.id);
 			})
-			.catch(() => toast.error('Could not set the main file.'));
+			.catch(() => toast.error("Could not set the main file."));
 	}
 
 	// `setMain` is also reachable from the Explorer, so the store is the source of
@@ -220,8 +220,8 @@
 		try {
 			await writeFiles(project.id, toNewFiles(files, binary));
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not save.');
-			console.error('[GlyphTeX]', error);
+			toast.error(error instanceof Error ? error.message : "Could not save.");
+			console.error("[GlyphTeX]", error);
 		} finally {
 			saving = false;
 		}
@@ -232,13 +232,13 @@
 		try {
 			project = await renameProject(project.id, name);
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not rename.');
+			toast.error(error instanceof Error ? error.message : "Could not rename.");
 		}
 	}
 
 	/** Leave for the documents list, where opening another document belongs. */
 	function openProject(): void {
-		void goto(resolve('/workspace'));
+		void goto(resolve("/workspace"));
 	}
 
 	// "Open folder" / "Import project" make a NEW document rather than replacing the
@@ -250,15 +250,15 @@
 		try {
 			const { files, name, skipped } = await load();
 			if (files.length === 0) {
-				toast.error('Nothing in there could be imported.');
+				toast.error("Nothing in there could be imported.");
 				return;
 			}
 			const created = await createProject(name, files);
-			track('document_created', { source, files: bucket(files.length) });
+			track("document_created", { source, files: bucket(files.length) });
 			if (skipped.length > 0) toast.warning(`Skipped ${skipped.length} files.`);
 			void goto(resolve(`/workspace/projects/${created.id}` as `/workspace/projects/${string}`));
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not import that.');
+			toast.error(error instanceof Error ? error.message : "Could not import that.");
 		}
 	}
 
@@ -285,7 +285,7 @@
 			const { files, skipped } = await importLooseFiles(list);
 			if (files.length === 0) {
 				settlePick([]);
-				toast.error(skipped[0] ? `Skipped ${skipped[0]}` : 'Nothing to add.');
+				toast.error(skipped[0] ? `Skipped ${skipped[0]}` : "Nothing to add.");
 				return;
 			}
 			for (const f of files) if (f.data) binary.set(f.path, f.data);
@@ -296,23 +296,23 @@
 				files.map((f) => ({
 					name: f.path,
 					content: f.data
-						? '% Binary file: edited outside GlyphTeX, included as-is.\n'
-						: (f.text ?? '')
+						? "% Binary file: edited outside GlyphTeX, included as-is.\n"
+						: (f.text ?? "")
 				}))
 			);
 			if (ctrl) await persist(ctrl.files.snapshotFiles());
 			settlePick(files.map((f) => f.path));
-			toast.success(`Added ${files.length} file${files.length === 1 ? '' : 's'}.`);
-			if (skipped.length > 0) toast.warning(`Skipped ${skipped.join(', ')}`);
+			toast.success(`Added ${files.length} file${files.length === 1 ? "" : "s"}.`);
+			if (skipped.length > 0) toast.warning(`Skipped ${skipped.join(", ")}`);
 		} catch (error) {
 			settlePick([]);
-			toast.error(error instanceof Error ? error.message : 'Could not add those files.');
+			toast.error(error instanceof Error ? error.message : "Could not add those files.");
 		}
 	}
 
 	function saveBlob(blob: Blob, filename: string): void {
 		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
+		const link = document.createElement("a");
 		link.href = url;
 		link.download = filename;
 		link.click();
@@ -324,7 +324,7 @@
 		const data = binary.get(path);
 		if (data) return data;
 		const file = files.find((f) => f.name === path);
-		return new TextEncoder().encode(file?.content ?? file?.saved ?? '');
+		return new TextEncoder().encode(file?.content ?? file?.saved ?? "");
 	}
 
 	async function exportZip(): Promise<void> {
@@ -335,12 +335,12 @@
 				files.map((f) => ({ path: f.name, data: bytesOf(f.name, files) }))
 			);
 			saveBlob(
-				new Blob([zip as BlobPart], { type: 'application/zip' }),
-				`${project.name.replace(/[^\w.-]+/g, '-') || 'document'}.zip`
+				new Blob([zip as BlobPart], { type: "application/zip" }),
+				`${project.name.replace(/[^\w.-]+/g, "-") || "document"}.zip`
 			);
-			track('document_exported', { files: bucket(files.length) });
+			track("document_exported", { files: bucket(files.length) });
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not export.');
+			toast.error(error instanceof Error ? error.message : "Could not export.");
 		}
 	}
 
@@ -349,23 +349,23 @@
 	async function download(request: DownloadRequest): Promise<void> {
 		const files = ctrl?.files.snapshotFiles() ?? latest;
 		try {
-			if (request.kind === 'file') {
+			if (request.kind === "file") {
 				const path = request.paths[0];
 				if (!path) return;
 				saveBlob(new Blob([bytesOf(path, files) as BlobPart]), request.name);
 				return;
 			}
-			const root = request.root ?? '';
-			const cut = root.lastIndexOf('/') + 1;
+			const root = request.root ?? "";
+			const cut = root.lastIndexOf("/") + 1;
 			const zip = await writeZip(
 				request.paths.map((path) => ({ path: path.slice(cut), data: bytesOf(path, files) }))
 			);
 			saveBlob(
-				new Blob([zip as BlobPart], { type: 'application/zip' }),
-				`${request.name.replace(/[^\w.-]+/g, '-') || 'folder'}.zip`
+				new Blob([zip as BlobPart], { type: "application/zip" }),
+				`${request.name.replace(/[^\w.-]+/g, "-") || "folder"}.zip`
 			);
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Could not download.');
+			toast.error(error instanceof Error ? error.message : "Could not download.");
 		}
 	}
 
@@ -388,24 +388,24 @@
 
 	function onDragOver(event: DragEvent): void {
 		// Only external file drags; the Explorer handles its own internal moves.
-		if (!event.dataTransfer?.types.includes('Files')) return;
+		if (!event.dataTransfer?.types.includes("Files")) return;
 		event.preventDefault();
 		dragging = true;
 	}
 
 	async function runCompile(files: GlyphFile[], entry: string) {
-		const main = entry || project?.entry || 'main.tex';
+		const main = entry || project?.entry || "main.tex";
 		lastCompiled = { files, entry: main };
 
 		const source = files.find((f) => f.name === main);
-		mainFileSource = source?.saved ?? source?.content ?? '';
+		mainFileSource = source?.saved ?? source?.content ?? "";
 		requiresBiber = needsBiber(mainFileSource);
 
 		const startedAt = performance.now();
 		const outcome = await compileFiles(toCompileFiles(files, binary), main, id);
 		missingPacks = outcome.missingPacks ?? [];
 		unsupportedFiles = outcome.unsupportedFiles ?? [];
-		track('compile_finished', {
+		track("compile_finished", {
 			ok: Boolean(outcome.pdf),
 			duration_ms: Math.round(performance.now() - startedAt),
 			files: bucket(files.length),
@@ -432,7 +432,7 @@
 	function onInstalled(): void {
 		ready = true;
 		showInstall = false;
-		track('engine_installed');
+		track("engine_installed");
 	}
 </script>
 

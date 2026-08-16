@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { afterNavigate } from '$app/navigation';
-	import { settings } from '@glyphtex/ui/settings';
-	import { initAnalytics, trackPageview } from '$lib/analytics';
-	import './layout.css';
+	import { onMount } from "svelte";
+	import { afterNavigate } from "$app/navigation";
+	import { settings } from "@glyphtex/ui/settings";
+	import { initAnalytics, trackPageview } from "$lib/analytics";
+	import "./layout.css";
 
 	let { children } = $props();
 

@@ -1,27 +1,27 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-	import { message } from '@tauri-apps/plugin-dialog';
-	import { ProjectsHome, type Scope } from '@glyphtex/ui/application';
-	import { projects } from '@glyphtex/ui/projects';
-	import { projectHost } from '$lib/project';
-	import { gitProvider } from '$lib/git';
+	import { onMount } from "svelte";
+	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
+	import { message } from "@tauri-apps/plugin-dialog";
+	import { ProjectsHome, type Scope } from "@glyphtex/ui/application";
+	import { projects } from "@glyphtex/ui/projects";
+	import { projectHost } from "$lib/project";
+	import { gitProvider } from "$lib/git";
 
-	let { scope = 'all' }: { scope?: Scope } = $props();
+	let { scope = "all" }: { scope?: Scope } = $props();
 
 	const scopeHrefs: Partial<Record<Scope, string>> = {
-		all: resolve('/'),
-		recent: resolve('/recent'),
-		starred: resolve('/starred'),
-		templates: resolve('/templates')
+		all: resolve("/"),
+		recent: resolve("/recent"),
+		starred: resolve("/starred"),
+		templates: resolve("/templates")
 	};
 
 	const titles: Record<Scope, string> = {
-		all: 'Projects',
-		recent: 'Recent',
-		starred: 'Starred',
-		templates: 'Templates'
+		all: "Projects",
+		recent: "Recent",
+		starred: "Starred",
+		templates: "Templates"
 	};
 
 	// Reflect what's actually on disk: every project folder GlyphTeX manages in its
@@ -46,18 +46,18 @@
 	async function newProject(): Promise<string | undefined> {
 		try {
 			if (projectHost.createLocalProject) {
-				const root = await projectHost.createLocalProject('Untitled project');
+				const root = await projectHost.createLocalProject("Untitled project");
 				return projects.remember(root).id;
 			}
 		} catch (e) {
-			await message(String(e), { title: 'Could not create project', kind: 'error' });
+			await message(String(e), { title: "Could not create project", kind: "error" });
 		}
 		return projects.create().id;
 	}
 
 	/** Open a disk-backed project folder: remember it, then route to the editor. */
 	async function openFolder() {
-		const root = await projectHost.pickFolder('Open project folder');
+		const root = await projectHost.pickFolder("Open project folder");
 		if (!root) return;
 		const p = projects.remember(root);
 		goto(resolve(`/editor/${p.id}`));
@@ -76,16 +76,16 @@
 	/** The repo folder name from a clone URL (last path segment, minus `.git`). */
 	function repoName(url: string): string {
 		const last = url
-			.replace(/\.git$/i, '')
-			.replace(/[/\\]+$/, '')
+			.replace(/\.git$/i, "")
+			.replace(/[/\\]+$/, "")
 			.split(/[/\\]/)
 			.pop();
-		return last?.length ? last : 'repository';
+		return last?.length ? last : "repository";
 	}
 
 	/** Clone a Git repo: pick a parent folder natively, clone into it, then open. */
 	async function cloneRepo(url: string) {
-		const parent = await projectHost.pickFolder('Choose where to clone the repository');
+		const parent = await projectHost.pickFolder("Choose where to clone the repository");
 		if (!parent) return;
 		const dest = `${parent}/${repoName(url)}`;
 		try {
@@ -93,7 +93,7 @@
 			const p = projects.remember(root);
 			goto(resolve(`/editor/${p.id}`));
 		} catch (e) {
-			await message(String(e), { title: 'Clone failed', kind: 'error' });
+			await message(String(e), { title: "Clone failed", kind: "error" });
 		}
 	}
 </script>

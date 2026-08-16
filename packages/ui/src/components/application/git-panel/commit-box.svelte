@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { Textarea } from '@glyphtex/ui/textarea';
-	import { IconArrowDown, IconArrowUp, IconGitCommit, IconRefresh } from '@tabler/icons-svelte';
+	import { Button } from "@glyphtex/ui/button";
+	import { Textarea } from "@glyphtex/ui/textarea";
+	import { IconArrowDown, IconArrowUp, IconGitCommit, IconRefresh } from "@tabler/icons-svelte";
 
-	import type { GitPanelStore } from './store.svelte';
+	import type { GitPanelStore } from "./store.svelte";
 
 	/**
 	 * Commit box + smart primary action. While there are changes (or a merge is

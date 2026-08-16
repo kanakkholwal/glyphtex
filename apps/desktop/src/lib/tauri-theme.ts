@@ -1,5 +1,5 @@
-import { settings } from '@glyphtex/ui/settings';
-import { isTauriRuntime } from '$lib/runtime';
+import { settings } from "@glyphtex/ui/settings";
+import { isTauriRuntime } from "$lib/runtime";
 
 /**
  * Feed the native OS theme from Tauri into the settings store, overriding the
@@ -10,13 +10,13 @@ import { isTauriRuntime } from '$lib/runtime';
 export async function initTauriTheme(): Promise<() => void> {
 	if (!isTauriRuntime()) return () => {};
 
-	const { getCurrentWindow } = await import('@tauri-apps/api/window');
+	const { getCurrentWindow } = await import("@tauri-apps/api/window");
 	const win = getCurrentWindow();
 
 	const current = await win.theme();
-	if (current === 'light' || current === 'dark') settings.setSystemTheme(current);
+	if (current === "light" || current === "dark") settings.setSystemTheme(current);
 
 	return win.onThemeChanged(({ payload }) => {
-		if (payload === 'light' || payload === 'dark') settings.setSystemTheme(payload);
+		if (payload === "light" || payload === "dark") settings.setSystemTheme(payload);
 	});
 }

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { IconLayoutSidebar } from '@tabler/icons-svelte';
-	import type { ComponentProps } from 'svelte';
-	import { Button } from '../button';
-	import { useSidebar } from './context.svelte';
+	import { cn } from "@glyphtex/ui/utils";
+	import { IconLayoutSidebar } from "@tabler/icons-svelte";
+	import type { ComponentProps } from "svelte";
+	import { Button } from "../button";
+	import { useSidebar } from "./context.svelte";
 
 	let {
 		ref = $bindable(null),

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { toast } from '@glyphtex/ui/sonner';
+	import { Button } from "@glyphtex/ui/button";
+	import { toast } from "@glyphtex/ui/sonner";
 	import {
 		IconAlertTriangleFilled,
 		IconBug,
@@ -10,13 +10,13 @@
 		IconClipboardText,
 		IconInfoCircle,
 		IconX
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import { GLYPHTEX_REPO } from '../about-dialog.svelte';
-	import BuildStats from './build-stats.svelte';
-	import type { WorkbenchController } from './controller.svelte';
-	import HistoryView from './history-view.svelte';
-	import type { DockTab } from './types';
+	import { GLYPHTEX_REPO } from "../about-dialog.svelte";
+	import BuildStats from "./build-stats.svelte";
+	import type { WorkbenchController } from "./controller.svelte";
+	import HistoryView from "./history-view.svelte";
+	import type { DockTab } from "./types";
 
 	/**
 	 * The build dock: parsed **Problems**, the raw compile **Log**, build **Stats**,
@@ -33,10 +33,10 @@
 	const { errors, warnings } = $derived(compile.problemSummary);
 
 	const tabs = $derived([
-		{ id: 'problems' as const, label: 'Problems' },
-		{ id: 'logs' as const, label: 'Log' },
-		{ id: 'stats' as const, label: 'Builds' },
-		...(gitReady ? [{ id: 'history' as const, label: 'History' }] : [])
+		{ id: "problems" as const, label: "Problems" },
+		{ id: "logs" as const, label: "Log" },
+		{ id: "stats" as const, label: "Builds" },
+		...(gitReady ? [{ id: "history" as const, label: "History" }] : [])
 	] satisfies { id: DockTab; label: string }[]);
 
 	let copied = $state(false);
@@ -50,17 +50,17 @@
 		try {
 			await navigator.clipboard.writeText(compile.compileLog);
 			copied = true;
-			toast.success('Log copied to clipboard');
+			toast.success("Log copied to clipboard");
 			setTimeout(() => (copied = false), 1500);
 		} catch {
-			toast.error('Could not copy: clipboard blocked');
+			toast.error("Could not copy: clipboard blocked");
 		}
 	}
 
 	function goToProblem(line: number | null | undefined): void {
 		if (line == null) return;
-		layout.docMode = 'latex';
-		if (layout.viewMode === 'preview') layout.viewMode = 'split';
+		layout.docMode = "latex";
+		if (layout.viewMode === "preview") layout.viewMode = "split";
 		layout.editor?.goToLine(line);
 	}
 </script>

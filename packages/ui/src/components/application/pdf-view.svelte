@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount } from "svelte";
 
 	// PDF.js layer styles (canvas/text/annotation positioning + selection). This is
 	// the *component* stylesheet only: NOT the full pdf.js viewer app, so there is
 	// no browser PDF toolbar/chrome. We re-theme the bits we care about below.
-	import 'pdfjs-dist/web/pdf_viewer.css';
+	import "pdfjs-dist/web/pdf_viewer.css";
 
 	import {
 		PdfViewController,
 		type ForwardLoc,
 		type ReverseLoc
-	} from './pdf-view/controller.svelte';
-	import FindBar from './pdf-view/find-bar.svelte';
-	import ThumbnailRail from './pdf-view/thumbnail-rail.svelte';
+	} from "./pdf-view/controller.svelte";
+	import FindBar from "./pdf-view/find-bar.svelte";
+	import ThumbnailRail from "./pdf-view/thumbnail-rail.svelte";
 
 	/**
 	 * PdfView: headless PDF preview built on PDF.js' `PDFViewer` component, the

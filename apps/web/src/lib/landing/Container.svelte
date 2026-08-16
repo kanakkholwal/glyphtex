@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import type { Snippet } from 'svelte';
+	import { cn } from "@glyphtex/ui/utils";
+	import type { Snippet } from "svelte";
 
 	// Width-constrained container with consistent horizontal padding. Single
 	// source of truth for the marketing column widths so the sections line up
@@ -9,16 +9,16 @@
 	type Props = {
 		children: Snippet;
 		class?: string;
-		size?: 'narrow' | 'default' | 'wide' | 'full';
+		size?: "narrow" | "default" | "wide" | "full";
 	};
 
-	let { children, class: className = '', size = 'default' }: Props = $props();
+	let { children, class: className = "", size = "default" }: Props = $props();
 
 	const sizes = {
-		narrow: 'max-w-3xl',
-		default: 'max-w-6xl',
-		wide: 'max-w-7xl',
-		full: 'max-w-none'
+		narrow: "max-w-3xl",
+		default: "max-w-6xl",
+		wide: "max-w-7xl",
+		full: "max-w-none"
 	} as const;
 </script>
 

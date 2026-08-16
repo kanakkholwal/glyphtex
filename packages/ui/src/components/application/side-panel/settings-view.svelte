@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { PanelSection } from '@glyphtex/ui/panel-section';
-	import { Select, SelectContent, SelectItem, SelectTrigger } from '@glyphtex/ui/select';
+	import { Button } from "@glyphtex/ui/button";
+	import { PanelSection } from "@glyphtex/ui/panel-section";
+	import { Select, SelectContent, SelectItem, SelectTrigger } from "@glyphtex/ui/select";
 	import {
 		AUTO_SAVE_DELAYS,
 		AUTO_SAVE_LABELS,
@@ -11,15 +11,15 @@
 		type AutoSaveMode,
 		type EditorFont,
 		type SidebarPosition
-	} from '@glyphtex/ui/settings';
-	import { SettingsField } from '@glyphtex/ui/settings-field';
-	import { SliderControl } from '@glyphtex/ui/slider-control';
-	import { Spinner } from '@glyphtex/ui/spinner';
-	import { Switch } from '@glyphtex/ui/switch';
-	import { IconCheck } from '@tabler/icons-svelte';
+	} from "@glyphtex/ui/settings";
+	import { SettingsField } from "@glyphtex/ui/settings-field";
+	import { SliderControl } from "@glyphtex/ui/slider-control";
+	import { Spinner } from "@glyphtex/ui/spinner";
+	import { Switch } from "@glyphtex/ui/switch";
+	import { IconCheck } from "@tabler/icons-svelte";
 
-	import type { EngineManager } from '../engine-settings.svelte';
-	import EngineSettings from '../engine-settings.svelte';
+	import type { EngineManager } from "../engine-settings.svelte";
+	import EngineSettings from "../engine-settings.svelte";
 
 	/**
 	 * Live preferences for the open document, grouped into titled sections.
@@ -28,24 +28,24 @@
 	let {
 		engine,
 		hasShellIntegration,
-		shellStatus = 'idle',
+		shellStatus = "idle",
 		onaddshell
 	}: {
 		engine?: EngineManager;
 		hasShellIntegration: boolean;
 		/** Progress of the one-shot "Open with GlyphTeX" registration. */
-		shellStatus?: 'idle' | 'busy' | 'done';
+		shellStatus?: "idle" | "busy" | "done";
 		onaddshell?: () => void;
 	} = $props();
 
 	const appearanceOpts: { value: Appearance; label: string }[] = [
-		{ value: 'light', label: 'Light' },
-		{ value: 'dark', label: 'Dark' },
-		{ value: 'system', label: 'System' }
+		{ value: "light", label: "Light" },
+		{ value: "dark", label: "Dark" },
+		{ value: "system", label: "System" }
 	];
 	const sidebarOpts: { value: SidebarPosition; label: string }[] = [
-		{ value: 'left', label: 'Left' },
-		{ value: 'right', label: 'Right' }
+		{ value: "left", label: "Left" },
+		{ value: "right", label: "Right" }
 	];
 	const fontOpts = (Object.keys(EDITOR_FONT_LABELS) as EditorFont[]).map((id) => ({
 		value: id,

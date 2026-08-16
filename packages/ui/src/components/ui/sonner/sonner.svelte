@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { settings } from '@glyphtex/ui/settings';
+	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconAlertOctagon,
 		IconAlertTriangle,
@@ -7,8 +7,8 @@
 		IconInfoCircle,
 		IconLoader2,
 		IconX
-	} from '@tabler/icons-svelte';
-	import { Toaster as Sonner, type ToasterProps as SonnerProps } from 'svelte-sonner';
+	} from "@tabler/icons-svelte";
+	import { Toaster as Sonner, type ToasterProps as SonnerProps } from "svelte-sonner";
 
 	let { ...restProps }: SonnerProps = $props();
 </script>

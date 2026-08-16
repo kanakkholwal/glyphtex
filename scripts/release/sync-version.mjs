@@ -10,19 +10,19 @@
 //
 // Usage (CI):  TAG=v0.1.0 node scripts/release/sync-version.mjs
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const tag = process.env.TAG;
 if (!tag) {
-	console.error('✗ TAG env var is required (e.g. TAG=v0.1.0)');
+	console.error("✗ TAG env var is required (e.g. TAG=v0.1.0)");
 	process.exit(1);
 }
 
-const version = tag.replace(/^v/, '');
+const version = tag.replace(/^v/, "");
 if (!/^\d+\.\d+\.\d+/.test(version)) {
 	console.error(`✗ TAG "${tag}" does not look like a semver tag (vMAJOR.MINOR.PATCH)`);
 	process.exit(1);
@@ -30,9 +30,9 @@ if (!/^\d+\.\d+\.\d+/.test(version)) {
 
 function updateJson(relPath, mutate) {
 	const path = join(repoRoot, relPath);
-	const json = JSON.parse(readFileSync(path, 'utf8'));
+	const json = JSON.parse(readFileSync(path, "utf8"));
 	mutate(json);
-	writeFileSync(path, `${JSON.stringify(json, null, '\t')}\n`);
+	writeFileSync(path, `${JSON.stringify(json, null, "\t")}\n`);
 	console.log(`✓ ${relPath} → ${version}`);
 }
 
@@ -40,7 +40,7 @@ function updateJson(relPath, mutate) {
 // dependency `version =` lines untouched.
 function updateCargoVersion(relPath) {
 	const path = join(repoRoot, relPath);
-	const lines = readFileSync(path, 'utf8').split(/\r?\n/);
+	const lines = readFileSync(path, "utf8").split(/\r?\n/);
 	let inPackage = false;
 	let done = false;
 	for (let i = 0; i < lines.length; i += 1) {
@@ -52,14 +52,14 @@ function updateCargoVersion(relPath) {
 		}
 	}
 	if (!done) throw new Error(`Could not find [package] version in ${relPath}`);
-	writeFileSync(path, lines.join('\n'));
+	writeFileSync(path, lines.join("\n"));
 	console.log(`✓ ${relPath} → ${version}`);
 }
 
-updateJson('apps/desktop/src-tauri/tauri.conf.json', (j) => {
+updateJson("apps/desktop/src-tauri/tauri.conf.json", (j) => {
 	j.version = version;
 });
-updateCargoVersion('apps/desktop/src-tauri/Cargo.toml');
-updateJson('apps/desktop/package.json', (j) => {
+updateCargoVersion("apps/desktop/src-tauri/Cargo.toml");
+updateJson("apps/desktop/package.json", (j) => {
 	j.version = version;
 });

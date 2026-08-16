@@ -2,15 +2,15 @@
 export class ExitStatus extends Error {
 	constructor(readonly code: number) {
 		super(`wasm exited with status ${code}`);
-		this.name = 'ExitStatus';
+		this.name = "ExitStatus";
 	}
 }
 
 /** Thrown by the longjmp import and caught by the `invoke_*` trampolines. */
 class LongjmpError extends Error {
 	constructor() {
-		super('longjmp');
-		this.name = 'LongjmpError';
+		super("longjmp");
+		this.name = "LongjmpError";
 	}
 }
 
@@ -44,7 +44,7 @@ export function createImports(io: EngineIo = {}): {
 	const bytes = () => new Uint8Array(must().memory.buffer);
 
 	function must(): ShimTarget {
-		if (!target) throw new Error('imports used before bind() — instantiate first');
+		if (!target) throw new Error("imports used before bind() — instantiate first");
 		return target;
 	}
 

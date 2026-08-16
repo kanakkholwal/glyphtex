@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		Dialog,
 		DialogContent,
@@ -7,9 +7,9 @@
 		DialogFooter,
 		DialogHeader,
 		DialogTitle
-	} from '@glyphtex/ui/dialog';
+	} from "@glyphtex/ui/dialog";
 
-	import type { FileStore } from './files.svelte';
+	import type { FileStore } from "./files.svelte";
 
 	/**
 	 * Explorer move/delete prompts: name-conflict resolution (replace / keep both

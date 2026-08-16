@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
-	import { settings } from '@glyphtex/ui/settings';
+	import { Button } from "@glyphtex/ui/button";
+	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconArrowBackUp,
 		IconArrowForwardUp,
@@ -13,19 +13,19 @@
 		IconRefresh,
 		IconSearch,
 		IconX
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import { setWorkspaceFiles } from '@glyphtex/ui/editor';
+	import { setWorkspaceFiles } from "@glyphtex/ui/editor";
 
-	import AssetViewer from '../asset-viewer.svelte';
-	import CodeEditor from '../code-editor.svelte';
-	import DiffView from '../diff-view.svelte';
-	import EditorFindBar from '../editor-find-bar.svelte';
-	import FormatToolbar from '../format-toolbar.svelte';
-	import { shortcutLabel } from '../shortcuts';
-	import type { WorkbenchController } from './controller.svelte';
-	import EditorStatus from './editor-status.svelte';
-	import { baseName } from './paths';
+	import AssetViewer from "../asset-viewer.svelte";
+	import CodeEditor from "../code-editor.svelte";
+	import DiffView from "../diff-view.svelte";
+	import EditorFindBar from "../editor-find-bar.svelte";
+	import FormatToolbar from "../format-toolbar.svelte";
+	import { shortcutLabel } from "../shortcuts";
+	import type { WorkbenchController } from "./controller.svelte";
+	import EditorStatus from "./editor-status.svelte";
+	import { baseName } from "./paths";
 
 	/** The main editor column: a read-only diff, the code editor, or the asset viewer,
 	 *  depending on what is active. Open files live in the workbench toolbar above. */

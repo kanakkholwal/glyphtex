@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		Dialog,
 		DialogContent,
 		DialogDescription,
 		DialogHeader,
 		DialogTitle
-	} from '@glyphtex/ui/dialog';
-	import { IconFileText } from '@tabler/icons-svelte';
+	} from "@glyphtex/ui/dialog";
+	import { IconFileText } from "@tabler/icons-svelte";
 
 	let {
 		open = $bindable(false),
@@ -22,11 +22,11 @@
 		onchoose?: (path: string) => void;
 	} = $props();
 
-	let selected = $state('');
+	let selected = $state("");
 
 	// Re-seed whenever the dialog opens so a reopen does not keep a stale pick.
 	$effect(() => {
-		if (open) selected = current && candidates.includes(current) ? current : (candidates[0] ?? '');
+		if (open) selected = current && candidates.includes(current) ? current : (candidates[0] ?? "");
 	});
 
 	function confirm() {

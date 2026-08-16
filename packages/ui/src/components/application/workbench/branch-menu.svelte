@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@glyphtex/ui/button';
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
@@ -8,16 +8,16 @@
 		DropdownMenuItem,
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
-	} from '@glyphtex/ui/dropdown-menu';
+	} from "@glyphtex/ui/dropdown-menu";
 	import {
 		IconArrowDown,
 		IconArrowUp,
 		IconChevronDown,
 		IconGitBranch,
 		IconGitMerge
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
-	import type { GitHeadInfo } from '../git-panel.svelte';
+	import type { GitHeadInfo } from "../git-panel.svelte";
 
 	/** Branch state in the title bar. Read-only: it reports where HEAD is and hands
 	 *  off to Source Control, which owns staging and remotes. */

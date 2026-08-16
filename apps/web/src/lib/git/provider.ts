@@ -4,10 +4,10 @@ import type {
 	GitHeadInfo,
 	GitProvider,
 	GitRemote
-} from '@glyphtex/ui/application';
+} from "@glyphtex/ui/application";
 
-import { track } from '$lib/analytics';
-import { unifiedDiff } from './diff';
+import { track } from "$lib/analytics";
+import { unifiedDiff } from "./diff";
 import {
 	exists,
 	gitFs,
@@ -18,13 +18,13 @@ import {
 	rootFor,
 	unlinkIfPresent,
 	type PromiseFs
-} from './fs';
-import { asText, fromWorkingTree, toWorkingTree } from './mirror';
-import { getCorsProxy, getIdentity, hasIdentity, setCorsProxy, setIdentity } from './settings';
-import { changesFrom, type StatusRow } from './status';
+} from "./fs";
+import { asText, fromWorkingTree, toWorkingTree } from "./mirror";
+import { getCorsProxy, getIdentity, hasIdentity, setCorsProxy, setIdentity } from "./settings";
+import { changesFrom, type StatusRow } from "./status";
 
-type Iso = typeof import('isomorphic-git');
-type Http = typeof import('isomorphic-git/http/web').default;
+type Iso = typeof import("isomorphic-git");
+type Http = typeof import("isomorphic-git/http/web").default;
 
 let iso: Promise<{ git: Iso; http: Http }> | null = null;
 
@@ -33,13 +33,13 @@ let iso: Promise<{ git: Iso; http: Http }> | null = null;
 async function polyfillBuffer(): Promise<void> {
 	const g = globalThis as { Buffer?: unknown };
 	if (g.Buffer) return;
-	g.Buffer = (await import('buffer')).Buffer;
+	g.Buffer = (await import("buffer")).Buffer;
 }
 
 /** isomorphic-git is browser-only here; keep it out of the SSR bundle. */
 function load(): Promise<{ git: Iso; http: Http }> {
 	iso ??= polyfillBuffer()
-		.then(() => Promise.all([import('isomorphic-git'), import('isomorphic-git/http/web')]))
+		.then(() => Promise.all([import("isomorphic-git"), import("isomorphic-git/http/web")]))
 		.then(([g, h]) => ({ git: (g.default ?? g) as Iso, http: h.default }));
 	return iso;
 }
@@ -63,17 +63,17 @@ const fsClient = async () => await gitFs();
 // --- Merge state ------------------------------------------------------------
 // `statusMatrix` can't report unmerged index entries, so a conflicted merge records
 // its filepaths here and `status` re-reports them until the commit clears the file.
-const CONFLICTS = 'GLYPHTEX_MERGE_CONFLICTS';
+const CONFLICTS = "GLYPHTEX_MERGE_CONFLICTS";
 
 async function readConflicts(fs: PromiseFs, dir: string): Promise<string[]> {
 	const raw = await readBytes(fs, `${dir}/.git/${CONFLICTS}`);
 	if (!raw) return [];
-	return (asText(raw) ?? '').split('\n').filter(Boolean);
+	return (asText(raw) ?? "").split("\n").filter(Boolean);
 }
 
 async function writeConflicts(fs: PromiseFs, dir: string, paths: string[]): Promise<void> {
 	if (paths.length === 0) return void (await unlinkIfPresent(fs, `${dir}/.git/${CONFLICTS}`));
-	await fs.writeFile(`${dir}/.git/${CONFLICTS}`, new TextEncoder().encode(paths.join('\n')));
+	await fs.writeFile(`${dir}/.git/${CONFLICTS}`, new TextEncoder().encode(paths.join("\n")));
 }
 
 // --- Auth -------------------------------------------------------------------
@@ -88,11 +88,11 @@ function splitAuth(url?: string): {
 		const u = new URL(url);
 		if (!u.username && !u.password) return { url };
 		const auth = {
-			username: decodeURIComponent(u.username) || 'x-access-token',
+			username: decodeURIComponent(u.username) || "x-access-token",
 			password: decodeURIComponent(u.password)
 		};
-		u.username = '';
-		u.password = '';
+		u.username = "";
+		u.password = "";
 		return { url: u.toString(), auth };
 	} catch {
 		return { url };
@@ -121,7 +121,7 @@ function author() {
 // --- Object reads -----------------------------------------------------------
 async function headBytes(r: Repo, path: string): Promise<Uint8Array | null> {
 	try {
-		const oid = await r.git.resolveRef({ fs: await fsClient(), dir: r.dir, ref: 'HEAD' });
+		const oid = await r.git.resolveRef({ fs: await fsClient(), dir: r.dir, ref: "HEAD" });
 		const { blob } = await r.git.readBlob({
 			fs: await fsClient(),
 			dir: r.dir,
@@ -141,7 +141,7 @@ async function stageBytes(r: Repo, path: string): Promise<Uint8Array | null> {
 		dir: r.dir,
 		trees: [r.git.STAGE()],
 		map: async (filepath, entries) => {
-			if (filepath === '.') return undefined;
+			if (filepath === ".") return undefined;
 			const entry = entries[0];
 			if (filepath === path) return entry ? await entry.oid() : undefined;
 			// Keep descending through the target's ancestors; prune every other subtree.
@@ -154,7 +154,7 @@ async function stageBytes(r: Repo, path: string): Promise<Uint8Array | null> {
 	return blob;
 }
 
-const text = (bytes: Uint8Array | null): string => (bytes ? (asText(bytes) ?? '') : '');
+const text = (bytes: Uint8Array | null): string => (bytes ? (asText(bytes) ?? "") : "");
 const looksBinary = (bytes: Uint8Array | null): boolean => Boolean(bytes && asText(bytes) === null);
 
 // --- Provider ---------------------------------------------------------------
@@ -170,9 +170,9 @@ export const gitProvider: GitProvider = {
 	async init(root) {
 		const r = await repo(root);
 		await mkdirp(r.fs, r.dir);
-		await r.git.init({ fs: await fsClient(), dir: r.dir, defaultBranch: 'main' });
+		await r.git.init({ fs: await fsClient(), dir: r.dir, defaultBranch: "main" });
 		await toWorkingTree(r.projectId);
-		track('git_action', { action: 'init' });
+		track("git_action", { action: "init" });
 	},
 
 	async head(root) {
@@ -182,7 +182,7 @@ export const gitProvider: GitProvider = {
 
 		let unborn = false;
 		try {
-			await r.git.resolveRef({ fs, dir: r.dir, ref: 'HEAD' });
+			await r.git.resolveRef({ fs, dir: r.dir, ref: "HEAD" });
 		} catch {
 			unborn = true;
 		}
@@ -195,7 +195,7 @@ export const gitProvider: GitProvider = {
 		if (!branch || unborn) return info;
 
 		const remote =
-			(await r.git.getConfig({ fs, dir: r.dir, path: `branch.${branch}.remote` })) || 'origin';
+			(await r.git.getConfig({ fs, dir: r.dir, path: `branch.${branch}.remote` })) || "origin";
 		const trackingRef = `refs/remotes/${remote}/${branch}`;
 		let trackingOid: string | undefined;
 		try {
@@ -225,7 +225,7 @@ export const gitProvider: GitProvider = {
 		const out: GitChange[] = [];
 		for (const row of matrix) {
 			if (conflicts.has(row[0])) {
-				out.push({ path: row[0], status: 'conflicted', staged: false });
+				out.push({ path: row[0], status: "conflicted", staged: false });
 				continue;
 			}
 			out.push(...changesFrom(row));
@@ -292,8 +292,8 @@ export const gitProvider: GitProvider = {
 		const { original, modified, binary } = await versions(r, path, staged);
 		return unifiedDiff(path, original, modified, {
 			binary,
-			added: original === '' && !binary,
-			deleted: modified === '' && !binary
+			added: original === "" && !binary,
+			deleted: modified === "" && !binary
 		});
 	},
 
@@ -312,7 +312,7 @@ export const gitProvider: GitProvider = {
 			author: author()
 		});
 		await writeConflicts(r.fs, r.dir, []);
-		track('git_action', { action: 'commit' });
+		track("git_action", { action: "commit" });
 		return oid.slice(0, 7);
 	},
 
@@ -323,7 +323,7 @@ export const gitProvider: GitProvider = {
 			return commits.map(
 				(c): GitCommitEntry => ({
 					hash: c.oid.slice(0, 7),
-					summary: c.commit.message.split('\n')[0],
+					summary: c.commit.message.split("\n")[0],
 					author: c.commit.author.name,
 					time: c.commit.author.timestamp
 				})
@@ -396,7 +396,7 @@ export const gitProvider: GitProvider = {
 	async pull(root, url) {
 		const r = await repo(root);
 		const result = await pullInto(r, url);
-		track('git_action', { action: 'pull', conflicts: result.conflicts });
+		track("git_action", { action: "pull", conflicts: result.conflicts });
 		if (result.conflicts) throw new Error(result.message);
 		return result.message;
 	},
@@ -413,24 +413,24 @@ export const gitProvider: GitProvider = {
 		});
 		// Push reports per-ref failures in the result rather than throwing, and the
 		// panel's error dialog only sees thrown errors.
-		if (!result.ok) throw new Error(result.error || 'The remote rejected this push.');
+		if (!result.ok) throw new Error(result.error || "The remote rejected this push.");
 		const rejected = Object.entries(result.refs ?? {}).find(([, s]) => !s.ok);
 		if (rejected) throw new Error(rejected[1].error || `The remote rejected ${rejected[0]}.`);
-		track('git_action', { action: 'push' });
-		return 'Pushed.';
+		track("git_action", { action: "push" });
+		return "Pushed.";
 	},
 
 	settings: {
 		async get() {
 			const { name, email } = getIdentity();
-			return { name, email, chosen: hasIdentity(), corsProxy: getCorsProxy() ?? '' };
+			return { name, email, chosen: hasIdentity(), corsProxy: getCorsProxy() ?? "" };
 		},
 		async save(next) {
 			setIdentity({ name: next.name, email: next.email });
 			if (next.corsProxy !== undefined && next.corsProxy !== null) {
 				// Blank means "no relay", which must survive as a choice rather than
 				// falling back to the default proxy on the next read.
-				setCorsProxy(next.corsProxy || 'none');
+				setCorsProxy(next.corsProxy || "none");
 			}
 		}
 	},
@@ -467,7 +467,7 @@ async function versions(
 async function pullInto(r: Repo, url?: string): Promise<{ conflicts: boolean; message: string }> {
 	const fs = await fsClient();
 	const branch = await r.git.currentBranch({ fs, dir: r.dir, fullname: false });
-	if (!branch) throw new Error('No branch is checked out, so there is nothing to pull into.');
+	if (!branch) throw new Error("No branch is checked out, so there is nothing to pull into.");
 
 	await r.git.fetch({
 		fs,
@@ -479,7 +479,7 @@ async function pullInto(r: Repo, url?: string): Promise<{ conflicts: boolean; me
 	});
 
 	const remote =
-		(await r.git.getConfig({ fs, dir: r.dir, path: `branch.${branch}.remote` })) || 'origin';
+		(await r.git.getConfig({ fs, dir: r.dir, path: `branch.${branch}.remote` })) || "origin";
 	const theirs = `refs/remotes/${remote}/${branch}`;
 
 	try {
@@ -492,7 +492,7 @@ async function pullInto(r: Repo, url?: string): Promise<{ conflicts: boolean; me
 			author: author(),
 			message: `Merge branch '${branch}' of ${remote}`
 		});
-		if (merged.alreadyMerged) return { conflicts: false, message: 'Already up to date.' };
+		if (merged.alreadyMerged) return { conflicts: false, message: "Already up to date." };
 
 		await r.git.checkout({ fs, dir: r.dir, ref: branch, force: true, noUpdateHead: true });
 		await writeConflicts(r.fs, r.dir, []);
@@ -500,7 +500,7 @@ async function pullInto(r: Repo, url?: string): Promise<{ conflicts: boolean; me
 		notifyTreeChanged(r.projectId);
 		return {
 			conflicts: false,
-			message: merged.fastForward ? 'Fast-forwarded to the remote.' : 'Merged the remote changes.'
+			message: merged.fastForward ? "Fast-forwarded to the remote." : "Merged the remote changes."
 		};
 	} catch (e) {
 		const conflicted = conflictPaths(e);
@@ -510,14 +510,14 @@ async function pullInto(r: Repo, url?: string): Promise<{ conflicts: boolean; me
 		notifyTreeChanged(r.projectId);
 		return {
 			conflicts: true,
-			message: `${conflicted.length} file${conflicted.length === 1 ? '' : 's'} conflict with the remote. Fix the marked sections, then stage and commit them: ${conflicted.join(', ')}`
+			message: `${conflicted.length} file${conflicted.length === 1 ? "" : "s"} conflict with the remote. Fix the marked sections, then stage and commit them: ${conflicted.join(", ")}`
 		};
 	}
 }
 
 function conflictPaths(e: unknown): string[] | null {
 	const err = e as { code?: string; data?: { filepaths?: string[] } } | null;
-	if (err?.code !== 'MergeConflictError') return null;
+	if (err?.code !== "MergeConflictError") return null;
 	return err.data?.filepaths ?? [];
 }
 

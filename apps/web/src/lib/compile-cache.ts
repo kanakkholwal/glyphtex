@@ -1,4 +1,4 @@
-import type { CompileFile } from './tex/protocol';
+import type { CompileFile } from "./tex/protocol";
 
 // FNV-1a, 32-bit. A cheap content fingerprint: hashing an image's bytes on every
 // keystroke would cost more than it saves, but this loop is a few ms on a few MB
@@ -24,7 +24,7 @@ export function signature(files: readonly CompileFile[], entry: string): string 
 	let h = fnv1a(0x811c9dc5, encoder.encode(entry));
 	for (const f of [...files].sort((a, b) => a.name.localeCompare(b.name))) {
 		h = fnv1a(h, encoder.encode(`\0${f.name}\0`));
-		h = fnv1a(h, f.data ?? encoder.encode(f.text ?? ''));
+		h = fnv1a(h, f.data ?? encoder.encode(f.text ?? ""));
 	}
 	return `${files.length}:${h.toString(16)}`;
 }

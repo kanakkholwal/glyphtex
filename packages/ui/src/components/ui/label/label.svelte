@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { Label as LabelPrimitive } from 'bits-ui';
+	import { cn } from "@glyphtex/ui/utils";
+	import { Label as LabelPrimitive } from "bits-ui";
 
 	let {
 		ref = $bindable(null),

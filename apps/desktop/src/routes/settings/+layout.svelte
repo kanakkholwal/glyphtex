@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-	import { page } from '$app/state';
-	import { Button } from '@glyphtex/ui/button';
-	import { Logo } from '@glyphtex/ui/logo';
-	import { Toaster } from '@glyphtex/ui/sonner';
+	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
+	import { page } from "$app/state";
+	import { Button } from "@glyphtex/ui/button";
+	import { Logo } from "@glyphtex/ui/logo";
+	import { Toaster } from "@glyphtex/ui/sonner";
 	import {
 		IconArrowLeft,
 		IconBolt,
@@ -12,17 +12,17 @@
 		IconPencil,
 		IconPlug,
 		IconSettings
-	} from '@tabler/icons-svelte';
+	} from "@tabler/icons-svelte";
 
 	let { children } = $props();
 
 	// Section tabs. Cloud / sync integration will slot in here later.
 	const nav = [
-		{ href: '/settings/general', label: 'General', icon: IconSettings },
-		{ href: '/settings/editor', label: 'Editor', icon: IconPencil },
-		{ href: '/settings/engine', label: 'Engine', icon: IconBolt },
-		{ href: '/settings/integrations', label: 'Integrations', icon: IconPlug },
-		{ href: '/settings/about', label: 'About', icon: IconInfoCircle }
+		{ href: "/settings/general", label: "General", icon: IconSettings },
+		{ href: "/settings/editor", label: "Editor", icon: IconPencil },
+		{ href: "/settings/engine", label: "Engine", icon: IconBolt },
+		{ href: "/settings/integrations", label: "Integrations", icon: IconPlug },
+		{ href: "/settings/about", label: "About", icon: IconInfoCircle }
 	] as const;
 	const isActive = (href: string) => page.url.pathname === href;
 
@@ -54,7 +54,7 @@
 	});
 
 	$effect(() => {
-		if (!tabsEl || typeof ResizeObserver === 'undefined') return;
+		if (!tabsEl || typeof ResizeObserver === "undefined") return;
 		const ro = new ResizeObserver(() => measure());
 		ro.observe(tabsEl);
 		return () => ro.disconnect();

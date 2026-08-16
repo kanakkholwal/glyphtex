@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { IconSearch } from '@tabler/icons-svelte';
-	import { Command as CommandPrimitive } from 'bits-ui';
-	import * as InputGroup from '../input-group';
+	import { cn } from "@glyphtex/ui/utils";
+	import { IconSearch } from "@tabler/icons-svelte";
+	import { Command as CommandPrimitive } from "bits-ui";
+	import * as InputGroup from "../input-group";
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		wrapperClass,
-		value = $bindable(''),
+		value = $bindable(""),
 		...restProps
 	}: CommandPrimitive.InputProps & {
 		wrapperClass?: string;

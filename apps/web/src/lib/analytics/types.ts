@@ -17,25 +17,25 @@ export type AnalyticsProvider = {
  */
 export type AnalyticsEvent =
 	// Marketing site
-	| 'cta_workspace_click'
-	| 'cta_engine_click'
-	| 'cta_institution_click'
-	| 'download_click'
-	| 'engine_cta_workspace'
-	| 'engine_cta_workspace_footer'
+	| "cta_workspace_click"
+	| "cta_engine_click"
+	| "cta_institution_click"
+	| "download_click"
+	| "engine_cta_workspace"
+	| "engine_cta_workspace_footer"
 	// Workspace lifecycle
-	| 'document_created'
-	| 'document_opened'
-	| 'document_deleted'
-	| 'document_duplicated'
-	| 'document_renamed'
-	| 'document_starred'
-	| 'document_exported'
+	| "document_created"
+	| "document_opened"
+	| "document_deleted"
+	| "document_duplicated"
+	| "document_renamed"
+	| "document_starred"
+	| "document_exported"
 	// Engine
-	| 'engine_installed'
-	| 'compile_finished'
+	| "engine_installed"
+	| "compile_finished"
 	// Source control
-	| 'git_action';
+	| "git_action";
 
 /**
  * Event parameters. Values are counts, durations, and fixed enums only: never a
@@ -44,4 +44,4 @@ export type AnalyticsEvent =
 export type EventParams = Record<string, string | number | boolean | undefined>;
 
 /** Where a new document came from. */
-export type DocumentSource = 'blank' | 'template' | 'import_zip' | 'import_folder' | 'git_clone';
+export type DocumentSource = "blank" | "template" | "import_zip" | "import_folder" | "git_clone";

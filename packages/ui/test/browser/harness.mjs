@@ -1,19 +1,19 @@
 // Shared CDP plumbing for the browser suites. Requires a dev server and a
 // Chrome started with --remote-debugging-port; see README.md.
-export const CDP = process.env.CDP || 'http://127.0.0.1:9333';
-export const PAGE = process.env.PAGE || 'http://localhost:5173/workspace';
+export const CDP = process.env.CDP || "http://127.0.0.1:9333";
+export const PAGE = process.env.PAGE || "http://localhost:5173/workspace";
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function connect() {
 	const list = await (await fetch(`${CDP}/json/list`)).json();
-	const page = list.find((t) => t.type === 'page' && t.webSocketDebuggerUrl);
-	if (!page) throw new Error('no CDP page target');
+	const page = list.find((t) => t.type === "page" && t.webSocketDebuggerUrl);
+	if (!page) throw new Error("no CDP page target");
 	const ws = new WebSocket(page.webSocketDebuggerUrl);
-	await new Promise((r) => ws.addEventListener('open', r, { once: true }));
+	await new Promise((r) => ws.addEventListener("open", r, { once: true }));
 
 	let id = 0;
 	const pending = new Map();
-	ws.addEventListener('message', (e) => {
+	ws.addEventListener("message", (e) => {
 		const m = JSON.parse(e.data);
 		if (m.id && pending.has(m.id)) {
 			pending.get(m.id)(m);
@@ -27,7 +27,7 @@ export async function connect() {
 			ws.send(JSON.stringify({ id: n, method, params }));
 		});
 	const ev = async (expression) => {
-		const r = await send('Runtime.evaluate', {
+		const r = await send("Runtime.evaluate", {
 			expression,
 			returnByValue: true,
 			awaitPromise: true
@@ -38,9 +38,9 @@ export async function connect() {
 	};
 
 	const results = [];
-	const check = (name, pass, detail = '') => {
+	const check = (name, pass, detail = "") => {
 		results.push({ name, pass });
-		console.log(`${pass ? 'PASS' : 'FAIL'}  ${name}${detail ? `  · ${detail}` : ''}`);
+		console.log(`${pass ? "PASS" : "FAIL"}  ${name}${detail ? `  · ${detail}` : ""}`);
 	};
 
 	// The engine-install dialog's overlay covers the whole viewport and silently
@@ -54,8 +54,8 @@ export async function connect() {
 	})()`);
 
 	const clickAt = async (x, y) => {
-		for (const type of ['mousePressed', 'mouseReleased'])
-			await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 });
+		for (const type of ["mousePressed", "mouseReleased"])
+			await send("Input.dispatchMouseEvent", { type, x, y, button: "left", clickCount: 1 });
 		await sleep(350);
 	};
 	const clickSel = async (sel) => {
@@ -67,23 +67,23 @@ export async function connect() {
 		return true;
 	};
 	const key = async (k, code, vk, modifiers = 0, text) => {
-		await send('Input.dispatchKeyEvent', {
-			type: 'keyDown',
+		await send("Input.dispatchKeyEvent", {
+			type: "keyDown",
 			key: k,
 			code,
 			windowsVirtualKeyCode: vk,
 			modifiers
 		});
 		if (text)
-			await send('Input.dispatchKeyEvent', {
-				type: 'char',
+			await send("Input.dispatchKeyEvent", {
+				type: "char",
 				text,
 				unmodifiedText: text,
 				key: k,
 				modifiers
 			});
-		await send('Input.dispatchKeyEvent', {
-			type: 'keyUp',
+		await send("Input.dispatchKeyEvent", {
+			type: "keyUp",
 			key: k,
 			code,
 			windowsVirtualKeyCode: vk,
@@ -146,9 +146,9 @@ export async function connect() {
 	/** Open or create a project and land in the LaTeX view. The doc mode is
 	 *  persisted, so a previous run can leave the page in Visual with no editor. */
 	const openProject = async () => {
-		await send('Runtime.enable');
-		await send('Page.enable');
-		await send('Emulation.setDeviceMetricsOverride', {
+		await send("Runtime.enable");
+		await send("Page.enable");
+		await send("Emulation.setDeviceMetricsOverride", {
 			width: 1400,
 			height: 900,
 			deviceScaleFactor: 1,
@@ -156,25 +156,25 @@ export async function connect() {
 		});
 		// A window behind another one reports itself hidden, and the app's own
 		// focus handling then behaves differently from a real session.
-		await send('Page.bringToFront');
-		await send('Emulation.setFocusEmulationEnabled', { enabled: true });
+		await send("Page.bringToFront");
+		await send("Emulation.setFocusEmulationEnabled", { enabled: true });
 		// Start from an empty origin every time. Sharing one browser between the
 		// suites otherwise means each one opens whatever document the last one left
 		// behind, and assertions fail for reasons that have nothing to do with the
 		// code under test.
-		await send('Storage.clearDataForOrigin', {
+		await send("Storage.clearDataForOrigin", {
 			origin: new URL(PAGE).origin,
-			storageTypes: 'all'
+			storageTypes: "all"
 		});
-		await send('Page.navigate', { url: PAGE });
+		await send("Page.navigate", { url: PAGE });
 		await sleep(1500);
 		// `clearDataForOrigin` leaves sessionStorage alone, and the doc mode lives
 		// there. Without this a run inherits whichever mode the last one left, and
 		// the LaTeX view is simply not on the page.
-		await ev('sessionStorage.clear()');
+		await ev("sessionStorage.clear()");
 
-		let route = '';
-		for (let attempt = 0; attempt < 6 && !route.includes('/projects/'); attempt++) {
+		let route = "";
+		for (let attempt = 0; attempt < 6 && !route.includes("/projects/"); attempt++) {
 			await sleep(5000);
 			await ev(`(() => { const l = document.querySelector('a[href*="/workspace/projects/"]'); if (l) { l.click(); return 1; }
 			  [...document.querySelectorAll('button')].find(x => (x.getAttribute('aria-label')||x.textContent||'').trim()==='New project')?.click(); return 2; })()`);
@@ -187,7 +187,7 @@ export async function connect() {
 				)
 					break;
 			}
-			route = (await ev(`location.pathname`)) || '';
+			route = (await ev(`location.pathname`)) || "";
 		}
 		await sleep(1200);
 		await clearModals();

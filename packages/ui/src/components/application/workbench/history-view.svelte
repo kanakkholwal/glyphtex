@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { IconGitCommit } from '@tabler/icons-svelte';
+	import { IconGitCommit } from "@tabler/icons-svelte";
 
-	import type { GitCommitEntry, GitProvider } from '../git-panel.svelte';
-	import { relativeTime } from './notes.svelte';
+	import type { GitCommitEntry, GitProvider } from "../git-panel.svelte";
+	import { relativeTime } from "./notes.svelte";
 
 	/** Recent commits, for the dock. Source Control (in the rail) owns staging and
 	 *  remotes; this is the read-only "what happened lately" view. */

@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { IconChevronRight, IconList } from '@tabler/icons-svelte';
-	import { MediaQuery } from 'svelte/reactivity';
+	import { IconChevronRight, IconList } from "@tabler/icons-svelte";
+	import { MediaQuery } from "svelte/reactivity";
 
-	import type { OutlineRow } from '../outline';
-	import type { SidePanelStore } from './store.svelte';
+	import type { OutlineRow } from "../outline";
+	import type { SidePanelStore } from "./store.svelte";
 
 	let { store, ongotoline }: { store: SidePanelStore; ongotoline?: (line: number) => void } =
 		$props();
 
-	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
+	const reduced = new MediaQuery("prefers-reduced-motion: reduce");
 	let listEl = $state<HTMLElement>();
 
 	// One indent step. The disclosure marker is centred in the 16px slot that
@@ -21,18 +21,18 @@
 	// re-centring on every keystroke would make the panel twitch as you type.
 	$effect(() => {
 		const row = listEl?.children[store.outlineActiveRow] as HTMLElement | undefined;
-		const box = listEl?.closest<HTMLElement>('[data-panel-scroll]');
+		const box = listEl?.closest<HTMLElement>("[data-panel-scroll]");
 		if (!row || !box) return;
 		const offset = row.offsetTop - box.scrollTop - box.clientHeight / 2 + row.clientHeight / 2;
 		if (Math.abs(offset) > 40)
-			box.scrollBy({ top: offset, behavior: reduced.current ? 'auto' : 'smooth' });
+			box.scrollBy({ top: offset, behavior: reduced.current ? "auto" : "smooth" });
 	});
 
 	// Left/right fold the subtree, so the disclosure buttons can stay out of the
 	// tab order: a 60-section thesis would otherwise cost 60 extra tab stops.
 	function onRowKey(event: KeyboardEvent, row: OutlineRow) {
 		if (!row.hasChildren) return;
-		const wants = event.key === 'ArrowRight' ? true : event.key === 'ArrowLeft' ? false : null;
+		const wants = event.key === "ArrowRight" ? true : event.key === "ArrowLeft" ? false : null;
 		if (wants === null || wants !== row.collapsed) return;
 		event.preventDefault();
 		store.toggleOutlineNode(row.key);

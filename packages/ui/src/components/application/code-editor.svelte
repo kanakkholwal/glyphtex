@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	// Public find/replace types kept importable from this component.
-	export type { SearchOptions, SearchMatch } from './code-editor/types';
+	export type { SearchOptions, SearchMatch } from "./code-editor/types";
 </script>
 
 <script lang="ts">
