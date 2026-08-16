@@ -2,7 +2,6 @@
 	import { resolve } from '$app/paths';
 	import { Button } from '@glyphtex/ui/button';
 	import { Logo } from '@glyphtex/ui/logo';
-	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
 	import { navLinks, REPO_URL } from '$lib/landing/nav-data';
 	import { IconBrandGithub, IconMenu2, IconX } from '@tabler/icons-svelte';
 

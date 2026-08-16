@@ -38,6 +38,7 @@
 		"verify": "pnpm check && pnpm lint && pnpm engine:check"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^2.5.8",
 		"turbo": "^2"
 	}
 }
