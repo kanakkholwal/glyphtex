@@ -46,8 +46,12 @@ export type Inline =
 	/** `command` is the macro it came from, so `\textsc` is not reprinted as
 	 *  `\emph` when the block is written back. */
 	| { kind: 'mark'; mark: MarkKind; command: string; content: Inline[] }
-	| { kind: 'math'; source: string }
-	| { kind: 'cite'; command: string; keys: string[] }
+	/** `paren` is `\( … \)` rather than `$ … $`; both are inline maths, and an
+	 *  author who picked one does not want the other written back. */
+	| { kind: 'math'; source: string; paren?: boolean }
+	/** `raw` is the argument exactly as written, so `\cite{a,b}` does not come back
+	 *  with a space the author did not type. */
+	| { kind: 'cite'; command: string; keys: string[]; raw?: string }
 	| { kind: 'ref'; command: string; target: string }
 	| { kind: 'label'; name: string }
 	/** `\href{url}{text}`, or `\url{url}` with no separate text. */
@@ -55,6 +59,9 @@ export type Inline =
 	/** The argument is kept as source, not runs: a footnote can hold anything, and
 	 *  writing it back verbatim is what keeps the round trip exact. */
 	| { kind: 'footnote'; source: string }
+	/** `sameline` is whether it followed text rather than starting its own line,
+	 *  which is the difference between a space and a newline before the `%`. */
+	| { kind: 'comment'; text: string; sameline: boolean }
 	/** A command we do not model: shown as an inert chip, never rewritten. */
 	| { kind: 'raw'; source: string };
 

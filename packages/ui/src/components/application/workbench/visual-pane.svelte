@@ -191,12 +191,46 @@
 		entry.coalesceKey = '';
 		selfWritten = previous;
 		files.source = previous;
-		doc = tex.parseTexDoc(previous);
+		reparse(previous);
 		paneEl?.focus();
 		historyTick += 1;
 	}
 
+	/**
+	 * Re-read source this pane has already written. A throw here would leave the
+	 * file changed and the blocks describing the text before it, so the next patch
+	 * would land at the wrong offsets: show the error and hand over to the source.
+	 */
+	function reparse(source: string): boolean {
+		if (!tex) return false;
+		try {
+			doc = tex.parseTexDoc(source);
+			parseError = undefined;
+			return true;
+		} catch (error) {
+			parseError = error instanceof Error ? error.message : String(error);
+			doc = undefined;
+			return false;
+		}
+	}
+
 	function onPaneKeyDown(event: KeyboardEvent) {
+		// The gutter is out of the tab order, so this is the keyboard's way to the
+		// block actions: the same keys that open a context menu everywhere else.
+		if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+			const wrapper = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>(
+				'[data-block-index]'
+			);
+			if (!wrapper) return;
+			event.preventDefault();
+			const grip = wrapper.querySelector('[data-block-gutter] [aria-haspopup="menu"]');
+			blockMenu = {
+				rect: (grip ?? wrapper).getBoundingClientRect(),
+				index: Number(wrapper.dataset.blockIndex)
+			};
+			return;
+		}
+
 		if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
 		const key = event.key.toLowerCase();
 		if (key === 'z' && !event.shiftKey) {
@@ -265,7 +299,7 @@
 		if (!tex) return;
 		const next = tex.applyPatch(files.source, patch);
 		write(next);
-		doc = tex.parseTexDoc(next);
+		if (!reparse(next)) return;
 		focusOn(focus.key, focus.caret ?? 'end');
 	}
 
@@ -644,6 +678,8 @@
 	}
 
 	const PROSE_KINDS = ['heading', 'paragraph', 'quote'];
+	/** Kinds with an editable projection, when their fidelity allows it. */
+	const EDITABLE_KINDS = [...PROSE_KINDS, 'list'];
 	const QUOTE_ENVIRONMENTS = ['quote', 'quotation', 'verse'];
 	/** Where a `\usepackage` a control needs would go. */
 	const preambleEnd = $derived(doc?.preamble.span.to ?? 0);
@@ -795,6 +831,7 @@
 	 *  inline-dom, which is where the same decision is made on first render. */
 	function atomText(kind: string | null, source: string, url: string): string {
 		if (kind === 'cite') return `[${source}]`;
+		if (kind === 'comment') return `%${source}`;
 		if (kind === 'label') return `#${source}`;
 		if (kind === 'footnote') return '†';
 		if (kind === 'link') return source || url;
@@ -846,7 +883,7 @@
 		const next = tex.applyPatches(files.source, real);
 		if (next === files.source) return;
 		write(next);
-		doc = tex.parseTexDoc(next);
+		reparse(next);
 	}
 
 	/** Every editable spot in document order, so the arrow keys can walk them. */
@@ -900,9 +937,53 @@
 	</div>
 {/snippet}
 
+<!-- Prose the printer cannot reproduce: shown as it reads, written back as the
+     bytes it came from. Clicking it opens the block in the LaTeX view. -->
+{#snippet lockedProse(block: Block)}
+	<div class="relative" data-locked-block>
+		<span
+			class="border-border text-faint absolute top-1 -right-2 rounded border px-1 text-[0.625rem] tracking-wide uppercase"
+		>
+			LaTeX
+		</span>
+		{#if block.kind === 'heading'}
+			<BlockEditor
+				readonly
+				runs={block.title}
+				tag={`h${Math.min(6, block.level)}`}
+				class="text-foreground relative mb-1 leading-tight {HEADING_CLASS[block.level] ??
+					HEADING_CLASS[6]}"
+				oninput={() => {}}
+			/>
+		{:else if block.kind === 'list'}
+			<svelte:element
+				this={block.ordered ? 'ol' : 'ul'}
+				class="mt-4 space-y-1.5 {block.ordered ? 'list-decimal pl-6' : 'list-disc pl-6'}"
+			>
+				{#each block.items as item, j (j)}
+					<li class="text-foreground leading-[1.6]">
+						{#if item.term}<strong class="font-semibold">{item.term}</strong>{' '}{/if}
+						<BlockEditor readonly runs={item.content} tag="span" oninput={() => {}} />
+					</li>
+				{/each}
+			</svelte:element>
+		{:else if block.kind === 'paragraph' || block.kind === 'quote'}
+			<BlockEditor
+				readonly
+				runs={block.content}
+				tag="p"
+				class="text-foreground relative mt-4 leading-[1.6]"
+				oninput={() => {}}
+			/>
+		{/if}
+	</div>
+{/snippet}
+
 {#snippet prose(block: Block, index: number)}
 	{@const key = `${index}`}
-	{#if block.kind === 'heading'}
+	{#if block.fidelity !== 'native' && EDITABLE_KINDS.includes(block.kind)}
+		{@render lockedProse(block)}
+	{:else if block.kind === 'heading'}
 		<BlockEditor
 			runs={block.title}
 			tag={`h${Math.min(6, block.level)}`}
@@ -1117,9 +1198,10 @@
 	role="document"
 	onkeydown={onPaneKeyDown}
 	onscroll={() => {
-		// The overlays are position:fixed against a rect the scroll invalidates.
+		// The overlays are position:fixed against a rect the scroll invalidates. The
+		// atom editor is not among them: it tracks its atom instead, because closing
+		// it would throw away whatever had been typed into it.
 		slash = null;
-		atom = null;
 		blockMenu = null;
 		selectionRect = null;
 	}}
@@ -1189,11 +1271,8 @@
 					<!-- A float card carries its own controls, so it must not sit inside
 					     the click-to-open-source wrapper that would swallow them. -->
 					{@const editable =
-						block.kind === 'heading' ||
-						block.kind === 'paragraph' ||
-						block.kind === 'quote' ||
-						block.kind === 'list' ||
-						block.kind === 'float'}
+						block.kind === 'float' ||
+						(EDITABLE_KINDS.includes(block.kind) && block.fidelity === 'native')}
 					<div class="group/block relative scroll-mt-16" data-block-wrapper data-block-index={i}>
 						<!-- Focus-within like the gutter beside it, so the two can never
 						     disagree about which block is live. -->

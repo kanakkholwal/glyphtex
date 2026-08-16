@@ -66,12 +66,16 @@
 		onfocus,
 		onatom,
 		onpasteblocks,
-		label = 'Text block'
+		label = 'Text block',
+		readonly = false
 	}: {
 		runs: Inline[];
 		tag?: string;
 		class?: string;
 		placeholder?: string;
+		/** Rendered, not editable: the block holds LaTeX our printer cannot
+		 *  reproduce, so writing it back from this projection would lose part of it. */
+		readonly?: boolean;
 		/** Announced to screen readers, which otherwise hear "text box" per block. */
 		label?: string;
 		/** Bumped by the parent to take the caret. A nonce, not a boolean: the same
@@ -299,26 +303,29 @@
 <svelte:element
 	this={tag}
 	bind:this={el}
-	contenteditable="true"
-	role="textbox"
-	tabindex="0"
-	aria-multiline="false"
-	aria-label={label}
-	data-block-editor
+	contenteditable={readonly ? 'false' : 'true'}
+	role={readonly ? undefined : 'textbox'}
+	tabindex={readonly ? undefined : 0}
+	aria-multiline={readonly ? undefined : 'false'}
+	aria-label={readonly ? undefined : label}
+	aria-readonly={readonly ? 'true' : undefined}
+	data-block-editor={readonly ? undefined : true}
 	data-empty={isEmpty || undefined}
 	data-placeholder={placeholder}
 	class="outline-none {className}"
-	oninput={() => oninput(read())}
-	onbeforeinput={onBeforeInput}
-	onkeydown={onKeyDown}
-	onpaste={onPaste}
-	onclick={onClick}
+	oninput={readonly ? undefined : () => oninput(read())}
+	onbeforeinput={readonly ? undefined : onBeforeInput}
+	onkeydown={readonly ? undefined : onKeyDown}
+	onpaste={readonly ? undefined : onPaste}
+	onclick={readonly ? undefined : onClick}
 	onfocusin={() => {
+		if (readonly) return;
 		focused = true;
 		handedOff = false;
 		onfocus?.();
 	}}
 	onfocusout={() => {
+		if (readonly) return;
 		// Settle the model before releasing the DOM: dropping `focused` first would
 		// let the projection effect run against runs one keystroke out of date.
 		if (!handedOff) oninput(read());

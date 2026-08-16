@@ -28,6 +28,7 @@
 		label: { title: 'Anchor', hint: 'The name other blocks reference' },
 		link: { title: 'Link', hint: 'Shown text and its address' },
 		footnote: { title: 'Footnote', hint: 'LaTeX, written back as typed' },
+		comment: { title: 'Comment', hint: 'Kept in the source, never printed' },
 		raw: { title: 'Not modelled', hint: 'Raw LaTeX, written back exactly' }
 	};
 
@@ -45,7 +46,19 @@
 	const kind = $derived(target.getAttribute('data-atom') ?? 'raw');
 	const meta = $derived(KINDS[kind] ?? KINDS.raw);
 	const isLink = $derived(kind === 'link');
-	const rect = $derived(target.getBoundingClientRect());
+
+	// Follows its atom rather than closing: the panel holds unapplied text, and a
+	// stray wheel event used to throw it away.
+	let scrolled = $state(0);
+	$effect(() => {
+		const bump = () => scrolled++;
+		window.addEventListener('scroll', bump, true);
+		return () => window.removeEventListener('scroll', bump, true);
+	});
+	const rect = $derived.by(() => {
+		void scrolled;
+		return target.getBoundingClientRect();
+	});
 
 	// Seeded once on open. The panel is keyed by the atom it edits, so a different
 	// atom mounts a fresh instance rather than reusing this value.

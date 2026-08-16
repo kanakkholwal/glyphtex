@@ -925,4 +925,127 @@ check(
 	'the undo stack missed it'
 );
 
+// --- What the editor cannot rewrite, it must not rewrite ----------------------
+const guarded = [
+	'\\documentclass{article}',
+	'\\begin{document}',
+	'A plain paragraph to edit.',
+	'',
+	'Held at \\SI{298.15}{\\kelvin} in \\textcolor{red}{red} throughout.',
+	'',
+	'Inline maths as \\( E = mc^2 \\) keeps its delimiters.',
+	'',
+	'Paths like file_name.tex are broken source we must not quietly rewrite.',
+	'',
+	'Alpha line.',
+	'% reviewer note: keep me',
+	'Beta line.',
+	'\\end{document}',
+	''
+].join('\n');
+check('reload for the fidelity checks', await loadSource(guarded, 'reviewer note'));
+await toVisual();
+await sleep(600);
+
+check(
+	'a paragraph the printer cannot reproduce is shown but locked',
+	await ev(`(() => {
+	  const locked = document.querySelector('[data-locked-block]');
+	  return !!locked && locked.textContent.includes('file_name.tex');
+	})()`),
+	await ev(`document.querySelector('[data-locked-block]')?.textContent ?? 'no locked block'`)
+);
+check(
+	'and it offers no caret to type into',
+	await ev(
+		`!document.querySelector('[data-locked-block]')?.querySelector('[data-block-editor]')`
+	)
+);
+
+check(
+	'a comment inside a paragraph shows as its own chip',
+	await ev(`(() => {
+	  const c = document.querySelector('[data-atom="comment"]');
+	  return !!c && c.textContent.includes('reviewer note');
+	})()`)
+);
+
+const commented = await ev(`(() => {
+  const c = document.querySelector('[data-atom="comment"]');
+  const host = c?.closest('[data-block-editor]');
+  if (!host) return -1;
+  return [...document.querySelectorAll('[data-block-editor]')].indexOf(host);
+})()`);
+check('the block holding it is still editable', commented >= 0, String(commented));
+await caretInBlock(commented);
+await typeText(' TAIL');
+await sleep(500);
+await toLatex();
+const kept = (await source()) ?? '';
+check(
+	'editing around a comment keeps it, and its newline',
+	kept.includes('Alpha line.\n% reviewer note: keep me\nBeta line. TAIL'),
+	JSON.stringify(kept.match(/Alpha[\s\S]{0,70}/)?.[0])
+);
+check(
+	'a paragraph of unmodelled macros stays editable and byte-identical',
+	kept.includes('Held at \\SI{298.15}{\\kelvin} in \\textcolor{red}{red} throughout.'),
+	JSON.stringify(kept.match(/Held at[^\n]*/)?.[0])
+);
+check(
+	'\\( \\) maths keeps its own delimiters rather than becoming $ $',
+	kept.includes('Inline maths as \\( E = mc^2 \\) keeps its delimiters.'),
+	JSON.stringify(kept.match(/Inline maths[^\n]*/)?.[0])
+);
+check(
+	'and the locked paragraph is not quietly escaped',
+	kept.includes('Paths like file_name.tex are broken source we must not quietly rewrite.'),
+	JSON.stringify(kept.match(/Paths like[^\n]*/)?.[0])
+);
+
+// --- Typing a caret or a tilde must not break the build -----------------------
+await toVisual();
+await sleep(500);
+await caretInBlock(0);
+await typeText(' x^2 a~b');
+await sleep(600);
+await toLatex();
+const escaped = (await source()) ?? '';
+check(
+	'a typed caret and tilde are escaped, not left to the compiler',
+	escaped.includes('x\\textasciicircum{}2 a\\textasciitilde{}b'),
+	JSON.stringify(escaped.match(/A plain paragraph[^\n]*/)?.[0])
+);
+
+// --- Keyboard route to the block actions --------------------------------------
+await toVisual();
+await sleep(500);
+await caretInBlock(0);
+await key('F10', 'F10', 121, 8);
+await sleep(400);
+check(
+	'Shift+F10 opens the block menu without a pointer',
+	await ev(`!!document.querySelector('[role="menu"][aria-label="Block actions"]')`)
+);
+await key('Escape', 'Escape', 27);
+await sleep(300);
+
+// --- The atom editor survives a scroll ----------------------------------------
+await ev(`(() => {
+  const a = document.querySelector('[data-block-editor] [data-atom]');
+  a?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  return !!a;
+})()`);
+await sleep(500);
+const dialogOpen = () => ev(`!!document.querySelector('[role="dialog"][aria-label^="Edit"]')`);
+check('an atom editor is open', await dialogOpen());
+await ev(`(() => {
+  const pane = document.querySelector('[aria-label="Visual editor"]');
+  pane.scrollTop += 60;
+  pane.dispatchEvent(new Event('scroll'));
+  return true;
+})()`);
+await sleep(400);
+check('scrolling the pane does not throw away what it holds', await dialogOpen());
+
 finish();

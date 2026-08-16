@@ -1,5 +1,6 @@
 import { parseMinimal } from '@unified-latex/unified-latex-util-parse';
 
+import { printBlock } from './print';
 import {
 	SECTION_COMMANDS,
 	type Block,
@@ -23,6 +24,8 @@ type Node = {
 	type: string;
 	content?: Node[] | string;
 	env?: unknown;
+	/** On a comment: whether it followed text rather than opening its own line. */
+	sameline?: boolean;
 	position?: { start?: { offset?: number }; end?: { offset?: number } };
 };
 
@@ -118,6 +121,37 @@ function plainText(nodes: Node[]): string {
 
 // --- Inline runs -------------------------------------------------------------
 
+/**
+ * How far an unmodelled macro's arguments reach: every `{…}` and `[…]` that
+ * follows it with nothing in between. Stopping at the first one turned
+ * `\textcolor{red}{word}` into `\textcolor{red}word`, which changes what the
+ * document says.
+ */
+function argumentsEnd(nodes: Node[], start: number): number {
+	let j = start;
+	for (;;) {
+		const node = nodes[j];
+		if (node?.type === 'group') {
+			j++;
+			continue;
+		}
+		if (node?.type === 'string' && node.content === '[') {
+			let k = j + 1;
+			while (k < nodes.length) {
+				const inside = nodes[k];
+				if (inside.type === 'parbreak' || inside.type === 'comment') break;
+				if (inside.type === 'string' && inside.content === ']') break;
+				k++;
+			}
+			if (nodes[k]?.type === 'string' && nodes[k].content === ']') {
+				j = k + 1;
+				continue;
+			}
+		}
+		return j;
+	}
+}
+
 function parseInlines(nodes: Node[], source: string): Inline[] {
 	const out: Inline[] = [];
 	const pushText = (text: string) => {
@@ -130,7 +164,10 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i];
 		if (node.type === 'string' && typeof node.content === 'string') {
-			pushText(node.content);
+			// A tie is a command, not a character: as text it would be escaped back
+			// out as a literal tilde and stop binding the two words together.
+			if (node.content === '~') out.push({ kind: 'raw', source: '~' });
+			else pushText(node.content);
 			continue;
 		}
 		if (node.type === 'whitespace') {
@@ -138,11 +175,20 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 			continue;
 		}
 		if (node.type === 'inlinemath') {
-			out.push({ kind: 'math', source: literal(children(node), source) });
+			const at = offsetOf(node);
+			out.push({
+				kind: 'math',
+				source: literal(children(node), source),
+				paren: at != null && source.startsWith('\\(', at)
+			});
 			continue;
 		}
+		// Braces nobody claimed as an argument are the author's own grouping. Kept
+		// whole: dropping them lets `{\bfseries a}` bold the rest of the block.
 		if (node.type === 'group') {
-			out.push(...parseInlines(children(node), source));
+			const span = spanOf(node);
+			if (span) out.push({ kind: 'raw', source: source.slice(span.from, span.to) });
+			else out.push(...parseInlines(children(node), source));
 			continue;
 		}
 		if (node.type === 'macro' && typeof node.content === 'string') {
@@ -162,10 +208,12 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 				continue;
 			}
 			if (CITE.test(name) && arg) {
+				const raw = literal(children(arg), source);
 				out.push({
 					kind: 'cite',
 					command: name,
-					keys: plainText(children(arg))
+					raw,
+					keys: raw
 						.split(',')
 						.map((k) => k.trim())
 						.filter(Boolean)
@@ -215,17 +263,24 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 				pushText(name);
 				continue;
 			}
-			// Unmodelled: keep the command and any braced argument verbatim.
-			const end = arg ?? node;
-			const span = spanOf(node, end);
+			// Unmodelled: keep the command and every argument it takes, verbatim.
+			const last = argumentsEnd(nodes, i + 1);
+			const span = spanOf(node, last > i + 1 ? nodes[last - 1] : node);
 			out.push({
 				kind: 'raw',
 				source: span ? source.slice(span.from, span.to) : `\\${name}`
 			});
-			if (arg) i++;
+			i = last - 1;
 			continue;
 		}
-		if (node.type === 'comment') continue;
+		if (node.type === 'comment') {
+			out.push({
+				kind: 'comment',
+				text: typeof node.content === 'string' ? node.content : '',
+				sameline: node.sameline === true
+			});
+			continue;
+		}
 		const span = spanOf(node);
 		if (span) out.push({ kind: 'raw', source: source.slice(span.from, span.to) });
 	}
@@ -244,6 +299,12 @@ function trimRuns(runs: Inline[]): Inline[] {
 	const out = runs.slice();
 	while (out.length) {
 		const first = out[0];
+		// A comment at either edge lies outside the span too, since the span starts
+		// and ends at meaningful nodes. Printing one back would duplicate it.
+		if (first.kind === 'comment') {
+			out.shift();
+			continue;
+		}
 		if (first.kind !== 'text') break;
 		const text = first.text.replace(/^\s+/, '');
 		if (text) {
@@ -254,6 +315,10 @@ function trimRuns(runs: Inline[]): Inline[] {
 	}
 	while (out.length) {
 		const last = out[out.length - 1];
+		if (last.kind === 'comment') {
+			out.pop();
+			continue;
+		}
 		if (last.kind !== 'text') break;
 		const text = last.text.replace(/\s+$/, '');
 		if (text) {
@@ -546,6 +611,21 @@ function foldLabels(blocks: Block[]): Block[] {
 	return out;
 }
 
+/**
+ * Demote any block our printer cannot reproduce. Fidelity is a claim about the
+ * content, not about the kind: a paragraph holding a macro we do not model would
+ * otherwise be rewritten from a projection that lost part of it.
+ */
+function guardFidelity(blocks: Block[], source: string): Block[] {
+	const settle = (text: string) => text.replace(/\s+/g, ' ').trim();
+	return blocks.map((block) => {
+		if (block.fidelity !== 'native') return block;
+		const original = source.slice(block.span.from, block.span.to);
+		if (settle(printBlock(block, source)) === settle(original)) return block;
+		return { ...block, fidelity: 'source' as const };
+	});
+}
+
 /** Project LaTeX source into a preamble summary plus body blocks. */
 export function parseTexDoc(source: string): TexDoc {
 	const ast = parseMinimal(source) as unknown as Node;
@@ -594,7 +674,7 @@ export function parseTexDoc(source: string): TexDoc {
 
 	return {
 		preamble: scanPreamble(source, documentEnv ? (offsetOf(documentEnv) ?? 0) : 0),
-		blocks: foldLabels(blocks),
+		blocks: guardFidelity(foldLabels(blocks), source),
 		bodySpan,
 		fragment: !documentEnv
 	};
