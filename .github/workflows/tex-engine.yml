@@ -290,8 +290,9 @@ jobs:
 
       - name: Publish to npm
         run: cd packages/tex-engine && npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # in favour of trusted publishing
+        # env:
+        #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Compress engine for release
         run: brotli -q 11 -k crates/tectonic-wasm/output/tectonic_wasm.wasm
