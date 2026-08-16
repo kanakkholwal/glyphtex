@@ -18,6 +18,9 @@
 		IconPlus
 	} from '@tabler/icons-svelte';
 
+	import { MediaQuery } from 'svelte/reactivity';
+
+	import { lineAt, offsetOfLine } from '../outline';
 	import type { WorkbenchController } from './controller.svelte';
 	import AtomEditor from './visual/atom-editor.svelte';
 	import BlockEditor, { type CaretTarget } from './visual/block-editor.svelte';
@@ -564,6 +567,46 @@
 		openAtom(-1, inserted);
 	}
 
+	// --- Outline navigation -----------------------------------------------------
+	const reducedMotion = new MediaQuery('prefers-reduced-motion: reduce');
+
+	/** Publish the focused block as a source line, so the Outline (and SyncTeX)
+	 *  can say where you are without a CodeMirror caret to read. */
+	function onBlockFocusIn(event: FocusEvent) {
+		const wrapper = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+			'[data-block-index]'
+		);
+		const block = wrapper ? doc?.blocks[Number(wrapper.dataset.blockIndex)] : undefined;
+		if (block) layout.cursor = { line: lineAt(files.source, block.span.from), column: 1 };
+	}
+
+	/** Block holding `offset`, else the last one starting before it (a line in the
+	 *  gaps between blocks still has an obvious place to land). */
+	function blockAtOffset(offset: number): number {
+		if (!doc) return -1;
+		let before = -1;
+		for (let i = 0; i < doc.blocks.length; i++) {
+			const span = doc.blocks[i].span;
+			if (span.from <= offset && offset < span.to) return i;
+			if (span.from <= offset) before = i;
+		}
+		return before;
+	}
+
+	// Scroll only, never focus: an outline click is navigation, and stealing the
+	// caret out of the block being typed in would lose the user's place.
+	$effect(() => {
+		const line = layout.revealLine;
+		if (line === null || !doc || !paneEl) return;
+		layout.revealLine = null;
+		const index = blockAtOffset(offsetOfLine(files.source, line));
+		if (index === -1) return;
+		paneEl.querySelector(`[data-block-index="${index}"]`)?.scrollIntoView({
+			block: 'start',
+			behavior: reducedMotion.current ? 'auto' : 'smooth'
+		});
+	});
+
 	// --- Block chrome -----------------------------------------------------------
 	function openInSource(block: Block) {
 		layout.revealSpan = block.span;
@@ -676,14 +719,12 @@
 		// Before the empty-selection guard: a range over a `contenteditable=false`
 		// atom reports no text, and the link is exactly such an atom.
 		if (id === 'unlink') {
-			// Replace the atom with the words it was wrapping, rather than deleting
-			// the sentence the reader was pointing at.
 			const range = document.getSelection()?.getRangeAt(0);
-			const link = [...host.querySelectorAll('[data-atom="link"]')].find((element) =>
+			const links = [...host.querySelectorAll('[data-atom="link"]')].filter((element) =>
 				range?.intersectsNode(element)
 			);
-			if (!link) return;
-			link.replaceWith(document.createTextNode(link.getAttribute('data-src') || ''));
+			if (!links.length) return;
+			links.forEach(unwrapAtom);
 			host.dispatchEvent(new Event('input', { bubbles: true }));
 			selectionRect = null;
 			return;
@@ -775,6 +816,24 @@
 			if (value.url !== undefined) open.el.setAttribute('data-url', value.url);
 			open.el.textContent = atomText(kind, value.src, value.url ?? '');
 		}
+		host.dispatchEvent(new Event('input', { bubbles: true }));
+		host.focus();
+	}
+
+	/** Drops the command but keeps the words it wrapped, which removing the atom
+	 *  would take with it. */
+	function unwrapAtom(el: Element) {
+		const text = el.getAttribute('data-src') || el.getAttribute('data-url') || '';
+		el.replaceWith(document.createTextNode(text));
+	}
+
+	function unlinkAtom() {
+		const open = atom;
+		atom = null;
+		if (!open) return;
+		const host = open.el.closest('[data-block-editor]') as HTMLElement | null;
+		if (!host) return;
+		unwrapAtom(open.el);
 		host.dispatchEvent(new Event('input', { bubbles: true }));
 		host.focus();
 	}
@@ -1122,6 +1181,7 @@
 				style:max-width={measure}
 				style:font-family={settings.docFontStack}
 				style:font-size={bodySize}
+				onfocusin={onBlockFocusIn}
 			>
 				{#if draftAfter === -1}{@render draftBlock()}{/if}
 
@@ -1134,7 +1194,7 @@
 						block.kind === 'quote' ||
 						block.kind === 'list' ||
 						block.kind === 'float'}
-					<div class="group/block relative" data-block-wrapper>
+					<div class="group/block relative scroll-mt-16" data-block-wrapper data-block-index={i}>
 						<!-- Focus-within like the gutter beside it, so the two can never
 						     disagree about which block is live. -->
 						<span
@@ -1245,6 +1305,7 @@
 		target={atom.el}
 		onapply={(source) => commitAtom(source)}
 		onremove={() => commitAtom(null)}
+		onunlink={() => unlinkAtom()}
 		onclose={() => (atom = null)}
 	/>
 {/if}

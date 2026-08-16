@@ -37,6 +37,7 @@
 		hasProject = false,
 		widthPx = 300,
 		source = '',
+		cursorLine = 1,
 		engine,
 		git,
 		gitRoot = null,
@@ -93,6 +94,8 @@
 		widthPx?: number;
 		/** Active file's text: drives the Outline (sectioning) view. */
 		source?: string;
+		/** Where the caret is, so the Outline can mark the section you are in. */
+		cursorLine?: number;
 		engine?: EngineManager;
 		/** Host-injected Git backend. Enables the Source Control view. */
 		git?: GitProvider;
@@ -185,6 +188,7 @@
 		getFolders: () => folders,
 		getActiveId: () => activeId,
 		getSource: () => source,
+		getCursorLine: () => cursorLine,
 		getProjectName: () => projectName,
 		onopen,
 		onnew,
@@ -228,6 +232,7 @@
 	<div class="grid min-h-0 flex-1 overflow-hidden pt-2">
 		{#key view}
 			<div
+				data-panel-scroll
 				class="col-start-1 row-start-1 min-h-0 overflow-x-hidden overflow-y-auto px-1.5 pb-2 text-sm"
 				in:fly={{ x: dir * shift, duration: enter, delay: leave, easing: cubicOut, opacity: 0 }}
 				out:fly={{ x: -dir * shift, duration: leave, easing: cubicOut, opacity: 0 }}

@@ -1,4 +1,4 @@
-import { baseLevel, parseOutline } from '../outline';
+import { activeOutlineRow, baseLevel, buildOutlineRows, parseOutline, sectionAt } from '../outline';
 import { canDropInto, getDrag, setDrag } from '../file-dnd';
 import type { ActivityView } from './types';
 import type { TreeNode } from '../file-tree.svelte';
@@ -12,6 +12,7 @@ export type SidePanelDeps = {
 	getFolders: () => string[];
 	getActiveId: () => string;
 	getSource: () => string;
+	getCursorLine: () => number;
 	getProjectName: () => string;
 	onopen?: (id: string) => void;
 	onnew?: () => void;
@@ -42,6 +43,9 @@ export class SidePanelStore {
 	treeOpen = $state<Record<string, boolean>>({});
 	rootExpanded = $state(true);
 	outlineExpanded = $state(true);
+	/** Folded outline subtrees, keyed by heading rather than index so an edit
+	 *  above them does not shuffle what is open. */
+	outlineClosed = $state<Record<string, boolean>>({});
 	recentExpanded = $state(true);
 	// One thing is "selected" at a time (file or folder); header actions act on it.
 	selected = $state<Sel | null>(null);
@@ -105,11 +109,29 @@ export class SidePanelStore {
 		return i === -1 ? '' : name.slice(0, i);
 	}
 
-	// Outline (sectioning): pure derive from the active file's text.
-	get outline() {
-		return parseOutline(this.#d.getSource());
+	// Outline (sectioning): pure derive from the active file's text. Fields, not
+	// getters, so a 20k-line parse runs once per edit rather than once per read.
+	// They read `#d` through accessors: TS rejects a field initializer that names
+	// a private the constructor has not assigned yet.
+	get #source(): string {
+		return this.#d.getSource();
 	}
+	get #cursorLine(): number {
+		return this.#d.getCursorLine();
+	}
+	readonly outline = $derived(parseOutline(this.#source));
 	readonly outlineBase = $derived(baseLevel(this.outline));
+	/** Section the caret sits in, so the outline says where you *are*, not only
+	 *  where you could go. -1 above the first heading. */
+	readonly outlineActive = $derived(sectionAt(this.outline, this.#cursorLine));
+	readonly outlineRows = $derived(
+		buildOutlineRows(this.outline, this.outlineBase, this.outlineClosed)
+	);
+	readonly outlineActiveRow = $derived(activeOutlineRow(this.outlineRows, this.outlineActive));
+
+	toggleOutlineNode(key: string): void {
+		this.outlineClosed = { ...this.outlineClosed, [key]: !this.outlineClosed[key] };
+	}
 
 	readonly folderPaths = $derived(collectFolderPaths(this.rootNodes));
 	readonly anyFolderOpen = $derived(this.folderPaths.some((p) => this.isPathOpen(p)));

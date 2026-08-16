@@ -2,7 +2,7 @@
 	import { untrack } from 'svelte';
 
 	import { Button } from '@glyphtex/ui/button';
-	import { IconTrash } from '@tabler/icons-svelte';
+	import { IconLinkOff, IconTrash } from '@tabler/icons-svelte';
 
 	/** Edits one atom in place. These are the parts of a paragraph you can see but
 	 *  could never type into. */
@@ -10,11 +10,14 @@
 		target,
 		onapply,
 		onremove,
+		onunlink,
 		onclose
 	}: {
 		target: HTMLElement;
 		onapply: (value: { src: string; url?: string }) => void;
 		onremove: () => void;
+		/** Drop the command but keep what it wrapped. */
+		onunlink?: () => void;
 		onclose: () => void;
 	} = $props();
 
@@ -139,17 +142,32 @@
 		/>
 	{/if}
 
-	<div class="mt-2.5 flex items-center gap-2">
-		<Button size="sm" class="h-8" onclick={apply}>Apply</Button>
+	<div class="mt-2.5 flex items-center gap-1">
+		<Button size="sm" class="mr-1 h-8" onclick={apply}>Apply</Button>
 		<Button size="sm" variant="ghost" class="h-8" onclick={onclose}>Cancel</Button>
+		{#if isLink && onunlink}
+			<Button
+				size="sm"
+				variant="ghost"
+				title="Remove the link, keep the text"
+				class="text-muted-foreground hover:text-foreground ml-auto h-8 gap-1.5 px-2"
+				onclick={onunlink}
+			>
+				<IconLinkOff size={14} />
+				Unlink
+			</Button>
+		{/if}
 		<Button
 			size="sm"
 			variant="ghost"
-			class="text-muted-foreground hover:text-destructive ml-auto h-8 gap-1.5 px-2"
+			title={isLink ? 'Delete the link and its text' : 'Delete'}
+			class="text-muted-foreground hover:text-destructive h-8 gap-1.5 px-2 {isLink && onunlink
+				? ''
+				: 'ml-auto'}"
 			onclick={onremove}
 		>
 			<IconTrash size={14} />
-			Remove
+			Delete
 		</Button>
 	</div>
 </div>

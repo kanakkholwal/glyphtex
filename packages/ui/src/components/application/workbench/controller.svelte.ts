@@ -235,6 +235,19 @@ export class WorkbenchController {
 		this.layout.selectView('search');
 	}
 
+	/** Outline / go-to-line, routed to the surface on screen. Visual has no
+	 *  CodeMirror handle, so the jump is queued for its block list instead. */
+	goToLine(line: number): void {
+		if (this.docMode !== 'visual') {
+			this.layout.editor?.goToLine(line);
+			return;
+		}
+		this.layout.revealLine = line;
+		// The caret has not moved, so nothing else would tell the outline you
+		// navigated; a click that scrolls but leaves the old row lit reads as broken.
+		this.layout.cursor = { line, column: 1 };
+	}
+
 	// --- Open / import (host hook, else the desktop ProjectHost) ---
 	get canOpenFolder(): boolean {
 		return Boolean(this.#onOpenFolder || this.files.project);

@@ -464,6 +464,43 @@ await toLatex();
 const unlinked = await source();
 check('unlinking removes the command but keeps the words', !/\\href\{/.test(unlinked ?? ''));
 
+// Clicking a link opens its editor, so the same escape has to exist in there.
+await toVisual();
+await sleep(500);
+await selectWord();
+await sleep(400);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Format selection"] [aria-label="Link"]'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('[role="dialog"] button')].find(x => x.textContent.trim() === 'Apply'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+const linkWords = await ev(`document.querySelector('[data-atom="link"]')?.textContent ?? ''`);
+await ev(
+	`(() => { const a = document.querySelector('[data-atom="link"]'); a?.dispatchEvent(new MouseEvent('click', { bubbles: true })); return !!a; })()`
+);
+await sleep(400);
+const dialogButtons = () =>
+	ev(`[...document.querySelectorAll('[role="dialog"] button')].map(b => b.textContent.trim())`);
+check(
+	'the link editor offers Unlink beside Delete',
+	(await dialogButtons())?.includes('Unlink'),
+	JSON.stringify(await dialogButtons())
+);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('[role="dialog"] button')].find(x => x.textContent.trim() === 'Unlink'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+await toLatex();
+const afterEditor = (await source()) ?? '';
+check(
+	'Unlink in the editor drops the command and keeps the text',
+	!/\\href\{/.test(afterEditor) && !!linkWords && afterEditor.includes(linkWords),
+	JSON.stringify(linkWords)
+);
+
 // --- The gutter stands down while a menu owns the pointer ---------------------
 await toVisual();
 await sleep(500);

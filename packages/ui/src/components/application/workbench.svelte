@@ -84,6 +84,7 @@
 				activeId={files.activeId}
 				mainId={files.mainId}
 				source={files.source}
+				cursorLine={layout.cursor.line}
 				projectName={files.displayName}
 				projectPath={files.projectRoot}
 				head={files.head}
@@ -117,7 +118,7 @@
 				ondownloadfile={ctrl.onDownload ? (id) => ctrl.downloadFile(id) : undefined}
 				ondownloadfolder={ctrl.onDownload ? (p) => ctrl.downloadFolder(p) : undefined}
 				dirtyIds={files.dirtyIds}
-				ongotoline={(n) => layout.editor?.goToLine(n)}
+				ongotoline={(n) => ctrl.goToLine(n)}
 				onregistershell={files.project?.registerShellIntegration
 					? () => files.registerShell()
 					: undefined}
