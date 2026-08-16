@@ -111,11 +111,17 @@
 
 	// --- Activation -------------------------------------------------------------
 	function activate(row: TreeRow, mods: { meta?: boolean; shift?: boolean } = {}) {
+		const wasOnlySelection = store.selectedKeys.length === 1 && store.isSelected(row.key);
 		store.pick(row.key, mods);
 		if (mods.meta || mods.shift) return;
-		if (row.node.type === 'file') onopen?.(row.node.id);
-		// Expand only. Toggling here meant selecting a folder to aim "New file" at it
-		// also collapsed the thing you were aiming at.
+		if (row.node.type === 'file') {
+			onopen?.(row.node.id);
+			return;
+		}
+		// Reaching for a folder never closes it: the click that aims "New file" at one
+		// only selects and opens. Clicking the row you are already on collapses it, so
+		// closing stays a full-width target rather than the chevron alone.
+		if (wasOnlySelection && row.expanded) store.toggleFolder(row.node.path);
 		else store.openFolder(row.node.path);
 	}
 

@@ -16,7 +16,8 @@
 	import SearchView from './side-panel/search-view.svelte';
 	import { SidePanelStore } from './side-panel/store.svelte';
 	import { treeState } from './side-panel/tree-state.svelte';
-	import type { ActivityView, FileMeta, SearchMatch, SearchOptions, Sel } from './side-panel/types';
+	import type { ActivityView, FileMeta, SearchOptions, Sel } from './side-panel/types';
+	import { EMPTY_SCAN, type Hit, type ScanResult } from './workbench/project-search';
 
 	/**
 	 * SidePanel: content for the active rail view. Explorer stacks the file tree,
@@ -71,8 +72,12 @@
 		ondownloadfolder,
 		ongotoline,
 		onregistershell,
-		searchResults = [],
+		searchResult = EMPTY_SCAN,
+		searchHits = [],
 		searchActive = 0,
+		searchScanning = false,
+		searchCollapsed = {},
+		ontogglegroup,
 		onsearch,
 		ongotoresult,
 		onsearchnext,
@@ -158,8 +163,15 @@
 		ongotoline?: (line: number) => void;
 		/** Register the OS "Open with GlyphTeX" folder integration (desktop). */
 		onregistershell?: () => void | Promise<boolean>;
-		searchResults?: SearchMatch[];
+		/** Grouped project-search results. */
+		searchResult?: ScanResult;
+		/** The same matches flattened, for prev/next and the active index. */
+		searchHits?: Hit[];
 		searchActive?: number;
+		searchScanning?: boolean;
+		/** Result groups the user folded, by file id. */
+		searchCollapsed?: Record<string, boolean>;
+		ontogglegroup?: (id: string) => void;
 		onsearch?: (o: SearchOptions) => void;
 		ongotoresult?: (i: number) => void;
 		onsearchnext?: () => void;
@@ -247,7 +259,7 @@
 		hasNewFolder={Boolean(onnewfolder || onnewfolderin)}
 		hasDelete={Boolean(ondeletefile || ondeletefolder)}
 		gitReady={Boolean(git && gitRoot)}
-		searchResultCount={searchResults.length}
+		searchResultCount={searchResult.total}
 		{onselectview}
 		{onreveal}
 		{onopenfolder}
@@ -298,8 +310,12 @@
 				{:else if view === 'search'}
 					<SearchView
 						{store}
-						{searchResults}
-						{searchActive}
+						result={searchResult}
+						hits={searchHits}
+						activeHit={searchActive}
+						scanning={searchScanning}
+						collapsed={searchCollapsed}
+						{ontogglegroup}
 						{onsearchnext}
 						{onsearchprev}
 						{ongotoresult}

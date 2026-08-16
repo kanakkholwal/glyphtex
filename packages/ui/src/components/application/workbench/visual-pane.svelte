@@ -395,9 +395,19 @@
 		return `${index}`;
 	}
 
+	/** The inline content a block would carry into a conversion. */
+	function blockRuns(block: Block): Inline[] {
+		if (block.kind === 'heading') return block.title;
+		if (block.kind === 'paragraph' || block.kind === 'quote') return block.content;
+		return [];
+	}
+
 	function onConvert(index: number, templateId: string, rest: Inline[]) {
 		const block = doc?.blocks[index];
 		if (!tex || !block) return;
+		// Its projection is lossy, so reprinting it as another block would write
+		// back less than it holds.
+		if (block.fidelity !== 'native') return;
 		const template = tex.BLOCK_TEMPLATES.find((t) => t.id === templateId);
 		if (!template) return;
 
@@ -541,10 +551,14 @@
 			insertInline(pick.id);
 			return;
 		}
-		// A block picked from a block that already has prose in it goes below it;
-		// converting would throw that prose away.
+		// A block picked mid-sentence goes below the block; converting would throw
+		// the words after the caret away.
 		if (mode.kind === 'convert' && open?.inline) insertTemplate(pick.id, mode.index);
-		else if (mode.kind === 'convert') onConvert(mode.index, pick.id, []);
+		// From the gutter, the whole block converts and carries its words across.
+		else if (mode.kind === 'convert') {
+			const block = doc?.blocks[mode.index];
+			onConvert(mode.index, pick.id, block ? blockRuns(block) : []);
+		}
 		else if (mode.kind === 'insertBefore') insertTemplate(pick.id, mode.index - 1);
 		else insertTemplate(pick.id, mode.kind === 'draft' ? (draftAfter ?? -1) : mode.index);
 	}
@@ -835,6 +849,10 @@
 		return source;
 	}
 
+	/** `\href` takes both its arguments as LaTeX, so the three characters that can
+	 *  never stand alone are escaped. A URL keeps its `%` and `#` that way too. */
+	const linkSafe = (text: string) => text.replace(/(?<!\\)([%&#])/g, '\\$1');
+
 	/** Rewrite the clicked atom in the DOM, then let the normal input path run. */
 	function commitAtom(value: { src: string; url?: string } | null) {
 		const open = atom;
@@ -846,9 +864,11 @@
 		if (value === null) open.el.remove();
 		else {
 			const kind = open.el.getAttribute('data-atom');
-			open.el.setAttribute('data-src', value.src);
-			if (value.url !== undefined) open.el.setAttribute('data-url', value.url);
-			open.el.textContent = atomText(kind, value.src, value.url ?? '');
+			const src = kind === 'link' ? linkSafe(value.src) : value.src;
+			const url = value.url === undefined ? undefined : linkSafe(value.url);
+			open.el.setAttribute('data-src', src);
+			if (url !== undefined) open.el.setAttribute('data-url', url);
+			open.el.textContent = atomText(kind, src, url ?? '');
 		}
 		host.dispatchEvent(new Event('input', { bubbles: true }));
 		host.focus();
@@ -1154,7 +1174,7 @@
 			{tex}
 			source={files.source}
 			onpatch={applyBlockPatch}
-			oncellpatch={(patch) => patch && commitInline(index, patch)}
+			onlocalpatch={(patch) => patch && commitInline(index, patch)}
 			onatom={(element) => openAtom(index, element)}
 			onopensource={() => openInSource(block)}
 		/>
@@ -1370,7 +1390,8 @@
 {#if blockMenu && doc}
 	<BlockMenu
 		rect={blockMenu.rect}
-		canConvert={PROSE_KINDS.includes(doc.blocks[blockMenu.index]?.kind ?? '')}
+		canConvert={PROSE_KINDS.includes(doc.blocks[blockMenu.index]?.kind ?? '') &&
+			doc.blocks[blockMenu.index]?.fidelity === 'native'}
 		onpick={runBlockAction}
 		onclose={() => (blockMenu = null)}
 	/>

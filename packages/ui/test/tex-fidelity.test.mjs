@@ -2,7 +2,17 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { applyPatch, escapeText, parseTexDoc, printBlock, setInlines } from './.build/tex-doc.mjs';
+import {
+	applyPatch,
+	escapeText,
+	floatCaption,
+	parseTexDoc,
+	printBlock,
+	printInlines,
+	readTable,
+	setFloatCaption,
+	setInlines
+} from './.build/tex-doc.mjs';
 
 const FIXTURES = path.join(import.meta.dirname, 'fixtures');
 
@@ -87,6 +97,71 @@ describe('escaping what the user types', () => {
 			assert.equal(reprint(escaped + '\n'), escaped);
 		});
 	}
+});
+
+describe('float captions', () => {
+	const fig = (caption) =>
+		`\\begin{figure}\n  \\includegraphics{plot}\n  \\caption{${caption}}\n\\end{figure}\n`;
+
+	test('a caption holding a braced macro is read whole', () => {
+		const src = fig('Convergence of \\textbf{our} estimator on \\emph{real} data');
+		const block = parseTexDoc(src).blocks[0];
+		assert.equal(block.caption, 'Convergence of \\textbf{our} estimator on \\emph{real} data');
+		assert.equal(floatCaption(src, block), block.caption);
+	});
+
+	test('rewriting it replaces the whole argument, leaving nothing orphaned', () => {
+		const src = fig('Convergence of \\textbf{our} estimator');
+		const block = parseTexDoc(src).blocks[0];
+		const out = applyPatch(src, setFloatCaption(src, block, 'A new caption.'));
+		assert.equal(out, fig('A new caption.'));
+	});
+
+	test('clearing it removes the command and its line', () => {
+		const src = fig('Old \\emph{caption}');
+		const block = parseTexDoc(src).blocks[0];
+		const out = applyPatch(src, setFloatCaption(src, block, ''));
+		assert.equal(out, '\\begin{figure}\n  \\includegraphics{plot}\n\\end{figure}\n');
+	});
+
+	test('typed prose is escaped, so a percent cannot comment out the float', () => {
+		const src = fig('Old');
+		const block = parseTexDoc(src).blocks[0];
+		// What the caption editor writes: inline runs through the printer.
+		const typed = printInlines([{ kind: 'text', text: '50% off, Tom & Jerry, file_name' }]);
+		const out = applyPatch(src, setFloatCaption(src, block, typed));
+		assert.equal(out, fig('50\\% off, Tom \\& Jerry, file\\_name'));
+		assert.equal(parseTexDoc(out).blocks[0].caption, '50\\% off, Tom \\& Jerry, file\\_name');
+	});
+
+	test('a caption of marks and maths round-trips through the run model', () => {
+		const src = fig('Yield of \\textbf{A} at $T_0$');
+		const block = parseTexDoc(src).blocks[0];
+		const runs = parseTexDoc(`${block.caption}\n`).blocks[0].content;
+		assert.equal(printInlines(runs), block.caption);
+	});
+});
+
+describe('tables the grid cannot represent', () => {
+	test('a row with more cells than the spec falls back to source editing', () => {
+		const src =
+			'\\begin{table}\n\\begin{tabular}{l l}\na & b & c \\\\\nd & e\n\\end{tabular}\n\\end{table}\n';
+		const block = parseTexDoc(src).blocks[0];
+		assert.equal(readTable(src, block), null, 'the surplus cell would be dropped on a reprint');
+	});
+
+	test('a well-formed table still reads', () => {
+		const src =
+			'\\begin{table}\n\\begin{tabular}{l l}\na & b \\\\\nc & d\n\\end{tabular}\n\\end{table}\n';
+		const grid = readTable(src, parseTexDoc(src).blocks[0]);
+		assert.deepEqual(
+			grid.rows.map((r) => r.cells.map((c) => c.text)),
+			[
+				['a', 'b'],
+				['c', 'd']
+			]
+		);
+	});
 });
 
 describe('the fidelity guard', () => {

@@ -97,6 +97,33 @@ function envName(node: Node): string {
 	return '';
 }
 
+/**
+ * The balanced `{…}` argument of the first `\name` in `text`, as offsets into
+ * it: `from`/`to` bound the contents, `start`/`end` the whole command. A regex
+ * cannot do this, and `[^}]*` truncated `\caption{a \textbf{b} c}` at the first
+ * brace.
+ */
+export function commandArg(
+	text: string,
+	name: string
+): { start: number; from: number; to: number; end: number } | null {
+	const head = new RegExp(`\\\\${name}\\s*\\*?\\s*(?:\\[[^\\]]*\\])?\\s*\\{`);
+	const match = head.exec(text);
+	if (!match) return null;
+	const open = match.index + match[0].length - 1;
+	let depth = 0;
+	for (let i = open; i < text.length; i++) {
+		if (text[i] === '\\') {
+			i++;
+			continue;
+		}
+		if (text[i] === '{') depth++;
+		else if (text[i] === '}' && --depth === 0)
+			return { start: match.index, from: open + 1, to: i, end: i + 1 };
+	}
+	return null;
+}
+
 /** Flatten a node list back to its literal source text. */
 function literal(nodes: Node[], source: string): string {
 	const from = offsetOf(nodes[0]);
@@ -462,10 +489,11 @@ function blockFor(node: Node, source: string, span: Span): Block | null {
 		}
 		if (FLOAT_ENVS.has(name)) {
 			const text = source.slice(span.from, span.to);
+			const captionAt = commandArg(text, 'caption');
 			return {
 				kind: 'float',
 				environment: name,
-				caption: /\\caption\s*\{([^}]*)\}/.exec(text)?.[1] ?? null,
+				caption: captionAt ? text.slice(captionAt.from, captionAt.to) : null,
 				label: /\\label\s*\{([^}]*)\}/.exec(text)?.[1] ?? null,
 				graphic: /\\includegraphics(?:\[[^\]]*\])?\s*\{([^}]*)\}/.exec(text)?.[1] ?? null,
 				span,

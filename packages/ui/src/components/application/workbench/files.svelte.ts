@@ -387,6 +387,45 @@ export class FileStore {
 		return this.liveContent(f) !== f.saved;
 	}
 
+	/** Pull a project file's text off disk if it has not been opened yet. Shared by
+	 *  `openFile` and project search, which has to read files nobody has opened. */
+	async ensureLoaded(f: GlyphFile): Promise<void> {
+		if (!this.project || !f.path || f.loaded) return;
+		if (!isEditable(classifyFile(f.name))) return;
+		try {
+			f.content = await this.project.readFile(f.path);
+			f.saved = f.content;
+			f.loaded = true;
+		} catch {
+			// A text-looking name that is actually binary: leave it empty rather than
+			// failing the whole scan.
+			this.unreadableIds = new Set(this.unreadableIds).add(f.id);
+			f.content = '';
+			f.loaded = true;
+		}
+	}
+
+	/** Every file whose text can be searched, with unsaved edits included. */
+	async searchableFiles(): Promise<{ id: string; name: string; text: string }[]> {
+		this.syncBuffer();
+		const out: { id: string; name: string; text: string }[] = [];
+		for (const f of this.files) {
+			if (!isEditable(classifyFile(f.name)) || this.unreadableIds.has(f.id)) continue;
+			await this.ensureLoaded(f);
+			if (this.unreadableIds.has(f.id)) continue;
+			out.push({ id: f.id, name: f.name, text: this.liveContent(f) });
+		}
+		return out;
+	}
+
+	/** Overwrite one file's text, live buffer included when it is the open one. */
+	setContent(id: string, text: string): void {
+		const f = this.files.find((x) => x.id === id);
+		if (!f) return;
+		if (id === this.activeId) this.source = text;
+		else f.content = text;
+	}
+
 	/** Mirror the live buffer into the active file's in-memory content (no disk). */
 	syncBuffer(): void {
 		const f = this.files.find((x) => x.id === this.activeId);
@@ -443,18 +482,7 @@ export class FileStore {
 		// Only editable kinds get a text buffer; images / PDFs / binaries are read
 		// lazily as bytes by the AssetViewer, so we never read them as text here.
 		const editable = f ? isEditable(classifyFile(f.name)) : true;
-		if (f && this.project && f.path && !f.loaded && editable) {
-			try {
-				f.content = await this.project.readFile(f.path);
-				f.saved = f.content;
-				f.loaded = true;
-			} catch {
-				// A text-looking name that's actually binary → fall back to the viewer.
-				this.unreadableIds = new Set(this.unreadableIds).add(f.id);
-				f.content = '';
-				f.loaded = true;
-			}
-		}
+		if (f) await this.ensureLoaded(f);
 		this.source = f && editable && !this.unreadableIds.has(f.id) ? (f.content ?? '') : '';
 	}
 

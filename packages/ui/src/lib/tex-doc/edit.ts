@@ -1,3 +1,4 @@
+import { commandArg } from './parse';
 import { printBlock, printInlines } from './print';
 import type { Block, Inline, Span } from './types';
 
@@ -121,7 +122,6 @@ function patchInside(
 	return { from: block.span.from + at[0], to: block.span.from + at[1], insert: replacement };
 }
 
-const CAPTION = /\\caption\s*\*?\s*(?:\[[^\]]*\])?\s*\{([\s\S]*?)\}/d;
 const LABEL = /\\label\s*\{([^}]*)\}/d;
 const GRAPHIC = /\\includegraphics\s*\*?\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}/d;
 const GRAPHIC_WIDTH = /\\includegraphics\s*\*?\s*\[[^\]]*?width\s*=\s*([^,\]]+)[^\]]*\]/d;
@@ -137,12 +137,23 @@ function insertBeforeEnd(source: string, block: Block, text: string): Patch {
 	return { from: at, to: at, insert: `\n${end?.[1] ?? ''}  ${text}` };
 }
 
+/** The float's caption argument, read with balanced braces so a `\textbf` inside
+ *  it does not cut it short. */
+export function floatCaption(source: string, block: Block): string | null {
+	const inner = source.slice(block.span.from, block.span.to);
+	const at = commandArg(inner, 'caption');
+	return at ? inner.slice(at.from, at.to) : null;
+}
+
 /** Set the caption, creating one when the float has none yet. Removing the text
  *  removes the command: an empty `\caption{}` still prints "Figure 1:". */
 export function setFloatCaption(source: string, block: Block, caption: string): Patch | null {
-	const existing = patchInside(source, block, CAPTION, caption);
-	if (existing) return caption.trim() ? existing : removeCommand(source, block, CAPTION);
-	return caption.trim() ? insertBeforeEnd(source, block, `\\caption{${caption}}`) : null;
+	const inner = source.slice(block.span.from, block.span.to);
+	const at = commandArg(inner, 'caption');
+	if (!at) return caption.trim() ? insertBeforeEnd(source, block, `\\caption{${caption}}`) : null;
+	if (caption.trim())
+		return { from: block.span.from + at.from, to: block.span.from + at.to, insert: caption };
+	return removeRange(source, block.span.from, block.span.from + at.start, block.span.from + at.end);
 }
 
 /** The `\label` a float carries, if any. Read off the source rather than the
@@ -157,16 +168,18 @@ export function setFloatLabel(source: string, block: Block, label: string): Patc
 	return label.trim() ? insertBeforeEnd(source, block, `\\label{${label}}`) : null;
 }
 
-/** Drop a whole command, and the line it sits on when that line is now blank. */
-function removeCommand(source: string, block: Block, pattern: RegExp): Patch | null {
-	const inner = source.slice(block.span.from, block.span.to);
-	const match = pattern.exec(inner);
-	if (!match) return null;
-	let from = block.span.from + match.index;
-	let to = from + match[0].length;
-	const before = /\n[ \t]*$/.exec(source.slice(block.span.from, from));
+/** Drop a range, and the line it sits on when that line is now blank. */
+function removeRange(source: string, floor: number, from: number, to: number): Patch {
+	const before = /\n[ \t]*$/.exec(source.slice(floor, from));
 	if (before && /^[ \t]*(\n|$)/.test(source.slice(to))) from -= before[0].length;
 	return { from, to, insert: '' };
+}
+
+function removeCommand(source: string, block: Block, pattern: RegExp): Patch | null {
+	const match = pattern.exec(source.slice(block.span.from, block.span.to));
+	if (!match) return null;
+	const from = block.span.from + match.index;
+	return removeRange(source, block.span.from, from, from + match[0].length);
 }
 
 export function setFloatGraphic(source: string, block: Block, path: string): Patch | null {

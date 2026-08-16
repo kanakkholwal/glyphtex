@@ -67,12 +67,16 @@
 		onatom,
 		onpasteblocks,
 		label = 'Text block',
-		readonly = false
+		readonly = false,
+		attributes
 	}: {
 		runs: Inline[];
 		tag?: string;
 		class?: string;
 		placeholder?: string;
+		/** Extra attributes on the editable itself, for callers that need their own
+		 *  hook on the element the caret lives in. */
+		attributes?: Record<string, string>;
 		/** Rendered, not editable: the block holds LaTeX our printer cannot
 		 *  reproduce, so writing it back from this projection would lose part of it. */
 		readonly?: boolean;
@@ -303,6 +307,7 @@
 <svelte:element
 	this={tag}
 	bind:this={el}
+	{...attributes}
 	contenteditable={readonly ? 'false' : 'true'}
 	role={readonly ? undefined : 'textbox'}
 	tabindex={readonly ? undefined : 0}

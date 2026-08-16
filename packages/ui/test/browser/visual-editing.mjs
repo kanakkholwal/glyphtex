@@ -285,20 +285,30 @@ check('reload for the selection checks', await loadSource(article, 'Consistency 
 await toVisual();
 await sleep(500);
 
-// Select the first word of a paragraph and bold it from the floating bar.
-const selectedWord = await ev(`(() => {
-  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
-  if (!el) return null;
-  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
-  if (!node) return null;
-  el.focus();
-  const r = document.createRange();
-  r.setStart(node, 0);
-  r.setEnd(node, 4);
-  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-  document.dispatchEvent(new Event('selectionchange'));
-  return r.toString();
-})()`);
+// Select the first word of a paragraph and bold it from the floating bar. The
+// pane re-renders for a beat after a mode switch, so this waits for a block
+// rather than reading whatever is there on the first look.
+const selectFirstWord = async () => {
+	for (let i = 0; i < 12; i++) {
+		const word = await ev(`(() => {
+		  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
+		  if (!el) return null;
+		  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
+		  if (!node) return null;
+		  el.focus();
+		  const r = document.createRange();
+		  r.setStart(node, 0);
+		  r.setEnd(node, 4);
+		  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+		  document.dispatchEvent(new Event('selectionchange'));
+		  return r.toString();
+		})()`);
+		if (word) return word;
+		await sleep(250);
+	}
+	return null;
+};
+const selectedWord = await selectFirstWord();
 await sleep(400);
 check(
 	'a selection raises the format bar',
@@ -321,16 +331,7 @@ check(
 // back as \emph, which is what the old single mark kind did to it.
 await toVisual();
 await sleep(500);
-await ev(`(() => {
-  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
-  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
-  el.focus();
-  const r = document.createRange();
-  r.setStart(node, 0); r.setEnd(node, 4);
-  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-  document.dispatchEvent(new Event('selectionchange'));
-  return true;
-})()`);
+check('a word is selected for the overflow checks', !!(await selectFirstWord()));
 await sleep(400);
 await ev(
 	`(() => { const b = document.querySelector('[aria-label="More formatting"]'); b?.click(); return !!b; })()`
@@ -619,7 +620,7 @@ await ev(`(() => {
   const c = document.querySelector('[data-float-caption]');
   c.focus();
   c.textContent = 'A rewritten caption.';
-  c.dispatchEvent(new FocusEvent('blur'));
+  c.dispatchEvent(new Event('input', { bubbles: true }));
   return true;
 })()`);
 await sleep(700);
@@ -849,7 +850,7 @@ await ev(`(() => {
   const caption = [...document.querySelectorAll('[data-float-caption]')].pop();
   caption.focus();
   caption.textContent = 'Added from visual mode.';
-  caption.dispatchEvent(new FocusEvent('blur'));
+  caption.dispatchEvent(new Event('input', { bubbles: true }));
   return true;
 })()`);
 await sleep(700);
@@ -1045,5 +1046,126 @@ await ev(`(() => {
 })()`);
 await sleep(400);
 check('scrolling the pane does not throw away what it holds', await dialogOpen());
+
+// --- Turning a block into another kind must carry its words -------------------
+const convertible = [
+	'\\documentclass{article}',
+	'\\begin{document}',
+	'A paragraph whose words must survive being turned into a heading.',
+	'',
+	'Paths like file_name.tex are locked source.',
+	'\\end{document}',
+	''
+].join('\n');
+check('reload for the conversion checks', await loadSource(convertible, 'must survive'));
+await toVisual();
+await sleep(600);
+
+// Scoped to the block menu and the insert list by name: an engine-install dialog
+// can be on screen, and a bare [role="menu"] would find its buttons instead.
+const BLOCK_MENU = '[role="menu"][aria-label="Block actions"]';
+const INSERT_LIST = '[role="listbox"][aria-label="Block types"]';
+const openGutter = async (find) => {
+	await clearModals();
+	return ev(`(() => {
+	  const wraps = [...document.querySelectorAll('[data-block-wrapper]')];
+	  const w = wraps.find(${find});
+	  const b = w?.querySelector('[aria-label="Block actions"]');
+	  b?.click();
+	  return !!b;
+	})()`);
+};
+const menuItems = () =>
+	ev(`[...document.querySelectorAll('${BLOCK_MENU} button')].map(b => b.textContent.trim())`);
+const pickMenu = (text) =>
+	ev(
+		`(() => { const b = [...document.querySelectorAll('${BLOCK_MENU} button, ${INSERT_LIST} button')].find(x => x.textContent.trim().startsWith(${JSON.stringify(text)})); b?.click(); return !!b; })()`
+	);
+
+check(
+	'the gutter menu opens on a paragraph',
+	await openGutter(`(w) => (w.innerText || '').includes('must survive')`)
+);
+await sleep(400);
+await pickMenu('Turn into');
+await sleep(500);
+await pickMenu('Section');
+await sleep(800);
+await toLatex();
+const turned = (await source()) ?? '';
+check(
+	'"Turn into" keeps the words it converted',
+	/\\section\{A paragraph whose words must survive being turned into a heading\.\}/.test(turned),
+	JSON.stringify(turned.match(/\\section[^\n]*|A paragraph[^\n]*/)?.[0])
+);
+
+await toVisual();
+await sleep(600);
+check(
+	'the gutter menu opens on the locked block',
+	await openGutter(`(w) => !!w.querySelector('[data-locked-block]')`)
+);
+await sleep(400);
+const lockedMenu = await menuItems();
+check(
+	'a locked block is not offered a conversion that would rewrite it',
+	lockedMenu.length > 0 && !lockedMenu.some((item) => item.startsWith('Turn into')),
+	JSON.stringify(lockedMenu)
+);
+await key('Escape', 'Escape', 27);
+await sleep(300);
+await toLatex();
+check(
+	'and the locked block is still byte-identical',
+	((await source()) ?? '').includes('Paths like file_name.tex are locked source.'),
+	JSON.stringify((await source())?.match(/Paths like[^\n]*/)?.[0])
+);
+
+// --- Captions are inline content, not a raw string ----------------------------
+const captioned = [
+	'\\documentclass{article}',
+	'\\begin{document}',
+	'\\begin{figure}',
+	'  \\includegraphics{plot}',
+	'  \\caption{Convergence of \\textbf{our} estimator on \\emph{real} data}',
+	'\\end{figure}',
+	'\\end{document}',
+	''
+].join('\n');
+check('reload for the caption checks', await loadSource(captioned, 'Convergence of'));
+await toVisual();
+await sleep(600);
+check(
+	'a caption with a braced macro is shown whole',
+	await ev(
+		`(() => { const c = document.querySelector('[data-float-caption]'); return !!c && /Convergence of our estimator on real data/.test(c.innerText.replace(/\\s+/g,' ').trim()); })()`
+	),
+	await ev(`document.querySelector('[data-float-caption]')?.innerText ?? '(none)'`)
+);
+check(
+	'and its bold survives as a mark, not as typed-out LaTeX',
+	await ev(`!!document.querySelector('[data-float-caption] [data-mark="bold"]')`)
+);
+
+await ev(`(() => {
+  const c = document.querySelector('[data-float-caption]');
+  c.focus();
+  c.textContent = 'Yield at 50% load for Tom & Jerry';
+  c.dispatchEvent(new Event('input', { bubbles: true }));
+  return true;
+})()`);
+await sleep(800);
+await toLatex();
+const escapedCaption = (await source()) ?? '';
+check(
+	'typing a percent into a caption escapes it',
+	/\\caption\{Yield at 50\\% load for Tom \\& Jerry\}/.test(escapedCaption),
+	JSON.stringify(escapedCaption.match(/\\caption[^\n]*/)?.[0])
+);
+check(
+	'and nothing is left dangling outside the command',
+	/\\caption\{[^\n]*\}\n\\end\{figure\}/.test(escapedCaption),
+	JSON.stringify(escapedCaption.match(/\\begin\{figure\}[\s\S]*?\\end\{figure\}/)?.[0])
+);
 
 finish();

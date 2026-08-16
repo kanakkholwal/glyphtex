@@ -128,14 +128,18 @@
 				onregistershell={files.project?.registerShellIntegration
 					? () => files.registerShell()
 					: undefined}
-				searchResults={search.searchResults}
-				searchActive={search.searchActive}
-				onsearch={(o) => search.runSearch(o)}
-				ongotoresult={(i) => search.gotoResult(i)}
-				onsearchnext={() => search.searchNext()}
-				onsearchprev={() => search.searchPrev()}
-				onreplacecurrent={(r) => search.replaceCurrent(r)}
-				onreplaceall={(r) => search.replaceAll(r)}
+				searchResult={search.projectResult}
+				searchHits={search.projectHits}
+				searchActive={search.projectActive}
+				searchScanning={search.projectScanning}
+				searchCollapsed={search.collapsedGroups}
+				ontogglegroup={(id) => search.toggleGroup(id)}
+				onsearch={(o) => search.queueProjectSearch(o)}
+				ongotoresult={(i) => search.gotoHit(i)}
+				onsearchnext={() => search.projectNext()}
+				onsearchprev={() => search.projectPrev()}
+				onreplacecurrent={(r) => search.replaceHit(r)}
+				onreplaceall={(r) => ctrl.replaceAllInProject(r)}
 			/>
 		</div>
 
