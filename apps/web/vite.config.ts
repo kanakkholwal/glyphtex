@@ -1,7 +1,7 @@
 import adapter from '@sveltejs/adapter-cloudflare';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 
 export default defineConfig({
 	plugins: [
@@ -16,6 +16,16 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
+
+	server: {
+		fs: {
+			// SvelteKit replaces Vite's workspace-root default with its own narrow list
+			// (src, .svelte-kit, node_modules), and `@glyphtex/ui` is a symlink into
+			// `packages/ui`: Vite resolves the real path, finds it outside every entry,
+			// and 403s it. Dev only.
+			allow: [searchForWorkspaceRoot(process.cwd())]
+		}
+	},
 
 	optimizeDeps: {
 		// Discovered only when the preview pane mounts; without this the first

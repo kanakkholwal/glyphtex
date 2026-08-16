@@ -1,6 +1,6 @@
 [package]
 name = "tectonic-wasm"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 description = "Tectonic TeX engine compiled to WebAssembly"
 license = "MIT"

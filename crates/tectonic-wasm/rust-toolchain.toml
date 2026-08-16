@@ -1,16 +1,6 @@
 # Pinned deliberately, and it should stay in step with EM_VERSION in
 # .github/workflows/tex-engine.yml.
-#
-# What pinning does NOT do is fix the exception-handling mismatch. An earlier
-# version of this comment claimed it did; that was wrong, and it cost a long
-# debugging session. Emscripten ships HarfBuzz and ICU built ONLY with the
-# JS exception scheme — no version of the SDK offers wasm-EH variants of them —
-# while rustc defaults to wasm EH on this target. No choice of versions
-# reconciles those. The actual fix lives in scripts/build-wasm.sh:
-# -Zemscripten-wasm-eh=no together with -Zbuild-std.
-#
-# Pinning is still worth keeping, for the ordinary reason: reproducible builds
-# and no surprise lint or codegen changes mid-project.
+
 [toolchain]
 channel = "1.94"
 targets = ["wasm32-unknown-emscripten"]
