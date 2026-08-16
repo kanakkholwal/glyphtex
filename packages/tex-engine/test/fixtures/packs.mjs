@@ -219,5 +219,17 @@ Body text set in the IEEE conference class.
 \sffamily Sans \textbf{bold}.
 \ttfamily Mono.
 \end{document}`
+	},
+	{
+		// All three FA5 fonts: free-solid (\faHome, \faStar, \faHeart), brands
+		// (\faGithub), and the named form (\faIcon). The vendored shim renders from
+		// the upstream codepoint mapping, so no \XeTeXglyphname enumeration runs.
+		id: 'icons',
+		source: String.raw`\documentclass{article}
+\usepackage{fontawesome5}
+\begin{document}
+\faHome\ \faStar\ \faGithub\ \faIcon{rocket}\par
+{\Huge\faHeart}
+\end{document}`
 	}
 ];

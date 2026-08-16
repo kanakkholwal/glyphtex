@@ -103,6 +103,21 @@ for (const pack of config.packs) {
 	/** Packs whose files this one turned out to need. */
 	const requires = new Set();
 
+	// Vendored packs ship files from this repo, not TeX Live: our own shim .sty
+	// plus the upstream fonts it loads. Seeded first so the fixture compiles
+	// against them and our copy wins over any same-named TeX Live file.
+	let vendored = 0;
+	if (pack.vendor) {
+		const vdir = resolve(pkgRoot, 'vendor', pack.vendor);
+		for (const name of readdirSync(vdir)) {
+			if (name === 'NOTICE.md' || !isBareName(name)) continue;
+			const path = join(vdir, name);
+			if (!statSync(path).isFile()) continue;
+			extra.set(name, new Uint8Array(readFileSync(path)));
+			vendored++;
+		}
+	}
+
 	// Wholesale additions the fixture cannot pull via `missingFiles` — beamer's
 	// themes, lmodern's outlines. Applied BEFORE convergence so the fixture
 	// compiles against them (a fonts pack cannot embed glyphs without its .pfb).
@@ -163,8 +178,11 @@ for (const pack of config.packs) {
 			break;
 		}
 
+		// A vendored pack carries every file it needs, so it must compile against
+		// core alone. Resolving its speculative probes from TeX Live would only
+		// vacuum unrelated fonts (every doc probes lmroman10-regular.pfb) into it.
 		let gained = 0;
-		for (const name of result.missingFiles) if (add(name)) gained++;
+		if (!pack.vendor) for (const name of result.missingFiles) if (add(name)) gained++;
 
 		const pdf = result.status === 'failed' ? null : engine.pdf();
 		const ok = result.status !== 'failed' && result.status !== 'errors' && pdf && pdf.length > 1000;
@@ -246,9 +264,10 @@ for (const pack of config.packs) {
 
 	const deps = requires.size > 0 ? `  requires ${[...requires].join(', ')}` : '';
 	const inc = included > 0 ? `  +${included} included` : '';
+	const ven = vendored > 0 ? `  +${vendored} vendored` : '';
 	console.log(
 		`  ${pack.id.padEnd(13)} ${String(count).padStart(4)} files  ` +
-			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz${deps}${inc}`
+			`${(raw / 1048576).toFixed(1)} MB raw  ${(gz.length / 1048576).toFixed(2)} MB gz${deps}${inc}${ven}`
 	);
 }
 

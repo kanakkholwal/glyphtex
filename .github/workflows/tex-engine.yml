@@ -1,26 +1,17 @@
 name: TeX engine
 
-# Builds the Tectonic WASM engine, tests it end to end, and on a tag publishes a
-# GitHub Release, the glyphtex-engine npm package and the glyphtex-tex-api crate.
-# The engine is a single .wasm file, and the bundle is a tarball of the
-# preloaded LaTeX format and all the packages it needs.
-#
-# Only glyphtex-tex-api goes to crates.io. tectonic-wasm depends on the vendored
-# Tectonic submodule through version-less `path` entries, which cargo refuses to
-# publish; shipping it would mean publishing the whole of Tectonic under our own
-# name. The npm package is how the engine itself is distributed.
 on:
   push:
     branches: [main]
     paths:
-      - 'crates/**'
-      - 'packages/tex-engine/**'
-      - '.github/workflows/tex-engine.yml'
-    tags: ['tex-engine-v*']
+      - "crates/**"
+      - "packages/tex-engine/**"
+      - ".github/workflows/tex-engine.yml"
+    tags: ["tex-engine-v*"]
   pull_request:
     paths:
-      - 'crates/**'
-      - 'packages/tex-engine/**'
+      - "crates/**"
+      - "packages/tex-engine/**"
   workflow_dispatch:
 
 concurrency:
@@ -28,16 +19,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Must stay in step with crates/tectonic-wasm/rust-toolchain.toml — see the
-  # note there. Emscripten 6 removed -sRELOCATABLE and changed the exception
-  # and longjmp defaults, and newer rustc forces wasm exception handling; the
-  # two only agree when both are pinned to the same era.
   EM_VERSION: 5.0.2
   CARGO_TERM_COLOR: always
 
 jobs:
-  # Fast feedback: the pure-Rust crate needs no C toolchain, so it fails in
-  # under a minute rather than after the ~20-minute engine build.
   api:
     name: API crate + TypeScript types
     runs-on: ubuntu-latest
@@ -54,12 +39,9 @@ jobs:
             exit 1
           fi
 
-      # Pinned, not @stable. Clippy gains lints every six weeks and this job
-      # runs with -D warnings, so @stable turns an unrelated PR red whenever a
-      # new lint fires on existing code. Bump this deliberately.
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.94'
+          toolchain: "1.94"
           components: clippy, rustfmt
 
       - uses: Swatinem/rust-cache@v2
@@ -90,9 +72,6 @@ jobs:
           pnpm install --ignore-workspace --frozen-lockfile=false
           pnpm generate
 
-      # The generated types are committed so consumers can build without a Rust
-      # toolchain. If they drift from the Rust definitions, the two can
-      # disagree silently — so treat drift as a failure.
       - name: Check generated types are up to date
         run: |
           if ! git diff --exit-code -- packages/tex-engine/src/generated; then
@@ -111,16 +90,10 @@ jobs:
         with:
           submodules: recursive
 
-      # Not @stable: the version is pinned in crates/tectonic-wasm/rust-toolchain.toml.
-      # Installing stable here would download a second toolchain that rustup
-      # then overrides on the first cargo call.
-      #
-      # rust-src is not optional — the build rebuilds std via -Zbuild-std so it
-      # uses the same exception scheme as Emscripten's C++ ports. Without it the
-      # build fails at the link with an undefined __cpp_exception.
+  
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.94'
+          toolchain: "1.94"
           targets: wasm32-unknown-emscripten
           components: rust-src
 
@@ -133,8 +106,7 @@ jobs:
         with:
           workspaces: crates/tectonic-wasm
 
-      # graphite2 is built from source by the build script; its cmake step is
-      # the slowest part that never changes.
+     
       - name: Cache Emscripten sysroot additions
         uses: actions/cache@v4
         with:
@@ -152,7 +124,6 @@ jobs:
       - name: Check size budget
         run: ./scripts/check-size-budget.sh
         working-directory: crates/tectonic-wasm
-
 
       - uses: actions/upload-artifact@v4
         with:
@@ -177,13 +148,6 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-
-      # The bundle — including the preloaded latex.fmt — is a committed data
-      # input, not a build output: a TeX format is a memory image of the engine
-      # that dumped it, so it is regenerated deliberately (pnpm
-      # engine:bundle:format, needs a TeX Live install) rather than on every CI
-      # run. Refreshing it means refreshing the packages from the same snapshot
-      # too; a format older than its packages fails as "LaTeX kernel too old".
       - name: Extract TeX bundle
         run: |
           mkdir -p /tmp/bundle
@@ -195,31 +159,21 @@ jobs:
           pnpm install --ignore-workspace --frozen-lockfile=false
           pnpm build
 
-      # Fails if the bundle lacks anything bundle-manifest.json promises. The
-      # installer offers those groups by name, so a gap here means the UI is
-      # advertising something the engine cannot compile.
+
       - name: Verify bundle satisfies the manifest
         run: cd packages/tex-engine && pnpm bundle:verify /tmp/bundle
 
-      # Two suites run here. compile.test.mjs covers the regressions the engine
-      # rewrite exists to fix (booktabs used to hang; font-size changes emitted
-      # a 15-byte PDF with no error). groups.test.mjs compiles a real document
-      # for every package group, because a file being *present* in the bundle
-      # does not mean the package *works* — that gap is how siunitx shipped
-      # listed-but-broken.
+
       - name: Test
         env:
           GLYPHTEX_WASM: ${{ github.workspace }}/crates/tectonic-wasm/output/tectonic_wasm.wasm
           GLYPHTEX_BUNDLE: /tmp/bundle
           # Without this the suite skips when an artifact path is wrong and
           # `node --test` still exits 0 — a green job that ran zero tests.
-          GLYPHTEX_REQUIRE_ENGINE: '1'
+          GLYPHTEX_REQUIRE_ENGINE: "1"
         run: cd packages/tex-engine && pnpm test
 
-  # Gated on the engine and the end-to-end tests even though the crate does not
-  # depend on either. A crates.io version can be yanked but never replaced, so
-  # publishing it while the engine build is red would pin a release that the
-  # rest of the tag never completed.
+
   crate:
     name: Publish crate to crates.io
     needs: [api, engine, test]
@@ -230,7 +184,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.94'
+          toolchain: "1.94"
 
       - uses: Swatinem/rust-cache@v2
         with:

@@ -1,0 +1,35 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesExplPackage{fontawesome5}{2026/08/16}{5.15.4-glyphtex}{Filename-loaded Font Awesome 5 for the GlyphTeX browser engine}
+% Upstream fontawesome5 builds its icon table by enumerating glyph names via
+% \XeTeXglyphname, which traps the WASM engine. This shim reuses the upstream
+% mapping.def (icon name, font bank, and Unicode codepoint) and renders by
+% \char, so no glyph-name enumeration runs. Fonts load by filename via the
+% TU .fd files (\UnicodeFontFile), which the in-memory VFS resolves directly.
+\cs_new_protected:Nn \__glyphtexfa_icon:nn {
+  % #1 = pdftex font bank (free*/brands*), #2 = "codepoint
+  \leavevmode
+  \group_begin:
+    \str_if_eq:eeTF { \str_head:n {#1} } { b }
+      { \usefont { TU } { fontawesomebrands } { regular } { n } }
+      { \usefont { TU } { fontawesomefree } { solid } { n }
+        \unless \iffontchar \font #2 \relax
+          \usefont { TU } { fontawesomefree } { regular } { n }
+        \fi }
+    \char #2 \scan_stop:
+  \group_end:
+}
+\cs_new_protected:Nn \__glyphtexfa_def:nnnnn {
+  % #1 cmd, #2 name, #3 bank, #4 pdftex-slot (unused), #5 "codepoint
+  \tl_if_empty:nF {#1}
+    { \cs_set_protected:Npn #1 { \__glyphtexfa_icon:nn {#3} {#5} } }
+  \cs_if_free:cT { c__glyphtexfa_ #2 _tl }
+    { \tl_const:cn { c__glyphtexfa_ #2 _tl } { {#3} {#5} } }
+}
+\cs_set_eq:NN \__fontawesome_def_icon:nnnnn \__glyphtexfa_def:nnnnn
+\file_input:n { fontawesome5-mapping.def }
+\NewDocumentCommand \faIcon { O{} m } {
+  \cs_if_exist:cTF { c__glyphtexfa_ #2 _tl }
+    { \exp_last_unbraced:Nv \__glyphtexfa_icon:nn { c__glyphtexfa_ #2 _tl } }
+    { \PackageError { fontawesome5 } { Unknown~icon~"#2" } { } }
+}
+\endinput

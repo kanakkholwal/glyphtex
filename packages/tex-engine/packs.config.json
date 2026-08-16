@@ -126,6 +126,14 @@
 			"description": "Type1 outlines for the default font family, needed to embed glyphs under \\usepackage[T1]{fontenc}. Core carries the definitions and metrics; these are the outlines.",
 			"packages": ["lm"],
 			"include": ["lm*.pfb", "lm*.vf", "lm*.enc"]
+		},
+		{
+			"id": "icons",
+			"label": "Icons (Font Awesome 5)",
+			"description": "Font Awesome 5 icon commands (\\faHome, \\faGithub, \\faIcon{...}). A filename-loaded shim: upstream fontawesome5 enumerates glyph names at load, which traps the WASM engine, so this renders from the upstream codepoint mapping instead.",
+			"packages": ["fontawesome5"],
+			"vendor": "fontawesome5",
+			"optional": true
 		}
 	]
 }
