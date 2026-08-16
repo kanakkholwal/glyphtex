@@ -1,7 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 
 // Tauri exposes its dev host through this env var when targeting devices.
 const host = process.env.TAURI_DEV_HOST;
@@ -37,6 +37,13 @@ export default defineConfig({
 		watch: {
 			// The Rust side is rebuilt by cargo, not vite.
 			ignored: ['**/src-tauri/**']
+		},
+		fs: {
+			// SvelteKit replaces Vite's workspace-root default with its own narrow list
+			// (src, .svelte-kit, node_modules), and `@glyphtex/ui` is a symlink into
+			// `packages/ui`: Vite resolves the real path, finds it outside every entry,
+			// and 403s it. Dev only.
+			allow: [searchForWorkspaceRoot(process.cwd())]
 		}
 	},
 	optimizeDeps: {

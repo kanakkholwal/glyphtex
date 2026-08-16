@@ -2,7 +2,7 @@
 	import { untrack } from 'svelte';
 
 	import { Button } from '@glyphtex/ui/button';
-	import { IconTrash } from '@tabler/icons-svelte';
+	import { IconLinkOff, IconTrash } from '@tabler/icons-svelte';
 
 	/** Edits one atom in place. These are the parts of a paragraph you can see but
 	 *  could never type into. */
@@ -10,11 +10,14 @@
 		target,
 		onapply,
 		onremove,
+		onunlink,
 		onclose
 	}: {
 		target: HTMLElement;
 		onapply: (value: { src: string; url?: string }) => void;
 		onremove: () => void;
+		/** Drop the command but keep what it wrapped. */
+		onunlink?: () => void;
 		onclose: () => void;
 	} = $props();
 
@@ -25,6 +28,7 @@
 		label: { title: 'Anchor', hint: 'The name other blocks reference' },
 		link: { title: 'Link', hint: 'Shown text and its address' },
 		footnote: { title: 'Footnote', hint: 'LaTeX, written back as typed' },
+		comment: { title: 'Comment', hint: 'Kept in the source, never printed' },
 		raw: { title: 'Not modelled', hint: 'Raw LaTeX, written back exactly' }
 	};
 
@@ -42,7 +46,19 @@
 	const kind = $derived(target.getAttribute('data-atom') ?? 'raw');
 	const meta = $derived(KINDS[kind] ?? KINDS.raw);
 	const isLink = $derived(kind === 'link');
-	const rect = $derived(target.getBoundingClientRect());
+
+	// Follows its atom rather than closing: the panel holds unapplied text, and a
+	// stray wheel event used to throw it away.
+	let scrolled = $state(0);
+	$effect(() => {
+		const bump = () => scrolled++;
+		window.addEventListener('scroll', bump, true);
+		return () => window.removeEventListener('scroll', bump, true);
+	});
+	const rect = $derived.by(() => {
+		void scrolled;
+		return target.getBoundingClientRect();
+	});
 
 	// Seeded once on open. The panel is keyed by the atom it edits, so a different
 	// atom mounts a fresh instance rather than reusing this value.
@@ -139,17 +155,32 @@
 		/>
 	{/if}
 
-	<div class="mt-2.5 flex items-center gap-2">
-		<Button size="sm" class="h-8" onclick={apply}>Apply</Button>
+	<div class="mt-2.5 flex items-center gap-1">
+		<Button size="sm" class="mr-1 h-8" onclick={apply}>Apply</Button>
 		<Button size="sm" variant="ghost" class="h-8" onclick={onclose}>Cancel</Button>
+		{#if isLink && onunlink}
+			<Button
+				size="sm"
+				variant="ghost"
+				title="Remove the link, keep the text"
+				class="text-muted-foreground hover:text-foreground ml-auto h-8 gap-1.5 px-2"
+				onclick={onunlink}
+			>
+				<IconLinkOff size={14} />
+				Unlink
+			</Button>
+		{/if}
 		<Button
 			size="sm"
 			variant="ghost"
-			class="text-muted-foreground hover:text-destructive ml-auto h-8 gap-1.5 px-2"
+			title={isLink ? 'Delete the link and its text' : 'Delete'}
+			class="text-muted-foreground hover:text-destructive h-8 gap-1.5 px-2 {isLink && onunlink
+				? ''
+				: 'ml-auto'}"
 			onclick={onremove}
 		>
 			<IconTrash size={14} />
-			Remove
+			Delete
 		</Button>
 	</div>
 </div>

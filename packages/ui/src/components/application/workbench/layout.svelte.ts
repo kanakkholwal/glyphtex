@@ -96,6 +96,10 @@ export class LayoutStore {
 	 *  when jumping from a visual block, which unmounts the editor as it switches. */
 	revealSpan = $state<{ from: number; to: number } | null>(null);
 
+	/** A 1-based source line the Visual pane should scroll its matching block to.
+	 *  Outline clicks land here in Visual: there is no CodeMirror handle to jump. */
+	revealLine = $state<number | null>(null);
+
 	/** Apply and clear a queued reveal. Called by the editor pane on mount.
 	 *  Held until the editor is actually ready: it is bound before its module
 	 *  finishes loading, and calling early would drop the reveal silently. */

@@ -54,11 +54,14 @@
 	};
 
 	// Parsing is cheap per cell but a long table reparses on every keystroke in the
-	// document, so the results are kept.
+	// document, so the results are kept. Bounded: every intermediate text a cell
+	// passes through while being typed lands in here.
 	const parsed = new Map<string, Inline[]>();
+	const PARSE_CACHE = 512;
 	function runsOf(text: string): Inline[] {
 		let runs = parsed.get(text);
 		if (!runs) {
+			if (parsed.size >= PARSE_CACHE) parsed.clear();
 			runs = tex.parseInlineFragment(text);
 			parsed.set(text, runs);
 		}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		IconAlertTriangle,
 		IconChevronDown,
 		IconChevronRight,
 		IconChevronUp,
@@ -7,19 +8,24 @@
 		IconReplace,
 		IconReplaceFilled
 	} from '@tabler/icons-svelte';
+	import { MediaQuery } from 'svelte/reactivity';
 
 	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from '../search-ui';
+	import type { FileMatches, Hit, ScanResult } from '../workbench/project-search';
 	import type { SidePanelStore } from './store.svelte';
-	import type { SearchMatch } from './types';
 
 	/**
-	 * Search view: a full find/replace panel (toggles live inside the fields, VS
-	 * Code parity) plus the results list grouped under the active file.
+	 * Project search: find/replace across every file, with the toggles inside the
+	 * fields (VS Code parity) and results grouped per file.
 	 */
 	let {
 		store,
-		searchResults,
-		searchActive,
+		result,
+		hits,
+		activeHit,
+		scanning,
+		collapsed,
+		ontogglegroup,
 		onsearchnext,
 		onsearchprev,
 		ongotoresult,
@@ -27,8 +33,12 @@
 		onreplaceall
 	}: {
 		store: SidePanelStore;
-		searchResults: SearchMatch[];
-		searchActive: number;
+		result: ScanResult;
+		hits: Hit[];
+		activeHit: number;
+		scanning: boolean;
+		collapsed: Record<string, boolean>;
+		ontogglegroup?: (id: string) => void;
 		onsearchnext?: () => void;
 		onsearchprev?: () => void;
 		ongotoresult?: (i: number) => void;
@@ -36,15 +46,74 @@
 		onreplaceall?: (replace: string) => void;
 	} = $props();
 
-	function onSearchKeydown(e: KeyboardEvent) {
+	const reduced = new MediaQuery('prefers-reduced-motion: reduce');
+	let listEl = $state<HTMLElement>();
+	let replaceEl = $state<HTMLInputElement>();
+
+	const fileCount = $derived(result.groups.length);
+	const isOpen = (group: FileMatches) => !collapsed[group.id];
+
+	/** Rows as rendered, so arrow keys and the active highlight agree. */
+	const rows = $derived(
+		result.groups.flatMap((group) =>
+			isOpen(group)
+				? group.matches.map((_, i) => ({ group, i }))
+				: ([] as { group: FileMatches; i: number }[])
+		)
+	);
+	/** Flat hit index for a rendered row, or -1 when its group is folded. */
+	const hitIndexOf = (group: FileMatches, i: number) =>
+		hits.findIndex((h) => h.fileId === group.id && h.match.from === group.matches[i].from);
+
+	// Keep the active match on screen. The list can run to hundreds of rows, and
+	// Enter-navigation would otherwise move an invisible highlight.
+	$effect(() => {
+		void activeHit;
+		const el = listEl?.querySelector<HTMLElement>('[data-active="true"]');
+		el?.scrollIntoView({ block: 'nearest', behavior: reduced.current ? 'auto' : 'smooth' });
+	});
+
+	function onFindKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
 			e.preventDefault();
 			if (e.shiftKey) onsearchprev?.();
 			else onsearchnext?.();
+			return;
+		}
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			store.clearSearchView();
+		}
+	}
+	function onReplaceKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			// Shift+Enter is replace-all: the same relationship Enter/Shift+Enter has
+			// in the find field, one level up in scope.
+			if (e.shiftKey) onreplaceall?.(store.replace);
+			else onreplacecurrent?.(store.replace);
+			return;
+		}
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			store.searchInputEl?.focus();
 		}
 	}
 
-	// Autofocus the field when the Search view opens (e.g. via Ctrl/Cmd+F).
+	/** One tab stop for the whole list; arrows move between matches. */
+	function onRowKeydown(e: KeyboardEvent, at: number) {
+		const step =
+			e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : e.key === 'Home' ? -at : e.key === 'End' ? rows.length - 1 - at : null;
+		if (step === null) return;
+		e.preventDefault();
+		const next = rows[Math.max(0, Math.min(rows.length - 1, at + step))];
+		if (!next) return;
+		const index = hitIndexOf(next.group, next.i);
+		if (index !== -1) ongotoresult?.(index);
+		listEl?.querySelectorAll<HTMLElement>('[data-row]')[at + step]?.focus();
+	}
+
+	// Autofocus the field when the Search view opens (e.g. via Shift+Ctrl/Cmd+F).
 	$effect(() => {
 		store.searchInputEl?.focus();
 	});
@@ -61,21 +130,25 @@
 		>
 			<IconChevronRight
 				size={15}
-				class="transition-transform duration-200 {store.showReplace ? 'rotate-90' : ''}"
+				class="transition-transform duration-200 motion-reduce:transition-none {store.showReplace
+					? 'rotate-90'
+					: ''}"
 			/>
 		</button>
 
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
-			<!-- Find: toggles live inside the field (VS Code parity) -->
 			<div class="relative">
 				<input
 					bind:this={store.searchInputEl}
 					bind:value={store.query}
 					oninput={() => store.emitSearch()}
-					onkeydown={onSearchKeydown}
-					class="{SEARCH_INPUT} w-full pr-[4.75rem]"
-					placeholder="Find"
-					aria-label="Find in document"
+					onkeydown={onFindKeydown}
+					class="{SEARCH_INPUT} w-full pr-[4.75rem] {result.error
+						? 'border-destructive focus-visible:border-destructive'
+						: ''}"
+					placeholder="Find in project"
+					aria-label="Find in project"
+					aria-invalid={Boolean(result.error)}
 					spellcheck="false"
 				/>
 				<div class="absolute top-1/2 right-1 flex -translate-y-1/2 items-center gap-0.5">
@@ -93,13 +166,13 @@
 				</div>
 			</div>
 
-			<!-- Replace: preserve-case toggle lives inside the field (VS Code parity);
-           replace / replace-all sit alongside it. -->
 			{#if store.showReplace}
 				<div class="flex items-center gap-1">
 					<div class="relative min-w-0 flex-1">
 						<input
+							bind:this={replaceEl}
 							bind:value={store.replace}
+							onkeydown={onReplaceKeydown}
 							class="{SEARCH_INPUT} w-full pr-7"
 							placeholder={store.useRegex ? 'Replace ($1, $&…)' : 'Replace'}
 							aria-label="Replace with"
@@ -119,18 +192,20 @@
 					</div>
 					<button
 						class="{SEARCH_BTN} shrink-0"
-						title="Replace next match"
-						aria-label="Replace next match"
-						disabled={!searchResults.length}
+						title="Replace this match (Enter)"
+						aria-label="Replace this match"
+						disabled={!hits.length}
 						onclick={() => onreplacecurrent?.(store.replace)}
 					>
 						<IconReplace size={15} />
 					</button>
 					<button
 						class="{SEARCH_BTN} shrink-0"
-						title="Replace all matches"
+						title={fileCount > 1
+							? `Replace all ${result.total} matches in ${fileCount} files (Shift+Enter)`
+							: 'Replace all matches (Shift+Enter)'}
 						aria-label="Replace all matches"
-						disabled={!searchResults.length}
+						disabled={!hits.length}
 						onclick={() => onreplaceall?.(store.replace)}
 					>
 						<IconReplaceFilled size={15} />
@@ -140,12 +215,22 @@
 		</div>
 	</div>
 
-	<!-- Results header: match count + navigation, attached to the list. -->
-	{#if store.query}
+	{#if result.error}
+		<p
+			class="text-destructive flex items-start gap-1.5 px-1.5 pt-1 text-xs"
+			role="alert"
+		>
+			<IconAlertTriangle size={13} class="mt-px shrink-0" />
+			<span>{result.error}</span>
+		</p>
+	{:else if store.query}
 		<div class="flex items-center gap-1 px-0.5">
 			<span class={SEARCH_COUNT}>
-				{#if searchResults.length}
-					{searchActive + 1} of {searchResults.length}
+				{#if scanning}
+					Searching…
+				{:else if result.total}
+					{activeHit + 1} of {result.total}
+					{#if fileCount > 1}<span class="text-faint"> in {fileCount} files</span>{/if}
 				{:else}
 					No results
 				{/if}
@@ -154,7 +239,7 @@
 				class="{SEARCH_BTN} ml-auto"
 				title="Previous match (Shift+Enter)"
 				aria-label="Previous match"
-				disabled={!searchResults.length}
+				disabled={!hits.length}
 				onclick={() => onsearchprev?.()}
 			>
 				<IconChevronUp size={15} />
@@ -163,7 +248,7 @@
 				class={SEARCH_BTN}
 				title="Next match (Enter)"
 				aria-label="Next match"
-				disabled={!searchResults.length}
+				disabled={!hits.length}
 				onclick={() => onsearchnext?.()}
 			>
 				<IconChevronDown size={15} />
@@ -171,51 +256,68 @@
 		</div>
 	{/if}
 
-	<!-- Results: grouped under the active file, collapsible (VS Code parity). -->
-	{#if store.query && searchResults.length}
-		<div class="mt-1">
-			<button
-				class="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-left transition-colors"
-				aria-expanded={!store.resultsCollapsed}
-				onclick={() => (store.resultsCollapsed = !store.resultsCollapsed)}
-			>
-				<IconChevronRight
-					size={13}
-					class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {store.resultsCollapsed
-						? ''
-						: 'rotate-90'}"
-				/>
-				<IconFileText size={14} class="shrink-0" />
-				<span class="text-foreground truncate text-sm font-medium">{store.activeFileName}</span>
-			</button>
-			{#if !store.resultsCollapsed}
-				<ul class="flex flex-col">
-					{#each searchResults.slice(0, 500) as m, i (i)}
-						<li>
-							<button
-								class="flex h-7 w-full items-center gap-1.5 rounded-md pr-2 pl-6 text-left transition-colors {i ===
-								searchActive
-									? 'bg-accent text-accent-foreground'
-									: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
-								onclick={() => ongotoresult?.(i)}
-								title={`Line ${m.line}`}
+	{#if !result.error && result.total}
+		{@const activeKey = hits[activeHit]}
+		<div bind:this={listEl} class="mt-1" role="listbox" aria-label="Search results" tabindex="-1">
+			{#each result.groups as group (group.id)}
+				{@const open = isOpen(group)}
+				<button
+					type="button"
+					class="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-left transition-colors"
+					aria-expanded={open}
+					onclick={() => ontogglegroup?.(group.id)}
+				>
+					<IconChevronRight
+						size={13}
+						class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none {open
+							? 'rotate-90'
+							: ''}"
+					/>
+					<IconFileText size={14} class="shrink-0" />
+					<span class="text-foreground min-w-0 flex-1 truncate text-sm font-medium"
+						>{group.name}</span
+					>
+					<span class="text-faint shrink-0 text-xs tabular-nums">{group.matches.length}</span>
+				</button>
+
+				{#if open}
+					{#each group.matches as m, i (m.from)}
+						{@const index = hitIndexOf(group, i)}
+						{@const on = activeKey && activeKey.fileId === group.id && activeKey.match.from === m.from}
+						<button
+							type="button"
+							role="option"
+							data-row
+							data-active={on ? 'true' : undefined}
+							aria-selected={on}
+							tabindex={on ? 0 : -1}
+							class="flex h-7 w-full items-center gap-1.5 rounded-md pr-2 pl-6 text-left transition-colors {on
+								? 'bg-accent text-accent-foreground'
+								: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
+							title={`${group.name}:${m.line}`}
+							onkeydown={(e) => onRowKeydown(e, rows.findIndex((r) => r.group.id === group.id && r.i === i))}
+							onclick={() => ongotoresult?.(index)}
+						>
+							<span
+								class="text-faint w-9 shrink-0 text-right font-mono text-xs tabular-nums"
 							>
-								<span class="text-faint w-7 shrink-0 text-right font-mono text-xs tabular-nums">
-									{m.line}
-								</span>
-								<span class="truncate font-mono text-xs">{m.text.trim() || ' '}</span>
-							</button>
-						</li>
+								{m.line}
+							</span>
+							<span class="truncate font-mono text-xs">{m.text.trim() || ' '}</span>
+						</button>
 					{/each}
-				</ul>
-				{#if searchResults.length > 500}
-					<p class="text-faint px-2 text-xs">
-						Showing first 500 of {searchResults.length}.
-					</p>
 				{/if}
+			{/each}
+
+			{#if result.truncated}
+				<p class="text-faint px-2 pt-1 text-xs">
+					Stopped at {result.total} matches. Narrow the search to see the rest.
+				</p>
 			{/if}
 		</div>
 	{:else if !store.query}
-		<p class="text-faint mt-1 px-1.5 text-xs">Find &amp; replace in the active file.</p>
+		<p class="text-faint mt-1 px-1.5 text-xs">
+			Find &amp; replace across every file in this project.
+		</p>
 	{/if}
 </div>

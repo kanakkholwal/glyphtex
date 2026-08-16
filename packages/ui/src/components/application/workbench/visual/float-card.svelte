@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
-	import type { FloatAlignment, FloatBlock, Patch } from '@glyphtex/ui/tex-doc';
+	import type { FloatAlignment, FloatBlock, Inline, Patch } from '@glyphtex/ui/tex-doc';
 	import {
 		IconAlignCenter,
 		IconAlignLeft,
@@ -15,6 +15,7 @@
 
 	import { classifyFile } from '../../file-kinds';
 	import type { WorkbenchController } from '../controller.svelte';
+	import BlockEditor from './block-editor.svelte';
 	import TableGrid from './table-grid.svelte';
 
 	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
@@ -28,7 +29,7 @@
 		tex,
 		onpatch,
 		onopensource,
-		oncellpatch,
+		onlocalpatch,
 		onatom
 	}: {
 		block: FloatBlock;
@@ -39,8 +40,9 @@
 		 *  to put `\usepackage{wrapfig}` in the preamble. */
 		onpatch: (patches: (Patch | null)[]) => void;
 		onopensource: () => void;
-		/** A cell text edit, which must not reparse the document under the caret. */
-		oncellpatch?: (patch: Patch | null) => void;
+		/** One span, typed into: a cell or the caption. Must not reparse the
+		 *  document under the caret. */
+		onlocalpatch?: (patch: Patch | null) => void;
 		/** A cell's maths or citation was clicked; the pane owns that editor. */
 		onatom?: (element: HTMLElement) => void;
 	} = $props();
@@ -196,25 +198,24 @@
 		]);
 	}
 
-	let captionEl = $state<HTMLElement>();
-	// Off the DOM, not the model: the model only catches up on a reparse, so its
-	// placeholder sat under the first characters typed.
-	let captionEmpty = $state(true);
+	/** A label is a key, not prose: anything that would need escaping inside
+	 *  `\label{…}` is dropped rather than written and left to fail at compile. */
+	const labelKey = (value: string) => value.replace(/[\\{}%#$&~^_\s]+/g, '-').replace(/^-|-$/g, '');
 
-	// The caption is plain text, not inline runs: it lives inside `\caption{…}`,
-	// which this card patches as a whole rather than reprinting the float.
-	$effect(() => {
-		const text = block.caption ?? '';
-		if (captionEl && document.activeElement !== captionEl) {
-			if (captionEl.textContent !== text) captionEl.textContent = text;
-			captionEmpty = !text;
-		}
-	});
+	// Read off the source, not off `block.caption`: a caption keystroke patches one
+	// span without reparsing, so the model is a moment behind and the slice is not.
+	const captionText = $derived(tex ? (tex.floatCaption(source, block) ?? '') : '');
+	const captionRuns = $derived(tex ? tex.parseInlineFragment(captionText) : []);
 
-	function commitCaption() {
-		const text = (captionEl?.textContent ?? '').replace(/\s+/g, ' ').trim();
-		if (text === (block.caption ?? '')) return;
-		one((t) => t.setFloatCaption(source, block, text));
+	/** Printed like any other inline content, which is what escapes a typed `%`
+	 *  instead of commenting out the rest of the float. */
+	function commitCaption(runs: Inline[]) {
+		if (!tex) return;
+		const text = tex.printInlines(runs).replace(/\s+/g, ' ').trim();
+		if (text === captionText.trim()) return;
+		const patch = tex.setFloatCaption(source, block, text);
+		if (onlocalpatch) onlocalpatch(patch);
+		else onpatch([patch]);
 	}
 
 	const CHIP =
@@ -305,7 +306,7 @@
 				tex={tex!}
 				align={PLACEMENT_OF[alignment ?? 'raggedright']}
 				{onatom}
-				{oncellpatch}
+				oncellpatch={onlocalpatch}
 				onpatch={(patch) => onpatch([patch])}
 			/>
 		{:else}
@@ -468,7 +469,7 @@
 						class="{FIELD} font-mono"
 						onchange={(e) =>
 							one((t) =>
-								t.setFloatLabel(source, block, (e.currentTarget as HTMLInputElement).value)
+								t.setFloatLabel(source, block, labelKey((e.currentTarget as HTMLInputElement).value))
 							)}
 					/>
 					<p class="text-faint mt-1 text-[0.6875rem]">
@@ -481,35 +482,15 @@
 
 	<figcaption class="border-border relative border-t px-3 py-2">
 		<span class="text-faint mr-1.5 text-xs">Caption</span>
-		<span
-			bind:this={captionEl}
-			contenteditable="true"
-			role="textbox"
-			tabindex="0"
-			aria-label="{isTable ? 'Table' : 'Figure'} caption"
-			data-float-caption
-			data-empty={captionEmpty || undefined}
-			data-placeholder="Describe this {isTable ? 'table' : 'figure'}"
-			class="text-foreground hover:bg-accent/60 focus-visible:bg-accent/60 inline-block min-w-48 rounded-sm text-sm outline-none"
-			oninput={() => (captionEmpty = !(captionEl?.textContent ?? '').trim())}
-			onblur={commitCaption}
-			onkeydown={(e) => {
-				if (e.key === 'Enter') {
-					e.preventDefault();
-					(e.currentTarget as HTMLElement).blur();
-				}
-			}}
-		></span>
+		<BlockEditor
+			runs={captionRuns}
+			tag="span"
+			label="{isTable ? 'Table' : 'Figure'} caption"
+			placeholder="Describe this {isTable ? 'table' : 'figure'}"
+			attributes={{ 'data-float-caption': '' }}
+			class="text-foreground hover:bg-accent/60 focus-visible:bg-accent/60 relative inline-block min-w-48 rounded-sm text-sm"
+			oninput={commitCaption}
+			onatom={(el) => onatom?.(el)}
+		/>
 	</figcaption>
 </figure>
-
-<style>
-	/* Out of the flow: an inline placeholder pushed the first typed character
-	   along in front of it instead of being replaced by it. */
-	[data-float-caption][data-empty]::before {
-		content: attr(data-placeholder);
-		position: absolute;
-		color: var(--color-faint);
-		pointer-events: none;
-	}
-</style>

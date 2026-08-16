@@ -7,6 +7,7 @@ export {
 	ensurePackage,
 	envOption,
 	floatAlignment,
+	floatCaption,
 	floatLabel,
 	floatPlacement,
 	floatWidth,

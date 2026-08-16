@@ -46,6 +46,7 @@ const ATOM_CLASS: Record<string, string> = {
 	label: 'text-faint text-[0.75em]',
 	link: 'text-brand underline underline-offset-2',
 	footnote: 'text-brand align-super text-[0.7em]',
+	comment: 'text-faint bg-accent/60 rounded px-1 text-[0.8em] font-mono',
 	raw: 'text-muted-foreground bg-accent rounded px-1 py-0.5 text-[0.8em] font-mono'
 };
 
@@ -87,17 +88,25 @@ export function inlinesToHtml(runs: Inline[]): string {
 				break;
 			}
 			case 'math':
-				out += atom('math', run.source, '', run.source, `Math: $${run.source}$`);
-				break;
-			case 'cite':
 				out += atom(
-					'cite',
-					run.keys.join(', '),
-					run.command,
-					`[${run.keys.join(', ')}]`,
-					`\\${run.command}{${run.keys.join(', ')}}`
+					'math',
+					run.source,
+					run.paren ? 'paren' : '',
+					run.source,
+					`Math: ${run.paren ? `\\(${run.source}\\)` : `$${run.source}$`}`
 				);
 				break;
+			case 'cite': {
+				const keys = run.raw ?? run.keys.join(', ');
+				out += atom(
+					'cite',
+					keys,
+					run.command,
+					`[${run.keys.join(', ')}]`,
+					`\\${run.command}{${keys}}`
+				);
+				break;
+			}
 			case 'ref':
 				out += atom('ref', run.target, run.command, run.target, `\\${run.command}{${run.target}}`);
 				break;
@@ -118,6 +127,16 @@ export function inlinesToHtml(runs: Inline[]): string {
 				// A dagger, not a number: the number depends on the whole document, and
 				// showing a wrong one is worse than showing none.
 				out += atom('footnote', run.source, 'footnote', '†', `Footnote: ${run.source}`);
+				break;
+			case 'comment':
+				out += atom(
+					'comment',
+					run.text,
+					'',
+					`%${run.text}`,
+					'Comment: kept in the source, never printed',
+					run.sameline ? ' data-sameline="1"' : ''
+				);
 				break;
 			case 'raw':
 				out += atom('raw', run.source, '', run.source, 'Not modelled: edit in the LaTeX view');
@@ -180,11 +199,12 @@ function atomRun(el: Element): Inline {
 	const command = el.getAttribute('data-cmd') || '';
 	switch (el.getAttribute('data-atom')) {
 		case 'math':
-			return { kind: 'math', source: src };
+			return { kind: 'math', source: src, paren: command === 'paren' };
 		case 'cite':
 			return {
 				kind: 'cite',
 				command: command || 'cite',
+				raw: src,
 				keys: src
 					.split(',')
 					.map((k) => k.trim())
@@ -202,6 +222,12 @@ function atomRun(el: Element): Inline {
 		}
 		case 'footnote':
 			return { kind: 'footnote', source: src };
+		case 'comment':
+			return {
+				kind: 'comment',
+				text: src,
+				sameline: el.getAttribute('data-sameline') === '1'
+			};
 		default:
 			return { kind: 'raw', source: src };
 	}

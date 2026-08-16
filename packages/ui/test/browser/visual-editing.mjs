@@ -238,7 +238,10 @@ await sleep(300);
 
 // --- An inline atom can be inserted at the caret, not only edited --------------
 // Ctrl+/ rather than a bare slash: the caret sits tight against a word, where a
-// bare slash is a character the writer meant to type.
+// bare slash is a character the writer meant to type. Reloaded first, so the
+// empty draft the section above left behind cannot shift the block indices.
+check('reload for the inline insert', await loadSource(article, 'Consistency of Estimators'));
+await toVisual();
 await caretInBlock(1);
 await slash(2);
 check(
@@ -282,20 +285,30 @@ check('reload for the selection checks', await loadSource(article, 'Consistency 
 await toVisual();
 await sleep(500);
 
-// Select the first word of a paragraph and bold it from the floating bar.
-const selectedWord = await ev(`(() => {
-  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
-  if (!el) return null;
-  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
-  if (!node) return null;
-  el.focus();
-  const r = document.createRange();
-  r.setStart(node, 0);
-  r.setEnd(node, 4);
-  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-  document.dispatchEvent(new Event('selectionchange'));
-  return r.toString();
-})()`);
+// Select the first word of a paragraph and bold it from the floating bar. The
+// pane re-renders for a beat after a mode switch, so this waits for a block
+// rather than reading whatever is there on the first look.
+const selectFirstWord = async () => {
+	for (let i = 0; i < 12; i++) {
+		const word = await ev(`(() => {
+		  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
+		  if (!el) return null;
+		  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
+		  if (!node) return null;
+		  el.focus();
+		  const r = document.createRange();
+		  r.setStart(node, 0);
+		  r.setEnd(node, 4);
+		  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+		  document.dispatchEvent(new Event('selectionchange'));
+		  return r.toString();
+		})()`);
+		if (word) return word;
+		await sleep(250);
+	}
+	return null;
+};
+const selectedWord = await selectFirstWord();
 await sleep(400);
 check(
 	'a selection raises the format bar',
@@ -318,16 +331,7 @@ check(
 // back as \emph, which is what the old single mark kind did to it.
 await toVisual();
 await sleep(500);
-await ev(`(() => {
-  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').trim().length > 30);
-  const node = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim().length > 4);
-  el.focus();
-  const r = document.createRange();
-  r.setStart(node, 0); r.setEnd(node, 4);
-  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
-  document.dispatchEvent(new Event('selectionchange'));
-  return true;
-})()`);
+check('a word is selected for the overflow checks', !!(await selectFirstWord()));
 await sleep(400);
 await ev(
 	`(() => { const b = document.querySelector('[aria-label="More formatting"]'); b?.click(); return !!b; })()`
@@ -461,6 +465,43 @@ await toLatex();
 const unlinked = await source();
 check('unlinking removes the command but keeps the words', !/\\href\{/.test(unlinked ?? ''));
 
+// Clicking a link opens its editor, so the same escape has to exist in there.
+await toVisual();
+await sleep(500);
+await selectWord();
+await sleep(400);
+await ev(
+	`(() => { const b = document.querySelector('[aria-label="Format selection"] [aria-label="Link"]'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('[role="dialog"] button')].find(x => x.textContent.trim() === 'Apply'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+const linkWords = await ev(`document.querySelector('[data-atom="link"]')?.textContent ?? ''`);
+await ev(
+	`(() => { const a = document.querySelector('[data-atom="link"]'); a?.dispatchEvent(new MouseEvent('click', { bubbles: true })); return !!a; })()`
+);
+await sleep(400);
+const dialogButtons = () =>
+	ev(`[...document.querySelectorAll('[role="dialog"] button')].map(b => b.textContent.trim())`);
+check(
+	'the link editor offers Unlink beside Delete',
+	(await dialogButtons())?.includes('Unlink'),
+	JSON.stringify(await dialogButtons())
+);
+await ev(
+	`(() => { const b = [...document.querySelectorAll('[role="dialog"] button')].find(x => x.textContent.trim() === 'Unlink'); b?.click(); return !!b; })()`
+);
+await sleep(600);
+await toLatex();
+const afterEditor = (await source()) ?? '';
+check(
+	'Unlink in the editor drops the command and keeps the text',
+	!/\\href\{/.test(afterEditor) && !!linkWords && afterEditor.includes(linkWords),
+	JSON.stringify(linkWords)
+);
+
 // --- The gutter stands down while a menu owns the pointer ---------------------
 await toVisual();
 await sleep(500);
@@ -471,7 +512,8 @@ const gutterVisible = () =>
   return g ? getComputedStyle(g).opacity : 'no gutter';
 })()`);
 const gutterOn = await gutterVisible();
-check('the gutter shows on the focused block', gutterOn === '1', String(gutterOn));
+// A number, not '1': the fade may still be running when the check reads it.
+check('the gutter shows on the focused block', Number(gutterOn) > 0.9, String(gutterOn));
 check(
 	'the focused block carries an active marker, and only that block',
 	await ev(
@@ -498,11 +540,7 @@ const gutterOff = await ev(`(() => {
   const grip = document.querySelector('[aria-label="Block actions"][aria-expanded="true"]');
   return grip ? getComputedStyle(grip.parentElement).opacity : 'no open grip';
 })()`);
-check(
-	'the trigger stays visible under its own menu',
-	gutterOff === '1',
-	String(gutterOff)
-);
+check('the trigger stays visible under its own menu', gutterOff === '1', String(gutterOff));
 await key('Escape', 'Escape', 27);
 await sleep(300);
 
@@ -582,7 +620,7 @@ await ev(`(() => {
   const c = document.querySelector('[data-float-caption]');
   c.focus();
   c.textContent = 'A rewritten caption.';
-  c.dispatchEvent(new FocusEvent('blur'));
+  c.dispatchEvent(new Event('input', { bubbles: true }));
   return true;
 })()`);
 await sleep(700);
@@ -727,10 +765,13 @@ check(
 // A column menu is where alignment and targeted inserts live.
 await toVisual();
 await sleep(500);
-await ev(
-	`(() => { const b = document.querySelector('[aria-label="Column 2 actions"]'); b?.click(); return !!b; })()`
-);
-await sleep(400);
+for (let i = 0; i < 8; i++) {
+	await ev(
+		`(() => { const b = document.querySelector('[aria-label="Column 2 actions"]'); b?.click(); return !!b; })()`
+	);
+	await sleep(300);
+	if (await ev(`!!document.querySelector('[role="menu"][aria-label="Column actions"]')`)) break;
+}
 check(
 	'a column handle opens its menu',
 	await ev(`!!document.querySelector('[role="menu"][aria-label="Column actions"]')`)
@@ -809,7 +850,7 @@ await ev(`(() => {
   const caption = [...document.querySelectorAll('[data-float-caption]')].pop();
   caption.focus();
   caption.textContent = 'Added from visual mode.';
-  caption.dispatchEvent(new FocusEvent('blur'));
+  caption.dispatchEvent(new Event('input', { bubbles: true }));
   return true;
 })()`);
 await sleep(700);
@@ -883,6 +924,248 @@ check(
 	'Ctrl+Z reverts a visual edit',
 	!(await source())?.includes('ZZZ'),
 	'the undo stack missed it'
+);
+
+// --- What the editor cannot rewrite, it must not rewrite ----------------------
+const guarded = [
+	'\\documentclass{article}',
+	'\\begin{document}',
+	'A plain paragraph to edit.',
+	'',
+	'Held at \\SI{298.15}{\\kelvin} in \\textcolor{red}{red} throughout.',
+	'',
+	'Inline maths as \\( E = mc^2 \\) keeps its delimiters.',
+	'',
+	'Paths like file_name.tex are broken source we must not quietly rewrite.',
+	'',
+	'Alpha line.',
+	'% reviewer note: keep me',
+	'Beta line.',
+	'\\end{document}',
+	''
+].join('\n');
+check('reload for the fidelity checks', await loadSource(guarded, 'reviewer note'));
+await toVisual();
+await sleep(600);
+
+check(
+	'a paragraph the printer cannot reproduce is shown but locked',
+	await ev(`(() => {
+	  const locked = document.querySelector('[data-locked-block]');
+	  return !!locked && locked.textContent.includes('file_name.tex');
+	})()`),
+	await ev(`document.querySelector('[data-locked-block]')?.textContent ?? 'no locked block'`)
+);
+check(
+	'and it offers no caret to type into',
+	await ev(`!document.querySelector('[data-locked-block]')?.querySelector('[data-block-editor]')`)
+);
+
+check(
+	'a comment inside a paragraph shows as its own chip',
+	await ev(`(() => {
+	  const c = document.querySelector('[data-atom="comment"]');
+	  return !!c && c.textContent.includes('reviewer note');
+	})()`)
+);
+
+const commented = await ev(`(() => {
+  const c = document.querySelector('[data-atom="comment"]');
+  const host = c?.closest('[data-block-editor]');
+  if (!host) return -1;
+  return [...document.querySelectorAll('[data-block-editor]')].indexOf(host);
+})()`);
+check('the block holding it is still editable', commented >= 0, String(commented));
+await caretInBlock(commented);
+await typeText(' TAIL');
+await sleep(500);
+await toLatex();
+const kept = (await source()) ?? '';
+check(
+	'editing around a comment keeps it, and its newline',
+	kept.includes('Alpha line.\n% reviewer note: keep me\nBeta line. TAIL'),
+	JSON.stringify(kept.match(/Alpha[\s\S]{0,70}/)?.[0])
+);
+check(
+	'a paragraph of unmodelled macros stays editable and byte-identical',
+	kept.includes('Held at \\SI{298.15}{\\kelvin} in \\textcolor{red}{red} throughout.'),
+	JSON.stringify(kept.match(/Held at[^\n]*/)?.[0])
+);
+check(
+	'\\( \\) maths keeps its own delimiters rather than becoming $ $',
+	kept.includes('Inline maths as \\( E = mc^2 \\) keeps its delimiters.'),
+	JSON.stringify(kept.match(/Inline maths[^\n]*/)?.[0])
+);
+check(
+	'and the locked paragraph is not quietly escaped',
+	kept.includes('Paths like file_name.tex are broken source we must not quietly rewrite.'),
+	JSON.stringify(kept.match(/Paths like[^\n]*/)?.[0])
+);
+
+// --- Typing a caret or a tilde must not break the build -----------------------
+await toVisual();
+await sleep(500);
+await caretInBlock(0);
+await typeText(' x^2 a~b');
+await sleep(600);
+await toLatex();
+const escaped = (await source()) ?? '';
+check(
+	'a typed caret and tilde are escaped, not left to the compiler',
+	escaped.includes('x\\textasciicircum{}2 a\\textasciitilde{}b'),
+	JSON.stringify(escaped.match(/A plain paragraph[^\n]*/)?.[0])
+);
+
+// --- Keyboard route to the block actions --------------------------------------
+await toVisual();
+await sleep(500);
+await caretInBlock(0);
+await key('F10', 'F10', 121, 8);
+await sleep(400);
+check(
+	'Shift+F10 opens the block menu without a pointer',
+	await ev(`!!document.querySelector('[role="menu"][aria-label="Block actions"]')`)
+);
+await key('Escape', 'Escape', 27);
+await sleep(300);
+
+// --- The atom editor survives a scroll ----------------------------------------
+await ev(`(() => {
+  const a = document.querySelector('[data-block-editor] [data-atom]');
+  a?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  return !!a;
+})()`);
+await sleep(500);
+const dialogOpen = () => ev(`!!document.querySelector('[role="dialog"][aria-label^="Edit"]')`);
+check('an atom editor is open', await dialogOpen());
+await ev(`(() => {
+  const pane = document.querySelector('[aria-label="Visual editor"]');
+  pane.scrollTop += 60;
+  pane.dispatchEvent(new Event('scroll'));
+  return true;
+})()`);
+await sleep(400);
+check('scrolling the pane does not throw away what it holds', await dialogOpen());
+
+// --- Turning a block into another kind must carry its words -------------------
+const convertible = [
+	'\\documentclass{article}',
+	'\\begin{document}',
+	'A paragraph whose words must survive being turned into a heading.',
+	'',
+	'Paths like file_name.tex are locked source.',
+	'\\end{document}',
+	''
+].join('\n');
+check('reload for the conversion checks', await loadSource(convertible, 'must survive'));
+await toVisual();
+await sleep(600);
+
+// Scoped to the block menu and the insert list by name: an engine-install dialog
+// can be on screen, and a bare [role="menu"] would find its buttons instead.
+const BLOCK_MENU = '[role="menu"][aria-label="Block actions"]';
+const INSERT_LIST = '[role="listbox"][aria-label="Block types"]';
+const openGutter = async (find) => {
+	await clearModals();
+	return ev(`(() => {
+	  const wraps = [...document.querySelectorAll('[data-block-wrapper]')];
+	  const w = wraps.find(${find});
+	  const b = w?.querySelector('[aria-label="Block actions"]');
+	  b?.click();
+	  return !!b;
+	})()`);
+};
+const menuItems = () =>
+	ev(`[...document.querySelectorAll('${BLOCK_MENU} button')].map(b => b.textContent.trim())`);
+const pickMenu = (text) =>
+	ev(
+		`(() => { const b = [...document.querySelectorAll('${BLOCK_MENU} button, ${INSERT_LIST} button')].find(x => x.textContent.trim().startsWith(${JSON.stringify(text)})); b?.click(); return !!b; })()`
+	);
+
+check(
+	'the gutter menu opens on a paragraph',
+	await openGutter(`(w) => (w.innerText || '').includes('must survive')`)
+);
+await sleep(400);
+await pickMenu('Turn into');
+await sleep(500);
+await pickMenu('Section');
+await sleep(800);
+await toLatex();
+const turned = (await source()) ?? '';
+check(
+	'"Turn into" keeps the words it converted',
+	/\\section\{A paragraph whose words must survive being turned into a heading\.\}/.test(turned),
+	JSON.stringify(turned.match(/\\section[^\n]*|A paragraph[^\n]*/)?.[0])
+);
+
+await toVisual();
+await sleep(600);
+check(
+	'the gutter menu opens on the locked block',
+	await openGutter(`(w) => !!w.querySelector('[data-locked-block]')`)
+);
+await sleep(400);
+const lockedMenu = await menuItems();
+check(
+	'a locked block is not offered a conversion that would rewrite it',
+	lockedMenu.length > 0 && !lockedMenu.some((item) => item.startsWith('Turn into')),
+	JSON.stringify(lockedMenu)
+);
+await key('Escape', 'Escape', 27);
+await sleep(300);
+await toLatex();
+check(
+	'and the locked block is still byte-identical',
+	((await source()) ?? '').includes('Paths like file_name.tex are locked source.'),
+	JSON.stringify((await source())?.match(/Paths like[^\n]*/)?.[0])
+);
+
+// --- Captions are inline content, not a raw string ----------------------------
+const captioned = [
+	'\\documentclass{article}',
+	'\\begin{document}',
+	'\\begin{figure}',
+	'  \\includegraphics{plot}',
+	'  \\caption{Convergence of \\textbf{our} estimator on \\emph{real} data}',
+	'\\end{figure}',
+	'\\end{document}',
+	''
+].join('\n');
+check('reload for the caption checks', await loadSource(captioned, 'Convergence of'));
+await toVisual();
+await sleep(600);
+check(
+	'a caption with a braced macro is shown whole',
+	await ev(
+		`(() => { const c = document.querySelector('[data-float-caption]'); return !!c && /Convergence of our estimator on real data/.test(c.innerText.replace(/\\s+/g,' ').trim()); })()`
+	),
+	await ev(`document.querySelector('[data-float-caption]')?.innerText ?? '(none)'`)
+);
+check(
+	'and its bold survives as a mark, not as typed-out LaTeX',
+	await ev(`!!document.querySelector('[data-float-caption] [data-mark="bold"]')`)
+);
+
+await ev(`(() => {
+  const c = document.querySelector('[data-float-caption]');
+  c.focus();
+  c.textContent = 'Yield at 50% load for Tom & Jerry';
+  c.dispatchEvent(new Event('input', { bubbles: true }));
+  return true;
+})()`);
+await sleep(800);
+await toLatex();
+const escapedCaption = (await source()) ?? '';
+check(
+	'typing a percent into a caption escapes it',
+	/\\caption\{Yield at 50\\% load for Tom \\& Jerry\}/.test(escapedCaption),
+	JSON.stringify(escapedCaption.match(/\\caption[^\n]*/)?.[0])
+);
+check(
+	'and nothing is left dangling outside the command',
+	/\\caption\{[^\n]*\}\n\\end\{figure\}/.test(escapedCaption),
+	JSON.stringify(escapedCaption.match(/\\begin\{figure\}[\s\S]*?\\end\{figure\}/)?.[0])
 );
 
 finish();

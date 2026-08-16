@@ -84,6 +84,7 @@
 				activeId={files.activeId}
 				mainId={files.mainId}
 				source={files.source}
+				cursorLine={layout.cursor.line}
 				projectName={files.displayName}
 				projectPath={files.projectRoot}
 				head={files.head}
@@ -114,21 +115,31 @@
 				ondeletefolder={(p) => files.deleteFolder(p)}
 				onnewfilein={(dir) => files.newFile(dir)}
 				onnewfolderin={(dir) => files.newFolder(dir)}
+				oncreate={(rel, kind) => files.createAt(rel, kind)}
+				onmoveitems={(items, dir) => files.moveItems(items, dir)}
+				ondeleteitems={(items) => files.deleteItems(items)}
+				onduplicatefile={(id) => files.duplicateFile(id)}
+				oncopypath={(rel) => ctrl.copyPath(rel)}
 				ondownloadfile={ctrl.onDownload ? (id) => ctrl.downloadFile(id) : undefined}
 				ondownloadfolder={ctrl.onDownload ? (p) => ctrl.downloadFolder(p) : undefined}
 				dirtyIds={files.dirtyIds}
-				ongotoline={(n) => layout.editor?.goToLine(n)}
+				scope={files.projectRoot ?? files.displayName}
+				ongotoline={(n) => ctrl.goToLine(n)}
 				onregistershell={files.project?.registerShellIntegration
 					? () => files.registerShell()
 					: undefined}
-				searchResults={search.searchResults}
-				searchActive={search.searchActive}
-				onsearch={(o) => search.runSearch(o)}
-				ongotoresult={(i) => search.gotoResult(i)}
-				onsearchnext={() => search.searchNext()}
-				onsearchprev={() => search.searchPrev()}
-				onreplacecurrent={(r) => search.replaceCurrent(r)}
-				onreplaceall={(r) => search.replaceAll(r)}
+				searchResult={search.projectResult}
+				searchHits={search.projectHits}
+				searchActive={search.projectActive}
+				searchScanning={search.projectScanning}
+				searchCollapsed={search.collapsedGroups}
+				ontogglegroup={(id) => search.toggleGroup(id)}
+				onsearch={(o) => search.queueProjectSearch(o)}
+				ongotoresult={(i) => search.gotoHit(i)}
+				onsearchnext={() => search.projectNext()}
+				onsearchprev={() => search.projectPrev()}
+				onreplacecurrent={(r) => search.replaceHit(r)}
+				onreplaceall={(r) => ctrl.replaceAllInProject(r)}
 			/>
 		</div>
 

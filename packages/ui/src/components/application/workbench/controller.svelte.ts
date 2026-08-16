@@ -4,6 +4,7 @@ import type { PaletteCommand } from '../command-palette.svelte';
 import type { ProjectHost } from '../project';
 import { matchShortcut, shortcutLabel } from '../shortcuts';
 import { settings } from '@glyphtex/ui/settings';
+import { toast } from '@glyphtex/ui/sonner';
 
 import { CompileStore } from './compile.svelte';
 import { FileStore } from './files.svelte';
@@ -146,6 +147,7 @@ export class WorkbenchController {
 		});
 		this.search = new SearchStore({
 			layout: this.layout,
+			files: this.files,
 			getSource: () => this.files.source
 		});
 		this.compile = new CompileStore({
@@ -233,6 +235,55 @@ export class WorkbenchController {
 	/** Project-wide search. Distinct from ⌘F, which is find-in-file. */
 	searchProject(): void {
 		this.layout.selectView('search');
+		// Seed from the selection so "find this word everywhere" is one keystroke.
+		const selected = this.layout.editor?.selectedText?.() ?? '';
+		if (selected && !selected.includes('\n')) {
+			void this.search.runProjectSearch({ ...this.search.projectOpts, query: selected });
+		}
+	}
+
+	/** Replace every match in the project. Confirms once it spans more than the
+	 *  file you are looking at: undo is per file, so this is hard to walk back. */
+	async replaceAllInProject(replace: string): Promise<void> {
+		const result = this.search.projectResult;
+		if (!result.total) return;
+		const files = result.groups.length;
+		if (files > 1) {
+			const ok = await this.files.askConfirm(
+				'Replace across files',
+				`Replace ${result.total} matches in ${files} files? Undo works per file, not in one step.`,
+				'Replace all'
+			);
+			if (!ok) return;
+		}
+		const n = await this.search.replaceAllProject(replace);
+		toast.success(`Replaced ${n} ${n === 1 ? 'match' : 'matches'}`);
+	}
+
+	/** Copy a file's path. Absolute where there is a folder on disk, since that is
+	 *  the form you would paste into a terminal. */
+	async copyPath(rel: string): Promise<void> {
+		const root = this.files.projectRoot;
+		const text = root ? `${root}/${rel}`.replace(/\\/g, '/') : rel;
+		try {
+			await navigator.clipboard.writeText(text);
+			toast.success('Path copied');
+		} catch {
+			toast.error('Could not copy the path.');
+		}
+	}
+
+	/** Outline / go-to-line, routed to the surface on screen. Visual has no
+	 *  CodeMirror handle, so the jump is queued for its block list instead. */
+	goToLine(line: number): void {
+		if (this.docMode !== 'visual') {
+			this.layout.editor?.goToLine(line);
+			return;
+		}
+		this.layout.revealLine = line;
+		// The caret has not moved, so nothing else would tell the outline you
+		// navigated; a click that scrolls but leaves the old row lit reads as broken.
+		this.layout.cursor = { line, column: 1 };
 	}
 
 	// --- Open / import (host hook, else the desktop ProjectHost) ---
@@ -617,9 +668,10 @@ export class WorkbenchController {
 	}
 
 	/** Clear the editor highlight when neither Search view nor find bar is open. */
+	/** The find bar owns the editor's highlight decorations; the panel searches the
+	 *  document model and never sets any, so closing the bar is the only trigger. */
 	clearSearchHighlight(): void {
-		const sidebarSearch = this.layout.activeView === 'search' && !this.layout.panelCollapsed;
-		if (!sidebarSearch && !this.search.showFind) this.layout.editor?.clearSearch();
+		if (!this.search.showFind) this.layout.editor?.clearSearch();
 	}
 
 	// --- Lifecycle helpers (run from onMount / onDestroy) ---

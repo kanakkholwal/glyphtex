@@ -18,6 +18,9 @@
 		IconPlus
 	} from '@tabler/icons-svelte';
 
+	import { MediaQuery } from 'svelte/reactivity';
+
+	import { lineAt, offsetOfLine } from '../outline';
 	import type { WorkbenchController } from './controller.svelte';
 	import AtomEditor from './visual/atom-editor.svelte';
 	import BlockEditor, { type CaretTarget } from './visual/block-editor.svelte';
@@ -188,12 +191,43 @@
 		entry.coalesceKey = '';
 		selfWritten = previous;
 		files.source = previous;
-		doc = tex.parseTexDoc(previous);
+		reparse(previous);
 		paneEl?.focus();
 		historyTick += 1;
 	}
 
+	/** Re-read source this pane has already written. A throw would leave the file
+	 *  changed and the spans describing the text before it. */
+	function reparse(source: string): boolean {
+		if (!tex) return false;
+		try {
+			doc = tex.parseTexDoc(source);
+			parseError = undefined;
+			return true;
+		} catch (error) {
+			parseError = error instanceof Error ? error.message : String(error);
+			doc = undefined;
+			return false;
+		}
+	}
+
 	function onPaneKeyDown(event: KeyboardEvent) {
+		// The gutter is out of the tab order, so this is the keyboard's way to the
+		// block actions: the same keys that open a context menu everywhere else.
+		if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+			const wrapper = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>(
+				'[data-block-index]'
+			);
+			if (!wrapper) return;
+			event.preventDefault();
+			const grip = wrapper.querySelector('[data-block-gutter] [aria-haspopup="menu"]');
+			blockMenu = {
+				rect: (grip ?? wrapper).getBoundingClientRect(),
+				index: Number(wrapper.dataset.blockIndex)
+			};
+			return;
+		}
+
 		if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
 		const key = event.key.toLowerCase();
 		if (key === 'z' && !event.shiftKey) {
@@ -262,7 +296,7 @@
 		if (!tex) return;
 		const next = tex.applyPatch(files.source, patch);
 		write(next);
-		doc = tex.parseTexDoc(next);
+		if (!reparse(next)) return;
 		focusOn(focus.key, focus.caret ?? 'end');
 	}
 
@@ -361,9 +395,19 @@
 		return `${index}`;
 	}
 
+	/** The inline content a block would carry into a conversion. */
+	function blockRuns(block: Block): Inline[] {
+		if (block.kind === 'heading') return block.title;
+		if (block.kind === 'paragraph' || block.kind === 'quote') return block.content;
+		return [];
+	}
+
 	function onConvert(index: number, templateId: string, rest: Inline[]) {
 		const block = doc?.blocks[index];
 		if (!tex || !block) return;
+		// Its projection is lossy, so reprinting it as another block would write
+		// back less than it holds.
+		if (block.fidelity !== 'native') return;
 		const template = tex.BLOCK_TEMPLATES.find((t) => t.id === templateId);
 		if (!template) return;
 
@@ -507,10 +551,14 @@
 			insertInline(pick.id);
 			return;
 		}
-		// A block picked from a block that already has prose in it goes below it;
-		// converting would throw that prose away.
+		// A block picked mid-sentence goes below the block; converting would throw
+		// the words after the caret away.
 		if (mode.kind === 'convert' && open?.inline) insertTemplate(pick.id, mode.index);
-		else if (mode.kind === 'convert') onConvert(mode.index, pick.id, []);
+		// From the gutter, the whole block converts and carries its words across.
+		else if (mode.kind === 'convert') {
+			const block = doc?.blocks[mode.index];
+			onConvert(mode.index, pick.id, block ? blockRuns(block) : []);
+		}
 		else if (mode.kind === 'insertBefore') insertTemplate(pick.id, mode.index - 1);
 		else insertTemplate(pick.id, mode.kind === 'draft' ? (draftAfter ?? -1) : mode.index);
 	}
@@ -564,6 +612,46 @@
 		openAtom(-1, inserted);
 	}
 
+	// --- Outline navigation -----------------------------------------------------
+	const reducedMotion = new MediaQuery('prefers-reduced-motion: reduce');
+
+	/** Publish the focused block as a source line, so the Outline (and SyncTeX)
+	 *  can say where you are without a CodeMirror caret to read. */
+	function onBlockFocusIn(event: FocusEvent) {
+		const wrapper = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+			'[data-block-index]'
+		);
+		const block = wrapper ? doc?.blocks[Number(wrapper.dataset.blockIndex)] : undefined;
+		if (block) layout.cursor = { line: lineAt(files.source, block.span.from), column: 1 };
+	}
+
+	/** Block holding `offset`, else the last one starting before it (a line in the
+	 *  gaps between blocks still has an obvious place to land). */
+	function blockAtOffset(offset: number): number {
+		if (!doc) return -1;
+		let before = -1;
+		for (let i = 0; i < doc.blocks.length; i++) {
+			const span = doc.blocks[i].span;
+			if (span.from <= offset && offset < span.to) return i;
+			if (span.from <= offset) before = i;
+		}
+		return before;
+	}
+
+	// Scroll only, never focus: an outline click is navigation, and stealing the
+	// caret out of the block being typed in would lose the user's place.
+	$effect(() => {
+		const line = layout.revealLine;
+		if (line === null || !doc || !paneEl) return;
+		layout.revealLine = null;
+		const index = blockAtOffset(offsetOfLine(files.source, line));
+		if (index === -1) return;
+		paneEl.querySelector(`[data-block-index="${index}"]`)?.scrollIntoView({
+			block: 'start',
+			behavior: reducedMotion.current ? 'auto' : 'smooth'
+		});
+	});
+
 	// --- Block chrome -----------------------------------------------------------
 	function openInSource(block: Block) {
 		layout.revealSpan = block.span;
@@ -601,6 +689,8 @@
 	}
 
 	const PROSE_KINDS = ['heading', 'paragraph', 'quote'];
+	/** Kinds with an editable projection, when their fidelity allows it. */
+	const EDITABLE_KINDS = [...PROSE_KINDS, 'list'];
 	const QUOTE_ENVIRONMENTS = ['quote', 'quotation', 'verse'];
 	/** Where a `\usepackage` a control needs would go. */
 	const preambleEnd = $derived(doc?.preamble.span.to ?? 0);
@@ -676,14 +766,12 @@
 		// Before the empty-selection guard: a range over a `contenteditable=false`
 		// atom reports no text, and the link is exactly such an atom.
 		if (id === 'unlink') {
-			// Replace the atom with the words it was wrapping, rather than deleting
-			// the sentence the reader was pointing at.
 			const range = document.getSelection()?.getRangeAt(0);
-			const link = [...host.querySelectorAll('[data-atom="link"]')].find((element) =>
+			const links = [...host.querySelectorAll('[data-atom="link"]')].filter((element) =>
 				range?.intersectsNode(element)
 			);
-			if (!link) return;
-			link.replaceWith(document.createTextNode(link.getAttribute('data-src') || ''));
+			if (!links.length) return;
+			links.forEach(unwrapAtom);
 			host.dispatchEvent(new Event('input', { bubbles: true }));
 			selectionRect = null;
 			return;
@@ -754,11 +842,16 @@
 	 *  inline-dom, which is where the same decision is made on first render. */
 	function atomText(kind: string | null, source: string, url: string): string {
 		if (kind === 'cite') return `[${source}]`;
+		if (kind === 'comment') return `%${source}`;
 		if (kind === 'label') return `#${source}`;
 		if (kind === 'footnote') return '†';
 		if (kind === 'link') return source || url;
 		return source;
 	}
+
+	/** `\href` takes both its arguments as LaTeX, so the three characters that can
+	 *  never stand alone are escaped. A URL keeps its `%` and `#` that way too. */
+	const linkSafe = (text: string) => text.replace(/(?<!\\)([%&#])/g, '\\$1');
 
 	/** Rewrite the clicked atom in the DOM, then let the normal input path run. */
 	function commitAtom(value: { src: string; url?: string } | null) {
@@ -771,25 +864,43 @@
 		if (value === null) open.el.remove();
 		else {
 			const kind = open.el.getAttribute('data-atom');
-			open.el.setAttribute('data-src', value.src);
-			if (value.url !== undefined) open.el.setAttribute('data-url', value.url);
-			open.el.textContent = atomText(kind, value.src, value.url ?? '');
+			const src = kind === 'link' ? linkSafe(value.src) : value.src;
+			const url = value.url === undefined ? undefined : linkSafe(value.url);
+			open.el.setAttribute('data-src', src);
+			if (url !== undefined) open.el.setAttribute('data-url', url);
+			open.el.textContent = atomText(kind, src, url ?? '');
 		}
 		host.dispatchEvent(new Event('input', { bubbles: true }));
 		host.focus();
 	}
 
-	/**
-	 * Re-parses, because captions and widths are read out of the source. A list,
-	 * since wrapping a figure also has to write to the preamble.
-	 */
+	/** Drops the command but keeps the words it wrapped, which removing the atom
+	 *  would take with it. */
+	function unwrapAtom(el: Element) {
+		const text = el.getAttribute('data-src') || el.getAttribute('data-url') || '';
+		el.replaceWith(document.createTextNode(text));
+	}
+
+	function unlinkAtom() {
+		const open = atom;
+		atom = null;
+		if (!open) return;
+		const host = open.el.closest('[data-block-editor]') as HTMLElement | null;
+		if (!host) return;
+		unwrapAtom(open.el);
+		host.dispatchEvent(new Event('input', { bubbles: true }));
+		host.focus();
+	}
+
+	/** Re-parses, because captions and widths are read out of the source. A list,
+	 *  since wrapping a figure also has to write to the preamble. */
 	function applyBlockPatch(patches: (Patch | null)[]) {
 		const real = patches.filter((patch): patch is Patch => patch !== null);
 		if (!tex || !real.length) return;
 		const next = tex.applyPatches(files.source, real);
 		if (next === files.source) return;
 		write(next);
-		doc = tex.parseTexDoc(next);
+		reparse(next);
 	}
 
 	/** Every editable spot in document order, so the arrow keys can walk them. */
@@ -843,9 +954,53 @@
 	</div>
 {/snippet}
 
+<!-- Prose the printer cannot reproduce: shown as it reads, written back as the
+     bytes it came from. Clicking it opens the block in the LaTeX view. -->
+{#snippet lockedProse(block: Block)}
+	<div class="relative" data-locked-block>
+		<span
+			class="border-border text-faint absolute top-1 -right-2 rounded border px-1 text-[0.625rem] tracking-wide uppercase"
+		>
+			LaTeX
+		</span>
+		{#if block.kind === 'heading'}
+			<BlockEditor
+				readonly
+				runs={block.title}
+				tag={`h${Math.min(6, block.level)}`}
+				class="text-foreground relative mb-1 leading-tight {HEADING_CLASS[block.level] ??
+					HEADING_CLASS[6]}"
+				oninput={() => {}}
+			/>
+		{:else if block.kind === 'list'}
+			<svelte:element
+				this={block.ordered ? 'ol' : 'ul'}
+				class="mt-4 space-y-1.5 {block.ordered ? 'list-decimal pl-6' : 'list-disc pl-6'}"
+			>
+				{#each block.items as item, j (j)}
+					<li class="text-foreground leading-[1.6]">
+						{#if item.term}<strong class="font-semibold">{item.term}</strong>{' '}{/if}
+						<BlockEditor readonly runs={item.content} tag="span" oninput={() => {}} />
+					</li>
+				{/each}
+			</svelte:element>
+		{:else if block.kind === 'paragraph' || block.kind === 'quote'}
+			<BlockEditor
+				readonly
+				runs={block.content}
+				tag="p"
+				class="text-foreground relative mt-4 leading-[1.6]"
+				oninput={() => {}}
+			/>
+		{/if}
+	</div>
+{/snippet}
+
 {#snippet prose(block: Block, index: number)}
 	{@const key = `${index}`}
-	{#if block.kind === 'heading'}
+	{#if block.fidelity !== 'native' && EDITABLE_KINDS.includes(block.kind)}
+		{@render lockedProse(block)}
+	{:else if block.kind === 'heading'}
 		<BlockEditor
 			runs={block.title}
 			tag={`h${Math.min(6, block.level)}`}
@@ -1019,7 +1174,7 @@
 			{tex}
 			source={files.source}
 			onpatch={applyBlockPatch}
-			oncellpatch={(patch) => patch && commitInline(index, patch)}
+			onlocalpatch={(patch) => patch && commitInline(index, patch)}
 			onatom={(element) => openAtom(index, element)}
 			onopensource={() => openInSource(block)}
 		/>
@@ -1060,9 +1215,10 @@
 	role="document"
 	onkeydown={onPaneKeyDown}
 	onscroll={() => {
-		// The overlays are position:fixed against a rect the scroll invalidates.
+		// The overlays are position:fixed against a rect the scroll invalidates. The
+		// atom editor is not among them: it tracks its atom instead, because closing
+		// it would throw away whatever had been typed into it.
 		slash = null;
-		atom = null;
 		blockMenu = null;
 		selectionRect = null;
 	}}
@@ -1124,6 +1280,7 @@
 				style:max-width={measure}
 				style:font-family={settings.docFontStack}
 				style:font-size={bodySize}
+				onfocusin={onBlockFocusIn}
 			>
 				{#if draftAfter === -1}{@render draftBlock()}{/if}
 
@@ -1131,12 +1288,9 @@
 					<!-- A float card carries its own controls, so it must not sit inside
 					     the click-to-open-source wrapper that would swallow them. -->
 					{@const editable =
-						block.kind === 'heading' ||
-						block.kind === 'paragraph' ||
-						block.kind === 'quote' ||
-						block.kind === 'list' ||
-						block.kind === 'float'}
-					<div class="group/block relative" data-block-wrapper>
+						block.kind === 'float' ||
+						(EDITABLE_KINDS.includes(block.kind) && block.fidelity === 'native')}
+					<div class="group/block relative scroll-mt-16" data-block-wrapper data-block-index={i}>
 						<!-- Focus-within like the gutter beside it, so the two can never
 						     disagree about which block is live. -->
 						<span
@@ -1236,7 +1390,8 @@
 {#if blockMenu && doc}
 	<BlockMenu
 		rect={blockMenu.rect}
-		canConvert={PROSE_KINDS.includes(doc.blocks[blockMenu.index]?.kind ?? '')}
+		canConvert={PROSE_KINDS.includes(doc.blocks[blockMenu.index]?.kind ?? '') &&
+			doc.blocks[blockMenu.index]?.fidelity === 'native'}
 		onpick={runBlockAction}
 		onclose={() => (blockMenu = null)}
 	/>
@@ -1247,6 +1402,7 @@
 		target={atom.el}
 		onapply={(source) => commitAtom(source)}
 		onremove={() => commitAtom(null)}
+		onunlink={() => unlinkAtom()}
 		onclose={() => (atom = null)}
 	/>
 {/if}

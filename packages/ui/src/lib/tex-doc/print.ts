@@ -14,11 +14,17 @@ import { SECTION_COMMANDS, type Block, type Inline } from './types';
 
 // One pass, not one per character class: a second pass would escape the braces
 // in the `\textbackslash{}` the first pass just produced.
-const ESCAPABLE = /[\\%&#_${}]/g;
+const ESCAPABLE = /[\\^~%&#_${}]/g;
+
+const ESCAPED: Record<string, string> = {
+	'\\': '\\textbackslash{}',
+	'^': '\\textasciicircum{}',
+	'~': '\\textasciitilde{}'
+};
 
 /** Escape a literal text run so it survives a LaTeX round-trip unchanged. */
 export function escapeText(text: string): string {
-	return text.replace(ESCAPABLE, (char) => (char === '\\' ? '\\textbackslash{}' : `\\${char}`));
+	return text.replace(ESCAPABLE, (char) => ESCAPED[char] ?? `\\${char}`);
 }
 
 export function printInlines(runs: Inline[]): string {
@@ -32,10 +38,10 @@ export function printInlines(runs: Inline[]): string {
 				out += `\\${run.command}{${printInlines(run.content)}}`;
 				break;
 			case 'math':
-				out += `$${run.source}$`;
+				out += run.paren ? `\\(${run.source}\\)` : `$${run.source}$`;
 				break;
 			case 'cite':
-				out += `\\${run.command}{${run.keys.join(', ')}}`;
+				out += `\\${run.command}{${run.raw ?? run.keys.join(', ')}}`;
 				break;
 			case 'ref':
 				out += `\\${run.command}{${run.target}}`;
@@ -48,6 +54,11 @@ export function printInlines(runs: Inline[]): string {
 				break;
 			case 'footnote':
 				out += `\\footnote{${run.source}}`;
+				break;
+			case 'comment':
+				// The trailing newline is load-bearing: without it the rest of the
+				// paragraph ends up inside the comment.
+				out += `${run.sameline ? ' ' : '\n'}%${run.text.replace(/[\r\n]+/g, ' ')}\n`;
 				break;
 			case 'raw':
 				out += run.source;

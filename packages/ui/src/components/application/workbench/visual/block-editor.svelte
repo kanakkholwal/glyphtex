@@ -48,14 +48,8 @@
 
 	import { domToInlines, dropLeading, inlinesToHtml, inlinesToText } from './inline-dom';
 
-	/**
-	 * One editable run of inline content: a paragraph, a heading's title, a list
-	 * item. Everything structural (splitting, merging, converting) is reported to
-	 * the parent, which owns the source and turns it into a patch.
-	 *
-	 * The DOM is authoritative while focused: re-rendering under a live caret
-	 * would move it, so `runs` is only projected back in when focus is elsewhere.
-	 */
+	/** One editable run of inline content. The DOM is authoritative while focused:
+	 *  `runs` is only projected back in when the caret is elsewhere. */
 	let {
 		runs,
 		tag = 'div',
@@ -72,12 +66,20 @@
 		onfocus,
 		onatom,
 		onpasteblocks,
-		label = 'Text block'
+		label = 'Text block',
+		readonly = false,
+		attributes
 	}: {
 		runs: Inline[];
 		tag?: string;
 		class?: string;
 		placeholder?: string;
+		/** Extra attributes on the editable itself, for callers that need their own
+		 *  hook on the element the caret lives in. */
+		attributes?: Record<string, string>;
+		/** Rendered, not editable: the block holds LaTeX our printer cannot
+		 *  reproduce, so writing it back from this projection would lose part of it. */
+		readonly?: boolean;
 		/** Announced to screen readers, which otherwise hear "text box" per block. */
 		label?: string;
 		/** Bumped by the parent to take the caret. A nonce, not a boolean: the same
@@ -103,12 +105,8 @@
 
 	let el = $state<HTMLElement>();
 	let focused = $state(false);
-	/**
-	 * Set once this editor has reported a structural change. The parent re-parses
-	 * and replaces this block, which blurs us. A blur write would then push
-	 * our now-stale text into whatever took our place. It did exactly that: `## `
-	 * became `\subsection{\#\#}`.
-	 */
+	/** Blocks the blur write after a structural report, which would otherwise push
+	 *  stale text into the block that replaced us. */
 	let handedOff = false;
 
 	const html = $derived(inlinesToHtml(runs));
@@ -309,26 +307,30 @@
 <svelte:element
 	this={tag}
 	bind:this={el}
-	contenteditable="true"
-	role="textbox"
-	tabindex="0"
-	aria-multiline="false"
-	aria-label={label}
-	data-block-editor
+	{...attributes}
+	contenteditable={readonly ? 'false' : 'true'}
+	role={readonly ? undefined : 'textbox'}
+	tabindex={readonly ? undefined : 0}
+	aria-multiline={readonly ? undefined : 'false'}
+	aria-label={readonly ? undefined : label}
+	aria-readonly={readonly ? 'true' : undefined}
+	data-block-editor={readonly ? undefined : true}
 	data-empty={isEmpty || undefined}
 	data-placeholder={placeholder}
 	class="outline-none {className}"
-	oninput={() => oninput(read())}
-	onbeforeinput={onBeforeInput}
-	onkeydown={onKeyDown}
-	onpaste={onPaste}
-	onclick={onClick}
+	oninput={readonly ? undefined : () => oninput(read())}
+	onbeforeinput={readonly ? undefined : onBeforeInput}
+	onkeydown={readonly ? undefined : onKeyDown}
+	onpaste={readonly ? undefined : onPaste}
+	onclick={readonly ? undefined : onClick}
 	onfocusin={() => {
+		if (readonly) return;
 		focused = true;
 		handedOff = false;
 		onfocus?.();
 	}}
 	onfocusout={() => {
+		if (readonly) return;
 		// Settle the model before releasing the DOM: dropping `focused` first would
 		// let the projection effect run against runs one keystroke out of date.
 		if (!handedOff) oninput(read());
