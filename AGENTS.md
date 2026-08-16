@@ -64,6 +64,12 @@ CI lives in `.github/workflows/` (`ci-desktop.yml`, `release-desktop.yml`, `depl
 `tex-engine.yml`). The release Linux leg is built on **ubuntu-22.04 on purpose** (its glibc is the
 floor for the AppImage/.deb).
 
+A `tex-engine-v*` tag publishes the crate and the npm package in two independent jobs. If one
+lands and the other fails, don't re-push the tag: run `tex-engine.yml` from the Actions tab with
+the tag and just the failed half ticked. Both publish steps query the registry first, so a
+re-run that isn't needed is a no-op. npm goes out via trusted publishing (OIDC), so there is no
+`NPM_TOKEN` and no 2FA prompt; crates.io still uses `CARGO_REGISTRY_TOKEN`.
+
 ---
 
 ## 2. Golden rules (non-negotiable, all languages)

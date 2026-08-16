@@ -12,12 +12,25 @@ on:
     paths:
       - "crates/**"
       - "packages/tex-engine/**"
+  # A tagged release publishes to crates.io and npm in two independent jobs, so
+  # one can land while the other fails. Re-pushing the tag is not a fix (the tag
+  # is immutable and the run would repeat what already succeeded), so the missing
+  # half is re-published from here instead. Both publish steps check the registry
+  # first, so an accidental double-run is a no-op rather than an error.
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag (e.g. tex-engine-v0.x.x)"
+        description: "Release tag to build from (e.g. tex-engine-v0.1.3). Every job checks this out, and it is the version that gets published."
         required: true
         type: string
+      publish_crate:
+        description: "Publish glyphtex-tex-api to crates.io"
+        type: boolean
+        default: false
+      publish_npm:
+        description: "Publish glyphtex-engine to npm"
+        type: boolean
+        default: false
 
 concurrency:
   group: tex-engine-${{ github.ref }}
@@ -33,6 +46,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.sha }}
 
       # git stores the exec bit, but core.filemode=false (the usual Windows
       # setting) drops it silently, and the job then dies on a bare
@@ -93,6 +108,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag || github.sha }}
           submodules: recursive
 
       - uses: dtolnay/rust-toolchain@master
@@ -140,6 +156,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.sha }}
 
       - uses: actions/download-artifact@v4
         with:
@@ -177,10 +195,14 @@ jobs:
   crate:
     name: Publish crate to crates.io
     needs: [api, engine, test]
-    if: startsWith(github.ref, 'refs/tags/tex-engine-v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/tex-engine-v') ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish_crate)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.sha }}
 
       - uses: dtolnay/rust-toolchain@master
         with:
@@ -192,7 +214,14 @@ jobs:
 
       - name: Derive version from tag
         id: version
-        run: echo "value=${GITHUB_REF_NAME#tex-engine-v}" >> "$GITHUB_OUTPUT"
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          case "$TAG" in
+            tex-engine-v*) ;;
+            *) echo "::error::Expected a tex-engine-v* tag, got '$TAG'."; exit 1 ;;
+          esac
+          echo "value=${TAG#tex-engine-v}" >> "$GITHUB_OUTPUT"
 
       # Anchored to the line start so it only rewrites the [package] version;
       # dependency versions are inline inside braces and never begin a line.
@@ -247,13 +276,19 @@ jobs:
   release:
     name: Release + publish
     needs: [api, engine, test]
-    if: startsWith(github.ref, 'refs/tags/tex-engine-v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/tex-engine-v') ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish_npm)
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write # npm provenance
+      # Mints the short-lived npm token via OIDC (trusted publishing), and is
+      # what signs provenance. No NPM_TOKEN secret, so 2FA never enters the loop.
+      id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.sha }}
 
       - uses: actions/download-artifact@v4
         with:
@@ -270,7 +305,14 @@ jobs:
 
       - name: Derive version from tag
         id: version
-        run: echo "value=${GITHUB_REF_NAME#tex-engine-v}" >> "$GITHUB_OUTPUT"
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          case "$TAG" in
+            tex-engine-v*) ;;
+            *) echo "::error::Expected a tex-engine-v* tag, got '$TAG'."; exit 1 ;;
+          esac
+          echo "value=${TAG#tex-engine-v}" >> "$GITHUB_OUTPUT"
 
       # No `pnpm generate` here: it shells out to `cargo test`, which would pull
       # an unpinned Rust into the release job to regenerate files that are
@@ -288,16 +330,40 @@ jobs:
           pnpm sync:wasm
           npm version "${{ steps.version.outputs.value }}" --no-git-tag-version
 
-      - name: Publish to npm
-        run: cd packages/tex-engine && npm publish --provenance
-        # in favour of trusted publishing
-        # env:
-        #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # Versions on npm are immutable, so a manual re-run after a partial release
+      # would otherwise fail on the publish step alone.
+      - name: Is this version already published?
+        id: published
+        run: |
+          v='${{ steps.version.outputs.value }}'
+          if npm view "glyphtex-engine@$v" version >/dev/null 2>&1; then
+            echo "::notice::glyphtex-engine $v is already on npm; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
 
+      # Trusted publishing needs npm >= 11.5.1; the Node 24 image can ship older.
+      - name: Ensure npm supports trusted publishing
+        if: steps.published.outputs.skip == 'false'
+        run: npm install -g npm@latest
+
+      # No --provenance and no NODE_AUTH_TOKEN: with trusted publishing npm
+      # exchanges the job's OIDC token for a short-lived credential and attaches
+      # provenance itself. Requires glyphtex-engine to name this repo + workflow
+      # as a trusted publisher on npmjs.com.
+      - name: Publish to npm
+        if: steps.published.outputs.skip == 'false'
+        run: cd packages/tex-engine && npm publish
+
+      # The GitHub release belongs to the tag; a manual npm-only re-publish must
+      # not try to create one from a branch ref.
       - name: Compress engine for release
+        if: startsWith(github.ref, 'refs/tags/tex-engine-v')
         run: brotli -q 11 -k crates/tectonic-wasm/output/tectonic_wasm.wasm
 
       - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/tex-engine-v')
         with:
           files: |
             crates/tectonic-wasm/output/tectonic_wasm.wasm
