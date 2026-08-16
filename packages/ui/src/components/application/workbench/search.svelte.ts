@@ -7,10 +7,12 @@ import {
 	applyMatches,
 	EMPTY_SCAN,
 	flattenHits,
+	NO_SKIPS,
 	replacementFor,
 	scanFiles,
 	type Hit,
-	type ScanResult
+	type ScanResult,
+	type SearchSkips
 } from './project-search';
 import type { SearchMatch, SearchOptions } from './types';
 
@@ -61,6 +63,8 @@ export class SearchStore {
 		regexp: false
 	});
 	projectResult = $state<ScanResult>(EMPTY_SCAN);
+	/** What the last scan could not open, so the panel can own the omission. */
+	projectSkips = $state<SearchSkips>(NO_SKIPS);
 	projectActive = $state(0);
 	projectScanning = $state(false);
 	/** Files the scan collapsed, by id. */
@@ -102,27 +106,31 @@ export class SearchStore {
 		this.projectOpts = o;
 		clearTimeout(this.#debounce);
 		if (!o.query) {
-			this.projectResult = EMPTY_SCAN;
-			this.projectActive = 0;
-			this.projectScanning = false;
+			this.#resetProject();
 			return;
 		}
 		this.projectScanning = true;
 		this.#debounce = setTimeout(() => void this.runProjectSearch(o), DEBOUNCE_MS);
 	}
 
+	#resetProject(): void {
+		this.projectResult = EMPTY_SCAN;
+		this.projectSkips = NO_SKIPS;
+		this.projectActive = 0;
+		this.projectScanning = false;
+	}
+
 	async runProjectSearch(o: SearchOptions = this.projectOpts): Promise<void> {
 		const token = ++this.#scanToken;
 		this.projectOpts = o;
 		if (!o.query) {
-			this.projectResult = EMPTY_SCAN;
-			this.projectActive = 0;
-			this.projectScanning = false;
+			this.#resetProject();
 			return;
 		}
-		const inputs = await this.#files.searchableFiles();
+		const { inputs, skips } = await this.#files.searchableFiles();
 		if (token !== this.#scanToken) return;
 		this.projectResult = scanFiles(inputs, o);
+		this.projectSkips = skips;
 		this.projectActive = 0;
 		this.projectScanning = false;
 	}

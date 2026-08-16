@@ -19,9 +19,11 @@
 	import type { ActivityView, FileMeta, SearchOptions, Sel } from './side-panel/types';
 	import {
 		EMPTY_SCAN,
+		NO_SKIPS,
 		type FileMatches,
 		type Hit,
-		type ScanResult
+		type ScanResult,
+		type SearchSkips
 	} from './workbench/project-search';
 
 	/**
@@ -85,6 +87,7 @@
 		searchScanning = false,
 		searchCollapsed = {},
 		searchIncludeOther = false,
+		searchSkips = NO_SKIPS,
 		onincludeother,
 		ontogglegroup,
 		onsearch,
@@ -179,6 +182,8 @@
 		searchTotal?: number;
 		/** Whether generated / sidecar files are folded into the results. */
 		searchIncludeOther?: boolean;
+		/** What the scan refused to open, so the panel can say so. */
+		searchSkips?: SearchSkips;
 		onincludeother?: (on: boolean) => void;
 		/** The same matches flattened, for prev/next and the active index. */
 		searchHits?: Hit[];
@@ -333,6 +338,7 @@
 						scanning={searchScanning}
 						collapsed={searchCollapsed}
 						includeOther={searchIncludeOther}
+						skips={searchSkips}
 						{onincludeother}
 						{ontogglegroup}
 						{onsearchnext}

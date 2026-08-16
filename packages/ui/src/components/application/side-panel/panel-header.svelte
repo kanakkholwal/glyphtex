@@ -2,6 +2,7 @@
 	import { Button } from '@glyphtex/ui/button';
 	import {
 		DropdownMenu,
+		DropdownMenuCheckboxItem,
 		DropdownMenuContent,
 		DropdownMenuItem,
 		DropdownMenuSeparator,
@@ -116,6 +117,17 @@
 					<DropdownMenuItem onSelect={() => store.revealActive()}>
 						<IconCrosshair class="text-muted-foreground" /> Reveal open file
 					</DropdownMenuItem>
+					{#if store.generatedCount}
+						<DropdownMenuCheckboxItem
+							bind:checked={settings.hideGenerated}
+							closeOnSelect={false}
+						>
+							Hide generated files
+							<span class="text-faint ml-auto pl-2 text-xs tabular-nums"
+								>{store.generatedCount}</span
+							>
+						</DropdownMenuCheckboxItem>
+					{/if}
 					{#if store.folderPaths.length}
 						<DropdownMenuItem onSelect={() => store.toggleCollapseAll()}>
 							<IconFold class="text-muted-foreground" />

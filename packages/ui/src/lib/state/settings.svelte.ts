@@ -89,6 +89,11 @@ export interface EditorSettings {
 	docSmallText: boolean;
 	/** Lets the canvas fill the pane instead of holding a 708px measure. */
 	docFullWidth: boolean;
+
+	// --- Explorer -------------------------------------------------------------
+	/** Fold `.aux`, `.toc`, `.log` and the rest of a compile's output out of the
+	 *  file tree. They are rewritten every build and are rarely worth the rows. */
+	hideGenerated: boolean;
 }
 
 export const EDITOR_DEFAULTS: EditorSettings = {
@@ -103,7 +108,8 @@ export const EDITOR_DEFAULTS: EditorSettings = {
 	texProgram: 'pdflatex',
 	docFont: 'default',
 	docSmallText: false,
-	docFullWidth: false
+	docFullWidth: false,
+	hideGenerated: false
 };
 
 /** Debounce (ms) before an edit triggers an automatic recompile. */
@@ -291,6 +297,14 @@ class SettingsStore {
 	}
 	set docFullWidth(value: boolean) {
 		this.patchEditor({ docFullWidth: value });
+	}
+
+	// --- explorer -------------------------------------------------------------
+	get hideGenerated(): boolean {
+		return this.#editor.current.hideGenerated ?? false;
+	}
+	set hideGenerated(value: boolean) {
+		this.patchEditor({ hideGenerated: value });
 	}
 
 	// --- source control -------------------------------------------------------

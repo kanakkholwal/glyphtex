@@ -3,11 +3,14 @@ import { canDropInto, droppable, getDrag, setDrag, type DndItem } from '../file-
 import type { ActivityView } from './types';
 import type { TreeNode } from '../file-tree.svelte';
 
+import { isGeneratedFile } from '../file-kinds';
+import { settings } from '@glyphtex/ui/settings';
 import {
 	buildTree,
 	collectFolderPaths,
 	filterTree,
 	flattenTree,
+	hideGenerated,
 	rowKeyToSel,
 	type TreeRow
 } from './tree';
@@ -115,12 +118,20 @@ export class SidePanelStore {
 	 *  a folder you would have to expand to see them. */
 	get rows(): TreeRow[] {
 		const filtering = this.treeFilter.trim().length > 0;
-		const nodes = filtering ? filterTree(this.rootNodes, this.treeFilter) : this.rootNodes;
+		let nodes = settings.hideGenerated
+			? hideGenerated(this.rootNodes, this.#d.getActiveId())
+			: this.rootNodes;
+		if (filtering) nodes = filterTree(nodes, this.treeFilter);
 		return flattenTree(
 			nodes,
 			filtering ? () => true : (path) => treeState.isOpen(path),
 			this.#d.getDirtyIds()
 		);
+	}
+
+	/** How many rows the "hide generated" preference is currently folding away. */
+	get generatedCount(): number {
+		return this.#d.getFiles().filter((f) => isGeneratedFile(f.name)).length;
 	}
 
 	// --- Selection -------------------------------------------------------------

@@ -39,6 +39,32 @@ export type SearchInput = {
 	document: boolean;
 };
 
+/** What the scan refused to open. Reported rather than swallowed: a search that
+ *  silently skips a folder is indistinguishable from one that found nothing. */
+export type SearchSkips = {
+	/** Vendored / VCS folder names that held text, in first-seen order. */
+	vendorDirs: string[];
+	vendorFiles: number;
+	/** Files whose contents could not be read at all. */
+	unreadable: number;
+};
+
+export const NO_SKIPS: SearchSkips = { vendorDirs: [], vendorFiles: 0, unreadable: 0 };
+
+/** One line naming what a scan left out, or "" when it left out nothing. */
+export function skipSummary(s: SearchSkips): string {
+	const parts: string[] = [];
+	if (s.vendorFiles) {
+		const [a, b] = s.vendorDirs;
+		const rest = s.vendorDirs.length - 2;
+		const where = !b ? a : rest > 0 ? `${a}, ${b} and ${rest} more` : `${a} and ${b}`;
+		parts.push(`${s.vendorFiles} file${s.vendorFiles === 1 ? '' : 's'} in ${where}`);
+	}
+	if (s.unreadable)
+		parts.push(`${s.unreadable} file${s.unreadable === 1 ? '' : 's'} that could not be read`);
+	return parts.length ? `Not searched: ${parts.join(', ')}.` : '';
+}
+
 /** Why a pattern will not compile, so the panel can say so instead of "No results". */
 export function patternError(o: SearchOptions): string | undefined {
 	if (!o.query) return undefined;

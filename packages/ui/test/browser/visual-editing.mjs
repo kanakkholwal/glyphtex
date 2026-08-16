@@ -1168,4 +1168,115 @@ check(
 	JSON.stringify(escapedCaption.match(/\\begin\{figure\}[\s\S]*?\\end\{figure\}/)?.[0])
 );
 
+// --- Lists, and the one free-text field left in a code block ------------------
+const listDoc = [
+	'\\documentclass{article}',
+	'\\begin{document}',
+	'\\begin{itemize}',
+	'  \\item alpha item',
+	'  \\item beta item',
+	'\\end{itemize}',
+	'',
+	'\\begin{description}',
+	'  \\item[Term] described thing',
+	'\\end{description}',
+	'',
+	'\\begin{lstlisting}',
+	'code();',
+	'\\end{lstlisting}',
+	'\\end{document}',
+	''
+].join('\n');
+check('reload for the list checks', await loadSource(listDoc, 'alpha item'));
+await toVisual();
+await sleep(500);
+
+// The source right after a mode switch can still be the text from before the edit.
+const settled = async (marker) => {
+	for (let i = 0; i < 20; i++) {
+		const text = (await source()) ?? '';
+		if (text.includes(marker)) return text;
+		await sleep(200);
+	}
+	return (await source()) ?? '';
+};
+const caretIn = async (match, where = 'end') => {
+	for (let i = 0; i < 12; i++) {
+		const ok = await ev(`(() => {
+		  const el = [...document.querySelectorAll('[data-block-editor]')].find(e => (e.innerText||'').includes(${JSON.stringify(match)}));
+		  if (!el) return false;
+		  el.focus();
+		  const r = document.createRange();
+		  r.selectNodeContents(el); r.collapse(${where === 'start'});
+		  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+		  return document.activeElement === el;
+		})()`);
+		await sleep(150);
+		if (ok && (await ev(`!!document.querySelector('[data-block-wrapper]:focus-within')`)))
+			return true;
+	}
+	return false;
+};
+
+check('the caret reaches a list item', await caretIn('alpha item'));
+await key('Enter', 'Enter', 13);
+await sleep(400);
+await typeText('inserted item');
+await sleep(600);
+await toLatex();
+const withItem = await settled('inserted item');
+check(
+	'Enter in a list adds a sibling and keeps both texts',
+	/\\item alpha item\s*\n\s*\\item inserted item\s*\n\s*\\item beta item/.test(withItem),
+	JSON.stringify(withItem.match(/\\begin\{itemize\}[\s\S]*?\\end\{itemize\}/)?.[0])
+);
+
+await toVisual();
+await sleep(500);
+check('the caret reaches the start of the last item', await caretIn('beta item', 'start'));
+await key('Backspace', 'Backspace', 8);
+await sleep(600);
+await toLatex();
+const merged = await settled('alpha item');
+check(
+	'Backspace folds an item into the one above without losing either',
+	/\\item inserted itembeta item/.test(merged),
+	JSON.stringify(merged.match(/\\begin\{itemize\}[\s\S]*?\\end\{itemize\}/)?.[0])
+);
+
+await toVisual();
+await sleep(500);
+check('the caret reaches a described item', await caretIn('described thing'));
+await typeText(' TAIL');
+await sleep(600);
+await toLatex();
+const described = await settled('TAIL');
+check(
+	'a description term survives an edit to its item',
+	/\\item\[Term\] described thing TAIL/.test(described),
+	JSON.stringify(described.match(/\\begin\{description\}[\s\S]*?\\end\{description\}/)?.[0])
+);
+
+await toVisual();
+await sleep(500);
+check(
+	'the listing language field takes a value',
+	await ev(`(() => {
+	  const input = document.querySelector('[aria-label="Listing language"]');
+	  if (!input) return false;
+	  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+	  setter.call(input, 'Py%thon{');
+	  input.dispatchEvent(new Event('change', { bubbles: true }));
+	  return true;
+	})()`)
+);
+await sleep(700);
+await toLatex();
+const listed = await settled('lstlisting');
+check(
+	'and a percent in it cannot comment out the \\begin line',
+	!/language=[^\]\n]*%/.test(listed) && /\\end\{lstlisting\}/.test(listed),
+	JSON.stringify(listed.match(/\\begin\{lstlisting\}[^\n]*/)?.[0])
+);
+
 finish();

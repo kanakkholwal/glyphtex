@@ -12,7 +12,12 @@
 	const layout = $derived(ctrl.layout);
 
 	const modes: { value: DocMode; label: string; icon: typeof IconPencil; hint?: string }[] = [
-		{ value: 'visual', label: 'Visual', icon: IconPencil, hint: 'Not shipped yet: preview only' },
+		{
+			value: 'visual',
+			label: 'Visual',
+			icon: IconPencil,
+			hint: 'Write without the markup. Anything it cannot rewrite is left exactly as you typed it.'
+		},
 		{ value: 'latex', label: 'LaTeX', icon: IconCode }
 	];
 </script>
@@ -44,11 +49,6 @@
 					>
 						<Icon class="size-3.5" />
 						<span class="hidden lg:inline">{mode.label}</span>
-						<!-- A dot, not the word: the label already crowds out below lg, and the
-						     pane says it plainly the moment you land there. -->
-						{#if mode.hint && !blocked}
-							<span class="bg-warning size-1 shrink-0 rounded-full" aria-hidden="true"></span>
-						{/if}
 					</button>
 				{/snippet}
 			</TooltipTrigger>

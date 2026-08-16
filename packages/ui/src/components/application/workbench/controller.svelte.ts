@@ -179,6 +179,12 @@ export class WorkbenchController {
 	}
 
 	/** Why Visual is unavailable, for the mode switch's tooltip. */
+	/** You asked for Visual and got source instead. The mode switch greys out, but
+	 *  that is hover-only: the pane has to say so where you are actually looking. */
+	get visualDemoted(): boolean {
+		return this.layout.docMode === 'visual' && !this.visualAllowed;
+	}
+
 	get visualBlockedReason(): string | null {
 		if (this.visualAllowed) return null;
 		const name = this.files.activeFile?.name;

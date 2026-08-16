@@ -6,13 +6,21 @@
 		IconChevronUp,
 		IconFileOff,
 		IconFileText,
+		IconFolderOff,
 		IconReplace,
 		IconReplaceFilled
 	} from '@tabler/icons-svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 
 	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from '../search-ui';
-	import type { FileMatches, Hit, ScanResult } from '../workbench/project-search';
+	import {
+		NO_SKIPS,
+		skipSummary,
+		type FileMatches,
+		type Hit,
+		type ScanResult,
+		type SearchSkips
+	} from '../workbench/project-search';
 	import { isDocumentFile } from '../file-kinds';
 	import type { SidePanelStore } from './store.svelte';
 
@@ -30,6 +38,7 @@
 		scanning,
 		collapsed,
 		includeOther = false,
+		skips = NO_SKIPS,
 		onincludeother,
 		ontogglegroup,
 		onsearchnext,
@@ -48,6 +57,8 @@
 		scanning: boolean;
 		collapsed: Record<string, boolean>;
 		includeOther?: boolean;
+		/** What the scan refused to open (dependency trees, unreadable files). */
+		skips?: SearchSkips;
 		onincludeother?: (on: boolean) => void;
 		ontogglegroup?: (id: string) => void;
 		onsearchnext?: () => void;
@@ -63,6 +74,7 @@
 
 	const fileCount = $derived(groups.length);
 	const isOpen = (group: FileMatches) => !collapsed[group.id];
+	const skipNote = $derived(skipSummary(skips));
 
 	/** Rows as rendered, so arrow keys and the active highlight agree. */
 	const rows = $derived(
@@ -286,6 +298,18 @@
 			{/if}
 			<span class="text-brand ml-auto shrink-0 font-medium">{includeOther ? 'Hide' : 'Show'}</span>
 		</button>
+	{/if}
+
+	<!-- Dependency trees have no opt-in: a single node_modules outweighs the project.
+	     Saying so is the difference between "nothing matched" and "we didn't look". -->
+	{#if !result.error && !scanning && store.query && skipNote}
+		<p
+			class="text-faint flex items-start gap-1.5 px-1.5 pt-1 text-xs"
+			title={skips.vendorDirs.length > 2 ? skips.vendorDirs.join(', ') : undefined}
+		>
+			<IconFolderOff size={13} class="mt-px shrink-0" />
+			<span>{skipNote}</span>
+		</p>
 	{/if}
 
 	{#if !result.error && total}

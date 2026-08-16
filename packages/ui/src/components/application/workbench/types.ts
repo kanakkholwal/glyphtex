@@ -1,7 +1,5 @@
-/**
- * Top-level surface. `visual` is the WYSIWYG editor: shipped as a preview of the
- * intended design, not a working editor (see `visual-pane.svelte`).
- */
+/** Top-level surface. `visual` is the WYSIWYG editor over the same source; the
+ *  LaTeX text stays the truth in both (see `visual-pane.svelte`). */
 export type DocMode = 'visual' | 'latex';
 
 /** How the LaTeX surface is laid out. Only meaningful when `docMode` is `latex`. */

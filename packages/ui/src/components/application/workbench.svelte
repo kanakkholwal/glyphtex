@@ -136,6 +136,7 @@
 				searchScanning={search.projectScanning}
 				searchCollapsed={search.collapsedGroups}
 				searchIncludeOther={search.includeOther}
+				searchSkips={search.projectSkips}
 				onincludeother={(on) => search.setIncludeOther(on)}
 				ontogglegroup={(id) => search.toggleGroup(id)}
 				onsearch={(o) => search.queueProjectSearch(o)}

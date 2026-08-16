@@ -108,9 +108,13 @@ const BINARY_EXT = new Set([
 	'sqlite3'
 ]);
 
+function leafOf(name: string): string {
+	return name.slice(Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1);
+}
+
 /** Leaf-or-path → lowercase extension (without the dot), or "" if none. */
 function extOf(name: string): string {
-	const leaf = name.slice(Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1);
+	const leaf = leafOf(name);
 	const dot = leaf.lastIndexOf('.');
 	// `dot <= 0` covers "no extension" and dotfiles like ".gitignore" (treated as text).
 	return dot <= 0 ? '' : leaf.slice(dot + 1).toLowerCase();
@@ -175,9 +179,12 @@ const SIDECAR_EXT = new Set([
 	'json', 'csv', 'tsv', 'xml', 'html', 'htm', 'css', 'scss', 'lock', 'map'
 ]);
 
-/** Never part of a document, at any scope: dependency trees, VCS internals and
- *  build output that would swamp a scan and can run to thousands of files. */
-const IGNORED_DIRS = new Set([
+/**
+ * Dependency trees and VCS internals. Nobody writes their paper in here, and a
+ * single `node_modules` can outweigh the project by four orders of magnitude, so
+ * these are excluded at every scope with no way to opt back in.
+ */
+const VENDOR_DIRS = new Set([
 	'node_modules',
 	'.git',
 	'.svn',
@@ -188,37 +195,54 @@ const IGNORED_DIRS = new Set([
 	'__pycache__',
 	'.pytest_cache',
 	'.tox',
-	'dist',
-	'build',
-	'out',
-	'target',
 	'.next',
-	'.svelte-kit',
-	'.DS_Store'
+	'.svelte-kit'
 ]);
 
-/** Whether any segment of a forward-slashed path is an ignored directory. */
-function inIgnoredDir(name: string): boolean {
-	const parts = name.split('/');
-	for (let i = 0; i < parts.length - 1; i++)
-		if (IGNORED_DIRS.has(parts[i]) || parts[i].startsWith('_minted-')) return true;
-	return false;
+/** Build output. Demoted rather than excluded: `latexmk -outdir=build` puts a real
+ *  project's own `.tex`-adjacent output here, so it stays reachable on request. */
+const OUTPUT_DIRS = new Set(['dist', 'build', 'out', 'target']);
+
+/** Binaries whose names give the classifier nothing to go on. */
+const NOISE_FILES = new Set(['.ds_store', 'thumbs.db', 'desktop.ini']);
+
+/** Folder segments of a forward-slashed path (the leaf is not one). */
+function dirSegments(name: string): string[] {
+	return name.split('/').slice(0, -1);
 }
 
 /** How wide a project search casts. */
 export type SearchScope = 'documents' | 'all';
 
-/** Whether project search may open this file at all. Binary and dependency trees
- *  are out at every scope: there is nothing readable in them. */
+/** The vendored or VCS folder keeping a path out of search, or '' when there is
+ *  none. Named so the panel can say which folders it refused to open. */
+export function vendorDirOf(name: string): string {
+	for (const part of dirSegments(name)) if (VENDOR_DIRS.has(part)) return part;
+	return '';
+}
+
+function inOutputDir(name: string): boolean {
+	return dirSegments(name).some((p) => OUTPUT_DIRS.has(p) || p.startsWith('_minted-'));
+}
+
+/** Whether project search may open this file at all. Binaries and dependency
+ *  trees are out at every scope: there is nothing readable in them. */
 export function isSearchable(name: string): boolean {
-	return isEditable(classifyFile(name)) && !inIgnoredDir(name);
+	if (NOISE_FILES.has(leafOf(name).toLowerCase())) return false;
+	return isEditable(classifyFile(name)) && !vendorDirOf(name);
 }
 
 /** Whether the file is part of the document itself, as opposed to something
  *  generated from it or sitting next to it. Drives the default search scope. */
 export function isDocumentFile(name: string): boolean {
+	if (inOutputDir(name)) return false;
 	const ext = extOf(name);
 	return !GENERATED_EXT.has(ext) && !SIDECAR_EXT.has(ext);
+}
+
+/** Rewritten by the next compile, so edits to it cannot survive. */
+export function isGeneratedFile(name: string): boolean {
+	return GENERATED_EXT.has(extOf(name));
 }
 
 // Narrower than the `latex` kind: a .bib or .aux is LaTeX-family text, but it has

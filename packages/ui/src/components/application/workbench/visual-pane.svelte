@@ -853,6 +853,10 @@
 	 *  never stand alone are escaped. A URL keeps its `%` and `#` that way too. */
 	const linkSafe = (text: string) => text.replace(/(?<!\\)([%&#])/g, '\\$1');
 
+	/** A key=value option list has nowhere to put an escape, so a `%` in here would
+	 *  comment out the `\begin` line. Dropped rather than written. */
+	const optionValue = (text: string) => text.replace(/[^A-Za-z0-9 +.\-]/g, '').trim();
+
 	/** Rewrite the clicked atom in the DOM, then let the normal input path run. */
 	function commitAtom(value: { src: string; url?: string } | null) {
 		const open = atom;
@@ -1141,7 +1145,7 @@
 										files.source,
 										block,
 										'language',
-										(e.currentTarget as HTMLInputElement).value.trim()
+										optionValue((e.currentTarget as HTMLInputElement).value)
 									) ?? null
 								])}
 						/>

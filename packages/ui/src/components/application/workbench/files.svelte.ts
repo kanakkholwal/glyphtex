@@ -3,8 +3,10 @@ import {
 	editorLanguage,
 	isDocumentFile,
 	isEditable,
+	isGeneratedFile,
 	isSearchable,
 	isVisualEditable,
+	vendorDirOf,
 	type FileKind
 } from '../file-kinds';
 import type { GitHeadInfo, GitProvider } from '../git-panel.svelte';
@@ -16,6 +18,7 @@ import { settings } from '@glyphtex/ui/settings';
 import { toast } from '@glyphtex/ui/sonner';
 
 import { baseName, dirOf, joinPath, leafOf, parentDir, samePath, splitExt } from './paths';
+import type { SearchInput, SearchSkips } from './project-search';
 import {
 	DEMO_FILES,
 	type ConflictAction,
@@ -79,6 +82,8 @@ export class FileStore {
 	// Files that turned out to be unreadable as text (binary with a text-y name)
 	// get demoted to "binary" so we show the fallback instead of mojibake.
 	unreadableIds = $state<Set<string>>(new Set());
+	/** Why each demotion happened, so the viewer can say more than "unsupported". */
+	loadErrors = $state<Map<string, string>>(new Map());
 
 	// Bumped whenever a save lands, so the auto-compile effect can key off it.
 	savedTick = $state(0);
@@ -361,6 +366,10 @@ export class FileStore {
 	readonly activeVisual = $derived(
 		this.activeEditable && isVisualEditable(this.activeFile?.name ?? '')
 	);
+	/** Compiler output. Shown read-only: anything typed here dies at the next build. */
+	readonly activeGenerated = $derived(isGeneratedFile(this.activeFile?.name ?? ''));
+	/** Why the active file could not be read, when that is why it has no editor. */
+	readonly activeLoadError = $derived(this.loadErrors.get(this.activeFile?.id ?? ''));
 
 	// Project name shown in chrome: the open folder's name, else the prop default.
 	// A getter (not `$derived`) so it can reference the constructor-assigned
@@ -389,44 +398,83 @@ export class FileStore {
 		return this.liveContent(f) !== f.saved;
 	}
 
+	#markUnreadable(id: string, reason: string): void {
+		this.unreadableIds = new Set(this.unreadableIds).add(id);
+		this.loadErrors = new Map(this.loadErrors).set(id, reason);
+	}
+
+	/** Forget a demotion so the file is read afresh. Called whenever the user asks
+	 *  for the file by name, since the last failure may have been transient. */
+	#clearUnreadable(id: string): void {
+		if (!this.unreadableIds.has(id)) return;
+		const ids = new Set(this.unreadableIds);
+		ids.delete(id);
+		this.unreadableIds = ids;
+		const errors = new Map(this.loadErrors);
+		errors.delete(id);
+		this.loadErrors = errors;
+	}
+
 	/** Pull a project file's text off disk if it has not been opened yet. Shared by
-	 *  `openFile` and project search, which has to read files nobody has opened. */
-	async ensureLoaded(f: GlyphFile): Promise<void> {
-		if (!this.project || !f.path || f.loaded) return;
-		if (!isEditable(classifyFile(f.name))) return;
+	 *  `openFile` and project search, which has to read files nobody has opened.
+	 *  False means the read failed and the file is still unloaded. */
+	async ensureLoaded(f: GlyphFile): Promise<boolean> {
+		if (!this.project || !f.path || f.loaded) return true;
+		if (!isEditable(classifyFile(f.name))) return true;
 		try {
 			f.content = await this.project.readFile(f.path);
 			f.saved = f.content;
 			f.loaded = true;
-		} catch {
-			// A text-looking name that is actually binary: leave it empty rather than
-			// failing the whole scan.
-			this.unreadableIds = new Set(this.unreadableIds).add(f.id);
-			f.content = '';
-			f.loaded = true;
+			return true;
+		} catch (e) {
+			// Deliberately not marked loaded: a locked or half-written file would
+			// otherwise keep serving an empty buffer for the rest of the session.
+			this.#markUnreadable(f.id, String(e));
+			return false;
 		}
 	}
 
-	/** Every file project search may read, with unsaved edits included. Each is
-	 *  tagged with whether it is part of the document, which sets the default scope. */
-	async searchableFiles(): Promise<
-		{ id: string; name: string; text: string; document: boolean }[]
-	> {
+	/** Every file project search may read, with unsaved edits included, plus what
+	 *  was left out. Each input is tagged with whether it is part of the document,
+	 *  which is what sets the default scope. */
+	async searchableFiles(): Promise<{ inputs: SearchInput[]; skips: SearchSkips }> {
 		this.syncBuffer();
-		const out: { id: string; name: string; text: string; document: boolean }[] = [];
+		const inputs: SearchInput[] = [];
+		const vendorDirs: string[] = [];
+		let vendorFiles = 0;
+		let unreadable = 0;
 		for (const f of this.files) {
-			if (!isSearchable(f.name) || this.unreadableIds.has(f.id)) continue;
-			await this.ensureLoaded(f);
-			// `ensureLoaded` demotes a text-named binary, so re-check after reading.
-			if (this.unreadableIds.has(f.id)) continue;
-			out.push({
+			// Only text counts as "skipped": nobody expects an image to be searched.
+			if (!isEditable(classifyFile(f.name))) continue;
+			const vendor = vendorDirOf(f.name);
+			if (vendor) {
+				vendorFiles += 1;
+				if (!vendorDirs.includes(vendor)) vendorDirs.push(vendor);
+				continue;
+			}
+			if (!isSearchable(f.name)) continue;
+			// Remembered so a rescan per keystroke does not retry a broken read; the
+			// demotion is dropped again the moment the user opens the file themselves.
+			if (this.unreadableIds.has(f.id) || !(await this.ensureLoaded(f))) {
+				unreadable += 1;
+				continue;
+			}
+			inputs.push({
 				id: f.id,
 				name: f.name,
 				text: this.liveContent(f),
 				document: isDocumentFile(f.name)
 			});
 		}
-		return out;
+		return { inputs, skips: { vendorDirs, vendorFiles, unreadable } };
+	}
+
+	/** Re-read the active file after a failed load (the asset viewer's Retry). */
+	async reloadActive(): Promise<void> {
+		const f = this.activeFile;
+		if (!f) return;
+		f.loaded = false;
+		await this.openFile(f.id, true);
 	}
 
 	/** Overwrite one file's text, live buffer included when it is the open one. */
@@ -489,6 +537,9 @@ export class FileStore {
 		this.activeId = id;
 		this.recentIds = [id, ...this.recentIds.filter((r) => r !== id)].slice(0, 12);
 		if (!this.openTabs.includes(id)) this.openTabs = [...this.openTabs, id];
+		// Asking for the file by name outranks whatever a background scan concluded
+		// about it: read it again, and report this attempt's outcome.
+		this.#clearUnreadable(id);
 		const f = this.files.find((x) => x.id === id);
 		// Only editable kinds get a text buffer; images / PDFs / binaries are read
 		// lazily as bytes by the AssetViewer, so we never read them as text here.

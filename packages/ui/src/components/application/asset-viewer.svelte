@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
 	import { Spinner } from '@glyphtex/ui/spinner';
-	import { IconFileOff, IconFolderShare } from '@tabler/icons-svelte';
+	import {
+		IconAlertTriangle,
+		IconEyeOff,
+		IconFileOff,
+		IconFolderShare,
+		IconRefresh
+	} from '@tabler/icons-svelte';
 	import { Image } from '@unpic/svelte';
 
 	import type { FileKind } from './file-kinds';
@@ -14,6 +20,8 @@
 		name,
 		assetKey,
 		readBytes,
+		loadError,
+		onretry,
 		onreveal
 	}: {
 		kind: FileKind;
@@ -21,6 +29,10 @@
 		/** Key handed to `readBytes`: absolute path (desktop) or relative (web). */
 		assetKey?: string;
 		readBytes?: (key: string) => Promise<Uint8Array>;
+		/** Why opening the file as text failed, when that is what sent it here. */
+		loadError?: string;
+		/** Read the file again. Absent hides Retry. */
+		onretry?: () => void;
 		onreveal?: () => void;
 	} = $props();
 
@@ -99,7 +111,21 @@
 		};
 	});
 
-	const unsupported = $derived(kind === 'binary' || !assetKey || !readBytes || !!error);
+	/**
+	 * Why there is nothing to render. These are three different problems and used
+	 * to share one message: "we can't read it", "we won't render it", and "this
+	 * host can't hand us bytes at all" need different next steps from the user.
+	 */
+	const fallback = $derived<'unreadable' | 'no-viewer' | 'no-reader' | null>(
+		error || loadError
+			? 'unreadable'
+			: kind === 'binary'
+				? 'no-viewer'
+				: !assetKey || !readBytes
+					? 'no-reader'
+					: null
+	);
+	const reason = $derived(error ?? loadError);
 </script>
 
 <div class="bg-muted/30 flex h-full min-h-0 flex-col">
@@ -108,29 +134,68 @@
 			<Spinner class="size-4" />
 			<span>Opening {leaf}…</span>
 		</div>
-	{:else if unsupported}
+	{:else if fallback}
 		<div class="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
-			<div class="bg-muted text-muted-foreground grid size-14 place-items-center rounded-2xl">
-				<IconFileOff size={28} />
+			<div
+				class="grid size-14 place-items-center rounded-2xl {fallback === 'unreadable'
+					? 'bg-destructive/10 text-destructive'
+					: 'bg-muted text-muted-foreground'}"
+			>
+				{#if fallback === 'unreadable'}
+					<IconAlertTriangle size={28} />
+				{:else if fallback === 'no-reader'}
+					<IconEyeOff size={28} />
+				{:else}
+					<IconFileOff size={28} />
+				{/if}
 			</div>
 			<div class="flex flex-col items-center gap-1.5">
-				<p class="text-foreground text-sm font-medium">Can't preview this file here</p>
-				<p class="text-muted-foreground max-w-[22rem] text-xs leading-relaxed">
-					{#if error}
-						{leaf} couldn't be opened in the editor.
+				<p class="text-foreground text-sm font-medium">
+					{#if fallback === 'unreadable'}
+						Couldn't read this file
+					{:else if fallback === 'no-reader'}
+						Preview unavailable here
 					{:else}
-						<span class="font-mono">{leaf}</span> isn't a text, image, or PDF file, so GlyphTeX won't
+						No preview for this format
+					{/if}
+				</p>
+				<p class="text-muted-foreground max-w-[22rem] text-xs leading-relaxed">
+					{#if fallback === 'unreadable'}
+						<span class="font-mono">{leaf}</span> is on disk, but reading it failed. It may be
+						binary, locked by another program, or still being written.
+					{:else if fallback === 'no-reader'}
+						<span class="font-mono">{leaf}</span> can't be opened as text, and this window has no
+						way to read its contents to preview it.
+					{:else}
+						<span class="font-mono">{leaf}</span> isn't text, an image, or a PDF, so GlyphTeX won't
 						render it without an external app.
 					{/if}
-					Open it in your file manager instead.
 				</p>
+				{#if reason}
+					<!-- The host's own words: "permission denied" is actionable, our paraphrase is not. -->
+					<p class="text-faint mt-0.5 max-w-[22rem] font-mono text-[11px] break-words">
+						{reason}
+					</p>
+				{/if}
 			</div>
-			{#if onreveal}
-				<Button variant="outline" size="sm" onclick={() => onreveal?.()}>
-					<IconFolderShare />
-					Reveal in folder
-				</Button>
-			{/if}
+			<div class="flex items-center gap-2">
+				{#if fallback === 'unreadable' && onretry}
+					<Button variant="outline" size="sm" onclick={() => onretry?.()}>
+						<IconRefresh />
+						Try again
+					</Button>
+				{/if}
+				{#if onreveal}
+					<Button
+						variant={fallback === 'unreadable' ? 'ghost' : 'outline'}
+						size="sm"
+						onclick={() => onreveal?.()}
+					>
+						<IconFolderShare />
+						Reveal in folder
+					</Button>
+				{/if}
+			</div>
 		</div>
 	{:else if kind === 'image' && imgUrl}
 		<!-- Checkered mat so transparent PNGs/SVGs read correctly. -->

@@ -1,3 +1,4 @@
+import { isGeneratedFile } from '../file-kinds';
 import type { TreeNode } from '../file-tree.svelte';
 import type { Sel } from './types';
 
@@ -128,6 +129,26 @@ export function flattenTree(
 
 	walk(nodes, 0, '');
 	return rows;
+}
+
+/** Drop compiler output, keeping folders that still hold something. The active
+ *  file is always kept: hiding the row for what is on screen reads as a bug. */
+export function hideGenerated(nodes: TreeNode[], activeId: string): TreeNode[] {
+	const keep = (list: TreeNode[]): TreeNode[] => {
+		const out: TreeNode[] = [];
+		for (const node of list) {
+			if (node.type === 'file') {
+				if (node.id === activeId || !isGeneratedFile(node.name)) out.push(node);
+				continue;
+			}
+			const children = keep(node.children);
+			// An empty folder stays: it was empty before, and losing it mid-compile
+			// would make the tree jump.
+			if (children.length || !node.children.length) out.push({ ...node, children });
+		}
+		return out;
+	};
+	return keep(nodes);
 }
 
 /** Keep only what matches `query`, plus the folders on the way to each hit. */

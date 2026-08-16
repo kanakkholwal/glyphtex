@@ -8,6 +8,8 @@
 		IconChevronDown,
 		IconFolderShare,
 		IconLayoutColumns,
+		IconLock,
+		IconPencilOff,
 		IconRefresh,
 		IconSearch,
 		IconX
@@ -206,6 +208,29 @@
 			     are page-global, and this row is for the caret. -->
 		</div>
 
+		<!-- Why you are looking at source. The mode switch only greys out, and a
+		     tooltip is no use to someone who never hovers it. -->
+		{#if ctrl.visualDemoted}
+			<div
+				class="border-border bg-surface-soft text-muted-foreground flex h-7 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
+			>
+				<IconPencilOff size={13} class="text-faint shrink-0" />
+				<span class="truncate">
+					<span class="text-foreground font-medium">{baseName(files.activeFile?.name ?? '')}</span>
+					has no visual form, so it opens as source.
+				</span>
+			</div>
+		{/if}
+
+		{#if files.activeGenerated}
+			<div
+				class="border-border bg-surface-soft text-muted-foreground flex h-7 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
+			>
+				<IconLock size={13} class="text-faint shrink-0" />
+				<span class="truncate">Written by the compiler. Read-only: the next build overwrites it.</span>
+			</div>
+		{/if}
+
 		<div class="min-h-0 flex-1">
 			<CodeEditor
 				bind:this={layout.editor}
@@ -218,6 +243,7 @@
 				fontSize={settings.fontSize}
 				fontFamily={settings.fontStack}
 				lineWrapping={settings.lineWrapping}
+				readonly={files.activeGenerated}
 				oncursor={(p) => (layout.cursor = p)}
 			/>
 		</div>
@@ -259,6 +285,8 @@
 				name={files.activeFile?.name ?? ''}
 				{assetKey}
 				readBytes={ctrl.readFileBytes}
+				loadError={files.activeLoadError}
+				onretry={() => files.reloadActive()}
 				onreveal={files.project?.revealInOS && files.activeFile?.path
 					? () => files.revealActiveFile()
 					: undefined}
