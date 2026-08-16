@@ -113,7 +113,6 @@
 		</ul>
 
 		<div class="col-start-3 flex items-center justify-end gap-1.5">
-
 			<Button href={resolve('/workspace')} variant="default" class="min-w-0 px-4">
 				Open the workspace
 			</Button>
