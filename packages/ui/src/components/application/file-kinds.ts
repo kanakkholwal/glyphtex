@@ -134,6 +134,93 @@ export function isEditable(kind: FileKind): boolean {
 	return kind === 'latex' || kind === 'markdown' || kind === 'text';
 }
 
+/**
+ * Rewritten by every compile. Their words are the source's words, so searching
+ * them reports each hit two or three times over.
+ */
+const GENERATED_EXT = new Set([
+	'aux',
+	'toc',
+	'lof',
+	'lot',
+	'out',
+	'nav',
+	'snm',
+	'vrb',
+	'lol',
+	'brf',
+	'idx',
+	'ind',
+	'ilg',
+	'glo',
+	'gls',
+	'glg',
+	'bbl',
+	'blg',
+	'log',
+	'fls',
+	'fdb_latexmk',
+	'synctex',
+	'dvi',
+	'xdv',
+	'run'
+]);
+
+/** Text that sits beside a paper without being part of it: build scripts, data,
+ *  config. Searchable on request, never by default. */
+const SIDECAR_EXT = new Set([
+	'js', 'mjs', 'cjs', 'ts', 'tsx', 'jsx', 'py', 'rb', 'sh', 'bash', 'zsh', 'ps1',
+	'bat', 'cmd', 'r', 'jl', 'lua', 'pl', 'php', 'go', 'rs', 'c', 'h', 'cpp', 'hpp',
+	'java', 'kt', 'swift', 'sql', 'yml', 'yaml', 'toml', 'ini', 'cfg', 'conf',
+	'json', 'csv', 'tsv', 'xml', 'html', 'htm', 'css', 'scss', 'lock', 'map'
+]);
+
+/** Never part of a document, at any scope: dependency trees, VCS internals and
+ *  build output that would swamp a scan and can run to thousands of files. */
+const IGNORED_DIRS = new Set([
+	'node_modules',
+	'.git',
+	'.svn',
+	'.hg',
+	'.cache',
+	'.venv',
+	'venv',
+	'__pycache__',
+	'.pytest_cache',
+	'.tox',
+	'dist',
+	'build',
+	'out',
+	'target',
+	'.next',
+	'.svelte-kit',
+	'.DS_Store'
+]);
+
+/** Whether any segment of a forward-slashed path is an ignored directory. */
+function inIgnoredDir(name: string): boolean {
+	const parts = name.split('/');
+	for (let i = 0; i < parts.length - 1; i++)
+		if (IGNORED_DIRS.has(parts[i]) || parts[i].startsWith('_minted-')) return true;
+	return false;
+}
+
+/** How wide a project search casts. */
+export type SearchScope = 'documents' | 'all';
+
+/** Whether project search may open this file at all. Binary and dependency trees
+ *  are out at every scope: there is nothing readable in them. */
+export function isSearchable(name: string): boolean {
+	return isEditable(classifyFile(name)) && !inIgnoredDir(name);
+}
+
+/** Whether the file is part of the document itself, as opposed to something
+ *  generated from it or sitting next to it. Drives the default search scope. */
+export function isDocumentFile(name: string): boolean {
+	const ext = extOf(name);
+	return !GENERATED_EXT.has(ext) && !SIDECAR_EXT.has(ext);
+}
+
 // Narrower than the `latex` kind: a .bib or .aux is LaTeX-family text, but it has
 // no document body, so the block model has nothing to show for it.
 const VISUAL_EXT = new Set(['tex', 'latex', 'ltx']);

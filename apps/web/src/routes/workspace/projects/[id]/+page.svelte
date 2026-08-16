@@ -138,6 +138,20 @@
 	// the user dismisses on their own schedule rather than reloading under them.
 	onMount(() => watchForUpdate(() => (updateAvailable = true)));
 
+	/** The reload discards the in-memory buffer, so auto save being off (or its
+	 *  delay not yet elapsed) would lose the last edits. Save before reloading. */
+	async function saveAndUpdate() {
+		try {
+			await ctrl?.files.saveAll();
+		} catch (error) {
+			// Storage refused. Reloading anyway would lose the very work the notice
+			// promises to keep, so throw and let the card offer the button again.
+			toast.error('Could not save your work, so the update was not applied');
+			throw error;
+		}
+		await applyUpdate();
+	}
+
 	// Pull / clone / discard rewrite storage underneath the open session, so the
 	// editor has to re-read rather than keep serving (and later re-saving) stale text.
 	onMount(() =>
@@ -471,7 +485,7 @@
 			mainSource={mainFileSource}
 			fileCount={lastCompiled?.files.length}
 			onadd={addMissingPacks}
-			onupdate={applyUpdate}
+			onupdate={saveAndUpdate}
 		/>
 
 		<div class="min-h-0 flex-1">

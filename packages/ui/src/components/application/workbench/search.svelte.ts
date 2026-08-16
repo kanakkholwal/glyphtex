@@ -65,13 +65,31 @@ export class SearchStore {
 	projectScanning = $state(false);
 	/** Files the scan collapsed, by id. */
 	collapsedGroups = $state<Record<string, boolean>>({});
+	/** Widen past document files to the generated and sidecar ones. Off by default:
+	 *  a .toc repeats every heading and a build log repeats every warning. */
+	includeOther = $state(false);
 
 	#debounce: ReturnType<typeof setTimeout> | undefined;
 	/** Only the newest scan may publish: reads can resolve out of order. */
 	#scanToken = 0;
 
-	readonly projectHits = $derived(flattenHits(this.projectResult));
+	readonly projectHits = $derived(flattenHits(this.projectResult, this.includeOther));
 	readonly activeHit = $derived<Hit | undefined>(this.projectHits[this.projectActive]);
+	/** Groups as rendered, which is what the list and its keyboard order follow. */
+	readonly visibleGroups = $derived(
+		this.includeOther
+			? [...this.projectResult.groups, ...this.projectResult.otherGroups]
+			: this.projectResult.groups
+	);
+	readonly visibleTotal = $derived(
+		this.projectResult.total + (this.includeOther ? this.projectResult.otherTotal : 0)
+	);
+
+	/** Pull the excluded files in (or push them back out) without rescanning. */
+	setIncludeOther(on: boolean): void {
+		this.includeOther = on;
+		this.projectActive = 0;
+	}
 
 	constructor(deps: SearchDeps) {
 		this.#layout = deps.layout;
@@ -161,9 +179,10 @@ export class SearchStore {
 		await this.refreshProject();
 	}
 
-	/** Replace every match in every file. Returns how many were changed. */
+	/** Replace every match the panel is showing. Scoped to the visible groups on
+	 *  purpose: rewriting a generated file you were never shown is not a fix. */
 	async replaceAllProject(replace: string): Promise<number> {
-		const groups = this.projectResult.groups;
+		const groups = this.visibleGroups;
 		if (!groups.length) return 0;
 		let count = 0;
 		for (const group of groups) {

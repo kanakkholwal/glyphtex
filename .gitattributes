@@ -19,6 +19,10 @@ Makefile text eol=lf
 # false alarm that says "your types are stale" when they are identical.
 packages/tex-engine/src/generated/** linguist-generated=true text eol=lf
 
+# The tex-doc tests compare a reprinted block against the fixture byte for byte
+# and assert on \n. A CRLF checkout fails them on line endings alone.
+packages/ui/test/fixtures/** text eol=lf
+
 # Binary assets — never diff or line-ending-convert these.
 *.wasm binary
 *.fmt binary

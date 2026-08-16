@@ -245,13 +245,13 @@ export class WorkbenchController {
 	/** Replace every match in the project. Confirms once it spans more than the
 	 *  file you are looking at: undo is per file, so this is hard to walk back. */
 	async replaceAllInProject(replace: string): Promise<void> {
-		const result = this.search.projectResult;
-		if (!result.total) return;
-		const files = result.groups.length;
+		const total = this.search.visibleTotal;
+		const files = this.search.visibleGroups.length;
+		if (!total) return;
 		if (files > 1) {
 			const ok = await this.files.askConfirm(
 				'Replace across files',
-				`Replace ${result.total} matches in ${files} files? Undo works per file, not in one step.`,
+				`Replace ${total} matches in ${files} files? Undo works per file, not in one step.`,
 				'Replace all'
 			);
 			if (!ok) return;

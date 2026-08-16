@@ -17,7 +17,12 @@
 	import { SidePanelStore } from './side-panel/store.svelte';
 	import { treeState } from './side-panel/tree-state.svelte';
 	import type { ActivityView, FileMeta, SearchOptions, Sel } from './side-panel/types';
-	import { EMPTY_SCAN, type Hit, type ScanResult } from './workbench/project-search';
+	import {
+		EMPTY_SCAN,
+		type FileMatches,
+		type Hit,
+		type ScanResult
+	} from './workbench/project-search';
 
 	/**
 	 * SidePanel: content for the active rail view. Explorer stacks the file tree,
@@ -73,10 +78,14 @@
 		ongotoline,
 		onregistershell,
 		searchResult = EMPTY_SCAN,
+		searchGroups = [],
+		searchTotal = 0,
 		searchHits = [],
 		searchActive = 0,
 		searchScanning = false,
 		searchCollapsed = {},
+		searchIncludeOther = false,
+		onincludeother,
 		ontogglegroup,
 		onsearch,
 		ongotoresult,
@@ -165,6 +174,12 @@
 		onregistershell?: () => void | Promise<boolean>;
 		/** Grouped project-search results. */
 		searchResult?: ScanResult;
+		/** Groups as rendered: documents, plus excluded ones when opted in. */
+		searchGroups?: FileMatches[];
+		searchTotal?: number;
+		/** Whether generated / sidecar files are folded into the results. */
+		searchIncludeOther?: boolean;
+		onincludeother?: (on: boolean) => void;
 		/** The same matches flattened, for prev/next and the active index. */
 		searchHits?: Hit[];
 		searchActive?: number;
@@ -259,7 +274,7 @@
 		hasNewFolder={Boolean(onnewfolder || onnewfolderin)}
 		hasDelete={Boolean(ondeletefile || ondeletefolder)}
 		gitReady={Boolean(git && gitRoot)}
-		searchResultCount={searchResult.total}
+		searchResultCount={searchTotal}
 		{onselectview}
 		{onreveal}
 		{onopenfolder}
@@ -311,10 +326,14 @@
 					<SearchView
 						{store}
 						result={searchResult}
+						groups={searchGroups}
+						total={searchTotal}
 						hits={searchHits}
 						activeHit={searchActive}
 						scanning={searchScanning}
 						collapsed={searchCollapsed}
+						includeOther={searchIncludeOther}
+						{onincludeother}
 						{ontogglegroup}
 						{onsearchnext}
 						{onsearchprev}

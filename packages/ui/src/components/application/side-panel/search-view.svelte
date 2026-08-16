@@ -4,6 +4,7 @@
 		IconChevronDown,
 		IconChevronRight,
 		IconChevronUp,
+		IconFileOff,
 		IconFileText,
 		IconReplace,
 		IconReplaceFilled
@@ -12,6 +13,7 @@
 
 	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from '../search-ui';
 	import type { FileMatches, Hit, ScanResult } from '../workbench/project-search';
+	import { isDocumentFile } from '../file-kinds';
 	import type { SidePanelStore } from './store.svelte';
 
 	/**
@@ -21,10 +23,14 @@
 	let {
 		store,
 		result,
+		groups,
+		total,
 		hits,
 		activeHit,
 		scanning,
 		collapsed,
+		includeOther = false,
+		onincludeother,
 		ontogglegroup,
 		onsearchnext,
 		onsearchprev,
@@ -34,10 +40,15 @@
 	}: {
 		store: SidePanelStore;
 		result: ScanResult;
+		/** Groups as rendered: documents, plus the excluded ones when opted in. */
+		groups: FileMatches[];
+		total: number;
 		hits: Hit[];
 		activeHit: number;
 		scanning: boolean;
 		collapsed: Record<string, boolean>;
+		includeOther?: boolean;
+		onincludeother?: (on: boolean) => void;
 		ontogglegroup?: (id: string) => void;
 		onsearchnext?: () => void;
 		onsearchprev?: () => void;
@@ -50,12 +61,12 @@
 	let listEl = $state<HTMLElement>();
 	let replaceEl = $state<HTMLInputElement>();
 
-	const fileCount = $derived(result.groups.length);
+	const fileCount = $derived(groups.length);
 	const isOpen = (group: FileMatches) => !collapsed[group.id];
 
 	/** Rows as rendered, so arrow keys and the active highlight agree. */
 	const rows = $derived(
-		result.groups.flatMap((group) =>
+		groups.flatMap((group) =>
 			isOpen(group)
 				? group.matches.map((_, i) => ({ group, i }))
 				: ([] as { group: FileMatches; i: number }[])
@@ -228,8 +239,8 @@
 			<span class={SEARCH_COUNT}>
 				{#if scanning}
 					Searching…
-				{:else if result.total}
-					{activeHit + 1} of {result.total}
+				{:else if total}
+					{activeHit + 1} of {total}
 					{#if fileCount > 1}<span class="text-faint"> in {fileCount} files</span>{/if}
 				{:else}
 					No results
@@ -256,10 +267,31 @@
 		</div>
 	{/if}
 
-	{#if !result.error && result.total}
+	<!-- Excluded files are offered, never silently dropped: a search that quietly
+	     skips half the project is indistinguishable from one that is broken. -->
+	{#if !result.error && !scanning && result.otherTotal > 0}
+		<button
+			type="button"
+			class="text-muted-foreground hover:bg-accent hover:text-foreground mt-0.5 flex h-7 w-full items-center gap-1.5 rounded-md px-1.5 text-left text-xs transition-colors"
+			aria-pressed={includeOther}
+			onclick={() => onincludeother?.(!includeOther)}
+		>
+			<IconFileOff size={13} class="text-faint shrink-0" />
+			{#if includeOther}
+				<span>Including {result.otherTotal} in generated and other files</span>
+			{:else}
+				<span>
+					{result.otherTotal} more in generated and other files
+				</span>
+			{/if}
+			<span class="text-brand ml-auto shrink-0 font-medium">{includeOther ? 'Hide' : 'Show'}</span>
+		</button>
+	{/if}
+
+	{#if !result.error && total}
 		{@const activeKey = hits[activeHit]}
 		<div bind:this={listEl} class="mt-1" role="listbox" aria-label="Search results" tabindex="-1">
-			{#each result.groups as group (group.id)}
+			{#each groups as group (group.id)}
 				{@const open = isOpen(group)}
 				<button
 					type="button"
@@ -277,6 +309,14 @@
 					<span class="text-foreground min-w-0 flex-1 truncate text-sm font-medium"
 						>{group.name}</span
 					>
+					{#if !isDocumentFile(group.name)}
+						<span
+							class="bg-muted text-faint shrink-0 rounded px-1 text-[10px] font-medium"
+							title="Generated or non-document file"
+						>
+							other
+						</span>
+					{/if}
 					<span class="text-faint shrink-0 text-xs tabular-nums">{group.matches.length}</span>
 				</button>
 

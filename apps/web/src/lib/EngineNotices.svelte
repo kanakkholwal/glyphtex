@@ -50,7 +50,8 @@
 		mainSource?: string;
 		fileCount?: number;
 		onadd?: () => void;
-		onupdate?: () => void;
+		/** Saves open work, then reloads onto the new build. */
+		onupdate?: () => void | Promise<void>;
 	} = $props();
 
 	const packSizeMB = $derived((missingPacks.reduce((n, p) => n + p.bytes, 0) / 1048576).toFixed(2));
@@ -62,6 +63,19 @@
 	// A different set of unsupported files is a different notice.
 	const unsupportedId = $derived(`unsupported:${unsupportedFiles.join(',')}`);
 	const missingId = $derived(`missing:${missingPacks.map((p) => p.id).join(',')}`);
+
+	// The click is answered by a page reload, so this is the only feedback there
+	// is until it lands. It stays set on the way out: clearing it would flash the
+	// button back to idle in the moment before the page goes.
+	let reloading = $state(false);
+	async function reload() {
+		reloading = true;
+		try {
+			await onupdate?.();
+		} catch {
+			reloading = false;
+		}
+	}
 
 	let reportOpen = $state(false);
 	const report = $derived({ unsupportedFiles, mainSource, fileCount });
@@ -84,26 +98,47 @@
 
 <!-- Corner cards, not a banner strip: each of these used to push the whole
      workbench down the moment a compile found it, so the editor and PDF jumped
-     mid-session. Bottom-left, because toasts own bottom-right. -->
+     mid-session.
+     One live region, on the container: it has to exist before a card is
+     inserted for the card to be announced at all, so the cards themselves
+     carry no role of their own. -->
 <div
-	class="pointer-events-none fixed bottom-4 right-4 z-40 flex w-[21rem] max-w-[calc(100vw-2rem)] flex-col gap-2"
+	class="pointer-events-none fixed right-4 bottom-4 z-40 flex w-84 max-w-[calc(100vw-2rem)] flex-col gap-2"
 	aria-live="polite"
 >
-	{#if updateAvailable}
-		<div class={card} role="status" transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
-			<IconRefresh class="text-brand mt-0.5 size-4 shrink-0" />
+	{#if updateAvailable && show('update')}
+		<div class={card} transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
+			<IconRefresh
+				class="text-brand mt-0.5 size-4 shrink-0 {reloading ? 'animate-spin' : ''}"
+				aria-hidden="true"
+			/>
 			<div class="min-w-0 flex-1">
-				<p class="text-sm font-medium">A new version is available</p>
+				<p class="text-sm font-medium">Update ready</p>
 				<p class="text-muted-foreground mt-0.5 text-xs leading-relaxed">
-					Your work is saved; refreshing takes a moment.
+					{reloading
+						? 'Saving your work, then reloading.'
+						: 'Reload when it suits you. Your open files are saved first, and nothing is lost.'}
 				</p>
-				<Button size="sm" variant="outline" class="mt-2 h-7" onclick={onupdate}>Refresh</Button>
+				<Button size="sm" variant="outline" class="mt-2 h-7" disabled={reloading} onclick={reload}>
+					{reloading ? 'Reloading…' : 'Reload'}
+				</Button>
 			</div>
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				class="-mt-1 -mr-1"
+				title="Later"
+				aria-label="Dismiss until the next update"
+				disabled={reloading}
+				onclick={() => dismissed.add('update')}
+			>
+				<IconX />
+			</Button>
 		</div>
 	{/if}
 
 	{#if missingPacks.length > 0 && show(missingId)}
-		<div class={card} role="status" transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
+		<div class={card} transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
 			<IconPackage class="text-muted-foreground mt-0.5 size-4 shrink-0" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Missing packages</p>
@@ -131,7 +166,7 @@
 	{/if}
 
 	{#if unsupportedFiles.length > 0 && show(unsupportedId)}
-		<div class={card} role="status" transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
+		<div class={card} transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
 			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Unavailable packages</p>
@@ -166,7 +201,7 @@
 	{/if}
 
 	{#if requiresBiber && show('biber')}
-		<div class={card} role="status" transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
+		<div class={card} transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
 			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Bibliography not generated</p>

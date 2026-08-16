@@ -1,7 +1,9 @@
 import {
 	classifyFile,
 	editorLanguage,
+	isDocumentFile,
 	isEditable,
+	isSearchable,
 	isVisualEditable,
 	type FileKind
 } from '../file-kinds';
@@ -405,15 +407,24 @@ export class FileStore {
 		}
 	}
 
-	/** Every file whose text can be searched, with unsaved edits included. */
-	async searchableFiles(): Promise<{ id: string; name: string; text: string }[]> {
+	/** Every file project search may read, with unsaved edits included. Each is
+	 *  tagged with whether it is part of the document, which sets the default scope. */
+	async searchableFiles(): Promise<
+		{ id: string; name: string; text: string; document: boolean }[]
+	> {
 		this.syncBuffer();
-		const out: { id: string; name: string; text: string }[] = [];
+		const out: { id: string; name: string; text: string; document: boolean }[] = [];
 		for (const f of this.files) {
-			if (!isEditable(classifyFile(f.name)) || this.unreadableIds.has(f.id)) continue;
+			if (!isSearchable(f.name) || this.unreadableIds.has(f.id)) continue;
 			await this.ensureLoaded(f);
+			// `ensureLoaded` demotes a text-named binary, so re-check after reading.
 			if (this.unreadableIds.has(f.id)) continue;
-			out.push({ id: f.id, name: f.name, text: this.liveContent(f) });
+			out.push({
+				id: f.id,
+				name: f.name,
+				text: this.liveContent(f),
+				document: isDocumentFile(f.name)
+			});
 		}
 		return out;
 	}

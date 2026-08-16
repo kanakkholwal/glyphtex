@@ -129,10 +129,14 @@
 					? () => files.registerShell()
 					: undefined}
 				searchResult={search.projectResult}
+				searchGroups={search.visibleGroups}
+				searchTotal={search.visibleTotal}
 				searchHits={search.projectHits}
 				searchActive={search.projectActive}
 				searchScanning={search.projectScanning}
 				searchCollapsed={search.collapsedGroups}
+				searchIncludeOther={search.includeOther}
+				onincludeother={(on) => search.setIncludeOther(on)}
 				ontogglegroup={(id) => search.toggleGroup(id)}
 				onsearch={(o) => search.queueProjectSearch(o)}
 				ongotoresult={(i) => search.gotoHit(i)}

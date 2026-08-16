@@ -10,18 +10,34 @@ export type Hit = { fileId: string; fileName: string; index: number; match: Sear
 export type ScanResult = {
 	groups: FileMatches[];
 	total: number;
+	/** Matches in generated or sidecar files, kept aside rather than dropped: the
+	 *  panel offers them instead of pretending they do not exist. */
+	otherGroups: FileMatches[];
+	otherTotal: number;
 	/** Scanning stopped at the cap, so what is shown is partial. */
 	truncated: boolean;
 	/** Set when the pattern itself cannot compile. Distinct from "no matches". */
 	error?: string;
 };
 
-export const EMPTY_SCAN: ScanResult = { groups: [], total: 0, truncated: false };
+export const EMPTY_SCAN: ScanResult = {
+	groups: [],
+	total: 0,
+	otherGroups: [],
+	otherTotal: 0,
+	truncated: false
+};
 
 /** Above this the panel stops scanning: the list is long past useful anyway. */
 export const MATCH_CAP = 2000;
 
-export type SearchInput = { id: string; name: string; text: string };
+export type SearchInput = {
+	id: string;
+	name: string;
+	text: string;
+	/** Part of the document, rather than generated from it or sitting beside it. */
+	document: boolean;
+};
 
 /** Why a pattern will not compile, so the panel can say so instead of "No results". */
 export function patternError(o: SearchOptions): string | undefined {
@@ -75,32 +91,53 @@ export function scanText(text: string, re: RegExp, limit: number): SearchMatch[]
 	return out;
 }
 
-/** Scan every file, keeping input order. Files with no matches are dropped. */
+/**
+ * Scan every file, keeping input order. Files with no matches are dropped.
+ * Document files are scanned first so the cap, when it bites, spends itself on
+ * the results that matter rather than on a build log.
+ */
 export function scanFiles(inputs: SearchInput[], o: SearchOptions, cap = MATCH_CAP): ScanResult {
 	if (!o.query) return EMPTY_SCAN;
 	const re = buildRegex(o);
-	if (!re) return { groups: [], total: 0, truncated: false, error: 'Invalid regular expression' };
+	if (!re) return { ...EMPTY_SCAN, error: 'Invalid regular expression' };
 
 	const groups: FileMatches[] = [];
+	const otherGroups: FileMatches[] = [];
 	let total = 0;
+	let otherTotal = 0;
 	let truncated = false;
-	for (const input of inputs) {
-		if (total >= cap) {
+
+	for (const input of [...inputs].sort((a, b) => Number(b.document) - Number(a.document))) {
+		const used = total + otherTotal;
+		if (used >= cap) {
 			truncated = true;
 			break;
 		}
-		const matches = scanText(input.text, re, cap - total);
+		const matches = scanText(input.text, re, cap - used);
 		if (!matches.length) continue;
-		groups.push({ id: input.id, name: input.name, matches });
-		total += matches.length;
+		const group = { id: input.id, name: input.name, matches };
+		if (input.document) {
+			groups.push(group);
+			total += matches.length;
+		} else {
+			otherGroups.push(group);
+			otherTotal += matches.length;
+		}
 	}
-	return { groups, total, truncated: truncated || total >= cap };
+	return {
+		groups,
+		total,
+		otherGroups,
+		otherTotal,
+		truncated: truncated || total + otherTotal >= cap
+	};
 }
 
 /** Flatten for keyboard navigation, keeping the rendered order. */
-export function flattenHits(result: ScanResult): Hit[] {
+export function flattenHits(result: ScanResult, includeOther = false): Hit[] {
 	const hits: Hit[] = [];
-	for (const group of result.groups)
+	const all = includeOther ? [...result.groups, ...result.otherGroups] : result.groups;
+	for (const group of all)
 		for (const match of group.matches)
 			hits.push({ fileId: group.id, fileName: group.name, index: hits.length, match });
 	return hits;

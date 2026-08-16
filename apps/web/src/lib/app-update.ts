@@ -67,28 +67,29 @@ export function watchForUpdate(onAvailable: () => void): () => void {
 	};
 }
 
+/** Long enough for a worker handover, short enough that a handover which never
+ *  arrives does not leave the button looking dead. */
+const HANDOVER_TIMEOUT_MS = 4000;
+
 /**
  * Activate the waiting build and reload onto it. Reloads only after the new
  * worker takes control, so the page never reloads onto the old code, and only
  * once even though controllerchange can fire more than that.
  */
 export async function applyUpdate(): Promise<void> {
-	if (!browser || !('serviceWorker' in navigator)) {
-		location.reload();
-		return;
-	}
-
-	navigator.serviceWorker.addEventListener('controllerchange', () => {
+	const reload = () => {
 		if (reloading) return;
 		reloading = true;
 		location.reload();
-	});
+	};
+
+	if (!browser || !('serviceWorker' in navigator)) return reload();
+
+	navigator.serviceWorker.addEventListener('controllerchange', reload);
+	// Another tab on the old build can keep the new worker waiting indefinitely.
+	// Reload anyway: the network still serves the newest assets.
+	setTimeout(reload, HANDOVER_TIMEOUT_MS);
 
 	const reg = await navigator.serviceWorker.getRegistration().catch(() => undefined);
-	// Nothing waiting (or messaging it did nothing): a plain reload still lands
-	// on the newest assets the network serves.
-	if (!reg || !messageWaiting(reg)) {
-		reloading = true;
-		location.reload();
-	}
+	if (!reg || !messageWaiting(reg)) reload();
 }
