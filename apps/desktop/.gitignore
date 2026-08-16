@@ -8,8 +8,7 @@ node_modules
 /.svelte-kit
 /build
 
-# Tauri / Rust build output (also keeps ESLint off the generated sidecar/api JS,
-# since eslint.config.js feeds this .gitignore into includeIgnoreFile)
+# Tauri / Rust build output
 /src-tauri/target
 /src-tauri/gen
 /src-tauri/binaries

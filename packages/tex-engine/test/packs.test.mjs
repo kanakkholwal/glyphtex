@@ -102,7 +102,7 @@ describe('resolveMissing', () => {
 			'geometry.cfg',
 			'geometry.cfg.sty',
 			'geometry.cfg.cls',
-			'geometry.cfg.def',
+			'geometry.cfg.def'
 		]);
 		assert.deepEqual(packs, []);
 		assert.deepEqual(unsupported, []);
@@ -193,9 +193,11 @@ describe('resolveMissing', () => {
 	});
 
 	test('an installed dependency is not offered again', () => {
-		const { packs } = resolveMissing(DEP_INDEX, ['nicematrix.sty'], [
-			{ id: 'science', hash: 'abc123' }
-		]);
+		const { packs } = resolveMissing(
+			DEP_INDEX,
+			['nicematrix.sty'],
+			[{ id: 'science', hash: 'abc123' }]
+		);
 		assert.deepEqual(
 			packs.map((p) => p.id),
 			['tables']

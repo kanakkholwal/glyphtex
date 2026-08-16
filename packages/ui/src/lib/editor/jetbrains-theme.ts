@@ -116,8 +116,9 @@ function theme(p: EditorPalette, dark: boolean): Extension {
 			'.cm-cursor, .cm-dropCursor': { borderLeftColor: p.caret, borderLeftWidth: '2px' },
 			// CM6 paints selection on a child layer when focused and via ::selection
 			// when not; both need the colour or the selection vanishes on blur.
-			'&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
-				{ backgroundColor: p.selection },
+			'&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+				backgroundColor: p.selection
+			},
 			'.cm-selectionMatch': { backgroundColor: p.selectionMatch },
 			'.cm-activeLine': { backgroundColor: p.lineHighlight },
 			'.cm-gutters': {

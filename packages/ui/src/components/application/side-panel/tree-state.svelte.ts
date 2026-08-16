@@ -68,9 +68,7 @@ class TreeState {
 		this.open = next;
 		this.selectedKeys = this.selectedKeys.map((key) => {
 			if (key === `d:${oldPath}`) return `d:${newPath}`;
-			return key.startsWith(`d:${prefix}`)
-				? `d:${newPath}${key.slice(2 + oldPath.length)}`
-				: key;
+			return key.startsWith(`d:${prefix}`) ? `d:${newPath}${key.slice(2 + oldPath.length)}` : key;
 		});
 		this.#persist();
 	}
@@ -92,7 +90,9 @@ class TreeState {
 	 *  it drives destructive actions, and reviving one across a reload is a trap. */
 	load(scope: string): void {
 		this.#scope = scope;
-		const saved = scope ? safeStorage.get<Record<string, boolean> | null>(storageKey(scope), null) : null;
+		const saved = scope
+			? safeStorage.get<Record<string, boolean> | null>(storageKey(scope), null)
+			: null;
 		this.open = saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
 		this.selectedKeys = [];
 		this.anchor = null;

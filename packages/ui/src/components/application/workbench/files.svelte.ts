@@ -125,7 +125,7 @@ export class FileStore {
 		this.git = deps.git;
 		this.#gitRoot = deps.gitRoot;
 		this.#projectName = deps.projectName;
-		const seed = deps.initialFiles && deps.initialFiles.length ? deps.initialFiles : DEMO_FILES;
+		const seed = deps.initialFiles?.length ? deps.initialFiles : DEMO_FILES;
 		this.files = seed.map((f) => ({ ...f, saved: f.content }));
 		this.activeId = seed[0]?.id ?? 'main';
 		this.openTabs = this.activeId ? [this.activeId] : [];
@@ -736,7 +736,9 @@ export class FileStore {
 		if (!ok) return;
 		// Folders first: deleting one may remove files also listed here, and a
 		// second pass over a vanished id would report a spurious failure.
-		const ordered = [...items].sort((a, b) => (a.type === b.type ? 0 : a.type === 'folder' ? -1 : 1));
+		const ordered = [...items].sort((a, b) =>
+			a.type === b.type ? 0 : a.type === 'folder' ? -1 : 1
+		);
 		let failed = 0;
 		for (const item of ordered) {
 			try {

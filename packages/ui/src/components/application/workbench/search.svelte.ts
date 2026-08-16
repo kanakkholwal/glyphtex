@@ -200,10 +200,7 @@ export class SearchStore {
 			const next = this.projectOpts.preserveCase
 				? group.matches.reduceRight((acc, m) => {
 						const matched = text.slice(m.from, m.to);
-						const insert = applyCase(
-							matched,
-							replacementFor(matched, replace, this.projectOpts)
-						);
+						const insert = applyCase(matched, replacementFor(matched, replace, this.projectOpts));
 						return acc.slice(0, m.from) + insert + acc.slice(m.to);
 					}, text)
 				: applyMatches(text, group.matches, replace, this.projectOpts);

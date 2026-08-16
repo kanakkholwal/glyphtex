@@ -15,8 +15,7 @@ const pkgRoot = resolve(here, '..');
 const manifest = JSON.parse(readFileSync(resolve(pkgRoot, 'bundle-manifest.json'), 'utf8'));
 
 const target =
-	process.argv[2] ??
-	resolve(pkgRoot, '../../crates/tectonic-wasm/output/tectonic-bundle.tar.gz');
+	process.argv[2] ?? resolve(pkgRoot, '../../crates/tectonic-wasm/output/tectonic-bundle.tar.gz');
 
 if (!existsSync(target)) {
 	console.error(`Bundle not found: ${target}`);
@@ -53,7 +52,9 @@ for (const group of manifest.groups) {
 	const missing = group.files.filter((f) => !present.has(f));
 	missingTotal += missing.length;
 	const mark = missing.length === 0 ? 'ok  ' : 'GAP ';
-	console.log(`${mark} ${group.label.padEnd(20)} ${group.files.length - missing.length}/${group.files.length}`);
+	console.log(
+		`${mark} ${group.label.padEnd(20)} ${group.files.length - missing.length}/${group.files.length}`
+	);
 	for (const f of missing) console.log(`       missing: ${f}`);
 }
 

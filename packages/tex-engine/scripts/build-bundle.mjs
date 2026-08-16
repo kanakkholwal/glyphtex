@@ -18,7 +18,10 @@ function flag(name, fallback) {
 const positional = argv.filter((a, i) => !a.startsWith('--') && !argv[i - 1]?.startsWith('--'));
 const outDir = resolve(positional[0] ?? resolve(pkgRoot, '../../crates/tectonic-wasm/bundle'));
 const formatDir = flag('--format', outDir);
-const wasmPath = flag('--wasm', resolve(pkgRoot, '../../crates/tectonic-wasm/output/tectonic_wasm.wasm'));
+const wasmPath = flag(
+	'--wasm',
+	resolve(pkgRoot, '../../crates/tectonic-wasm/output/tectonic_wasm.wasm')
+);
 
 for (const [label, path] of [
 	['engine', wasmPath],
@@ -67,7 +70,9 @@ const files = new Map();
  * be the same mechanism aimed somewhere that matters.
  */
 function isBareName(name) {
-	return name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.';
+	return (
+		name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.'
+	);
 }
 
 function addFromTexLive(name) {
@@ -212,7 +217,9 @@ for (let round = 1; round <= MAX_ROUNDS; round++) {
 
 	if (gained === 0) {
 		console.error(`\nstalled at round ${round}: ${passing.size}/${ALL_SAMPLES.length} passing.`);
-		const wanted = [...unresolved].filter((n) => /\.(sty|cls|def|cfg|clo|fd|tex|otf|ttf|tfm)$/.test(n));
+		const wanted = [...unresolved].filter((n) =>
+			/\.(sty|cls|def|cfg|clo|fd|tex|otf|ttf|tfm)$/.test(n)
+		);
 		if (wanted.length) {
 			console.error(`${wanted.length} requested file(s) are not in this TeX Live:`);
 			for (const n of wanted.slice(0, 20)) console.error(`  ${n}`);

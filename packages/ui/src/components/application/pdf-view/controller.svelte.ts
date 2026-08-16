@@ -1,6 +1,5 @@
 // `pdfjs-dist/web/pdf_viewer.mjs` ships no types at this import path, so the module
 // and its engine handles are an untyped boundary (AGENTS.md rule #7 exception).
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export type ReverseLoc = { page: number; x: number; y: number };
 export type ForwardLoc = {

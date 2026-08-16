@@ -106,7 +106,6 @@ export function parseLatexLog(log: string | undefined, fallback?: string): Latex
 				message: line.trim(),
 				line: m ? parseInt(m[1], 10) : undefined
 			});
-			continue;
 		}
 	}
 

@@ -80,7 +80,7 @@
 			.replace(/[/\\]+$/, '')
 			.split(/[/\\]/)
 			.pop();
-		return last && last.length ? last : 'repository';
+		return last?.length ? last : 'repository';
 	}
 
 	/** Clone a Git repo: pick a parent folder natively, clone into it, then open. */

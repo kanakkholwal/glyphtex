@@ -29,7 +29,10 @@ function flag(name, fallback) {
 }
 const bundleDir = flag('--bundle', null);
 const outDir = flag('--out', resolve(pkgRoot, '../../crates/tectonic-wasm/output/packs'));
-const wasmPath = flag('--wasm', resolve(pkgRoot, '../../crates/tectonic-wasm/output/tectonic_wasm.wasm'));
+const wasmPath = flag(
+	'--wasm',
+	resolve(pkgRoot, '../../crates/tectonic-wasm/output/tectonic_wasm.wasm')
+);
 
 if (!bundleDir || !existsSync(bundleDir)) {
 	console.error('usage: node scripts/build-packs.mjs --bundle <core-dir> [--out <dir>]');
@@ -64,9 +67,10 @@ function kpse(name) {
 // TeX really does request, and kpsewhich really does resolve) would escape the
 // output directory when written.
 function isBareName(name) {
-	return name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.';
+	return (
+		name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.'
+	);
 }
-
 
 const WASM = new Uint8Array(readFileSync(wasmPath));
 
@@ -228,7 +232,9 @@ for (const pack of config.packs) {
 		return kpse(`${p}.sty`) !== null || kpse(`${p}.cls`) !== null;
 	});
 	if (unshipped.length) {
-		console.error(`\npack "${pack.id}" lists ${unshipped.join(', ')} but ships neither .sty nor .cls.`);
+		console.error(
+			`\npack "${pack.id}" lists ${unshipped.join(', ')} but ships neither .sty nor .cls.`
+		);
 		console.error(`Add them to test/fixtures/packs.mjs (${pack.id}) so convergence collects them.`);
 		process.exit(1);
 	}
@@ -275,5 +281,7 @@ const index = { version: 1, packs: built, provides };
 writeFileSync(resolve(outDir, 'packs-index.json'), JSON.stringify(index, null, '\t') + '\n');
 
 const total = built.reduce((n, p) => n + p.bytes, 0);
-console.log(`\n${built.length} packs, ${Object.keys(provides).length} files, ${(total / 1048576).toFixed(2)} MB gz total`);
+console.log(
+	`\n${built.length} packs, ${Object.keys(provides).length} files, ${(total / 1048576).toFixed(2)} MB gz total`
+);
 console.log(`-> ${outDir}`);

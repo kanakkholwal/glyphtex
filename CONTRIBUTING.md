@@ -69,8 +69,8 @@ Please run these and make sure they pass:
 
 ```bash
 pnpm check          # type-checking across the project
-pnpm lint           # linting
-pnpm format         # auto-format your changes
+pnpm lint           # biome: lint + format check
+pnpm lint:fix       # biome: auto-fix and format your changes
 ```
 
 If you touched the Rust side of the desktop app, also run:

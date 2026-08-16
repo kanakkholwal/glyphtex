@@ -53,7 +53,12 @@ export const SHORTCUTS: Shortcut[] = [
 	{ id: 'redo', label: 'Redo', category: 'Editing', combos: ['Mod+Shift+Z', 'Mod+Y'] },
 
 	{ id: 'find', label: 'Find & replace in file', category: 'Search', combos: ['Mod+F'] },
-	{ id: 'search-project', label: 'Search the project', category: 'Search', combos: ['Mod+Shift+F'] },
+	{
+		id: 'search-project',
+		label: 'Search the project',
+		category: 'Search',
+		combos: ['Mod+Shift+F']
+	},
 
 	{ id: 'compile', label: 'Compile', category: 'Compile & preview', combos: ['Mod+Enter'] },
 	{ id: 'sync-pdf', label: 'Sync editor to PDF', category: 'Compile & preview', combos: ['Mod+J'] },

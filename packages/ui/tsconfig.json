@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-	"rewriteRelativeImportExtensions": true,
+		"rewriteRelativeImportExtensions": true,
 		"allowJs": true,
 		"checkJs": true,
 		"esModuleInterop": true,
@@ -12,15 +12,14 @@
 		"module": "es2015",
 		"moduleResolution": "bundler",
 		"lib": ["ES2022"],
-        "baseUrl": ".",
+		"baseUrl": ".",
 		"ignoreDeprecations": "6.0",
-        "paths": {
+		"paths": {
 			"$lib": ["src/lib/*"],
 			"$hooks": ["src/hooks/*"],
 			"$components": ["src/components/*"],
-			"$ui": ["src/components/ui/*"],
-
-        }
+			"$ui": ["src/components/ui/*"]
+		}
 	},
-	"include": ["src",]
+	"include": ["src"]
 }

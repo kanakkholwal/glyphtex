@@ -256,7 +256,7 @@
 			ctx?.revert();
 			ctx = null;
 			timeline = null;
-			splits.forEach((s) => s.revert());
+			for (const s of splits) s.revert();
 		};
 	});
 </script>

@@ -61,7 +61,9 @@ const inputs = new Map();
 // kpsewhich happily resolves, and an absolute name there escapes the output
 // directory entirely.
 function isBareName(name) {
-	return name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.';
+	return (
+		name !== '' && !name.includes('/') && !name.includes('\\') && name !== '..' && name !== '.'
+	);
 }
 
 function add(name) {
@@ -178,11 +180,7 @@ writeFileSync(resolve(outDir, 'latex.fmt'), dumped);
 // alongside the format, from the same snapshot, or version skew returns.
 writeFileSync(
 	resolve(outDir, 'format-inputs.json'),
-	JSON.stringify(
-		[...inputs.keys()].filter((n) => n !== ENTRY).sort(),
-		null,
-		'\t'
-	) + '\n'
+	JSON.stringify([...inputs.keys()].filter((n) => n !== ENTRY).sort(), null, '\t') + '\n'
 );
 
 console.log(`wrote ${outDir}/latex.fmt from ${inputs.size} input files`);

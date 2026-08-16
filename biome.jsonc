@@ -19,7 +19,9 @@
 			"!**/test/.build",
 			"!**/static",
 			"!**/src-tauri/gen",
-			"!**/packages/tex-engine/wasm",
+			"!packages/tex-engine/wasm",
+			// Rust, plus the tectonic/emsdk submodules' vendored JS.
+			"!crates",
 			"!pnpm-lock.yaml"
 		]
 	},
@@ -37,7 +39,15 @@
 	},
 	"html": {
 		"formatter": {
+			// Biome only formats a .svelte file's <script> block; without this it
+			// unindents it out of the surrounding markup.
 			"indentScriptAndStyle": true
+		}
+	},
+	"css": {
+		"parser": {
+			// @theme / @source / @custom-variant (Tailwind v4).
+			"tailwindDirectives": true
 		}
 	},
 	"assist": {
@@ -51,11 +61,14 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
+			"preset": "recommended",
 			"complexity": {
 				"noForEach": "off",
 				"useLiteralKeys": "off",
-				"noUselessSwitchCase": "off"
+				"noUselessSwitchCase": "off",
+				"noImportantStyles": "off",
+				// LaTeX snippets gain backslashes over time; keep String.raw.
+				"noUselessStringRaw": "off"
 			},
 			"correctness": {
 				"noUnusedVariables": {
@@ -64,7 +77,11 @@
 				},
 				"noUnusedImports": "warn",
 				"noUnusedFunctionParameters": "off",
-				"useUniqueElementIds": "off"
+				"useUniqueElementIds": "off",
+				"noInnerDeclarations": "off",
+				// Both fire on Tailwind v4 and Svelte-generated CSS.
+				"noUnknownPseudoClass": "off",
+				"noUnknownTypeSelector": "off"
 			},
 			"performance": {
 				"noDelete": "off"
@@ -78,15 +95,23 @@
 				"noExplicitAny": "off",
 				"noAssignInExpressions": "off",
 				"noConsole": "off",
-				"noControlCharactersInRegex": "off"
+				"noControlCharactersInRegex": "off",
+				"noConfusingVoidType": "off",
+				"noDocumentCookie": "off",
+				"noUndeclaredEnvVars": "off",
+				// `${...}` is LaTeX math, not an interpolation typo.
+				"noTemplateCurlyInString": "off"
 			},
+			// Svelte templates are invisible to Biome; svelte-check covers a11y.
 			"a11y": {
-				"recommended": false
+				"preset": "none"
 			}
 		}
 	},
 	"overrides": [
 		{
+			// Biome cannot see a .svelte template, so anything used only there
+			// looks unused.
 			"includes": ["**/*.svelte"],
 			"linter": {
 				"rules": {
@@ -94,14 +119,6 @@
 						"noUnusedVariables": "off",
 						"noUnusedImports": "off"
 					}
-				}
-			}
-		},
-		{
-			"includes": ["**/scripts/**/*.mjs", "**/*.config.{js,ts}"],
-			"linter": {
-				"rules": {
-					"suspicious": { "noConsole": "off" }
 				}
 			}
 		}

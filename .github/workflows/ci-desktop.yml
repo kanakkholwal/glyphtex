@@ -44,9 +44,9 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  # Fast, OS-agnostic frontend gate — Prettier + ESLint + svelte-check. Runs the
-  # same `lint` / `check` package scripts you run locally (and that the root
-  # `pnpm lint` aggregates via turbo), so green here means green on your machine.
+  # Fast, OS-agnostic frontend gate: Biome + svelte-check. Runs the same
+  # `pnpm lint` / `pnpm check` you run locally, so green here means green
+  # on your machine.
   lint:
     name: Lint & typecheck (frontend)
     runs-on: ubuntu-24.04
@@ -68,11 +68,8 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --no-frozen-lockfile
 
-      # - name: Format check (prettier)
-      #   run: pnpm --filter @glyphtex/desktop format:check
-
-      # - name: Lint (eslint)
-      #   run: pnpm --filter @glyphtex/desktop lint:eslint
+      - name: Lint and format check (biome)
+        run: pnpm lint
 
       - name: Typecheck (svelte-check)
         run: pnpm --filter @glyphtex/desktop check

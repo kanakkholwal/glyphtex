@@ -46,7 +46,9 @@ if (!hasKpsewhich()) {
 		console.error('kpsewhich not found — install TeX Live, or add it to PATH.');
 		process.exit(1);
 	}
-	const wslPath = repoRoot.replace(/^([A-Za-z]):/, (_, d) => `/mnt/${d.toLowerCase()}`).replace(/\\/g, '/');
+	const wslPath = repoRoot
+		.replace(/^([A-Za-z]):/, (_, d) => `/mnt/${d.toLowerCase()}`)
+		.replace(/\\/g, '/');
 	const rel = 'packages/tex-engine/scripts/refresh-engine.mjs';
 	// Login shell (-l) so the user's ~/.bash_profile PATH (TeX Live, node) loads.
 	const r = spawnSync(
@@ -63,7 +65,10 @@ if (!hasKpsewhich()) {
 
 function step(label, script, args, cwd = pkgRoot) {
 	console.log(`\n=== ${label} ===`);
-	const r = spawnSync(process.execPath, [resolve(here, script), ...args], { stdio: 'inherit', cwd });
+	const r = spawnSync(process.execPath, [resolve(here, script), ...args], {
+		stdio: 'inherit',
+		cwd
+	});
 	if (r.status !== 0) {
 		console.error(`\n${label} failed (exit ${r.status}).`);
 		process.exit(r.status ?? 1);
@@ -83,7 +88,8 @@ if (withWasm) {
 // new format. Otherwise the cached one stands — regenerating it every run would
 // add a slow INITEX pass to a one-line pack change.
 const haveFormat = existsSync(resolve(formatDir, 'latex.fmt'));
-const stale = haveFormat && statSync(wasmPath).mtimeMs > statSync(resolve(formatDir, 'latex.fmt')).mtimeMs;
+const stale =
+	haveFormat && statSync(wasmPath).mtimeMs > statSync(resolve(formatDir, 'latex.fmt')).mtimeMs;
 if (forceFormat || !haveFormat || stale) {
 	step('format (INITEX dump)', 'make-format.mjs', [formatDir]);
 } else {

@@ -49,11 +49,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Format check (prettier)
-        run: pnpm --filter @glyphtex/web format:check
-
-      - name: Lint (eslint)
-        run: pnpm --filter @glyphtex/web lint:eslint
+      - name: Lint and format check (biome)
+        run: pnpm lint
 
       # static/engine/ is gitignored, so without this every visitor 404s on
       # /engine/manifest.json — a broken editor from a green pipeline.

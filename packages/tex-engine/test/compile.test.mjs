@@ -54,9 +54,7 @@ describe('TexEngine', { skip: haveArtifacts ? false : 'wasm or bundle not availa
 	}
 
 	test('compiles a minimal document to a PDF', () => {
-		const result = compile(
-			'\\documentclass{article}\\begin{document}Hello.\\end{document}'
-		);
+		const result = compile('\\documentclass{article}\\begin{document}Hello.\\end{document}');
 		assert.notEqual(result.status, 'failed', result.message ?? '');
 		const pdf = engine.pdf();
 		assert.ok(pdf && pdf.length > 0, 'expected PDF bytes');
@@ -95,10 +93,7 @@ describe('TexEngine', { skip: haveArtifacts ? false : 'wasm or bundle not availa
 			'\\documentclass{article}\\begin{document}{\\Large Big} and {\\small small}.\\end{document}'
 		);
 		assert.notEqual(result.status, 'failed', result.message ?? '');
-		assert.ok(
-			engine.pdf().length > 1000,
-			'expected real content, not just a PDF header'
-		);
+		assert.ok(engine.pdf().length > 1000, 'expected real content, not just a PDF header');
 	});
 
 	test('resolves cross-references across passes', () => {
@@ -133,10 +128,9 @@ describe('TexEngine', { skip: haveArtifacts ? false : 'wasm or bundle not availa
 	});
 
 	test('emits synctex when asked', () => {
-		const result = compile(
-			'\\documentclass{article}\\begin{document}Hello.\\end{document}',
-			{ synctex: true }
-		);
+		const result = compile('\\documentclass{article}\\begin{document}Hello.\\end{document}', {
+			synctex: true
+		});
 		assert.notEqual(result.status, 'failed', result.message ?? '');
 		assert.ok(
 			result.outputs.some((o) => o.kind === 'synctex'),

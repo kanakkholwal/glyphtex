@@ -1,33 +1,25 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".svelte-kit/**", "build/**", "dist/**", ".vercel/**"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "check": {
-      "dependsOn": ["^build"]
-    },
-    "lint": {},
-    "lint:fix": {
-      "cache": false
-    },
-    "lint:rust": {
-      "cache": false
-    },
-    "lint:rust:fix": {
-      "cache": false
-    },
-    "format": {
-      "cache": false
-    },
-    "format:rust": {
-      "cache": false
-    },
-    "format:check": {}
-  }
+	"$schema": "https://turborepo.com/schema.json",
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": [".svelte-kit/**", "build/**", "dist/**", ".vercel/**"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"check": {
+			"dependsOn": ["^build"]
+		},
+		"lint:rust": {
+			"cache": false
+		},
+		"lint:rust:fix": {
+			"cache": false
+		},
+		"format:rust": {
+			"cache": false
+		}
+	}
 }

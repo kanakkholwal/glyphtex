@@ -42,7 +42,9 @@ don't invent imports for one.
 ```bash
 pnpm dev                         # all apps via turbo
 pnpm dev:desktop | dev:web       # one app
-pnpm build | check | lint | fmt  # turbo fan-out — must be green before "done"
+pnpm build | check               # turbo fan-out — must be green before "done"
+pnpm lint | lint:fix             # biome (lint + format check) across the repo
+pnpm fmt                         # biome --write + cargo fmt
 pnpm lint:rust                   # cargo clippy across the workspace
 
 # Desktop (apps/desktop/)

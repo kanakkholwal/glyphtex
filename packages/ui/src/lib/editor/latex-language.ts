@@ -11,8 +11,7 @@ import { latexStickyHeadings } from './latex-sticky';
 export const LATEX_ID = 'latex';
 
 /** Environments whose bodies are not LaTeX and must not be highlighted. */
-const VERBATIM_ENVS =
-	/^\s*\\begin\s*\{(verbatim\*?|lstlisting|minted|Verbatim|alltt|comment)\}/;
+const VERBATIM_ENVS = /^\s*\\begin\s*\{(verbatim\*?|lstlisting|minted|Verbatim|alltt|comment)\}/;
 
 type VerbatimState = { env: string | null; inner: unknown };
 

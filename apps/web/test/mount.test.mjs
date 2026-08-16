@@ -56,7 +56,7 @@ describe('mountDocument', () => {
 	// Both documents use main.tex, so a kept .aux is read as this document's own.
 	test('switching documents clears the previous outputs', () => {
 		const engine = fakeEngine();
-		let state = mountDocument(engine, emptyMount(), 'a', doc('main.tex'));
+		const state = mountDocument(engine, emptyMount(), 'a', doc('main.tex'));
 		assert.equal(engine.calls.clearedOutputs, 1, 'first mount starts cold');
 
 		mountDocument(engine, state, 'b', doc('main.tex'));
@@ -66,7 +66,7 @@ describe('mountDocument', () => {
 	// Outputs are what let a recompile converge before maxPasses.
 	test('recompiling the same document keeps its outputs', () => {
 		const engine = fakeEngine();
-		let state = mountDocument(engine, emptyMount(), 'a', doc('main.tex'));
+		const state = mountDocument(engine, emptyMount(), 'a', doc('main.tex'));
 		const cleared = engine.calls.clearedOutputs;
 
 		mountDocument(engine, state, 'a', doc('main.tex'));

@@ -126,7 +126,15 @@
 	/** One tab stop for the whole list; arrows move between matches. */
 	function onRowKeydown(e: KeyboardEvent, at: number) {
 		const step =
-			e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : e.key === 'Home' ? -at : e.key === 'End' ? rows.length - 1 - at : null;
+			e.key === 'ArrowDown'
+				? 1
+				: e.key === 'ArrowUp'
+					? -1
+					: e.key === 'Home'
+						? -at
+						: e.key === 'End'
+							? rows.length - 1 - at
+							: null;
 		if (step === null) return;
 		e.preventDefault();
 		const next = rows[Math.max(0, Math.min(rows.length - 1, at + step))];

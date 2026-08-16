@@ -14,7 +14,8 @@ function header(name, size) {
 	const block = Buffer.alloc(BLOCK);
 	const encoded = Buffer.from(name, 'utf8');
 	// TeX filenames are short, so 100 bytes means something is wrong upstream.
-	if (encoded.length > 100) throw new Error(`name too long for ustar (${encoded.length}b): ${name}`);
+	if (encoded.length > 100)
+		throw new Error(`name too long for ustar (${encoded.length}b): ${name}`);
 	encoded.copy(block, 0);
 
 	block.write(octal(0o644, 8), 100); // mode

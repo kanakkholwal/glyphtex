@@ -175,11 +175,7 @@ const stickyAt = async (fraction) => {
 	return previous;
 };
 const atTop = await stickyAt(0);
-check(
-	'sticky: nothing pinned at the top of the document',
-	atTop && atTop.hidden,
-	JSON.stringify(atTop)
-);
+check('sticky: nothing pinned at the top of the document', atTop?.hidden, JSON.stringify(atTop));
 const inSection = await stickyAt(0.55);
 // Regression guard: reading layout inside update() throws, CodeMirror disables
 // the plugin, and the strip then freezes on whatever it showed first.

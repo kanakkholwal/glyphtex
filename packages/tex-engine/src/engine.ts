@@ -19,11 +19,7 @@ export const SUPPORTED_ABI_VERSION = 2;
 export type CompileRequest = Partial<CompileOptions>;
 
 /** Anything the module can be instantiated from. */
-export type WasmSource =
-	| BufferSource
-	| WebAssembly.Module
-	| Response
-	| Promise<Response>;
+export type WasmSource = BufferSource | WebAssembly.Module | Response | Promise<Response>;
 
 interface EngineExports {
 	memory: WebAssembly.Memory;
@@ -33,12 +29,7 @@ interface EngineExports {
 	glyphtex_abi_version(): number;
 	glyphtex_alloc(len: number): number;
 	glyphtex_dealloc(ptr: number, len: number): void;
-	glyphtex_add_file(
-		namePtr: number,
-		nameLen: number,
-		dataPtr: number,
-		dataLen: number
-	): number;
+	glyphtex_add_file(namePtr: number, nameLen: number, dataPtr: number, dataLen: number): number;
 	glyphtex_remove_file(namePtr: number, nameLen: number): number;
 	glyphtex_file_count(): number;
 	glyphtex_clear_files(): number;
@@ -195,7 +186,9 @@ export class TexEngine {
 	}
 
 	/** Add many files at once — typically a bundle. */
-	addFiles(files: Record<string, Uint8Array | string> | Iterable<[string, Uint8Array | string]>): void {
+	addFiles(
+		files: Record<string, Uint8Array | string> | Iterable<[string, Uint8Array | string]>
+	): void {
 		const entries = Symbol.iterator in files ? files : Object.entries(files);
 		for (const [name, data] of entries as Iterable<[string, Uint8Array | string]>) {
 			this.addFile(name, data);
@@ -308,9 +301,7 @@ export class TexEngine {
 			throw new EngineError('engine returned an empty result');
 		}
 		// Build the view after the call — a growing memory detaches older ones.
-		const json = this.#decoder.decode(
-			new Uint8Array(this.#exports.memory.buffer, ptr, len)
-		);
+		const json = this.#decoder.decode(new Uint8Array(this.#exports.memory.buffer, ptr, len));
 		return JSON.parse(json) as CompileResult;
 	}
 

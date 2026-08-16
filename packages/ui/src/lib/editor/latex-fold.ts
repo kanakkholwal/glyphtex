@@ -12,7 +12,9 @@ const SECTION_RANK = [
 	'subparagraph'
 ] as const;
 
-const SECTION_RE = new RegExp(`^\\s*\\\\(${SECTION_RANK.join('|')})\\*?\\s*(?:\\[[^\\]]*\\])?\\s*\\{`);
+const SECTION_RE = new RegExp(
+	`^\\s*\\\\(${SECTION_RANK.join('|')})\\*?\\s*(?:\\[[^\\]]*\\])?\\s*\\{`
+);
 const ENVIRONMENT_RE = /^\s*\\(begin|end)\s*\{([^}]+)\}/;
 
 /** Strip a trailing `%` comment, respecting `\%`. */

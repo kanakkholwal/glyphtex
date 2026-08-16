@@ -72,9 +72,7 @@ export function createImports(io: EngineIo = {}): {
 	 */
 	function invoke(index: number, ...args: number[]): number {
 		try {
-			return (must().__indirect_function_table.get(index) as (...a: number[]) => number)(
-				...args
-			);
+			return (must().__indirect_function_table.get(index) as (...a: number[]) => number)(...args);
 		} catch (e) {
 			if (e instanceof ExitStatus) throw e;
 			if (!(e instanceof LongjmpError)) throw e;

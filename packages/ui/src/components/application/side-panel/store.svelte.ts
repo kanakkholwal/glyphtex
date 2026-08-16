@@ -343,7 +343,11 @@ export class SidePanelStore {
 		this.#d.oncreate?.(draft.dir ? `${draft.dir}/${leaf}` : leaf, draft.kind);
 	}
 	deleteSelected(): void {
-		const items = this.selection.length ? this.selection : this.effectiveSel ? [this.effectiveSel] : [];
+		const items = this.selection.length
+			? this.selection
+			: this.effectiveSel
+				? [this.effectiveSel]
+				: [];
 		if (!items.length) return;
 		if (this.#d.ondeleteitems) this.#d.ondeleteitems(items);
 		else if (items[0].type === 'folder') this.#d.ondeletefolder?.(items[0].path);

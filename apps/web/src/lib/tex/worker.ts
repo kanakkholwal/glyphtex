@@ -5,6 +5,7 @@ import {
 	EnginePoisonedError,
 	defaultPacks,
 	resolveMissing,
+	type CompileResult,
 	type PackDefinition,
 	type PackIndex
 } from 'glyphtex-engine';
@@ -237,7 +238,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 					ready = await boot(() => {});
 				}
 
-				let result;
+				let result: CompileResult;
 				try {
 					mount(ready);
 					result = ready.compile(options);

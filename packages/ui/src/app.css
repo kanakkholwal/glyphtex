@@ -1,16 +1,16 @@
-@import '@fontsource-variable/inter/index.css';
-@import '@fontsource-variable/geist/index.css';
-@import '@fontsource-variable/geist-mono/index.css';
-@import '@fontsource-variable/quicksand/index.css';
-@import '@fontsource-variable/jetbrains-mono/index.css';
+@import "@fontsource-variable/inter/index.css";
+@import "@fontsource-variable/geist/index.css";
+@import "@fontsource-variable/geist-mono/index.css";
+@import "@fontsource-variable/quicksand/index.css";
+@import "@fontsource-variable/jetbrains-mono/index.css";
 
-@import 'tailwindcss';
-@import 'tw-animate-css';
-@plugin '@tailwindcss/typography';
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
-@source './';
+@source "./";
 
 :root {
 	--ink: #292929;
@@ -291,16 +291,16 @@
 	--text-2xl--line-height: 1.25;
 
 	--font-sans:
-		'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		"Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 	--font-display:
-		'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		"Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
 	--font-serif:
-		'Quicksand Variable', 'Quicksand', 'Avenir Next', 'Century Gothic', ui-rounded, sans-serif;
+		"Quicksand Variable", "Quicksand", "Avenir Next", "Century Gothic", ui-rounded, sans-serif;
 
 	--font-mono:
-		'Geist Mono Variable', 'Geist Mono', 'JetBrains Mono Variable', ui-monospace, 'SF Mono',
-		'Cascadia Code', Menlo, Consolas, monospace;
+		"Geist Mono Variable", "Geist Mono", "JetBrains Mono Variable", ui-monospace, "SF Mono",
+		"Cascadia Code", Menlo, Consolas, monospace;
 
 	--shadow-craft-sm: 0 1px 2px 0 rgb(9 9 11 / 0.05), 0 1px 1px -1px rgb(9 9 11 / 0.04);
 	--shadow-notion:
@@ -327,15 +327,15 @@
 	}
 
 	button:not(:disabled):not([disabled]),
-	[role='button']:not([aria-disabled='true']),
+	[role="button"]:not([aria-disabled="true"]),
 	summary,
-	label:has(> input[type='checkbox']:not(:disabled)),
-	label:has(> input[type='radio']:not(:disabled)) {
+	label:has(> input[type="checkbox"]:not(:disabled)),
+	label:has(> input[type="radio"]:not(:disabled)) {
 		cursor: pointer;
 	}
 	:disabled,
 	[disabled],
-	[aria-disabled='true'] {
+	[aria-disabled="true"] {
 		cursor: default;
 	}
 
@@ -372,7 +372,7 @@
 
 		letter-spacing: -0.15px;
 
-		font-feature-settings: 'cv01', 'cv05', 'cv09', 'cv11', 'ss03', 'ss07', 'dlig';
+		font-feature-settings: "cv01", "cv05", "cv09", "cv11", "ss03", "ss07", "dlig";
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 	}
@@ -402,11 +402,11 @@
 	}
 }
 
-[role='menuitem']:not([data-disabled]):not([aria-disabled='true']),
-[role='menuitemcheckbox']:not([data-disabled]):not([aria-disabled='true']),
-[role='menuitemradio']:not([data-disabled]):not([aria-disabled='true']),
-[role='option']:not([data-disabled]):not([aria-disabled='true']),
-[role='tab']:not([data-disabled]):not([aria-disabled='true']) {
+[role="menuitem"]:not([data-disabled]):not([aria-disabled="true"]),
+[role="menuitemcheckbox"]:not([data-disabled]):not([aria-disabled="true"]),
+[role="menuitemradio"]:not([data-disabled]):not([aria-disabled="true"]),
+[role="option"]:not([data-disabled]):not([aria-disabled="true"]),
+[role="tab"]:not([data-disabled]):not([aria-disabled="true"]) {
 	cursor: pointer;
 }
 

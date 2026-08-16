@@ -33,7 +33,8 @@ if (!existsSync(indexPath)) {
 } else {
 	const index = JSON.parse(readFileSync(indexPath, 'utf8'));
 	const absent = index.packs.filter((p) => !existsSync(resolve(packsDir, `pack-${p.id}.tar.gz`)));
-	if (absent.length) problems.push(`packs declared but not present: ${absent.map((p) => p.id).join(', ')}`);
+	if (absent.length)
+		problems.push(`packs declared but not present: ${absent.map((p) => p.id).join(', ')}`);
 
 	const bytes = readdirSync(packsDir).reduce((n, f) => n + statSync(resolve(packsDir, f)).size, 0);
 	note('packs', `${(bytes / 1048576).toFixed(2)} MB, ${index.packs.length} packs`);
@@ -42,14 +43,17 @@ if (!existsSync(indexPath)) {
 // A subpath that resolves to nothing is only discovered by whoever installs it.
 for (const [subpath, target] of Object.entries(pkg.exports)) {
 	if (typeof target !== 'string' || subpath.includes('*')) continue;
-	if (!existsSync(resolve(pkgRoot, target))) problems.push(`exports["${subpath}"] -> ${target} does not exist`);
+	if (!existsSync(resolve(pkgRoot, target)))
+		problems.push(`exports["${subpath}"] -> ${target} does not exist`);
 }
 
-const packed = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json'], {
-	cwd: pkgRoot,
-	encoding: 'utf8',
-	shell: process.platform === 'win32'
-}))[0];
+const packed = JSON.parse(
+	execFileSync('npm', ['pack', '--dry-run', '--json'], {
+		cwd: pkgRoot,
+		encoding: 'utf8',
+		shell: process.platform === 'win32'
+	})
+)[0];
 note('tarball', `${(packed.size / 1048576).toFixed(2)} MB (${packed.entryCount} files)`);
 note('unpacked', `${(packed.unpackedSize / 1048576).toFixed(2)} MB`);
 

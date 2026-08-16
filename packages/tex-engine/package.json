@@ -11,7 +11,11 @@
 	},
 	"homepage": "https://github.com/kanakkholwal/glyphtex/tree/main/packages/tex-engine#readme",
 	"bugs": "https://github.com/kanakkholwal/glyphtex/issues",
-	"files": ["dist", "src", "wasm"],
+	"files": [
+		"dist",
+		"src",
+		"wasm"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
