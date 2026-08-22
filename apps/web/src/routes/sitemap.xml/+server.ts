@@ -9,6 +9,7 @@ const STATIC: { path: string; priority: string; freq: string }[] = [
 	{ path: "/blog", priority: "0.9", freq: "daily" },
 	{ path: "/docs", priority: "0.9", freq: "weekly" },
 	{ path: "/engine", priority: "0.6", freq: "monthly" },
+	{ path: "/download", priority: "0.6", freq: "monthly" },
 	{ path: "/about", priority: "0.5", freq: "monthly" },
 	{ path: "/privacy", priority: "0.3", freq: "yearly" }
 ];

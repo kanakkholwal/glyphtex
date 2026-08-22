@@ -243,10 +243,9 @@
 </script>
 
 <Seo
-	title="GlyphTeX desktop app: an archived prototype"
-	description="The GlyphTeX desktop app is an unmaintained prototype. Any builds here are outdated and unsupported: use the browser workspace instead."
+	title="GlyphTeX desktop app"
+	description="The GlyphTeX desktop app for offline LaTeX. The desktop build is an early prototype; for everyday use, the browser workspace is the maintained option."
 	canonical="/download"
-	noindex
 />
 
 <div class="min-h-screen bg-background font-sans text-ink antialiased selection:bg-brand-subtle">
