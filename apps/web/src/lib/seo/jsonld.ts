@@ -31,6 +31,22 @@ export function organisationLd(): Json {
 	};
 }
 
+export function websiteLd(): Json {
+	return {
+		"@context": "https://schema.org",
+		"@type": "WebSite",
+		"@id": `${SITE_URL}/#website`,
+		name: SITE_NAME,
+		url: SITE_URL,
+		publisher: { "@id": `${SITE_URL}/#organization` },
+		inLanguage: "en-GB"
+	};
+}
+
+export function personLd(): Json {
+	return { "@context": "https://schema.org", ...person };
+}
+
 export function softwareLd(): Json {
 	return {
 		"@context": "https://schema.org",

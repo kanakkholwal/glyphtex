@@ -19,7 +19,11 @@
 		class="size-13 shrink-0 rounded-full border border-hairline object-cover"
 	/>
 	<div>
-		<p class="text-sm font-semibold tracking-tight text-foreground">{AUTHOR.name}</p>
+		<a
+			href="/about"
+			class="text-sm font-semibold tracking-tight text-foreground hover:underline"
+			>{AUTHOR.name}</a
+		>
 		<p class="text-xs text-muted-foreground">{AUTHOR.role}</p>
 		<p class="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">{AUTHOR.bio}</p>
 		<div class="mt-3 flex gap-3">

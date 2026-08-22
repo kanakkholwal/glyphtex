@@ -48,6 +48,8 @@
 	description={data.meta.description}
 	canonical={data.meta.url}
 	type="article"
+	modified={data.meta.updated}
+	section={data.meta.category}
 	{jsonld}
 />
 

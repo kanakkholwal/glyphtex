@@ -55,7 +55,12 @@
 	description={data.meta.description}
 	canonical={data.meta.url}
 	image={data.meta.hero}
+	imageAlt={data.meta.heroAlt}
 	type="article"
+	published={data.meta.date}
+	modified={data.meta.updated ?? data.meta.date}
+	section={data.meta.category}
+	tags={data.meta.tags}
 	{jsonld}
 />
 
@@ -94,7 +99,7 @@
 					class="size-9 rounded-full border border-hairline object-cover"
 				/>
 				<span class="text-sm text-muted-foreground">
-					By <span class="font-medium text-foreground">{AUTHOR.name}</span>
+					By <a href="/about" class="font-medium text-foreground hover:underline">{AUTHOR.name}</a>
 				</span>
 			</div>
 		</Container>

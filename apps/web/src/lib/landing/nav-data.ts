@@ -16,6 +16,7 @@ const WORKSPACE: NavLink = { label: "Browser workspace", href: "/workspace" };
 const PRIVACY: NavLink = { label: "Privacy", href: "/privacy" };
 const BLOG: NavLink = { label: "Blog", href: "/blog" };
 const DOCS: NavLink = { label: "Docs", href: "/docs" };
+const ABOUT: NavLink = { label: "About", href: "/about" };
 
 export const navLinks: NavLink[] = [DOCS, BLOG];
 
@@ -26,6 +27,7 @@ export const footerCols: { title: string; links: NavLink[] }[] = [
 	{
 		title: "Project",
 		links: [
+			ABOUT,
 			{ label: "GitHub", href: REPO_URL, external: true },
 			{ label: "Licence", href: `${REPO_URL}/blob/main/LICENSE`, external: true },
 			PRIVACY,

@@ -8,7 +8,7 @@
 	import { CONTACT_EMAIL } from "$lib/landing/nav-data";
 	import PolishGrid from "$lib/landing/PolishGrid.svelte";
 	import { techLogos } from "$lib/landing/tech-logos";
-	import { organisationLd, serialise, softwareLd } from "$lib/seo/jsonld";
+	import { organisationLd, serialise, softwareLd, websiteLd } from "$lib/seo/jsonld";
 	import Seo from "$lib/seo/Seo.svelte";
 	import SiteFooter from "$lib/SiteFooter.svelte";
 	import SiteHeader from "$lib/SiteHeader.svelte";
@@ -238,7 +238,7 @@
 	title="GlyphTeX · A local-first LaTeX editor for academic writing"
 	description="GlyphTeX is a local-first LaTeX editor for academic writing. Plain .tex projects, compiled on your machine, versioned with Git. GPLv3, free for individuals and institutions."
 	canonical="/"
-	jsonld={[serialise(organisationLd()), serialise(softwareLd())]}
+	jsonld={[serialise(organisationLd()), serialise(websiteLd()), serialise(softwareLd())]}
 />
 
 {#snippet featureList(items: typeof openSources)}

@@ -11,7 +11,9 @@
 	// `$env/dynamic/public` reads at request time, not build time, so a build-step
 	// env var never reaches the worker. A GA measurement ID is public by design.
 	"vars": {
-		"PUBLIC_GA_ID": "G-X1BF4S5L5L"
+		"PUBLIC_GA_ID": "G-X1BF4S5L5L",
+		// Search Console HTML-tag token; fill in the content value to emit the meta.
+		"PUBLIC_GSC_VERIFICATION": ""
 	},
 	// Requires `nexonauts.com` to be a zone on the same account as
 	// CLOUDFLARE_ACCOUNT_ID; wrangler then provisions the DNS record and cert.
