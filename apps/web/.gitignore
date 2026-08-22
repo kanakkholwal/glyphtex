@@ -7,7 +7,7 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
-
+docvia-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
