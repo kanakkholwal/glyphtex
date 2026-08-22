@@ -6,7 +6,6 @@
 	import { onMount } from "svelte";
 	import "./layout.css";
 
-
 	let { children } = $props();
 
 	// Keep `.dark` on <html> in sync; re-runs on toggle and cross-window storage sync.
