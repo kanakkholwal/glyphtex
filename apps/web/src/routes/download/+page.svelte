@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import Seo from "$lib/seo/Seo.svelte";
 	import SiteFooter from "$lib/SiteFooter.svelte";
 	import SiteHeader from "$lib/SiteHeader.svelte";
 	import { Button } from "@glyphtex/ui/button";
@@ -241,14 +242,12 @@
 	];
 </script>
 
-<svelte:head>
-	<title>GlyphTeX desktop app: an archived prototype</title>
-	<meta
-		name="description"
-		content="The GlyphTeX desktop app is an unmaintained prototype. Any builds here are outdated and unsupported: use the browser workspace instead."
-	/>
-	<meta name="robots" content="noindex" />
-</svelte:head>
+<Seo
+	title="GlyphTeX desktop app: an archived prototype"
+	description="The GlyphTeX desktop app is an unmaintained prototype. Any builds here are outdated and unsupported: use the browser workspace instead."
+	canonical="/download"
+	noindex
+/>
 
 <div class="min-h-screen bg-background font-sans text-ink antialiased selection:bg-brand-subtle">
 	<SiteHeader />

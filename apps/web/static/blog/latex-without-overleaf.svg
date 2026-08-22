@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <rect width="1200" height="675" fill="#292929"/>
+  <rect x="0" y="0" width="1200" height="10" fill="#ffffff" opacity="0.9"/>
+  <text x="72" y="150" font-family="ui-sans-serif, system-ui, sans-serif" font-size="26" font-weight="600" fill="#ffffff" opacity="0.7" letter-spacing="3">GLYPHTEX</text>
+  <text x="72" y="330" font-family="ui-sans-serif, system-ui, sans-serif" font-size="66" font-weight="700" fill="#ffffff">Write LaTeX without Overleaf</text>
+  <text x="72" y="400" font-family="ui-sans-serif, system-ui, sans-serif" font-size="34" fill="#ffffff" opacity="0.75">Local-first, no account, no upload</text>
+  <g opacity="0.14" fill="none" stroke="#ffffff" stroke-width="2">
+    <rect x="820" y="430" width="300" height="180" rx="12"/>
+    <line x1="850" y1="470" x2="1090" y2="470"/>
+    <line x1="850" y1="505" x2="1040" y2="505"/>
+    <line x1="850" y1="540" x2="1090" y2="540"/>
+    <line x1="850" y1="575" x2="990" y2="575"/>
+  </g>
+  <text x="72" y="615" font-family="ui-monospace, monospace" font-size="22" fill="#ffffff" opacity="0.5">$ compiled locally</text>
+</svg>

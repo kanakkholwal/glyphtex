@@ -14,14 +14,15 @@ const ENGINE: NavLink = { label: "The engine", href: "/engine" };
 const DOWNLOAD: NavLink = { label: "Desktop app", href: "/download" };
 const WORKSPACE: NavLink = { label: "Browser workspace", href: "/workspace" };
 const PRIVACY: NavLink = { label: "Privacy", href: "/privacy" };
+const BLOG: NavLink = { label: "Blog", href: "/blog" };
+const DOCS: NavLink = { label: "Docs", href: "/docs" };
 
-export const navLinks: NavLink[] = [
-	// ENGINE, DOWNLOAD
-];
+export const navLinks: NavLink[] = [DOCS, BLOG];
 
 export const footerCols: { title: string; links: NavLink[] }[] = [
 	{ title: "Product", links: [HOW, COMPILE, AUDIENCE, INSTITUTIONS, FAQ] },
-	{ title: "Get started", links: [WORKSPACE, ENGINE, DOWNLOAD] },
+	{ title: "Learn", links: [DOCS, BLOG, ENGINE] },
+	{ title: "Get started", links: [WORKSPACE, DOWNLOAD] },
 	{
 		title: "Project",
 		links: [

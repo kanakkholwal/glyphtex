@@ -28,3 +28,4 @@ vite.config.ts.timestamp-*
 
 # Bundled test fixtures, rebuilt by `pnpm test`.
 test/.build/
+.docvia

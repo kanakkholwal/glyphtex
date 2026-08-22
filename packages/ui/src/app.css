@@ -572,6 +572,63 @@
 		box-shadow: var(--shadow-notion);
 	}
 
+	/* Workbench still on the landing page. The syntax colours are the app's own
+	   JetBrains "Islands" palette, transcribed from lib/editor/jetbrains-theme.ts. */
+	.glyphtex-mock {
+		--mock-kw: #0033b3;
+		--mock-str: #067d17;
+		--mock-cmt: #8c8c8c;
+		--mock-fn: #00627a;
+		--mock-num: #1750eb;
+		--mock-gutter: #aeb3c2;
+		--mock-gutter-on: #0d9373;
+		--mock-line: #f5f8fe;
+	}
+
+	.dark .glyphtex-mock {
+		--mock-kw: #cf8e6d;
+		--mock-str: #6aab73;
+		--mock-cmt: #7a7e85;
+		--mock-fn: #56a8f5;
+		--mock-num: #2aacb8;
+		--mock-gutter: #5a5a5a;
+		--mock-gutter-on: #34d399;
+		--mock-line: #202020;
+	}
+
+	.glyphtex-mock-kw {
+		color: var(--mock-kw);
+	}
+
+	.glyphtex-mock-str {
+		color: var(--mock-str);
+	}
+
+	.glyphtex-mock-fn {
+		color: var(--mock-fn);
+	}
+
+	.glyphtex-mock-num {
+		color: var(--mock-num);
+	}
+
+	.glyphtex-mock-cmt {
+		color: var(--mock-cmt);
+		font-style: italic;
+	}
+
+	.glyphtex-mock-gutter {
+		color: var(--mock-gutter);
+	}
+
+	.glyphtex-mock-gutter-on {
+		color: var(--mock-gutter-on);
+	}
+
+	.glyphtex-mock-line {
+		background: var(--mock-line);
+	}
+
 	.landing-glass-strong {
 		background-color: color-mix(in oklab, var(--background) 82%, transparent);
 		backdrop-filter: blur(20px) saturate(180%);

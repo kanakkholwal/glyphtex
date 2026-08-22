@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { Container, Section } from "$lib/landing";
+	import { CONTACT_EMAIL, REPO_URL } from "$lib/landing/nav-data";
+	import Seo from "$lib/seo/Seo.svelte";
 	import SiteFooter from "$lib/SiteFooter.svelte";
 	import SiteHeader from "$lib/SiteHeader.svelte";
-	import { CONTACT_EMAIL, REPO_URL } from "$lib/landing/nav-data";
 
 	const updated = "23 July 2026";
 
@@ -60,13 +61,11 @@
 	];
 </script>
 
-<svelte:head>
-	<title>Privacy · GlyphTeX</title>
-	<meta
-		name="description"
-		content="What GlyphTeX collects on this website, and what it never collects."
-	/>
-</svelte:head>
+<Seo
+	title="Privacy · GlyphTeX"
+	description="What GlyphTeX collects on this website, and what it never collects."
+	canonical="/privacy"
+/>
 
 <SiteHeader />
 

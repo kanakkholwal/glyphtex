@@ -3,6 +3,7 @@
 	import { track } from "$lib/analytics";
 	import { Container, Section } from "$lib/landing";
 	import { REPO_URL } from "$lib/landing/nav-data";
+	import Seo from "$lib/seo/Seo.svelte";
 	import SiteFooter from "$lib/SiteFooter.svelte";
 	import SiteHeader from "$lib/SiteHeader.svelte";
 	import { Button } from "@glyphtex/ui/button";
@@ -150,13 +151,11 @@
 	];
 </script>
 
-<svelte:head>
-	<title>The GlyphTeX engine: how we got LaTeX compiling in a browser</title>
-	<meta
-		name="description"
-		content="How GlyphTeX compiles LaTeX offline in the browser: why we picked Tectonic, the bugs we hit building it to WebAssembly, and how a compile actually runs."
-	/>
-</svelte:head>
+<Seo
+	title="The GlyphTeX engine: how we got LaTeX compiling in a browser"
+	description="How GlyphTeX compiles LaTeX offline in the browser: why we picked Tectonic, the bugs we hit building it to WebAssembly, and how a compile actually runs."
+	canonical="/engine"
+/>
 
 <div class="bg-background text-ink selection:bg-brand-subtle min-h-screen font-sans antialiased">
 	<SiteHeader />

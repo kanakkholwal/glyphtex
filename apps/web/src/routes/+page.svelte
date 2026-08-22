@@ -3,9 +3,13 @@
 	import { track } from "$lib/analytics";
 	import { Container, ContainerTextFlip, Section, ShowcasePanel } from "$lib/landing";
 	import EditorMock from "$lib/landing/EditorMock.svelte";
+	import ImportDropzone from "$lib/landing/ImportDropzone.svelte";
+	import LiveEditor from "$lib/landing/LiveEditor.svelte";
 	import { CONTACT_EMAIL } from "$lib/landing/nav-data";
 	import PolishGrid from "$lib/landing/PolishGrid.svelte";
 	import { techLogos } from "$lib/landing/tech-logos";
+	import { organisationLd, serialise, softwareLd } from "$lib/seo/jsonld";
+	import Seo from "$lib/seo/Seo.svelte";
 	import SiteFooter from "$lib/SiteFooter.svelte";
 	import SiteHeader from "$lib/SiteHeader.svelte";
 	import { Button } from "@glyphtex/ui/button";
@@ -206,7 +210,7 @@
 			a: "Yes. Export the .zip and drop it in. The source stays plain .tex and .bib, and you can export the folder again any time."
 		},
 		{
-			q: "Does biblatex work?: What about biber?",
+			q: "Does biblatex work? What about biber?",
 			a: "BibTeX is in the engine, so biblatex with backend=bibtex builds a real reference list offline. Biber is a Perl program with no WebAssembly build, so it needs the desktop app. The browser names the one line that fixes it."
 		},
 		{
@@ -230,13 +234,12 @@
 	let openFaq = $state<number | null>(0);
 </script>
 
-<svelte:head>
-	<title>GlyphTeX · A local-first LaTeX editor for academic writing</title>
-	<meta
-		name="description"
-		content="GlyphTeX is a local-first LaTeX editor for academic writing. Plain .tex projects, compiled on your machine, versioned with Git. GPLv3, free for individuals and institutions."
-	/>
-</svelte:head>
+<Seo
+	title="GlyphTeX · A local-first LaTeX editor for academic writing"
+	description="GlyphTeX is a local-first LaTeX editor for academic writing. Plain .tex projects, compiled on your machine, versioned with Git. GPLv3, free for individuals and institutions."
+	canonical="/"
+	jsonld={[serialise(organisationLd()), serialise(softwareLd())]}
+/>
 
 {#snippet featureList(items: typeof openSources)}
 	<ul class="mt-10 space-y-7">
@@ -342,11 +345,20 @@
 							</li>
 						{/each}
 					</ul>
+
+					<div
+						class="mt-9 w-full max-w-2xl"
+						in:fly={{ y: 8, duration: 400, delay: 280, easing: cubicOut }}
+					>
+						<ImportDropzone />
+					</div>
 				</div>
 
-				<div class="pb-8" in:fly={{ y: 16, duration: 500, delay: 300, easing: cubicOut }}>
+				<div class="pb-8" in:fly={{ y: 16, duration: 500, delay: 340, easing: cubicOut }}>
+					<!-- The real editor, not a screenshot of one: a page arguing that the
+					     software runs on your machine should let you type in it first. -->
 					<div class="landing-shot overflow-hidden">
-						<EditorMock />
+						<LiveEditor />
 					</div>
 				</div>
 			</Container>
@@ -469,7 +481,9 @@
 						</div>
 
 						<Reveal variant="morph">
-							<div class="landing-shot overflow-hidden">
+							<!-- Decorative: the live editor is in the hero, and a screen reader
+							     reading this faux source twice would be noise. -->
+							<div class="landing-shot overflow-hidden" aria-hidden="true">
 								<EditorMock />
 							</div>
 						</Reveal>
