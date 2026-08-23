@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" role="img" aria-label="Kanak Kholwal">
-  <rect width="160" height="160" rx="80" fill="#292929"/>
-  <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="60" font-weight="600" fill="#f7f7f5">KK</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" aria-label="Kanak Kholwal" role="img" viewBox="0 0 160 160"><rect width="160" height="160" fill="#292929" rx="80"/><text x="50%" y="52%" fill="#f7f7f5" dominant-baseline="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="60" font-weight="600" text-anchor="middle">KK</text></svg>
