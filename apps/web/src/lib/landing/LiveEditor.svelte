@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
-	import { track } from "$lib/analytics";
+	import { track, trackOnce } from "$lib/analytics";
 	import { demoFiles, demoProjectFiles } from "$lib/landing/demo-files";
 	import { Button } from "@glyphtex/ui/button";
 	import type CodeEditor from "@glyphtex/ui/code-editor";
@@ -107,7 +107,10 @@
 				{@const Icon = file.path.endsWith('.bib') ? IconBook : IconFileText}
 				<button
 					type="button"
-					onclick={() => (activePath = file.path)}
+					onclick={() => {
+						activePath = file.path;
+						track('demo_file_opened', { file: leaf(file.path) });
+					}}
 					aria-current={activePath === file.path}
 					class={[
 						'flex items-center gap-2 rounded-md px-2 py-1.5 text-left font-mono text-sm transition-colors',
@@ -139,7 +142,11 @@
 				{#if Editor}
 					<Editor
 						bind:this={editorRef}
-						bind:value={() => source, (next) => (edited[activePath] = next)}
+						bind:value={() => source,
+						(next) => {
+							edited[activePath] = next;
+							trackOnce('demo_edited', 'demo_edited', { file: leaf(activePath) });
+						}}
 						docKey={activePath}
 						language={active.language}
 						theme={settings.resolved}

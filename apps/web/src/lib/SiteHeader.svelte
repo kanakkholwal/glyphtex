@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import { track } from "$lib/analytics";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
 	import { navLinks, REPO_URL } from "$lib/landing/nav-data";
@@ -112,7 +113,12 @@
 		</ul>
 
 		<div class="col-start-3 flex items-center justify-end gap-1.5">
-			<Button href={resolve('/workspace')} variant="default" class="min-w-0 px-4">
+			<Button
+				href={resolve('/workspace')}
+				variant="default"
+				class="min-w-0 px-4"
+				onclick={() => track('cta_clicked', { target: 'workspace', location: 'nav' })}
+			>
 				Open the workspace
 			</Button>
 			<button
@@ -164,7 +170,10 @@
 					href={repo}
 					target="_blank"
 					rel="noopener noreferrer"
-					onclick={close}
+					onclick={() => {
+						track('outbound_clicked', { destination: 'github', location: 'nav' });
+						close();
+					}}
 					class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-base font-medium text-foreground transition-colors hover:bg-surface-soft"
 				>
 					<IconBrandGithub class="size-4" />

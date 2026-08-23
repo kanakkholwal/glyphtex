@@ -192,11 +192,19 @@
 							size="lg"
 							variant="default"
 							href={resolve('/workspace')}
-							onclick={() => track('engine_cta_workspace')}
+							onclick={() => track('cta_clicked', { target: 'workspace', location: 'engine_hero' })}
 						>
 							Open the workspace
 						</Button>
-						<Button size="lg" variant="outline" href={REPO_URL} target="_blank" rel="noreferrer">
+						<Button
+							size="lg"
+							variant="outline"
+							href={REPO_URL}
+							target="_blank"
+							rel="noreferrer"
+							onclick={() =>
+								track('outbound_clicked', { destination: 'github', location: 'engine_hero' })}
+						>
 							<IconBrandGithub class="size-4" />
 							Read the source
 						</Button>
@@ -496,7 +504,7 @@
 							size="lg"
 							variant="default"
 							href={resolve('/workspace')}
-							onclick={() => track('engine_cta_workspace_footer')}
+							onclick={() => track('cta_clicked', { target: 'workspace', location: 'engine_footer' })}
 						>
 							Open the workspace
 						</Button>

@@ -138,7 +138,7 @@
 	}
 
 	function trackDownload(platform: string, asset: string) {
-		track("download_click", { platform, asset, version: version || "unknown" });
+		track("download_clicked", { platform, asset, version: version || "unknown" });
 	}
 
 	// macOS install helper. The build is not Apple-notarized yet, so a freshly

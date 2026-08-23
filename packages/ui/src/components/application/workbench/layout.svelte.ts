@@ -3,6 +3,7 @@ import { classifyFile, editorLanguage } from "../file-kinds";
 import type { GitProvider } from "../git-panel.svelte";
 import { PersistedState } from "@glyphtex/ui/persisted-state";
 import { settings } from "@glyphtex/ui/settings";
+import { emit } from "@glyphtex/ui/telemetry";
 import { toast } from "@glyphtex/ui/sonner";
 
 import { GEOMETRY, LAYOUT_KEYS, PREFERENCE, TAB_CONTEXT } from "./layout-storage";
@@ -55,7 +56,9 @@ export class LayoutStore {
 		return this.#panelCollapsed.current;
 	}
 	set panelCollapsed(value: boolean) {
+		if (value === this.#panelCollapsed.current) return;
 		this.#panelCollapsed.current = value;
+		emit("panel_toggled", { panel: "side", open: !value, view: this.activeView });
 	}
 
 	/** Which editor you are in. `viewMode` only applies inside `latex`. */
@@ -63,14 +66,18 @@ export class LayoutStore {
 		return this.#docMode.current;
 	}
 	set docMode(value: DocMode) {
+		if (value === this.#docMode.current) return;
 		this.#docMode.current = value;
+		emit("editor_mode_changed", { mode: value });
 	}
 
 	get viewMode(): ViewMode {
 		return this.#viewMode.current;
 	}
 	set viewMode(value: ViewMode) {
+		if (value === this.#viewMode.current) return;
 		this.#viewMode.current = value;
+		emit("view_changed", { view: value });
 	}
 
 	// Editor handle (bound from CodeEditor), shared with search + compile.
@@ -117,7 +124,14 @@ export class LayoutStore {
 	cursor = $state({ line: 1, column: 1 });
 
 	// Help / quick-open dialogs.
-	paletteOpen = $state(false);
+	#paletteOpen = $state(false);
+	get paletteOpen(): boolean {
+		return this.#paletteOpen;
+	}
+	set paletteOpen(value: boolean) {
+		if (value && !this.#paletteOpen) emit("command_palette_opened");
+		this.#paletteOpen = value;
+	}
 	aboutOpen = $state(false);
 	shortcutsOpen = $state(false);
 
@@ -134,7 +148,9 @@ export class LayoutStore {
 		return this.#splitDir.current;
 	}
 	set splitDir(value: SplitDirection) {
+		if (value === this.#splitDir.current) return;
 		this.#splitDir.current = value;
+		emit("split_direction_changed", { direction: value });
 	}
 	dragging = $state(false);
 	bodyEl = $state<HTMLElement>();
@@ -150,7 +166,9 @@ export class LayoutStore {
 		return this.#dockTab.current;
 	}
 	set dockTab(value: DockTab) {
+		if (value === this.#dockTab.current) return;
 		this.#dockTab.current = value;
+		emit("dock_tab_changed", { tab: value });
 	}
 	dockH = $state(224);
 	resizingDock = $state(false);
@@ -163,7 +181,13 @@ export class LayoutStore {
 		return this.#rightPanel.current;
 	}
 	set rightPanel(value: RightPanel) {
+		const previous = this.#rightPanel.current;
+		if (value === previous) return;
 		this.#rightPanel.current = value;
+		emit("panel_toggled", {
+			panel: value === "none" ? previous : value,
+			open: value !== "none"
+		});
 	}
 
 	get notesOpen(): boolean {
@@ -259,6 +283,7 @@ export class LayoutStore {
 	/** Switch the panel's view. Collapsing is the title bar's toggle: the tabs
 	 *  live *inside* the panel now, so clicking one can't also close it. */
 	selectView(view: ActivityView): void {
+		if (view !== this.activeView) emit("panel_view_changed", { view });
 		this.activeView = view;
 		this.panelCollapsed = false;
 	}
@@ -270,6 +295,7 @@ export class LayoutStore {
 		try {
 			const v = await this.#git.fileVersions(root, path, staged);
 			this.diffTarget = { path, staged, ...v };
+			emit("diff_opened", { staged });
 			// Reveal the editor pane: neither the PDF nor the visual surface has one.
 			this.docMode = "latex";
 			if (this.viewMode === "preview") this.viewMode = "split";

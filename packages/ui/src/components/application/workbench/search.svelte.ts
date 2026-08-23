@@ -1,5 +1,6 @@
 import { applyCase } from "../case-preserve";
 import { toast } from "@glyphtex/ui/sonner";
+import { emit } from "@glyphtex/ui/telemetry";
 
 import type { FileStore } from "./files.svelte";
 import type { LayoutStore } from "./layout.svelte";
@@ -120,7 +121,7 @@ export class SearchStore {
 		this.projectScanning = false;
 	}
 
-	async runProjectSearch(o: SearchOptions = this.projectOpts): Promise<void> {
+	async runProjectSearch(o: SearchOptions = this.projectOpts, report = true): Promise<void> {
 		const token = ++this.#scanToken;
 		this.projectOpts = o;
 		if (!o.query) {
@@ -133,12 +134,20 @@ export class SearchStore {
 		this.projectSkips = skips;
 		this.projectActive = 0;
 		this.projectScanning = false;
+		// Only settled searches, never the refresh a replace triggers.
+		if (report) {
+			emit("project_search_run", {
+				files: inputs.length,
+				hits: this.projectHits.length,
+				regex: Boolean(o.regexp)
+			});
+		}
 	}
 
 	/** Re-run after an edit without resetting which match you were on. */
 	async refreshProject(): Promise<void> {
 		const at = this.projectActive;
-		await this.runProjectSearch(this.projectOpts);
+		await this.runProjectSearch(this.projectOpts, false);
 		this.projectActive = Math.min(at, Math.max(0, this.projectHits.length - 1));
 	}
 
@@ -209,6 +218,7 @@ export class SearchStore {
 			count += group.matches.length;
 		}
 		await this.refreshProject();
+		emit("project_replace_all", { scope: "project", matches: count });
 		return count;
 	}
 
@@ -273,6 +283,7 @@ export class SearchStore {
 	replaceAll(replace: string): void {
 		const n = this.#layout.editor?.replaceAllMatches(this.searchOpts, replace) ?? 0;
 		this.runSearch({ ...this.searchOpts, replace });
+		emit("project_replace_all", { scope: "file", matches: n });
 		toast.success(`Replaced ${n} ${n === 1 ? "match" : "matches"}`);
 	}
 }

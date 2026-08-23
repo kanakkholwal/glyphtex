@@ -1,3 +1,5 @@
+import type { WorkbenchEvent } from "@glyphtex/ui/telemetry";
+
 /** A pluggable analytics backend. Add one to the registry in `./index.ts`. */
 export type AnalyticsProvider = {
 	readonly name: string;
@@ -11,19 +13,18 @@ export type AnalyticsProvider = {
 	setEnabled?: (enabled: boolean) => void;
 };
 
-/**
- * Every event the app may send. A closed union so a rename can't silently split a
- * metric in two, and so the privacy page can be checked against this list.
- */
-export type AnalyticsEvent =
-	// Marketing site
-	| "cta_workspace_click"
-	| "cta_engine_click"
-	| "cta_institution_click"
-	| "download_click"
-	| "engine_cta_workspace"
-	| "engine_cta_workspace_footer"
-	// Workspace lifecycle
+/** The marketing site: what a visitor read, and what they clicked out of. */
+export type SiteEvent =
+	| "cta_clicked"
+	| "outbound_clicked"
+	| "section_viewed"
+	| "faq_expanded"
+	| "demo_file_opened"
+	| "demo_edited"
+	| "download_clicked";
+
+/** The workspace, at the level the app owns: documents, engine, source control. */
+export type WorkspaceEvent =
 	| "document_created"
 	| "document_opened"
 	| "document_deleted"
@@ -31,11 +32,22 @@ export type AnalyticsEvent =
 	| "document_renamed"
 	| "document_starred"
 	| "document_exported"
-	// Engine
+	| "document_import_failed"
+	| "files_added"
+	| "engine_install_prompted"
 	| "engine_installed"
+	| "engine_packs_installed"
 	| "compile_finished"
-	// Source control
+	| "app_update_applied"
+	| "main_file_chosen"
 	| "git_action";
+
+/**
+ * Every event the app may send. A closed union so a rename can't silently split a
+ * metric in two, and so the privacy page can be checked against this list.
+ * `WorkbenchEvent` arrives from the editor itself, through `@glyphtex/ui/telemetry`.
+ */
+export type AnalyticsEvent = SiteEvent | WorkspaceEvent | WorkbenchEvent;
 
 /**
  * Event parameters. Values are counts, durations, and fixed enums only: never a
@@ -45,3 +57,17 @@ export type EventParams = Record<string, string | number | boolean | undefined>;
 
 /** Where a new document came from. */
 export type DocumentSource = "blank" | "template" | "import_zip" | "import_folder" | "git_clone";
+
+/** Where on the marketing site a click happened. */
+export type CtaLocation =
+	| "hero"
+	| "nav"
+	| "footer"
+	| "workflow"
+	| "institutions"
+	| "faq"
+	| "final_cta"
+	| "engine_hero"
+	| "engine_footer"
+	| "home_demo"
+	| "content";

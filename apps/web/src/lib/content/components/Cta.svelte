@@ -25,7 +25,7 @@
 		<p class="text-base font-semibold tracking-tight text-foreground">{title}</p>
 		<p class="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">{body}</p>
 	</div>
-	<Button href={target} class="shrink-0" onclick={() => track('cta_workspace_click', { from })}>
+	<Button href={target} class="shrink-0" onclick={() => track('cta_clicked', { target: 'workspace', location: 'content', from })}>
 		{label}
 		<IconArrowRight class="size-4" stroke-width={2} />
 	</Button>

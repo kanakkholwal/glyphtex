@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
 	import type { ResolvedPathname } from "$app/types";
+	import { track } from "$lib/analytics";
 	import { footerCols, footerSocials } from "$lib/landing/nav-data";
 	import { Logo } from "@glyphtex/ui/logo";
 	import { IconBrandGithub, IconMail } from "@tabler/icons-svelte";
@@ -36,6 +37,11 @@
 						<a
 							href={hrefFor(social.href, social.external)}
 							aria-label={social.label}
+							onclick={() =>
+								track('outbound_clicked', {
+									destination: social.label.toLowerCase(),
+									location: 'footer'
+								})}
 							target={social.external ? '_blank' : undefined}
 							rel={social.external ? 'noopener noreferrer' : undefined}
 							class="grid size-9 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-soft hover:text-foreground"
@@ -66,6 +72,12 @@
 										href={hrefFor(link.href, link.external)}
 										target={link.external ? '_blank' : undefined}
 										rel={link.external ? 'noopener noreferrer' : undefined}
+										onclick={() =>
+											link.external &&
+											track('outbound_clicked', {
+												destination: link.label.toLowerCase(),
+												location: 'footer'
+											})}
 										class="text-base font-medium text-foreground transition-colors hover:text-foreground hover:underline"
 									>
 										{link.label}

@@ -5,6 +5,7 @@ import type { ProjectHost } from "../project";
 import { matchShortcut, shortcutLabel } from "../shortcuts";
 import { settings } from "@glyphtex/ui/settings";
 import { toast } from "@glyphtex/ui/sonner";
+import { emit } from "@glyphtex/ui/telemetry";
 
 import { CompileStore } from "./compile.svelte";
 import { FileStore } from "./files.svelte";
@@ -234,6 +235,7 @@ export class WorkbenchController {
 	/** Inline emphasis. The block editor toggles a real mark; the source editor
 	 *  wraps the selection in the command that produces one. */
 	mark(id: "bold" | "italic"): void {
+		emit("format_applied", { mark: id, surface: this.layout.visualApi ? "visual" : "latex" });
 		if (this.layout.visualApi) this.layout.visualApi.mark(id);
 		else this.layout.editor?.wrapSelection(id === "bold" ? "\\textbf{" : "\\textit{", "}");
 	}

@@ -7,6 +7,7 @@ import {
 } from "@glyphtex/ui/editor";
 import { COMPILE_DEBOUNCE_MS, settings } from "@glyphtex/ui/settings";
 import { toast } from "@glyphtex/ui/sonner";
+import { emit } from "@glyphtex/ui/telemetry";
 
 import type { FileStore } from "./files.svelte";
 import type { LayoutStore } from "./layout.svelte";
@@ -156,7 +157,10 @@ export class CompileStore {
 					filename,
 					extensions: ["pdf"]
 				});
-				if (saved) toast.success(`Saved ${filename}`);
+				if (saved) {
+					toast.success(`Saved ${filename}`);
+					emit("pdf_downloaded", { via: "host", pages: this.pdfNumPages });
+				}
 				return; // false = user cancelled the dialog → stay quiet
 			}
 			if (!this.pdfUrl) return;
@@ -165,6 +169,7 @@ export class CompileStore {
 			a.download = filename;
 			a.click();
 			toast.success(`Downloaded ${filename}`);
+			emit("pdf_downloaded", { via: "browser", pages: this.pdfNumPages });
 		} catch (e) {
 			toast.error(`Could not save the PDF: ${e}`);
 		}
@@ -228,6 +233,7 @@ export class CompileStore {
 				const singleFile = !useProject && !compileFiles;
 				if (!manual && singleFile && snapshot === this.#lastCompiledSource) break;
 				this.compileStatus = "compiling";
+				emit("compile_started", { trigger: manual ? "manual" : "auto" });
 				const started = performance.now();
 				const root = this.#files.projectRoot;
 				// Resolved per run, not captured: the host can supply a compiler after

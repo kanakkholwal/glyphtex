@@ -40,6 +40,7 @@
 					ignored > 0
 						? "Everything in there was build output or ignored by .gitignore."
 						: "Nothing in there could be imported.";
+				track("document_import_failed", { source, reason: ignored > 0 ? "all_ignored" : "empty" });
 				return;
 			}
 
@@ -56,6 +57,7 @@
 		} catch (cause) {
 			console.error("[GlyphTeX]", cause);
 			error = cause instanceof Error ? cause.message : "Could not import that.";
+			track("document_import_failed", { source, reason: "error" });
 		} finally {
 			importing = false;
 			status = "";

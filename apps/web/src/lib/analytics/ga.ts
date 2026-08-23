@@ -25,8 +25,11 @@ export const gaProvider: AnalyticsProvider = {
 		document.head.appendChild(script);
 
 		window.dataLayer = window.dataLayer ?? [];
-		window.gtag = function gtag(...args: unknown[]) {
-			window.dataLayer?.push(args);
+		// `arguments`, not a rest array: gtag.js only treats an Arguments object as a
+		// command, and silently drops a plain array.
+		window.gtag = function gtag() {
+			// biome-ignore lint/complexity/noArguments: required by gtag.js, see above
+			window.dataLayer?.push(arguments);
 		};
 		window.gtag("js", new Date());
 		// Page views are sent by us on navigation, so gtag must not also send its own.

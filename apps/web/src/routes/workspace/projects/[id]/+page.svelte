@@ -126,11 +126,15 @@
 			const installed = await engineReady();
 			ready = installed;
 			if (installed) warmEngine();
-			else showInstall = true;
+			else {
+				showInstall = true;
+				track("engine_install_prompted", { reason: "not_installed" });
+			}
 		} catch {
 			// Fail open: failing closed strands the user with no dialog and no compiler.
 			ready = false;
 			showInstall = true;
+			track("engine_install_prompted", { reason: "check_failed" });
 		}
 	});
 
@@ -149,6 +153,7 @@
 			toast.error("Could not save your work, so the update was not applied");
 			throw error;
 		}
+		track("app_update_applied");
 		await applyUpdate();
 	}
 
@@ -190,6 +195,7 @@
 
 	function chooseMain(path: string): void {
 		if (!project) return;
+		track("main_file_chosen", { candidates: project.entryCandidates?.length ?? 0 });
 		void setEntry(project.id, path)
 			.then((next) => {
 				project = next;
@@ -251,6 +257,7 @@
 			const { files, name, skipped } = await load();
 			if (files.length === 0) {
 				toast.error("Nothing in there could be imported.");
+				track("document_import_failed", { source, reason: "empty" });
 				return;
 			}
 			const created = await createProject(name, files);
@@ -259,6 +266,7 @@
 			void goto(resolve(`/workspace/projects/${created.id}` as `/workspace/projects/${string}`));
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : "Could not import that.");
+			track("document_import_failed", { source, reason: "error" });
 		}
 	}
 
@@ -302,6 +310,11 @@
 			);
 			if (ctrl) await persist(ctrl.files.snapshotFiles());
 			settlePick(files.map((f) => f.path));
+			track("files_added", {
+				files: bucket(files.length),
+				binary: files.filter((f) => f.data).length > 0,
+				skipped: skipped.length
+			});
 			toast.success(`Added ${files.length} file${files.length === 1 ? "" : "s"}.`);
 			if (skipped.length > 0) toast.warning(`Skipped ${skipped.join(", ")}`);
 		} catch (error) {
@@ -338,7 +351,7 @@
 				new Blob([zip as BlobPart], { type: "application/zip" }),
 				`${project.name.replace(/[^\w.-]+/g, "-") || "document"}.zip`
 			);
-			track("document_exported", { files: bucket(files.length) });
+			track("document_exported", { kind: "project_zip", files: bucket(files.length) });
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : "Could not export.");
 		}
@@ -353,6 +366,7 @@
 				const path = request.paths[0];
 				if (!path) return;
 				saveBlob(new Blob([bytesOf(path, files) as BlobPart]), request.name);
+				track("document_exported", { kind: "file" });
 				return;
 			}
 			const root = request.root ?? "";
@@ -364,6 +378,7 @@
 				new Blob([zip as BlobPart], { type: "application/zip" }),
 				`${request.name.replace(/[^\w.-]+/g, "-") || "folder"}.zip`
 			);
+			track("document_exported", { kind: "folder_zip", files: bucket(request.paths.length) });
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : "Could not download.");
 		}
@@ -410,7 +425,8 @@
 			duration_ms: Math.round(performance.now() - startedAt),
 			files: bucket(files.length),
 			missing_packs: missingPacks.length,
-			diagnostics: outcome.diagnostics?.length ?? 0
+			diagnostics: outcome.diagnostics?.length ?? 0,
+			biber: requiresBiber
 		});
 		return outcome;
 	}
@@ -418,12 +434,15 @@
 	async function addMissingPacks(): Promise<void> {
 		installingPacks = true;
 		packError = undefined;
+		const wanted = missingPacks.length;
 		try {
 			await installPacks(missingPacks.map((p) => p.id));
 			missingPacks = [];
+			track("engine_packs_installed", { packs: wanted, ok: true });
 			if (lastCompiled) await runCompile(lastCompiled.files, lastCompiled.entry);
 		} catch (error) {
 			packError = error instanceof Error ? error.message : String(error);
+			track("engine_packs_installed", { packs: wanted, ok: false });
 		} finally {
 			installingPacks = false;
 		}

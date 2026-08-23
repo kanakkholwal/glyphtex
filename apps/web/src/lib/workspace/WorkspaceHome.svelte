@@ -97,10 +97,11 @@
 						? "Everything in there was build output or ignored by .gitignore."
 						: "Nothing in there could be imported."
 				);
+				track("document_import_failed", { source, reason: ignored > 0 ? "all_ignored" : "empty" });
 				return;
 			}
 			const project = await createProject(name, files);
-			track("document_created", { source, files: bucket(files.length) });
+			track("document_created", { source, files: bucket(files.length), location: "workspace" });
 			await refresh();
 			void requestPersistence();
 			// Ignored files are expected (node_modules, build output), so they get a
@@ -116,6 +117,7 @@
 			open(project.id);
 		} catch (error) {
 			report(error, "Could not import that.");
+			track("document_import_failed", { source, reason: "error" });
 		} finally {
 			importing = false;
 		}
@@ -157,7 +159,7 @@
 	async function handleCreate(): Promise<string | void> {
 		try {
 			const project = await createProject("Untitled", starterFiles());
-			track("document_created", { source: "blank" });
+			track("document_created", { source: "blank", location: "workspace" });
 			await refresh();
 			void requestPersistence();
 			return project.id;
@@ -170,7 +172,7 @@
 	async function cloneRepo(url: string): Promise<void> {
 		try {
 			const project = await cloneToProject(url);
-			track("document_created", { source: "git_clone" });
+			track("document_created", { source: "git_clone", location: "workspace" });
 			track("git_action", { action: "clone" });
 			await requestPersistence();
 			open(project.id);

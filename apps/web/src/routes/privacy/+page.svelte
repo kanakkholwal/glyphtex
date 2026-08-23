@@ -16,19 +16,34 @@
 			data: "Path, page title, referrer."
 		},
 		{
-			name: "cta_* / download_click / engine_cta_*",
-			when: "You click a call-to-action or a download link.",
-			data: "Which button, and for downloads the platform and release version."
+			name: "section_viewed",
+			when: "A section of the home page scrolls into view.",
+			data: "Which section."
 		},
 		{
-			name: "document_created",
-			when: "You create, import, or clone a document.",
-			data: "Where it came from (blank, zip, folder, Git clone) and a file-count bucket."
+			name: "cta_clicked / outbound_clicked / download_clicked",
+			when: "You click a call-to-action, a link off the site, or a download link.",
+			data: "Which button and where it sits; for downloads, the platform and release version."
 		},
 		{
-			name: "document_opened / document_exported",
-			when: "You open a document, or export it as a zip.",
-			data: "A file-count bucket."
+			name: "faq_expanded",
+			when: "You open an FAQ answer.",
+			data: "The position of the question in the list."
+		},
+		{
+			name: "demo_file_opened / demo_edited",
+			when: "You switch files or type in the demo editor on the home page.",
+			data: "Which of the three sample file names. Never what you typed."
+		},
+		{
+			name: "document_created / document_import_failed",
+			when: "You create, import, or clone a document, or an import produces nothing.",
+			data: "Where it came from (blank, zip, folder, Git clone), a file-count bucket, and for a failure whether it was empty, all-ignored, or an error."
+		},
+		{
+			name: "document_opened / document_exported / files_added",
+			when: "You open a document, export it, or add files to an open one.",
+			data: "A file-count bucket, and what kind of export (project zip, single file, folder zip)."
 		},
 		{
 			name: "document_renamed / document_duplicated / document_deleted / document_starred",
@@ -36,13 +51,43 @@
 			data: "Nothing beyond the fact that it happened."
 		},
 		{
-			name: "compile_finished",
-			when: "A compile finishes.",
-			data: "Whether a PDF was produced, how long it took, a file-count bucket, and the number of diagnostics and missing package sets."
+			name: "file_created / file_renamed / file_moved / file_duplicated / file_deleted / main_file_set / main_file_chosen",
+			when: "You add, rename, move, duplicate, or delete a file or folder inside a document, or pick its main file.",
+			data: "Whether it was a file or a folder and its broad type (latex, image, pdf…). Never the name."
 		},
 		{
-			name: "engine_installed",
-			when: "The LaTeX engine finishes its one-time download.",
+			name: "editor_mode_changed / view_changed / panel_view_changed / panel_toggled / dock_tab_changed / split_direction_changed / command_palette_opened / diff_opened",
+			when: "You change the editor's layout: source vs visual, the preview split, a side or bottom panel, the command palette, a diff.",
+			data: "Which surface, and whether it opened or closed."
+		},
+		{
+			name: "format_applied / note_added",
+			when: "You apply bold or italic, or add a note to a document.",
+			data: "Which mark and which editing surface; for a note, how many tags it carries. Never the text."
+		},
+		{
+			name: "project_search_run / project_replace_all",
+			when: "A project-wide search settles, or you replace every match.",
+			data: "How many files were scanned, how many matches were found or replaced, and whether it was a regex. Never the query."
+		},
+		{
+			name: "compile_started / compile_finished",
+			when: "A compile starts and finishes.",
+			data: "Whether it was manual or automatic, whether a PDF was produced, how long it took, a file-count bucket, and the number of diagnostics and missing package sets."
+		},
+		{
+			name: "pdf_downloaded",
+			when: "You save the compiled PDF.",
+			data: "The page count."
+		},
+		{
+			name: "engine_install_prompted / engine_installed / engine_packs_installed",
+			when: "The one-time LaTeX engine download is offered or finishes, or missing packages are fetched.",
+			data: "How many package sets, and whether it succeeded."
+		},
+		{
+			name: "app_update_applied",
+			when: "You apply a pending update to the editor.",
 			data: "Nothing beyond the fact that it happened."
 		},
 		{
@@ -159,7 +204,10 @@
 					<p>
 						GlyphTeX is GPLv3 and the whole client is open source. Everything described here is in
 						<code>apps/web/src/lib/analytics/</code>, and the event list above mirrors the typed
-						union in <code>types.ts</code>. If this page and the code ever disagree,
+						union in <code>types.ts</code>. The editor reports its own events through
+						<code>packages/ui/src/lib/state/telemetry.ts</code>, which does nothing at all unless
+						this website installs a sink: that is why the desktop build sends none. If this page and
+						the code ever disagree,
 						<a href={`${REPO_URL}/issues`} rel="noreferrer noopener" target="_blank"
 							>open an issue</a
 						>: the code is the thing to trust.

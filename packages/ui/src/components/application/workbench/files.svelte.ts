@@ -15,6 +15,7 @@ import { treeState } from "../side-panel/tree-state.svelte";
 import type { Sel } from "../side-panel/types";
 import { safeStorage } from "@glyphtex/ui/persisted-state";
 import { settings } from "@glyphtex/ui/settings";
+import { emit } from "@glyphtex/ui/telemetry";
 import { toast } from "@glyphtex/ui/sonner";
 
 import { baseName, dirOf, joinPath, leafOf, parentDir, samePath, splitExt } from "./paths";
@@ -646,6 +647,7 @@ export class FileStore {
 				}
 			}
 			this.extraFolders = [...this.extraFolders, target];
+			emit("file_created", { kind: "folder" });
 			return;
 		}
 
@@ -664,6 +666,7 @@ export class FileStore {
 			];
 			this.activeId = abs;
 			this.source = "";
+			emit("file_created", { kind: "file", type: classifyFile(target) });
 			return;
 		}
 		this.untitledCount += 1;
@@ -671,6 +674,7 @@ export class FileStore {
 		this.files = [...this.files, { id, name: target, content: "", saved: "" }];
 		this.activeId = id;
 		this.source = "";
+		emit("file_created", { kind: "file", type: classifyFile(target) });
 	}
 
 	/** Copy a file beside itself, "name (2).tex" style. */
@@ -696,6 +700,7 @@ export class FileStore {
 				...this.files,
 				{ id: abs, name: rel, content, path: abs, loaded: true, saved: content }
 			];
+			emit("file_duplicated", { type: classifyFile(rel) });
 			return;
 		}
 		this.untitledCount += 1;
@@ -703,6 +708,7 @@ export class FileStore {
 			...this.files,
 			{ id: `file-${this.untitledCount}`, name: rel, content, saved: content }
 		];
+		emit("file_duplicated", { type: classifyFile(rel) });
 	}
 
 	/** Move a whole selection. Sequential on purpose: each item can raise its own
@@ -889,6 +895,7 @@ export class FileStore {
 			}
 		}
 		const finalId = await this.applyRename(f, newRel);
+		emit("file_moved", { kind: "file", type: classifyFile(newRel) });
 		if (finalId && this.activeId === "") await this.openFile(finalId, true);
 	}
 
@@ -973,6 +980,7 @@ export class FileStore {
 			}
 		}
 		await this.relocateFolder(srcPath, newPath);
+		emit("file_moved", { kind: "folder" });
 	}
 
 	/** Merge `srcPath` into an existing `dstPath`: move each file across, resolving
@@ -1049,6 +1057,7 @@ export class FileStore {
 			return;
 		}
 		await this.relocateFolder(srcPath, newPath);
+		emit("file_renamed", { kind: "folder" });
 	}
 
 	/** Remove a folder and everything under it (disk + state). */
@@ -1059,6 +1068,7 @@ export class FileStore {
 		treeState.drop(path);
 		const prefix = `${path}/`;
 		const removed = this.files.filter((f) => f.name === path || f.name.startsWith(prefix));
+		emit("file_deleted", { kind: "folder", files: removed.length });
 		const hadMain = removed.some((f) => f.id === this.mainId);
 		const hadActive = removed.some((f) => f.id === this.activeId);
 		for (const f of removed) this.#dropTab(f.id, false);
@@ -1122,9 +1132,11 @@ export class FileStore {
 				this.mainId = newAbs;
 				void this.writeManifest();
 			}
+			emit("file_renamed", { kind: "file", type: classifyFile(newRel) });
 			return;
 		}
 		this.files = this.files.map((f) => (f.id === id ? { ...f, name: newRel } : f));
+		emit("file_renamed", { kind: "file", type: classifyFile(newRel) });
 	}
 
 	/** Remove one file (disk + state), no prompt. Throws so a batch caller can
@@ -1133,6 +1145,7 @@ export class FileStore {
 		const target = this.files.find((f) => f.id === id);
 		if (!target) return;
 		if (this.project && target.path) await this.project.remove(target.path);
+		emit("file_deleted", { kind: "file", type: classifyFile(target.name) });
 		const wasActive = id === this.activeId;
 		const remaining = this.files.filter((f) => f.id !== id);
 		this.#dropTab(id, false);
@@ -1172,7 +1185,9 @@ export class FileStore {
 
 	/** Mark a file as the compile target and remember it in the `.glyx` manifest. */
 	async setMain(id: string): Promise<void> {
+		const changed = this.mainId !== id;
 		this.mainId = id;
+		if (changed) emit("main_file_set");
 		await this.writeManifest();
 		toast.success(
 			`${baseName(this.files.find((f) => f.id === id)?.name ?? "")} is now the main file`

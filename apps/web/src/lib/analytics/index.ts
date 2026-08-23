@@ -1,8 +1,18 @@
 import { browser } from "$app/environment";
+import { setTelemetry } from "@glyphtex/ui/telemetry";
 import { gaProvider } from "./ga";
 import type { AnalyticsEvent, AnalyticsProvider, EventParams } from "./types";
 
-export type { AnalyticsEvent, AnalyticsProvider, DocumentSource, EventParams } from "./types";
+export { viewSection } from "./section-view";
+export type {
+	AnalyticsEvent,
+	AnalyticsProvider,
+	CtaLocation,
+	DocumentSource,
+	EventParams,
+	SiteEvent,
+	WorkspaceEvent
+} from "./types";
 
 /** Registry. Add a backend here and the rest of the app needs no changes. */
 const providers: AnalyticsProvider[] = [gaProvider];
@@ -75,6 +85,22 @@ export function track(name: AnalyticsEvent, params: EventParams = {}): void {
 			/* ignore */
 		}
 	}
+}
+
+const sent = new Set<string>();
+
+/** Record an event at most once per page load. For "did they reach this at all"
+ *  signals (a section scrolled into view, the first edit in the demo). */
+export function trackOnce(key: string, name: AnalyticsEvent, params: EventParams = {}): void {
+	if (sent.has(key)) return;
+	sent.add(key);
+	track(name, params);
+}
+
+/** Point the editor's own telemetry at this registry. The desktop build never
+ *  calls this, which is what keeps it analytics-free. */
+export function connectWorkbench(): void {
+	setTelemetry((name, params) => track(name, params));
 }
 
 /** Coarse buckets, so a document's size can be reported without its contents. */

@@ -1,4 +1,5 @@
 import { safeStorage } from "@glyphtex/ui/persisted-state";
+import { emit } from "@glyphtex/ui/telemetry";
 
 /** A checklist item pinned to one document. */
 export type Note = {
@@ -93,6 +94,7 @@ export class NotesStore {
 		];
 		this.draft = "";
 		this.#persist();
+		emit("note_added", { tags: extractTags(text).length });
 	}
 
 	toggle(id: string): void {

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
-	import { track } from "$lib/analytics";
+	import { track, trackOnce, viewSection } from "$lib/analytics";
 	import { Container, ContainerTextFlip, Section, ShowcasePanel } from "$lib/landing";
 	import EditorMock from "$lib/landing/EditorMock.svelte";
 	import ImportDropzone from "$lib/landing/ImportDropzone.svelte";
@@ -269,13 +269,14 @@
 
 	<main id="main">
 		<!-- Hero. White, one primary action, and the product immediately underneath. -->
-		<section class="relative w-full overflow-hidden">
+		<section class="relative w-full overflow-hidden" {@attach viewSection('hero')}>
 			<Container size="wide">
 				<div class="flex flex-col items-center pt-36 pb-16 text-center md:pt-44">
 					<a
 						href={repo}
 						target="_blank"
 						rel="noopener noreferrer"
+						onclick={() => track('outbound_clicked', { destination: 'github', location: 'hero' })}
 						class="mb-8 inline-flex items-center gap-1.5 rounded-full bg-surface-soft px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
 						in:fly={{ y: 8, duration: 400, easing: cubicOut }}
 					>
@@ -319,7 +320,7 @@
 							href={workspace}
 							variant="default"
 							size="lg"
-							onclick={() => track('cta_workspace_click', { location: 'hero' })}
+							onclick={() => track('cta_clicked', { target: 'workspace', location: 'hero' })}
 						>
 							{CTA_LABEL}
 						</Button>
@@ -327,7 +328,7 @@
 							href={resolve('/engine')}
 							variant="outline"
 							size="lg"
-							onclick={() => track('cta_engine_click', { location: 'hero' })}
+							onclick={() => track('cta_clicked', { target: 'engine', location: 'hero' })}
 						>
 							How the engine works
 						</Button>
@@ -404,7 +405,7 @@
 		</Section>
 
 		<!-- Why not cloud LaTeX. -->
-		<Section id="why">
+		<Section id="why" {@attach viewSection('why')}>
 			<Container size="wide">
 				<Reveal variant="up">
 					<SectionHeader
@@ -459,7 +460,7 @@
 		</Section>
 
 		<!-- The workflow, in three beats: open, compile, track. -->
-		<Section id="open" spacing="tight">
+		<Section id="open" spacing="tight" {@attach viewSection('open')}>
 			<Container size="wide">
 				<ShowcasePanel padding="none" class="p-6 sm:p-10 md:p-14">
 					<div class="grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
@@ -476,7 +477,13 @@
 							{@render featureList(openSources)}
 
 							<div class="mt-10">
-								<Button href={workspace} variant="default">{CTA_LABEL}</Button>
+								<Button
+									href={workspace}
+									variant="default"
+									onclick={() => track('cta_clicked', { target: 'workspace', location: 'workflow' })}
+								>
+									{CTA_LABEL}
+								</Button>
 							</div>
 						</div>
 
@@ -492,7 +499,7 @@
 			</Container>
 		</Section>
 
-		<Section id="compile" spacing="tight">
+		<Section id="compile" spacing="tight" {@attach viewSection('compile')}>
 			<Container size="wide">
 				<ShowcasePanel padding="none" class="p-6 sm:p-10 md:p-14">
 					<Reveal variant="up">
@@ -510,7 +517,7 @@
 			</Container>
 		</Section>
 
-		<Section id="track" spacing="tight">
+		<Section id="track" spacing="tight" {@attach viewSection('track')}>
 			<Container size="wide">
 				<ShowcasePanel padding="none" class="p-6 sm:p-10 md:p-14">
 					<div class="grid items-start gap-14 lg:grid-cols-2 lg:gap-20">
@@ -572,7 +579,7 @@
 		</Section>
 
 		<!-- Built for academics. -->
-		<Section id="audience">
+		<Section id="audience" {@attach viewSection('audience')}>
 			<Container size="wide">
 				<Reveal variant="up">
 					<SectionHeader
@@ -602,7 +609,7 @@
 		</Section>
 
 		<!-- Institutions. Absorbs what used to be a separate pricing band. -->
-		<Section id="institutions" spacing="tight">
+		<Section id="institutions" spacing="tight" {@attach viewSection('institutions')}>
 			<Container size="wide">
 				<ShowcasePanel padding="none" class="p-6 sm:p-10 md:p-14">
 					<div class="grid gap-14 lg:grid-cols-[5fr_7fr] lg:gap-16">
@@ -634,7 +641,7 @@
 								<Button
 									href={institutionMailto}
 									variant="default"
-									onclick={() => track('cta_institution_click', { location: 'institutions' })}
+									onclick={() => track('cta_clicked', { target: 'institution', location: 'institutions' })}
 								>
 									<IconMail class="size-4" />
 									Talk to us about your campus
@@ -644,6 +651,8 @@
 									target="_blank"
 									rel="noopener noreferrer"
 									variant="outline"
+									onclick={() =>
+										track('outbound_clicked', { destination: 'licence', location: 'institutions' })}
 								>
 									Read the licence
 								</Button>
@@ -675,7 +684,7 @@
 			</Container>
 		</Section>
 
-		<Section id="faq">
+		<Section id="faq" {@attach viewSection('faq')}>
 			<Container>
 				<div class="grid gap-12 lg:grid-cols-12 lg:gap-14">
 					<div class="lg:col-span-5">
@@ -714,7 +723,10 @@
 										<button
 											type="button"
 											id={`faq-trigger-${i}`}
-											onclick={() => (openFaq = open ? null : i)}
+											onclick={() => {
+												openFaq = open ? null : i;
+												if (!open) trackOnce(`faq:${i}`, 'faq_expanded', { question: i + 1 });
+											}}
 											aria-expanded={open}
 											aria-controls={`faq-panel-${i}`}
 											class="flex w-full items-start gap-3.5 px-5 py-4 text-left"
@@ -757,7 +769,7 @@
 		</Section>
 
 		<!-- Closing CTA: a full-bleed tinted band, matching the section rhythm. -->
-		<section id="cta" class="bg-surface-soft">
+		<section id="cta" class="bg-surface-soft" {@attach viewSection('final_cta')}>
 			<Container size="wide">
 				<div class="flex flex-col items-center py-28 text-center md:py-36">
 					<Reveal variant="up">
@@ -775,7 +787,7 @@
 							href={workspace}
 							variant="default"
 							size="lg"
-							onclick={() => track('cta_workspace_click', { location: 'final_cta' })}
+							onclick={() => track('cta_clicked', { target: 'workspace', location: 'final_cta' })}
 						>
 							{CTA_LABEL}
 						</Button>
@@ -785,6 +797,8 @@
 							rel="noopener noreferrer"
 							variant="outline"
 							size="lg"
+							onclick={() =>
+								track('outbound_clicked', { destination: 'github', location: 'final_cta' })}
 						>
 							Read the source
 						</Button>

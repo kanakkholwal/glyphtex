@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from "$app/navigation";
-	import { initAnalytics, trackPageview } from "$lib/analytics";
+	import { connectWorkbench, initAnalytics, trackPageview } from "$lib/analytics";
 	import { SITE_NAME } from "$lib/seo/site";
 	import { settings } from "@glyphtex/ui/settings";
 	import { onMount } from "svelte";
@@ -14,7 +14,10 @@
 	});
 
 	// No-op unless a backend is configured and the visitor hasn't opted out.
-	onMount(() => initAnalytics());
+	onMount(() => {
+		connectWorkbench();
+		initAnalytics();
+	});
 
 	// Every view is reported here, including the first: backends are configured
 	// not to send their own, so this is the single source of page counts.

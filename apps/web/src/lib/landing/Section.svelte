@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { cn } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 
-	type Props = {
+	type Props = HTMLAttributes<HTMLElement> & {
 		children: Snippet;
 		class?: string;
 		id?: string;
@@ -10,12 +11,15 @@
 		bordered?: boolean;
 	};
 
+	// `...rest` carries `{@attach}` through to the element, which is how the
+	// section-view tracker is applied from the page.
 	let {
 		children,
 		class: className = "",
 		id,
 		spacing = "default",
-		bordered = false
+		bordered = false,
+		...rest
 	}: Props = $props();
 
 	const spacings = {
@@ -27,6 +31,7 @@
 </script>
 
 <section
+	{...rest}
 	{id}
 	class={cn(
 		'relative w-full',
