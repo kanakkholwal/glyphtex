@@ -1,0 +1,93 @@
+\documentclass[preprint,12pt]{elsarticle}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+
+% Change this to the journal you are submitting to.
+\journal{Journal of Example Materials}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Thermal Stability of Recycled Polymer Composites Under Cyclic Loading}
+
+% Link authors to affiliations with the labels in square brackets.
+\author[a]{Maria Lindqvist\corref{cor1}}
+\author[a,b]{Tomas Herrera}
+\author[b]{Priya Nair}
+
+\affiliation[a]{Department of Materials Engineering, Example University, Street 1, City, Country}
+\affiliation[b]{Centre for Circular Manufacturing, Sample Institute, City, Country}
+
+\cortext[cor1]{Corresponding author. Email: maria.lindqvist@example.edu}
+
+\begin{abstract}
+Write a single paragraph of up to 250 words covering purpose, methods, key results and conclusions.
+\end{abstract}
+
+% Optional visual summary. Delete this block if the journal does not ask for one.
+\begin{highlights}
+\item Highlight one: the main finding in under 85 characters.
+\item Highlight two: the method or dataset that makes it possible.
+\item Highlight three: the practical implication.
+\end{highlights}
+
+\begin{keyword}
+recycled polymers \sep composites \sep thermal analysis \sep fatigue
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}
+\label{sec:intro}
+Explain why the topic matters and what is still unknown \cite{ref1}.
+
+\section{Experimental}
+\label{sec:exp}
+\subsection{Materials}
+List suppliers, grades and sample preparation steps.
+
+\subsection{Characterisation}
+Describe instruments and settings. For example, the degradation rate was fitted to
+\begin{equation}
+  k(T) = A \exp\!\left(-\frac{E_a}{RT}\right).
+\end{equation}
+
+\section{Results and discussion}
+\label{sec:results}
+Present the data and interpret it. Table~\ref{tab:props} is an example.
+
+\begin{table}[htbp]
+\centering
+\caption{Mechanical properties after 1000 cycles (example data).}
+\label{tab:props}
+\begin{tabular}{lccc}
+\toprule
+Sample & Recycled content (\%) & Modulus (GPa) & Onset $T_d$ (\textdegree C) \\
+\midrule
+C0 & 0 & 3.10 & 412 \\
+C25 & 25 & 2.95 & 405 \\
+C50 & 50 & 2.71 & 396 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusions}
+\label{sec:conc}
+State what the reader should take away.
+
+\section*{CRediT authorship contribution statement}
+\textbf{Maria Lindqvist:} Conceptualisation, Writing. \textbf{Tomas Herrera:} Investigation. \textbf{Priya Nair:} Formal analysis.
+
+\section*{Declaration of competing interest}
+The authors declare no known competing financial interests.
+
+\section*{Data availability}
+Say where the data can be found or why it cannot be shared.
+
+\begin{thebibliography}{9}
+\bibitem{ref1} A.~Author, B.~Author, Title of the cited article, J. Example Sci. 10 (2020) 100--115.
+\bibitem{ref2} C.~Writer, Book Title, Publisher, City, 2018.
+\end{thebibliography}
+
+\end{document}

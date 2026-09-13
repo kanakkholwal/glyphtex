@@ -1,0 +1,65 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{RGB}{110,70,30}
+\setlength{\parindent}{0pt}
+
+% After each \bibitem citation, add \annotation{...} with your evaluation.
+\newcommand{\annotation}[1]{\par\smallskip{\small\color{black!80}#1}\par\medskip}
+% A labelled part of an annotation, such as \aspect{Summary}.
+\newcommand{\aspect}[1]{\textsc{\color{accent}#1:}\ }
+% \theme{Name} starts a group of sources inside the bibliography.
+\newcommand{\theme}[1]{\item[]\hspace*{-\leftmargin}\textbf{\large\color{accent}#1}\par\smallskip}
+
+\renewcommand{\refname}{Sources}
+
+\begin{document}
+
+{\LARGE\bfseries Annotated Bibliography\par}
+\smallskip
+{\large Urban Heat Islands and Green Infrastructure\par}
+\medskip
+Your Name \quad\textbullet\quad Course or project name \quad\textbullet\quad 13 September 2026
+
+{\color{accent}\rule{\linewidth}{0.8pt}}
+
+\textbf{Purpose and scope.} In a short paragraph, say what question these sources help answer, how you searched for them and what you left out. You can cite entries in this text, for example \cite{remote2021} and \cite{trees2023}.
+
+\textbf{Structure of each annotation.} A summary, the evidence behind it, your assessment and how you will use the source.
+
+\begin{thebibliography}{9}
+
+\theme{Measuring urban heat}
+
+\bibitem{remote2021} Author, A. B., and Author, C. D. (2021). \emph{Satellite Surface Temperatures in Growing Cities}. Example University Press.
+\annotation{\aspect{Summary} Compares land surface temperature across 40 cities over two decades.
+\aspect{Evidence} Remote sensing data validated against ground stations.
+\aspect{Assessment} Wide coverage, but too coarse for street-level questions.
+\aspect{Use} Baseline figures for my introduction.}
+
+\bibitem{night2019} Researcher, E. (2019). Night-time heat retention in dense neighbourhoods. \emph{Journal of Example Climatology}, 31(4), 412--430.
+\annotation{\aspect{Summary} Building density predicts night-time warming more strongly than daytime warming.
+\aspect{Evidence} Mobile sensor transects in three cities.
+\aspect{Assessment} Careful design with a small number of routes.
+\aspect{Use} Supports my focus on overnight temperatures.}
+
+\theme{Interventions}
+
+\bibitem{trees2023} Planner, F., Ecologist, G., and Engineer, H. (2023). Street trees versus cool roofs: a cost comparison. \emph{Example Review of Urban Policy}, 12(2), 88--107.
+\annotation{\aspect{Summary} Estimates cooling per unit cost for two common interventions.
+\aspect{Evidence} Modelled scenarios calibrated with municipal budget data.
+\aspect{Assessment} Transparent assumptions; results depend heavily on maintenance costs.
+\aspect{Use} Central to my comparison section.}
+
+\bibitem{council2024} City Example Council. (2024). \emph{Heat Resilience Strategy 2024 to 2030}. Council policy document.
+\annotation{\aspect{Summary} Sets municipal targets for canopy cover and reflective surfaces.
+\aspect{Evidence} Policy document, not peer reviewed.
+\aspect{Assessment} Gives real targets, though promotional in tone.
+\aspect{Use} Case study context in the final chapter.}
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,83 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage{xcolor}
+\usepackage[skins]{tcolorbox}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{deepteal}{RGB}{0,110,110}
+\definecolor{soft}{RGB}{230,243,243}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% Heading text followed by a rule that fills the rest of the line.
+\titleformat{\section}[block]{\large\scshape\color{deepteal}}{}{0pt}{\sectionwithrule}
+\newcommand{\sectionwithrule}[1]{#1\ \leaders\hrule height 0.8ex depth -0.6ex\hfill\mbox{}}
+\titlespacing*{\section}{0pt}{2.2ex}{1ex}
+
+\setlist[itemize]{leftmargin=1.2em,itemsep=1pt,topsep=2pt}
+
+% \experience{title}{organisation, place}{dates}
+\newcommand{\experience}[3]{\textbf{#1}, #2 \hfill \textit{#3}\par}
+
+\begin{document}
+
+% Name, contact details and the role you are moving into.
+\begin{center}
+  {\fontsize{26}{30}\selectfont Daniel Okafor}\par\vspace{0.6ex}
+  daniel.okafor@example.net \quad \textbar \quad +1 555 0177 \quad \textbar \quad Riverside, CA
+\end{center}
+
+\begin{tcolorbox}[enhanced,colback=soft,colframe=deepteal,boxrule=0pt,leftrule=4pt,arc=0pt,left=10pt]
+  \textbf{\color{deepteal}Target role: Data Analyst}\par\smallskip
+  Former secondary school mathematics teacher moving into data analysis. Ten years of explaining numbers to non-specialists, now backed by formal training in SQL, Python and dashboard design.
+\end{tcolorbox}
+
+\section{Transferable Skills}
+% Link what you did before to what the new role needs.
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\raggedright}p{4.2cm} X@{}}
+  Data-driven decisions & Tracked results for 600 students a year and used them to redesign lessons. \\
+  Communication & Presented progress reports to parents, colleagues and school leaders. \\
+  Project management & Coordinated a district maths competition with 14 schools. \\
+  Mentoring & Trained five new teachers in assessment design. \\
+\end{tabularx}
+
+\section{New Technical Skills}
+\begin{itemize}
+  \item \textbf{Analysis:} SQL (joins, window functions), Python (pandas, matplotlib), spreadsheets.
+  \item \textbf{Reporting:} dashboard design, data storytelling, basic statistics and A/B testing.
+\end{itemize}
+
+\section{Data Projects}
+\experience{School Attendance Explorer}{personal project}{2025}
+\begin{itemize}
+  \item Cleaned five years of public attendance data and built an interactive dashboard.
+  \item Found that attendance dips were linked to bus route changes; shared findings with a local council.
+\end{itemize}
+\experience{Retail Sales Case Study}{bootcamp capstone}{2025}
+\begin{itemize}
+  \item Wrote SQL queries to segment 50,000 customers and recommend three promotions.
+\end{itemize}
+
+\section{Professional Experience}
+\experience{Mathematics Teacher}{Example High School, Riverside}{2015 to 2025}
+\begin{itemize}
+  \item Raised pass rates in final exams from 71 to 88 percent over four years.
+  \item Built a spreadsheet grade tracker adopted by the whole department.
+\end{itemize}
+\experience{Tutor}{Sample Learning Centre}{2013 to 2015}
+
+\section{Training and Certificates}
+\experience{Data Analytics Certificate}{Example Online Academy}{2025}
+\experience{Introduction to Statistics}{Sample Community College}{2024}
+
+\section{Education}
+\experience{BSc Mathematics and Teaching Credential}{Example State University}{2009 to 2013}
+
+\end{document}

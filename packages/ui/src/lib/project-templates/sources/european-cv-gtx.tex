@@ -1,0 +1,105 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,left=1.6cm,right=1.6cm,top=1.8cm,bottom=1.8cm]{geometry}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[hidelinks]{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+\definecolor{eublue}{RGB}{0,51,153}
+\definecolor{rowgrey}{RGB}{242,244,248}
+\setlength{\parindent}{0pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[R]{\footnotesize\color{gray} Curriculum vitae of Elena Novak, page \thepage\ of \pageref{LastPage}}
+
+% Left label column width; the rest is the content column.
+\newlength{\labelw}
+\setlength{\labelw}{4.6cm}
+
+% Row with a right-aligned label: \cvrow{label}{content}
+\newcommand{\cvrow}[2]{%
+  \begin{tabularx}{\textwidth}{@{}>{\raggedleft\arraybackslash\small\leavevmode\color{eublue}}p{\dimexpr\labelw-2\tabcolsep}|X@{}}
+    #1 & #2
+  \end{tabularx}\par\vspace{2pt}}
+
+% Blue heading that sits in the label column with a line across.
+\newcommand{\cvsection}[1]{%
+  \par\vspace{10pt}%
+  \begin{tabularx}{\textwidth}{@{}>{\raggedleft\arraybackslash}p{\dimexpr\labelw-2\tabcolsep}X@{}}
+    \leavevmode{\color{eublue}\small\bfseries\MakeUppercase{#1}} & \leavevmode{\color{eublue}\leaders\hrule height 3.2pt depth -2.4pt\hfill\mbox{}}
+  \end{tabularx}\par\vspace{4pt}}
+
+\begin{document}
+
+% Header: name on the left, photo placeholder on the right.
+\begin{minipage}[c]{0.72\textwidth}
+  {\color{eublue}\fontsize{26}{30}\selectfont\bfseries Elena Novak}\par\vspace{4pt}
+  {\large Civil Engineer, water infrastructure}
+\end{minipage}\hfill
+\fbox{\begin{minipage}[c][3.6cm][c]{2.8cm}\centering\color{gray}Photo\end{minipage}}
+
+\cvsection{Personal details}
+% Include only details that are normal and lawful to share where you apply.
+{\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{@{}>{\raggedleft\arraybackslash\small\leavevmode\color{eublue}}p{\dimexpr\labelw-2\tabcolsep}X@{}}
+  Address & Examplestraat 21, 1000 Sampleton, Netherlands (fictional) \\
+  \rowcolor{rowgrey}Telephone & +31 20 000 0000 \\
+  Email & elena.novak@example.eu \\
+  \rowcolor{rowgrey}Date of birth & 14 March 1992 \\
+  Nationality & Examplish \\
+  \rowcolor{rowgrey}Driving licence & Category B \\
+\end{tabularx}}
+
+\cvsection{Work experience}
+\cvrow{2022 to present}{\textbf{Project Engineer}, Example Water Board, Sampleton\par
+  Design and supervision of stormwater drainage upgrades for districts of up to 40,000 residents. Budget responsibility for 2.5 million EUR per year.}
+\cvrow{2017 to 2022}{\textbf{Junior Engineer}, Placeholder Consulting Engineers, Exampleburg\par
+  Hydraulic modelling of sewer networks; preparation of tender documents and site reports.}
+
+\cvsection{Education}
+\cvrow{2015 to 2017}{\textbf{MSc Civil Engineering}, Example University of Technology\par
+  Specialisation: urban water management. Thesis on green roof retention.}
+\cvrow{2011 to 2015}{\textbf{BSc Civil Engineering}, Example University of Technology}
+\cvrow{2023}{\textbf{Certificate in Project Management}, Sample Professional Institute}
+
+\cvsection{Language skills}
+\cvrow{Mother tongue}{Examplish}
+% Levels follow the six-level European scale: A1, A2, B1, B2, C1, C2.
+\cvrow{Other languages}{%
+  {\small
+  \begin{tabular}[t]{@{}l c c c c c@{}}
+    \toprule
+     & \multicolumn{2}{c}{Understanding} & \multicolumn{2}{c}{Speaking} & Writing \\
+     & Listening & Reading & Interaction & Production & \\
+    \midrule
+    English & C1 & C1 & C1 & B2 & C1 \\
+    German & B2 & B2 & B1 & B1 & B1 \\
+    French & A2 & B1 & A2 & A2 & A2 \\
+    \bottomrule
+  \end{tabular}}}
+
+\cvsection{Digital skills}
+\cvrow{Software}{AutoCAD, QGIS, EPANET, MS Project, spreadsheets}
+\cvrow{Programming}{Python for data processing (basic)}
+
+\cvsection{Other information}
+\cvrow{Memberships}{Member of the Sample Society of Civil Engineers}
+\cvrow{Volunteering}{Maintenance volunteer, Example Canal Heritage Group}
+
+\vspace{1.5cm}
+% Signature placeholder, place and date.
+\hspace*{\labelw}\begin{minipage}{6cm}
+  \fbox{\begin{minipage}[c][1.4cm][c]{5.6cm}\centering\color{gray}Signature\end{minipage}}\par\vspace{4pt}
+  Sampleton, \today
+\end{minipage}
+
+\end{document}

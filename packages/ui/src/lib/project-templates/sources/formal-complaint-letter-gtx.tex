@@ -1,0 +1,70 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,left=2.5cm,right=2.5cm,top=2cm,bottom=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage[skins]{tcolorbox}
+\usepackage{enumitem}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8em}
+\definecolor{alert}{RGB}{160,40,40}
+
+\begin{document}
+
+% Sender address and date on the right, recipient on the left.
+\begin{minipage}[t]{0.48\textwidth}
+  Customer Relations Department\\
+  Example Home Appliances Ltd\\
+  PO Box 1234\\
+  Sampleton SM1 1AA
+\end{minipage}\hfill
+\begin{minipage}[t]{0.42\textwidth}
+  \raggedleft
+  Alex Rivera\\
+  27 Chestnut Close\\
+  Exampleton EX2 6JH\\
+  alex.rivera@example.net\\[1em]
+  \today
+\end{minipage}
+
+\vspace{1.5em}
+% Key facts in one box so the reader can find them quickly.
+\begin{tcolorbox}[enhanced,colback=white,colframe=alert,boxrule=0.8pt,arc=2pt,
+  title={\bfseries Formal complaint: faulty washing machine},coltitle=white,colbacktitle=alert]
+  \begin{tabular}{@{}ll@{}}
+    Order number: & EHA-558201 \\
+    Product: & Model WX-900 washing machine \\
+    Date of purchase: & 3 August 2026 \\
+    Previous contact: & Case 77410, phone call on 28 August 2026 \\
+  \end{tabular}
+\end{tcolorbox}
+
+Dear Sir or Madam,
+
+I am writing to make a formal complaint about the washing machine listed above, which has failed three times in its first month of use.
+
+% Describe what happened, in date order.
+On 20 August the drum stopped mid-cycle and the door would not open. An engineer visited on 25 August and replaced the control board, but the same fault returned on 1 September and again on 8 September. I reported the problem by phone on 28 August and was promised a call back within 48 hours, which I did not receive.
+
+As the product is clearly not of satisfactory quality, I request that you:
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=2em]
+  \item Replace the machine with a new unit of the same model or better, or refund the full price of 649 GBP.
+  \item Collect the faulty machine at no cost to me.
+  \item Reimburse 38 GBP for laundrette costs (receipts enclosed).
+\end{enumerate}
+
+Please respond in writing within \textbf{14 days} of the date of this letter. If I do not receive a satisfactory reply, I intend to refer the matter to the relevant consumer protection service.
+
+Yours faithfully,
+
+\vspace{0.5em}
+\fbox{\begin{minipage}[c][1.2cm][c]{4.5cm}\centering\color{gray}Signature\end{minipage}}
+
+Alex Rivera
+
+\vfill
+{\small \textbf{Enclosures:} copy of receipt, engineer visit report, laundrette receipts}
+
+\end{document}

@@ -45,7 +45,7 @@
 
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { Spring } from 'svelte/motion';
+	import { Spring, prefersReducedMotion } from 'svelte/motion';
 	import { cn } from '@glyphtex/ui/utils';
 
 	let {
@@ -66,11 +66,8 @@
 		formatValue
 	}: SliderControlProps = $props();
 
-	// `Row control` design: one card, label left, value right, animated fill
-	// behind both. Click-anywhere snaps with a spring; drag scrubs in real
-	// time; cursor past the track edges rubber-bands the row to telegraph the
-	// clamp. Mirrors the geometry of <ColorField> so a stacked panel reads as
-	// one form.
+	// Row control: label left, value right, fill behind. Click snaps, drag scrubs, and
+	// dragging past an edge rubber-bands the track to telegraph the clamp.
 
 	const CLICK_THRESHOLD = 3;
 	const DEAD_ZONE = 24;
@@ -99,10 +96,7 @@
 	// svelte-ignore state_referenced_locally
 	const initialPercent = ((value - min) / Math.max(max - min, 1e-9)) * 100;
 
-	// Spring-driven motion. Drag scrubs commit instant (no animation), and
-	// click-snap / release commits animate. Rubber-band stretches the track
-	// outward when the cursor pulls past either edge. Handle scale/opacity
-	// dodge when the thumb position would collide with label/value text.
+	// Springs bypass the CSS motion guard, so every `set` passes `instant` under reduced motion.
 	const fillPercent = new Spring(initialPercent, {
 		stiffness: 0.25,
 		damping: 0.7
@@ -194,14 +188,15 @@
 		// re-animating during drag).
 		const p = percentFromValue(value);
 		if (!isInteracting) {
-			fillPercent.set(p, { instant: false });
+			fillPercent.set(p, { instant: prefersReducedMotion.current });
 		}
 	});
 
 	$effect(() => {
-		handleOpacityMv.set(handleOpacity);
-		handleScaleXMv.set(isActive ? 1 : 0.25);
-		handleScaleYMv.set(isActive && valueDodge ? 0.7 : 1);
+		const instant = prefersReducedMotion.current;
+		handleOpacityMv.set(handleOpacity, { instant });
+		handleScaleXMv.set(isActive ? 1 : 0.25, { instant });
+		handleScaleYMv.set(isActive && valueDodge ? 0.7 : 1, { instant });
 	});
 
 	$effect(() => {
@@ -325,14 +320,14 @@
 			const raw = positionToValue(e.clientX);
 			const snapped =
 				discreteSteps <= 10 ? normalizeValue(raw) : roundValue(snapToDecile(raw, min, max), step);
-			fillPercent.set(percentFromValue(snapped));
+			fillPercent.set(percentFromValue(snapped), { instant: prefersReducedMotion.current });
 			commitValue(snapped, true);
 		} else {
 			oncommit?.(normalizeValue(value));
 		}
 
 		if (rubberStretchPx.current !== 0) {
-			rubberStretchPx.set(0);
+			rubberStretchPx.set(0, { instant: prefersReducedMotion.current });
 		}
 
 		isInteracting = false;
@@ -418,9 +413,7 @@
 		}
 	}
 
-	// Inline transform/width strings: bound to spring `.current` for
-	// reactivity. The rubber-band shifts the *track* (not the wrapper) so the
-	// row's outline doesn't visibly move; only the fillable region stretches.
+	// The rubber-band moves the track, not the wrapper, so the row outline stays put.
 	const trackStyle = $derived(
 		`width: calc(100% + ${Math.abs(rubberStretchPx.current)}px); transform: translateX(${rubberStretchPx.current < 0 ? rubberStretchPx.current : 0}px);`
 	);
@@ -431,9 +424,9 @@
 	role="group"
 	aria-label={label}
 	class={cn(
-		'relative h-10 w-full select-none overflow-hidden rounded-md border border-border/40 bg-card/60 outline-none transition-colors duration-150',
-		'focus-within:ring-2 focus-within:ring-primary/30 focus-within:ring-offset-1 focus-within:ring-offset-background',
-		disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-border/60 hover:bg-card/80',
+		'relative h-10 w-full select-none overflow-hidden rounded-md border border-border bg-card outline-none transition-colors duration-150',
+		'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background',
+		disabled ? 'cursor-not-allowed opacity-50' : 'hover:border-border-strong',
 		className
 	)}
 	onmouseenter={() => (isHovered = true)}
@@ -482,9 +475,7 @@
 				: '0px'}
 		></div>
 
-		<!-- Pill thumb. Vertically positioned with symmetric inset so the
-		     transform stack only carries scale (origin: center) and stays
-		     glued to the row's midline regardless of scaleY. -->
+		<!-- Symmetric inset keeps the thumb on the midline, so its transform only scales. -->
 		<div
 			class={cn(
 				'pointer-events-none absolute inset-y-[21%] z-10 w-[3px] rounded-full bg-primary shadow-[0_0_0_1px_color-mix(in_srgb,_var(--color-background)_50%,_transparent)]'
@@ -502,7 +493,7 @@
 					{@render icon()}
 				</span>
 			{/if}
-			<span bind:this={labelEl} class="truncate text-[12px] font-medium text-muted-foreground">
+			<span bind:this={labelEl} class="truncate text-xs font-medium text-muted-foreground">
 				{label}
 			</span>
 		</div>
@@ -513,7 +504,7 @@
 				bind:this={inputEl}
 				type="text"
 				inputmode="decimal"
-				class="relative z-20 ml-3 h-6 w-16 shrink-0 rounded-sm border border-primary/40 bg-background px-1.5 text-right font-mono text-[12px] font-medium tabular-nums text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+				class="relative z-20 ml-3 h-6 w-16 shrink-0 rounded-sm border border-ring bg-background px-1.5 text-right font-mono text-xs font-medium tabular-nums text-foreground outline-none"
 				value={inputValue}
 				oninput={(e) => (inputValue = (e.currentTarget as HTMLInputElement).value)}
 				onkeydown={handleInputKeydown}
@@ -529,8 +520,8 @@
 				tabindex={isValueEditable ? 0 : -1}
 				aria-label={isValueEditable ? `${label}: click to edit value` : undefined}
 				class={cn(
-					'relative z-20 shrink-0 pl-3 font-mono text-[12px] font-medium tabular-nums text-foreground/85 transition-colors',
-					isValueEditable && 'rounded-sm bg-foreground/[0.06] px-1 text-foreground'
+					'relative z-20 shrink-0 pl-3 font-mono text-xs font-medium tabular-nums text-foreground transition-colors',
+					isValueEditable && 'rounded-sm bg-muted px-1'
 				)}
 				onmouseenter={() => (isValueHovered = true)}
 				onmouseleave={() => (isValueHovered = false)}

@@ -31,7 +31,7 @@
 						<button
 							{...props}
 							class="grid size-6.5 cursor-pointer place-items-center rounded-[6px] transition-colors {active
-								? 'bg-card text-foreground shadow-craft-sm'
+								? 'bg-card text-foreground shadow-xs'
 								: 'text-muted-foreground hover:text-foreground'}"
 							aria-pressed={active}
 							aria-label={mode.label}

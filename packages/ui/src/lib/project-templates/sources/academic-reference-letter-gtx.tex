@@ -1,0 +1,71 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,left=2.8cm,right=2.8cm,top=4.4cm,bottom=3cm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{crest}{RGB}{20,60,100}
+\definecolor{gold}{RGB}{190,150,60}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8em}
+
+% Letterhead on page one: a simple shield drawn with TikZ and the department name.
+\fancypagestyle{letterhead}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \fancyhead[L]{%
+    \begin{tikzpicture}[baseline=(current bounding box.center)]
+      \fill[crest] (0,0.9) -- (1.4,0.9) -- (1.4,0.2) .. controls (1.4,-0.4) and (0.9,-0.6) .. (0.7,-0.8) .. controls (0.5,-0.6) and (0,-0.4) .. (0,0.2) -- cycle;
+      \draw[gold,line width=1.2pt] (0.2,0.35) -- (1.2,0.35);
+      \fill[gold] (0.7,0.1) circle (0.12);
+    \end{tikzpicture}\hspace{0.8em}%
+    \begin{minipage}[c]{9cm}
+      {\Large\scshape\color{crest} Example University}\\[2pt]
+      {\small Department of Physics and Astronomy}
+    \end{minipage}}
+  \fancyhead[R]{\footnotesize\color{crest}\begin{tabular}[c]{@{}r@{}}1 Observatory Road\\Sampleton ST2 9XY\\physics.example.edu\end{tabular}}
+  \fancyfoot[C]{\footnotesize\color{gray}Example University is a fictional institution used for this template.}
+  \setlength{\headheight}{2.4cm}
+}
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\fancyfoot[C]{\small\thepage}}
+\setlength{\headheight}{2.4cm}
+
+\begin{document}
+\thispagestyle{letterhead}
+\pagestyle{plain}
+
+\hfill\today
+
+% Who the letter is addressed to.
+Graduate Admissions Committee\\
+Sample Institute of Science\\
+400 University Avenue\\
+Northfield NF3 1AA
+
+\textbf{Re: Letter of recommendation for Ms Casey Lin}
+
+Dear Members of the Committee,
+
+It is a pleasure to recommend Casey Lin for admission to your doctoral programme in Astrophysics. I have known Casey for three years, first as a student in my second-year course on Electromagnetism and then as a research student in my group, where she completed her final-year project under my supervision.
+
+% Paragraph 2: evidence of academic ability, with a comparison group.
+Casey is among the strongest undergraduates I have taught in fifteen years. She finished my course in the top two percent of a class of 180 and asked questions that showed she was thinking well beyond the syllabus. Her project on variable star light curves required her to learn a new analysis method independently; she did so in a few weeks and produced results that we are now preparing for publication.
+
+% Paragraph 3: personal qualities and research potential.
+Beyond her ability, Casey is a generous colleague. She wrote clear documentation for the group's data pipeline, helped two younger students get started, and presented her work confidently at our departmental seminar. She responds to criticism with curiosity rather than defensiveness, which I consider an essential quality in a researcher.
+
+I recommend Casey without reservation and am confident she will thrive in a demanding research environment. Please do not hesitate to contact me if you need further information.
+
+Yours faithfully,
+
+\vspace{0.6em}
+\fbox{\begin{minipage}[c][1.3cm][c]{5cm}\centering\color{gray}Signature\end{minipage}}
+
+\textbf{Dr Robin Hale}\\
+Reader in Astrophysics\\
+r.hale@example.edu \quad +44 1632 960000
+
+\end{document}

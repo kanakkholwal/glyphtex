@@ -1,27 +1,16 @@
 <script lang="ts">
 	import { navigating } from "$app/state";
 	import { cubicOut } from "svelte/easing";
-	import { Tween } from "svelte/motion";
+	import { Tween, prefersReducedMotion } from "svelte/motion";
 
-	/**
-	 * Top-of-page navigation progress bar: same UX as Vercel/Linear.
-	 *
-	 * Driven by SvelteKit's `navigating` store (truthy whenever a `goto()` /
-	 * link click is mid-flight). On start: jumps to `minimum`, then trickles
-	 * up toward 0.9 while the load is pending: never reaches 1.0 until the
-	 * navigation actually completes. On finish: snaps to 1.0, fades out.
-	 *
-	 * `color` defaults to the design system's `--color-primary` so the bar
-	 * inherits theme accents without per-app overrides.
-	 */
-
+	/** Top-of-page bar driven by `navigating`: trickles toward 0.9 while loading, then fills and fades.
+	 *  `shadow` is accepted for older call sites and ignored: the design system has no glows. */
 	let {
 		color = "var(--color-primary)",
 		height = 3,
 		trickleSpeed = 200,
 		minimum = 0.08,
-		duration = 300,
-		shadow = true
+		duration = 300
 	}: {
 		color?: string;
 		height?: number;
@@ -31,14 +20,15 @@
 		shadow?: boolean;
 	} = $props();
 
-	const progress = new Tween(0, { duration: () => duration, easing: cubicOut });
+	const progress = new Tween(0, {
+		duration: () => (prefersReducedMotion.current ? 0 : duration),
+		easing: cubicOut
+	});
 
 	let visible = $state(false);
 	let trickleInterval: ReturnType<typeof setInterval> | null = null;
-	// Bumped on every effect run. Deferred completion work (the `.then` and
-	// `setTimeout` below) captures the value at schedule time and bails if a
-	// newer navigation has started: otherwise stale callbacks can hide the
-	// bar mid-way through a chained navigation.
+	// Deferred completion work bails when a newer navigation bumped this, or a stale
+	// callback hides the bar mid-way through a chained navigation.
 	let navGeneration = 0;
 
 	function startTrickle() {
@@ -67,8 +57,8 @@
 			startTrickle();
 		} else {
 			stopTrickle();
-			progress.set(1, { duration: duration * 0.5 }).then(() => {
-				// Bail if a newer navigation started between schedule and resolve.
+			const finish = prefersReducedMotion.current ? 0 : duration * 0.5;
+			progress.set(1, { duration: finish }).then(() => {
 				if (token !== navGeneration) return;
 				setTimeout(() => {
 					if (token !== navGeneration) return;
@@ -87,7 +77,6 @@
 			--progress: {progress.current};
 			--color: {color};
 			--height: {height}px;
-			--shadow: {shadow ? `0 0 8px ${color}99, 0 0 2px ${color}` : 'none'};
 		"
 		aria-hidden="true"
 	>
@@ -109,10 +98,10 @@
 	.bar {
 		height: 100%;
 		background: var(--color);
-		box-shadow: var(--shadow);
 		border-radius: 0 2px 2px 0;
 		transform-origin: left center;
 		transform: scaleX(var(--progress));
-		transition: transform 0ms; /* tweened handles animation */
+		/* The Tween animates; a CSS transition would double it. */
+		transition: transform 0ms;
 	}
 </style>

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Button } from "@glyphtex/ui/button";
 	import { IconAlertTriangle, IconUser } from "@tabler/icons-svelte";
-	import { cubicOut } from "svelte/easing";
 	import { slide } from "svelte/transition";
+	import { reveal } from "../motion";
 
 	import type { GitPanelStore } from "./store.svelte";
 	import { INPUT_CLS } from "./types";
@@ -16,7 +16,7 @@
 	<div class="border-border/60 mt-1 border-t pt-1.5">
 		{#if store.needsIdentity && store.staged.length > 0 && !store.showSettings}
 			<button
-				class="border-warning/40 bg-warning/10 text-foreground/90 flex w-full items-start gap-1.5 rounded border px-1.5 py-1 text-left text-xs"
+				class="border-warning/40 bg-warning/10 text-foreground flex w-full items-start gap-1.5 rounded border px-1.5 py-1 text-left text-xs"
 				onclick={() => store.startEditSettings()}
 			>
 				<IconAlertTriangle size={13} class="text-warning mt-px shrink-0" />
@@ -40,10 +40,10 @@
 
 		{#if store.showSettings}
 			<div
-				transition:slide={{ duration: 200, easing: cubicOut }}
+				transition:slide={reveal()}
 				class="border-border/60 flex flex-col gap-1 rounded border p-1.5"
 			>
-				<p class="text-muted-foreground/70 text-xs">Commits are signed with</p>
+				<p class="text-muted-foreground text-xs">Commits are signed with</p>
 				<input bind:value={store.authorName} placeholder="Your name" class={INPUT_CLS} />
 				<input
 					bind:value={store.authorEmail}
@@ -53,7 +53,7 @@
 				/>
 
 				{#if store.relayApplies}
-					<p class="text-muted-foreground/70 mt-1 text-xs leading-snug">
+					<p class="text-muted-foreground mt-1 text-xs leading-snug">
 						Browsers can’t reach Git servers directly, so fetch, pull and push are relayed through
 						this address: it sees your traffic and your token. Leave it blank to disable remote
 						access entirely.

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import { IconMinus } from "@tabler/icons-svelte";
-	import { IconCheck } from "@tabler/icons-svelte";
+	import { IconCheck, IconMinus } from "@tabler/icons-svelte";
 	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
+	import { DROPDOWN_MENU_ROW, dropdownMenuItemSizeVariants, getDropdownMenuSize } from "./context";
 
 	let {
 		ref = $bindable(null),
@@ -15,6 +15,8 @@
 	}: WithoutChildrenOrChild<DropdownMenuPrimitive.CheckboxItemProps> & {
 		children?: Snippet;
 	} = $props();
+
+	const contentSize = getDropdownMenuSize();
 </script>
 
 <DropdownMenuPrimitive.CheckboxItem
@@ -23,7 +25,9 @@
 	bind:indeterminate
 	data-slot="dropdown-menu-checkbox-item"
 	class={cn(
-		"focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm data-inset:pl-7 [&_svg:not([class*='size-'])]:size-4 relative flex cursor-default items-center outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+		DROPDOWN_MENU_ROW,
+		dropdownMenuItemSizeVariants({ size: contentSize() }),
+		'pr-8 data-inset:pl-8',
 		className
 	)}
 	{...restProps}
@@ -34,9 +38,9 @@
 			data-slot="dropdown-menu-checkbox-item-indicator"
 		>
 			{#if indeterminate}
-				<IconMinus />
+				<IconMinus class="text-primary" />
 			{:else if checked}
-				<IconCheck />
+				<IconCheck class="text-primary" />
 			{/if}
 		</span>
 		{@render childrenProp?.()}

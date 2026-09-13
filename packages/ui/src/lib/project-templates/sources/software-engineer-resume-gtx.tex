@@ -1,0 +1,84 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[letterpaper,margin=1.5cm,top=1.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage[hidelinks]{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+% Change this colour to restyle headings and links.
+\definecolor{brand}{RGB}{0,95,140}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\titleformat{\section}{\bfseries\color{brand}}{}{0pt}{\MakeUppercase}[\vspace{-1ex}\rule{\textwidth}{0.4pt}]
+\titlespacing*{\section}{0pt}{1.6ex}{0.8ex}
+\setlist[itemize]{leftmargin=1.2em,itemsep=0pt,topsep=2pt,after=\vspace{4pt},label=\textbullet}
+
+% \role{company}{location}{title}{dates}
+\newcommand{\role}[4]{%
+  \textbf{#1} \hfill #2\\
+  \emph{#3} \hfill {\small #4}}
+
+% \project{name}{tech stack}{link}
+\newcommand{\project}[3]{\textbf{#1} \textbar\ {\small #2} \hfill {\small\color{brand}#3}}
+
+\begin{document}
+
+% Header: name on the left, contact details on the right.
+\begin{tabularx}{\textwidth}{@{}X r@{}}
+  {\fontsize{24}{28}\selectfont\bfseries Jamie Carter} &
+  \small jamie.carter@example.com \textbar\ +1 555 0100\\
+  \large Software Engineer, backend and infrastructure &
+  \small github.com/jcarter-example \textbar\ Remote, US
+\end{tabularx}
+
+\section{Summary}
+Backend engineer with six years building reliable APIs and data pipelines. Enjoys making slow systems fast and turning on-call pain into automation.
+
+\section{Skills}
+% One row per skill group; keep it to what you can discuss in an interview.
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+  \textbf{Languages} & Go, Python, TypeScript, SQL \\
+  \textbf{Systems} & PostgreSQL, Redis, Kafka, gRPC, REST \\
+  \textbf{Cloud and ops} & Kubernetes, Terraform, Docker, Prometheus, CI/CD \\
+  \textbf{Practices} & Code review, testing, incident response, technical writing \\
+\end{tabularx}
+
+\section{Experience}
+\role{Example Payments Inc.}{Remote}{Senior Software Engineer}{2022 to present}
+\begin{itemize}
+  \item Redesigned the ledger service in Go, cutting p99 latency from 900 ms to 120 ms.
+  \item Led migration of 40 services to Kubernetes with zero customer-facing downtime.
+  \item Mentored four engineers; introduced a design review process adopted company-wide.
+\end{itemize}
+
+\role{Sample Logistics Co.}{Austin, TX}{Software Engineer}{2019 to 2022}
+\begin{itemize}
+  \item Built an event pipeline on Kafka processing 30 million shipment updates per day.
+  \item Wrote a Python load-testing tool that caught three capacity issues before launch.
+\end{itemize}
+
+\role{Sample Logistics Co.}{Austin, TX}{Engineering Intern}{Summer 2018}
+\begin{itemize}
+  \item Added caching to the route API, reducing database reads by 60 percent.
+\end{itemize}
+
+\section{Projects}
+\project{tinyqueue}{Go, Redis}{github.com/jcarter-example/tinyqueue}
+\begin{itemize}
+  \item Open source job queue with retries and dead-letter handling; 800 stars.
+\end{itemize}
+\project{shelfwatch}{TypeScript, PostgreSQL}{shelfwatch.example.com}
+\begin{itemize}
+  \item Web app that tracks library book availability for a local community group.
+\end{itemize}
+
+\section{Education}
+\textbf{BS in Computer Science}, Example State University \hfill 2015 to 2019\\
+Relevant courses: distributed systems, databases, operating systems.
+
+\end{document}

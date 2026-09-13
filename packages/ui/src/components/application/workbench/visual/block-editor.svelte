@@ -189,9 +189,8 @@
 	}
 
 	function onBeforeInput(event: InputEvent) {
-		// Blocks are separate editables, so a selection dragged across two of them
-		// belongs to neither. Letting the browser apply the edit rewrites one block
-		// from another block's DOM and silently drops the source in between.
+		// A selection across two block editables belongs to neither; a browser edit would
+		// rewrite one block from another's DOM and drop the source in between.
 		if (!selectionIsLocal()) {
 			event.preventDefault();
 			window.getSelection()?.collapseToStart();
@@ -256,9 +255,8 @@
 			return;
 		}
 
-		// A bare `/` only at a word boundary: firing on every one would eat the slash
-		// in "and/or" or in a path. Ctrl+/ is the way in from anywhere else, since
-		// a footnote often belongs tight against the word before it.
+		// Bare `/` only at a word boundary, so "and/or" and paths survive; Ctrl+/ works anywhere
+		// (footnotes sit tight against a word).
 		if (event.key === '/' && onslash) {
 			const boundary = isEmpty || /(^|[\s.,;:!?)\]}])$/.test(textBeforeCaret() ?? 'x');
 			if (meta || boundary) {
@@ -341,7 +339,7 @@
 <style>
 	[data-block-editor][data-empty]::before {
 		content: attr(data-placeholder);
-		color: var(--color-faint);
+		color: var(--color-placeholder);
 		pointer-events: none;
 		position: absolute;
 	}

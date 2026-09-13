@@ -1,13 +1,20 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import { page } from "$app/state";
 	import { track } from "$lib/analytics";
+	import { footerSocials, navLinks, REPO_URL } from "$lib/landing/nav-data";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
-	import { navLinks, REPO_URL } from "$lib/landing/nav-data";
-	import { IconBrandGithub, IconMenu2, IconX } from "@tabler/icons-svelte";
+	import { ThemeToggle } from "@glyphtex/ui/theme-toggle";
+	import { IconBrandGithub, IconBrandX, IconMenu2, IconX } from "@tabler/icons-svelte";
 
 	const home = resolve("/");
 	const repo = REPO_URL;
+	const xHref = footerSocials.find((s) => s.label === "Twitter")?.href;
+	const format = new Intl.NumberFormat("en", { notation: "compact" });
+
+	// Streamed from the root layout; null hides the count rather than showing a guess.
+	const stars = $derived(page.data.stars as Promise<number | null> | undefined);
 
 	let open = $state(false);
 	let toggleRef = $state<HTMLButtonElement | null>(null);
@@ -15,13 +22,11 @@
 	function close() {
 		if (!open) return;
 		open = false;
-		// Without this, dismissing the menu drops focus to <body> and a keyboard
-		// user restarts the tab order from the top of the document.
+		// Otherwise focus drops to <body> and a keyboard user restarts from the top.
 		toggleRef?.focus();
 	}
 
-	// The panel is a dismissible overlay, so focus moves into it and stays there
-	// until it closes.
+	// The panel is a dismissible overlay, so focus moves into it and stays until it closes.
 	function menuFocus(node: HTMLElement) {
 		const focusables = () =>
 			Array.from(node.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")).filter(
@@ -57,18 +62,8 @@
 		return resolveAny(href);
 	}
 
-	// The bottom hairline only appears once content can pass under the bar.
-	let scrolled = $state(false);
-
-	$effect(() => {
-		if (typeof window === "undefined") return;
-		const onScroll = () => {
-			scrolled = window.scrollY > 80;
-		};
-		onScroll();
-		window.addEventListener("scroll", onScroll, { passive: true });
-		return () => window.removeEventListener("scroll", onScroll);
-	});
+	const isCurrent = (href: string) =>
+		href.startsWith("/") && !href.includes("#") && page.url.pathname.startsWith(href);
 </script>
 
 <svelte:window
@@ -77,34 +72,35 @@
 	}}
 />
 
-<header
-	class={[
-		'fixed inset-x-0 top-0 z-50 bg-background py-3 transition-[border-color] duration-200 ease-out',
-		scrolled ? 'border-b border-hairline' : 'border-b border-transparent'
-	]}
->
-	<!-- Full-bleed, three columns. The two side tracks are equal `1fr`, so the auto
-	     centre track lands on the viewport midline whatever the logo and the action
-	     cluster weigh. `auto 1fr auto` centres the links inside the leftover space
-	     instead, which drifts left the moment the right side is heavier. -->
+<header class="fixed inset-x-0 top-0 z-50 border-b-2 border-dashed border-border bg-canvas">
 	<nav
 		aria-label="Primary"
-		class="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 sm:px-8 lg:px-10"
+		class="rail-column relative mx-auto flex items-center justify-between px-3 py-3 sm:px-4"
 	>
 		<a
 			href={home}
-			class="group/logo -ml-1 flex items-center rounded-lg px-1 py-1 transition-transform active:scale-[0.97]"
+			class="-m-1.5 flex items-center rounded-md p-1.5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
 			aria-label="GlyphTeX home"
 		>
-			<Logo size={26} badge text={true} tone="gradient" class="text-base" />
+			<Logo size={26} badge text={true} class="text-body-lg" />
 		</a>
 
-		<ul class="hidden items-center justify-center gap-2 md:flex">
+		<!-- One segmented track: the current page is the raised thumb, so it reads without colour. -->
+		<ul
+			class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-lg bg-muted p-1 md:flex"
+		>
 			{#each navLinks as link (link.href)}
+				{@const current = isCurrent(link.href)}
 				<li>
 					<a
 						href={hrefFor(link.href, link.external)}
-						class="inline-flex items-center rounded-lg px-3.5 py-2 text-base text-foreground transition-colors hover:bg-surface-soft"
+						aria-current={current ? 'page' : undefined}
+						class={[
+							'inline-flex h-8 items-center rounded-md px-3.5 text-body outline-none transition-[color,background-color,box-shadow] duration-200 ease-craft focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+							current
+								? 'bg-card font-medium text-foreground shadow-xs dark:bg-background'
+								: 'text-muted-foreground hover:text-foreground'
+						]}
 					>
 						{link.label}
 					</a>
@@ -112,11 +108,42 @@
 			{/each}
 		</ul>
 
-		<div class="col-start-3 flex items-center justify-end gap-1.5">
+		<div class="flex items-center gap-2">
+			<Button
+				href={repo}
+				target="_blank"
+				rel="noopener noreferrer"
+				variant="outline"
+				class="gap-1.5 px-3"
+				onclick={() => track('outbound_clicked', { destination: 'github', location: 'nav' })}
+			>
+				<IconBrandGithub class="size-4" aria-hidden="true" />
+				<span class="sr-only">GlyphTeX on GitHub</span>
+				{#await stars then count}
+					{#if typeof count === 'number'}
+						<span class="tabular-nums">{format.format(count)}<span class="sr-only"> stars</span></span>
+					{/if}
+				{/await}
+			</Button>
+			{#if xHref}
+				<Button
+					href={xHref}
+					target="_blank"
+					rel="noopener noreferrer"
+					variant="outline"
+					size="icon"
+					aria-label="GlyphTeX on X"
+					class="hidden sm:inline-flex"
+					onclick={() => track('outbound_clicked', { destination: 'twitter', location: 'nav' })}
+				>
+					<IconBrandX class="size-4" aria-hidden="true" />
+				</Button>
+			{/if}
+			<ThemeToggle size="icon" class="hidden border border-border bg-card sm:inline-flex dark:bg-background" />
 			<Button
 				href={resolve('/workspace')}
 				variant="default"
-				class="min-w-0 px-4"
+				class="hidden xl:inline-flex"
 				onclick={() => track('cta_clicked', { target: 'workspace', location: 'nav' })}
 			>
 				Open the workspace
@@ -128,7 +155,7 @@
 				aria-expanded={open}
 				aria-controls="mobile-nav"
 				aria-label={open ? 'Close menu' : 'Open menu'}
-				class="grid size-9 place-items-center rounded-lg text-foreground transition-colors hover:bg-foreground/5 md:hidden"
+				class="grid size-10 place-items-center rounded-md border border-border bg-card text-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring md:hidden dark:bg-background"
 			>
 				{#if open}
 					<IconX class="size-5" />
@@ -141,16 +168,11 @@
 </header>
 
 {#if open}
-	<!--
-	  Click-away backdrop. Presentational, not a control: the previous version was
-	  a full-viewport <button aria-label="Close menu">, which reaches the
-	  accessibility tree as an interactive element covering the whole page.
-	  Escape and the toggle are the real dismissals; this is a pointer shortcut.
-	-->
-	<div class="fixed inset-0 z-40 bg-ink/15 md:hidden" aria-hidden="true" onclick={close}></div>
+	<!-- Presentational pointer shortcut: a full-page <button> here read as one giant control to screen readers. -->
+	<div class="fixed inset-0 z-40 bg-fixed-dark/20 md:hidden" aria-hidden="true" onclick={close}></div>
 	<div
 		id="mobile-nav"
-		class="fixed inset-x-4 top-16 z-50 rounded-xl border border-hairline bg-background p-2 shadow-notion md:hidden"
+		class="fixed inset-x-3 top-20 z-50 rounded-xl border border-border bg-popover p-2 shadow-lg md:hidden"
 		{@attach menuFocus}
 	>
 		<ul class="flex flex-col">
@@ -159,7 +181,7 @@
 					<a
 						href={hrefFor(link.href, link.external)}
 						onclick={close}
-						class="block rounded-lg px-3 py-2.5 text-base font-medium text-foreground transition-colors hover:bg-surface-soft"
+						class="flex min-h-11 items-center rounded-lg px-3 text-body-lg font-medium text-foreground transition-colors hover:bg-muted"
 					>
 						{link.label}
 					</a>
@@ -167,18 +189,19 @@
 			{/each}
 			<li>
 				<a
-					href={repo}
-					target="_blank"
-					rel="noopener noreferrer"
+					href={resolve('/workspace')}
 					onclick={() => {
-						track('outbound_clicked', { destination: 'github', location: 'nav' });
+						track('cta_clicked', { target: 'workspace', location: 'nav' });
 						close();
 					}}
-					class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-base font-medium text-foreground transition-colors hover:bg-surface-soft"
+					class="flex min-h-11 items-center rounded-lg px-3 text-body-lg font-medium text-foreground transition-colors hover:bg-muted"
 				>
-					<IconBrandGithub class="size-4" />
-					GitHub
+					Open the workspace
 				</a>
+			</li>
+			<li class="flex min-h-11 items-center justify-between px-3">
+				<span class="text-body-lg font-medium text-foreground">Theme</span>
+				<ThemeToggle size="icon" />
 			</li>
 		</ul>
 	</div>

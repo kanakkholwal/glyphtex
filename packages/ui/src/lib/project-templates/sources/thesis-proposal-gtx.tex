@@ -1,0 +1,105 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{RGB}{70,60,140}
+\definecolor{done}{RGB}{70,60,140}
+\titleformat{\section}{\normalfont\Large\bfseries\color{accent}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{0.6em}{}
+
+% A filled cell marks active work in the timeline table.
+\newcommand{\on}{\cellcolor{done!60}}
+
+\begin{document}
+
+\begin{center}
+{\small\textsc{Research Prospectus}\par}
+\vspace{0.5em}
+{\LARGE\bfseries Language Shift in Second-Generation\\ Heritage Speakers\par}
+\vspace{1em}
+\begin{tabular}{rl}
+Candidate: & Your Name \\
+Programme: & PhD in Linguistics, Example University \\
+Supervisors: & Prof. First Supervisor, Dr Second Supervisor \\
+Submitted: & 1 October 2026 \\
+\end{tabular}
+\end{center}
+
+\vspace{1em}
+\noindent\fcolorbox{accent}{accent!6}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{
+\textbf{Summary.} In about 150 words, state the problem, the questions, the method and the expected contribution. A committee member should be able to decide whether the project is feasible from this box alone.}}
+
+\section{Background and rationale}
+Explain what is known, what is contested and why the question needs answering now \cite{p1}.
+
+\section{Research questions}
+\begin{enumerate}[label=\textbf{RQ\arabic*.},leftmargin=*]
+  \item How does home language use change between ages 8 and 16?
+  \item Which social networks predict maintenance of the heritage language?
+  \item Do proficiency gains in school settings slow shift at home?
+\end{enumerate}
+
+\section{Methodology}
+\subsection{Design}
+Describe the overall design and why it suits the questions.
+\subsection{Participants and sampling}
+Who, how many and how they will be recruited.
+\subsection{Data and analysis}
+Name instruments and the analysis methods for each research question.
+\subsection{Ethics}
+Note approvals needed, consent procedures and data storage.
+
+\section{Expected contributions}
+\begin{itemize}
+  \item Theoretical: what the study adds to models of language shift.
+  \item Practical: how schools or families could use the findings.
+\end{itemize}
+
+\section{Timeline}
+Shade the quarters in which each task is active. Add or remove columns to match your programme length.
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l*{8}{c}}
+\toprule
+ & \multicolumn{4}{c}{Year 1} & \multicolumn{4}{c}{Year 2} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+Task & Q1 & Q2 & Q3 & Q4 & Q1 & Q2 & Q3 & Q4 \\
+\midrule
+Literature review & \on & \on & & & & & & \\
+Ethics approval & & \on & & & & & & \\
+Pilot study & & & \on & & & & & \\
+Main data collection & & & & \on & \on & & & \\
+Analysis & & & & & \on & \on & & \\
+Writing and revision & & & & & & \on & \on & \on \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Risks and mitigation}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+Risk & Mitigation \\
+\midrule
+Low recruitment in the first wave & Partner with two additional community schools \\
+Participant drop-out between waves & Over-recruit by 20\% and keep regular contact \\
+\bottomrule
+\end{tabularx}
+
+\section{Resources and budget}
+List equipment, travel, transcription or software costs.
+
+\begin{thebibliography}{9}
+\bibitem{p1} A.~Author, \emph{Heritage Languages in Transition}, Example University Press, 2018.
+\bibitem{p2} B.~Author, Networks and maintenance, \emph{Journal of Example Sociolinguistics} 22 (2020) 301--322.
+\end{thebibliography}
+
+\end{document}

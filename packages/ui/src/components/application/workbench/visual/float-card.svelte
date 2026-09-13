@@ -223,18 +223,18 @@
 	const OFF = "text-muted-foreground hover:text-foreground hover:bg-accent/60";
 	const ON = "bg-accent text-foreground";
 	const FIELD =
-		"border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1 text-xs outline-none";
+		"border-border text-foreground focus-visible:border-ring w-full rounded-md border bg-transparent px-2 py-1 text-xs outline-none";
 </script>
 
 <!-- No `overflow-hidden`: the card's own popovers open past its edges, and
      clipping them cut the Options panel in half. -->
-<figure class="border-border bg-surface-soft group/float mt-5 rounded-lg border">
+<figure class="border-border bg-muted group/float mt-5 rounded-lg border">
 	<div
 		class="text-muted-foreground border-border flex items-center gap-2 border-b px-3 py-1.5 text-xs font-medium"
 	>
 		{#if isTable}<IconTable size={14} />{:else}<IconPhoto size={14} />{/if}
 		{block.environment}
-		{#if label}<span class="text-faint font-mono">#{label}</span>{/if}
+		{#if label}<span class="text-muted-foreground font-mono">#{label}</span>{/if}
 		<div class="ml-auto flex items-center gap-1">
 			{#if !isTable}
 				<div class="relative">
@@ -330,7 +330,7 @@
 					<IconPhoto size={22} class="mx-auto mb-1.5 opacity-60" />
 					<p class="font-mono">{block.graphic}</p>
 					{#if missing}
-						<p class="text-faint mt-1">
+						<p class="text-muted-foreground mt-1">
 							Not in this document. It will still compile if TeX can find it.
 						</p>
 					{/if}
@@ -347,7 +347,7 @@
 		class="border-border flex flex-wrap items-center gap-1 border-t px-3 py-1.5 opacity-45 transition-opacity group-focus-within/float:opacity-100 group-hover/float:opacity-100"
 	>
 		{#if !isTable}
-			<span class="text-faint mr-1 text-xs">Width</span>
+			<span class="text-muted-foreground mr-1 text-xs">Width</span>
 			{#each WIDTHS as option (option.value)}
 				<button
 					type="button"
@@ -361,7 +361,7 @@
 			<span class="bg-border/70 mx-1.5 h-4 w-px"></span>
 		{:else if grid}
 			{@const style = grid.borders ? 'grid' : grid.ruleAfter ? 'rows' : 'none'}
-			<span class="text-faint mr-1 text-xs">Rules</span>
+			<span class="text-muted-foreground mr-1 text-xs">Rules</span>
 			{#each RULE_STYLES as option (option.id)}
 				<button
 					type="button"
@@ -421,7 +421,7 @@
 					role="dialog"
 					aria-label="Float options"
 				>
-					<p class="text-faint mb-1 text-[0.6875rem] font-medium tracking-wide uppercase">
+					<p class="text-muted-foreground mb-1 text-xs font-medium tracking-wide uppercase">
 						Placement
 					</p>
 					<div class="flex flex-wrap gap-1">
@@ -438,7 +438,7 @@
 					</div>
 
 					{#if !isTable}
-						<p class="text-faint mt-2.5 mb-1 text-[0.6875rem] font-medium tracking-wide uppercase">
+						<p class="text-muted-foreground mt-2.5 mb-1 text-xs font-medium tracking-wide uppercase">
 							Text wrap
 						</p>
 						<div class="flex flex-wrap gap-1">
@@ -456,10 +456,10 @@
 								</button>
 							{/each}
 						</div>
-						<p class="text-faint mt-1 text-[0.6875rem]">Wrapping loads the wrapfig package.</p>
+						<p class="text-muted-foreground mt-1 text-xs">Wrapping loads the wrapfig package.</p>
 					{/if}
 
-					<p class="text-faint mt-2.5 mb-1 text-[0.6875rem] font-medium tracking-wide uppercase">
+					<p class="text-muted-foreground mt-2.5 mb-1 text-xs font-medium tracking-wide uppercase">
 						Label
 					</p>
 					<input
@@ -472,7 +472,7 @@
 								t.setFloatLabel(source, block, labelKey((e.currentTarget as HTMLInputElement).value))
 							)}
 					/>
-					<p class="text-faint mt-1 text-[0.6875rem]">
+					<p class="text-muted-foreground mt-1 text-xs">
 						Cross-reference it with \ref{'{'}{label || (isTable ? 'tab:name' : 'fig:name')}{'}'}.
 					</p>
 				</div>
@@ -481,7 +481,7 @@
 	</div>
 
 	<figcaption class="border-border relative border-t px-3 py-2">
-		<span class="text-faint mr-1.5 text-xs">Caption</span>
+		<span class="text-muted-foreground mr-1.5 text-xs">Caption</span>
 		<BlockEditor
 			runs={captionRuns}
 			tag="span"

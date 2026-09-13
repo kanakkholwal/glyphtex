@@ -6,10 +6,7 @@
 	import type { WorkbenchController } from "./controller.svelte";
 	import EditorTabs from "./editor-tabs.svelte";
 
-	/** Which file is open, and the panel seam beside it. It sits above the
-	 *  Visual/LaTeX split because the answer is the same in both: a mode is a lens
-	 *  on one file, not a place with its own file set. Layout, export and compile
-	 *  are page-global and live in the title bar. */
+	// Open file plus the panel seam, above the mode split: a mode is a lens on one file.
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 
 	const files = $derived(ctrl.files);
@@ -18,9 +15,7 @@
 </script>
 
 {#snippet sidebarToggle()}
-	<!-- On the seam it controls, not 1200px away in the title bar's right cluster.
-	     It also sits exactly where the panel re-emerges from, and follows the panel
-	     when it is docked right. -->
+	<!-- On the seam it controls, where the panel re-emerges, following it when docked right. -->
 	<div class="flex shrink-0 items-center {layout.sidebarRight ? 'pr-1.5 pl-0.5' : 'pr-0.5 pl-1.5'}">
 		{#if layout.sidebarRight}
 			<span class="bg-border/60 mr-1 h-4 w-px shrink-0" aria-hidden="true"></span>
@@ -30,7 +25,7 @@
 				{#snippet child({ props })}
 					<button
 						{...props}
-						class="text-muted-foreground hover:bg-accent/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
+						class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
 						aria-label="Toggle sidebar"
 						aria-pressed={!layout.panelCollapsed}
 						onclick={() => (layout.panelCollapsed = !layout.panelCollapsed)}
@@ -53,13 +48,11 @@
 	</div>
 {/snippet}
 
-<!-- A recessed rail the active chip lifts off, same surface + shadow the mode
-     switch uses. In Visual the rail goes translucent and lets the prose page read
-     through it; the chips themselves are identical in both. -->
+<!-- Plain toolbar rail; in Visual it goes translucent so the prose page reads through. -->
 <div
 	class="ease-craft flex h-9 shrink-0 items-stretch border-b transition-colors duration-200 motion-reduce:transition-none {quiet
 		? 'glyphtex-tab-rail--quiet border-border/50'
-		: 'border-border bg-muted dark:bg-card'}"
+		: 'border-border bg-background'}"
 >
 	{#if !layout.sidebarRight}{@render sidebarToggle()}{/if}
 	<EditorTabs {files} onnew={() => files.newFile()} />

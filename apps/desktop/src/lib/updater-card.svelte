@@ -1,31 +1,52 @@
 <script lang="ts">
 	import { Button } from "@glyphtex/ui/button";
 	import { Spinner } from "@glyphtex/ui/spinner";
-	import { IconAlertTriangle, IconCircleCheck, IconDownload, IconX } from "@tabler/icons-svelte";
+	import {
+		IconAlertTriangle,
+		IconCircleCheck,
+		IconDownload,
+		IconRefresh,
+		IconX
+	} from "@tabler/icons-svelte";
 	import { cubicOut } from "svelte/easing";
+	import { prefersReducedMotion } from "svelte/motion";
 	import { fly } from "svelte/transition";
-	import { updater } from "./updater.svelte";
+	import UpdateProgress from "./update-progress.svelte";
+	import { FAILURE_COPY, updater } from "./updater.svelte";
 
-	const pct = $derived(Math.round(updater.progress * 100));
+	const failure = $derived(updater.failedStep ? FAILURE_COPY[updater.failedStep] : null);
+	const title = $derived.by(() => {
+		switch (updater.status) {
+			case "update-available":
+				return "Update available";
+			case "downloading":
+				return "Downloading update";
+			case "ready":
+				return updater.installing ? "Installing update" : "Update ready";
+			default:
+				return failure?.title ?? "Update failed";
+		}
+	});
 </script>
 
-<!-- Non-blocking update card, pinned bottom-right, above all routes. -->
-<div class="pointer-events-none fixed right-4 bottom-4 z-50 w-[340px]">
+<!-- Non-modal and pinned bottom-right; `aria-live` announces each state change. -->
+<div class="pointer-events-none fixed right-4 bottom-4 z-50 w-85" aria-live="polite">
 	{#if updater.visible}
-		<div
-			class="bg-card border-border shadow-craft-lg pointer-events-auto overflow-hidden rounded-xl border"
-			transition:fly={{ y: 16, x: 8, duration: 240, easing: cubicOut }}
+		<section
+			aria-label="Software update"
+			class="pointer-events-auto overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg"
+			transition:fly={{ y: 16, duration: prefersReducedMotion.current ? 0 : 200, easing: cubicOut }}
 		>
-			<div class="flex items-start gap-3 px-4 py-3">
+			<div class="flex items-start gap-3 p-4">
 				<div
-					class="grid size-8 shrink-0 place-items-center rounded-lg ring-1 ring-inset {updater.status ===
-					'error'
-						? 'bg-destructive/10 text-destructive ring-destructive/20'
-						: 'bg-brand-subtle text-brand ring-brand/20'}"
+					class="grid size-8 shrink-0 place-items-center rounded-lg {updater.status === 'error'
+						? 'bg-destructive/10 text-destructive'
+						: 'bg-primary/10 text-primary'}"
+					aria-hidden="true"
 				>
 					{#if updater.status === 'update-available'}
 						<IconDownload size={16} />
-					{:else if updater.status === 'downloading'}
+					{:else if updater.status === 'downloading' || updater.installing}
 						<Spinner class="size-4" />
 					{:else if updater.status === 'ready'}
 						<IconCircleCheck size={16} />
@@ -35,82 +56,55 @@
 				</div>
 
 				<div class="min-w-0 flex-1">
-					<p class="text-foreground text-[12.5px] leading-tight font-semibold">
-						{#if updater.status === 'update-available'}
-							Update available
-						{:else if updater.status === 'downloading'}
-							Downloading update
-						{:else if updater.status === 'ready'}
-							Update ready to install
-						{:else}
-							Update failed
-						{/if}
-					</p>
-					<p class="text-muted-foreground mt-0.5 text-[11.5px] leading-snug">
+					<h2 class="font-sans text-sm font-medium text-foreground">{title}</h2>
+					<p class="mt-0.5 text-sm text-muted-foreground">
 						{#if updater.status === 'error'}
-							{updater.error ?? 'Could not download the latest version.'}
-						{:else}
-							GlyphTeX
-							{#if updater.version}<span class="font-mono">v{updater.version}</span>{/if}
-							{#if updater.status === 'ready'}
-								is ready.
-							{:else if updater.status === 'downloading'}
-								is downloading…
-							{:else}
-								is available to download.
-							{/if}
+							{failure?.body ?? 'Something went wrong while updating.'}
+						{:else if updater.status === 'ready'}
+							Restart GlyphTeX to finish updating{updater.version ? ` to v${updater.version}` : ''}.
+						{:else if updater.version}
+							GlyphTeX <span class="font-mono">v{updater.version}</span>
+							{updater.status === 'downloading' ? 'is downloading.' : 'is ready to download.'}
 						{/if}
 					</p>
 				</div>
 
-				<button
-					type="button"
-					class="text-muted-foreground/70 hover:bg-foreground/5 hover:text-foreground -mt-0.5 -mr-1 shrink-0 rounded-md p-1 transition-colors"
-					aria-label="Dismiss"
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					class="-mt-1 -mr-1 text-muted-foreground"
+					aria-label="Dismiss update notice"
+					title="Dismiss"
 					onclick={() => updater.dismiss()}
 				>
-					<IconX size={14} />
-				</button>
+					<IconX size={16} />
+				</Button>
 			</div>
 
 			{#if updater.status === 'downloading'}
-				<div class="px-4 pb-3.5">
-					<div class="bg-muted h-1 overflow-hidden rounded-full">
-						<div
-							class="bg-brand h-full rounded-full transition-[width] duration-200"
-							style="width: {pct}%"
-						></div>
-					</div>
-					<span class="text-muted-foreground mt-1 block text-xs font-medium tabular-nums">
-						{pct}%
-					</span>
-				</div>
+				<div class="px-4 pb-4"><UpdateProgress /></div>
 			{:else}
-				<div
-					class="border-border/50 bg-muted/30 flex items-center justify-end gap-1.5 border-t px-3 py-2"
-				>
+				<div class="flex items-center justify-end gap-2 border-t border-border px-4 py-3">
 					{#if updater.status === 'update-available'}
-						<Button size="xs" variant="ghost" onclick={() => updater.dismiss()}>Later</Button>
-						<Button size="xs" onclick={() => updater.download()}>
-							<IconDownload size={13} /> Download
+						<Button variant="outline" onclick={() => updater.dismiss()}>Later</Button>
+						<Button variant="primary" onclick={() => updater.download()}>
+							<IconDownload /> Download
 						</Button>
 					{:else if updater.status === 'ready'}
 						<Button
-							size="xs"
+							variant="primary"
 							disabled={updater.installing}
 							onclick={() => updater.installAndRelaunch()}
 						>
-							{#if updater.installing}
-								<Spinner class="size-3" /> Installing…
-							{:else}
-								<IconDownload size={13} /> Restart to update
-							{/if}
+							{updater.installing ? 'Installing…' : 'Restart to update'}
 						</Button>
 					{:else if updater.status === 'error'}
-						<Button size="xs" variant="outline" onclick={() => updater.checkNow()}>Retry</Button>
+						<Button variant="outline" onclick={() => updater.retry()}>
+							<IconRefresh /> Try again
+						</Button>
 					{/if}
 				</div>
 			{/if}
-		</div>
+		</section>
 	{/if}
 </div>

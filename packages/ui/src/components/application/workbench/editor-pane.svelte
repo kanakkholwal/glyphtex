@@ -80,7 +80,7 @@
 		>
 			<span class="truncate pl-1" title={layout.diffTarget.path}>
 				{baseName(layout.diffTarget.path)}
-				<span class="text-faint">
+				<span class="text-muted-foreground">
 					· {layout.diffTarget.staged ? 'Staged changes' : 'Working tree'}
 				</span>
 			</span>
@@ -181,9 +181,8 @@
 
 			{#if files.activeHasToolbar}
 				<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
-				<!-- Scrolls rather than wraps (the pane can be a third of the window); the
-             mask fades the cut edge so a clipped control reads as "more here".
-             A plain wheel scrolls it, since there is no visible scrollbar to drag. -->
+				<!-- Scrolls, not wraps; the mask fades the cut edge, and a plain wheel scrolls
+				     it since there is no scrollbar. -->
 				<div
 					class="glyphtex-toolbar-lane min-w-0 flex-1 overflow-x-auto"
 					onwheel={(e) => {
@@ -212,9 +211,9 @@
 		     tooltip is no use to someone who never hovers it. -->
 		{#if ctrl.visualDemoted}
 			<div
-				class="border-border bg-surface-soft text-muted-foreground flex h-7 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
+				class="border-border bg-muted text-muted-foreground flex h-7 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
 			>
-				<IconPencilOff size={13} class="text-faint shrink-0" />
+				<IconPencilOff size={13} class="text-muted-foreground shrink-0" />
 				<span class="truncate">
 					<span class="text-foreground font-medium">{baseName(files.activeFile?.name ?? '')}</span>
 					has no visual form, so it opens as source.
@@ -224,9 +223,9 @@
 
 		{#if files.activeGenerated}
 			<div
-				class="border-border bg-surface-soft text-muted-foreground flex h-7 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
+				class="border-border bg-muted text-muted-foreground flex h-7 shrink-0 items-center gap-1.5 border-b px-2 text-xs"
 			>
-				<IconLock size={13} class="text-faint shrink-0" />
+				<IconLock size={13} class="text-muted-foreground shrink-0" />
 				<span class="truncate">Written by the compiler. Read-only: the next build overwrites it.</span>
 			</div>
 		{/if}
@@ -299,7 +298,8 @@
 	/* No visible scrollbar in a 40px toolbar; the edge fade is the affordance. */
 	.glyphtex-toolbar-lane {
 		scrollbar-width: none;
-		mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+		/* Masks read alpha only, so any opaque token works. */
+		mask-image: linear-gradient(to right, var(--foreground) calc(100% - 32px), transparent);
 	}
 	.glyphtex-toolbar-lane:-webkit-scrollbar {
 		display: none;

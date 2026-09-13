@@ -119,7 +119,7 @@
 	);
 
 	let query = $state('');
-	let active = $state(0);
+	let cursor = $state(0);
 	let input = $state<HTMLInputElement>();
 	let list = $state<HTMLElement>();
 
@@ -134,10 +134,8 @@
 		input?.focus();
 	});
 
-	// Clamp as the list shrinks under the filter.
-	$effect(() => {
-		if (active >= matches.length) active = Math.max(0, matches.length - 1);
-	});
+	// Clamped as the list shrinks under the filter.
+	const active = $derived(Math.min(cursor, Math.max(0, matches.length - 1)));
 
 	// Arrow keys can walk past the visible window; the list is twenty entries long.
 	$effect(() => {
@@ -154,7 +152,7 @@
 		if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
 			event.preventDefault();
 			const step = event.key === 'ArrowDown' ? 1 : -1;
-			active = (active + step + matches.length) % matches.length;
+			if (matches.length) cursor = (active + step + matches.length) % matches.length;
 			return;
 		}
 		if (event.key === 'Enter') {
@@ -195,7 +193,7 @@
 		onkeydown={onKeyDown}
 		placeholder="Filter blocks…"
 		aria-label="Filter blocks"
-		class="border-border text-foreground placeholder:text-faint w-full border-b bg-transparent px-3 py-2 text-sm outline-none"
+		class="border-border text-foreground placeholder:text-placeholder w-full border-b bg-transparent px-3 py-2 text-sm outline-none"
 	/>
 	<div
 		bind:this={list}
@@ -206,7 +204,7 @@
 		{#each matches as entry, i (entry.type + entry.id)}
 			{@const Icon = ICONS[entry.id] ?? IconTypography}
 			{#if i === 0 || matches[i - 1].group !== entry.group}
-				<p class="text-faint px-3 pt-2 pb-1 text-[0.6875rem] font-medium tracking-wide uppercase">
+				<p class="text-muted-foreground px-3 pt-2 pb-1 text-xs font-medium tracking-wide uppercase">
 					{GROUP_LABEL[entry.group] ?? entry.group}
 				</p>
 			{/if}
@@ -217,7 +215,7 @@
 				class="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm {i === active
 					? 'bg-accent text-foreground'
 					: 'text-muted-foreground'}"
-				onpointerenter={() => (active = i)}
+				onpointerenter={() => (cursor = i)}
 				onpointerdown={(e) => e.preventDefault()}
 				onclick={() => onpick({ type: entry.type, id: entry.id })}
 			>

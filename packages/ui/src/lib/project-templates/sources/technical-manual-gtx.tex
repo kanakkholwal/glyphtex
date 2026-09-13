@@ -1,0 +1,159 @@
+\documentclass[10pt,a4paper]{report}
+\usepackage[a4paper,margin=2cm,headheight=15pt]{geometry}
+\usepackage{xcolor}
+\definecolor{DarkSlateBlue}{RGB}{72,61,139}
+\definecolor{DarkOrange}{RGB}{255,140,0}
+\definecolor{Gold}{RGB}{255,215,0}
+\definecolor{AliceBlue}{RGB}{240,248,255}
+\definecolor{SteelBlue}{RGB}{70,130,180}
+\definecolor{WhiteSmoke}{RGB}{245,245,245}
+\definecolor{LightGray}{RGB}{211,211,211}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{lastpage}
+\usepackage{microtype}
+\usepackage[colorlinks,linkcolor=DarkSlateBlue,urlcolor=DarkSlateBlue]{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6ex}
+
+% Manual identity: shown on the cover and in every header.
+\newcommand{\productname}{AquaFlow 300 Filtration Unit}
+\newcommand{\docid}{Doc. AF300-UM, Revision C}
+
+\titleformat{\chapter}[block]{\normalfont\huge\bfseries\color{DarkSlateBlue}}{\thechapter}{0.6em}{}[\vspace{-0.4ex}{\color{DarkSlateBlue}\titlerule[1.5pt]}]
+\titlespacing*{\chapter}{0pt}{0pt}{2ex}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{0.6em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small\productname}
+\rhead{\small\docid}
+\lfoot{\small\textcopyright\ 2026 Example Manufacturing Ltd.}
+\rfoot{\small Page \thepage\ of \pageref{LastPage}}
+\fancypagestyle{plain}{\fancyhf{}\rfoot{\small Page \thepage\ of \pageref{LastPage}}}
+
+% Safety notices. Use the one that matches the hazard level.
+\newtcolorbox{warningbox}{enhanced,colback=Gold!15,colframe=DarkOrange,boxrule=1pt,sharp corners,title={\textbf{WARNING}},coltitle=black,colbacktitle=Gold}
+\newtcolorbox{notebox}{enhanced,colback=AliceBlue,colframe=SteelBlue,boxrule=0.5pt,sharp corners,left=2mm,fontupper=\small,before upper={\textbf{Note:}\ }}
+
+% Numbered procedures: \begin{procedure}{Title} then \item for each step.
+\newcounter{procnum}[chapter]
+\renewcommand{\theprocnum}{\thechapter.\arabic{procnum}}
+\newenvironment{procedure}[1]
+  {\refstepcounter{procnum}\par\medskip\noindent{\large\bfseries\color{DarkSlateBlue}Procedure \theprocnum: #1}\par\smallskip
+   \begin{enumerate}[label=\textbf{Step \arabic*.},leftmargin=4.2em,itemsep=0.5ex]}
+  {\end{enumerate}\medskip}
+
+\newcommand{\result}[1]{\par\hspace*{1em}\textit{Result: #1}}
+
+\lstset{basicstyle=\ttfamily\small,frame=single,backgroundcolor=\color{WhiteSmoke},rulecolor=\color{LightGray}}
+
+\begin{document}
+
+\begin{titlepage}
+\color{DarkSlateBlue}
+\rule{\linewidth}{6pt}\par
+\vspace{3cm}
+{\fontsize{34}{40}\selectfont\bfseries User and Service Manual\par}
+\vspace{1em}
+{\Huge \productname\par}
+\vfill
+\color{black}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+Document & \docid \\
+Applies to & Serial numbers AF300-2400 and later \\
+Published & September 2026 \\
+\end{tabularx}
+\vspace{1em}
+{\color{DarkSlateBlue}\rule{\linewidth}{1pt}}
+\end{titlepage}
+
+\tableofcontents
+
+\chapter{Safety}
+Read this chapter before installing or servicing the unit.
+
+\begin{warningbox}
+Disconnect mains power and close the inlet valve before opening the housing. Stored water pressure can cause injury.
+\end{warningbox}
+
+\section{Symbols used in this manual}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+Notice & Meaning \\
+\midrule
+\textbf{WARNING} & Risk of injury if the instruction is ignored. \\
+\textbf{Note} & Useful information that prevents damage or saves time. \\
+\bottomrule
+\end{tabularx}
+
+\chapter{Installation}
+\section{Package contents}
+\begin{itemize}[nosep]
+  \item Filtration unit with pre-fitted cartridge
+  \item Wall bracket and four M6 screws
+  \item Inlet and outlet hoses, 1.5\,m each
+\end{itemize}
+
+\section{Mounting the unit}
+\begin{procedure}{Mount the unit on a wall}\label{proc:mount}
+  \item Mark the four hole positions using the supplied template.
+  \item Drill 8\,mm holes and insert wall plugs.
+  \item Fix the bracket with the M6 screws.
+  \result{The bracket is level and does not move when pushed.}
+  \item Hang the unit on the bracket until it clicks.
+\end{procedure}
+
+\begin{notebox}
+Leave at least 30\,cm below the unit so the cartridge can be removed later.
+\end{notebox}
+
+\chapter{Maintenance}
+\section{Replacing the cartridge}
+Replace the cartridge every six months or when the indicator turns red. Complete Procedure~\ref{proc:mount} first if the unit is being reinstalled.
+
+\begin{procedure}{Replace the filter cartridge}
+  \item Switch off power and close the inlet valve.
+  \item Place a tray under the unit and turn the housing a quarter turn anticlockwise.
+  \item Remove the old cartridge and fit the new one with the arrow pointing up.
+  \item Refit the housing, open the valve slowly and check for leaks.
+  \result{The indicator shows green after about ten seconds.}
+\end{procedure}
+
+\section{Reading the service log}
+Connect to the service port and run:
+\begin{lstlisting}
+af300 log -n 20
+\end{lstlisting}
+
+\chapter{Troubleshooting}
+\begin{tabularx}{\linewidth}{@{}lXX@{}}
+\toprule
+Symptom & Possible cause & Action \\
+\midrule
+No flow & Inlet valve closed & Open the valve fully \\
+Indicator red & Cartridge expired & Follow the cartridge procedure \\
+Water at base & Housing not seated & Refit housing and check the seal \\
+\bottomrule
+\end{tabularx}
+
+\appendix
+\chapter{Technical specifications}
+\begin{tabularx}{0.7\linewidth}{@{}Xr@{}}
+\toprule
+Maximum flow rate & 300 L/h \\
+Operating pressure & 1 to 6 bar \\
+Power supply & 230 V AC, 50 Hz \\
+Weight (empty) & 4.2 kg \\
+\bottomrule
+\end{tabularx}
+
+\end{document}

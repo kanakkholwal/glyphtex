@@ -50,7 +50,7 @@ export class CompileStore {
 	compileStatus = $state<CompileStatus>("idle");
 	lastCompileMs = $state<number | null>(null);
 	pdfUrl = $state<string | undefined>(undefined);
-	pdfBytes = $state<Uint8Array | undefined>(undefined);
+	pdfBytes = $state.raw<Uint8Array | undefined>(undefined);
 	synctex = $state<SyncTexMap | undefined>(undefined);
 	compileError = $state<string | undefined>(undefined);
 	compileLog = $state("");

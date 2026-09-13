@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
+	import { CRAFT_FOCUS_RING, cn } from "@glyphtex/ui/utils";
 	import { Collapsible as CollapsiblePrimitive } from "bits-ui";
 
 	let {
@@ -13,7 +13,7 @@
 	bind:ref
 	data-slot="collapsible-trigger"
 	class={cn(
-		'outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background rounded-md',
+		CRAFT_FOCUS_RING, 'rounded-md',
 		className
 	)}
 	{...restProps}

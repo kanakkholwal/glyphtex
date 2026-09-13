@@ -2,12 +2,10 @@
 	import { resolve } from "$app/paths";
 	import { ArticleBody, AuthorCard, Toc } from "$lib/content";
 	import PostCard from "$lib/content/PostCard.svelte";
-	import { Container } from "$lib/landing";
 	import { articleLd, breadcrumbLd, faqLd, serialise } from "$lib/seo/jsonld";
 	import { AUTHOR } from "$lib/seo/site";
 	import Seo from "$lib/seo/Seo.svelte";
-	import SiteFooter from "$lib/SiteFooter.svelte";
-	import SiteHeader from "$lib/SiteHeader.svelte";
+	import { RailFrame, RailRow } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
 	import { IconArrowLeft, IconArrowRight } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
@@ -48,6 +46,9 @@
 			data.faq.length ? serialise(faqLd(data.faq)!) : null
 		].filter((v): v is string => !!v)
 	);
+
+	const quiet =
+		"rounded-sm outline-none underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring";
 </script>
 
 <Seo
@@ -64,107 +65,106 @@
 	{jsonld}
 />
 
-<SiteHeader />
+<RailFrame>
+	<RailRow divider={false} label="Article" class="px-3 pt-28 pb-12 sm:px-6 sm:pt-32">
+		<div class="flex flex-col gap-10 px-1 sm:px-4 lg:px-10">
+			<header class="flex max-w-3xl flex-col gap-4">
+				<a
+					href="/blog"
+					class="-ml-1 flex min-h-10 w-fit items-center gap-1.5 rounded-md px-1 text-body text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+				>
+					<IconArrowLeft class="size-4" aria-hidden="true" />
+					All articles
+				</a>
+				<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-muted-foreground">
+					<span class="font-medium text-primary">{data.meta.category}</span>
+					{#if dateLabel}<span aria-hidden="true">·</span><time datetime={data.meta.date}>{dateLabel}</time>{/if}
+					<span aria-hidden="true">·</span><span>{data.readingMinutes} min read</span>
+				</p>
+				<h1 class="text-balance text-heading-lg font-medium text-foreground md:text-display">
+					{data.meta.title}
+				</h1>
+				<p class="text-pretty text-body-lg text-muted-foreground">{data.meta.description}</p>
+				<p class="flex items-center gap-3 text-body text-muted-foreground">
+					<!-- SVG avatar: @unpic/svelte is for raster images. -->
+					<img
+						src={AUTHOR.avatar}
+						alt=""
+						width="36"
+						height="36"
+						class="size-9 rounded-full border border-border object-cover"
+					/>
+					<span>By <a href="/about" class="{quiet} font-medium text-foreground">{AUTHOR.name}</a></span>
+				</p>
+			</header>
 
-<main id="main">
-	<article>
-		<Container size="narrow" class="pt-32 md:pt-36">
-			<a
-				href="/blog"
-				class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-			>
-				<IconArrowLeft class="size-4" stroke-width={2} />
-				All articles
-			</a>
-
-			<div class="mt-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-				<span class="font-medium text-foreground">{data.meta.category}</span>
-				{#if dateLabel}<span aria-hidden="true">·</span><time datetime={data.meta.date}>{dateLabel}</time>{/if}
-				<span aria-hidden="true">·</span><span>{data.readingMinutes} min read</span>
-			</div>
-
-			<h1
-				class="mt-4 text-4xl font-semibold leading-[1.1] tracking-tight text-foreground md:text-[2.75rem]"
-			>
-				{data.meta.title}
-			</h1>
-			<p class="mt-5 text-xl leading-relaxed text-muted-foreground">{data.meta.description}</p>
-
-			<div class="mt-6 flex items-center gap-3">
-				<img
-					src={AUTHOR.avatar}
-					alt={AUTHOR.name}
-					width="36"
-					height="36"
-					class="size-9 rounded-full border border-hairline object-cover"
-				/>
-				<span class="text-sm text-muted-foreground">
-					By <a href="/about" class="font-medium text-foreground hover:underline">{AUTHOR.name}</a>
-				</span>
-			</div>
-		</Container>
-
-		{#if data.meta.hero}
-			<Container size="narrow" class="mt-10">
+			{#if data.meta.hero}
+				<!-- Heroes are SVG, so no @unpic/svelte; add it if a raster hero lands. -->
 				<img
 					src={data.meta.hero}
-					alt={data.meta.heroAlt ?? data.meta.title}
-					class="aspect-[16/9] w-full rounded-2xl border border-hairline object-cover"
+					alt={data.meta.heroAlt ?? ""}
+					width="1600"
+					height="900"
+					class="aspect-video w-full max-w-5xl rounded-2xl border border-border object-cover"
 					fetchpriority="high"
 				/>
-			</Container>
-		{/if}
+			{/if}
 
-		<Container size="wide" class="mt-12 pb-8">
-			<div class="lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-12">
-				<div class="mx-auto w-full max-w-2xl lg:mx-0">
-					<ArticleBody content={data.content} />
-
-					<div class="mt-14 border-t border-hairline pt-8">
-						<AuthorCard />
-					</div>
+			<div class="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_17rem]">
+				<div class="min-w-0">
+					<article>
+						<ArticleBody content={data.content} />
+					</article>
 
 					{#if data.meta.tags.length}
-						<div class="mt-8 flex flex-wrap gap-2">
+						<ul class="mt-12 flex max-w-3xl flex-wrap gap-2" aria-label="Topics">
 							{#each data.meta.tags as tag (tag)}
-								<a
-									href="/blog/tag/{encodeURIComponent(tag)}"
-									class="rounded-full border border-hairline px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-								>#{tag}</a>
+								<li>
+									<a
+										href="/blog/tag/{encodeURIComponent(tag)}"
+										class="flex min-h-10 items-center rounded-full border border-border bg-card px-3.5 text-body text-foreground outline-none transition-colors duration-150 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring dark:bg-background"
+									>
+										{tag}
+									</a>
+								</li>
 							{/each}
-						</div>
+						</ul>
 					{/if}
+
+					<div class="mt-8 max-w-3xl">
+						<AuthorCard />
+					</div>
 				</div>
 
-				<aside class="hidden lg:block">
-					<div class="sticky top-28">
+				<aside class="flex flex-col gap-8 lg:sticky lg:top-28 lg:self-start">
+					<div class="panel-card flex flex-col gap-3 p-5">
+						<p class="text-body-lg font-medium text-foreground">Try it now</p>
+						<p class="text-body text-muted-foreground">
+							Compile LaTeX in your browser. No account, nothing uploaded.
+						</p>
+						<Button href={resolve('/workspace')} variant="primary" class="w-full">
+							Open the workspace
+							<IconArrowRight />
+						</Button>
+					</div>
+					<div class="hidden lg:block">
 						<Toc headings={data.headings} />
-						<div class="mt-8 rounded-xl border border-hairline bg-surface-soft p-5">
-							<p class="text-sm font-semibold text-foreground">Try it now</p>
-							<p class="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-								Compile LaTeX in your browser. No account.
-							</p>
-							<Button href={resolve('/workspace')} size="sm" class="mt-3 w-full">
-								Open the workspace
-								<IconArrowRight class="size-4" stroke-width={2} />
-							</Button>
-						</div>
 					</div>
 				</aside>
 			</div>
-		</Container>
-	</article>
+		</div>
+	</RailRow>
 
 	{#if data.related.length}
-		<Container size="wide" class="border-t border-hairline py-16">
-			<h2 class="text-xl font-semibold tracking-tight text-foreground">Keep reading</h2>
-			<div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-				{#each data.related as post (post.slug)}
-					<PostCard {post} />
-				{/each}
+		<RailRow label="Keep reading">
+			<div class="flex flex-col gap-5 px-1 py-6 sm:px-4 sm:py-8 lg:px-10">
+				<h2 class="text-heading-sm font-medium text-foreground">Keep reading</h2>
+				<ul class="grid grid-cols-1 gap-3 md:grid-cols-3">
+					{#each data.related as post (post.slug)}
+						<li><PostCard {post} /></li>
+					{/each}
+				</ul>
 			</div>
-		</Container>
+		</RailRow>
 	{/if}
-</main>
-
-<SiteFooter />
+</RailFrame>

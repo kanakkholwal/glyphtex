@@ -20,7 +20,7 @@ export async function loadPackIndex(): Promise<PackIndex | null> {
 		await cache?.put(INDEX_URL, response).catch(() => {});
 		return index;
 	} catch {
-		const cached = await cache?.match(INDEX_URL);
+		const cached = await cache?.match(INDEX_URL).catch(() => undefined);
 		if (!cached) return null;
 		try {
 			return parsePackIndex(await cached.json());
@@ -39,7 +39,9 @@ export async function installedPacks(index: PackIndex): Promise<InstalledPack[]>
 
 	const found = await Promise.all(
 		index.packs.map(async (pack) =>
-			(await cache.match(packUrl(pack.id, pack.hash))) ? { id: pack.id, hash: pack.hash } : null
+			(await cache.match(packUrl(pack.id, pack.hash)).catch(() => undefined))
+				? { id: pack.id, hash: pack.hash }
+				: null
 		)
 	);
 	return found.filter((p): p is InstalledPack => p !== null);
@@ -53,7 +55,7 @@ export async function fetchPack(index: PackIndex, id: string): Promise<Uint8Arra
 	const key = packUrl(pack.id, pack.hash);
 	const cache = await openEngineCache();
 
-	const cached = await cache?.match(key);
+	const cached = await cache?.match(key).catch(() => undefined);
 	if (cached) return new Uint8Array(await cached.arrayBuffer());
 
 	let response: Response;
@@ -82,5 +84,5 @@ export async function removePack(index: PackIndex, id: string): Promise<void> {
 	const pack = index.packs.find((p) => p.id === id);
 	if (!pack) return;
 	const cache = await openEngineCache();
-	await cache?.delete(packUrl(pack.id, pack.hash));
+	await cache?.delete(packUrl(pack.id, pack.hash)).catch(() => false);
 }

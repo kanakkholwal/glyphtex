@@ -1,0 +1,127 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,left=2.2cm,right=2.2cm,top=2.2cm,bottom=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% Answer key switch: \answerstrue prints the answers, \answersfalse gives the student paper.
+\newif\ifanswers
+\answerstrue
+
+\definecolor{keyred}{RGB}{190,30,45}
+
+% Exam details.
+\newcommand{\school}{Example Secondary School}
+\newcommand{\examtitle}{Year 10 Mathematics: End of Term Test}
+\newcommand{\examtime}{60 minutes}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\school}
+\fancyhead[R]{\small\ifanswers\textcolor{keyred}{\textbf{ANSWER KEY}}\else Candidate number: \rule{3cm}{0.4pt}\fi}
+\fancyfoot[C]{\small Page \thepage\ of \pageref{LastPage}}
+\setlength{\parindent}{0pt}
+
+% Questions number themselves and add up the marks.
+\newcounter{question}
+\newcounter{totalmarks}
+\newcommand{\question}[1]{%
+  \par\bigskip\stepcounter{question}\addtocounter{totalmarks}{#1}%
+  \textbf{\thequestion.}\hfill\textbf{[#1 mark\ifnum#1=1\else s\fi]}\par\nopagebreak\smallskip}
+
+% \writinglines{n} draws n ruled lines for students to write on.
+\newcount\linesdrawn
+\newcommand{\writinglines}[1]{\linesdrawn=0
+  \loop\ifnum\linesdrawn<#1 \advance\linesdrawn by 1
+    \vspace{0.9cm}\noindent\rule{\linewidth}{0.3pt}\par
+  \repeat}
+
+% \answer[lines]{text}: red in the key, blank writing lines on the student paper.
+\newcommand{\answer}[2][2]{%
+  \ifanswers
+    \par\smallskip{\color{keyred}\textbf{Answer:} #2}\par
+  \else
+    \par\smallskip\writinglines{#1}\par
+  \fi}
+
+\begin{document}
+
+% Cover section.
+\begin{center}
+  {\Large\bfseries \examtitle}\par\medskip
+  Time allowed: \examtime \qquad Total marks: 40\par
+  \ifanswers\textcolor{keyred}{\large\bfseries Teacher copy with answers}\fi
+\end{center}
+
+\medskip
+\fbox{\begin{minipage}{\dimexpr\textwidth-2\fboxsep-2\fboxrule}
+  \textbf{Instructions}
+  \begin{itemize}[itemsep=0pt,topsep=2pt]
+    \item Answer \emph{all} questions in the spaces provided.
+    \item Show your working; marks are given for method as well as the final answer.
+    \item Calculators are allowed. Give answers to 3 significant figures where needed.
+  \end{itemize}
+\end{minipage}}
+
+\medskip
+% Marks table for the examiner; add a column if you add a question.
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|l|*{6}{>{\centering\arraybackslash}p{1cm}|}c|}
+  \hline
+  Question & 1 & 2 & 3 & 4 & 5 & 6 & Total \\ \hline
+  Marks available & 4 & 6 & 5 & 8 & 7 & 10 & 40 \\ \hline
+  Marks awarded & & & & & & & \\ \hline
+\end{tabular}
+\end{center}
+
+\question{4}
+Simplify fully: $\dfrac{6x^2 y}{9xy^3}$.
+\answer[2]{$\dfrac{2x}{3y^2}$}
+
+\question{6}
+Solve the simultaneous equations
+\[ 3a + 2b = 16, \qquad a - b = 2. \]
+\answer[3]{From the second equation $a = b + 2$. Substituting: $3(b+2) + 2b = 16$, so $5b = 10$, giving $b = 2$ and $a = 4$.}
+
+\question{5}
+A jacket costs 80 GBP. Its price is increased by 15\% and then reduced by 10\% in a sale.
+\begin{enumerate}[label=(\alph*)]
+  \item Find the sale price. \hfill [3]
+  \item Find the overall percentage change. \hfill [2]
+\end{enumerate}
+\answer[3]{(a) $80 \times 1.15 \times 0.9 = 82.80$ GBP. \quad (b) $82.80 / 80 = 1.035$, an increase of $3.5\%$.}
+
+\question{8}
+The right-angled triangle $ABC$ has $AB = 7$ cm, $BC = 24$ cm and the right angle at $B$.
+\begin{enumerate}[label=(\alph*)]
+  \item Calculate the length $AC$. \hfill [3]
+  \item Calculate angle $BAC$ to 1 decimal place. \hfill [5]
+\end{enumerate}
+\answer[4]{(a) $AC = \sqrt{7^2 + 24^2} = \sqrt{625} = 25$ cm. \quad (b) $\tan(BAC) = 24/7$, so $BAC = 73.7^\circ$.}
+
+\question{7}
+Expand and simplify $(2x - 3)(x + 5)$, then solve $(2x - 3)(x + 5) = 0$.
+\answer[3]{$2x^2 + 7x - 15$. Solutions: $x = 1.5$ or $x = -5$.}
+
+\question{10}
+A bag contains 5 red and 3 blue counters. Two counters are taken at random without replacement.
+\begin{enumerate}[label=(\alph*)]
+  \item Draw a tree diagram to show the outcomes. \hfill [4]
+  \item Find the probability that both counters are the same colour. \hfill [6]
+\end{enumerate}
+\answer[5]{(b) $P(\text{RR}) = \tfrac{5}{8}\cdot\tfrac{4}{7} = \tfrac{20}{56}$ and $P(\text{BB}) = \tfrac{3}{8}\cdot\tfrac{2}{7} = \tfrac{6}{56}$, so $P(\text{same}) = \tfrac{26}{56} = \tfrac{13}{28}$.}
+
+\bigskip
+\begin{center}
+  \textbf{End of test.} Marks counted by the template: \arabic{totalmarks}.
+\end{center}
+
+\end{document}

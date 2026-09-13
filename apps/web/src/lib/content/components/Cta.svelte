@@ -19,14 +19,18 @@
 </script>
 
 <aside
-	class="not-prose my-10 flex flex-col gap-5 rounded-2xl border border-hairline bg-surface-soft px-6 py-7 sm:flex-row sm:items-center sm:justify-between"
+	class="not-prose panel-card my-10 flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between"
 >
 	<div>
-		<p class="text-base font-semibold tracking-tight text-foreground">{title}</p>
-		<p class="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">{body}</p>
+		<p class="text-body-lg font-medium text-foreground">{title}</p>
+		<p class="mt-1 max-w-md text-pretty text-body text-muted-foreground">{body}</p>
 	</div>
-	<Button href={target} class="shrink-0" onclick={() => track('cta_clicked', { target: 'workspace', location: 'content', from })}>
+	<Button
+		href={target}
+		class="shrink-0"
+		onclick={() => track('cta_clicked', { target: 'workspace', location: 'content', from })}
+	>
 		{label}
-		<IconArrowRight class="size-4" stroke-width={2} />
+		<IconArrowRight />
 	</Button>
 </aside>

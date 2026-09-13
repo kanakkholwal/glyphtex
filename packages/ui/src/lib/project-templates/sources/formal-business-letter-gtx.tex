@@ -1,0 +1,77 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{tabularx}
+\usepackage{xcolor}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+% Sender details used in the address block and signature.
+\newcommand{\sendername}{Morgan Ellis}
+\newcommand{\senderrole}{Operations Director}
+\newcommand{\sendercompany}{Placeholder Packaging Solutions Ltd}
+
+\begin{document}
+
+% Sender address block, right-aligned.
+\hfill
+\begin{minipage}[t]{7.4cm}
+  \raggedleft
+  \textbf{\sendercompany}\\
+  Unit 4, Example Business Park\\
+  Sampleton SA1 7QP\\
+  Tel: 01632 960123\\
+  info@placeholder-packaging.example
+\end{minipage}
+
+\vspace{1.5em}
+% Recipient address block, left-aligned.
+\begin{minipage}[t]{7cm}
+  Ms Avery Stone\\
+  Head of Procurement\\
+  Example Foods plc\\
+  15 Market Square\\
+  Exampleton EX9 3LM
+\end{minipage}
+
+\vspace{0.5em}
+% Reference numbers help both sides file the letter.
+\begin{tabularx}{\textwidth}{@{}l l X r@{}}
+  \small Our ref: & \small PPS/2026/118 & & \today \\
+  \small Your ref: & \small EF-PROC-044 & & \\
+\end{tabularx}
+
+\textbf{Subject: Revised supply agreement for recyclable food trays}
+
+Dear Ms Stone,
+
+Thank you for meeting with our team last week to discuss your packaging requirements for the coming year. As agreed, I am writing to confirm the revised terms we propose for the supply of recyclable food trays.
+
+We are pleased to offer the following:
+\begin{enumerate}
+  \item A fixed unit price for twelve months from the start of the agreement.
+  \item Delivery to your three distribution centres every two weeks.
+  \item A quarterly report on recycled content and carbon savings.
+\end{enumerate}
+
+The full schedule of prices and quantities is enclosed. If these terms are acceptable, we would be glad to prepare the contract for signature by the end of next month.
+
+Please contact me directly if you have any questions or would like to arrange a further meeting.
+
+Yours sincerely,
+
+\vspace{0.5em}
+\fbox{\begin{minipage}[c][1.2cm][c]{4.5cm}\centering\color{gray}Signature\end{minipage}}
+
+\sendername\\
+\senderrole, \sendercompany
+
+\vspace{1em}
+{\small
+Enc.: Price and quantity schedule\\
+cc: Taylor Grant, Account Manager}
+
+\end{document}

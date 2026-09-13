@@ -9,33 +9,35 @@
 	];
 </script>
 
-<aside class="flex gap-4 rounded-2xl border border-hairline bg-surface-soft px-6 py-6">
+<aside aria-label="About the author" class="panel-card flex gap-4 p-5 sm:p-6">
+	<!-- SVG avatar: @unpic/svelte is for raster images. -->
 	<img
 		src={AUTHOR.avatar}
-		alt={AUTHOR.name}
+		alt=""
 		width="52"
 		height="52"
 		loading="lazy"
-		class="size-13 shrink-0 rounded-full border border-hairline object-cover"
+		class="size-13 shrink-0 rounded-full border border-border object-cover"
 	/>
-	<div>
+	<div class="flex min-w-0 flex-col">
 		<a
 			href="/about"
-			class="text-sm font-semibold tracking-tight text-foreground hover:underline"
-			>{AUTHOR.name}</a
+			class="w-fit rounded-sm text-body-lg font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
 		>
-		<p class="text-xs text-muted-foreground">{AUTHOR.role}</p>
-		<p class="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">{AUTHOR.bio}</p>
-		<div class="mt-3 flex gap-3">
+			{AUTHOR.name}
+		</a>
+		<p class="text-caption text-muted-foreground">{AUTHOR.role}</p>
+		<p class="mt-2 max-w-prose text-pretty text-body text-muted-foreground">{AUTHOR.bio}</p>
+		<div class="mt-2 -ml-2.5 flex">
 			{#each links as link (link.label)}
 				<a
 					href={link.href}
 					target="_blank"
-					rel="noopener"
-					aria-label={link.label}
-					class="text-muted-foreground transition-colors hover:text-foreground"
+					rel="noopener noreferrer"
+					aria-label="{AUTHOR.name} on {link.label}"
+					class="grid size-10 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
 				>
-					<link.icon class="size-4" stroke-width={1.75} />
+					<link.icon class="size-4" aria-hidden="true" />
 				</a>
 			{/each}
 		</div>

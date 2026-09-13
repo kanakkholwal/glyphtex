@@ -1,0 +1,128 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper, margin=18mm, bottom=20mm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage[skins, breakable]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+
+% Colours for tags and accents.
+\definecolor{ink}{HTML}{1F2933}
+\definecolor{muted}{HTML}{7B8794}
+\definecolor{newc}{HTML}{2F855A}
+\definecolor{impc}{HTML}{2B6CB0}
+\definecolor{fixc}{HTML}{C05621}
+\definecolor{depc}{HTML}{9B2C2C}
+\definecolor{panel}{HTML}{F5F7FA}
+
+% Product details used in the header and footer.
+\newcommand{\product}{Orbit}
+\newcommand{\period}{September 2026}
+
+\hypersetup{colorlinks=true, urlcolor=impc, linkcolor=impc}
+\renewcommand{\familydefault}{\sfdefault}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlist{leftmargin=0pt, itemsep=1pt, topsep=2pt, label={}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\footnotesize\color{muted}\product\ release digest, \period}
+\fancyfoot[R]{\footnotesize\color{muted}\thepage}
+
+\titleformat{\section}{\Large\bfseries\color{ink}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+
+% Coloured tags. Use \new, \improved, \fixed or \deprecated before an item.
+\newcommand{\tagbox}[2]{\tikz[baseline=(t.base)]\node[fill=#1, text=white, rounded corners=2pt, inner xsep=4pt, inner ysep=2pt, font=\scriptsize\bfseries] (t) {#2};}
+\newcommand{\new}{\tagbox{newc}{NEW}}
+\newcommand{\improved}{\tagbox{impc}{IMPROVED}}
+\newcommand{\fixed}{\tagbox{fixc}{FIXED}}
+\newcommand{\deprecated}{\tagbox{depc}{DEPRECATED}}
+
+% A version header. Usage: \release{version}{date}{one line summary}
+\newcommand{\release}[3]{%
+  \par\vspace{6pt}
+  \begin{tcolorbox}[enhanced, colback=ink, colframe=ink, arc=2mm, left=4mm, right=4mm, top=2mm, bottom=2mm]
+    \color{white}{\Large\bfseries Version #1}\quad{\color{white!85!ink}#3}\hfill{\color{white!70!ink}#2}
+  \end{tcolorbox}}
+
+\begin{document}
+
+{\color{muted}\small RELEASE NOTES DIGEST}\par
+{\fontsize{34}{38}\selectfont\bfseries\color{ink} What's new in \product\par}
+\vspace{2pt}
+{\large\color{muted} Everything we shipped in \period\par}
+\vspace{6pt}
+{\color{ink}\rule{\textwidth}{2pt}}
+
+\begin{tcolorbox}[colback=panel, colframe=panel, arc=2mm, left=4mm, right=4mm]
+  \begin{minipage}[t]{0.23\linewidth}\centering{\fontsize{26}{30}\selectfont\bfseries\color{newc}6}\\ \small new features\end{minipage}\hfill
+  \begin{minipage}[t]{0.23\linewidth}\centering{\fontsize{26}{30}\selectfont\bfseries\color{impc}9}\\ \small improvements\end{minipage}\hfill
+  \begin{minipage}[t]{0.23\linewidth}\centering{\fontsize{26}{30}\selectfont\bfseries\color{fixc}14}\\ \small bug fixes\end{minipage}\hfill
+  \begin{minipage}[t]{0.23\linewidth}\centering{\fontsize{26}{30}\selectfont\bfseries\color{depc}1}\\ \small deprecation\end{minipage}
+\end{tcolorbox}
+
+\section{Highlights}
+\begin{itemize}
+  \item \textbf{Offline mode.} Projects now open and save with no connection, and sync when you are back online.
+  \item \textbf{Shared templates.} Teams can publish templates that everyone in the workspace can reuse.
+  \item \textbf{Faster search.} Results now appear as you type, even in large workspaces.
+\end{itemize}
+
+\release{4.2}{28 September 2026}{Offline mode and shared templates}
+\begin{itemize}
+  \item \new\ Work offline: edits are stored locally and synced later.
+  \item \new\ Shared templates for teams, with a gallery view.
+  \item \improved\ Export to PDF keeps page numbers and bookmarks.
+  \item \fixed\ Comments no longer disappear after renaming a file.
+  \item \fixed\ Dark theme now applies to the settings dialog.
+\end{itemize}
+
+\release{4.1.1}{16 September 2026}{Stability fixes}
+\begin{itemize}
+  \item \fixed\ Crash when pasting very large tables.
+  \item \fixed\ Keyboard shortcuts on some non English layouts.
+  \item \improved\ Start up time reduced by about 30\%.
+\end{itemize}
+
+\release{4.1}{3 September 2026}{Search and performance}
+\begin{itemize}
+  \item \new\ Instant search with filters for owner and date.
+  \item \new\ Pin files to the top of the sidebar.
+  \item \improved\ Scrolling in long documents is smoother.
+  \item \deprecated\ The legacy API version 1 will be removed in version 5.0.
+\end{itemize}
+
+\begin{minipage}[t]{0.47\textwidth}
+  \section{Upgrade notes}
+  \begin{tcolorbox}[enhanced, colback=depc!6, colframe=depc!6, borderline west={3pt}{0pt}{depc}, arc=0pt, left=4mm]
+    \raggedright\textbf{Action needed if you use API version 1.} Move your integrations to version 2 before March 2027.
+    Migration guide: \url{https://example.org/orbit/migrate}
+  \end{tcolorbox}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.47\textwidth}
+  \section{Performance at a glance}
+  % Edit the numbers to match your own benchmarks.
+  \begin{tabular}{@{}lrrr@{}}
+    \toprule
+    Metric & 4.0 & 4.2 & Change \\
+    \midrule
+    Cold start (s) & 2.8 & 1.9 & \textcolor{newc}{faster} \\
+    Search, 10k files (ms) & 640 & 85 & \textcolor{newc}{faster} \\
+    Memory at idle (MB) & 210 & 190 & \textcolor{newc}{lower} \\
+    \bottomrule
+  \end{tabular}
+\end{minipage}
+
+\vfill
+{\color{muted}\rule{\textwidth}{0.5pt}}\par
+\small Thank you to everyone who reported bugs and tested early builds. Send feedback to \href{mailto:feedback@example.org}{feedback@example.org}.
+
+\end{document}

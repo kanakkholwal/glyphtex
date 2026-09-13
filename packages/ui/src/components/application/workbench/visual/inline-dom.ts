@@ -1,13 +1,7 @@
 import type { Inline, MarkKind } from "@glyphtex/ui/tex-doc";
 
-/**
- * The bridge between inline runs and a `contenteditable`.
- *
- * Runs the model does not let you type into (math, citations, refs, labels,
- * unmodelled macros) render as `contenteditable="false"` atoms carrying their
- * source in `data-src`. The browser then treats each as a single character: it
- * can be selected and deleted whole, but never half-edited into invalid LaTeX.
- */
+// Bridges inline runs and a contenteditable. Non-typeable runs (math, refs, macros) are
+// contenteditable="false" atoms with source in `data-src`: deletable whole, never half-edited.
 
 /** Stands in for an atom in the plain-text projection: invisible, width-zero,
  *  and never matched by an input rule. */
@@ -40,13 +34,13 @@ const MARK_CLASS: Record<MarkKind, string> = {
 };
 
 const ATOM_CLASS: Record<string, string> = {
-	math: "text-brand bg-brand-subtle/40 rounded px-1 py-0.5 text-[0.85em] font-mono",
-	cite: "text-brand",
-	ref: "text-brand",
-	label: "text-faint text-[0.75em]",
-	link: "text-brand underline underline-offset-2",
-	footnote: "text-brand align-super text-[0.7em]",
-	comment: "text-faint bg-accent/60 rounded px-1 text-[0.8em] font-mono",
+	math: "text-primary bg-primary/5 rounded px-1 py-0.5 text-[0.85em] font-mono",
+	cite: "text-primary",
+	ref: "text-primary",
+	label: "text-muted-foreground text-[0.75em]",
+	link: "text-primary underline underline-offset-2",
+	footnote: "text-primary align-super text-[0.7em]",
+	comment: "text-muted-foreground bg-accent/60 rounded px-1 text-[0.8em] font-mono",
 	raw: "text-muted-foreground bg-accent rounded px-1 py-0.5 text-[0.8em] font-mono"
 };
 
@@ -246,9 +240,8 @@ export function domToInlines(root: Node): Inline[] {
 
 	for (const node of Array.from(root.childNodes)) {
 		if (node.nodeType === Node.TEXT_NODE) {
-			// contenteditable pads with non-breaking spaces and can hold stray
-			// newlines; both are one plain space to LaTeX. Replaced one-for-one so
-			// the caret offset keeps matching the text we serialize.
+			// NBSPs and stray newlines are one space to LaTeX; replaced one-for-one so caret
+			// offsets keep matching the serialized text.
 			pushText((node.nodeValue ?? "").replace(/\s/g, " "));
 			continue;
 		}
@@ -284,12 +277,8 @@ export function domToInlines(root: Node): Inline[] {
 	return out.filter((run) => run.kind !== "text" || run.text !== "");
 }
 
-/**
- * Drop the first `count` characters of a run list, the markdown prefix an input
- * rule just consumed. Computed on the model rather than by splitting the DOM at
- * the caret: the caret's range can be anchored on the element rather than the
- * text node, and the split then hands back the whole block instead of nothing.
- */
+/** Drop the first `count` characters (a consumed input-rule prefix) on the model: a DOM split
+ *  at an element-anchored caret returns the whole block. */
 export function dropLeading(runs: Inline[], count: number): Inline[] {
 	let remaining = count;
 	const out: Inline[] = [];

@@ -68,7 +68,7 @@
 				<button
 					data-page={n}
 					class="group flex flex-col items-center gap-1 rounded-md p-1 transition-colors {active
-						? 'bg-brand-subtle'
+						? 'bg-primary/10'
 						: 'hover:bg-muted'}"
 					aria-label="Page {n}"
 					aria-current={active ? 'page' : undefined}
@@ -76,12 +76,12 @@
 				>
 					<canvas
 						bind:this={canvases[n - 1]}
-						class="border-border block w-[104px] rounded-[3px] border bg-white shadow-sm transition-[outline-color] {active
-							? 'outline-brand outline-2'
+						class="border-border block w-[104px] rounded-[3px] border bg-fixed-light shadow-sm transition-[outline-color] {active
+							? 'outline-primary outline-2'
 							: 'outline-transparent outline-2'}"
 						style:height="134px"
 					></canvas>
-					<span class="text-xs tabular-nums {active ? 'text-brand font-medium' : 'text-faint'}">
+					<span class="text-xs tabular-nums {active ? 'text-primary font-medium' : 'text-muted-foreground'}">
 						{n}
 					</span>
 				</button>

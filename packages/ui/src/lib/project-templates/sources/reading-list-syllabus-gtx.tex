@@ -1,0 +1,104 @@
+% The course readings are written to readings.bib when you compile. Add or edit entries here.
+\begin{filecontents*}[overwrite]{readings.bib}
+@book{hart2018,
+  author    = {Hart, Miriam},
+  title     = {Cities and Their Rivers},
+  publisher = {Example University Press},
+  year      = {2018}
+}
+@article{mendez2020,
+  author  = {Mendez, Carlos},
+  title   = {Floodplain planning after 1950},
+  journal = {Example Journal of Urban History},
+  year    = {2020},
+  volume  = {46},
+  number  = {2},
+  pages   = {233--251}
+}
+@incollection{ito2017,
+  author    = {Ito, Yuki},
+  title     = {Embankments as public space},
+  booktitle = {Water in the Modern City},
+  editor    = {Lang, Oskar},
+  publisher = {Sample Books},
+  year      = {2017},
+  pages     = {77--98}
+}
+@article{byrne2022,
+  author  = {Byrne, Aoife and Chen, Wei},
+  title   = {Restoring buried streams: lessons from five projects},
+  journal = {Landscape Example},
+  year    = {2022},
+  volume  = {15},
+  pages   = {10--29}
+}
+@book{fofana2021,
+  author    = {Fofana, Aminata},
+  title     = {Drought, Memory and Urban Design},
+  publisher = {Example Press},
+  year      = {2021}
+}
+\end{filecontents*}
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage[authoryear,round]{natbib}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{week}{RGB}{0,95,105}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5ex}
+
+\titleformat{\section}{\normalfont\Large\bfseries\color{week}}{}{0pt}{}
+
+% Tags that mark how important a reading is.
+\newcommand{\core}{\textsf{\small\colorbox{week}{\textcolor{white}{CORE}}}}
+\newcommand{\optional}{\textsf{\small\colorbox{week!15}{\textcolor{week}{OPTIONAL}}}}
+
+% \weekrow{number}{dates}{topic}{readings} adds one row to the schedule table.
+\newcommand{\weekrow}[4]{\textbf{#1} & #2 & #3 & #4 \\ \midrule}
+
+\begin{document}
+
+{\small\color{week}\textsf{GEOG 2140 \textbullet\ Autumn 2026}\par}
+{\LARGE\bfseries Rivers and the Modern City\par}
+{\large Reading list and schedule\par}
+\medskip
+Convenor: Dr Convenor Name \quad Office hours: Tuesdays 14:00 to 16:00 \quad Room: B2.07
+
+\section{How to use this list}
+Read the \core{} items before the seminar in that week. \optional{} items deepen a topic for essays.
+Full references are at the end of this document, and each citation links to its entry.
+
+\section{Weekly schedule}
+\begin{tabularx}{\linewidth}{@{}l l X X@{}}
+\toprule
+Week & Dates & Topic & Readings \\
+\midrule
+\weekrow{1}{22 to 26 Sep}{Why rivers shaped cities}{\core{} \citet[ch.~1]{hart2018}}
+\weekrow{2}{29 Sep to 3 Oct}{Planning for floods}{\core{} \citet{mendez2020} \newline \optional{} \citet[ch.~4]{hart2018}}
+\weekrow{3}{6 to 10 Oct}{Riverbanks as public space}{\core{} \citet{ito2017}}
+\weekrow{4}{13 to 17 Oct}{Burying and restoring streams}{\core{} \citet{byrne2022}}
+\weekrow{5}{20 to 24 Oct}{Reading week}{No new readings. Start your essay plan.}
+\weekrow{6}{27 to 31 Oct}{Scarcity and drought}{\core{} \citet[chs.~2 and~3]{fofana2021}}
+\end{tabularx}
+
+\section{Assessment}
+\begin{itemize}[nosep]
+  \item Seminar reflections, 20\%: due each Friday of weeks 2 to 6.
+  \item Essay of 2\,500 words, 80\%: due 15 December 2026.
+\end{itemize}
+
+\section{Further reading}
+Add sources for students who want to go further. \nocite{*}The command on this line lists every entry in the file, even ones not cited above.
+
+\renewcommand{\refname}{Full references}
+\bibliographystyle{plainnat}
+\bibliography{readings}
+
+\end{document}

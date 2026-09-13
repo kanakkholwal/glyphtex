@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Menubar as MenubarPrimitive } from "bits-ui";
-	import { CRAFT_OVERLAY_ANIMATION, cn } from "@glyphtex/ui/utils";
+	import { CRAFT_OVERLAY_ANIMATION, CRAFT_OVERLAY_SURFACE, cn } from "@glyphtex/ui/utils";
 
 	let {
 		ref = $bindable(null),
@@ -21,9 +21,10 @@
 		{alignOffset}
 		class={cn(
 			CRAFT_OVERLAY_ANIMATION,
-			// Unfold from the corner nearest the trigger (macOS-menu feel).
+			CRAFT_OVERLAY_SURFACE,
+			// Unfold from the corner nearest the trigger.
 			'origin-(--bits-floating-transform-origin)',
-			'ring-foreground/10 text-popover-foreground bg-popover/70 relative z-50 min-w-48 overflow-hidden rounded-xl p-1 shadow-md ring-1 outline-none before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:backdrop-blur-2xl before:backdrop-saturate-150',
+			'relative z-50 min-w-48 overflow-hidden p-1 outline-none',
 			className
 		)}
 		{...restProps}

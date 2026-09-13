@@ -36,7 +36,7 @@
 		<div class="border-border flex h-9 shrink-0 items-center gap-2 border-b px-2 pl-3">
 			<span class="text-foreground text-xs font-medium">Notes</span>
 			{#if notes.openCount}
-				<span class="text-faint text-xs tabular-nums">{notes.openCount} open</span>
+				<span class="text-muted-foreground text-xs tabular-nums">{notes.openCount} open</span>
 			{/if}
 			<div class="ml-auto flex items-center gap-0.5">
 				{#if notes.doneCount}
@@ -76,7 +76,7 @@
 		<input
 			bind:this={field}
 			bind:value={notes.draft}
-			class="border-border bg-input focus-visible:ring-ring/40 h-8 min-w-0 flex-1 rounded-md border px-2.5 text-sm outline-none focus-visible:ring-2"
+			class="border-border bg-background focus-visible:ring-ring/40 h-8 min-w-0 flex-1 rounded-md border px-2.5 text-sm outline-none focus-visible:ring-2"
 			placeholder="Add a note or #tag"
 			aria-label="New note"
 		/>
@@ -97,7 +97,7 @@
 				onclick={() => (notes.filter = f.id)}
 			>
 				{f.label}
-				{#if f.count}<span class="text-faint tabular-nums">{f.count}</span>{/if}
+				{#if f.count}<span class="text-muted-foreground tabular-nums">{f.count}</span>{/if}
 			</button>
 		{/each}
 	</div>
@@ -108,7 +108,7 @@
 				<IconNotes size={20} class="opacity-40" />
 				{#if notes.notes.length === 0}
 					<p class="text-xs">Nothing noted yet.</p>
-					<p class="text-faint text-xs">Notes stay on this device.</p>
+					<p class="text-muted-foreground text-xs">Notes stay on this device.</p>
 				{:else}
 					<p class="text-xs">Nothing in this filter.</p>
 				{/if}
@@ -126,8 +126,8 @@
 						<div class="min-w-0 flex-1">
 							<p
 								class="text-sm leading-snug break-words {note.done
-									? 'text-faint line-through'
-									: 'text-foreground/90'}"
+									? 'text-muted-foreground line-through'
+									: 'text-foreground'}"
 							>
 								{stripTags(note.text)}
 							</p>
@@ -139,7 +139,7 @@
 										{tag}
 									</span>
 								{/each}
-								<span class="text-faint ml-auto shrink-0 text-xs">
+								<span class="text-muted-foreground ml-auto shrink-0 text-xs">
 									{relativeTime(note.at)}
 								</span>
 							</div>

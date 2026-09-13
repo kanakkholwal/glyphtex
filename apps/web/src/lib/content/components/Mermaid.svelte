@@ -7,10 +7,10 @@
 	let failed = $state(false);
 	let host = $state<HTMLElement | null>(null);
 
-	const id = `mmd-${Math.random().toString(36).slice(2, 9)}`;
+	const uid = $props.id();
+	const id = `mmd-${uid}`;
 
-	// mermaid is ~500 KB; it loads only for pages that actually draw something,
-	// and only once the diagram is near the viewport.
+	// mermaid is ~500 KB: imported only once a diagram nears the viewport.
 	async function render(dark: boolean) {
 		const { default: mermaid } = await import("mermaid");
 		mermaid.initialize({
@@ -23,6 +23,7 @@
 		try {
 			const out = await mermaid.render(`${id}-${dark ? "d" : "l"}`, code);
 			svg = out.svg;
+			failed = false;
 		} catch {
 			failed = true;
 		}
@@ -45,7 +46,7 @@
 		);
 		io.observe(host);
 
-		// Re-render on theme toggle, but only after the first paint has happened.
+		// Re-render on theme toggle, but only after the first draw.
 		const mo = new MutationObserver(() => {
 			if (started) draw();
 		});
@@ -60,7 +61,7 @@
 
 <figure class="not-prose my-9" bind:this={host}>
 	<div
-		class="overflow-x-auto rounded-2xl border border-hairline bg-surface-card px-4 py-6 text-center [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full"
+		class="panel-card overflow-x-auto px-4 py-6 text-center [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full"
 	>
 		{#if svg}
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -68,15 +69,15 @@
 		{:else}
 			<!-- Also the prerendered payload, so the diagram is readable without JS. -->
 			<pre
-				class="m-0 overflow-x-auto text-left font-mono text-xs leading-relaxed text-muted-foreground">{code}</pre>
+				class="m-0 overflow-x-auto text-left font-mono text-caption text-muted-foreground">{code}</pre>
 		{/if}
 	</div>
 	{#if caption}
-		<figcaption class="mt-3 text-center text-sm text-muted-foreground">{caption}</figcaption>
+		<figcaption class="mt-3 text-center text-body text-muted-foreground">{caption}</figcaption>
 	{/if}
 	{#if failed}
-		<figcaption class="mt-2 text-center text-xs text-destructive">
-			Diagram could not be drawn.
+		<figcaption class="mt-2 text-center text-caption text-destructive">
+			<span class="font-semibold">Error:</span> the diagram could not be drawn, so its source is shown.
 		</figcaption>
 	{/if}
 </figure>

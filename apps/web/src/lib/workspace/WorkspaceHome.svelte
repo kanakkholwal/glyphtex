@@ -1,8 +1,16 @@
 <script lang="ts">
-	import { goto } from "$app/navigation";
+	import { goto, replaceState } from "$app/navigation";
 	import { resolve } from "$app/paths";
+	import { page } from "$app/state";
 	import { ProjectsHome, type Scope } from "@glyphtex/ui/application";
+	import {
+		loadTemplateCatalog,
+		loadTemplateFiles,
+		type ProjectTemplate
+	} from "@glyphtex/ui/project-templates";
+	import { Button } from "@glyphtex/ui/button";
 	import { toast } from "@glyphtex/ui/sonner";
+	import { IconDatabaseOff, IconLoader2, IconUpload } from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
@@ -61,8 +69,8 @@
 	let storage = $state<{ used: number; total: number } | undefined>(undefined);
 
 	async function refresh(): Promise<void> {
-		stored = await listProjects();
-		const status = await storageStatus();
+		const [list, status] = await Promise.all([listProjects(), storageStatus()]);
+		stored = list;
 		storage =
 			status.unknown || status.quota === 0
 				? undefined
@@ -72,6 +80,14 @@
 	onMount(async () => {
 		try {
 			await refresh();
+			// Arriving from the public gallery: create the project it asked for, then open it.
+			const use = page.url.searchParams.get("use");
+			if (use) {
+				// Drop the parameter first, so Back never lands here and creates a second copy.
+				replaceState(resolve("/workspace/templates"), {});
+				const id = await createFromTemplate(use);
+				if (id) open(id);
+			}
 		} catch (error) {
 			failure = error instanceof Error ? error.message : "Could not read saved documents.";
 		} finally {
@@ -104,8 +120,7 @@
 			track("document_created", { source, files: bucket(files.length), location: "workspace" });
 			await refresh();
 			void requestPersistence();
-			// Ignored files are expected (node_modules, build output), so they get a
-			// count; skipped ones hit a real limit and are named.
+			// Ignored files are expected, so they get a count; skipped ones hit a limit and are named.
 			const aside = ignored > 0 ? ` Ignored ${ignored} build/ignored files.` : "";
 			if (skipped.length > 0) {
 				toast.warning(
@@ -168,6 +183,37 @@
 		}
 	}
 
+	// Loaded only when the gallery opens, so the catalog never ships with the workspace.
+	let templates = $state.raw<ProjectTemplate[]>([]);
+	let templatesLoading = $state(false);
+	let catalogRequested = false;
+
+	$effect(() => {
+		if (scope !== "templates" || catalogRequested) return;
+		catalogRequested = true;
+		templatesLoading = true;
+		loadTemplateCatalog()
+			.then((list) => (templates = list))
+			.catch((error) => report(error, "Could not load the templates."))
+			.finally(() => (templatesLoading = false));
+	});
+
+	async function createFromTemplate(id: string): Promise<string | void> {
+		try {
+			const template = (templates.length > 0 ? templates : await loadTemplateCatalog()).find(
+				(t) => t.id === id
+			);
+			const files = await loadTemplateFiles(id);
+			const project = await createProject(template?.title ?? "Untitled", files);
+			track("document_created", { source: "template", location: "workspace" });
+			await refresh();
+			void requestPersistence();
+			return project.id;
+		} catch (error) {
+			report(error, "Could not create a project from that template.");
+		}
+	}
+
 	/** Clone straight into a new document; the repo lands in browser storage. */
 	async function cloneRepo(url: string): Promise<void> {
 		try {
@@ -185,14 +231,38 @@
 		void goto(resolve(`/workspace/projects/${id}` as `/workspace/projects/${string}`));
 	}
 
-	async function rename(id: string, name: string): Promise<void> {
+	// Optimistic for reversible local edits: patch the list now, swap in the stored
+	// record on success, restore the previous one on failure.
+	async function optimistic(
+		id: string,
+		change: Partial<StoredProject>,
+		write: () => Promise<StoredProject>,
+		fallback: string
+	): Promise<boolean> {
+		const before = $state.snapshot(stored.find((p) => p.id === id));
+		if (!before) return false;
+		const swap = (next: StoredProject) => {
+			stored = stored.map((p) => (p.id === id ? next : p));
+		};
+		swap({ ...before, ...change });
 		try {
-			await renameProject(id, name);
-			track("document_renamed");
-			await refresh();
+			swap(await write());
+			return true;
 		} catch (error) {
-			report(error, "Could not rename the document.");
+			swap(before);
+			report(error, fallback);
+			return false;
 		}
+	}
+
+	async function rename(id: string, name: string): Promise<void> {
+		const ok = await optimistic(
+			id,
+			{ name: name.trim() || "Untitled" },
+			() => renameProject(id, name),
+			"Could not rename the document."
+		);
+		if (ok) track("document_renamed");
 	}
 
 	async function duplicate(id: string): Promise<void> {
@@ -206,13 +276,13 @@
 	}
 
 	async function star(id: string, starred: boolean): Promise<void> {
-		try {
-			await setStarred(id, starred);
-			track("document_starred", { starred });
-			await refresh();
-		} catch (error) {
-			report(error, "Could not update the star.");
-		}
+		const ok = await optimistic(
+			id,
+			{ starred },
+			() => setStarred(id, starred),
+			"Could not update the star."
+		);
+		if (ok) track("document_starred", { starred });
 	}
 
 	async function remove(id: string): Promise<void> {
@@ -232,16 +302,33 @@
 </svelte:head>
 
 {#if failure}
-	<div
-		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
+	<main
+		id="main"
+		class="bg-canvas flex min-h-dvh items-center justify-center px-4 py-10"
 	>
-		<h1 class="text-lg font-semibold">Local storage is unavailable</h1>
-		<p class="text-sm text-muted-foreground">{failure}</p>
-		<p class="text-sm text-muted-foreground">
-			Private windows and blocked site data both prevent saving. Allow site data for this origin, or
-			reopen GlyphTeX in a normal window.
-		</p>
-	</div>
+		<div class="panel-card flex w-full max-w-md flex-col items-center gap-4 p-8 text-center">
+			<span
+				class="border-border bg-background text-destructive grid size-12 place-items-center rounded-xl border"
+				aria-hidden="true"
+			>
+				<IconDatabaseOff size={24} />
+			</span>
+			<div class="flex flex-col gap-2">
+				<h1 class="text-heading-sm font-medium">Local storage is unavailable</h1>
+				<p class="text-body text-muted-foreground">
+					Private windows and blocked site data both prevent saving. Allow site data for this site,
+					or reopen GlyphTeX in a normal window.
+				</p>
+			</div>
+			<Button class="w-full sm:w-auto" onclick={() => location.reload()}>Try again</Button>
+			<details class="text-caption text-muted-foreground w-full text-left">
+				<summary class="focus-visible:ring-ring rounded-sm text-center outline-none focus-visible:ring-2">
+					Details
+				</summary>
+				<p class="bg-muted mt-2 rounded-lg p-3 font-mono break-words">{failure}</p>
+			</details>
+		</div>
+	</main>
 {:else}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
@@ -257,6 +344,9 @@
 			{loading}
 			{projects}
 			oncreate={handleCreate}
+			{templates}
+			{templatesLoading}
+			onusetemplate={createFromTemplate}
 			onopen={open}
 			onrename={rename}
 			onduplicate={duplicate}
@@ -293,19 +383,20 @@
 
 {#if dragging}
 	<div
-		class="border-brand bg-background/80 pointer-events-none fixed inset-4 z-50 flex items-center justify-center rounded-2xl border-2 border-dashed backdrop-blur-sm"
+		class="border-primary bg-background/90 pointer-events-none fixed inset-4 z-50 flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed"
 		role="status"
 	>
-		<p class="text-base font-medium">Drop a folder or .zip to import a document</p>
+		<IconUpload size={28} class="text-primary" aria-hidden="true" />
+		<p class="text-body-lg font-medium">Drop a folder or .zip to import a document</p>
 	</div>
 {/if}
 
 {#if importing}
-	<div
-		class="bg-background/70 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
-		role="status"
-	>
-		<p class="text-sm font-medium">Importing…</p>
+	<div class="bg-background/90 fixed inset-0 z-50 flex items-center justify-center" role="status">
+		<p class="text-body flex items-center gap-2 font-medium">
+			<IconLoader2 size={18} class="text-muted-foreground animate-spin" aria-hidden="true" />
+			Importing…
+		</p>
 	</div>
 {/if}
 

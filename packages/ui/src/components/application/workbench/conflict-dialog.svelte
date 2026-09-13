@@ -11,11 +11,8 @@
 
 	import type { FileStore } from "./files.svelte";
 
-	/**
-	 * Explorer move/delete prompts: name-conflict resolution (replace / keep both
-	 * / merge / skip) + destructive confirm. Promise-based: the {@link FileStore}
-	 * op `await`s `pending.resolve`, which the buttons here call.
-	 */
+	// Explorer conflict resolution and destructive confirm; the FileStore op awaits
+	// `pending.resolve`, which these buttons call.
 	let { files }: { files: FileStore } = $props();
 </script>
 
@@ -43,7 +40,7 @@
 				/>
 				{#if files.pending.canApplyAll}
 					<label class="text-muted-foreground mt-1 flex items-center gap-2 text-xs select-none">
-						<input type="checkbox" bind:checked={files.applyToAll} class="accent-brand size-3.5" />
+						<input type="checkbox" bind:checked={files.applyToAll} class="accent-primary size-3.5" />
 						Apply to all remaining conflicts
 					</label>
 				{/if}

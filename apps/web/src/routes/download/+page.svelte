@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import { track } from "$lib/analytics";
+	import { REPO_SLUG, REPO_URL } from "$lib/landing/nav-data";
 	import Seo from "$lib/seo/Seo.svelte";
-	import SiteFooter from "$lib/SiteFooter.svelte";
-	import SiteHeader from "$lib/SiteHeader.svelte";
+	import { BrandPanel, PageHero, RailFrame, RailRow, SplitSection } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
-	import { Reveal } from "@glyphtex/ui/reveal";
-	import { Container, Section } from "$lib/landing";
+	import { Skeleton } from "@glyphtex/ui/skeleton";
 	import {
 		IconAlertTriangle,
 		IconArrowRight,
@@ -17,27 +17,18 @@
 		IconChevronDown,
 		IconCopy,
 		IconDownload,
-		IconInfoCircle,
-		IconShieldCheck,
+		IconFlask,
 		IconTerminal2
 	} from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
-	import { cubicOut } from "svelte/easing";
-	import { fly } from "svelte/transition";
-	import { track } from "$lib/analytics";
 
-	const owner = "kanakkholwal";
-	const repoName = "glyphtex";
-	const repo = `https://github.com/${owner}/${repoName}`;
-	const releases = `${repo}/releases`;
+	const releases = `${REPO_URL}/releases`;
 
-	type OS = "mac" | "windows" | "linux" | null;
-	let detected = $state<OS>(null);
+	type OS = "mac" | "windows" | "linux";
+	let detected = $state<OS | null>(null);
 
-	// Live release data, pulled from GitHub Releases so the buttons point at the
-	// real build artifacts (per platform/arch) instead of just the releases page.
 	type Asset = { name: string; url: string; size: number; kind: string };
-	type Grouped = { mac: Asset[]; windows: Asset[]; linux: Asset[] };
+	type Grouped = Record<OS, Asset[]>;
 
 	let status = $state<"loading" | "ready" | "empty" | "error">("loading");
 	let version = $state("");
@@ -46,13 +37,17 @@
 
 	const releasedOn = $derived(
 		publishedAt
-			? new Date(publishedAt).toLocaleDateString(undefined, {
+			? new Date(publishedAt).toLocaleDateString("en-GB", {
 					year: "numeric",
-					month: "short",
+					month: "long",
 					day: "numeric"
 				})
 			: ""
 	);
+
+	// Older builds shipped as "GlyphX"; the quarantine command must name the real bundle.
+	const appName = $derived(assets.mac[0]?.name.split("_")[0] || "GlyphTeX");
+	const quarantineCmd = $derived(`xattr -dr com.apple.quarantine /Applications/${appName}.app`);
 
 	function humanSize(bytes: number) {
 		if (!bytes) return "";
@@ -61,14 +56,13 @@
 	}
 
 	function archLabel(n: string) {
-		if (n.includes("aarch64") || n.includes("arm64")) return "Apple Silicon";
+		if (n.includes("aarch64") || n.includes("arm64")) return "Apple silicon";
 		if (n.includes("x64") || n.includes("x86_64") || n.includes("intel")) return "Intel";
 		return "Universal";
 	}
 
-	// Map a release asset filename to a platform + human label, skipping the
-	// updater bundles / signatures / manifest that are not direct downloads.
-	function classify(name: string): { os: keyof Grouped; kind: string } | null {
+	// Skips updater bundles, signatures and the manifest, which are not direct downloads.
+	function classify(name: string): { os: OS; kind: string } | null {
 		const n = name.toLowerCase();
 		if (n.endsWith(".sig") || n.endsWith(".json") || n.endsWith(".app.tar.gz")) return null;
 		if (n.endsWith(".dmg")) return { os: "mac", kind: `${archLabel(n)} (.dmg)` };
@@ -79,9 +73,7 @@
 		return null;
 	}
 
-	// GitHub Releases API: only the fields we use, validated at the boundary. The
-	// response is untrusted and feeds a clickable download href, so each asset is
-	// parsed/narrowed (and its URL constrained to https) before use (AGENTS.md rule #4).
+	// The GitHub response is untrusted and feeds a download href, so it is narrowed here (AGENTS.md #4).
 	type RawAsset = { name: string; browser_download_url: string; size: number };
 	type RawRelease = { tag_name: string; published_at: string; assets: RawAsset[] };
 
@@ -94,7 +86,6 @@
 					const a = raw as Record<string, unknown>;
 					const name = a.name;
 					const url = a.browser_download_url;
-					// Reject anything that isn't a named asset on an https GitHub URL.
 					if (typeof name !== "string" || typeof url !== "string") return [];
 					if (!url.startsWith("https://")) return [];
 					return [
@@ -111,7 +102,7 @@
 
 	async function loadLatestRelease() {
 		try {
-			const res = await fetch(`https://api.github.com/repos/${owner}/${repoName}/releases/latest`, {
+			const res = await fetch(`https://api.github.com/repos/${REPO_SLUG}/releases/latest`, {
 				headers: { Accept: "application/vnd.github+json" }
 			});
 			if (!res.ok) throw new Error(`GitHub API ${res.status}`);
@@ -141,59 +132,16 @@
 		track("download_clicked", { platform, asset, version: version || "unknown" });
 	}
 
-	// macOS install helper. The build is not Apple-notarized yet, so a freshly
-	// downloaded .dmg is Gatekeeper-blocked until the quarantine flag is cleared.
-	// Homebrew would clear it automatically, but the cask is not published yet,
-	// so the step is built and kept hidden behind this flag. Flip it to true once
-	// `brew tap kanakkholwal/glyphtex` + the glyphtex cask are live.
-	const showHomebrew = false;
-	const brewCmd = "brew install --cask kanakkholwal/glyphtex/glyphtex";
-	const quarantineCmd = "xattr -dr com.apple.quarantine /Applications/GlyphTeX.app";
-
-	type MacStep = { title: string; body: string; code?: string; done?: string };
-	const macSteps: MacStep[] = [
-		...(showHomebrew
-			? [
-					{
-						title: "Fastest: install with Homebrew",
-						body: "One line grabs the right build for your chip and keeps it updated. It clears the Gatekeeper warning too, so skip the steps below.",
-						code: brewCmd,
-						done: "Installed this way?: You are done. Skip the .dmg steps below."
-					} satisfies MacStep
-				]
-			: []),
-		{
-			title: "Download the .dmg for your chip",
-			body: "Apple Silicon for M1 and later. Intel for older Macs. Check under Apple menu, About This Mac."
-		},
-		{
-			title: "Drag GlyphTeX into Applications",
-			body: "Open the .dmg and drop GlyphTeX into your Applications folder, the same as any other Mac app."
-		},
-		{
-			title: "Clear the Gatekeeper warning, once",
-			body: "GlyphTeX is not notarized yet, so the first launch can warn that it is damaged or from an unidentified developer. This line clears the quarantine flag.",
-			code: quarantineCmd
-		},
-		{
-			title: "Open GlyphTeX",
-			body: "Launch from Applications or Spotlight. macOS will not ask again. Reinstalling from a .dmg brings the warning back, so run the line once more."
-		}
-	];
-
-	let copied = $state<string | null>(null);
+	let copied = $state(false);
 	let macOpen = $state(false);
 
-	async function copyCmd(text: string) {
+	async function copyCmd() {
 		try {
-			await navigator.clipboard.writeText(text);
-			copied = text;
-			setTimeout(() => {
-				if (copied === text) copied = null;
-			}, 1600);
+			await navigator.clipboard.writeText(quarantineCmd);
+			copied = true;
+			setTimeout(() => (copied = false), 1600);
 		} catch {
-			// Clipboard can be blocked (no permission, insecure context). The
-			// command is selectable in the code block either way.
+			// Clipboard can be blocked; the command stays selectable in the code block.
 		}
 	}
 
@@ -202,7 +150,6 @@
 		if (ua.includes("mac")) detected = "mac";
 		else if (ua.includes("win")) detected = "windows";
 		else if (ua.includes("linux") || ua.includes("x11")) detected = "linux";
-		// Open the macOS guide automatically for Mac visitors; others can expand it.
 		macOpen = detected === "mac";
 		loadLatestRelease();
 	});
@@ -212,33 +159,49 @@
 			id: "mac" as const,
 			icon: IconBrandApple,
 			name: "macOS",
-			detail: "Apple silicon and Intel",
-			file: ".dmg disk image"
+			detail: "Apple silicon and Intel, macOS 10.15 or later"
 		},
 		{
 			id: "windows" as const,
 			icon: IconBrandWindows,
 			name: "Windows",
-			detail: "Windows 10 and 11, 64-bit",
-			file: ".exe installer"
+			detail: "Windows 10 and 11, 64-bit"
 		},
 		{
 			id: "linux" as const,
 			icon: IconBrandDebian,
 			name: "Linux",
-			detail: "AppImage and .deb",
-			file: "x86_64 build"
+			detail: "AppImage and .deb, x86_64"
 		}
 	];
 
-	// Prototype scope, stated plainly. Nothing here is a promise about the current build.
+	const macSteps = $derived([
+		{
+			title: "Download the .dmg for your chip",
+			body: "Apple silicon for M1 and later, Intel for older Macs. Check under Apple menu, About This Mac."
+		},
+		{
+			title: `Drag ${appName} into Applications`,
+			body: "Open the .dmg and drop the app into your Applications folder, the same as any other Mac app."
+		},
+		{
+			title: "Clear the Gatekeeper warning, once",
+			body: "The build is not notarized, so the first launch can say it is damaged or from an unidentified developer. This line clears the quarantine flag.",
+			code: true
+		},
+		{
+			title: "Open it",
+			body: "Launch from Applications or Spotlight. Reinstalling from a .dmg brings the warning back, so run the line again."
+		}
+	]);
+
+	// What the old builds contained. Nothing here describes a current or future release.
 	const included = [
 		"The LaTeX engine, built in.",
 		"Live preview, file tree, search, command palette.",
 		"A Git client: stage, commit, diff, history, push.",
-		"Runs locally. Compiles offline.",
-		"No account, no analytics.",
-		"Missing everything shipped since these builds were cut."
+		"Runs locally and compiles offline.",
+		"No account and no analytics."
 	];
 </script>
 
@@ -248,440 +211,241 @@
 	canonical="/download"
 />
 
-<div class="min-h-screen bg-background font-sans text-ink antialiased selection:bg-brand-subtle">
-	<SiteHeader />
+<RailFrame>
+	<RailRow divider={false} label="Desktop app">
+		<PageHero
+			title="The desktop app"
+			accent="is an unmaintained prototype"
+			lede="Use the browser workspace for real work. The desktop builds below are old prototypes: unsupported, missing most of the current editor, and kept only for reference."
+		>
+			{#snippet actions()}
+				<Button href={resolve('/workspace')} variant="primary">
+					Open the workspace
+					<IconArrowRight />
+				</Button>
+				<Button href={REPO_URL} target="_blank" rel="noopener noreferrer" variant="outline">
+					<IconBrandGithub />
+					View the source
+				</Button>
+			{/snippet}
+		</PageHero>
+	</RailRow>
 
-	<main id="main">
-		<section class="relative w-full">
-			<Container size="wide">
-				<div class="mx-auto flex max-w-4xl flex-col items-center pt-36 pb-16 text-center md:pt-44">
-					<span
-						class="bg-warning/10 text-warning mb-6 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
-						in:fly={{ y: 8, duration: 400, easing: cubicOut }}
-					>
-						<IconAlertTriangle class="size-4" />
-						Outdated prototype · not maintained
-					</span>
-
-					<h1
-						class="landing-display"
-						in:fly={{ y: 10, duration: 450, delay: 60, easing: cubicOut }}
-					>
-						The desktop app is on hold.
-					</h1>
-
+	<RailRow label="Old builds">
+		<SplitSection
+			title="Old builds,"
+			accent="for reference only"
+			description="These predate most of the current editor and will not be updated. There is no release date for a maintained desktop app."
+		>
+			{#snippet aside()}
+				<div class="flex flex-col gap-3">
 					<p
-						class="landing-lead mt-7 max-w-2xl"
-						in:fly={{ y: 10, duration: 450, delay: 120, easing: cubicOut }}
+						class="flex w-fit items-start gap-2 rounded-lg border border-warning/40 bg-warning/5 px-3 py-2 text-body text-foreground"
 					>
-						Use the browser workspace. The builds below are old prototypes, unsupported and kept
-						only for reference.
+						<IconAlertTriangle class="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+						<span><span class="font-semibold">Unsupported.</span> Bugs in these builds will not be fixed.</span>
 					</p>
-
-					<div
-						class="mt-9 flex flex-col items-center gap-3 sm:flex-row"
-						in:fly={{ y: 10, duration: 450, delay: 180, easing: cubicOut }}
-					>
-						<Button href={resolve('/workspace')} variant="default" size="lg">
-							Open the workspace
-						</Button>
-						<Button
-							href={repo}
-							target="_blank"
-							rel="noopener noreferrer"
-							variant="outline"
-							size="lg"
-						>
-							<IconBrandGithub class="size-4" />
-							Star the repo
-						</Button>
-					</div>
-
-					<p
-						class="mt-7 text-base text-muted-foreground"
-						in:fly={{ y: 8, duration: 400, delay: 240, easing: cubicOut }}
-					>
-						Open source · GPLv3 · No account · No telemetry in the app
+					<p class="text-body text-muted-foreground" aria-live="polite">
+						{#if status === 'loading'}
+							Checking GitHub for the latest build...
+						{:else if status === 'ready'}
+							Latest build: <span class="font-medium text-foreground">{version}</span>{#if releasedOn}, released {releasedOn}{/if}.
+						{:else if status === 'empty'}
+							The latest release on GitHub has no desktop files attached.
+						{:else}
+							Could not reach GitHub. The releases page lists every build.
+						{/if}
 					</p>
-				</div>
-			</Container>
-		</section>
-
-		<!--
-		  Platform cards. Three columns (mac / windows / linux), each
-		  detects the visitor's OS and highlights the matching card.
-		  Same chip + reveal pattern as the home page sections.
-		-->
-		<Section>
-			<Container>
-				<Reveal variant="up" class="mb-12 max-w-3xl">
-					<span class="landing-eyebrow">
-						<span class="size-1.5 rounded-full bg-warning"></span>
-						Archived builds
-					</span>
-					<h2 class="landing-section-title mt-4">
-						Old prototypes. <em class="landing-title-em not-italic">Kept for reference only.</em>
-					</h2>
-					<p class="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-						These predate most of the current editor and will not be updated. Expect rough edges.
-					</p>
-				</Reveal>
-
-				<!--
-				  Release banner. Reads as a small live status strip above the
-				  cards: version + release date, "All releases" link on the right.
-				-->
-				<div class="mb-5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
-					{#if status === 'loading'}
-						<span class="flex items-center gap-2 text-muted-foreground">
-							<span class="size-1.5 animate-pulse rounded-full bg-muted-foreground"></span>
-							Checking the latest release&hellip;
-						</span>
-					{:else if status === 'ready'}
-						<span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
-							<span
-								class="rounded-full border border-border bg-surface-strong px-2 py-0.5 font-semibold text-foreground"
-							>
-								GlyphTeX {version}
-							</span>
-							{#if releasedOn}<span>released {releasedOn}</span>{/if}
-						</span>
-					{:else}
-						<span class="text-muted-foreground">Latest build info was unavailable.</span>
-					{/if}
 					<a
 						href={releases}
 						target="_blank"
-						rel="noreferrer"
-						class="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+						rel="noopener noreferrer"
+						class="flex min-h-10 w-fit items-center gap-1.5 rounded-md text-body font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
 					>
-						All releases &rarr;
+						All releases on GitHub
+						<IconArrowRight class="size-4" aria-hidden="true" />
 					</a>
 				</div>
+			{/snippet}
 
-				<div class="grid gap-4 sm:grid-cols-3">
-					{#each platforms as p, i (p.id)}
-						{@const Icon = p.icon}
-						{@const isMine = detected === p.id}
-						{@const items = assets[p.id]}
-						<Reveal
-							as="article"
-							variant="up"
-							delay={i * 70}
-							class={'group relative flex flex-col rounded-3xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-craft-lg ' +
-								(isMine
-									? 'border-brand/50 ring-2 ring-brand/20 bg-card shadow-craft-sm'
-									: 'border-hairline bg-card shadow-craft-sm')}
-						>
-							{#if isMine}
+			<ul class="grid grid-cols-1 gap-3 md:grid-cols-3">
+				{#each platforms as p (p.id)}
+					{@const items = assets[p.id]}
+					<li class="panel-card flex flex-col p-5">
+						<div class="flex items-start justify-between gap-3">
+							<span
+								class="grid size-10 place-items-center rounded-lg border border-border bg-background text-foreground"
+							>
+								<p.icon class="size-5" aria-hidden="true" />
+							</span>
+							{#if detected === p.id}
 								<span
-									class="absolute right-4 top-4 rounded-full bg-brand/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-brand"
-									>Your platform</span
+									class="flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-caption font-medium text-foreground"
 								>
+									<IconCheck class="size-3.5 text-primary" aria-hidden="true" />
+									Your platform
+								</span>
 							{/if}
-							<span
-								class="mb-5 grid size-12 place-items-center rounded-xl border border-hairline bg-background text-foreground transition-colors group-hover:text-foreground"
-							>
-								<Icon class="size-6" />
-							</span>
-							<h3 class="text-lg font-semibold tracking-tight text-foreground">
-								{p.name}
-							</h3>
-							<p class="mt-1 text-sm text-muted-foreground">{p.detail}</p>
-
-							<div class="mt-6 flex flex-1 flex-col justify-end gap-2">
-								{#if status === 'loading'}
-									<div class="h-11 w-full animate-pulse rounded-lg bg-surface-soft"></div>
-								{:else if status === 'ready' && items.length > 0}
-									{#each items as a, j (a.name)}
-										<a
-											href={a.url}
-											rel="noreferrer"
-											title={a.name}
-											onclick={() => trackDownload(p.id, a.name)}
-											class={'inline-flex h-11 items-center justify-between gap-2 rounded-lg px-4 text-sm font-semibold transition-all active:scale-[0.98] ' +
-												(j === 0
-													? 'bg-primary text-primary-foreground hover:opacity-90'
-													: 'border border-hairline bg-background text-foreground hover:bg-surface-soft')}
-										>
-											<span class="flex items-center gap-2">
-												<IconDownload class="size-4" />
-												{a.kind}
-											</span>
-											{#if a.size}<span class="text-[11px] font-normal opacity-70"
-													>{humanSize(a.size)}</span
-												>{/if}
-										</a>
-									{/each}
-								{:else}
-									<a
-										href={releases}
-										target="_blank"
-										rel="noreferrer"
-										onclick={() => trackDownload(p.id, 'releases_page')}
-										class="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-hairline bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-soft"
-									>
-										<IconBrandGithub class="size-4" />
-										{status === 'empty' ? 'Not in this release yet' : 'Find it on GitHub'}
-									</a>
-								{/if}
-							</div>
-						</Reveal>
-					{/each}
-				</div>
-			</Container>
-		</Section>
-
-		<!--
-		  macOS install guide. The build isn't Apple-notarized yet, so the
-		  first launch needs one short Terminal command. Renders as a
-		  `<details>` accordion so non-Mac visitors don't see it expanded.
-		-->
-		<Section>
-			<Container>
-				<Reveal variant="up" class="mb-12 max-w-3xl">
-					<span class="landing-eyebrow">
-						<span class="size-1.5 rounded-full bg-warning"></span>
-						macOS · one-time step
-					</span>
-					<h2 class="landing-section-title mt-4">
-						Clearing the <em class="landing-title-em not-italic">Gatekeeper</em> warning.
-					</h2>
-					<p class="mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg">
-						The build isn't Apple-notarized yet, so the first launch needs one short Terminal
-						command. Here is the whole process, start to finish.
-					</p>
-				</Reveal>
-
-				<Reveal variant="up" delay={80}>
-					<details
-						bind:open={macOpen}
-						class="group/disc overflow-hidden rounded-3xl border border-hairline bg-card shadow-craft-sm [&[open]_.chev]:rotate-180"
-					>
-						<summary
-							class="flex cursor-pointer list-none items-center gap-4 px-6 py-5 transition-colors hover:bg-surface-soft/50 [&:-webkit-details-marker]:hidden"
-						>
-							<span
-								class="grid size-11 shrink-0 place-items-center rounded-xl border border-hairline bg-background text-foreground"
-							>
-								<IconBrandApple class="size-6" />
-							</span>
-							<div class="min-w-0">
-								<div class="flex flex-wrap items-center gap-2">
-									<h3 class="text-lg font-semibold tracking-tight text-foreground">
-										Installing on macOS
-									</h3>
-									<span
-										class="rounded-full border border-warning/30 bg-warning/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-warning"
-										>Not notarized yet</span
-									>
-								</div>
-								<p class="mt-0.5 text-sm text-muted-foreground">
-									One short Terminal step on first launch. Requires macOS 10.15 or later.
-								</p>
-							</div>
-							<span class="ml-auto hidden font-mono text-xs text-muted-foreground sm:block">
-								{macSteps.length} steps
-							</span>
-							<span
-								class="chev grid size-7 shrink-0 place-items-center rounded-lg border border-hairline text-muted-foreground transition-transform duration-300"
-							>
-								<IconChevronDown class="size-4" />
-							</span>
-						</summary>
-
-						<div class="border-t border-hairline px-6 py-6">
-							<div
-								class="mb-6 flex items-start gap-3 rounded-xl border border-hairline bg-background/60 p-4"
-							>
-								<IconInfoCircle class="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-								<p class="text-sm leading-relaxed text-muted-foreground">
-									We have not paid for an Apple developer ID yet, so macOS needs one command to
-									trust the app. {#if showHomebrew}Homebrew (step 1) does it for you.{/if}
-								</p>
-							</div>
-
-							<ol class="flex flex-col gap-5">
-								{#each macSteps as step, i (step.title)}
-									<li class="flex gap-4">
-										<span
-											class="grid size-7 shrink-0 place-items-center rounded-full bg-primary font-mono text-xs font-semibold text-primary-foreground"
-											>{i + 1}</span
-										>
-										<div class="min-w-0 flex-1">
-											<h4 class="text-sm font-semibold text-foreground">{step.title}</h4>
-											<p class="mt-1 text-sm leading-relaxed text-muted-foreground">
-												{step.body}
-											</p>
-
-											{#if step.code}
-												<div
-													class="mt-3 flex items-center gap-3 rounded-lg border border-hairline bg-background py-2.5 pl-3 pr-2"
-												>
-													<IconTerminal2 class="size-4 shrink-0 text-muted-foreground/70" />
-													<code
-														class="min-w-0 flex-1 overflow-x-auto whitespace-pre font-mono text-xs text-foreground"
-														>{step.code}</code
-													>
-													<button
-														type="button"
-														onclick={() => copyCmd(step.code!)}
-														class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 font-mono text-[11px] font-medium text-muted-foreground transition-colors hover:bg-surface-soft hover:text-foreground"
-														aria-label="Copy command"
-													>
-														{#if copied === step.code}
-															<IconCheck class="size-3.5 text-success" /> Copied
-														{:else}
-															<IconCopy class="size-3.5" /> Copy
-														{/if}
-													</button>
-												</div>
-											{/if}
-
-											{#if step.done}
-												<p class="mt-2 flex items-center gap-1.5 text-xs font-medium text-success">
-													<IconCheck class="size-3.5 shrink-0" />
-													{step.done}
-												</p>
-											{/if}
-										</div>
-									</li>
-								{/each}
-							</ol>
-
-							<p class="mt-6 text-xs leading-relaxed text-muted-foreground">
-								Prefer not to use Terminal?: You can also right-click GlyphTeX in Applications,
-								choose Open, and confirm once in the dialog that appears.
-							</p>
 						</div>
-					</details>
-				</Reveal>
-			</Container>
-		</Section>
+						<h3 class="mt-4 text-body-lg font-medium text-foreground">{p.name}</h3>
+						<p class="mt-1 text-body text-muted-foreground">{p.detail}</p>
 
-		<!--
-		  What is in the download + how to verify. Two columns: the bullet
-		  list on the left, the verify card on the right. Same surface
-		  treatment as the home page's showcase cards.
-		-->
-		<Section bordered class="bg-surface-soft/40">
-			<Container>
-				<div class="grid gap-12 lg:grid-cols-2">
-					<Reveal variant="up">
-						<span class="landing-eyebrow">
-							<span class="size-1.5 rounded-full bg-muted-foreground"></span>
-							What the prototype had
-						</span>
-						<h2
-							class="landing-text-balance mt-5 text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl"
-						>
-							One app. <em class="landing-title-em not-italic">Frozen where it stopped.</em>
-						</h2>
-						<ul class="mt-7 flex flex-col gap-3.5">
-							{#each included as line (line)}
-								<li class="flex items-start gap-3">
-									<span
-										class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-surface-strong text-foreground"
+						<div class="mt-5 flex flex-1 flex-col justify-end gap-2">
+							{#if status === 'loading'}
+								<Skeleton class="h-11 w-full rounded-md" />
+							{:else if status === 'ready' && items.length > 0}
+								{#each items as a (a.name)}
+									<a
+										href={a.url}
+										rel="noopener noreferrer"
+										title={a.name}
+										onclick={() => trackDownload(p.id, a.name)}
+										class="flex min-h-11 items-center justify-between gap-2 rounded-md border border-border bg-card px-3 text-body font-medium text-foreground outline-none transition-colors duration-150 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring dark:bg-background"
 									>
-										<IconCheck class="size-4" />
-									</span>
-									<span class="pt-1 text-sm leading-relaxed text-foreground/85">{line}</span>
-								</li>
-							{/each}
-						</ul>
-					</Reveal>
-
-					<Reveal variant="up" delay={80}>
-						<div
-							class="flex h-full flex-col rounded-3xl border border-hairline bg-card p-7 shadow-craft-sm"
-						>
-							<span
-								class="mb-5 grid size-10 place-items-center rounded-lg border border-hairline bg-background text-foreground"
-							>
-								<IconShieldCheck class="size-5" />
-							</span>
-							<h3 class="text-base font-semibold tracking-tight text-foreground">
-								Verifying your download
-							</h3>
-							<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-								Every release on GitHub lists the build artifacts next to their checksums. Compare
-								the hash of the file you downloaded against the one in the release notes before you
-								run it. The full source is in the same repository if you would rather build it
-								yourself.
-							</p>
-							<div class="mt-6 flex flex-wrap gap-3">
+										<span class="flex items-center gap-2">
+											<IconDownload class="size-4" aria-hidden="true" />
+											{a.kind}
+										</span>
+										{#if a.size}<span class="text-caption text-muted-foreground">{humanSize(a.size)}</span>{/if}
+									</a>
+								{/each}
+							{:else}
 								<a
 									href={releases}
 									target="_blank"
-									rel="noreferrer"
-									class="inline-flex h-10 items-center gap-2 rounded-lg border border-hairline bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-soft"
+									rel="noopener noreferrer"
+									onclick={() => trackDownload(p.id, 'releases_page')}
+									class="flex min-h-11 items-center justify-center gap-2 rounded-md border border-border bg-card px-3 text-body font-medium text-foreground outline-none transition-colors duration-150 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring dark:bg-background"
 								>
-									<IconDownload class="size-4" /> All releases
+									<IconBrandGithub class="size-4" aria-hidden="true" />
+									{status === 'empty' ? 'Not in this release' : 'Find it on GitHub'}
 								</a>
-								<a
-									href={repo}
-									target="_blank"
-									rel="noreferrer"
-									class="inline-flex h-10 items-center gap-2 rounded-lg border border-hairline bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-soft"
-								>
-									<IconBrandGithub class="size-4" /> Source code
-								</a>
-							</div>
+							{/if}
 						</div>
-					</Reveal>
-				</div>
-			</Container>
-		</Section>
+					</li>
+				{/each}
+			</ul>
+		</SplitSection>
+	</RailRow>
 
-		<!--
-		  Final CTA. Same closing bookend as the home page: a single
-		  centered column with eyebrow + headline + body + two CTAs.
-		  Reuses the `.landing-cta-panel` pattern but with the new token
-		  names (`bg-card`, `border-hairline`, `text-foreground`) so the
-		  surface matches the rest of the page.
-		-->
-		<Section>
-			<Container>
-				<Reveal variant="scale">
-					<div
-						class="relative overflow-hidden rounded-[2.2rem] border border-hairline bg-card px-6 py-20 text-center shadow-craft-sm sm:px-10 sm:py-24"
+	<RailRow label="Installing on macOS">
+		<SplitSection
+			title="Opening it on macOS"
+			accent="takes one command"
+			description="The build is not notarized by Apple, so the first launch needs a Terminal line or a right-click Open."
+		>
+			<details bind:open={macOpen} class="group panel-card overflow-hidden">
+				<summary
+					class="flex min-h-14 cursor-pointer list-none items-center gap-4 rounded-2xl px-5 py-4 outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset [&::-webkit-details-marker]:hidden"
+				>
+					<span
+						class="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-background text-foreground"
 					>
-						<span class="landing-eyebrow">
-							<span class="size-1.5 rounded-full bg-muted-foreground"></span>
-							Where the work is
-						</span>
-						<h2
-							class="landing-text-balance mt-4 max-w-3xl mx-auto text-3xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-4xl md:text-5xl"
-						>
-							A real release <em class="landing-title-em not-italic">comes later</em>.
-						</h2>
-						<p
-							class="landing-text-pretty mt-5 max-w-md mx-auto text-base leading-relaxed text-muted-foreground sm:text-lg"
-						>
-							Development is happening in the browser workspace first. Watch the repository to hear
-							when the desktop app is picked back up.
-						</p>
-						<div class="mt-9 flex flex-wrap justify-center gap-3">
-							<Button
-								href={repo}
-								target="_blank"
-								rel="noreferrer"
-								variant="outline"
-								size="lg"
-								class="gap-2"
-							>
-								<IconBrandGithub class="size-4" /> Watch on GitHub
-							</Button>
-							<Button href={resolve('/workspace')} variant="default" size="lg" class="gap-2">
-								Open the browser workspace
-								<IconArrowRight class="size-4" />
-							</Button>
-						</div>
-					</div>
-				</Reveal>
-			</Container>
-		</Section>
-	</main>
+						<IconBrandApple class="size-5" aria-hidden="true" />
+					</span>
+					<span class="flex min-w-0 flex-1 flex-col">
+						<span class="text-body-lg font-medium text-foreground">Installing on macOS</span>
+						<span class="text-body text-muted-foreground">{macSteps.length} steps, about a minute</span>
+					</span>
+					<IconChevronDown
+						class="size-4 shrink-0 text-muted-foreground transition-transform duration-300 ease-craft group-open:rotate-180"
+						aria-hidden="true"
+					/>
+				</summary>
 
-	<SiteFooter />
-</div>
+				<div class="border-t border-border px-5 py-6">
+					<ol class="flex flex-col gap-5">
+						{#each macSteps as step, i (step.title)}
+							<li class="flex gap-4">
+								<span
+									class="grid size-7 shrink-0 place-items-center rounded-full border border-border bg-background text-caption font-semibold tabular-nums text-foreground"
+								>
+									{i + 1}
+								</span>
+								<div class="min-w-0 flex-1">
+									<h3 class="text-body font-semibold text-foreground">{step.title}</h3>
+									<p class="mt-1 text-body text-muted-foreground">{step.body}</p>
+									{#if step.code}
+										<div
+											class="mt-3 flex items-center gap-3 rounded-lg border border-border bg-background py-1 pr-1 pl-3"
+										>
+											<IconTerminal2 class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+											<code class="min-w-0 flex-1 overflow-x-auto font-mono text-caption whitespace-pre text-foreground"
+												>{quarantineCmd}</code
+											>
+											<Button variant="ghost" onclick={copyCmd} aria-label="Copy command">
+												{#if copied}
+													<IconCheck class="text-success" aria-hidden="true" /> Copied
+												{:else}
+													<IconCopy aria-hidden="true" /> Copy
+												{/if}
+											</Button>
+										</div>
+									{/if}
+								</div>
+							</li>
+						{/each}
+					</ol>
+					<p class="mt-6 text-body text-muted-foreground">
+						Prefer not to use Terminal? Right-click the app in Applications, choose Open, and confirm
+						once in the dialog.
+					</p>
+				</div>
+			</details>
+		</SplitSection>
+	</RailRow>
+
+	<RailRow label="What the prototype had">
+		<SplitSection
+			title="What the prototype had,"
+			accent="frozen where it stopped"
+			description="Everything shipped in the browser workspace since these builds were cut is missing from them."
+		>
+			<div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+				<ul class="panel-card flex flex-col gap-3 p-5 sm:p-6">
+					{#each included as line (line)}
+						<li class="flex items-start gap-3 text-body text-foreground">
+							<IconCheck class="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+							{line}
+						</li>
+					{/each}
+				</ul>
+				<div class="panel-card flex flex-col p-5 sm:p-6">
+					<span
+						class="grid size-10 place-items-center rounded-lg border border-border bg-background text-foreground"
+					>
+						<IconFlask class="size-5" aria-hidden="true" />
+					</span>
+					<h3 class="mt-4 text-body-lg font-medium text-foreground">Checking a download</h3>
+					<p class="mt-2 text-pretty text-body text-muted-foreground">
+						The releases do not publish checksums yet, and the installers are not code-signed for macOS or Windows. If that matters
+						for your machine, build the app from source: the desktop app lives in
+						<code class="rounded-sm bg-muted px-1 font-mono text-caption text-foreground">apps/desktop</code>
+						of the same repository.
+					</p>
+					<div class="mt-5">
+						<Button href={REPO_URL} target="_blank" rel="noopener noreferrer" variant="outline">
+							<IconBrandGithub />
+							Source code
+						</Button>
+					</div>
+				</div>
+			</div>
+		</SplitSection>
+	</RailRow>
+
+	<RailRow label="Where the work is">
+		<BrandPanel
+			title="A real release comes later."
+			body="Development happens in the browser workspace first. Watch the repository to hear when the desktop app is picked back up."
+		>
+			{#snippet actions()}
+				<Button href={resolve('/workspace')} variant="ink">Open the workspace</Button>
+				<Button href={REPO_URL} target="_blank" rel="noopener noreferrer" variant="light">
+					<IconBrandGithub />
+					Watch on GitHub
+				</Button>
+			{/snippet}
+		</BrandPanel>
+	</RailRow>
+</RailFrame>

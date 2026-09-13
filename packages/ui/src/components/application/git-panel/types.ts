@@ -126,9 +126,9 @@ export const STATUS_CLASS: Record<string, string> = {
 	deleted: "text-destructive",
 	untracked: "text-success",
 	added: "text-success",
-	renamed: "text-brand",
+	renamed: "text-primary",
 	conflicted: "text-destructive"
 };
 
 export const INPUT_CLS =
-	"border-border bg-background focus:ring-brand/40 w-full rounded border px-2 py-1 text-xs outline-none focus:ring-2";
+	"border-border bg-background focus:ring-ring/40 w-full rounded border px-2 py-1 text-xs outline-none focus:ring-2";

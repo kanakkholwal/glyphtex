@@ -23,28 +23,22 @@
 		setTimeout(() => boot.remove(), 300);
 	});
 
-	// Kick off a silent background update check on boot. Surfaces the corner
-	// card only if a newer release exists; no-op under `tauri dev` / web.
+	// Silent boot update check: the corner card appears only if a newer release exists.
 	onMount(() => updater.init());
 
-	// Warm the common LaTeX package cache on first launch so the first offline
-	// compile just works: done once (localStorage-gated) and deferred so it
-	// never competes with first paint. Best-effort: retries on a later launch
-	// if offline / the engine isn't ready.
+	// Warm the package cache once, after first paint, so the first offline compile works.
+	// Best-effort: a failure retries on a later launch.
 	onMount(() => {
 		const t = setTimeout(() => void prefetchCommonPackagesOnce(), 2500);
 		return () => clearTimeout(t);
 	});
 
-	// Page transitions via the View Transitions API. The projects home and the
-	// editor share a per-project `view-transition-name`, so the clicked card
-	// morphs into the editor (and collapses back on return). Skipped when the
-	// API is unavailable or the user prefers reduced motion.
+	// The home card and the editor share a per-project `view-transition-name`, so the card morphs.
+	// Skipped without the API or under reduced motion.
 	onNavigate((navigation) => {
 		if (typeof document === "undefined" || !document.startViewTransition) return;
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-		// Tag the direction so CSS can react (e.g. the logo pulses when we land
-		// back on the projects home).
+		// Direction tag for CSS, e.g. the logo pop on landing back home.
 		const toHome = navigation.to?.url.pathname === "/";
 		document.documentElement.dataset.vt = toHome ? "to-home" : "to-editor";
 		return new Promise((settle) => {
@@ -58,9 +52,7 @@
 		});
 	});
 
-	// File association: open the folder / file GlyphTeX was launched with (and react
-	// to later "Open with GlyphTeX" launches forwarded by the single-instance
-	// plugin) by routing into the folder-mode editor.
+	// File association: open the launch path, and later ones forwarded by the single-instance plugin.
 	onMount(() => {
 		let unlisten: (() => void) | undefined;
 		void (async () => {
@@ -107,7 +99,7 @@
 
 <svelte:head><link rel="icon" href="/favicon.ico" /></svelte:head>
 
-<NavProgress color="var(--brand)" />
+<NavProgress color="var(--primary)" />
 
 {@render children()}
 

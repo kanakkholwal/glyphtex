@@ -82,9 +82,8 @@
 	let dragOverKey = $state<string | null>(null);
 	let menu = $state<{ x: number; y: number; row: TreeRow } | null>(null);
 
-	// --- Roving focus -----------------------------------------------------------
-	// One tab stop for the whole tree. Every row used to be its own, so a 40-file
-	// project cost 80 stops to tab past.
+	// --- Roving focus ---
+	// One tab stop for the whole tree; per-row stops cost 80 presses to pass a 40-file project.
 	const focusedKey = $derived(
 		store.focusedKey && rows.some((r) => r.key === store.focusedKey)
 			? store.focusedKey
@@ -118,9 +117,8 @@
 			onopen?.(row.node.id);
 			return;
 		}
-		// Reaching for a folder never closes it: the click that aims "New file" at one
-		// only selects and opens. Clicking the row you are already on collapses it, so
-		// closing stays a full-width target rather than the chevron alone.
+		// Clicking a folder opens it (so aiming "New file" never closes it); clicking the
+		// already-selected row collapses it, keeping closing a full-width target.
 		if (wasOnlySelection && row.expanded) store.toggleFolder(row.node.path);
 		else store.openFolder(row.node.path);
 	}
@@ -344,9 +342,9 @@
 					aria-expanded={folder ? row.expanded : undefined}
 					aria-selected={selected}
 					aria-current={active ? 'true' : undefined}
-					class="flex h-7 w-full items-center gap-1 rounded-md pr-7 text-left transition-colors {dragOverKey ===
+					class="focus-visible:ring-ring flex h-7 w-full items-center gap-1 rounded-md pr-7 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset {dragOverKey ===
 					row.key
-						? 'bg-brand-subtle ring-brand/40 ring-1 ring-inset'
+						? 'bg-primary/10 ring-primary/40 ring-1 ring-inset'
 						: selected
 							? 'bg-accent text-accent-foreground font-medium'
 							: active
@@ -372,11 +370,14 @@
 				>
 					<!-- Reserves the chevron column so files line up under their folder. -->
 					<span class="w-[13px] shrink-0"></span>
-					<Icon size={15} class="shrink-0 {folder ? 'text-muted-foreground' : ''}" />
+					<Icon
+						size={15}
+						class="shrink-0 {folder ? 'text-muted-foreground' : active ? 'text-primary' : ''}"
+					/>
 					<span class="truncate">{node.name}</span>
 					{#if !folder && node.id === mainId}
 						<span
-							class="bg-brand-subtle text-brand ml-1 shrink-0 rounded px-1 text-[10px] font-medium"
+							class="bg-primary/10 text-primary ml-1 shrink-0 rounded px-1 text-xs font-medium"
 							title="Main file (compile target)"
 						>
 							main
@@ -401,7 +402,7 @@
 					>
 						<IconChevronRight
 							size={14}
-							class="transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none {row.expanded
+							class="transition-transform duration-200 ease-craft motion-reduce:transition-none {row.expanded
 								? 'rotate-90'
 								: ''}"
 						/>

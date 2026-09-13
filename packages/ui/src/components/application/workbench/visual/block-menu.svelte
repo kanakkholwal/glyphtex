@@ -81,7 +81,7 @@
 		<button
 			type="button"
 			role="menuitem"
-			class="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-[0.8125rem] outline-none focus-visible:bg-accent focus-visible:text-foreground {item.id ===
+			class="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm outline-none focus-visible:bg-accent focus-visible:text-foreground {item.id ===
 			'delete'
 				? 'hover:text-destructive focus-visible:text-destructive'
 				: ''}"

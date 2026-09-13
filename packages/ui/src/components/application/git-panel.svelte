@@ -18,8 +18,8 @@
 		IconArrowUp,
 		IconGitBranch
 	} from '@tabler/icons-svelte';
-	import { cubicOut } from 'svelte/easing';
 	import { slide } from 'svelte/transition';
+	import { reveal } from './motion';
 
 	import ChangeTree from './git-panel/change-tree.svelte';
 	import CommitBox from './git-panel/commit-box.svelte';
@@ -31,13 +31,8 @@
 	import { GitPanelStore } from './git-panel/store.svelte';
 	import type { GitProvider } from './git-panel/types';
 
-	/**
-	 * Source Control: local version control for the open project folder. Stage /
-	 * unstage / discard working-tree changes against the real Git index, commit the
-	 * staged set, browse history, and manage remotes (add / edit / switch / remove,
-	 * fetch / pull / push). State + behaviour live in {@link GitPanelStore}; the
-	 * markup is split across `./git-panel/*`.
-	 */
+	// Source Control for the open folder: stage, commit, history and remotes.
+	// Behaviour lives in GitPanelStore; markup in ./git-panel.
 	let {
 		git,
 		root,
@@ -58,8 +53,7 @@
 		activeDiffPath?: string | null;
 	} = $props();
 
-	// The store captures the initial (stable) host injections: `git` / `onopendiff`
-	// don't change after mount; `root` is read live via the getter.
+	// Captures the stable `git`/`onopendiff` injections; `root` is read live via the getter.
 	// svelte-ignore state_referenced_locally
 	const store = new GitPanelStore({
 		git,
@@ -111,7 +105,7 @@
 			</span>
 			{#if store.head?.behind || store.head?.ahead}
 				<span
-					class="text-muted-foreground/80 flex shrink-0 items-center gap-0.5 text-xs"
+					class="text-muted-foreground flex shrink-0 items-center gap-0.5 text-xs"
 					title={`${store.head?.ahead ?? 0} ahead, ${store.head?.behind ?? 0} behind ${store.head?.upstream ?? 'upstream'}`}
 				>
 					{#if store.head?.behind}<IconArrowDown size={11} />{store.head.behind}{/if}
@@ -160,7 +154,7 @@
 					</Button>
 				</div>
 				{#if store.sections.staged}
-					<div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-0.5">
+					<div transition:slide={reveal()} class="mt-0.5">
 						<ChangeTree
 							{store}
 							items={store.staged}
@@ -204,9 +198,9 @@
 				{/if}
 			</div>
 			{#if store.sections.changes}
-				<div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-0.5">
+				<div transition:slide={reveal()} class="mt-0.5">
 					{#if !store.unstaged.length}
-						<p class="text-muted-foreground/70 px-0.5 py-1 text-xs">
+						<p class="text-muted-foreground px-0.5 py-1 text-xs">
 							{store.loading
 								? 'Checking…'
 								: store.staged.length

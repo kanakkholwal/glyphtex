@@ -97,12 +97,13 @@ re-run that isn't needed is a no-op. npm goes out via trusted publishing (OIDC),
    on both sides, in the same change.
 8. **Heavy work never blocks the UI/event loop.** Rust: `async fn` + `spawn_blocking` (the macOS
    rule, §4). Frontend: no synchronous heavy work on render; debounce compile-as-you-type.
-9. **Design tokens only — no hardcoded colors.** No hex / named CSS colors in components. Use the
-   semantic tokens from `packages/ui/src/app.css` — the single live token file, imported by both
-   apps (e.g. `bg-muted`, `text-faint`, `color-mix(... var(--destructive) ...)`). Text hierarchy is
-   `foreground` → `muted-foreground` → `faint`; radii are `rounded-md` (8, controls) → `rounded-xl`
-   (12, menus) → `rounded-2xl` (16, cards) → `rounded-pill` (CTAs); type is `text-xs`/`sm`/`md` =
-   12/13/14 with `text-2xl` = 24. `@glyphtex/design` is unused — do not add tokens there.
+9. **Design tokens only, no hardcoded colors.** The spec is `.notes/DESIGN.md`; the single live
+   token file is `packages/ui/src/app.css`, imported by both apps. `bg-primary` is the blue accent
+   (selected, focus, the one brand action); near-black actions are `bg-action`. Ink hierarchy is
+   `foreground` → `muted-foreground` (no third step, it fails 4.5:1). Radii: `rounded-md` 8 (controls)
+   → `rounded-xl` 14 (menus, insets) → `rounded-2xl` 18 (cards) → `rounded-3xl` 22 (panels). Public
+   pages use type roles (`text-caption` … `text-display-xl`); workbench chrome keeps `text-xs`/`sm`/`md`
+   = 12/13/14. No `text-[Npx]`, no opacity on text tokens. `@glyphtex/design` is unused: do not add tokens there.
    **@tabler/icons-svelte only** (not Lucide, no Iconify layer — import icons
    directly). Raster images render through **`@unpic/svelte`**'s `Image`, never a
    bare `<img>`. The editor stays **JetBrains Mono**.

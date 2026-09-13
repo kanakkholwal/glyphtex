@@ -16,11 +16,8 @@ export type StoredProject = {
 	bytes: number;
 	/** Pinned by the user. Absent on documents saved before starring existed. */
 	starred?: boolean;
-	/**
-	 * The user has settled which file is the root, so stop offering the choice.
-	 * Absent on documents stored before the prompt existed, and on imports whose
-	 * root was unambiguous.
-	 */
+	/** The user settled the root, so stop offering the choice. Absent on older documents
+	 *  and on imports whose root was unambiguous. */
 	entryConfirmed?: boolean;
 	/** Other plausible roots, for the prompt. Empty once the choice is settled. */
 	entryCandidates?: string[];
@@ -211,9 +208,8 @@ export async function deleteProject(id: string): Promise<void> {
 }
 
 export async function duplicateProject(id: string): Promise<StoredProject> {
-	const source = await getProject(id);
+	const [source, files] = await Promise.all([getProject(id), readFiles(id)]);
 	if (!source) throw new StorageError("That document no longer exists.");
-	const files = await readFiles(id);
 	const copy = await createProject(
 		`${source.name} copy`,
 		files.map((f) => ({ path: f.path, text: f.text, data: f.data }))

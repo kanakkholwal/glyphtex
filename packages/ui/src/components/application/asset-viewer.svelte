@@ -48,7 +48,7 @@
 		tiff: "image/tiff"
 	};
 
-	let bytes = $state<Uint8Array | undefined>(undefined);
+	let bytes = $state.raw<Uint8Array | undefined>(undefined);
 	let imgUrl = $state<string | undefined>(undefined);
 	// Intrinsic size, so the image reserves its space instead of reflowing in.
 	// 0 for an SVG with no width/height, which then falls back to a plain <img>.
@@ -111,11 +111,7 @@
 		};
 	});
 
-	/**
-	 * Why there is nothing to render. These are three different problems and used
-	 * to share one message: "we can't read it", "we won't render it", and "this
-	 * host can't hand us bytes at all" need different next steps from the user.
-	 */
+	// Why nothing renders: can't read, won't render, and no reader each need a different next step.
 	const fallback = $derived<"unreadable" | "no-viewer" | "no-reader" | null>(
 		error || loadError
 			? "unreadable"
@@ -173,7 +169,7 @@
 				</p>
 				{#if reason}
 					<!-- The host's own words: "permission denied" is actionable, our paraphrase is not. -->
-					<p class="text-faint mt-0.5 max-w-[22rem] font-mono text-[11px] break-words">
+					<p class="text-muted-foreground mt-0.5 max-w-[22rem] font-mono text-xs break-words">
 						{reason}
 					</p>
 				{/if}
@@ -209,17 +205,17 @@
 					height={imgSize.h}
 					layout="constrained"
 					alt={leaf}
-					class="shadow-craft-lg"
+					class="shadow-sm"
 					style="width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain"
 				/>
 			{:else}
 				<!-- No intrinsic size (typically a viewBox-only SVG): unpic needs one. -->
-				<img src={imgUrl} alt={leaf} class="max-h-full max-w-full object-contain shadow-craft-lg" />
+				<img src={imgUrl} alt={leaf} class="max-h-full max-w-full object-contain shadow-sm" />
 			{/if}
 		</div>
 		{#if imgSize.w > 0}
 			<div
-				class="text-muted-foreground/70 border-border shrink-0 border-t px-3 py-1 text-center font-mono text-xs tabular-nums"
+				class="text-muted-foreground border-border shrink-0 border-t px-3 py-1 text-center font-mono text-xs tabular-nums"
 			>
 				{imgSize.w} × {imgSize.h}
 			</div>

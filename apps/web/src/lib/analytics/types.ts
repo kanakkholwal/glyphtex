@@ -70,4 +70,5 @@ export type CtaLocation =
 	| "engine_hero"
 	| "engine_footer"
 	| "home_demo"
-	| "content";
+	| "content"
+	| "templates";

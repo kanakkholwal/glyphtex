@@ -157,18 +157,6 @@
 			"svelte": "./src/components/ui/hover-card/index.ts",
 			"default": "./src/components/ui/hover-card/index.ts"
 		},
-		"./eyebrow": {
-			"svelte": "./src/components/ui/eyebrow/index.ts",
-			"default": "./src/components/ui/eyebrow/index.ts"
-		},
-		"./reveal": {
-			"svelte": "./src/components/ui/reveal/index.ts",
-			"default": "./src/components/ui/reveal/index.ts"
-		},
-		"./section-header": {
-			"svelte": "./src/components/ui/section-header/index.ts",
-			"default": "./src/components/ui/section-header/index.ts"
-		},
 		"./color-picker": {
 			"svelte": "./src/components/ui/color-picker/index.ts",
 			"default": "./src/components/ui/color-picker/index.ts"
@@ -221,6 +209,10 @@
 			"svelte": "./src/lib/tex-doc/index.ts",
 			"default": "./src/lib/tex-doc/index.ts"
 		},
+		"./project-templates": {
+			"svelte": "./src/lib/project-templates/index.ts",
+			"default": "./src/lib/project-templates/index.ts"
+		},
 		"./tex-templates": {
 			"svelte": "./src/lib/tex-doc/templates.ts",
 			"default": "./src/lib/tex-doc/templates.ts"
@@ -242,9 +234,11 @@
 		"@codemirror/view": "^6.43.8",
 		"@fontsource-variable/geist": "^5.2.9",
 		"@fontsource-variable/geist-mono": "^5.2.8",
+		"@fontsource-variable/google-sans": "^5.3.1",
 		"@fontsource-variable/inter": "^5.2.8",
 		"@fontsource-variable/jetbrains-mono": "^5.2.8",
 		"@fontsource-variable/quicksand": "^5.3.0",
+		"@fontsource-variable/source-code-pro": "^5.3.0",
 		"@lezer/highlight": "^1.2.3",
 		"@tabler/icons-svelte": "^3.44.0",
 		"@unified-latex/unified-latex-types": "^1.8.4",

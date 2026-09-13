@@ -8,8 +8,8 @@
 		IconTrash,
 		IconX
 	} from "@tabler/icons-svelte";
-	import { cubicOut } from "svelte/easing";
 	import { slide } from "svelte/transition";
+	import { reveal } from "../motion";
 
 	import SectionHeader from "./section-header.svelte";
 	import type { GitPanelStore } from "./store.svelte";
@@ -42,7 +42,7 @@
 	</div>
 
 	{#if store.sections.remotes}
-		<div transition:slide={{ duration: 200, easing: cubicOut }} class="mt-1 flex flex-col gap-1.5">
+		<div transition:slide={reveal()} class="mt-1 flex flex-col gap-1.5">
 			<!-- Add-remote form -->
 			{#if store.addingRemote}
 				<div class="border-border/60 flex flex-col gap-1 rounded border p-1.5">
@@ -98,7 +98,7 @@
 							<input
 								type="radio"
 								name="active-remote"
-								class="accent-brand shrink-0"
+								class="accent-primary shrink-0"
 								checked={store.activeRemote?.name === r.name}
 								title="Use this remote for fetch / pull / push"
 								onchange={() => (store.selectedRemote = r.name)}
@@ -107,8 +107,8 @@
 							<IconCloud size={12} class="text-muted-foreground shrink-0" />
 						{/if}
 						<div class="min-w-0 flex-1">
-							<p class="text-foreground/90 truncate font-medium">{r.name}</p>
-							<p class="text-muted-foreground/70 truncate text-xs" title={r.url}>
+							<p class="text-foreground truncate font-medium">{r.name}</p>
+							<p class="text-muted-foreground truncate text-xs" title={r.url}>
 								{r.url}
 							</p>
 						</div>
@@ -141,8 +141,8 @@
 			{#if store.hasRemote}
 				<div class="flex items-center gap-1 px-0.5">
 					{#if store.activeRemote}
-						<span class="text-muted-foreground/70 text-xs">
-							Using <span class="text-foreground/80 font-medium">{store.activeRemote.name}</span>
+						<span class="text-muted-foreground text-xs">
+							Using <span class="text-foreground font-medium">{store.activeRemote.name}</span>
 						</span>
 					{/if}
 					<button
@@ -172,12 +172,12 @@
 					>
 				</div>
 				{#if store.remoteMsg}
-					<p class="text-muted-foreground/80 px-0.5 text-xs leading-snug break-words">
+					<p class="text-muted-foreground px-0.5 text-xs leading-snug break-words">
 						{store.remoteMsg}
 					</p>
 				{/if}
 			{:else if !store.addingRemote}
-				<p class="text-muted-foreground/70 px-0.5 text-xs">No remotes. Add one to push or pull.</p>
+				<p class="text-muted-foreground px-0.5 text-xs">No remotes. Add one to push or pull.</p>
 			{/if}
 		</div>
 	{/if}

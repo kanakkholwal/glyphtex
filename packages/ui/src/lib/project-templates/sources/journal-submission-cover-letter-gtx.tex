@@ -1,0 +1,73 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8em}
+\definecolor{band}{RGB}{235,238,242}
+\definecolor{ink}{RGB}{50,60,80}
+
+% Manuscript details used in the letter and the summary table.
+\newcommand{\papertitle}{Soil Moisture Memory and Early Crop Stress in Semi-Arid Farmland}
+\newcommand{\journal}{Journal of Example Agricultural Science}
+\newcommand{\corresponding}{Dr Jesse Kim}
+
+% A ticked box for the declarations list; use \unticked for an empty one.
+\newcommand{\ticked}{$\boxtimes$}
+\newcommand{\unticked}{$\square$}
+
+\begin{document}
+
+% Sender: corresponding author and affiliation.
+{\color{ink}
+\textbf{\large \corresponding}\\
+School of Environmental Sciences, Example University\\
+5 Field Lane, Sampleton, ST4 8RB\\
+j.kim@example.edu}
+
+\today
+
+The Editor-in-Chief\\
+\emph{\journal}
+
+Dear Editor,
+
+On behalf of my co-authors, I am pleased to submit our manuscript entitled \emph{``\papertitle''} for consideration as an Original Research Article in \emph{\journal}.
+
+% Explain the main finding and why readers of this journal will care.
+Using six years of sensor data from 48 farms, we show that soil moisture measured three weeks before planting predicts early crop stress more reliably than rainfall totals. This offers farmers and advisory services a simple, low-cost warning signal. We believe the work fits the journal's focus on practical, data-driven land management and will interest both researchers and extension practitioners.
+
+\colorbox{band}{%
+\begin{tabularx}{\dimexpr\textwidth-2\fboxsep}{@{}>{\bfseries}l X@{}}
+  Title & \papertitle \\
+  Article type & Original Research Article \\
+  Authors & J. Kim, A. Rossi, M. Osei \\
+  Length & 6,200 words, 5 figures, 2 tables \\
+  Data & Shared in a public repository (link in the manuscript) \\
+\end{tabularx}}
+
+\textbf{Declarations}\\
+\ticked\ This manuscript is original and is not under consideration elsewhere.\\
+\ticked\ All authors have approved the submission.\\
+\ticked\ There are no competing interests to declare.\\
+\unticked\ A preprint has been posted (please tick if applicable).
+
+% Suggested reviewers are optional; delete if the journal does not ask.
+\textbf{Suggested reviewers}: Dr Lee Harper (Sample Agricultural Institute, l.harper@example.org) and Prof.\ Noor Haddad (Placeholder University, n.haddad@example.org). Neither has collaborated with the authors in the past five years.
+
+Thank you for considering our manuscript. I look forward to hearing from you.
+
+Yours sincerely,
+
+\vspace{1.5em}
+\corresponding\\
+Corresponding author, on behalf of all authors
+
+\end{document}

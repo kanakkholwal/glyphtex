@@ -35,11 +35,10 @@
 	}}
 />
 
-<!-- Collapses by width rather than unmounting, so the panel animates and keeps
-     its scroll position and draft note across a toggle. The inner box holds the
-     real width so the content doesn't reflow while the outer one animates. -->
+<!-- Collapses by width so scroll and the draft note survive a toggle; the inner
+     box holds the real width so content doesn't reflow mid-animation. -->
 <div
-	class="shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none {open
+	class="shrink-0 overflow-hidden transition-[width] duration-300 ease-craft motion-reduce:transition-none {open
 		? ''
 		: 'pointer-events-none'}"
 	style:width={open ? `${WIDTH_PX}px` : '0px'}
@@ -53,7 +52,7 @@
 		<header class="border-border flex h-9 shrink-0 items-center gap-2 border-b px-2 pl-3">
 			<h2 class="text-foreground truncate text-xs font-medium">{title}</h2>
 			{#if layout.rightPanel === 'notes' && notes.openCount}
-				<span class="text-faint text-xs tabular-nums">{notes.openCount} open</span>
+				<span class="text-muted-foreground text-xs tabular-nums">{notes.openCount} open</span>
 			{/if}
 			<div class="flex-1"></div>
 			{#if layout.rightPanel === 'notes' && notes.doneCount}

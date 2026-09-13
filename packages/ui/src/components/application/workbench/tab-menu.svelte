@@ -146,7 +146,7 @@
 				role={row.checked === undefined ? 'menuitem' : 'menuitemradio'}
 				disabled={row.disabled}
 				aria-checked={row.checked}
-				class="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-[0.8125rem] outline-none disabled:pointer-events-none disabled:opacity-40"
+				class="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm outline-none disabled:pointer-events-none disabled:opacity-40"
 				onclick={() => onpick(row.id)}
 			>
 				{#if Icon}
@@ -156,7 +156,7 @@
 				{/if}
 				<span class="min-w-0 flex-1 truncate">{row.label}</span>
 				{#if row.checked}
-					<IconCheck size={13} class="text-brand shrink-0" />
+					<IconCheck size={13} class="text-primary shrink-0" />
 				{/if}
 			</button>
 		{/if}
@@ -168,7 +168,7 @@
 	   pointer, not the centre, because that is where it came from. */
 	.glyphtex-tab-menu {
 		transform-origin: top left;
-		animation: tab-menu-in 140ms cubic-bezier(0.23, 1, 0.32, 1);
+		animation: tab-menu-in 140ms var(--ease-craft);
 	}
 	@keyframes tab-menu-in {
 		from {

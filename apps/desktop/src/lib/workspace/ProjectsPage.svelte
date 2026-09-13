@@ -4,6 +4,11 @@
 	import { resolve } from "$app/paths";
 	import { message } from "@tauri-apps/plugin-dialog";
 	import { ProjectsHome, type Scope } from "@glyphtex/ui/application";
+	import {
+		loadTemplateCatalog,
+		loadTemplateFiles,
+		type ProjectTemplate
+	} from "@glyphtex/ui/project-templates";
 	import { projects } from "@glyphtex/ui/projects";
 	import { projectHost } from "$lib/project";
 	import { gitProvider } from "$lib/git";
@@ -24,10 +29,8 @@
 		templates: "Templates"
 	};
 
-	// Reflect what's actually on disk: every project folder GlyphTeX manages in its
-	// own data directory shows on the home page, even if its remembered reference
-	// was lost (cleared storage, fresh machine). Imported / opened folders keep
-	// living in the store. The scan never reorders existing entries.
+	// App-data projects show even if their stored reference was lost (cleared storage, new machine).
+	// The scan never reorders existing entries.
 	onMount(async () => {
 		if (!projectHost.listLocalProjects) return;
 		try {
@@ -38,11 +41,14 @@
 		}
 	});
 
-	/**
-	 * New project: created on disk in the app's own data directory by default
-	 * (no save prompt). Falls back to an in-memory project if that fails. Returns
-	 * the new id so ProjectsHome can reveal the card, then morph into the editor.
-	 */
+	/** Plain-language dialog with the raw cause after it, for bug reports. */
+	async function reportError(title: string, plain: string, e: unknown) {
+		console.error(`[projects] ${title}`, e);
+		await message(`${plain}\n\nDetails: ${String(e)}`, { title, kind: "error" });
+	}
+
+	// Created in the app data dir without a save prompt; falls back to in-memory if that fails.
+	// Returns the id so ProjectsHome can reveal the card before morphing into the editor.
 	async function newProject(): Promise<string | undefined> {
 		try {
 			if (projectHost.createLocalProject) {
@@ -50,12 +56,52 @@
 				return projects.remember(root).id;
 			}
 		} catch (e) {
-			await message(String(e), { title: "Could not create project", kind: "error" });
+			await reportError(
+				"Couldn't create project folder",
+				"GlyphTeX couldn't create a folder for the project, so it is kept inside the app instead.",
+				e
+			);
 		}
 		return projects.create().id;
 	}
 
-	/** Open a disk-backed project folder: remember it, then route to the editor. */
+	// The catalog is a lazy chunk, fetched the first time the Templates scope opens.
+	let templates = $state.raw<ProjectTemplate[]>([]);
+	let templatesLoading = $state(false);
+	let catalogRequested = false;
+
+	$effect(() => {
+		if (scope !== "templates" || catalogRequested) return;
+		catalogRequested = true;
+		templatesLoading = true;
+		loadTemplateCatalog()
+			.then((list) => (templates = list))
+			.catch((e) =>
+				reportError("Couldn't load templates", "The template gallery failed to load.", e)
+			)
+			.finally(() => (templatesLoading = false));
+	});
+
+	async function createFromTemplate(id: string): Promise<string | undefined> {
+		const template = templates.find((t) => t.id === id);
+		try {
+			if (!projectHost.createLocalProject) return undefined;
+			const [files, root] = await Promise.all([
+				loadTemplateFiles(id),
+				projectHost.createLocalProject(template?.title ?? "Untitled project")
+			]);
+			await Promise.all(files.map((f) => projectHost.writeFile(`${root}/${f.path}`, f.text)));
+			return projects.remember(root).id;
+		} catch (e) {
+			await reportError(
+				"Couldn't create from template",
+				"GlyphTeX couldn't create a project from that template.",
+				e
+			);
+			return undefined;
+		}
+	}
+
 	async function openFolder() {
 		const root = await projectHost.pickFolder("Open project folder");
 		if (!root) return;
@@ -63,27 +109,35 @@
 		goto(resolve(`/editor/${p.id}`));
 	}
 
-	/** Import a .zip → extracted folder → remember → editor. */
 	async function importZip() {
 		const zip = await projectHost.pickImportFile();
 		if (!zip) return;
-		const root = await projectHost.importZip(zip);
-		if (!root) return;
-		const p = projects.remember(root);
-		goto(resolve(`/editor/${p.id}`));
+		try {
+			const root = await projectHost.importZip(zip);
+			if (!root) return;
+			const p = projects.remember(root);
+			goto(resolve(`/editor/${p.id}`));
+		} catch (e) {
+			await reportError(
+				"Import failed",
+				"GlyphTeX couldn't import that file. Check that it is a valid .zip, .glyx or .tex file.",
+				e
+			);
+		}
 	}
 
-	/** The repo folder name from a clone URL (last path segment, minus `.git`). */
+	/** Clone folder name: the URL's last segment minus `.git`, never `.`, `..` or a nested path. */
 	function repoName(url: string): string {
 		const last = url
 			.replace(/\.git$/i, "")
-			.replace(/[/\\]+$/, "")
-			.split(/[/\\]/)
-			.pop();
-		return last?.length ? last : "repository";
+			.replace(/[/\\:]+$/, "")
+			.split(/[/\\:]/)
+			.pop()
+			?.replace(/[<>"|?*]/g, "")
+			.trim();
+		return last && !/^\.+$/.test(last) ? last : "repository";
 	}
 
-	/** Clone a Git repo: pick a parent folder natively, clone into it, then open. */
 	async function cloneRepo(url: string) {
 		const parent = await projectHost.pickFolder("Choose where to clone the repository");
 		if (!parent) return;
@@ -93,7 +147,11 @@
 			const p = projects.remember(root);
 			goto(resolve(`/editor/${p.id}`));
 		} catch (e) {
-			await message(String(e), { title: "Clone failed", kind: "error" });
+			await reportError(
+				"Clone failed",
+				"GlyphTeX couldn't clone that repository. Check the URL and your connection.",
+				e
+			);
 		}
 	}
 </script>
@@ -107,6 +165,9 @@
 	{scopeHrefs}
 	projects={projects.list}
 	oncreate={newProject}
+	{templates}
+	{templatesLoading}
+	onusetemplate={createFromTemplate}
 	onopenfolder={openFolder}
 	onimport={importZip}
 	onclone={cloneRepo}
@@ -118,13 +179,11 @@
 	onduplicate={(id) => projects.duplicate(id)}
 	ondelete={async (id) => {
 		const p = projects.list.find((x) => x.id === id);
-		// Disk-backed project → remove the folder from the file system too, so
-		// deleting from the home actually frees the project on disk.
+		// Disk-backed: the confirm dialog names the folder, and deleting removes it from disk.
 		if (p?.root) {
 			try {
 				await projectHost.remove(p.root);
 			} catch (e) {
-				// Plain language for the dialog; raw cause to the console (§5).
 				console.error('[projects] delete folder failed', e);
 				await message(
 					'Could not delete the project folder. It may be open in another program, or it may have already been removed.',

@@ -8,6 +8,8 @@ const STATIC: { path: string; priority: string; freq: string }[] = [
 	{ path: "/", priority: "1.0", freq: "weekly" },
 	{ path: "/blog", priority: "0.9", freq: "daily" },
 	{ path: "/docs", priority: "0.9", freq: "weekly" },
+	{ path: "/errors", priority: "0.8", freq: "weekly" },
+	{ path: "/templates", priority: "0.9", freq: "weekly" },
 	{ path: "/engine", priority: "0.6", freq: "monthly" },
 	{ path: "/download", priority: "0.6", freq: "monthly" },
 	{ path: "/about", priority: "0.5", freq: "monthly" },

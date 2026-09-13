@@ -2,20 +2,12 @@ import type { Update } from "@tauri-apps/plugin-updater";
 import { isTauriRuntime } from "$lib/runtime";
 
 /**
- * Auto-updater store (desktop only).
- *
- * Flow: on app boot we ask the Tauri updater plugin to compare the running
- * build against the `latest.json` manifest published with each GitHub release.
- * If a newer version exists we surface a non-blocking corner card: the
- * download does NOT start until the user opts in, and install + relaunch is
- * deferred until they explicitly click "Restart to update". This matches the
- * explicit-consent behaviour users expect and is kind to metered connections.
- *
- * All updater/process APIs are imported lazily so the module is safe to load in
- * the browser (web build) where the Tauri plugins don't exist.
+ * Desktop auto-updater. Checks `latest.json` on boot; download and install each wait for the user.
+ * Plugins load lazily so the module is safe outside Tauri.
  */
 export type UpdaterStatus =
 	| "idle"
+	| "unavailable"
 	| "checking"
 	| "up-to-date"
 	| "update-available"
@@ -23,26 +15,51 @@ export type UpdaterStatus =
 	| "ready"
 	| "error";
 
+/** Which step failed, so Retry repeats that step instead of always re-checking. */
+export type UpdaterFailure = "check" | "download" | "install";
+
+export const FAILURE_COPY: Record<UpdaterFailure, { title: string; body: string }> = {
+	check: {
+		title: "Couldn't check for updates",
+		body: "GlyphTeX couldn't reach the update server. Check your connection and try again."
+	},
+	download: {
+		title: "Download failed",
+		body: "The update didn't finish downloading. Nothing was installed."
+	},
+	install: {
+		title: "Install failed",
+		body: "The update couldn't be installed. Your current version still works."
+	}
+};
+
 function createUpdaterStore() {
 	let status = $state<UpdaterStatus>("idle");
 	let version = $state<string | null>(null);
 	let notes = $state<string | null>(null);
-	let progress = $state(0); // 0..1, only meaningful while downloading
+	let received = $state(0);
+	let total = $state(0);
 	let error = $state<string | null>(null);
+	let failedStep = $state<UpdaterFailure | null>(null);
 	let dismissed = $state(false);
 	let installing = $state(false);
-	// Tracks whether the most recent check was user-initiated, so the "you're up
-	// to date" result can be surfaced (a boot check stays silent when current).
 	let manual = $state(false);
 
-	// The resolved Update handle, held across the download → install steps.
 	let update: Update | null = null;
 
+	function fail(step: UpdaterFailure, e: unknown) {
+		console.error(`[updater] ${step} failed`, e);
+		error = e instanceof Error ? e.message : String(e);
+		failedStep = step;
+		status = "error";
+	}
+
 	async function runDownload() {
-		if (!update) return;
-		let total = 0;
-		let received = 0;
-		progress = 0;
+		if (!update || status === "downloading") return;
+		received = 0;
+		total = 0;
+		error = null;
+		failedStep = null;
 		status = "downloading";
 		try {
 			await update.download((ev) => {
@@ -52,37 +69,31 @@ function createUpdaterStore() {
 						break;
 					case "Progress":
 						received += ev.data.chunkLength;
-						progress = total > 0 ? Math.min(received / total, 1) : 0;
 						break;
 					case "Finished":
-						progress = 1;
+						if (total > 0) received = total;
 						break;
 				}
 			});
 			status = "ready";
 		} catch (e) {
-			console.error("[updater] download failed", e);
-			error = e instanceof Error ? e.message : String(e);
-			status = "error";
+			fail("download", e);
 		}
 	}
 
 	async function runCheck(isManual: boolean) {
-		// Production-only. `tauri dev` ships an unsigned, unpublished build, so
-		// the plugin can't compare against `latest.json` meaningfully: and the
-		// corner card during local dev just confuses contributors. Vite's DEV
-		// flag short-circuits cleanly for `tauri dev` while staying live for
-		// `tauri build` artefacts.
+		// `tauri dev` builds are unsigned and unpublished, so there is nothing honest to compare against.
 		if (import.meta.env.DEV || !isTauriRuntime()) {
 			if (isManual) {
 				manual = true;
-				status = "up-to-date";
+				status = "unavailable";
 			}
 			return;
 		}
 		if (status === "checking" || status === "downloading") return;
 		manual = isManual;
 		error = null;
+		failedStep = null;
 		status = "checking";
 		try {
 			const { check } = await import("@tauri-apps/plugin-updater");
@@ -97,12 +108,25 @@ function createUpdaterStore() {
 			version = found.version;
 			notes = found.body ?? null;
 			dismissed = false;
-			// Don't auto-download: surface the card and wait for the user.
 			status = "update-available";
 		} catch (e) {
-			console.error("[updater] check failed", e);
-			error = e instanceof Error ? e.message : String(e);
-			status = "error";
+			fail("check", e);
+		}
+	}
+
+	async function runInstall() {
+		if (!update || installing) return;
+		installing = true;
+		error = null;
+		failedStep = null;
+		status = "ready";
+		try {
+			await update.install();
+			const { relaunch } = await import("@tauri-apps/plugin-process");
+			await relaunch();
+		} catch (e) {
+			installing = false;
+			fail("install", e);
 		}
 	}
 
@@ -116,47 +140,61 @@ function createUpdaterStore() {
 		get notes() {
 			return notes;
 		},
+		/** 0..1, or null while the server has not sent a content length. */
 		get progress() {
-			return progress;
+			return total > 0 ? Math.min(received / total, 1) : null;
+		},
+		get receivedBytes() {
+			return received;
+		},
+		get totalBytes() {
+			return total;
 		},
 		get error() {
 			return error;
 		},
+		get failedStep() {
+			return failedStep;
+		},
 		get installing() {
 			return installing;
 		},
-		/** True while a user-initiated check is in flight or just resolved. */
+		/** True when the latest check was started by the user. */
 		get manual() {
 			return manual;
 		},
 
-		/**
-		 * Whether the corner card should render. Silent while idle / checking /
-		 * up to date: it only appears once there's something actionable.
-		 */
+		/** The corner card only renders when there is something to act on. */
 		get visible() {
 			if (dismissed) return false;
 			return (
 				status === "update-available" ||
 				status === "downloading" ||
 				status === "ready" ||
-				status === "error"
+				// Failed checks stay off the card: boot checks fail offline, manual ones show in About.
+				(status === "error" && failedStep !== "check")
 			);
 		},
 
-		/** Boot-time check. Fire-and-forget; stays silent unless an update exists. */
+		/** Boot-time check. Silent unless an update exists. */
 		init() {
 			void runCheck(false);
 		},
 
-		/** User-initiated check (settings → About). Surfaces an "up to date" result. */
+		/** User-initiated check from Settings > About. */
 		checkNow() {
 			return runCheck(true);
 		},
 
-		/** User-triggered download (from the corner card's Download button). */
 		download() {
 			return runDownload();
+		},
+
+		/** Repeat the step that failed. */
+		retry() {
+			if (failedStep === "download" && update) return runDownload();
+			if (failedStep === "install" && update) return runInstall();
+			return runCheck(manual);
 		},
 
 		/** Hide the corner card until the next check finds something new. */
@@ -164,20 +202,9 @@ function createUpdaterStore() {
 			dismissed = true;
 		},
 
-		/** Install the downloaded update and relaunch. */
-		async installAndRelaunch() {
-			if (!update || status !== "ready" || installing) return;
-			installing = true;
-			try {
-				await update.install();
-				const { relaunch } = await import("@tauri-apps/plugin-process");
-				await relaunch();
-			} catch (e) {
-				console.error("[updater] install failed", e);
-				error = e instanceof Error ? e.message : String(e);
-				status = "error";
-				installing = false;
-			}
+		installAndRelaunch() {
+			if (status !== "ready") return;
+			return runInstall();
 		}
 	};
 }

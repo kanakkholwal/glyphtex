@@ -11,20 +11,14 @@
 
 	import { isMacPlatform, shortcutCategories, shortcutsByCategory, formatCombo } from "./shortcuts";
 
-	/**
-	 * ShortcutsDialog: a wide, scannable reference of every keyboard shortcut,
-	 * grouped by category and flowed into two or three columns. Reads entirely
-	 * from the shortcuts registry, so adding a shortcut there shows up here for
-	 * free. Read-only; this is documentation, not a rebinding surface.
-	 */
+	// Read-only shortcut reference, grouped by category, read entirely from the shortcuts registry.
 	let { open = $bindable(false) }: { open?: boolean } = $props();
 
 	const mac = isMacPlatform();
 	const categories = shortcutCategories();
 
-	/** Split a formatted combo into its visible chunks so each renders as a key.
-	 *  On macOS the chunks are packed (⌘⇧Z): keep them as one cap; elsewhere
-	 *  "Ctrl+Shift+Z" splits on "+". */
+	/** Split a formatted combo into keycaps: macOS packs it (⌘⇧Z) into one cap,
+	 *  elsewhere "Ctrl+Shift+Z" splits on "+". */
 	function caps(combo: string): string[] {
 		const formatted = formatCombo(combo, mac);
 		return mac ? [formatted] : formatted.split("+");
@@ -49,7 +43,7 @@
 			<div class="gap-4 sm:columns-2 lg:columns-3 [&>section]:mb-4 [&>section]:break-inside-avoid">
 				{#each categories as category (category)}
 					<section class="border-border bg-card/40 rounded-lg border p-3">
-						<h3 class="text-faint mb-2 text-xs font-semibold tracking-wide uppercase">
+						<h3 class="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
 							{category}
 						</h3>
 						<ul class="flex flex-col gap-1.5">
@@ -59,7 +53,7 @@
 									<span class="flex shrink-0 items-center gap-1">
 										{#each s.combos as combo, i (combo)}
 											{#if i > 0}
-												<span class="text-muted-foreground/50 text-xs">or</span>
+												<span class="text-muted-foreground text-xs">or</span>
 											{/if}
 											{#each caps(combo) as cap (cap)}
 												<Kbd>{cap}</Kbd>

@@ -33,10 +33,8 @@
 		children
 	}: SettingsFieldProps = $props();
 
-	const labelCls = $derived(size === 'sm' ? 'text-[13px]' : 'text-sm');
-	const descCls = $derived(
-		size === 'sm' ? 'text-muted-foreground text-[11px]' : 'text-muted-foreground text-xs'
-	);
+	const labelCls = 'text-sm';
+	const descCls = 'text-muted-foreground text-xs';
 	const stackGap = $derived(size === 'sm' ? 'gap-1.5' : 'gap-2');
 	const rowGap = $derived(size === 'sm' ? 'gap-2' : 'gap-3');
 </script>

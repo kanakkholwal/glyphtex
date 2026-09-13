@@ -10,18 +10,14 @@
 		IconMinus,
 		IconPlus
 	} from "@tabler/icons-svelte";
-	import { cubicOut } from "svelte/easing";
 	import { slide } from "svelte/transition";
+	import { reveal } from "../motion";
 
 	import type { GitPanelStore } from "./store.svelte";
 	import { indent, leaf } from "./tree";
 	import { STATUS_CLASS, STATUS_LABEL, type GitChange, type TreeNode } from "./types";
 
-	/**
-	 * One changes section's file list: either a flat list or a nested folder
-	 * tree (per `settings.gitView`). Each row opens the file's diff and offers
-	 * stage/unstage (and discard, when staging unstaged changes).
-	 */
+	// One changes section as a flat list or folder tree (`settings.gitView`); rows open diffs and stage.
 	let {
 		store,
 		items,
@@ -46,7 +42,7 @@
 		style:padding-left={tree ? indent(depth) : '4px'}
 	>
 		<button
-			class="text-foreground/90 hover:text-foreground flex min-w-0 flex-1 items-center gap-1 text-left {open
+			class="text-foreground hover:text-foreground flex min-w-0 flex-1 items-center gap-1 text-left {open
 				? 'font-medium'
 				: ''}"
 			title="Open diff: {c.path}"
@@ -62,7 +58,7 @@
 			<Button
 				variant="ghost"
 				size="icon-xs"
-				class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
+				class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
 				title="Discard changes"
 				aria-label="Discard changes"
 				disabled={store.busy}
@@ -74,7 +70,7 @@
 		<Button
 			variant="ghost"
 			size="icon-xs"
-			class="opacity-0 group-hover:opacity-100"
+			class="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
 			title={action === 'stage' ? 'Stage' : 'Unstage'}
 			aria-label={action === 'stage' ? 'Stage' : 'Unstage'}
 			disabled={store.busy}
@@ -82,8 +78,12 @@
 		>
 			{#if action === 'stage'}<IconPlus size={13} />{:else}<IconMinus size={13} />{/if}
 		</Button>
-		<span class="shrink-0 font-mono text-xs {STATUS_CLASS[c.status] ?? ''}">
-			{STATUS_LABEL[c.status] ?? '?'}
+		<span
+			class="shrink-0 font-mono text-xs {STATUS_CLASS[c.status] ?? ''}"
+			title={c.status}
+		>
+			<span aria-hidden="true">{STATUS_LABEL[c.status] ?? '?'}</span>
+			<span class="sr-only">{c.status}</span>
 		</span>
 	</div>
 {/snippet}
@@ -103,7 +103,7 @@
 			>
 				<IconChevronRight
 					size={13}
-					class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] {expanded
+					class="shrink-0 transition-transform duration-200 ease-craft {expanded
 						? 'rotate-90'
 						: ''}"
 				/>
@@ -114,7 +114,7 @@
 				<span class="truncate">{n.name}</span>
 			</button>
 			{#if expanded}
-				<div transition:slide={{ duration: 200, easing: cubicOut }}>
+				<div transition:slide={reveal()}>
 					{@render treeView(n.children, depth + 1)}
 				</div>
 			{/if}

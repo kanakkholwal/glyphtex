@@ -56,14 +56,14 @@
 		{#each commits as commit (commit.hash)}
 			<li class="hover:bg-muted/60 flex items-baseline gap-2 px-3 py-1.5 transition-colors">
 				<IconGitCommit size={13} class="text-muted-foreground shrink-0 self-center" />
-				<code class="text-faint shrink-0 font-mono text-xs">
+				<code class="text-muted-foreground shrink-0 font-mono text-xs">
 					{commit.hash.slice(0, 7)}
 				</code>
-				<span class="text-foreground/90 min-w-0 flex-1 truncate text-xs">
+				<span class="text-foreground min-w-0 flex-1 truncate text-xs">
 					{commit.summary}
 				</span>
-				<span class="text-faint hidden shrink-0 text-xs sm:inline">{commit.author}</span>
-				<span class="text-faint shrink-0 text-xs">
+				<span class="text-muted-foreground hidden shrink-0 text-xs sm:inline">{commit.author}</span>
+				<span class="text-muted-foreground shrink-0 text-xs">
 					{relativeTime(commit.time * 1000)}
 				</span>
 			</li>

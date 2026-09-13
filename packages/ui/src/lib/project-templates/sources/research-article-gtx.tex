@@ -1,0 +1,80 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage[numbers]{natbib}
+
+% Replace the title, authors and affiliations with your own.
+\title{\textbf{Measuring Seasonal Variation in Urban Soil Moisture}}
+\author{Alex Rivera\thanks{Department of Environmental Science, Example University. \texttt{alex.rivera@example.edu}}
+  \and Sam Okafor\thanks{Institute for Water Research, Sample City.}}
+\date{}
+
+\newcommand{\keywords}[1]{\par\medskip\noindent\textbf{Keywords:} #1}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent State the problem in one sentence, then say what you did, what you found and why it matters.
+A good abstract is 150 to 250 words and contains no citations or undefined abbreviations.
+\keywords{soil moisture; urban hydrology; remote sensing; field survey}
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+Open with the broad context, narrow down to the specific gap in current knowledge and finish with a clear statement of your aims.
+Cite prior work like this \citep{doe2021,lee2019}.
+
+\section{Materials and methods}
+\label{sec:methods}
+\subsection{Study site}
+Describe where and when the data were collected.
+
+\subsection{Analysis}
+Explain the statistical model. Number any equation you refer to later, such as Equation~\eqref{eq:model}.
+\begin{equation}
+  \theta_t = \beta_0 + \beta_1 T_t + \beta_2 P_t + \varepsilon_t
+  \label{eq:model}
+\end{equation}
+
+\section{Results}
+\label{sec:results}
+Report the findings without interpreting them. Table~\ref{tab:summary} summarises the measurements.
+
+\begin{table}[ht]
+  \centering
+  \caption{Mean volumetric soil moisture by season (replace with your data).}
+  \label{tab:summary}
+  \begin{tabular}{lrrr}
+    \toprule
+    Season & Sites & Mean (\%) & SD (\%) \\
+    \midrule
+    Winter & 24 & 31.2 & 4.1 \\
+    Spring & 24 & 27.8 & 3.6 \\
+    Summer & 23 & 18.4 & 5.2 \\
+    Autumn & 24 & 25.9 & 4.4 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Discussion}
+\label{sec:discussion}
+Interpret the results, compare them with earlier studies and be honest about limitations.
+
+\section{Conclusion}
+Summarise the main contribution in a short paragraph and suggest next steps.
+
+\section*{Acknowledgements}
+Thank funders, collaborators and data providers here.
+
+% Add one \bibitem per reference. The key in braces is what you pass to \citep.
+\begin{thebibliography}{9}
+\bibitem[Doe(2021)]{doe2021} J.~Doe, \emph{Urban Water Balance}, 2nd ed. Example Press, 2021.
+\bibitem[Lee(2019)]{lee2019} K.~Lee and P.~Singh, ``Sensor networks for soil monitoring,'' \emph{Journal of Field Methods}, vol.~12, pp.~45--61, 2019.
+\end{thebibliography}
+
+\end{document}

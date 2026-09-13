@@ -1,0 +1,123 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=0pt]{geometry}
+\usepackage{xcolor}
+\usepackage{eso-pic}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% Sidebar and accent colours.
+\definecolor{side}{RGB}{34,49,63}
+\definecolor{accent}{RGB}{26,188,156}
+\definecolor{muted}{RGB}{110,120,130}
+
+% Width of the dark sidebar.
+\newlength{\sidew}
+\setlength{\sidew}{6.4cm}
+
+\AddToShipoutPictureBG{%
+  \AtPageLowerLeft{\color{side}\rule{\sidew}{\paperheight}}}
+
+% Section headings for each column.
+\newcommand{\sidehead}[1]{\par\vspace{1.2em}{\color{accent}\bfseries\MakeUppercase{#1}}\par\vspace{0.2em}{\color{accent}\rule{2.5em}{1.5pt}}\par\vspace{0.5em}}
+\newcommand{\mainhead}[1]{\par\vspace{1.4em}{\Large\bfseries\color{side}#1}\par\vspace{-0.3em}{\color{accent}\rule{\linewidth}{1pt}}\par\vspace{0.6em}}
+
+% \job{title}{organisation}{dates}
+\newcommand{\job}[3]{{\bfseries #1}\hfill{\small\color{muted}#3}\par{\color{accent}#2}\par\vspace{0.2em}}
+
+% A skill bar: \skill{name}{level from 0 to 1}
+\newcommand{\skill}[2]{#1\par\vspace{2pt}%
+  \begin{tikzpicture}
+    \fill[white!25!side] (0,0) rectangle (4.6,0.14);
+    \fill[accent] (0,0) rectangle ({4.6*#2},0.14);
+  \end{tikzpicture}\par\vspace{4pt}}
+
+% Small circle used in front of contact details.
+\newcommand{\bulletdot}{\tikz[baseline=-0.6ex]\fill[accent] circle (2pt);\hspace{0.5em}}
+
+\setlist[itemize]{leftmargin=1em,itemsep=1pt,topsep=2pt,label={\color{accent}\textbullet}}
+
+\begin{document}
+\noindent
+\begin{minipage}[t]{\sidew}
+  \vspace{1.2cm}
+  \hspace*{0.8cm}%
+  \begin{minipage}[t]{\dimexpr\sidew-1.6cm}
+    \color{white}
+    % Photo placeholder: replace with your own picture if you like.
+    \begin{center}
+      \begin{tikzpicture}
+        \draw[accent,line width=1.5pt] (0,0) circle (1.4cm);
+        \node[white] at (0,0) {Photo};
+      \end{tikzpicture}
+    \end{center}
+
+    \sidehead{Contact}
+    \small
+    \bulletdot riley.quinn@example.com\par\vspace{3pt}
+    \bulletdot +44 20 7946 0000\par\vspace{3pt}
+    \bulletdot Exampleford, UK\par\vspace{3pt}
+    \bulletdot rileyquinn.example.com\par
+
+    \sidehead{Skills}
+    \skill{Product strategy}{0.9}
+    \skill{User research}{0.8}
+    \skill{Data analysis (SQL)}{0.7}
+    \skill{Roadmapping}{0.85}
+    \skill{Figma}{0.6}
+
+    \sidehead{Languages}
+    English, native\par
+    Spanish, professional\par
+    German, basic\par
+
+    \sidehead{Interests}
+    Trail running, community radio, board game design.
+  \end{minipage}
+\end{minipage}%
+\hspace{0.9cm}%
+\begin{minipage}[t]{\dimexpr\paperwidth-\sidew-1.8cm}
+  \vspace{1.2cm}
+  % Your name and headline.
+  {\fontsize{30}{34}\selectfont\bfseries\color{side} Riley Quinn}\par\vspace{0.4em}
+  {\large\color{accent} Senior Product Manager}\par
+
+  \mainhead{Profile}
+  Product manager with eight years of experience shipping consumer mobile apps. I combine user research with clear metrics to decide what to build next, and I enjoy working closely with design and engineering.
+
+  \mainhead{Experience}
+  \job{Senior Product Manager}{Example Travel Ltd}{2021 to present}
+  \begin{itemize}
+    \item Own the booking flow used by 3 million monthly travellers.
+    \item Raised checkout conversion by 14 percent through a redesigned payment step.
+    \item Built a quarterly research programme with the design team.
+  \end{itemize}
+  \vspace{0.5em}
+  \job{Product Manager}{Sample Health App}{2018 to 2021}
+  \begin{itemize}
+    \item Launched medication reminders, now the most used feature.
+    \item Coordinated a squad of six engineers and two designers.
+  \end{itemize}
+  \vspace{0.5em}
+  \job{Business Analyst}{Placeholder Consulting}{2016 to 2018}
+  \begin{itemize}
+    \item Modelled pricing scenarios for retail clients in SQL and spreadsheets.
+  \end{itemize}
+
+  \mainhead{Education}
+  \job{MSc Management}{Example Business School}{2015 to 2016}
+  \job{BA Economics}{University of Sampleton}{2012 to 2015}
+
+  \mainhead{Selected Achievements}
+  \begin{itemize}
+    \item Speaker at the fictional Product Week conference, 2023.
+    \item Mentor in a volunteer programme for early-career product managers.
+  \end{itemize}
+\end{minipage}
+\end{document}

@@ -102,9 +102,8 @@
 		const module = tex;
 		if (!module) return;
 
-		// A file switch is a different document, not a new state of this one: drop
-		// the blocks and every overlay anchored into them, or the previous chapter
-		// stays on screen (and clickable) for the whole debounce.
+		// A file switch drops blocks and anchored overlays, or the previous chapter stays
+		// clickable for the whole debounce.
 		if (file !== docFile) {
 			docFile = file;
 			selfWritten = null;
@@ -135,9 +134,8 @@
 		};
 	});
 
-	// --- Undo -------------------------------------------------------------------
-	// Keyed by file: the stack holds whole-source snapshots, so a shared one would
-	// write another file's source into this one after a switch.
+	// --- Undo ---
+	// Keyed by file: whole-source snapshots from a shared stack would cross files after a switch.
 	function history(): History {
 		const id = files.activeId;
 		let entry = histories.get(id);
@@ -239,10 +237,8 @@
 		}
 	}
 
-	// Published while this pane is mounted, so the Edit menu drives the surface that
-	// is actually on screen instead of a CodeMirror handle that isn't there.
-	// `historyTick` exists only to make the menu's enabled state reactive: the stacks
-	// are plain arrays, so pushing to one is invisible to the template.
+	// Published while mounted so the Edit menu drives this surface. `historyTick` makes
+	// enabled state reactive, since the stacks are plain arrays.
 	let historyTick = $state(0);
 	$effect(() => {
 		layout.visualApi = {
@@ -723,9 +719,8 @@
 		else if (mode?.kind === 'draft') focusOn('draft');
 	}
 
-	// --- Selection formatting ---------------------------------------------------
-	// Tracked on the document because the selection can start in one block and the
-	// pointer can leave it; per-block mouseup handlers miss both cases.
+	// --- Selection formatting ---
+	// Tracked on the document: a selection can span blocks and the pointer can leave; per-block mouseup misses both.
 	function onSelectionChange() {
 		const selection = document.getSelection();
 		if (!selection || selection.isCollapsed || selection.rangeCount === 0) {
@@ -963,7 +958,7 @@
 {#snippet lockedProse(block: Block)}
 	<div class="relative" data-locked-block>
 		<span
-			class="border-border text-faint absolute top-1 -right-2 rounded border px-1 text-[0.625rem] tracking-wide uppercase"
+			class="border-border text-muted-foreground absolute top-1 -right-2 rounded border px-1 text-xs tracking-wide uppercase"
 		>
 			LaTeX
 		</span>
@@ -1077,7 +1072,7 @@
 				{@const itemKey = `${index}:${j}`}
 				<li class="text-foreground leading-[1.6] {block.ordered ? '' : 'flex gap-2.5'}">
 					{#if !block.ordered && !block.description}
-						<span class="text-faint mt-[0.7em] size-1.5 shrink-0 rounded-full bg-current"></span>
+						<span class="text-muted-foreground mt-[0.7em] size-1.5 shrink-0 rounded-full bg-current"></span>
 					{/if}
 					<span class="min-w-0 flex-1">
 						{#if item.term}<strong class="font-semibold">{item.term}</strong>{' '}{/if}
@@ -1101,7 +1096,7 @@
 		</svelte:element>
 	{:else if block.kind === 'math'}
 		{@const numbered = !!block.environment && !block.environment.endsWith('*')}
-		<div class="group/box border-border bg-surface-soft mt-5 overflow-hidden rounded-lg border">
+		<div class="group/box border-border bg-muted mt-5 overflow-hidden rounded-lg border">
 			<div
 				class="text-muted-foreground border-border flex items-center gap-2 border-b px-3 py-1.5 text-xs font-medium"
 			>
@@ -1123,7 +1118,7 @@
 		</div>
 	{:else if block.kind === 'code'}
 		{@const listing = block.environment.startsWith('lst')}
-		<div class="group/box border-border bg-surface-soft mt-5 overflow-hidden rounded-lg border">
+		<div class="group/box border-border bg-muted mt-5 overflow-hidden rounded-lg border">
 			<div
 				class="text-muted-foreground border-border flex items-center gap-2 border-b px-3 py-1.5 text-xs font-medium"
 			>
@@ -1138,7 +1133,7 @@
 							value={language}
 							placeholder="language"
 							aria-label="Listing language"
-							class="border-border text-foreground focus-visible:border-brand h-7 w-28 rounded border bg-transparent px-2 text-xs outline-none"
+							class="border-border text-foreground focus-visible:border-ring h-7 w-28 rounded border bg-transparent px-2 text-xs outline-none"
 							onchange={(e) =>
 								applyBlockPatch([
 									tex?.setEnvOption(
@@ -1187,7 +1182,7 @@
 			<div class="text-muted-foreground flex items-center gap-2 text-xs">
 				<IconAlertTriangle size={13} class="shrink-0" />
 				<span class="font-medium">{block.label}</span>
-				<span class="text-faint">kept exactly as written</span>
+				<span class="text-muted-foreground">kept exactly as written</span>
 			</div>
 		</div>
 	{/if}
@@ -1219,9 +1214,7 @@
 	role="document"
 	onkeydown={onPaneKeyDown}
 	onscroll={() => {
-		// The overlays are position:fixed against a rect the scroll invalidates. The
-		// atom editor is not among them: it tracks its atom instead, because closing
-		// it would throw away whatever had been typed into it.
+		// Fixed overlays go stale on scroll. The atom editor tracks its atom instead, so typing isn't lost.
 		slash = null;
 		blockMenu = null;
 		selectionRect = null;
@@ -1232,7 +1225,7 @@
 		style:max-width={settings.docFullWidth ? 'none' : '900px'}
 	>
 		{#if parseError}
-			<div class="border-border bg-surface-soft rounded-lg border px-4 py-3.5">
+			<div class="border-border bg-muted rounded-lg border px-4 py-3.5">
 				<p class="text-foreground text-sm font-medium">This document could not be read</p>
 				<p class="text-muted-foreground mt-1 text-xs">{parseError}</p>
 				<Button
@@ -1248,30 +1241,30 @@
 			<!-- A skeleton, not a line of text: the real content is about to land in
 			     the same place, and a swap of differing heights shifts the page. -->
 			<div class="space-y-3" aria-busy="true" aria-label="Reading the document">
-				<div class="bg-surface-soft h-7 w-2/5 animate-pulse rounded"></div>
-				<div class="bg-surface-soft h-4 w-full animate-pulse rounded"></div>
-				<div class="bg-surface-soft h-4 w-11/12 animate-pulse rounded"></div>
-				<div class="bg-surface-soft h-4 w-4/5 animate-pulse rounded"></div>
-				<div class="bg-surface-soft mt-8 h-24 w-full animate-pulse rounded"></div>
+				<div class="bg-muted h-7 w-2/5 animate-pulse rounded"></div>
+				<div class="bg-muted h-4 w-full animate-pulse rounded"></div>
+				<div class="bg-muted h-4 w-11/12 animate-pulse rounded"></div>
+				<div class="bg-muted h-4 w-4/5 animate-pulse rounded"></div>
+				<div class="bg-muted mt-8 h-24 w-full animate-pulse rounded"></div>
 			</div>
 		{:else}
 			{#if doc.preamble.packages.length || doc.preamble.documentClass}
 				<!-- The preamble is summarised, never block-edited: macro definitions
 				     and package options have no faithful block representation. -->
-				<details class="border-border bg-surface-soft mb-6 rounded-lg border px-3.5 py-2.5">
+				<details class="border-border bg-muted mb-6 rounded-lg border px-3.5 py-2.5">
 					<summary class="text-muted-foreground cursor-pointer text-xs font-medium">
 						Document setup
-						{#if doc.preamble.documentClass}<span class="text-faint"
+						{#if doc.preamble.documentClass}<span class="text-muted-foreground"
 								>· {doc.preamble.documentClass}</span
 							>{/if}
 					</summary>
 					<div class="text-muted-foreground mt-2 space-y-1 text-xs">
 						{#if doc.preamble.packages.length}
-							<p><span class="text-faint">Packages:</span> {doc.preamble.packages.join(', ')}</p>
+							<p><span class="text-muted-foreground">Packages:</span> {doc.preamble.packages.join(', ')}</p>
 						{/if}
 						{#if doc.preamble.macros.length}
 							<p>
-								<span class="text-faint">Defines:</span>
+								<span class="text-muted-foreground">Defines:</span>
 								{doc.preamble.macros.map((m) => `\\${m}`).join(', ')}
 							</p>
 						{/if}
@@ -1299,14 +1292,10 @@
 						     disagree about which block is live. -->
 						<span
 							aria-hidden="true"
-							class="group-focus-within/block:bg-brand/50 absolute top-0 -left-4 h-full w-0.5 rounded-full bg-transparent transition-colors"
+							class="group-focus-within/block:bg-primary/50 absolute top-0 -left-4 h-full w-0.5 rounded-full bg-transparent transition-colors"
 						></span>
-						<!-- The gutter lives in the article's own left padding, so it is never
-						     clipped however narrow the pane gets. The block's top margin
-						     collapses through this wrapper, which is what lines the controls up
-						     with the first line of text. Out of the tab order: tabbing a long
-						     document should walk its prose. A menu takes the focus with it, so
-						     the block that owns one keeps its gutter pinned as the anchor. -->
+						<!-- Gutter sits in the article's left padding (never clipped) and out of tab order.
+						     The block owning an open menu keeps its gutter pinned as the anchor. -->
 						<div
 							data-block-gutter
 							class="pointer-events-none absolute top-0 -left-14 z-10 flex w-14 items-start justify-end gap-px pr-1.5 transition-opacity group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100 group-hover/block:pointer-events-auto group-hover/block:opacity-100 {menuBlock ===
@@ -1319,7 +1308,7 @@
 								tabindex="-1"
 								aria-label="Insert block below"
 								title="Insert block below"
-								class="text-faint hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-['']"
+								class="text-muted-foreground hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-['']"
 								onclick={(e) => insertAfterBlock(i, e.currentTarget)}
 							>
 								<IconPlus size={15} />
@@ -1334,7 +1323,7 @@
 								class="hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-[''] {blockMenu?.index ===
 								i
 									? 'bg-accent text-foreground'
-									: 'text-faint'}"
+									: 'text-muted-foreground'}"
 								onclick={(e) =>
 									(blockMenu = { rect: e.currentTarget.getBoundingClientRect(), index: i })}
 							>

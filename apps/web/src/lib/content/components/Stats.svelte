@@ -24,15 +24,15 @@
 </script>
 
 {#if parsed.length}
-	<div class="not-prose my-9 grid gap-px overflow-hidden rounded-2xl bg-hairline {gridCols}">
+	<dl class="not-prose my-9 grid gap-px overflow-hidden rounded-2xl border border-border bg-border {gridCols}">
 		{#each parsed as stat (stat.label)}
-			<div class="bg-surface-card px-5 py-6">
-				<p class="text-2xl font-semibold tracking-tight text-foreground">{stat.value}</p>
-				<p class="mt-1.5 text-sm leading-snug text-muted-foreground">{stat.label}</p>
+			<div class="flex flex-col bg-card px-5 py-5 dark:bg-background">
+				<dt class="order-2 mt-1 text-body text-muted-foreground">{stat.label}</dt>
+				<dd class="order-1 font-display text-heading-sm font-medium text-foreground">{stat.value}</dd>
 			</div>
 		{/each}
-	</div>
+	</dl>
 	{#if source}
-		<p class="not-prose -mt-6 mb-9 text-xs text-muted-foreground">{source}</p>
+		<p class="not-prose -mt-6 mb-9 text-caption text-muted-foreground">{source}</p>
 	{/if}
 {/if}

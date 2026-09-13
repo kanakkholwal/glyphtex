@@ -31,9 +31,7 @@
 	import PageMenu from "./page-menu.svelte";
 	import type { SaveFileFn } from "./types";
 
-	/** The workbench's one full-width bar: where you are (back link / document /
-	 *  branch), which editor you're in, and building. Everything that acts on the
-	 *  document hangs off the document's own node; everything else is in ⌘K. */
+	// Full-width bar: breadcrumb, editor mode and build. Document actions hang off its node; the rest is ⌘K.
 	let {
 		ctrl,
 		saving,
@@ -75,7 +73,7 @@
 		}
 	}
 
-	const crumbSep = "text-faint shrink-0 select-none";
+	const crumbSep = "text-muted-foreground shrink-0 select-none";
 </script>
 
 {#snippet slash()}
@@ -83,11 +81,8 @@
 {/snippet}
 
 <header class="border-border bg-card flex h-11 shrink-0 items-center gap-1 border-b px-2">
-	<!-- Breadcrumb root: the mark and the way back are one control, not two adjacent
-	     links to the same place. The old first node was a "GlyphTeX" wordmark hiding
-	     the File-Edit-View tree, which said nothing about where you were; the tree is
-	     in the palette now, so the slot goes to what a breadcrumb owes you. The label
-	     drops below `sm`, leaving the mark as the target. -->
+	<!-- Breadcrumb root: mark and way back are one control. The label drops below
+	     `sm`, leaving the mark as the target. -->
 	<a
 		href={ctrl.backHref ?? '/'}
 		class="text-muted-foreground hover:bg-muted hover:text-foreground flex h-8 shrink-0 items-center gap-1.5 rounded-md px-1.5 text-sm transition-colors"
@@ -100,12 +95,10 @@
 
 	<!-- Open document -->
 	{#if renaming}
-		<!-- Same box as the button it replaces: h-8, px-2, gap-1.5, a chevron-sized
-         slot, and a hidden mirror span so the field is sized by its own text. A
-         plain input defaults to ~20ch, which shoved the mode switch and every
-         control after it the moment you pressed Rename. -->
+		<!-- Same box as the button it replaces, sized by a hidden mirror span: a plain
+		     input defaults to ~20ch and shoves every control after it. -->
 		<div
-			class="bg-input ring-ring/50 flex h-8 max-w-56 min-w-0 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium ring-2 ring-inset"
+			class="bg-background ring-ring/50 flex h-8 max-w-56 min-w-0 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm font-medium ring-2 ring-inset"
 		>
 			<span class="grid min-w-0">
 				<!-- svelte-ignore a11y_autofocus -->
@@ -247,10 +240,7 @@
 			canExportZip={Boolean(ctrl.onExportProject) || Boolean(files.projectRoot)}
 		/>
 
-		<!-- The sidebar toggle lives on the tab rail, on the panel's own seam. The
-		     bottom-panel toggle is gone from here too: the compile status button is
-		     already the control that opens the log it summarises, and a third copy
-		     of the same toggle earned nothing. -->
+		<!-- Sidebar toggle lives on the tab rail seam; the compile status button opens the log. -->
 		<PageMenu {ctrl} />
 	</div>
 </header>

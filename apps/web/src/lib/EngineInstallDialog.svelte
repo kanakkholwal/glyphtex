@@ -27,6 +27,13 @@
 	/** Rough download size for the pre-install copy; the real one is the engine's. */
 	const totalMB = $derived(measurable && progress ? Math.round(progress.total / 1048576) : 12);
 
+	const sizeLabel = $derived.by(() => {
+		if (!progress || progress.loaded === 0) return "";
+		return measurable
+			? `${mb(progress.loaded)} of ${mb(progress.total)} MB`
+			: `${mb(progress.loaded)} MB`;
+	});
+
 	async function start() {
 		installing = true;
 		error = undefined;
@@ -51,72 +58,88 @@
 		showCloseButton={false}
 		interactOutsideBehavior="ignore"
 		escapeKeydownBehavior="ignore"
-		class="sm:max-w-md"
+		class="gap-5 p-6 sm:max-w-md"
 	>
-		<DialogHeader>
-			<DialogTitle class="flex items-center gap-2">
-				<IconCpu size={18} class="text-primary" />
-				Set up the LaTeX compiler
-			</DialogTitle>
-			<DialogDescription class="leading-relaxed">
-				GlyphTeX compiles LaTeX right in your browser: the same engine the desktop app uses. It
-				downloads once (~{totalMB} MB) and is cached on this device.
+		<DialogHeader class="gap-3">
+			<span
+				class="border-border bg-card text-primary grid size-10 place-items-center rounded-lg border"
+				aria-hidden="true"
+			>
+				<IconCpu size={20} />
+			</span>
+			<DialogTitle class="text-body-lg">Set up the LaTeX compiler</DialogTitle>
+			<DialogDescription class="text-body">
+				GlyphTeX compiles LaTeX right in your browser with the same engine as the desktop app. It
+				downloads once (about {totalMB} MB) and stays cached on this device.
 			</DialogDescription>
 		</DialogHeader>
 
-		<div class="border-border bg-muted/40 flex items-start gap-2.5 rounded-lg border p-3">
-			<IconWifiOff size={16} class="text-muted-foreground mt-0.5 shrink-0" />
-			<p class="text-muted-foreground min-w-0 flex-1 text-xs leading-relaxed">
+		<div class="border-border bg-muted flex items-start gap-3 rounded-xl border p-3">
+			<IconWifiOff size={16} class="text-muted-foreground mt-0.5 shrink-0" aria-hidden="true" />
+			<p class="text-muted-foreground text-caption min-w-0 flex-1">
 				After this, compiling works <span class="text-foreground font-medium">fully offline</span>.
-				Your documents never leave your device, and there's no package server to wait on.
+				Your documents never leave your device.
 			</p>
 		</div>
 
 		{#if installing}
-			<div class="flex flex-col gap-1.5">
-				<div class="text-muted-foreground flex items-center gap-2 text-xs">
-					<IconLoader2 size={14} class="animate-spin" />
-					<span class="min-w-0 flex-1 truncate">{progress?.label ?? 'Preparing…'}</span>
-					<span class="shrink-0 tabular-nums">
-						{#if measurable}
-							{pct}%
-						{:else if progress && progress.loaded > 0}
-							{mb(progress.loaded)} MB
-						{/if}
+			<div class="flex flex-col gap-2">
+				<div class="text-caption flex items-center gap-2">
+					<IconLoader2 size={14} class="text-muted-foreground animate-spin" aria-hidden="true" />
+					<span class="text-foreground min-w-0 flex-1 truncate font-medium">
+						{progress?.label ?? 'Preparing…'}
+					</span>
+					<span class="text-muted-foreground shrink-0 tabular-nums">
+						{#if measurable}{pct}%{/if}
 					</span>
 				</div>
-				<div class="bg-muted h-1.5 overflow-hidden rounded-full">
+				<div
+					class="bg-muted h-2 overflow-hidden rounded-full"
+					role="progressbar"
+					aria-label="Compiler download"
+					aria-valuemin={0}
+					aria-valuemax={100}
+					aria-valuenow={measurable ? pct : undefined}
+					aria-valuetext={measurable ? `${pct}%, ${sizeLabel}` : sizeLabel || 'Preparing'}
+				>
 					{#if measurable}
-						<div class="bg-primary h-full rounded-full transition-all" style="width:{pct}%"></div>
+						<div
+							class="bg-primary h-full rounded-full transition-[width] duration-200"
+							style:width="{pct}%"
+						></div>
 					{:else}
 						<!-- Size unknown: a travelling sliver reads as working, not a stalled 0%. -->
 						<div class="bg-primary engine-progress-indeterminate h-full w-1/3 rounded-full"></div>
 					{/if}
 				</div>
+				{#if sizeLabel}
+					<p class="text-muted-foreground text-caption tabular-nums">{sizeLabel}</p>
+				{/if}
 			</div>
 		{/if}
 
 		{#if error}
 			<div
-				class="border-destructive/30 bg-destructive/5 flex items-start gap-2 rounded-md border p-2.5"
+				class="border-destructive/30 bg-destructive/5 flex items-start gap-2 rounded-xl border p-3"
 				role="alert"
 			>
-				<IconAlertTriangle size={15} class="text-destructive mt-0.5 shrink-0" />
-				<p class="text-foreground/90 min-w-0 flex-1 text-xs leading-relaxed">{error}</p>
+				<IconAlertTriangle size={16} class="text-destructive mt-0.5 shrink-0" aria-hidden="true" />
+				<p class="text-foreground text-caption min-w-0 flex-1">
+					<span class="font-medium">Download failed.</span>
+					{error}
+				</p>
 			</div>
 		{/if}
 
-		<div class="flex items-center justify-end">
-			<Button size="sm" onclick={start} disabled={installing}>
-				{#if installing}
-					Installing…
-				{:else if error}
-					Try again
-				{:else}
-					Download & install
-				{/if}
-			</Button>
-		</div>
+		<Button variant="primary" class="w-full sm:ml-auto sm:w-auto" onclick={start} disabled={installing}>
+			{#if installing}
+				Installing…
+			{:else if error}
+				Try again
+			{:else}
+				Download and install
+			{/if}
+		</Button>
 	</DialogContent>
 </Dialog>
 

@@ -1,8 +1,7 @@
 import type { CompileFile } from "./tex/protocol";
 
-// FNV-1a, 32-bit. A cheap content fingerprint: hashing an image's bytes on every
-// keystroke would cost more than it saves, but this loop is a few ms on a few MB
-// and near-zero on a text-only edit.
+// FNV-1a, 32-bit: a few ms on a few MB and near-zero on a text-only edit, cheaper
+// than a cryptographic hash per keystroke.
 function fnv1a(seed: number, bytes: Uint8Array): number {
 	let h = seed >>> 0;
 	for (let i = 0; i < bytes.length; i++) {
@@ -14,12 +13,8 @@ function fnv1a(seed: number, bytes: Uint8Array): number {
 
 const encoder = new TextEncoder();
 
-/**
- * A signature over exactly what the worker would compile: the entry name and,
- * per file, its name and content. Identical signature means identical bytes in,
- * which for a deterministic engine means identical output — so it can be served
- * from cache instead of spending a compile. Order-independent: files are sorted.
- */
+/** Order-independent signature over the entry and every file's name and content. The
+ *  engine is deterministic, so equal signatures can be served from cache. */
 export function signature(files: readonly CompileFile[], entry: string): string {
 	let h = fnv1a(0x811c9dc5, encoder.encode(entry));
 	for (const f of [...files].sort((a, b) => a.name.localeCompare(b.name))) {

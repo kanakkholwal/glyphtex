@@ -103,7 +103,7 @@
 		rect.bottom + height > window.innerHeight ? rect.top - height - 6 : rect.bottom + 6
 	);
 	const FIELD =
-		"border-border text-foreground focus-visible:border-brand w-full rounded-md border bg-transparent px-2 py-1.5 font-mono text-sm outline-none";
+		"border-border text-foreground focus-visible:border-ring w-full rounded-md border bg-transparent px-2 py-1.5 font-mono text-sm outline-none";
 </script>
 
 <svelte:window onresize={onclose} />
@@ -119,7 +119,7 @@
 >
 	<div class="mb-2 flex items-baseline justify-between gap-2">
 		<span class="text-foreground text-sm font-medium">{meta.title}</span>
-		<span class="text-faint text-xs">{meta.hint}</span>
+		<span class="text-muted-foreground text-xs">{meta.hint}</span>
 	</div>
 
 	{#if kind === 'math'}

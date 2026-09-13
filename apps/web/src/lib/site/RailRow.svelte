@@ -1,0 +1,38 @@
+<script lang="ts">
+	import { viewSection } from "$lib/analytics";
+	import { cn } from "@glyphtex/ui/utils";
+	import type { Snippet } from "svelte";
+
+	let {
+		id,
+		divider = true,
+		label,
+		section,
+		class: className,
+		children
+	}: {
+		id?: string;
+		/** Full-bleed dashed rule above the row. The first row passes `false`. */
+		divider?: boolean;
+		/** Names the section for assistive tech. */
+		label?: string;
+		/** Analytics section name, reported once when the row is read. */
+		section?: string;
+		class?: string;
+		children: Snippet;
+	} = $props();
+
+	const noop = () => {};
+</script>
+
+{#if divider}
+	<div aria-hidden="true" class="rail-dash w-full border-t-2"></div>
+{/if}
+<section
+	{id}
+	aria-label={label}
+	class={cn('rail-column mx-auto flex scroll-mt-24 flex-col p-3 sm:p-6', className)}
+	{@attach section ? viewSection(section) : noop}
+>
+	{@render children()}
+</section>

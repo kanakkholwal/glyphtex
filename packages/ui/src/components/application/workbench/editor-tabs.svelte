@@ -18,10 +18,7 @@
 	import type { FileStore } from "./files.svelte";
 	import TabMenu, { type TabAction } from "./tab-menu.svelte";
 
-	/** The open-file strip. Shared chrome: it says which file you are editing, in
-	 *  either editor, so switching surface never changes the answer. */
-	// The chips look identical in both editors: only the rail behind them changes
-	// weight, which is the whole point of moving the strip above the mode split.
+	// Open-file strip, shared by both editors; only the rail behind it changes weight per mode.
 	let {
 		files,
 		onnew,
@@ -50,11 +47,8 @@
 
 	const order = $derived(files.openTabFiles.map((f) => f.id));
 
-	// --- Active pill ------------------------------------------------------------
-	// The same raised-card pill the Segmented control and the mode switch use: one
-	// element that slides, so the strip reads as a single object rather than N
-	// boxes. It is also the only thing here allowed to animate, since switching
-	// files is a hundreds-of-times-a-day action.
+	// --- Active pill ---
+	// One sliding fill behind the active chip; the only animated thing, since file switches are constant.
 	let pill = $state({ x: 0, w: 0, ready: false });
 	// The first measurement snaps; only later moves slide, or the pill flies in
 	// from the left edge on mount.
@@ -92,9 +86,8 @@
 		return () => ro.disconnect();
 	});
 
-	// --- Drag to reorder --------------------------------------------------------
-	// A caret marks where the tab will land rather than live-shuffling the strip:
-	// the drop target stays legible and nothing commits until release.
+	// --- Drag to reorder ---
+	// A caret marks the landing spot instead of live-shuffling; nothing commits until release.
 	const DRAG_THRESHOLD = 6;
 	let drag = $state<{ id: string; startX: number; dx: number; moved: boolean } | null>(null);
 	let dropBefore = $state<string | null | undefined>(undefined);
@@ -146,9 +139,8 @@
 		void files.openFile(id);
 	}
 
-	// --- Keyboard ---------------------------------------------------------------
-	// Roving tabindex: the strip is one Tab stop and arrows move within it. Without
-	// it, reaching the editor costs two stops per open file.
+	// --- Keyboard ---
+	// Roving tabindex: one Tab stop for the strip, or reaching the editor costs two stops per file.
 	function activate(id: string | undefined): void {
 		if (!id) return;
 		void files.openFile(id);
@@ -173,7 +165,7 @@
 		}
 	}
 
-	// --- Context menu -----------------------------------------------------------
+	// --- Context menu ---
 	function runTabAction(action: TabAction): void {
 		const open = menu;
 		menu = null;
@@ -205,11 +197,10 @@
 		aria-label="Open files"
 		aria-orientation="horizontal"
 	>
-		<!-- Behind the chips, so the active one is a surface they sit on rather than a
-		     rule drawn under one of them. -->
+		<!-- Behind the chips, so the active one is a surface rather than an underline. -->
 		{#if pill.ready}
 			<span
-				class="bg-card dark:bg-surface shadow-craft-sm pointer-events-none absolute top-1 left-0 rounded-md {pillSettled &&
+				class="bg-muted pointer-events-none absolute top-1 left-0 rounded-md {pillSettled &&
 				!drag?.moved
 					? 'glyphtex-tab-pill'
 					: ''}"
@@ -229,8 +220,8 @@
 				bind:this={tabEls[file.id]}
 				class="glyphtex-tab-slot group/tab relative z-10 flex h-7 shrink-0 items-center gap-1.5 rounded-md pr-1 pl-2.5 text-xs {active
 					? 'text-foreground font-medium'
-					: 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'} {dragging
-					? 'bg-card dark:bg-surface shadow-craft-md z-30'
+					: 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'} {dragging
+					? 'bg-muted z-30 shadow-md'
 					: 'ease-craft transition-[background-color,color] duration-150 motion-reduce:transition-none'}"
 				style:transform={dragging ? `translateX(${drag?.dx}px)` : undefined}
 				role="presentation"
@@ -264,18 +255,17 @@
 					onkeydown={(e) => onKeyDown(e, file.id)}
 				>
 					{#if file.id === files.mainId}
-						<!-- Which file the compiler actually reads. Held at 60%: the shape
-						     carries the meaning, and at full strength the accent out-shouts the
-						     pill and reads as "selected" instead of "main". -->
-						<IconTarget size={14} class="text-brand/60 shrink-0" />
+						<!-- The file the compiler reads: the target shape carries "main", not colour. -->
+						<IconTarget size={14} class="shrink-0 {active ? 'text-primary' : ''}" />
 					{:else}
-						<Icon size={14} class="shrink-0 opacity-70" />
+						<Icon size={14} class="shrink-0 {active ? 'text-primary' : ''}" />
 					{/if}
 					<span class="max-w-44 truncate">{label?.leaf ?? file.name}</span>
+					{#if file.id === files.mainId}<span class="sr-only">(main file)</span>{/if}
 					{#if label?.dir}
 						<!-- Shown only when another open tab shares this leaf, so it appears
 						     exactly when the name alone stops being an answer. -->
-						<span class="text-faint max-w-28 shrink-0 truncate">{label.dir}</span>
+						<span class="text-muted-foreground max-w-28 shrink-0 truncate">{label.dir}</span>
 					{/if}
 				</button>
 
@@ -287,12 +277,11 @@
 							: 'opacity-0 group-hover/tab:opacity-100 focus-visible:opacity-100'}"
 						tabindex="-1"
 						title="Close ({shortcutLabel('close-tab')})"
-						aria-label="Close {label?.leaf ?? file.name}"
+						aria-label="Close {label?.leaf ?? file.name}{dirty ? ' (unsaved changes)' : ''}"
 						onclick={() => files.closeTab(file.id)}
 					>
 						{#if dirty}
-							<!-- The dot becomes an X on the close button's *own* hover: swapping it
-							     on tab hover erases the unsaved signal exactly as you point at it. -->
+							<!-- Dot becomes an X on the close button's own hover; on tab hover it would hide the unsaved signal. -->
 							<span
 								class="bg-foreground/60 size-1.5 rounded-full group-hover/close:hidden"
 								aria-hidden="true"
@@ -312,7 +301,7 @@
 
 		{#if caretX !== null}
 			<span
-				class="bg-brand pointer-events-none absolute inset-y-1.5 left-0 z-40 w-0.5 rounded-full"
+				class="bg-primary pointer-events-none absolute inset-y-1.5 left-0 z-40 w-0.5 rounded-full"
 				style:transform="translateX({caretX}px)"
 				aria-hidden="true"
 			></span>
@@ -328,7 +317,7 @@
 					{#snippet child({ props })}
 						<button
 							{...props}
-							class="text-muted-foreground hover:bg-accent/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
+							class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
 							aria-label="All open files"
 							aria-haspopup="menu"
 							onclick={(e) => {
@@ -351,7 +340,7 @@
 					{#snippet child({ props })}
 						<button
 							{...props}
-							class="text-muted-foreground hover:bg-accent/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
+							class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
 							aria-label="New file"
 							onclick={() => onnew?.()}
 						>
@@ -396,16 +385,16 @@
 			<button
 				type="button"
 				role="menuitem"
-				class="hover:bg-accent focus-visible:bg-accent flex h-7 w-full items-center gap-2 rounded px-2 text-left text-[0.8125rem] outline-none {file.id ===
+				class="hover:bg-accent focus-visible:bg-accent flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm outline-none {file.id ===
 				files.activeId
-					? 'text-foreground'
+					? 'text-foreground font-medium'
 					: 'text-muted-foreground'}"
 				onclick={() => {
 					openList = null;
 					void files.openFile(file.id);
 				}}
 			>
-				<Icon size={14} class="shrink-0 opacity-70" />
+				<Icon size={14} class="shrink-0 {file.id === files.activeId ? 'text-primary' : ''}" />
 				<span class="min-w-0 flex-1 truncate">{file.name}</span>
 				{#if files.dirtyIds.has(file.id)}
 					<span class="bg-foreground/60 size-1.5 shrink-0 rounded-full" aria-hidden="true"></span>
@@ -416,8 +405,7 @@
 {/if}
 
 <style>
-	/* No visible scrollbar in a 36px strip; the edge fade is the affordance, and it
-	   only appears when there is something past the edge. */
+	/* No scrollbar in a 36px strip; the edge fade, shown only on overflow, is the affordance. */
 	.glyphtex-tab-strip {
 		scrollbar-width: none;
 	}
@@ -425,11 +413,11 @@
 		display: none;
 	}
 	.glyphtex-tab-strip--faded {
-		mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+		/* Masks read alpha only, so any opaque token works. */
+		mask-image: linear-gradient(to right, var(--foreground) calc(100% - 24px), transparent);
 	}
 
-	/* Same curve and duration as the Segmented control's pill, so the two read as
-	   one motion language rather than two components that happen to slide. */
+	/* Same curve and duration as the Segmented control's pill. */
 	.glyphtex-tab-pill {
 		transition:
 			transform 200ms var(--ease-craft),
@@ -454,9 +442,7 @@
 	.glyphtex-tab:active {
 		transform: scale(0.98);
 	}
-	/* The ring belongs to the whole chip, not the label button inside it, or it
-	   traces a smaller rectangle that ignores the chip's own corners. Inset, like
-	   every other ring in the system, so it never bleeds into the next chip. */
+	/* The ring traces the whole chip, not the inner label button; inset so it never bleeds into a neighbour. */
 	.glyphtex-tab:focus-visible {
 		outline: none;
 	}

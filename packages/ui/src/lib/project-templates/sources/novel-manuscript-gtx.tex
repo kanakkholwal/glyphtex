@@ -1,0 +1,87 @@
+\documentclass[11pt,openany]{book}
+% Trade paperback trim size. Change paperwidth and paperheight for other formats.
+\usepackage[paperwidth=5.5in,paperheight=8.5in,inner=0.85in,outer=0.65in,top=0.8in,bottom=0.9in]{geometry}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{emptypage}
+
+\setstretch{1.12}
+\setlength{\parindent}{1.4em}
+
+% Chapter openings: small caps label, big number, then the chapter name, set low on the page.
+\titleformat{\chapter}[display]
+  {\normalfont\centering}
+  {\small\scshape\MakeLowercase{Chapter}\ \thechapter}
+  {1ex}
+  {\LARGE\itshape}
+  [\vspace{0.5ex}\rule{2cm}{0.4pt}]
+\titlespacing*{\chapter}{0pt}{2.2in}{0.6in}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[CE]{\small\scshape Author Name}
+\fancyhead[CO]{\small\scshape The Salt Road}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}}
+
+% \scenebreak marks a jump in time or place inside a chapter.
+\newcommand{\scenebreak}{\par\medskip\begin{center}*\quad*\quad*\end{center}\medskip\noindent}
+
+% The first words of each chapter are set in small caps.
+\newcommand{\opening}[1]{\noindent\textsc{#1}}
+
+\begin{document}
+
+\frontmatter
+\thispagestyle{empty}
+\begin{center}
+\vspace*{1.8in}
+{\Huge\scshape The Salt Road\par}
+\vspace{0.3in}
+{\large\itshape A Novel\par}
+\vfill
+{\large Author Name\par}
+\vspace{0.5in}
+\end{center}
+
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+{\small\noindent Copyright \copyright\ 2026 Author Name. All rights reserved.\par
+\medskip\noindent This is a work of fiction. Names, characters and places are products of the author's imagination.\par
+\medskip\noindent ISBN 000-0-00-000000-0\par}
+
+\clearpage
+\thispagestyle{empty}
+\vspace*{2in}
+\begin{center}\itshape For the people who waited.\end{center}
+
+\mainmatter
+
+\chapter{The Last Ferry}
+\opening{The ferry left without her} at a quarter past six, and Ines watched its lights shrink until the fog took them. Replace this paragraph with the opening of your story. Keep the first line strong: it is the one every reader sees.
+
+Paragraphs after the first are indented automatically. Dialogue works as usual.
+``You'll want to wait inside,'' the ticket clerk said. ``Nothing else is coming tonight.''
+
+\scenebreak
+By morning the harbour had changed. Use a scene break like the one above whenever the point of view, place or time shifts.
+
+\chapter{Inland}
+\opening{Three days east of the coast} the road turned to gravel. Continue writing your chapters in the same pattern, one \verb|\chapter| per chapter.
+
+\chapter{What the River Kept}
+\opening{Nobody in the village} would say who had built the bridge. Add as many chapters as you need.
+
+\backmatter
+\chapter*{Acknowledgements}
+Thank your editor, early readers and anyone who helped the book happen.
+
+\chapter*{About the Author}
+Author Name lives by the sea. Write two or three sentences in the third person.
+
+\end{document}

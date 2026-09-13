@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Menubar as MenubarPrimitive } from "bits-ui";
 	import { cn } from "@glyphtex/ui/utils";
+	import { DROPDOWN_MENU_ROW } from "../dropdown-menu/context";
 
 	let {
 		ref = $bindable(null),
@@ -15,7 +16,8 @@
 	data-slot="menubar-item"
 	data-inset={inset}
 	class={cn(
-		"data-highlighted:bg-foreground/10 data-highlighted:text-accent-foreground text-foreground relative flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-[13px] outline-none select-none data-disabled:pointer-events-none data-disabled:opacity-40 data-inset:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+		DROPDOWN_MENU_ROW,
+		"min-h-8 gap-2 px-2 py-1 text-sm text-foreground data-inset:pl-8 [&_svg:not([class*='size-'])]:size-4",
 		className
 	)}
 	{...restProps}

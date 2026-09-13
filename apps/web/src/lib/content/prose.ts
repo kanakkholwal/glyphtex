@@ -1,19 +1,22 @@
-/**
- * Article typography. Overrides land on tokens rather than Tailwind's greys so
- * light and dark stay in step with the rest of the app.
- */
+/** Article typography: 16px/1.75 reading column, typography plugin colours pointed at tokens. */
 export const proseClass = [
-	"prose prose-neutral max-w-none dark:prose-invert",
-	"prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground",
-	"prose-h2:mt-14 prose-h2:mb-4 prose-h2:text-2xl prose-h2:scroll-mt-28",
-	"prose-h3:mt-10 prose-h3:mb-3 prose-h3:text-lg prose-h3:scroll-mt-28",
-	"prose-p:text-[1.0625rem] prose-p:leading-[1.75] prose-p:text-muted-foreground",
-	"prose-li:text-[1.0625rem] prose-li:leading-[1.7] prose-li:text-muted-foreground",
-	"prose-strong:text-foreground prose-strong:font-semibold",
-	"prose-a:text-foreground prose-a:underline prose-a:decoration-hairline prose-a:underline-offset-[3px] hover:prose-a:decoration-foreground",
-	"prose-code:text-foreground prose-code:font-normal prose-code:before:content-none prose-code:after:content-none",
-	"prose-pre:rounded-xl prose-pre:border prose-pre:border-hairline prose-pre:bg-[#0d1117]",
-	"prose-blockquote:border-l-2 prose-blockquote:border-brand prose-blockquote:not-italic prose-blockquote:font-normal prose-blockquote:text-foreground",
-	"prose-table:text-[0.9375rem] prose-th:text-foreground prose-td:text-muted-foreground prose-td:align-top",
-	"prose-img:rounded-xl prose-hr:border-hairline"
+	"prose max-w-3xl",
+	"[--tw-prose-body:var(--muted-foreground)] [--tw-prose-headings:var(--foreground)]",
+	"[--tw-prose-lead:var(--muted-foreground)] [--tw-prose-links:var(--primary)]",
+	"[--tw-prose-bold:var(--foreground)] [--tw-prose-counters:var(--primary)]",
+	"[--tw-prose-bullets:var(--primary)] [--tw-prose-hr:var(--border)]",
+	"[--tw-prose-quotes:var(--foreground)] [--tw-prose-quote-borders:var(--primary)]",
+	"[--tw-prose-captions:var(--muted-foreground)] [--tw-prose-code:var(--foreground)]",
+	"[--tw-prose-kbd:var(--foreground)] [--tw-prose-th-borders:var(--border)]",
+	"[--tw-prose-td-borders:var(--border)]",
+	"prose-headings:font-heading prose-headings:scroll-mt-28",
+	"prose-h2:mt-12 prose-h2:mb-4 prose-h2:text-heading-sm prose-h2:font-medium sm:prose-h2:text-heading",
+	"prose-h3:mt-8 prose-h3:mb-3 prose-h3:text-body-xl prose-h3:font-semibold",
+	"prose-strong:font-semibold",
+	"prose-a:font-medium prose-a:underline-offset-4 prose-a:decoration-1 hover:prose-a:decoration-2",
+	"[&_a]:rounded-sm [&_a]:outline-none [&_a:focus-visible]:ring-2 [&_a:focus-visible]:ring-ring",
+	"prose-code:font-normal prose-code:before:content-none prose-code:after:content-none",
+	"prose-pre:rounded-xl prose-pre:border prose-pre:border-border",
+	"prose-blockquote:border-l-2 prose-blockquote:not-italic prose-blockquote:font-normal",
+	"prose-table:text-body prose-td:align-top prose-img:rounded-xl"
 ].join(" ");

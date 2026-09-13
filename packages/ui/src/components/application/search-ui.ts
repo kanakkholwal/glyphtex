@@ -9,7 +9,7 @@ export const SEARCH_INPUT =
 /** In-field option pill (Aa / W / .*). Use `searchPill(on)` for the full class. */
 const SEARCH_PILL_BASE =
 	"grid size-[18px] place-items-center rounded font-mono text-xs leading-none transition-colors";
-const SEARCH_PILL_ON = "bg-brand-subtle text-brand";
+const SEARCH_PILL_ON = "bg-primary/10 text-primary";
 const SEARCH_PILL_OFF = "text-muted-foreground hover:bg-accent hover:text-foreground";
 export function searchPill(on: boolean): string {
 	return `${SEARCH_PILL_BASE} ${on ? SEARCH_PILL_ON : SEARCH_PILL_OFF}`;
@@ -24,4 +24,4 @@ export const SEARCH_BTN_SM =
 	"text-muted-foreground hover:bg-accent hover:text-foreground grid size-[18px] place-items-center rounded transition-colors disabled:opacity-40";
 
 /** Muted match-count label ("3 of 12" / "No results"). */
-export const SEARCH_COUNT = "text-faint text-xs tabular-nums";
+export const SEARCH_COUNT = "text-muted-foreground text-xs tabular-nums";

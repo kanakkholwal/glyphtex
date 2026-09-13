@@ -1,0 +1,69 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,left=2.4cm,right=2.4cm,top=1.8cm,bottom=2.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage[hidelinks]{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.9em}
+
+% Accent colour for the name and rule.
+\definecolor{accent}{RGB}{200,80,30}
+
+% Details you will change for each application.
+\newcommand{\myname}{Jordan Blake}
+\newcommand{\jobtitle}{Marketing Coordinator}
+\newcommand{\company}{Example Outdoor Gear Ltd}
+
+\begin{document}
+
+% Letter header: name on the left, contact details on the right.
+\begin{minipage}[b]{0.55\textwidth}
+  {\fontsize{28}{32}\selectfont\bfseries\color{accent}\myname}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.4\textwidth}
+  \raggedleft\small
+  8 Willow Lane, Sampleford SF1 2AB\\
+  jordan.blake@example.com\\
+  07700 900000
+\end{minipage}\par
+\vspace{-0.4em}
+\tikz\fill[accent] (0,0) rectangle (\textwidth,3pt);
+
+\vspace{1em}
+\today
+
+% Recipient.
+Hiring Manager\\
+\company\\
+22 Harbour Street\\
+Exampleton EX4 5CD
+
+\textbf{Application for the position of \jobtitle}
+
+Dear Hiring Manager,
+
+I am writing to apply for the \jobtitle\ role advertised on your careers page. As a keen hiker and a marketer with three years of experience in the retail sector, I would love to help \company\ reach more people who share a passion for the outdoors.
+
+In my current role at Sample Home Stores, I plan and run email and social media campaigns for a customer base of 200,000. Last spring I led a seasonal campaign that increased online sales by 18 percent, working with the design, buying and customer service teams to launch it on time and within budget.
+
+I am particularly drawn to your recent work with local trail charities. I have organised volunteer litter picks in my area for two years and would welcome the chance to connect community projects with the brand's marketing.
+
+I have attached my CV with further details. Thank you for considering my application; I would be glad to discuss how I could contribute to your team.
+
+Yours sincerely,
+
+\vspace{1.2em}
+% Replace the box with your signature, or delete it for email applications.
+\fbox{\begin{minipage}[c][1.2cm][c]{4.5cm}\centering\color{gray}Signature\end{minipage}}
+
+\myname
+
+\vfill
+{\small\color{gray}Enclosure: Curriculum vitae}
+
+\end{document}

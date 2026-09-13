@@ -1,0 +1,59 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{RGB}{140,30,45}
+\titleformat{\section}{\normalfont\large\bfseries\color{accent}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{1.2ex}{0.6ex}
+\setlength{\parskip}{0.5ex}
+\pagestyle{plain}
+
+% Edit these details for your submission.
+\newcommand{\journalname}{Example Journal of Public Health}
+\newcommand{\articletype}{Letter to the Editor}
+\newcommand{\inresponseto}{Response to ``Screening intervals in rural clinics'' (Vol.~14, Issue~2)}
+
+\begin{document}
+
+\noindent{\color{accent}\rule{\linewidth}{1.5pt}}\\[0.4ex]
+\noindent{\small\textsc{\journalname}\hfill\textbf{\articletype}}\\[-0.6ex]
+\noindent{\color{accent}\rule{\linewidth}{0.4pt}}
+
+\vspace{1.2em}
+{\noindent\LARGE\bfseries Shorter Screening Intervals Need Cost Data Before Adoption\par}
+\vspace{0.6em}
+\noindent\textit{\inresponseto}
+
+\vspace{0.8em}
+\noindent\textbf{Jordan Blake}, Department of Health Policy, Example University, City, Country\\
+\noindent\textbf{Correspondence:} \href{mailto:jordan.blake@example.edu}{jordan.blake@example.edu}
+
+\vspace{1em}
+\noindent Dear Editor,
+
+State in the first paragraph which article you are responding to and your main point.
+Letters are short, usually under 800 words with no more than five references, so keep each paragraph focused on one argument.
+
+Use the second paragraph for supporting evidence. Refer to the original article by its reference number \cite{orig} and to other sources the same way \cite{extra}.
+
+Use a third paragraph to suggest what the authors or readers should do next, such as a further analysis or a caveat to note.
+
+\noindent Yours sincerely,\\[0.4em]
+Jordan Blake
+
+\section{Conflict of interest}
+Declare any conflicts, or write ``None declared.''
+
+\section{Funding}
+Name funding sources, or write ``This letter received no specific funding.''
+
+\renewcommand{\refname}{References}
+\begin{thebibliography}{2}
+\bibitem{orig} R.~Author et al., Screening intervals in rural clinics, \emph{Example J. Public Health} 14 (2025) 120--128.
+\bibitem{extra} S.~Writer, Costing preventive care, \emph{Health Econ. Rev.} 9 (2023) 33--40.
+\end{thebibliography}
+
+\end{document}

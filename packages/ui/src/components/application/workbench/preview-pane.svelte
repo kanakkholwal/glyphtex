@@ -133,7 +133,7 @@
 			<label class="flex shrink-0 items-center gap-1">
 				<span class="sr-only">Page</span>
 				<input
-					class="border-border bg-input focus:ring-ring/50 h-6 w-9 rounded border text-center tabular-nums outline-none focus:ring-2"
+					class="border-border bg-background focus:ring-ring/50 h-6 w-9 rounded border text-center tabular-nums outline-none focus:ring-2"
 					type="text"
 					inputmode="numeric"
 					value={compile.pdfPage}
@@ -142,7 +142,7 @@
 						if (e.key === 'Enter') e.currentTarget.blur();
 					}}
 				/>
-				<span class="text-faint whitespace-nowrap tabular-nums">/ {pages || 1}</span>
+				<span class="text-muted-foreground whitespace-nowrap tabular-nums">/ {pages || 1}</span>
 			</label>
 			<Button
 				variant="ghost"

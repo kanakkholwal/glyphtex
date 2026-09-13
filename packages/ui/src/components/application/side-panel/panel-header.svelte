@@ -29,11 +29,7 @@
 	import type { ActivityView } from "./types";
 	import ViewTabs from "./view-tabs.svelte";
 
-	/**
-	 * Side-panel header: the view tabs plus the active view's action buttons
-	 * (Explorer: new file/folder, delete, collapse, reveal/open; Search: refresh,
-	 * clear, collapse; Source Control: view toggle + refresh).
-	 */
+	// View tabs plus the active view's action buttons.
 	let {
 		store,
 		view,
@@ -123,7 +119,7 @@
 							closeOnSelect={false}
 						>
 							Hide generated files
-							<span class="text-faint ml-auto pl-2 text-xs tabular-nums"
+							<span class="text-muted-foreground ml-auto pl-2 text-xs tabular-nums"
 								>{store.generatedCount}</span
 							>
 						</DropdownMenuCheckboxItem>
