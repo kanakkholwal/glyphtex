@@ -1,18 +1,22 @@
 <script lang="ts" module>
+	import { twMergeConfig } from "@glyphtex/ui/utils";
 	import { tv, type VariantProps } from "tailwind-variants";
-	export const tabsListVariants = tv({
-		base: "rounded-lg p-[3px] group-data-horizontal/tabs:h-9 data-[variant=line]:rounded-none group/tabs-list text-muted-foreground inline-flex w-fit items-center justify-center group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
-		variants: {
-			variant: {
-				default: "gap-2-list-variant-default bg-muted",
-				line: "rounded-lg p-[3px] group-data-horizontal/tabs:h-9 data-[variant=line]:rounded-none-variant-line gap-1 bg-transparent",
-				soft: 'bg-muted/60 [&_[data-slot="tabs-trigger"][data-state=active]_svg]:text-primary [&_[data-slot="tabs-trigger"][data-state=active]]:text-foreground [&_[data-slot="tabs-trigger"]]:text-muted-foreground [&_[data-slot="tabs-trigger"]:hover]:text-foreground [&_[data-slot="tabs-trigger"]]:shadow-transparent'
+	export const tabsListVariants = tv(
+		{
+			base: "rounded-lg p-[3px] group-data-horizontal/tabs:h-9 data-[variant=line]:rounded-none group/tabs-list text-muted-foreground inline-flex w-fit items-center justify-center group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
+			variants: {
+				variant: {
+					default: "bg-muted",
+					line: "gap-1 bg-transparent",
+					soft: 'bg-muted/60 [&_[data-slot="tabs-trigger"][data-state=active]_svg]:text-primary [&_[data-slot="tabs-trigger"][data-state=active]]:text-foreground [&_[data-slot="tabs-trigger"]]:text-muted-foreground [&_[data-slot="tabs-trigger"]:hover]:text-foreground [&_[data-slot="tabs-trigger"]]:shadow-transparent'
+				}
+			},
+			defaultVariants: {
+				variant: "default"
 			}
 		},
-		defaultVariants: {
-			variant: "default"
-		}
-	});
+		{ twMergeConfig }
+	);
 	export type TabsListVariant = VariantProps<typeof tabsListVariants>["variant"];
 </script>
 
@@ -20,7 +24,7 @@
 	import { cn } from '@glyphtex/ui/utils';
 	import { Tabs as TabsPrimitive } from 'bits-ui';
 	import { cubicOut } from 'svelte/easing';
-	import { Tween } from 'svelte/motion';
+	import { Tween, prefersReducedMotion } from 'svelte/motion';
 
 	let {
 		ref = $bindable(null),
@@ -32,10 +36,7 @@
 		variant?: TabsListVariant;
 	} = $props();
 
-	// Floating active indicator. Measures the currently-active trigger and
-	// Tweens position/size to it, so switching tabs slides the fill from
-	// one trigger to the next instead of snapping. Driven entirely by DOM
-	// observation so it stays decoupled from bits-ui's value state.
+	// Sliding indicator measured from the DOM, so it stays decoupled from bits-ui's value state.
 	let indicatorVisible = $state(false);
 	let isVertical = $state(false);
 	let firstMeasure = true;
@@ -65,7 +66,7 @@
 
 		// Snap on first measure so the indicator doesn't grow from (0,0) and fight
 		// the dialog/page enter motion. Subsequent updates Tween.
-		if (firstMeasure) {
+		if (firstMeasure || prefersReducedMotion.current) {
 			x.set(nx, { duration: 0 });
 			y.set(ny, { duration: 0 });
 			w.set(nw, { duration: 0 });
@@ -107,9 +108,7 @@
 	class={cn(
 		'relative',
 		tabsListVariants({ variant }),
-		// When the floating indicator is live, suppress each trigger's own
-		// active background/shadow so the indicator owns the visual. Triggers
-		// get z-10 so their label + icon sit above the indicator pill.
+		// The live indicator owns the active fill; z-10 keeps labels above it.
 		indicatorVisible &&
 			variant !== 'line' && [
 				'[&_[data-slot=tabs-trigger][data-state=active]]:!bg-transparent',
@@ -130,8 +129,8 @@
 			aria-hidden="true"
 			class={cn(
 				'pointer-events-none absolute left-0 top-0 z-0 rounded-md will-change-transform',
-				variant === 'default_soft' && 'bg-card shadow-(--shadow-craft-inset)',
-				variant === 'default' && 'bg-background shadow-sm'
+				variant === 'soft' && 'bg-card',
+				variant === 'default' && 'bg-background shadow-xs'
 			)}
 			style="transform: translate({x.current}px, {y.current}px); width: {w.current}px; height: {h.current}px;"
 		></span>

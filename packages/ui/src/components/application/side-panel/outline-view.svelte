@@ -55,7 +55,7 @@
 				{/each}
 
 				{#if on}
-					<span aria-hidden="true" class="bg-brand absolute inset-y-1 left-0 w-0.5 rounded-full"
+					<span aria-hidden="true" class="bg-primary absolute inset-y-1 left-0 w-0.5 rounded-full"
 					></span>
 				{/if}
 
@@ -68,7 +68,7 @@
 					class="flex h-full w-full items-center rounded-md pr-2 text-left transition-colors {on
 						? 'bg-accent text-foreground'
 						: 'hover:bg-accent/60 hover:text-foreground ' +
-							(row.depth === 0 ? 'text-foreground/80' : 'text-muted-foreground')}"
+							(row.depth === 0 ? 'text-foreground' : 'text-muted-foreground')}"
 					style:padding-left={`${row.depth * STEP + 26}px`}
 					title={row.item.title}
 					onkeydown={(e) => onRowKey(e, row)}
@@ -92,7 +92,7 @@
 						aria-label={row.collapsed
 							? `Expand ${row.item.title}`
 							: `Collapse ${row.item.title}`}
-						class="text-faint hover:text-foreground absolute top-1/2 grid size-4 -translate-y-1/2 place-items-center rounded"
+						class="text-muted-foreground hover:text-foreground absolute top-1/2 grid size-4 -translate-y-1/2 place-items-center rounded"
 						style:left={`${marker(row.depth)}px`}
 						onclick={() => store.toggleOutlineNode(row.key)}
 					>
@@ -107,8 +107,8 @@
 					<span
 						aria-hidden="true"
 						class="absolute top-1/2 size-1 -translate-y-1/2 rounded-full {on
-							? 'bg-brand'
-							: 'bg-faint'}"
+							? 'bg-primary'
+							: 'bg-placeholder'}"
 						style:left={`${marker(row.depth) + 6}px`}
 					></span>
 				{/if}
@@ -116,7 +116,7 @@
 		{/each}
 	</ul>
 {:else}
-	<div class="text-faint flex flex-col items-center gap-2 px-3 py-10 text-center">
+	<div class="text-muted-foreground flex flex-col items-center gap-2 px-3 py-10 text-center">
 		<IconList size={26} class="opacity-50" />
 		<p class="text-xs">No sections yet.</p>
 		<p class="text-xs leading-relaxed">

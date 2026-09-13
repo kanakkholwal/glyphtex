@@ -23,11 +23,7 @@
 	} from '@glyphtex/ui/command';
 	import { IconCornerDownLeft, IconFile, IconTerminal2 } from '@tabler/icons-svelte';
 
-	/**
-	 * Quick-open and command runner (⌘K / ⌘P). Files first, because switching file
-	 * is the frequent case; every menu action is searchable below them, which is
-	 * what let the File/Edit/View menu tree come out of the header.
-	 */
+	// Quick-open and command runner (⌘K / ⌘P): files first, then every menu action, which replaced the menu tree.
 	let {
 		open = $bindable(false),
 		files = [],
@@ -80,17 +76,17 @@
 					<IconFile class="text-muted-foreground shrink-0" />
 					<span class="text-foreground truncate">{p.base}</span>
 					{#if p.dir}
-						<span class="text-faint truncate text-xs">{p.dir}</span>
+						<span class="text-muted-foreground truncate text-xs">{p.dir}</span>
 					{/if}
 					<!-- data-slot=command-shortcut suppresses the default check indicator
 					     and keeps this group flush-right. -->
 					<span data-slot="command-shortcut" class="ml-auto flex shrink-0 items-center gap-2">
 						{#if f.id === activeId}
-							<span class="text-faint text-xs">open</span>
+							<span class="text-muted-foreground text-xs">open</span>
 						{/if}
 						<IconCornerDownLeft
 							size={14}
-							class="text-faint opacity-0 transition-opacity group-data-[selected=true]/command-item:opacity-100"
+							class="text-muted-foreground opacity-0 transition-opacity group-data-[selected=true]/command-item:opacity-100"
 						/>
 					</span>
 				</CommandItem>
@@ -111,14 +107,14 @@
 					>
 						<IconTerminal2 class="text-muted-foreground shrink-0" />
 						<span class="text-foreground truncate">{command.label}</span>
-						<span class="text-faint shrink-0 text-xs">{command.group}</span>
+						<span class="text-muted-foreground shrink-0 text-xs">{command.group}</span>
 						<span data-slot="command-shortcut" class="ml-auto flex shrink-0 items-center gap-2">
 							{#if command.shortcut}
-								<span class="text-faint text-xs">{command.shortcut}</span>
+								<span class="text-muted-foreground text-xs">{command.shortcut}</span>
 							{/if}
 							<IconCornerDownLeft
 								size={14}
-								class="text-faint opacity-0 transition-opacity group-data-[selected=true]/command-item:opacity-100"
+								class="text-muted-foreground opacity-0 transition-opacity group-data-[selected=true]/command-item:opacity-100"
 							/>
 						</span>
 					</CommandItem>

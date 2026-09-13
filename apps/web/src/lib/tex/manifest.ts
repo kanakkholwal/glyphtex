@@ -41,10 +41,11 @@ export async function loadManifest(): Promise<EngineManifest> {
 		const response = await fetch(MANIFEST_URL, { cache: "no-cache" });
 		if (!response.ok) throw new Error(`manifest ${response.status}`);
 		const manifest = parse(await response.clone().json());
-		await cache?.put(MANIFEST_URL, response);
+		// Best-effort: a quota rejection must not turn a good fetch into "offline".
+		await cache?.put(MANIFEST_URL, response).catch(() => {});
 		return manifest;
 	} catch (networkError) {
-		const cached = await cache?.match(MANIFEST_URL);
+		const cached = await cache?.match(MANIFEST_URL).catch(() => undefined);
 		if (cached) return parse(await cached.json());
 		throw networkError instanceof Error
 			? new Error("The compiler is not available offline yet: connect once to install it.")

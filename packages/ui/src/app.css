@@ -1,218 +1,254 @@
 @import "@fontsource-variable/inter/index.css";
-@import "@fontsource-variable/geist/index.css";
+@import "@fontsource-variable/google-sans/index.css";
+@import "@fontsource-variable/source-code-pro/index.css";
+/* Editor font options only (settings > editor). UI mono is Source Code Pro. */
 @import "@fontsource-variable/geist-mono/index.css";
-@import "@fontsource-variable/quicksand/index.css";
 @import "@fontsource-variable/jetbrains-mono/index.css";
 
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @source "./";
 
+/* Orbit / Rune neutrals with GlyphTeX's blue accent. Measurements live in .notes/DESIGN.md. */
 :root {
-	--ink: #292929;
-	--ink-body: #5d5d5d;
-	--ink-muted: #9e9e9e;
-	--ink-muted-strong: #6f6d6a;
-
 	--background: #ffffff;
-	--foreground: var(--ink);
+	--canvas: #f5f5f5;
 	--card: #ffffff;
-	--card-foreground: var(--ink);
-	--surface: #f7f7f7;
 	--popover: #ffffff;
-	--popover-foreground: var(--ink);
-
-	--primary: #292929;
-	--primary-foreground: #ffffff;
-
-	--secondary: #f5f5f5;
-	--secondary-foreground: var(--ink);
 	--muted: #f5f5f5;
-	--muted-foreground: var(--ink-body);
+	--secondary: #f5f5f5;
+	--accent: #f5f5f5;
+	--surface-strong: #efefef;
 
-	--faint: #6f6f6f;
-	--accent: #f0f0f0;
-	--accent-foreground: var(--ink);
+	--foreground: #0a0a0a;
+	--card-foreground: #0a0a0a;
+	--popover-foreground: #0a0a0a;
+	--secondary-foreground: #171717;
+	--accent-foreground: #171717;
+	--muted-foreground: #6b6b6b;
+	/* Not Orbit's #737373: that measures 4.35:1 on a muted field. */
+	--placeholder: #707070;
 
-	--destructive: #d13438;
+	/* oklch(0.49 0.16 255): 6.37:1 on white, 5.84:1 on the canvas. The old oklch(0.52 0.17 250) clipped sRGB. */
+	--primary: #025eb8;
+	--primary-foreground: #ffffff;
+	--primary-active: #0256a9;
+	/* Stays the light brand in dark mode so white text on brand panels keeps its contrast. */
+	--brand-panel: #025eb8;
+
+	--action: #0a0a0a;
+	--action-foreground: #ffffff;
+	--fixed-light: #ffffff;
+	--fixed-dark: #0a0a0a;
+
+	--border: #e5e5e5;
+	--border-strong: #d4d4d4;
+	--input: #e5e5e5;
+	--ring: #025eb8;
+
+	--destructive: #c0242a;
 	--destructive-foreground: #ffffff;
-	--success: #067d17;
+	--success: #0a7d47;
 	--success-foreground: #ffffff;
-	/* #9a7b00 was 3.76:1 on the #f7f7f5 rail, so the amber warning count in the
-	   build dock read as decoration. This lands 5.23, and white on it 5.61. */
-	--warning: #806400;
+	--warning: #8a5c00;
 	--warning-foreground: #ffffff;
+	/* Cyan, not Orbit's #0060c9: that blue sits 0.027 OKLab dE from the accent. */
 	--info: #00627a;
 	--info-foreground: #ffffff;
 
-	--border: #e6e6e4;
-
-	--input: #f5f5f5;
-	--ring: #1750eb;
-
-	--sidebar: #f7f7f5;
-	--sidebar-foreground: var(--ink-body);
-	--sidebar-primary: var(--ink);
+	--sidebar: #f5f5f5;
+	--sidebar-foreground: #6b6b6b;
+	--sidebar-primary: var(--primary);
 	--sidebar-primary-foreground: #ffffff;
-	--sidebar-accent: #ebebe9;
-	--sidebar-accent-foreground: var(--ink);
-	--sidebar-border: #e6e6e4;
-	--sidebar-ring: #1750eb;
+	--sidebar-accent: #ffffff;
+	--sidebar-accent-foreground: #0a0a0a;
+	--sidebar-border: #e5e5e5;
+	--sidebar-ring: var(--ring);
 
-	--chart-1: oklch(0.62 0.185 246);
-	--chart-2: oklch(0.2103 0.0059 285.89);
-	--chart-3: oklch(0.5517 0.0138 285.94);
-	--chart-4: oklch(0.7118 0.0129 286.07);
-	--chart-5: oklch(0.72 0.165 246);
+	--chart-1: #025eb8;
+	--chart-2: #0a0a0a;
+	--chart-3: #6b6b6b;
+	--chart-4: #a3a3a3;
+	--chart-5: #00627a;
 
-	--brand: oklch(0.52 0.17 250);
-	--brand-foreground: oklch(1 0 0);
-	--brand-hover: oklch(0.46 0.165 250);
-	--brand-subtle: oklch(0.52 0.17 250 / 0.1);
+	--shadow-xs: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+	--shadow-sm: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+	--shadow-md: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+	--shadow-lg: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px;
+	--shadow-xl: rgba(0, 0, 0, 0.09) 0px 20px 20px 0px;
 
-	--brand-gradient: linear-gradient(135deg, #33aaff 0%, #0099ff 55%, #007acc 100%);
-
-	--signal-cyan: oklch(0.7832 0.1259 208.88);
-	--signal-cyan-soft: oklch(0.7832 0.1259 208.88 / 0.14);
-	--signal-blue: oklch(0.6274 0.1918 259.39);
-	--signal-blue-soft: oklch(0.6274 0.1918 259.39 / 0.14);
-	--signal-lime: oklch(0.7016 0.1215 111.84);
-	--signal-lime-soft: oklch(0.7016 0.1215 111.84 / 0.16);
-
-	--canvas: #f6f5f3;
-	--surface-soft: #f7f7f5;
-	--surface-card: #ffffff;
-	--surface-strong: #efefed;
-
-	--surface-1: #ffffff;
-	--surface-2: #f7f7f5;
-	--inverse-canvas: #191919;
-	--hairline: #e6e6e4;
-	--hairline-soft: #efefed;
-	--border-subtle: #efefed;
-
-	--radius: 0.5rem;
-
+	--radius: 0.625rem;
+	--ease-craft: cubic-bezier(0.32, 0.72, 0, 1);
 	--icon-nav: 14px;
 	--icon-control: 16px;
 	--icon-card: 20px;
-
-	--space-hair: 1px;
-	--space-xxs: 0.25rem;
-	--space-xs: 0.5rem;
-	--space-sm: 0.75rem;
-	--space-md: 0.9375rem;
-	--space-lg: 1.25rem;
-	--space-xl: 1.875rem;
-	--space-xxl: 2.5rem;
-	--space-section: 6rem;
-
-	--tracking-display: -0.044em;
-	--tracking-headline: -0.015em;
-	--tracking-title: -0.014em;
 }
 
-/* Surfaces mirror `islandDarkPalette` in lib/editor/jetbrains-monaco.ts. Change
-   both together or the editor drifts from the chrome around it. */
 .dark {
-	--ink: #d4d4d4;
-	--ink-body: #a3a3a3;
-	--ink-muted: #8f8f8f;
-	--ink-muted-strong: #9b9b9b;
+	--background: #0a0a0a;
+	--canvas: #0a0a0a;
+	--card: #171717;
+	--popover: #171717;
+	--muted: #262626;
+	--secondary: #262626;
+	--accent: #262626;
+	--surface-strong: #2a2a2a;
 
-	--background: #191919;
-	--foreground: var(--ink);
-	--card: #232323;
-	--card-foreground: var(--ink);
-	--surface: #282828;
-	--popover: #282828;
-	--popover-foreground: var(--ink);
+	--foreground: #fafafa;
+	--card-foreground: #fafafa;
+	--popover-foreground: #fafafa;
+	--secondary-foreground: #fafafa;
+	--accent-foreground: #fafafa;
+	--muted-foreground: #a1a1a1;
+	--placeholder: #8a8a8a;
 
-	--primary: #e0e0e0;
-	--primary-foreground: #191919;
+	--primary: #59aaf8;
+	--primary-foreground: #0a0a0a;
+	--primary-active: #4ba3f7;
 
-	--secondary: #2f2f2f;
-	--secondary-foreground: var(--ink);
-	--muted: #232323;
-	--muted-foreground: var(--ink-body);
-	--faint: #9b9b9b;
-	--accent: #2f2f2f;
-	--accent-foreground: var(--ink);
+	--action: #fafafa;
+	--action-foreground: #0a0a0a;
 
-	--destructive: #fa6675;
-	--destructive-foreground: #191919;
-	--success: #6aab73;
-	--success-foreground: #191919;
-	--warning: #f2c55c;
-	--warning-foreground: #191919;
-	--info: #56a8f5;
-	--info-foreground: #191919;
+	--border: rgb(255 255 255 / 0.1);
+	--border-strong: rgb(255 255 255 / 0.16);
+	--input: rgb(255 255 255 / 0.15);
+	--ring: #59aaf8;
 
-	--border: #373737;
-	--input: #373737;
-	--ring: #4ba3f7;
+	--destructive: #ff6b61;
+	--destructive-foreground: #1a0706;
+	--success: #30d158;
+	--success-foreground: #07120d;
+	--warning: #ff9f0a;
+	--warning-foreground: #1a1407;
+	--info: #5ac8dc;
+	--info-foreground: #04181c;
 
-	--sidebar: #202020;
-	--sidebar-foreground: var(--ink-body);
-	--sidebar-primary: #e0e0e0;
-	--sidebar-primary-foreground: #191919;
-	--sidebar-accent: #2f2f2f;
-	--sidebar-accent-foreground: var(--ink);
-	--sidebar-border: #2a2a2a;
-	--sidebar-ring: #4ba3f7;
+	--sidebar: #0a0a0a;
+	--sidebar-foreground: #a1a1a1;
+	--sidebar-accent: #262626;
+	--sidebar-accent-foreground: #fafafa;
+	--sidebar-border: rgb(255 255 255 / 0.1);
 
-	--chart-1: oklch(0.7 0.15 250);
-	--chart-2: oklch(0.9401 0 0);
-	--chart-3: oklch(0.7137 0.0192 261.32);
-	--chart-4: oklch(0.4823 0.0175 285.73);
-	--chart-5: oklch(0.741 0.1499 239.59);
+	--chart-1: #59aaf8;
+	--chart-2: #fafafa;
+	--chart-3: #a1a1a1;
+	--chart-4: #525252;
+	--chart-5: #5ac8dc;
 
-	/* Same hue as the light brand (250). White on it is 2.66:1, so the label is
-     dark ink: Notion ships white on #2383e2 in dark mode at 3.88:1, which fails. */
-	--brand: oklch(0.7 0.15 250);
-	--brand-foreground: #191919;
-	--brand-hover: oklch(0.76 0.14 250);
-	--brand-subtle: oklch(0.7 0.15 250 / 0.16);
-	--signal-cyan: oklch(0.7888 0.1188 207.62);
-	--signal-cyan-soft: oklch(0.7888 0.1188 207.62 / 0.16);
-	--signal-blue: oklch(0.7176 0.1626 254.31);
-	--signal-blue-soft: oklch(0.7176 0.1626 254.31 / 0.16);
-	--signal-lime: oklch(0.8046 0.1208 117.27);
-	--signal-lime-soft: oklch(0.8046 0.1208 117.27 / 0.18);
+	--shadow-xs: rgba(0, 0, 0, 0.5) 0px 1px 2px 0px;
+	--shadow-sm: rgba(0, 0, 0, 0.5) 0px 1px 2px 0px;
+	--shadow-md: rgba(0, 0, 0, 0.55) 0px 4px 6px -1px, rgba(0, 0, 0, 0.5) 0px 2px 4px -2px;
+	--shadow-lg: rgba(0, 0, 0, 0.6) 0px 10px 15px -3px, rgba(0, 0, 0, 0.5) 0px 4px 6px -4px;
+	--shadow-xl: rgba(0, 0, 0, 0.6) 0px 20px 20px 0px;
+}
 
-	--canvas: #191919;
-	--surface-soft: #232323;
-	--surface-card: #232323;
-	--surface-strong: #2f2f2f;
-	--surface-1: #232323;
-	--surface-2: #282828;
-	--inverse-canvas: #d4d4d4;
-	--hairline: #373737;
-	--hairline-soft: #2a2a2a;
-	--border-subtle: #2a2a2a;
+/* Every pair measures >=4.5:1 on white and the canvas, and on #0a0a0a, #171717 and #191919. */
+:root[data-brand="emerald"] {
+	--primary: #047857;
+	--primary-active: #065f46;
+	--ring: #047857;
+	--brand-panel: #047857;
+}
+:root[data-brand="teal"] {
+	--primary: #0f766e;
+	--primary-active: #115e59;
+	--ring: #0f766e;
+	--brand-panel: #0f766e;
+}
+:root[data-brand="violet"] {
+	--primary: #6d28d9;
+	--primary-active: #5b21b6;
+	--ring: #6d28d9;
+	--brand-panel: #6d28d9;
+}
+:root[data-brand="indigo"] {
+	--primary: #4338ca;
+	--primary-active: #3730a3;
+	--ring: #4338ca;
+	--brand-panel: #4338ca;
+}
+:root[data-brand="orange"] {
+	--primary: #c2410c;
+	--primary-active: #9a3412;
+	--ring: #c2410c;
+	--brand-panel: #c2410c;
+}
+:root[data-brand="rose"] {
+	--primary: #be123c;
+	--primary-active: #9f1239;
+	--ring: #be123c;
+	--brand-panel: #be123c;
+}
+:root[data-brand="slate"] {
+	--primary: #475569;
+	--primary-active: #334155;
+	--ring: #475569;
+	--brand-panel: #475569;
+}
+
+:root.dark[data-brand="emerald"] {
+	--primary: #34d399;
+	--primary-active: #10b981;
+	--ring: #34d399;
+}
+:root.dark[data-brand="teal"] {
+	--primary: #2dd4bf;
+	--primary-active: #14b8a6;
+	--ring: #2dd4bf;
+}
+:root.dark[data-brand="violet"] {
+	--primary: #a78bfa;
+	--primary-active: #8b5cf6;
+	--ring: #a78bfa;
+}
+:root.dark[data-brand="indigo"] {
+	--primary: #818cf8;
+	--primary-active: #6366f1;
+	--ring: #818cf8;
+}
+:root.dark[data-brand="orange"] {
+	--primary: #fb923c;
+	--primary-active: #f97316;
+	--ring: #fb923c;
+}
+:root.dark[data-brand="rose"] {
+	--primary: #fb7185;
+	--primary-active: #f43f5e;
+	--ring: #fb7185;
+}
+:root.dark[data-brand="slate"] {
+	--primary: #94a3b8;
+	--primary-active: #64748b;
+	--ring: #94a3b8;
 }
 
 @theme inline {
 	--color-background: var(--background);
+	--color-canvas: var(--canvas);
 	--color-foreground: var(--foreground);
+	--color-placeholder: var(--placeholder);
 	--color-card: var(--card);
 	--color-card-foreground: var(--card-foreground);
-	--color-surface: var(--surface);
 	--color-popover: var(--popover);
 	--color-popover-foreground: var(--popover-foreground);
 	--color-primary: var(--primary);
 	--color-primary-foreground: var(--primary-foreground);
+	--color-primary-active: var(--primary-active);
+	--color-brand-panel: var(--brand-panel);
 	--color-secondary: var(--secondary);
 	--color-secondary-foreground: var(--secondary-foreground);
 	--color-muted: var(--muted);
 	--color-muted-foreground: var(--muted-foreground);
 	--color-accent: var(--accent);
 	--color-accent-foreground: var(--accent-foreground);
-	--color-faint: var(--faint);
+	--color-action: var(--action);
+	--color-action-foreground: var(--action-foreground);
+	--color-fixed-light: var(--fixed-light);
+	--color-fixed-dark: var(--fixed-dark);
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
 	--color-success: var(--success);
@@ -222,6 +258,7 @@
 	--color-info: var(--info);
 	--color-info-foreground: var(--info-foreground);
 	--color-border: var(--border);
+	--color-border-strong: var(--border-strong);
 	--color-input: var(--input);
 	--color-ring: var(--ring);
 
@@ -240,84 +277,88 @@
 	--color-chart-4: var(--chart-4);
 	--color-chart-5: var(--chart-5);
 
-	--color-brand: var(--brand);
-	--color-brand-foreground: var(--brand-foreground);
-	--color-brand-hover: var(--brand-hover);
-	--color-brand-subtle: var(--brand-subtle);
-	--color-signal-cyan: var(--signal-cyan);
-	--color-signal-cyan-soft: var(--signal-cyan-soft);
-	--color-signal-blue: var(--signal-blue);
-	--color-signal-blue-soft: var(--signal-blue-soft);
-	--color-signal-lime: var(--signal-lime);
-	--color-signal-lime-soft: var(--signal-lime-soft);
-	--color-canvas: var(--canvas);
-	--color-surface-soft: var(--surface-soft);
-	--color-surface-card: var(--surface-card);
 	--color-surface-strong: var(--surface-strong);
-	--color-surface-1: var(--surface-1);
-	--color-surface-2: var(--surface-2);
-	--color-inverse-canvas: var(--inverse-canvas);
-	--color-ink: var(--ink);
-	--color-ink-body: var(--ink-body);
-	--color-ink-muted: var(--ink-muted);
-	--color-ink-muted-strong: var(--ink-muted-strong);
-	--color-hairline: var(--hairline);
-	--color-hairline-soft: var(--hairline-soft);
-	--color-border-subtle: var(--border-subtle);
 
-	--radius-xs: 4px;
-	--radius-sm: 6px;
-	--radius-md: 8px;
-	--radius-lg: 10px;
-	--radius-xl: 12px;
-	--radius-2xl: 16px;
-	--radius-3xl: 20px;
-	--radius-4xl: 24px;
-	--radius-spotlight: 1.875rem;
-	--radius-pill: 9999px;
-	--radius-cta: 8px;
-
-	--ease-craft: cubic-bezier(0.625, 0.05, 0, 1);
-}
-
-@theme {
-	--text-xs: 12px;
-	--text-xs--line-height: 1.35;
-	--text-sm: 13px;
-	--text-sm--line-height: 1.45;
-	--text-md: 14px;
-	--text-md--line-height: 1.5;
-	--text-2xl: 24px;
-	--text-2xl--line-height: 1.25;
+	--radius-xs: 0.375rem;
+	--radius-sm: 0.375rem;
+	--radius-md: 0.5rem;
+	--radius-lg: 0.625rem;
+	--radius-xl: 0.875rem;
+	--radius-2xl: 1.125rem;
+	--radius-3xl: 1.375rem;
+	--radius-full: 9999px;
 
 	--font-sans:
-		"Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-	--font-display:
-		"Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-	--font-serif:
-		"Quicksand Variable", "Quicksand", "Avenir Next", "Century Gothic", ui-rounded, sans-serif;
-
+		"Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+		sans-serif;
+	--font-heading:
+		"Google Sans Variable", "Google Sans", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-display: var(--font-heading);
 	--font-mono:
-		"Geist Mono Variable", "Geist Mono", "JetBrains Mono Variable", ui-monospace, "SF Mono",
-		"Cascadia Code", Menlo, Consolas, monospace;
+		"Source Code Pro Variable", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+	/* The code editor keeps JetBrains Mono (AGENTS.md); see EDITOR_FONT_STACKS. */
+	--font-editor: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
 
-	--shadow-craft-sm: 0 1px 2px 0 rgb(9 9 11 / 0.05), 0 1px 1px -1px rgb(9 9 11 / 0.04);
-	--shadow-notion:
-		rgba(0, 0, 0, 0.01) 0px 0.175px 1.041px 0px, rgba(0, 0, 0, 0.02) 0px 0.8px 2.925px 0px,
-		rgba(0, 0, 0, 0.027) 0px 2.025px 7.847px 0px, rgba(0, 0, 0, 0.04) 0px 4px 18px 0px;
-	--shadow-craft-lg: 0 12px 32px -10px rgb(9 9 11 / 0.12), 0 4px 12px -6px rgb(9 9 11 / 0.07);
-	--shadow-craft-floating: 0 22px 54px -16px rgb(9 9 11 / 0.2), 0 8px 18px -10px rgb(9 9 11 / 0.1);
-	--shadow-craft-inset: inset 0 1px 2px 0 rgb(9 9 11 / 0.06);
-	--shadow-craft-md: 0 4px 8px -2px rgb(9 9 11 / 0.06), 0 2px 4px -2px rgb(9 9 11 / 0.04);
-	--shadow-craft-xl: 0 20px 40px -8px rgb(9 9 11 / 0.1), 0 8px 16px -8px rgb(9 9 11 / 0.06);
+	--text-caption: 0.75rem;
+	--text-caption--line-height: 1rem;
+	--text-body: 0.875rem;
+	--text-body--line-height: 1.25rem;
+	--text-body-lg: 1rem;
+	--text-body-lg--line-height: 1.5rem;
+	--text-body-xl: 1.125rem;
+	--text-body-xl--line-height: 1.75rem;
+	--text-subheading: 1.25rem;
+	--text-subheading--line-height: 1.75rem;
+	--text-heading-sm: 1.5rem;
+	--text-heading-sm--line-height: 2rem;
+	--text-heading: 1.875rem;
+	--text-heading--line-height: 2.25rem;
+	--text-heading-lg: 2.25rem;
+	--text-heading-lg--line-height: 2.5rem;
+	--text-display: 3rem;
+	--text-display--line-height: 1;
+	--text-display-xl: 3.75rem;
+	--text-display-xl--line-height: 1;
 
-	--shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
-	--shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
-	--shadow-floating: inset 0 0.5px 0 rgb(255 255 255 / 0.1), 0 10px 30px rgb(0 0 0 / 0.25);
-	--shadow-focus-ring:
-		0 0 0 1px color-mix(in oklab, var(--ring) 45%, transparent),
-		0 0 0 4px color-mix(in oklab, var(--ring) 15%, transparent);
+	/* The workbench keeps its 12/13/14 density scale; public pages use the roles above. */
+	--text-xs: 0.75rem;
+	--text-xs--line-height: 1.35;
+	--text-sm: 0.8125rem;
+	--text-sm--line-height: 1.45;
+	--text-md: 0.875rem;
+	--text-md--line-height: 1.5;
+	--text-7xl: 3.75rem;
+	--text-8xl: 3.75rem;
+	--text-9xl: 3.75rem;
+
+	--ease-craft: cubic-bezier(0.32, 0.72, 0, 1);
+
+	--shadow-xs: var(--shadow-xs);
+	--shadow-sm: var(--shadow-sm);
+	--shadow-md: var(--shadow-md);
+	--shadow-lg: var(--shadow-lg);
+	--shadow-xl: var(--shadow-xl);
+	--shadow-2xl: var(--shadow-xl);
+
+	--animate-accordion-down: accordion-down 0.2s var(--ease-craft);
+	--animate-accordion-up: accordion-up 0.2s var(--ease-craft);
+
+	@keyframes accordion-down {
+		from {
+			height: 0;
+		}
+		to {
+			height: var(--bits-accordion-content-height);
+		}
+	}
+	@keyframes accordion-up {
+		from {
+			height: var(--bits-accordion-content-height);
+		}
+		to {
+			height: 0;
+		}
+	}
 }
 
 @layer base {
@@ -350,47 +391,39 @@
 		scroll-margin-top: 6rem;
 	}
 
-	@media (prefers-reduced-motion: reduce) {
-		html {
-			scroll-behavior: auto;
-		}
-
-		*,
-		*::before,
-		*::after {
-			animation-duration: 0.01ms !important;
-			animation-iteration-count: 1 !important;
-			transition-duration: 0.01ms !important;
-			scroll-behavior: auto !important;
-		}
-	}
-
 	body {
 		background-color: var(--background);
 		color: var(--foreground);
 		font-family: var(--font-sans);
-
-		letter-spacing: -0.15px;
-
-		font-feature-settings: "cv01", "cv05", "cv09", "cv11", "ss03", "ss07", "dlig";
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 	}
 
-	.font-display {
-		font-family: var(--font-display);
-		font-weight: 600;
-		letter-spacing: -0.025em;
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-family: var(--font-heading);
 	}
 
-	.font-serif {
-		font-family: var(--font-serif);
+	h1,
+	h2 {
 		font-weight: 500;
+		letter-spacing: -0.02em;
+	}
+
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-weight: 600;
 		letter-spacing: -0.01em;
 	}
-	.font-serif :global(em),
-	.font-serif em {
-		font-weight: 600;
+
+	::placeholder {
+		color: var(--placeholder);
 	}
 
 	.tabular-nums {
@@ -398,7 +431,7 @@
 	}
 
 	::selection {
-		background-color: color-mix(in oklab, var(--foreground) 14%, transparent);
+		background-color: color-mix(in oklab, var(--primary) 22%, transparent);
 	}
 }
 
@@ -424,235 +457,188 @@
 }
 ::-webkit-scrollbar-thumb {
 	background: color-mix(in oklab, var(--foreground) 16%, transparent);
-
 	border: 3px solid transparent;
 	border-radius: 9999px;
 	background-clip: padding-box;
-	transition: background-color 0.15s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
 	background: color-mix(in oklab, var(--foreground) 28%, transparent);
-	background-clip: padding-box;
-}
-::-webkit-scrollbar-thumb:active {
-	background: color-mix(in oklab, var(--foreground) 40%, transparent);
 	background-clip: padding-box;
 }
 ::-webkit-scrollbar-corner {
 	background: transparent;
 }
 
-.scrollbar-gutter-stable {
+@utility scrollbar-gutter-stable {
 	scrollbar-gutter: stable;
 }
 
-.no-scrollbar {
+@utility no-scrollbar {
 	-ms-overflow-style: none;
 	scrollbar-width: none;
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
-.no-scrollbar::-webkit-scrollbar {
-	display: none;
+
+@utility font-display {
+	font-family: var(--font-display);
 }
 
-@layer components {
-	.landing-display {
-		max-width: 18ch;
-		font-family: var(--font-display);
-		font-weight: 600;
-		font-size: clamp(2.75rem, 1.9rem + 4.2vw, 5rem);
-		line-height: 1.05;
-		letter-spacing: var(--tracking-display);
-		color: var(--ink);
-		text-wrap: balance;
+@utility rail-column {
+	width: min(95vw, 90rem);
+	@media (width >= 48rem) {
+		width: min(90vw, 90rem);
 	}
-
-	.landing-section-title {
-		max-width: 22ch;
-		font-family: var(--font-display);
-		font-weight: 600;
-		font-size: clamp(2rem, 1.5rem + 2.5vw, 3.25rem);
-		line-height: 1.15;
-		letter-spacing: var(--tracking-headline);
-		color: var(--ink);
-		text-wrap: balance;
+	@media (width >= 96rem) {
+		width: min(85vw, 112.5rem);
 	}
+}
 
-	.landing-card-title {
-		max-width: 28ch;
-		font-family: var(--font-display);
-		font-weight: 600;
-		font-size: 1.375rem;
-		line-height: 1.25;
-		letter-spacing: var(--tracking-title);
-		color: var(--ink);
-		text-wrap: balance;
+@utility rail-dash {
+	border-style: dashed;
+	border-color: var(--border);
+}
+
+/* A dark panel card is told apart from the canvas by its hairline alone. */
+@utility panel-card {
+	background-color: var(--card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-2xl);
+	@variant dark {
+		background-color: var(--background);
 	}
+}
 
-	.landing-lead {
-		max-width: 58ch;
-		font-size: clamp(1.0625rem, 1rem + 0.5vw, 1.375rem);
-		font-weight: 400;
-		line-height: 1.45;
-		letter-spacing: -0.005em;
-		color: var(--ink-body);
-		text-wrap: pretty;
+/* Grain, blueprint lines, streaks and shade, all derived from --brand-panel so presets recolour it. */
+@utility panel-brand {
+	--panel-line: rgb(255 255 255 / 0.22);
+	--panel-streak: color-mix(in oklch, var(--brand-panel), white 24%);
+	--panel-deep: color-mix(in oklch, var(--brand-panel), black 28%);
+	color: var(--fixed-light);
+	background-color: var(--brand-panel);
+	background-image:
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E"),
+		linear-gradient(
+			90deg,
+			transparent 16.8%,
+			var(--panel-line) 16.8%,
+			var(--panel-line) calc(16.8% + 1px),
+			transparent calc(16.8% + 1px)
+		),
+		linear-gradient(
+			90deg,
+			transparent 25%,
+			var(--panel-line) 25%,
+			var(--panel-line) calc(25% + 1px),
+			transparent calc(25% + 1px)
+		),
+		linear-gradient(
+			90deg,
+			transparent 80.3%,
+			var(--panel-line) 80.3%,
+			var(--panel-line) calc(80.3% + 1px),
+			transparent calc(80.3% + 1px)
+		),
+		linear-gradient(
+			180deg,
+			transparent 57.5%,
+			var(--panel-line) 57.5%,
+			var(--panel-line) calc(57.5% + 1px),
+			transparent calc(57.5% + 1px)
+		),
+		linear-gradient(
+			180deg,
+			transparent 88%,
+			var(--panel-line) 88%,
+			var(--panel-line) calc(88% + 1px),
+			transparent calc(88% + 1px)
+		),
+		linear-gradient(
+			115deg,
+			transparent 12%,
+			var(--panel-streak) 22%,
+			transparent 33%,
+			transparent 70%,
+			var(--panel-streak) 82%,
+			transparent 94%
+		),
+		radial-gradient(90% 120% at 55% 35%, var(--panel-deep), transparent 70%);
+}
+
+@utility plate-grid {
+	background-image:
+		linear-gradient(to right, var(--border) 1px, transparent 1px),
+		linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+	background-size: 24px 24px;
+}
+
+@utility pressable {
+	transition: transform 200ms var(--ease-craft);
+	&:active {
+		transform: scale(0.98);
+		transition-duration: 100ms;
 	}
+}
 
-	.landing-title-em {
-		display: block;
-		font-weight: 600;
-		color: var(--ink-muted-strong);
-	}
-
-	.landing-eyebrow {
-		display: block;
-		font-size: 1rem;
-		font-weight: 400;
-		line-height: 1.4;
-		letter-spacing: -0.005em;
-		color: var(--ink-body);
-	}
-
-	.landing-surface {
-		background: var(--surface-soft);
-		border-radius: 1.25rem;
-	}
-
-	.landing-card {
-		background: var(--surface-soft);
-		border-radius: 0.75rem;
-	}
-
-	.landing-card-outline {
-		background: var(--surface-card);
-		border: 1px solid var(--hairline);
-		border-radius: 0.75rem;
-	}
-
-	.landing-card-hover {
-		transition:
-			background-color 160ms ease,
-			border-color 160ms ease;
-	}
-
-	@media (hover: hover) and (pointer: fine) {
-		.landing-card-hover:hover {
-			background: var(--surface-strong);
-		}
-
-		.landing-card-outline.landing-card-hover:hover {
-			background: var(--surface-soft);
-			border-color: var(--border);
-		}
-	}
-
-	.landing-arrow {
-		display: inline-grid;
-		place-items: center;
-		width: 2.25rem;
-		height: 2.25rem;
-		flex-shrink: 0;
-		border-radius: 999px;
-		background: var(--ink);
-		color: var(--background);
-		transition:
-			transform 160ms ease,
-			background-color 160ms ease;
-	}
-
-	@media (hover: hover) and (pointer: fine) {
-		.group\/tile:hover .landing-arrow {
-			transform: translateX(2px);
-		}
-	}
-
-	.landing-shot {
-		border-radius: 0.625rem;
-		background: var(--surface-card);
-		box-shadow: var(--shadow-notion);
-	}
-
-	/* Workbench still on the landing page. The syntax colours are the app's own
-	   JetBrains "Islands" palette, transcribed from lib/editor/jetbrains-theme.ts. */
-	.glyphtex-mock {
-		--mock-kw: #0033b3;
-		--mock-str: #067d17;
-		--mock-cmt: #8c8c8c;
-		--mock-fn: #00627a;
-		--mock-num: #1750eb;
-		--mock-gutter: #aeb3c2;
-		--mock-gutter-on: #0d9373;
-		--mock-line: #f5f8fe;
-	}
-
-	.dark .glyphtex-mock {
-		--mock-kw: #cf8e6d;
-		--mock-str: #6aab73;
-		--mock-cmt: #7a7e85;
-		--mock-fn: #56a8f5;
-		--mock-num: #2aacb8;
-		--mock-gutter: #5a5a5a;
-		--mock-gutter-on: #34d399;
-		--mock-line: #202020;
-	}
-
-	.glyphtex-mock-kw {
-		color: var(--mock-kw);
-	}
-
-	.glyphtex-mock-str {
-		color: var(--mock-str);
-	}
-
-	.glyphtex-mock-fn {
-		color: var(--mock-fn);
-	}
-
-	.glyphtex-mock-num {
-		color: var(--mock-num);
-	}
-
-	.glyphtex-mock-cmt {
-		color: var(--mock-cmt);
-		font-style: italic;
-	}
-
-	.glyphtex-mock-gutter {
-		color: var(--mock-gutter);
-	}
-
-	.glyphtex-mock-gutter-on {
-		color: var(--mock-gutter-on);
-	}
-
-	.glyphtex-mock-line {
-		background: var(--mock-line);
-	}
-
-	.landing-glass-strong {
-		background-color: color-mix(in oklab, var(--background) 82%, transparent);
-		backdrop-filter: blur(20px) saturate(180%);
-		-webkit-backdrop-filter: blur(20px) saturate(180%);
-	}
-
-	@media (prefers-reduced-transparency: reduce) {
-		.landing-glass-strong {
-			background-color: var(--background);
-			backdrop-filter: none;
-			-webkit-backdrop-filter: none;
-		}
-	}
-
-	.landing-text-balance {
-		text-wrap: balance;
-	}
-
-	.landing-text-pretty {
-		text-wrap: pretty;
+/* The workbench keeps the JetBrains Islands dark surfaces its editor theme is built on. */
+@utility workbench-surface {
+	@variant dark {
+		--background: #191919;
+		--card: #232323;
+		--popover: #282828;
+		/* One step above --card so a bg-muted hover shows on cards: muted ink 5.56:1 here. */
+		--muted: #2a2a2a;
+		--secondary: #2f2f2f;
+		--accent: #2f2f2f;
+		--surface-strong: #2f2f2f;
+		--border: #373737;
+		--input: #373737;
+		--sidebar: #202020;
+		--sidebar-accent: #2f2f2f;
+		--sidebar-border: #2a2a2a;
 	}
 }
 
 .glyphtex-search-match {
 	background-color: color-mix(in oklab, var(--color-warning) 32%, transparent);
 	border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+@media (prefers-contrast: more) {
+	:root {
+		--border: #a3a3a3;
+		--border-strong: #737373;
+		--input: #737373;
+	}
+	.dark {
+		--border: #737373;
+		--border-strong: #a3a3a3;
+		--input: #a3a3a3;
+	}
+}
+
+@media (prefers-reduced-transparency: reduce) {
+	.backdrop-blur,
+	.backdrop-blur-sm,
+	.backdrop-blur-md,
+	.backdrop-blur-lg,
+	.backdrop-blur-xl {
+		backdrop-filter: none;
+	}
 }

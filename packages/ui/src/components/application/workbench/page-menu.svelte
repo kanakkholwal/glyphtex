@@ -43,9 +43,7 @@
 	import type { WorkbenchController } from "./controller.svelte";
 	import type { ViewMode } from "./types";
 
-	/** How *this view* is presented, and nothing else. Mode-aware, because half of a
-	 *  canvas menu means nothing while you're editing source. Anything that acts on
-	 *  the document itself lives on the document's own breadcrumb node. */
+	// How this view is presented, per mode; document actions live on the breadcrumb node.
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 
 	const layout = $derived(ctrl.layout);
@@ -84,9 +82,8 @@
 		{/snippet}
 	</DropdownMenuTrigger>
 	<DropdownMenuContent align="end" class="w-56">
-		<!-- Same three-tile slot in both modes: typeface in Visual, layout in
-		     LaTeX. Keeping the shape stable is why the layout switch could come out
-		     of the bar: the menu opens to the same geometry either way. -->
+		<!-- Same three-tile slot in both modes (typeface in Visual, layout in LaTeX),
+		     so the menu opens to the same geometry. -->
 		{#if visual}
 			<div class="flex gap-1.5 px-1 pt-1 pb-2" role="radiogroup" aria-label="Document font">
 				{#each fonts as font (font)}
@@ -98,12 +95,12 @@
 						onclick={() => (settings.docFont = font)}
 					>
 						<span
-							class="text-xl leading-none {active ? 'text-brand' : 'text-foreground'}"
+							class="text-xl leading-none {active ? 'text-primary' : 'text-foreground'}"
 							style:font-family={DOC_FONT_STACKS[font]}
 						>
 							Ag
 						</span>
-						<span class="text-muted-foreground text-[11px]">{DOC_FONT_LABELS[font]}</span>
+						<span class="text-muted-foreground text-xs">{DOC_FONT_LABELS[font]}</span>
 					</button>
 				{/each}
 			</div>
@@ -131,8 +128,8 @@
 						aria-checked={active}
 						onclick={() => (layout.viewMode = item.value)}
 					>
-						<Icon class="size-5 {active ? 'text-brand' : 'text-foreground'}" />
-						<span class="text-muted-foreground text-[11px]">{item.label}</span>
+						<Icon class="size-5 {active ? 'text-primary' : 'text-foreground'}" />
+						<span class="text-muted-foreground text-xs">{item.label}</span>
 					</button>
 				{/each}
 			</div>

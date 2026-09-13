@@ -59,6 +59,7 @@
 	import { cubicOut } from 'svelte/easing';
 	import { fade, fly } from 'svelte/transition';
 	import AboutDialog from './about-dialog.svelte';
+	import { motionMs as ms } from './motion';
 
 	/** Home screen listing every project as a card. The host owns the data and every
 	 *  action; an absent handler hides its control (folder actions are desktop-only). */
@@ -86,8 +87,7 @@
 		/** Drives the About dialog's platform line. */
 		platform?: 'web' | 'desktop';
 		projects?: Project[];
-		/** Create a project. May return the new id; if so, the home reveals the new
-		 *  card and *then* opens it (a clean morph), instead of navigating instantly. */
+		/** Create a project. Return the new id to have the home open it; no id means the host navigates. */
 		oncreate?: () => string | void | Promise<string | void>;
 		/** Open an existing project folder from disk (desktop). */
 		onopenfolder?: () => void;
@@ -113,8 +113,7 @@
 		helpHref?: string;
 		/** Which rail destination the host is currently rendering. */
 		activeScope?: Scope;
-		/** Route per destination. A scope with no href is not offered at all: a host
-		 *  that cannot back one (no starring on desktop yet) simply omits it. */
+		/** Route per destination. A scope with no href is not offered at all. */
 		scopeHrefs?: Partial<Record<Scope, string>>;
 		/** First read of the project store. The shell renders; the grid skeletons. */
 		loading?: boolean;
@@ -165,9 +164,7 @@
 		const id = await oncreate?.();
 		// A host that returns no id navigates on its own (legacy): nothing to do.
 		if (typeof id !== 'string') return;
-		// Straight through. This used to sleep 400ms so the card→editor view
-		// transition could morph from a settled card; that put nearly half a second
-		// of dead air on the primary action to buy an animation nobody asked for.
+		// Straight through: a 400ms wait for a settled morph was dead air on the primary action.
 		onopen?.(id);
 	}
 
@@ -220,12 +217,9 @@
 		{ id: 'templates', label: 'Templates', icon: IconTemplate }
 	];
 
-	// One row treatment for the whole rail. Height and text come from
-	// SidebarMenuButton's defaults; 28px matches Notion's sidebar density.
-	// Active state is the fill + weight the base already applies: not a brand
-	// colour, which would make every visited rail look like a link.
+	// One 28px row treatment for the rail; active is the base fill and weight plus a blue icon.
 	const railRow = 'h-7 rounded-md px-2';
-	const groupLabel = 'text-faint h-6 px-2 text-xs font-medium';
+	const groupLabel = 'text-muted-foreground h-6 px-2 text-xs font-medium';
 
 	const scopeLabel = $derived(scopes.find((s) => s.id === scope)?.label ?? 'All projects');
 	const ScopeIcon = $derived(scopes.find((s) => s.id === scope)?.icon ?? IconHome);
@@ -303,7 +297,7 @@
 		/>
 	{:else}
 		<button
-			class="text-foreground hover:text-brand ease-craft block max-w-full truncate text-left text-sm font-medium transition-colors"
+			class="text-foreground hover:text-primary ease-craft block max-w-full truncate text-left text-sm font-medium transition-colors"
 			onclick={() => onopen?.(p.id)}
 		>
 			{p.name}
@@ -365,13 +359,17 @@
 
 <svelte:window onkeydown={onWindowKeydown} />
 
+<a
+	href="#main"
+	class="bg-background text-foreground ring-ring sr-only z-50 rounded-md px-3 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-2"
+>
+	Skip to projects
+</a>
 <Sidebar.Provider class="text-foreground h-dvh min-h-0">
 	<Sidebar.Root variant="sidebar" collapsible="icon" class="border-sidebar-border">
 		<Sidebar.Header class="h-12 justify-center p-2">
-			<!-- Collapsed, this becomes a 32px square centred in the 48px rail, so the
-			     lockup lines up with the icon buttons below it instead of hanging off
-			     the left edge. `self-center` is the horizontal axis here: the header
-			     is a column. -->
+			<!-- Collapsed, a 32px square centred in the 48px rail, in line with the icons below.
+			     `self-center` is horizontal here: the header is a column. -->
 			<a
 				href={platform === 'web' ? '/' : '/workspace'}
 				class="hover:bg-sidebar-accent flex h-8 items-center gap-2 rounded-md px-1.5 transition-colors group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:px-0"
@@ -399,7 +397,7 @@
 								<Sidebar.MenuItem>
 									<Sidebar.MenuButton
 										isActive={activeScope === item.id}
-										class={railRow}
+										class="{railRow} data-active:[&>svg]:text-primary"
 										tooltipContent={item.label}
 									>
 										{#snippet child({ props })}
@@ -444,7 +442,7 @@
 										<a {...props} href={helpHref}>
 											<IconHelpCircle /><span>Help &amp; Docs</span>
 											<IconExternalLink
-												class="text-faint ml-auto !size-3.5 group-data-[collapsible=icon]:hidden"
+												class="text-muted-foreground ml-auto !size-3.5 group-data-[collapsible=icon]:hidden"
 											/>
 										</a>
 									{/snippet}
@@ -467,20 +465,21 @@
 
 		<Sidebar.Footer class="gap-3 p-2">
 			{#if storage}
-				<!-- Amber past 80%: the browser starts evicting under storage pressure. -->
+				<!-- Warning past 80%: the browser starts evicting under storage pressure. -->
 				{@const tight = storagePct >= 80}
 				<div class="px-1 group-data-[collapsible=icon]:hidden">
-					<div class="text-faint flex items-center justify-between gap-2 text-xs">
+					<div class="text-muted-foreground flex items-center justify-between gap-2 text-xs">
 						<span>Local storage</span>
 						<span class="tabular-nums">
 							{formatBytes(storage.used)} / {formatBytes(storage.total)}
 						</span>
+						{#if tight}<span class="sr-only">Storage nearly full</span>{/if}
 					</div>
 					<div class="bg-sidebar-accent mt-1.5 h-1 overflow-hidden rounded-full">
 						<div
 							class="h-full rounded-full transition-[width] duration-500 {tight
 								? 'bg-warning'
-								: 'bg-brand'}"
+								: 'bg-primary'}"
 							style:width={`${Math.max(storagePct, 2)}%`}
 						></div>
 					</div>
@@ -493,7 +492,7 @@
 				title="New project"
 				onclick={handleCreate}
 			>
-				<IconPlus class="text-brand" />
+				<IconPlus class="text-primary" />
 				<span class="group-data-[collapsible=icon]:hidden">New project</span>
 			</Button>
 		</Sidebar.Footer>
@@ -503,7 +502,8 @@
 		<Sidebar.Rail />
 	</Sidebar.Root>
 
-	<Sidebar.Inset class="bg-background min-h-0 overflow-hidden">
+	<!-- Sidebar.Inset renders the page's one <main>; the id is the skip link's target. -->
+	<Sidebar.Inset id="main" tabindex={-1} class="bg-background min-h-0 overflow-hidden outline-none">
 		<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
 			<header
 				class="sticky top-0 z-20 flex h-12 items-center gap-2 px-3 transition-colors duration-200 {scrolled
@@ -519,8 +519,8 @@
 				</div>
 			</header>
 
-			<div class="mx-auto w-full max-w-[1100px] px-6 pt-8 pb-20 sm:px-10 lg:px-14">
-				<h1 class="font-display text-3xl font-semibold tracking-tight">
+			<div class="mx-auto w-full max-w-6xl px-6 pt-8 pb-20 sm:px-10 lg:px-14">
+				<h1 class="text-heading font-medium">
 					{scopeLabel}
 				</h1>
 
@@ -532,7 +532,7 @@
 						<!-- svelte-ignore a11y_autofocus -->
 						<input
 							bind:value={cloneUrl}
-							class="text-foreground placeholder:text-muted-foreground h-8 min-w-0 flex-1 bg-transparent px-1 text-sm outline-none"
+							class="text-foreground placeholder:text-placeholder h-10 min-w-0 flex-1 bg-transparent px-1 text-sm outline-none"
 							placeholder="Repository URL: https://github.com/owner/repo.git"
 							spellcheck="false"
 							autofocus
@@ -542,11 +542,10 @@
 								if (e.key === 'Escape') cloning = false;
 							}}
 						/>
-						<Button size="sm" disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
+						<Button disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
 							{cloneBusy ? 'Cloning…' : 'Clone'}
 						</Button>
 						<Button
-							size="sm"
 							variant="ghost"
 							disabled={cloneBusy}
 							onclick={() => (cloning = false)}
@@ -569,15 +568,15 @@
 					</p>
 
 					{#if searchOpen || query}
-						<div class="relative w-56">
+						<div class="relative w-64">
 							<IconSearch
 								size={15}
-								class="text-faint pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
+								class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
 							/>
 							<input
 								bind:this={searchEl}
 								bind:value={query}
-								class="bg-muted text-foreground placeholder:text-faint focus-visible:ring-ring/40 h-8 w-full rounded-md py-1 pr-8 pl-8 text-sm outline-none focus-visible:ring-2"
+								class="bg-background border-border text-foreground placeholder:text-placeholder focus-visible:border-ring focus-visible:ring-ring/40 h-10 w-full rounded-md border py-1 pr-9 pl-9 text-sm outline-none focus-visible:ring-2"
 								placeholder="Search projects"
 								spellcheck="false"
 								aria-label="Search projects"
@@ -590,7 +589,7 @@
 							/>
 							{#if query}
 								<button
-									class="text-faint hover:text-foreground absolute top-1/2 right-1.5 -translate-y-1/2 rounded p-1"
+									class="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
 									onclick={closeSearch}
 									aria-label="Clear search"
 								>
@@ -601,7 +600,7 @@
 					{:else}
 						<Button
 							variant="ghost"
-							size="icon-sm"
+							size="icon"
 							title="Search projects (/)"
 							aria-label="Search projects"
 							onclick={openSearch}
@@ -616,7 +615,7 @@
 								<Button
 									{...props}
 									variant="ghost"
-									size="icon-sm"
+									size="icon"
 									title="Sort: {sorts.find((o) => o.id === sort)?.label}"
 									aria-label="Sort projects"
 								>
@@ -639,7 +638,7 @@
 					<div class="flex items-center gap-0.5" role="group" aria-label="View mode">
 						<Button
 							variant={view === 'grid' ? 'secondary' : 'ghost'}
-							size="icon-sm"
+							size="icon"
 							title="Grid view"
 							aria-label="Grid view"
 							aria-pressed={view === 'grid'}
@@ -649,7 +648,7 @@
 						</Button>
 						<Button
 							variant={view === 'list' ? 'secondary' : 'ghost'}
-							size="icon-sm"
+							size="icon"
 							title="List view"
 							aria-label="List view"
 							aria-pressed={view === 'list'}
@@ -666,7 +665,7 @@
 						<DropdownMenu>
 							<DropdownMenuTrigger>
 								{#snippet child({ props })}
-									<Button {...props} size="sm" variant="ghost" class="h-8">
+									<Button {...props} variant="ghost">
 										<IconFileImport /> Import
 										<IconChevronDown class="size-3.5 opacity-60" />
 									</Button>
@@ -702,19 +701,16 @@
 						</DropdownMenu>
 					{/if}
 
-					<Button size="sm" class="h-8" onclick={handleCreate}>
+					<Button onclick={handleCreate}>
 						<IconPlus /> New project
 					</Button>
 				</div>
 
 				{#key scope}
-					<!-- Keyed on scope so switching rails replays the entrance rather than
-			     swapping content in place; local reads are instant, so without it the
-			     grid just blinks. -->
-					<div in:fade={{ duration: 180, easing: cubicOut }}>
+					<!-- Keyed on scope so a rail switch replays the entrance; instant local reads otherwise blink. -->
+					<div in:fade={{ duration: ms(180), easing: cubicOut }}>
 						{#if loading}
-							<!-- Skeletons, not a full-page spinner: the rail and toolbar are already
-				     correct, so only the unknown region should be in a loading state. -->
+							<!-- Skeletons, not a spinner: only the unknown region is in a loading state. -->
 							{#if view === 'list'}
 								<div
 									class="mt-4 flex flex-col"
@@ -763,18 +759,21 @@
 									<p class="max-w-xs text-xs leading-relaxed">
 										Create your first project: everything stays on this device.
 									</p>
-									<Button size="sm" class="mt-1" onclick={handleCreate}>
+									<Button class="mt-1" onclick={handleCreate}>
 										<IconPlus /> New project
 									</Button>
 								{:else if query.trim()}
 									<p class="text-sm">No projects match “{query}”.</p>
+								<Button variant="outline" class="mt-1" onclick={closeSearch}>
+									<IconX /> Clear search
+								</Button>
 								{:else if scope === 'templates'}
 									<p class="text-foreground text-sm font-medium">No templates yet</p>
 									<p class="max-w-xs text-xs leading-relaxed">
 										Starter documents will live here. For now, New project begins from a blank
 										article.
 									</p>
-									<Button size="sm" variant="outline" class="mt-1" onclick={handleCreate}>
+									<Button variant="outline" class="mt-1" onclick={handleCreate}>
 										<IconPlus /> New project
 									</Button>
 								{:else if scope === 'starred'}
@@ -782,29 +781,38 @@
 									<p class="max-w-xs text-xs leading-relaxed">
 										Star a project from its ⋯ menu to keep it here.
 									</p>
+									{#if scopeHrefs?.all}
+										<Button variant="outline" class="mt-1" href={scopeHrefs.all}>
+											<IconHome /> All projects
+										</Button>
+									{/if}
 								{:else}
 									<p class="text-foreground text-sm font-medium">Nothing edited this week</p>
 									<p class="max-w-xs text-xs leading-relaxed">
 										Recent shows projects you have touched in the last 7 days.
 									</p>
+									{#if scopeHrefs?.all}
+										<Button variant="outline" class="mt-1" href={scopeHrefs.all}>
+											<IconHome /> All projects
+										</Button>
+									{/if}
 								{/if}
 							</div>
 						{:else if view === 'list'}
-							<!-- Hairline-separated bands, not floating rounded rows: the divider
-                   does the grouping and the fill is left to hover. -->
+							<!-- Hairline-separated bands: the divider groups, the fill is left to hover. -->
 							<div class="mt-4 flex flex-col" role="list" aria-label="Projects">
 								{#each filtered as p, i (p.id)}
 									<div
-										class="group border-border hover:bg-accent/60 -mx-3 flex items-center gap-3 border-b px-3 py-2.5 transition-colors last:border-b-0"
+										class="group border-border hover:bg-muted/60 -mx-3 flex items-center gap-3 border-b px-3 py-2.5 transition-colors last:border-b-0"
 										role="listitem"
 										in:fly={{
 											y: 4,
-											duration: 200,
-											delay: Math.min(i, 8) * 14,
+											duration: ms(200),
+											delay: ms(Math.min(i, 8) * 14),
 											easing: cubicOut
 										}}
-										out:fade={{ duration: 120, easing: cubicOut }}
-										animate:flip={{ duration: 280, easing: cubicOut }}
+										out:fade={{ duration: ms(120), easing: cubicOut }}
+										animate:flip={{ duration: ms(280), easing: cubicOut }}
 									>
 										<button
 											class="border-border bg-card grid size-9 shrink-0 place-items-center overflow-hidden rounded-md border"
@@ -825,7 +833,10 @@
 										</div>
 
 										{#if p.starred}
-											<IconStarFilled class="text-warning size-3.5 shrink-0" />
+											<span class="shrink-0" title="Starred">
+												<IconStarFilled class="text-warning size-3.5" aria-hidden="true" />
+												<span class="sr-only">Starred</span>
+											</span>
 										{/if}
 										{@render projectActions(p)}
 									</div>
@@ -843,33 +854,22 @@
 										role="listitem"
 										in:fly={{
 											y: 6,
-											duration: 240,
-											delay: Math.min(i, 8) * 15,
+											duration: ms(240),
+											delay: ms(Math.min(i, 8) * 15),
 											easing: cubicOut
 										}}
-										out:fade={{ duration: 140, easing: cubicOut }}
-										animate:flip={{ duration: 320, easing: cubicOut }}
+										out:fade={{ duration: ms(140), easing: cubicOut }}
+										animate:flip={{ duration: ms(320), easing: cubicOut }}
 									>
 										<button
-											class="block w-full text-left"
+											class="focus-visible:ring-ring block w-full rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
 											onclick={() => onopen?.(p.id)}
 											aria-label={`Open ${p.name}`}
 										>
 											<div class="relative aspect-[4/5]">
-												<!-- Ghost pages that fan out from behind the front page on hover. -->
+												<!-- Shares its view-transition-name with the editor surface, so opening morphs into it. -->
 												<div
-													aria-hidden="true"
-													class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-lg border opacity-0 transition-[transform,opacity] duration-300 group-hover:-translate-x-3 group-hover:-translate-y-1 group-hover:-rotate-[5deg] group-hover:scale-[0.97] group-hover:opacity-70 motion-reduce:hidden"
-												></div>
-												<div
-													aria-hidden="true"
-													class="border-border bg-card shadow-craft-sm ease-craft absolute inset-0 rounded-lg border opacity-0 transition-[transform,opacity] duration-300 group-hover:translate-x-3 group-hover:-translate-y-2 group-hover:rotate-[5deg] group-hover:scale-[0.985] group-hover:opacity-100 motion-reduce:hidden"
-												></div>
-
-												<!-- Shares its view-transition-name with the editor surface, so
-												     opening the project morphs this page into it. -->
-												<div
-													class="bg-card border-border shadow-craft-sm group-hover:shadow-craft-lg ease-craft absolute inset-0 z-10 overflow-hidden rounded-lg border transition-[transform,box-shadow] duration-300 group-hover:-translate-y-1 group-active:translate-y-0 group-active:scale-[0.985] motion-reduce:transform-none"
+													class="bg-card border-border group-hover:border-border-strong ease-craft absolute inset-0 z-10 overflow-hidden rounded-lg border transition-[border-color,transform] duration-200 group-active:scale-[0.98] motion-reduce:transform-none"
 													style:view-transition-name={projectViewTransitionName(p.id)}
 													style:view-transition-class="morph-surface"
 												>
@@ -889,7 +889,7 @@
 															{/each}
 														</div>
 														<div class="mt-auto flex items-center gap-1.5">
-															<span class="bg-brand/70 h-1.5 w-1.5 rounded-full"></span>
+															<span class="bg-primary/70 h-1.5 w-1.5 rounded-full"></span>
 															<div class="bg-foreground/12 h-1.5 w-2/5 rounded-full"></div>
 														</div>
 													</div>
@@ -901,6 +901,12 @@
 											<div class="min-w-0 flex-1">
 												{@render projectTitle(p)}
 											</div>
+											{#if p.starred}
+												<span class="mt-0.5 shrink-0" title="Starred">
+													<IconStarFilled class="text-warning size-3.5" aria-hidden="true" />
+													<span class="sr-only">Starred</span>
+												</span>
+											{/if}
 											{@render projectActions(p)}
 										</div>
 									</div>

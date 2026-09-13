@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { Container, Section } from "$lib/landing";
+	import { resolve } from "$app/paths";
 	import { breadcrumbLd, serialise } from "$lib/seo/jsonld";
 	import Seo from "$lib/seo/Seo.svelte";
-	import SiteFooter from "$lib/SiteFooter.svelte";
-	import SiteHeader from "$lib/SiteHeader.svelte";
-	import { Eyebrow } from "@glyphtex/ui/eyebrow";
-	import { IconArrowUpRight } from "@tabler/icons-svelte";
+	import { BrandPanel, PageHero, RailFrame, RailRow, SplitSection } from "$lib/site";
+	import { Button } from "@glyphtex/ui/button";
+	import { IconArrowRight, IconBook2 } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
 
 	let { data }: PageProps = $props();
@@ -18,57 +17,83 @@
 			{ name: "Docs", url: "/docs" }
 		])
 	);
+
+	const first = $derived(data.groups[0]?.items[0]);
+	const total = $derived(data.groups.reduce((n, g) => n + g.items.length, 0));
 </script>
 
 <Seo title="GlyphTeX Docs" {description} canonical="/docs" jsonld={[crumbLd]} />
 
-<SiteHeader />
+<RailFrame>
+	<RailRow divider={false} label="Documentation">
+		<PageHero
+			badge="Documentation"
+			title="LaTeX,"
+			accent="without the guesswork"
+			lede={description}
+		>
+			{#snippet actions()}
+				{#if first}
+					<Button href={first.url} variant="primary">
+						Start with {first.title}
+						<IconArrowRight />
+					</Button>
+				{/if}
+			{/snippet}
+		</PageHero>
+	</RailRow>
 
-<main id="main">
-	<Section spacing="tight" class="pt-32 md:pt-36">
-		<Container>
-			<Eyebrow variant="muted">Documentation</Eyebrow>
-			<h1 class="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-				LaTeX, without the guesswork
-			</h1>
-			<p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">{description}</p>
-		</Container>
-	</Section>
-
-	<Section spacing="none" class="pb-24">
-		<Container>
-			<div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-				{#each data.groups as group (group.category)}
-					<div>
-						<h2 class="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-							{group.category}
-						</h2>
-						<ul class="mt-4 space-y-3">
-							{#each group.items as item (item.slug)}
-								<li>
-									<a
-										href={item.url}
-										class="group flex items-start justify-between gap-3 rounded-xl border border-hairline bg-surface-card p-4 transition-colors hover:border-foreground/25"
-									>
-										<span>
-											<span class="block font-medium text-foreground">{item.title}</span>
-											<span class="mt-1 block text-sm leading-relaxed text-muted-foreground">
-												{item.description}
-											</span>
-										</span>
-										<IconArrowUpRight
-											class="mt-0.5 size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
-											stroke-width={2}
-										/>
-									</a>
-								</li>
-							{/each}
-						</ul>
-					</div>
-				{/each}
+	{#if total === 0}
+		<RailRow label="Guides">
+			<div class="px-1 py-6 sm:px-4 lg:px-16">
+				<p class="panel-card p-6 text-body text-muted-foreground">
+					No guides are published yet. The blog has the articles written so far.
+				</p>
 			</div>
-		</Container>
-	</Section>
-</main>
+		</RailRow>
+	{/if}
 
-<SiteFooter />
+	{#each data.groups as group (group.category)}
+		<RailRow label={group.category}>
+			<SplitSection
+				title={group.category}
+				description="{group.items.length} {group.items.length === 1 ? 'guide' : 'guides'}"
+			>
+				<ul class="grid grid-cols-1 gap-3 md:grid-cols-2">
+					{#each group.items as item (item.slug)}
+						<li>
+							<a
+								href={item.url}
+								class="group flex h-full items-start gap-4 rounded-2xl border border-border bg-card p-5 outline-none transition-[border-color] duration-200 ease-craft hover:border-border-strong focus-visible:ring-2 focus-visible:ring-ring dark:bg-background"
+							>
+								<span class="flex min-w-0 flex-1 flex-col gap-1">
+									<span class="text-body-lg font-medium text-foreground">{item.title}</span>
+									<span class="text-pretty text-body text-muted-foreground">{item.description}</span>
+								</span>
+								<IconArrowRight
+									class="mt-1 size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-craft group-hover:translate-x-0.5"
+									aria-hidden="true"
+								/>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			</SplitSection>
+		</RailRow>
+	{/each}
+
+	<RailRow label="Try it">
+		<BrandPanel
+			title="Practise in the real editor."
+			body="Every guide compiles in the browser workspace. No account, nothing uploaded."
+		>
+			{#snippet icon()}
+				<IconBook2 class="size-10" stroke-width={1.5} aria-hidden="true" />
+			{/snippet}
+			{#snippet actions()}
+				<Button href={resolve('/workspace')} variant="ink">Open the workspace</Button>
+				<Button href={resolve('/blog')} variant="light">Read the blog</Button>
+			{/snippet}
+		</BrandPanel>
+	</RailRow>
+</RailFrame>

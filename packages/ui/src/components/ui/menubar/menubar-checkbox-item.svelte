@@ -3,6 +3,7 @@
 	import { IconCheck } from "@tabler/icons-svelte";
 	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
+	import { DROPDOWN_MENU_ROW } from "../dropdown-menu/context";
 
 	let {
 		ref = $bindable(null),
@@ -20,7 +21,8 @@
 	bind:checked
 	data-slot="menubar-checkbox-item"
 	class={cn(
-		"data-highlighted:bg-foreground/10 data-highlighted:text-accent-foreground text-foreground relative flex cursor-default items-center gap-2 rounded-md py-1.5 pr-2 pl-7 text-[13px] outline-none select-none data-disabled:pointer-events-none data-disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+		DROPDOWN_MENU_ROW,
+		"min-h-8 gap-2 py-1 pr-2 pl-8 text-sm text-foreground [&_svg:not([class*='size-'])]:size-4",
 		className
 	)}
 	{...restProps}
@@ -28,7 +30,7 @@
 	{#snippet children({ checked })}
 		<span class="pointer-events-none absolute left-2 flex items-center justify-center">
 			{#if checked}
-				<IconCheck class="text-brand size-3.5" />
+				<IconCheck class="text-primary size-4" />
 			{/if}
 		</span>
 		{@render childrenProp?.()}

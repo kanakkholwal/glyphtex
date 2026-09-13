@@ -26,8 +26,7 @@
 	/** Shell for the editor: Svelte glue and chrome layout only. State and behaviour
 	 *  live in {@link WorkbenchController}; the panes live in `./workbench/*`. */
 	let props: WorkbenchProps = $props();
-	// The controller intentionally captures the initial (stable) host injections.
-	// `compile`, `project`, `git`, … never change after mount.
+	// Captures the initial host injections on purpose: `compile`, `project`, `git` never change after mount.
 	// svelte-ignore state_referenced_locally
 	const ctrl = new WorkbenchController(props);
 	const { files, layout, search, compile, notes } = ctrl;
@@ -49,7 +48,7 @@
 
 	/** One curve for every panel that opens or closes, so the chrome moves as a set. */
 	const PANEL_EASE =
-		'duration-300 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none';
+		'duration-300 ease-craft motion-reduce:transition-none';
 </script>
 
 <svelte:window
@@ -59,7 +58,15 @@
 	onblur={() => ctrl.onWindowBlur()}
 />
 
-<div class="bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden">
+<div
+	class="workbench-surface bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden"
+>
+	<a
+		href="#main"
+		class="bg-background text-foreground ring-ring sr-only z-50 rounded-md px-3 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-2"
+	>
+		Skip to editor
+	</a>
 	<TitleBar {ctrl} saving={props.saving} saveFile={props.saveFile} />
 
 	<!-- `flex-row-reverse` docks the panel on the right edge (VS Code's "move
@@ -167,7 +174,12 @@
 
 		<!-- min-w-0: without it a wide PDF page or long log line pushes the layout past
          the window edge, hiding the preview toolbar and log copy button. -->
-		<main bind:this={layout.mainEl} class="flex min-h-0 min-w-0 flex-1 flex-col">
+		<main
+			bind:this={layout.mainEl}
+			id="main"
+			tabindex="-1"
+			class="flex min-h-0 min-w-0 flex-1 flex-col outline-none"
+		>
 			<!-- Above the Visual/LaTeX split: a mode is a lens on one file, so "which
 			     file" must not change its answer (or its position) when you switch. -->
 			<Toolbar {ctrl} />
@@ -214,7 +226,7 @@
 									<!-- SyncTeX: jump from the cursor's line to that spot in the PDF.
                  Reverse (PDF→source) is a double-click in the preview. -->
 									<button
-										class="bg-card text-muted-foreground hover:bg-primary hover:text-primary-foreground border-border absolute grid size-6 place-items-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+										class="bg-card text-muted-foreground hover:bg-muted hover:text-foreground border-border absolute grid size-6 place-items-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
 										title="Jump to this line in the PDF (⌘/Ctrl+J)"
 										aria-label="Jump to this line in the PDF"
 										onpointerdown={(e) => e.stopPropagation()}
@@ -247,9 +259,8 @@
 							></span>
 						</div>
 					{/if}
-					<!-- Collapses by height, not unmounting, so the dock animates and keeps its
-           tab + scroll position across a toggle. The inner box holds the real
-           height so the content doesn't reflow while the outer one animates. -->
+					<!-- Collapses by height so the dock keeps tab and scroll; the inner box holds
+					     the real height so content doesn't reflow mid-animation. -->
 					<div
 						class="shrink-0 overflow-hidden {PANEL_EASE} {layout.resizingDock
 							? 'transition-none'

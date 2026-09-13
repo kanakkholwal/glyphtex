@@ -5,11 +5,8 @@
 
 	import type { GitPanelStore } from "./store.svelte";
 
-	/**
-	 * Commit box + smart primary action. While there are changes (or a merge is
-	 * underway) it's a commit message + Commit button; once the tree is clean it
-	 * becomes Push / Pull / Sync if local and remote have diverged.
-	 */
+	// Commit message and Commit while there are changes or a merge; on a clean tree,
+	// Push / Pull / Sync when local and remote have diverged.
 	let { store }: { store: GitPanelStore } = $props();
 </script>
 
@@ -46,7 +43,7 @@
 		{store.busy ? 'Syncing…' : 'Sync Changes'}
 	</Button>
 {:else}
-	<p class="text-muted-foreground/70 px-0.5 py-1 text-center text-xs">
+	<p class="text-muted-foreground px-0.5 py-1 text-center text-xs">
 		{store.head?.unborn ? 'No commits yet.' : 'Nothing to commit: working tree clean.'}
 	</p>
 {/if}

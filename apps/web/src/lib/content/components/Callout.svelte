@@ -10,22 +10,19 @@
 	const styles = {
 		note: {
 			icon: IconInfoCircle,
-			ring: "border-info/35",
-			tint: "bg-info/6",
+			box: "border-info/35 bg-info/5",
 			mark: "text-info",
 			label: "Note"
 		},
 		tip: {
 			icon: IconBulb,
-			ring: "border-success/35",
-			tint: "bg-success/6",
+			box: "border-success/35 bg-success/5",
 			mark: "text-success",
 			label: "Tip"
 		},
 		warn: {
 			icon: IconAlertTriangle,
-			ring: "border-warning/40",
-			tint: "bg-warning/8",
+			box: "border-warning/40 bg-warning/5",
 			mark: "text-warning",
 			label: "Careful"
 		}
@@ -35,13 +32,13 @@
 	const Icon = $derived(style.icon);
 </script>
 
-<aside class="not-prose my-7 rounded-xl border {style.ring} {style.tint} px-5 py-4">
-	<p class="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
-		<Icon class="size-4 {style.mark}" stroke-width={2} />
+<aside class="not-prose my-7 rounded-xl border px-5 py-4 {style.box}">
+	<p class="flex items-center gap-2 text-body font-semibold text-foreground">
+		<Icon class="size-4 {style.mark}" aria-hidden="true" />
 		{title ?? style.label}
 	</p>
 	<div
-		class="mt-2 text-[0.9375rem] leading-relaxed text-muted-foreground [&_a]:underline [&_a]:underline-offset-2 [&_code]:text-foreground [&>p]:m-0 [&>p+p]:mt-3"
+		class="mt-2 text-body text-muted-foreground [&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_code]:text-foreground [&>p]:m-0 [&>p+p]:mt-3"
 	>
 		{@render children?.()}
 	</div>

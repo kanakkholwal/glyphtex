@@ -5,13 +5,11 @@
 	let { groups }: { groups: { category: string; items: DocMeta[] }[] } = $props();
 </script>
 
-<nav aria-label="Documentation" class="text-sm">
+<nav aria-label="Documentation" class="flex flex-col gap-6">
 	{#each groups as group (group.category)}
-		<div class="mb-6">
-			<p class="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-				{group.category}
-			</p>
-			<ul class="space-y-0.5">
+		<div class="flex flex-col">
+			<p class="pb-1 pl-3 text-caption font-medium text-muted-foreground">{group.category}</p>
+			<ul class="flex flex-col gap-0.5">
 				{#each group.items as item (item.slug)}
 					{@const active = page.url.pathname === item.url}
 					<li>
@@ -19,10 +17,10 @@
 							href={item.url}
 							aria-current={active ? "page" : undefined}
 							class={[
-								"block rounded-lg px-3 py-1.5 leading-snug transition-colors",
+								"flex min-h-10 items-center rounded-lg px-3 py-1.5 text-body outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring",
 								active
-									? "bg-surface-strong font-medium text-foreground"
-									: "text-muted-foreground hover:bg-surface-soft hover:text-foreground"
+									? "bg-muted font-medium text-foreground"
+									: "text-muted-foreground hover:bg-muted hover:text-foreground"
 							]}
 						>
 							{item.title}

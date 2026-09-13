@@ -1,11 +1,9 @@
 <script lang="ts">
 	import PostCard from "$lib/content/PostCard.svelte";
-	import { Container, Section } from "$lib/landing";
 	import { breadcrumbLd, serialise } from "$lib/seo/jsonld";
 	import Seo from "$lib/seo/Seo.svelte";
-	import SiteFooter from "$lib/SiteFooter.svelte";
-	import SiteHeader from "$lib/SiteHeader.svelte";
-	import { Chip } from "@glyphtex/ui/chip";
+	import { PageHero, RailFrame, RailRow } from "$lib/site";
+	import { Button } from "@glyphtex/ui/button";
 	import { IconArrowLeft } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
 
@@ -32,42 +30,51 @@
 	jsonld={[crumbLd]}
 />
 
-<SiteHeader />
+<RailFrame>
+	<RailRow divider={false} label="Topic">
+		<PageHero badge="Topic" title="Articles on" accent={data.tag} lede={description}>
+			{#snippet actions()}
+				<Button href="/blog" variant="outline">
+					<IconArrowLeft />
+					All articles
+				</Button>
+			{/snippet}
+		</PageHero>
+	</RailRow>
 
-<main id="main">
-	<Section spacing="tight" class="pt-32 md:pt-36">
-		<Container>
-			<a
-				href="/blog"
-				class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-			>
-				<IconArrowLeft class="size-4" stroke-width={2} />
-				All articles
-			</a>
-			<h1 class="mt-6 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-				#{data.tag}
-			</h1>
-			<p class="mt-4 text-lg text-muted-foreground">{description}</p>
+	<RailRow label="Articles">
+		<div class="flex flex-col gap-6 px-1 py-6 sm:px-4 sm:py-8 lg:px-16">
+			<nav aria-label="Topics" class="flex flex-col gap-2">
+				<h2 class="text-caption font-medium text-muted-foreground">Topics</h2>
+				<ul class="flex flex-wrap gap-2">
+					{#each data.tags as { tag, count } (tag)}
+						{@const current = tag === data.tag}
+						<li>
+							<a
+								href="/blog/tag/{encodeURIComponent(tag)}"
+								aria-current={current ? "page" : undefined}
+								class={[
+									'flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-body outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring',
+									current
+										? 'border-primary bg-primary/10 font-medium text-foreground'
+										: 'border-border bg-card text-foreground hover:bg-muted dark:bg-background'
+								]}
+							>
+								{#if current}<span class="sr-only">Current topic:</span>{/if}
+								{tag}
+								<span class="text-caption tabular-nums text-muted-foreground">{count}</span>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			</nav>
 
-			<div class="mt-8 flex flex-wrap gap-2">
-				{#each data.tags as { tag, count } (tag)}
-					<a href="/blog/tag/{encodeURIComponent(tag)}">
-						<Chip label={`${tag} (${count})`} selected={tag === data.tag} />
-					</a>
-				{/each}
-			</div>
-		</Container>
-	</Section>
-
-	<Section spacing="none" class="pb-24">
-		<Container>
-			<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+			<h2 class="pt-2 text-heading-sm font-medium text-foreground">Articles</h2>
+			<ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{#each data.posts as post (post.slug)}
-					<PostCard {post} />
+					<li><PostCard {post} /></li>
 				{/each}
-			</div>
-		</Container>
-	</Section>
-</main>
-
-<SiteFooter />
+			</ul>
+		</div>
+	</RailRow>
+</RailFrame>

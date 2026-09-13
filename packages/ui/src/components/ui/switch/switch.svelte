@@ -1,12 +1,8 @@
 <script lang="ts">
 	import { Switch as SwitchPrimitive } from "bits-ui";
-	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
+	import { CRAFT_FOCUS_RING, cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 
-	/**
-	 * Switch: a Mac-native toggle. The track takes `--brand` when on, following
-	 * the Apple convention, and the knob slides on the shared easing. Use it for
-	 * binary settings instead of an On/Off button.
-	 */
+	// The off track is `--placeholder`, not the hairline, so its boundary clears 3:1.
 	let {
 		ref = $bindable(null),
 		checked = $bindable(false),
@@ -20,8 +16,8 @@
 	bind:checked
 	data-slot="switch"
 	class={cn(
-		'peer bg-border data-[state=checked]:bg-brand relative inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full outline-none transition-colors',
-		'focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+		CRAFT_FOCUS_RING,
+		'peer bg-placeholder data-[state=checked]:bg-primary relative inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full transition-colors',
 		'disabled:cursor-not-allowed disabled:opacity-50',
 		className
 	)}
@@ -30,7 +26,7 @@
 	<SwitchPrimitive.Thumb
 		data-slot="switch-thumb"
 		class={cn(
-			'pointer-events-none block size-3.5 translate-x-[2px] rounded-full bg-white shadow-craft-sm transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)]',
+			'pointer-events-none block size-3.5 translate-x-[2px] rounded-full bg-fixed-light shadow-xs transition-transform duration-200 ease-craft',
 			'data-[state=checked]:translate-x-[16px]'
 		)}
 	/>

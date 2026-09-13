@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { Container, Section } from "$lib/landing";
+	import { resolve } from "$app/paths";
 	import PostCard from "$lib/content/PostCard.svelte";
-	import SiteFooter from "$lib/SiteFooter.svelte";
-	import SiteHeader from "$lib/SiteHeader.svelte";
 	import { articleLd, breadcrumbLd, serialise } from "$lib/seo/jsonld";
 	import { SITE_URL } from "$lib/seo/site";
 	import Seo from "$lib/seo/Seo.svelte";
-	import { Chip } from "@glyphtex/ui/chip";
-	import { Eyebrow } from "@glyphtex/ui/eyebrow";
+	import { BrandPanel, PageHero, RailFrame, RailRow } from "$lib/site";
+	import { Button } from "@glyphtex/ui/button";
+	import { IconNews, IconRss } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
 
 	let { data }: PageProps = $props();
@@ -48,49 +47,71 @@
 
 <Seo title="GlyphTeX Blog" {description} canonical="/blog" jsonld={[listLd, crumbLd]} />
 
-<SiteHeader />
+<RailFrame>
+	<RailRow divider={false} label="Blog">
+		<PageHero badge="Writing, compiled locally" title="The GlyphTeX" accent="blog" lede={description}>
+			{#snippet actions()}
+				<Button href="/blog/rss.xml" variant="outline">
+					<IconRss />
+					RSS feed
+				</Button>
+			{/snippet}
+		</PageHero>
+	</RailRow>
 
-<main id="main">
-	<Section spacing="tight" class="pt-32 md:pt-36">
-		<Container>
-			<Eyebrow variant="muted">Writing, compiled locally</Eyebrow>
-			<h1 class="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-				The GlyphTeX blog
-			</h1>
-			<p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-				{description}
-			</p>
-
+	<RailRow label="Articles">
+		<div class="flex flex-col gap-6 px-1 py-6 sm:px-4 sm:py-8 lg:px-16">
 			{#if data.tags.length}
-				<div class="mt-8 flex flex-wrap gap-2">
-					{#each data.tags as { tag, count } (tag)}
-						<a href="/blog/tag/{encodeURIComponent(tag)}">
-							<Chip label={`${tag} (${count})`} />
-						</a>
-					{/each}
-				</div>
+				<nav aria-label="Topics" class="flex flex-col gap-2">
+					<h2 class="text-caption font-medium text-muted-foreground">Browse by topic</h2>
+					<ul class="flex flex-wrap gap-2">
+						{#each data.tags as { tag, count } (tag)}
+							<li>
+								<a
+									href="/blog/tag/{encodeURIComponent(tag)}"
+									class="flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 text-body text-foreground outline-none transition-colors duration-150 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring dark:bg-background"
+								>
+									{tag}
+									<span class="text-caption tabular-nums text-muted-foreground">{count}</span>
+								</a>
+							</li>
+						{/each}
+					</ul>
+				</nav>
 			{/if}
-		</Container>
-	</Section>
 
-	<Section spacing="none" class="pb-24">
-		<Container>
+			<h2 class="pt-2 text-heading-sm font-medium text-foreground">Latest articles</h2>
 			{#if data.posts.length === 0}
-				<p class="text-muted-foreground">No articles yet. Check back soon.</p>
+				<p class="panel-card p-6 text-body text-muted-foreground">
+					No articles are published yet. The docs cover the editor in the meantime.
+				</p>
 			{:else}
-				{#if featured}
-					<div class="mb-6">
-						<PostCard post={featured} featured />
-					</div>
-				{/if}
-				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+				<ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					{#if featured}
+						<li class="sm:col-span-2 lg:col-span-3">
+							<PostCard post={featured} featured />
+						</li>
+					{/if}
 					{#each rest as post (post.slug)}
-						<PostCard {post} />
+						<li><PostCard {post} /></li>
 					{/each}
-				</div>
+				</ul>
 			{/if}
-		</Container>
-	</Section>
-</main>
+		</div>
+	</RailRow>
 
-<SiteFooter />
+	<RailRow label="Try it">
+		<BrandPanel
+			title="Try the ideas in the editor."
+			body="Open the browser workspace and compile a document. No account, nothing uploaded."
+		>
+			{#snippet icon()}
+				<IconNews class="size-10" stroke-width={1.5} aria-hidden="true" />
+			{/snippet}
+			{#snippet actions()}
+				<Button href={resolve('/workspace')} variant="ink">Open the workspace</Button>
+				<Button href={resolve('/docs')} variant="light">Read the docs</Button>
+			{/snippet}
+		</BrandPanel>
+	</RailRow>
+</RailFrame>

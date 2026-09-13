@@ -261,7 +261,7 @@
 					Searching…
 				{:else if total}
 					{activeHit + 1} of {total}
-					{#if fileCount > 1}<span class="text-faint"> in {fileCount} files</span>{/if}
+					{#if fileCount > 1}<span class="text-muted-foreground"> in {fileCount} files</span>{/if}
 				{:else}
 					No results
 				{/if}
@@ -296,7 +296,7 @@
 			aria-pressed={includeOther}
 			onclick={() => onincludeother?.(!includeOther)}
 		>
-			<IconFileOff size={13} class="text-faint shrink-0" />
+			<IconFileOff size={13} class="text-muted-foreground shrink-0" />
 			{#if includeOther}
 				<span>Including {result.otherTotal} in generated and other files</span>
 			{:else}
@@ -304,7 +304,7 @@
 					{result.otherTotal} more in generated and other files
 				</span>
 			{/if}
-			<span class="text-brand ml-auto shrink-0 font-medium">{includeOther ? 'Hide' : 'Show'}</span>
+			<span class="text-primary ml-auto shrink-0 font-medium">{includeOther ? 'Hide' : 'Show'}</span>
 		</button>
 	{/if}
 
@@ -312,7 +312,7 @@
 	     Saying so is the difference between "nothing matched" and "we didn't look". -->
 	{#if !result.error && !scanning && store.query && skipNote}
 		<p
-			class="text-faint flex items-start gap-1.5 px-1.5 pt-1 text-xs"
+			class="text-muted-foreground flex items-start gap-1.5 px-1.5 pt-1 text-xs"
 			title={skips.vendorDirs.length > 2 ? skips.vendorDirs.join(', ') : undefined}
 		>
 			<IconFolderOff size={13} class="mt-px shrink-0" />
@@ -333,7 +333,7 @@
 				>
 					<IconChevronRight
 						size={13}
-						class="shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none {open
+						class="shrink-0 transition-transform duration-200 ease-craft motion-reduce:transition-none {open
 							? 'rotate-90'
 							: ''}"
 					/>
@@ -343,13 +343,13 @@
 					>
 					{#if !isDocumentFile(group.name)}
 						<span
-							class="bg-muted text-faint shrink-0 rounded px-1 text-[10px] font-medium"
+							class="bg-muted text-muted-foreground shrink-0 rounded px-1 text-xs font-medium"
 							title="Generated or non-document file"
 						>
 							other
 						</span>
 					{/if}
-					<span class="text-faint shrink-0 text-xs tabular-nums">{group.matches.length}</span>
+					<span class="text-muted-foreground shrink-0 text-xs tabular-nums">{group.matches.length}</span>
 				</button>
 
 				{#if open}
@@ -371,7 +371,7 @@
 							onclick={() => ongotoresult?.(index)}
 						>
 							<span
-								class="text-faint w-9 shrink-0 text-right font-mono text-xs tabular-nums"
+								class="text-muted-foreground w-9 shrink-0 text-right font-mono text-xs tabular-nums"
 							>
 								{m.line}
 							</span>
@@ -382,13 +382,13 @@
 			{/each}
 
 			{#if result.truncated}
-				<p class="text-faint px-2 pt-1 text-xs">
+				<p class="text-muted-foreground px-2 pt-1 text-xs">
 					Stopped at {result.total} matches. Narrow the search to see the rest.
 				</p>
 			{/if}
 		</div>
 	{:else if !store.query}
-		<p class="text-faint mt-1 px-1.5 text-xs">
+		<p class="text-muted-foreground mt-1 px-1.5 text-xs">
 			Find &amp; replace across every file in this project.
 		</p>
 	{/if}

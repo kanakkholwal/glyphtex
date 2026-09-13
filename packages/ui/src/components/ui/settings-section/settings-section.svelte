@@ -32,17 +32,13 @@
 	}: SettingsSectionProps = $props();
 </script>
 
-<!--
-  SettingsSection: a titled setting-group. One elevated card owns the header
-  (title + optional note + trailing action) and the body (rows or a block), so
-  every settings page shares the same rhythm and the craft lives in one place.
--->
+<!-- One card owns the header and the body, so every settings page shares one rhythm. -->
 <section
-	class="bg-card border-border shadow-craft-sm overflow-hidden rounded-2xl border"
+	class="bg-card border-border overflow-hidden rounded-2xl border"
 	data-slot="settings-section"
 >
 	{#if label || description || action}
-		<header class="border-border/60 flex items-center justify-between gap-3 border-b px-5 py-3.5">
+		<header class="border-border flex items-center justify-between gap-3 border-b px-5 py-3.5">
 			<div class="min-w-0">
 				{#if label}
 					<h3 class="text-foreground text-sm font-semibold tracking-tight">{label}</h3>
@@ -54,7 +50,7 @@
 			{#if action}<div class="shrink-0">{@render action()}</div>{/if}
 		</header>
 	{/if}
-	<div class={cn(divided && 'divide-border/60 divide-y', padded && 'p-5', className)}>
+	<div class={cn(divided && 'divide-border divide-y', padded && 'p-5', className)}>
 		{@render children()}
 	</div>
 </section>

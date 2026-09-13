@@ -19,7 +19,7 @@
 	} from "@tabler/icons-svelte";
 	import type { PackDefinition } from "glyphtex-engine";
 	import { cubicOut } from "svelte/easing";
-	import { SvelteSet } from "svelte/reactivity";
+	import { MediaQuery, SvelteSet } from "svelte/reactivity";
 	import { fly } from "svelte/transition";
 
 	import { BIBTEX_BACKEND_FIX } from "$lib/citations";
@@ -64,9 +64,8 @@
 	const unsupportedId = $derived(`unsupported:${unsupportedFiles.join(",")}`);
 	const missingId = $derived(`missing:${missingPacks.map((p) => p.id).join(",")}`);
 
-	// The click is answered by a page reload, so this is the only feedback there
-	// is until it lands. It stays set on the way out: clearing it would flash the
-	// button back to idle in the moment before the page goes.
+	// The only feedback until the reload lands. Never cleared on success: that would
+	// flash the button back to idle just before the page goes.
 	let reloading = $state(false);
 	async function reload() {
 		reloading = true;
@@ -90,36 +89,39 @@
 		}
 	}
 
-	// Same card as a toast: same radius, border, shadow and plain 16px icon, so
-	// the app has one notification language.
+	// Same card as a toast (radius, border, floating shadow, 16px icon): one notification language.
 	const card =
-		"border-border bg-card text-foreground pointer-events-auto flex items-start gap-2.5 rounded-lg border p-3 shadow-craft-lg";
+		"border-border bg-popover text-popover-foreground pointer-events-auto flex items-start gap-3 rounded-xl border p-3 shadow-lg";
+
+	// Svelte transitions bypass the CSS reduced-motion guard.
+	const reduced = new MediaQuery("prefers-reduced-motion: reduce");
+	const enter = $derived({
+		y: reduced.current ? 0 : 8,
+		duration: reduced.current ? 0 : 180,
+		easing: cubicOut
+	});
 </script>
 
-<!-- Corner cards, not a banner strip: each of these used to push the whole
-     workbench down the moment a compile found it, so the editor and PDF jumped
-     mid-session.
-     One live region, on the container: it has to exist before a card is
-     inserted for the card to be announced at all, so the cards themselves
-     carry no role of their own. -->
+<!-- Corner cards, not a banner strip, so the editor never jumps mid-session. The live region
+     sits on the container because it must exist before a card is inserted to announce it. -->
 <div
 	class="pointer-events-none fixed right-4 bottom-4 z-40 flex w-84 max-w-[calc(100vw-2rem)] flex-col gap-2"
 	aria-live="polite"
 >
 	{#if updateAvailable && show('update')}
-		<div class={card} transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
+		<div class={card} transition:fly={enter}>
 			<IconRefresh
-				class="text-brand mt-0.5 size-4 shrink-0 {reloading ? 'animate-spin' : ''}"
+				class="text-primary mt-0.5 size-4 shrink-0 {reloading ? 'animate-spin' : ''}"
 				aria-hidden="true"
 			/>
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Update ready</p>
-				<p class="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+				<p class="text-muted-foreground mt-0.5 text-xs">
 					{reloading
 						? 'Saving your work, then reloading.'
 						: 'Reload when it suits you. Your open files are saved first, and nothing is lost.'}
 				</p>
-				<Button size="sm" variant="outline" class="mt-2 h-7" disabled={reloading} onclick={reload}>
+				<Button size="sm" variant="outline" class="mt-2" disabled={reloading} onclick={reload}>
 					{reloading ? 'Reloading…' : 'Reload'}
 				</Button>
 			</div>
@@ -138,17 +140,17 @@
 	{/if}
 
 	{#if missingPacks.length > 0 && show(missingId)}
-		<div class={card} transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
-			<IconPackage class="text-muted-foreground mt-0.5 size-4 shrink-0" />
+		<div class={card} transition:fly={enter}>
+			<IconPackage class="text-muted-foreground mt-0.5 size-4 shrink-0" aria-hidden="true" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Missing packages</p>
-				<p class="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+				<p class="text-muted-foreground mt-0.5 text-xs">
 					This document needs {missingPacks.map((p) => p.label).join(', ')} ({packSizeMB} MB).
 				</p>
 				{#if error}
-					<p class="text-destructive mt-1 text-xs">{error}</p>
+					<p class="text-destructive mt-1 text-xs" role="alert">Could not add packages: {error}</p>
 				{/if}
-				<Button size="sm" class="mt-2 h-7" onclick={onadd} disabled={installing}>
+				<Button size="sm" class="mt-2" onclick={onadd} disabled={installing}>
 					{installing ? 'Adding…' : 'Add packages'}
 				</Button>
 			</div>
@@ -166,11 +168,11 @@
 	{/if}
 
 	{#if unsupportedFiles.length > 0 && show(unsupportedId)}
-		<div class={card} transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
-			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" />
+		<div class={card} transition:fly={enter}>
+			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" aria-hidden="true" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Unavailable packages</p>
-				<p class="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+				<p class="text-muted-foreground mt-0.5 text-xs">
 					No package set provides {unsupportedFiles
 						.slice(0, 3)
 						.join(', ')}{unsupportedFiles.length > 3
@@ -180,10 +182,10 @@
 				<Button
 					size="sm"
 					variant="outline"
-					class="mt-2 h-7 gap-1.5"
+					class="mt-2"
 					onclick={() => (reportOpen = true)}
 				>
-					<IconBrandGithub class="size-3.5" />
+					<IconBrandGithub aria-hidden="true" />
 					Request support
 				</Button>
 			</div>
@@ -201,11 +203,11 @@
 	{/if}
 
 	{#if requiresBiber && show('biber')}
-		<div class={card} transition:fly={{ y: 8, duration: 180, easing: cubicOut }}>
-			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" />
+		<div class={card} transition:fly={enter}>
+			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" aria-hidden="true" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Bibliography not generated</p>
-				<p class="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+				<p class="text-muted-foreground mt-0.5 text-xs">
 					biblatex is set to Biber, which can't run in the browser. Use
 					<code class="bg-muted rounded px-1 py-0.5">{BIBTEX_BACKEND_FIX}</code>
 					to build it here. Citations show as [?] until then.
@@ -228,31 +230,29 @@
 <!-- Nothing is sent unseen. The report is built from an allowlist of preamble
      declarations, and this shows the finished text before GitHub opens. -->
 <Dialog bind:open={reportOpen}>
-	<DialogContent class="sm:max-w-xl">
+	<DialogContent class="gap-5 p-6 sm:max-w-xl">
 		<DialogHeader>
-			<DialogTitle>Request package support</DialogTitle>
-			<DialogDescription>
+			<DialogTitle class="text-body-lg">Request package support</DialogTitle>
+			<DialogDescription class="text-body">
 				This is the whole report. Only the class and package declarations were copied from your
 				document: no prose, data or file names.
 			</DialogDescription>
 		</DialogHeader>
 
 		<pre
-			class="border-border bg-muted/50 text-muted-foreground max-h-72 overflow-auto rounded-lg border p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap">{reportBody}</pre>
+			class="border-border bg-muted text-muted-foreground text-caption max-h-72 overflow-auto rounded-xl border p-3 font-mono whitespace-pre-wrap">{reportBody}</pre>
 
-		<DialogFooter>
-			<Button variant="ghost" size="sm" class="gap-1.5" onclick={copyReport}>
-				<IconCopy class="size-3.5" /> Copy
+		<DialogFooter class="-mx-6 -mb-6 p-6 pt-4">
+			<Button variant="outline" onclick={copyReport}>
+				<IconCopy aria-hidden="true" /> Copy
 			</Button>
 			<Button
-				size="sm"
-				class="gap-1.5"
 				href={supportIssueUrl(REPO_URL, report)}
 				target="_blank"
 				rel="noopener noreferrer"
 				onclick={() => (reportOpen = false)}
 			>
-				<IconBrandGithub class="size-3.5" /> Open GitHub issue
+				<IconBrandGithub aria-hidden="true" /> Open GitHub issue
 			</Button>
 		</DialogFooter>
 	</DialogContent>

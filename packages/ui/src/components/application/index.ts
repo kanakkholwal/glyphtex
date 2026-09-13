@@ -1,6 +1,5 @@
 export { default as Workbench, type ViewMode } from "./workbench.svelte";
 export { default as ProjectsHome, type Project, type Scope } from "./projects-home.svelte";
-export { default as EditorShell, type EditorEngine } from "./editor-shell.svelte";
 export { default as CodeEditor } from "./code-editor.svelte";
 export { default as SidePanel } from "./side-panel.svelte";
 export { default as FormatToolbar } from "./format-toolbar.svelte";

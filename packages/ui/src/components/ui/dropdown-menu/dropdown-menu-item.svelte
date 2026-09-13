@@ -2,6 +2,7 @@
 	import { cn } from "@glyphtex/ui/utils";
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
 	import {
+		DROPDOWN_MENU_ROW,
 		dropdownMenuItemSizeVariants,
 		getDropdownMenuSize,
 		type DropdownMenuSize
@@ -20,8 +21,8 @@
 		variant?: "default" | "destructive";
 	} = $props();
 
-	// Inherit from <Content size="…"> unless overridden per-item.
-	const resolvedSize = $derived(size ?? getDropdownMenuSize());
+	const contentSize = getDropdownMenuSize();
+	const resolvedSize = $derived(size ?? contentSize());
 </script>
 
 <DropdownMenuPrimitive.Item
@@ -30,8 +31,10 @@
 	data-inset={inset}
 	data-variant={variant}
 	class={cn(
-		'focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:text-destructive not-data-[variant=destructive]:focus:**:text-accent-foreground rounded-md data-inset:pl-7 group/dropdown-menu-item relative flex cursor-default items-center outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0',
+		DROPDOWN_MENU_ROW,
 		dropdownMenuItemSizeVariants({ size: resolvedSize }),
+		'group/dropdown-menu-item data-inset:pl-8',
+		'data-[variant=destructive]:text-destructive data-[variant=destructive]:data-highlighted:bg-destructive/10 data-[variant=destructive]:data-highlighted:text-destructive data-[variant=destructive]:[&_svg]:text-destructive!',
 		className
 	)}
 	{...restProps}

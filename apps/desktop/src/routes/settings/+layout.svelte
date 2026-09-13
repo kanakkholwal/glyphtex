@@ -3,7 +3,6 @@
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import { Button } from "@glyphtex/ui/button";
-	import { Logo } from "@glyphtex/ui/logo";
 	import { Toaster } from "@glyphtex/ui/sonner";
 	import {
 		IconArrowLeft,
@@ -16,7 +15,6 @@
 
 	let { children } = $props();
 
-	// Section tabs. Cloud / sync integration will slot in here later.
 	const nav = [
 		{ href: "/settings/general", label: "General", icon: IconSettings },
 		{ href: "/settings/editor", label: "Editor", icon: IconPencil },
@@ -24,100 +22,68 @@
 		{ href: "/settings/integrations", label: "Integrations", icon: IconPlug },
 		{ href: "/settings/about", label: "About", icon: IconInfoCircle }
 	] as const;
-	const isActive = (href: string) => page.url.pathname === href;
 
-	// A single indicator that glides under the active tab. The layout persists
-	// across the section routes, so the slide animates on navigation instead of
-	// re-mounting. First placement snaps (no fly-in); every move after glides.
-	let tabsEl = $state<HTMLElement>();
-	let indLeft = $state(0);
-	let indWidth = $state(0);
-	let placed = $state(false);
-	let animate = $state(false);
-
-	function measure() {
-		const active = tabsEl?.querySelector<HTMLElement>('[data-active="true"]');
-		if (!active) return;
-		indLeft = active.offsetLeft;
-		indWidth = active.offsetWidth;
-		placed = true;
+	// Capture phase: runs before bits-ui closes an open overlay, so Esc there only closes the overlay.
+	function onkeydowncapture(e: KeyboardEvent) {
+		if (e.key !== "Escape" || e.defaultPrevented) return;
+		if (document.querySelector("[role='dialog'], [role='listbox'], [role='menu']")) return;
+		if (e.target instanceof HTMLElement && e.target.closest("input, textarea, [contenteditable]"))
+			return;
+		void goto(resolve("/"));
 	}
-
-	$effect(() => {
-		void page.url.pathname;
-		measure();
-	});
-
-	$effect(() => {
-		// Enable the slide one tick after the first placement.
-		if (placed && !animate) queueMicrotask(() => (animate = true));
-	});
-
-	$effect(() => {
-		if (!tabsEl || typeof ResizeObserver === "undefined") return;
-		const ro = new ResizeObserver(() => measure());
-		ro.observe(tabsEl);
-		return () => ro.disconnect();
-	});
 </script>
 
-<svelte:head><title>Settings · GlyphTeX</title></svelte:head>
+<svelte:window {onkeydowncapture} />
 
-<div class="bg-background text-foreground flex h-dvh flex-col overflow-hidden">
-	<!-- Top chrome: identity + the section tabs, both aligned to the centred
-	     content column so the whole surface reads as one focused page. -->
-	<header class="border-border shrink-0 border-b">
-		<div class="mx-auto flex h-14 max-w-2xl items-center gap-2.5 px-6">
-			<Button
-				variant="ghost"
-				size="icon-sm"
-				class="-ml-1.5"
-				title="Back to projects"
-				aria-label="Back to projects"
-				onclick={() => goto(resolve('/'))}
-			>
-				<IconArrowLeft size={16} />
-			</Button>
-			<Logo size={22} text={false} />
-			<h1 class="font-display text-base tracking-tight">Settings</h1>
-		</div>
+<a
+	href="#settings-main"
+	class="sr-only fixed top-2 left-2 z-50 rounded-md bg-background px-3 py-2 text-body font-medium text-foreground outline-none focus:not-sr-only focus-visible:ring-2 focus-visible:ring-ring"
+>
+	Skip to settings
+</a>
 
-		<nav
-			bind:this={tabsEl}
-			class="no-scrollbar relative mx-auto flex max-w-2xl gap-1 overflow-x-auto px-6"
-			aria-label="Settings sections"
+<div class="flex h-dvh overflow-hidden bg-background text-foreground">
+	<aside class="flex w-56 shrink-0 flex-col gap-4 border-r border-border bg-sidebar p-3">
+		<Button
+			variant="ghost"
+			size="sm"
+			class="w-fit text-muted-foreground"
+			title="Back to projects (Esc)"
+			onclick={() => goto(resolve('/'))}
 		>
-			{#each nav as item (item.href)}
-				{@const active = isActive(item.href)}
-				{@const Icon = item.icon}
-				<a
-					href={resolve(item.href)}
-					data-active={String(active)}
-					aria-current={active ? 'page' : undefined}
-					class="ease-craft flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-[13px] transition-colors duration-200 {active
-						? 'text-foreground font-medium'
-						: 'text-muted-foreground hover:text-foreground'}"
-				>
-					<Icon size={16} class="shrink-0 {active ? 'text-brand' : ''}" />
-					{item.label}
-				</a>
-			{/each}
-			<span
-				aria-hidden="true"
-				class="bg-brand pointer-events-none absolute bottom-0 h-[2px] rounded-full {animate
-					? 'ease-craft transition-[left,width] duration-300'
-					: ''} {placed ? '' : 'opacity-0'}"
-				style:left={`${indLeft}px`}
-				style:width={`${indWidth}px`}
-			></span>
-		</nav>
-	</header>
+			<IconArrowLeft />
+			Projects
+		</Button>
 
-	<div class="min-h-0 flex-1 overflow-auto">
-		<div class="mx-auto max-w-2xl px-6 py-10">
+		<nav aria-labelledby="settings-nav-title" class="flex flex-col gap-1">
+			<p id="settings-nav-title" class="px-3 pb-1 text-xs font-medium text-muted-foreground">
+				Settings
+			</p>
+			<ul class="flex flex-col gap-0.5">
+				{#each nav as item (item.href)}
+					{@const active = page.url.pathname === item.href}
+					<li>
+						<a
+							href={resolve(item.href)}
+							aria-current={active ? 'page' : undefined}
+							class="flex h-10 items-center gap-2.5 rounded-lg px-3 text-body outline-none transition-colors duration-150 ease-craft focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset {active
+								? 'bg-muted font-medium text-foreground'
+								: 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'}"
+						>
+							<item.icon size={18} class="shrink-0 {active ? 'text-primary' : ''}" aria-hidden="true" />
+							{item.label}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</nav>
+	</aside>
+
+	<main id="settings-main" tabindex="-1" class="min-h-0 flex-1 overflow-auto outline-none">
+		<div class="mx-auto flex max-w-2xl flex-col gap-6 px-8 py-10">
 			{@render children()}
 		</div>
-	</div>
+	</main>
 </div>
 
 <Toaster />

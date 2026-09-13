@@ -162,10 +162,8 @@
 	let alpha = $state(1);
 	let hexInput = $state('');
 
-	// Internal HSL is a deliberate *editing buffer*, not a derived view of `value`:
-	// it diverges from the prop mid-drag (the parent only hears committed colors via
-	// `oncommit`), so it can't be `$derived` (AGENTS.md §3/§5). This effect reconciles
-	// the buffer only when `value` changes from *outside* the picker.
+	// An editing buffer, not a derived view: it leads `value` mid-drag, so it can't be `$derived`.
+	// This effect only reconciles it when `value` changes from outside.
 	$effect(() => {
 		const parsed = parseColor(value);
 		if (!parsed) return;
@@ -268,21 +266,14 @@
 					type="button"
 					onclick={() => selectSwatch(swatch)}
 					aria-label={`Pick ${swatch}`}
-					class="size-5 rounded-full border border-border ring-offset-background transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					class="size-5 rounded-full border border-border outline-none transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 					style:background={swatch}
 				></button>
 			{/each}
 		</div>
 	{/if}
 
-	<!--
-	  The literal colors below (#000/#fff gradient corners, #cbd5e1 alpha checker,
-	  the marker's white border + black ring) are NOT theme surfaces: they are the
-	  saturation/value color-math and fixed contrast over an *arbitrary* user color,
-	  so they intentionally stay constant across light/dark (mapping them to
-	  semantic tokens would make the marker invisible in dark mode). AGENTS.md rule
-	  #9 covers themed surfaces; these are picker-intrinsic, like the swatch data.
-	-->
+	<!-- The #000/#fff gradient is colour math over an arbitrary user colour, not a theme surface. -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="relative h-32 w-full cursor-crosshair rounded-md border border-border"
@@ -290,7 +281,7 @@
 		onpointerdown={handleSlPointer}
 	>
 		<span
-			class="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-craft-sm ring-1 ring-black/40"
+			class="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-fixed-light shadow-xs ring-1 ring-fixed-dark/40"
 			style:left={`${markerPos.x}%`}
 			style:top={`${markerPos.y}%`}
 			style:background={`hsl(${hue} ${sat}% ${light}%)`}
@@ -319,7 +310,7 @@
 			oninput={handleAlphaInput}
 			aria-label="Alpha"
 			class="h-3 w-full appearance-none rounded-full"
-			style={`background: linear-gradient(to right, transparent, hsl(${hue} ${sat}% ${light}%)), repeating-conic-gradient(#cbd5e1 0% 25%, transparent 0% 50%) 0 0/8px 8px;`}
+			style={`background: linear-gradient(to right, transparent, hsl(${hue} ${sat}% ${light}%)), repeating-conic-gradient(color-mix(in srgb, var(--color-foreground) 12%, transparent) 0% 25%, transparent 0% 50%) 0 0/8px 8px;`}
 		/>
 	{/if}
 
@@ -337,14 +328,14 @@
 				if (e.key === 'Enter') commitHexInput();
 			}}
 			spellcheck="false"
-			class="h-7 w-full rounded-md border border-border bg-background px-2 font-mono text-[11px] text-foreground outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/30"
+			class="h-7 w-full rounded-md border border-border bg-background px-2 font-mono text-xs text-foreground outline-none placeholder:text-placeholder focus-visible:border-ring"
 			placeholder="#3b82f6"
 		/>
 		{#if hasEyedropper}
 			<button
 				type="button"
 				onclick={pickWithEyedropper}
-				class="grid size-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+				class="grid size-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				title="Pick from screen"
 				aria-label="Eyedropper"
 			>
@@ -355,14 +346,14 @@
 
 	{#if recents.length}
 		<div class="space-y-1">
-			<p class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Recent</p>
+			<p class="text-xs font-medium text-muted-foreground">Recent</p>
 			<div class="flex flex-wrap gap-1.5">
 				{#each recents as r (r)}
 					<button
 						type="button"
 						onclick={() => selectSwatch(r)}
 						aria-label={`Use recent ${r}`}
-						class="size-5 rounded-full border border-border transition-transform hover:scale-110"
+						class="size-5 rounded-full border border-border outline-none transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 						style:background={r}
 					></button>
 				{/each}

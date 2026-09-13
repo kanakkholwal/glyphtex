@@ -3,6 +3,7 @@
 	import { resolve } from "$app/paths";
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
 	import type { ImportResult } from "$lib/storage/import";
+	import { Button } from "@glyphtex/ui/button";
 	import {
 		IconAlertTriangle,
 		IconFileText,
@@ -11,9 +12,8 @@
 		IconUpload
 	} from "@tabler/icons-svelte";
 
-	// Import is the shortest path from "I have a project" to "I am writing in it",
-	// so it lives on the homepage rather than one navigation away. Everything the
-	// import touches is loaded on demand: the landing bundle stays as it was.
+	// Import lives on the homepage as the shortest path to writing; everything it
+	// touches loads on demand so the landing bundle stays as it was.
 
 	let zipInput = $state<HTMLInputElement>();
 	let folderInput = $state<HTMLInputElement>();
@@ -45,11 +45,13 @@
 			}
 
 			status = `Saving ${files.length} files…`;
-			const { createProject } = await import("$lib/storage/projects");
+			const [{ createProject }, { requestPersistence }] = await Promise.all([
+				import("$lib/storage/projects"),
+				import("$lib/storage/quota")
+			]);
 			const project = await createProject(name.replace(/\.(tex|ltx)$/i, "") || "Imported", files);
 
 			track("document_created", { source, files: bucket(files.length), location: "home" });
-			const { requestPersistence } = await import("$lib/storage/quota");
 			void requestPersistence();
 
 			status = "Opening…";
@@ -118,67 +120,52 @@
 <svelte:window ondragover={onDragOver} ondragleave={onDragLeave} ondrop={onDrop} />
 
 <div
-	class="rounded-xl border border-dashed border-border bg-surface-soft/50 px-5 py-4 transition-colors {dragging
-		? 'border-brand bg-brand-subtle/40'
-		: ''}"
+	class="@container rounded-2xl border border-dashed p-5 transition-colors {dragging
+		? 'border-primary bg-primary/5'
+		: 'border-border bg-card dark:bg-background'}"
 >
-	<div class="flex flex-col items-center gap-x-5 gap-y-3 sm:flex-row sm:justify-between">
-		<div class="flex items-center gap-3 text-left">
-			<span class="grid size-9 shrink-0 place-items-center rounded-lg bg-surface-strong">
+	<div class="flex flex-col gap-4 @2xl:flex-row @2xl:items-center">
+		<div class="flex min-w-0 flex-1 items-center gap-3">
+			<span
+				class="border-border bg-background grid size-10 shrink-0 place-items-center rounded-lg border"
+				aria-hidden="true"
+			>
 				{#if importing}
-					<IconLoader2 class="size-4.5 animate-spin text-foreground" stroke-width={1.75} />
+					<IconLoader2 class="text-foreground size-5 animate-spin" stroke-width={1.75} />
 				{:else}
-					<IconUpload class="size-4.5 text-foreground" stroke-width={1.75} />
+					<IconUpload class="text-primary size-5" stroke-width={1.75} />
 				{/if}
 			</span>
-			<span>
-				<span class="block text-base font-semibold tracking-tight text-foreground">
-					Already have a project?
-				</span>
-				<span class="block text-sm text-muted-foreground">
-					{status || 'Drop it anywhere on this page, or pick one below.'}
-				</span>
-			</span>
+			<div class="min-w-0">
+				<h3 class="text-body-lg text-foreground font-medium">
+					{dragging ? 'Drop to open' : 'Already have a project?'}
+				</h3>
+				<p class="text-body text-muted-foreground @2xl:truncate">
+					{status || 'Drop it here or choose one. Nothing is uploaded.'}
+				</p>
+			</div>
 		</div>
 
-		<div class="flex shrink-0 flex-wrap items-center justify-center gap-2">
-			<button
-				type="button"
-				disabled={importing}
-				onclick={() => zipInput?.click()}
-				class="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-soft disabled:opacity-50"
-			>
-				<IconUpload class="size-4" stroke-width={1.75} />
+		<div class="flex flex-wrap gap-2 @2xl:shrink-0 @2xl:flex-nowrap">
+			<Button variant="outline" disabled={importing} onclick={() => zipInput?.click()}>
+				<IconUpload stroke-width={1.75} aria-hidden="true" />
 				Overleaf .zip
-			</button>
-			<button
-				type="button"
-				disabled={importing}
-				onclick={() => folderInput?.click()}
-				class="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-soft disabled:opacity-50"
-			>
-				<IconFolder class="size-4" stroke-width={1.75} />
+			</Button>
+			<Button variant="outline" disabled={importing} onclick={() => folderInput?.click()}>
+				<IconFolder stroke-width={1.75} aria-hidden="true" />
 				Folder
-			</button>
-			<button
-				type="button"
-				disabled={importing}
-				onclick={() => texInput?.click()}
-				class="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-soft disabled:opacity-50"
-			>
-				<IconFileText class="size-4" stroke-width={1.75} />
-				.tex file
-			</button>
+			</Button>
+			<Button variant="outline" disabled={importing} onclick={() => texInput?.click()}>
+				<IconFileText stroke-width={1.75} aria-hidden="true" />
+				.tex files
+			</Button>
 		</div>
 	</div>
 
 	{#if error}
-		<p
-			role="alert"
-			class="mt-3 flex items-start gap-2 text-left text-sm text-destructive sm:justify-center"
-		>
-			<IconAlertTriangle class="mt-0.5 size-4 shrink-0" stroke-width={1.75} />
-			{error}
+		<p role="alert" class="text-body text-destructive mt-3 flex items-start gap-2">
+			<IconAlertTriangle class="mt-0.5 size-4 shrink-0" stroke-width={1.75} aria-hidden="true" />
+			<span><span class="font-medium">Import failed.</span> {error}</span>
 		</p>
 	{/if}
 
@@ -211,15 +198,15 @@
 
 {#if dragging}
 	<div
-		class="pointer-events-none fixed inset-0 z-[60] grid place-items-center bg-background/80 backdrop-blur-sm"
+		class="bg-background/90 pointer-events-none fixed inset-0 z-60 grid place-items-center p-4"
 		aria-hidden="true"
 	>
 		<div
-			class="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-brand bg-background px-10 py-8 shadow-notion"
+			class="border-primary bg-card flex flex-col items-center gap-3 rounded-3xl border border-dashed px-10 py-8 text-center shadow-lg"
 		>
-			<IconUpload class="size-7 text-brand" stroke-width={1.75} />
-			<p class="text-lg font-semibold tracking-tight text-foreground">Drop to open it here</p>
-			<p class="text-sm text-muted-foreground">
+			<IconUpload class="text-primary size-7" stroke-width={1.75} />
+			<p class="text-body-xl text-foreground font-medium">Drop to open it here</p>
+			<p class="text-body text-muted-foreground">
 				An Overleaf .zip, a project folder, or loose .tex files.
 			</p>
 		</div>

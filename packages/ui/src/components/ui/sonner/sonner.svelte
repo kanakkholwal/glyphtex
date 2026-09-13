@@ -13,27 +13,15 @@
 	let { ...restProps }: SonnerProps = $props();
 </script>
 
-<!--
-  GlyphTeX Sonner theming.
-
-  Visual contract: a toast is the same card as the app's persistent corner
-  notices (engine packs, update available). Same radius, border, shadow and
-  plain 16px icon; the variant is carried by the icon's colour alone, which
-  measures 4.9:1 or better on the card in both themes.
-
-  Position is bottom-right; the persistent notices sit bottom-left so the two
-  stacks never overlap. Consumers can override via `<Toaster position="...">`.
-
-  Icons are @tabler/icons-svelte (AGENTS.md rule #9). Sonner renders our snippet
-  inside its `[data-icon]` element. Theme comes from the settings store, the
-  single owner of that fact (no `mode-watcher`; AGENTS.md §3).
--->
+<!-- Same card as the corner notices, which sit bottom-left so the stacks never overlap.
+     Theme comes from the settings store; each variant carries a glyph and a screen-reader word. -->
 <Sonner
 	theme={settings.resolved}
 	position="bottom-right"
 	offset={16}
 	mobileOffset={16}
 	closeButton
+	duration={5000}
 	gap={8}
 	class="toaster group"
 	style="
@@ -57,28 +45,23 @@
     --info-text: var(--color-foreground);
     --info-border: var(--color-border);
 
-    /* Pin the close button inside the card's top-right. Sonner's default is a
-       floating circle half-outside the top-left edge, so every var that drives
-       its position has to be overridden, not just the side. */
+    /* Pins the close button inside the top-right; every position var needs overriding. */
     --toast-close-button-start: unset;
     --toast-close-button-end: 0;
     --toast-close-button-transform: translate(-6px, 6px);
   "
 	toastOptions={{
 		classes: {
-			// Width is capped, not fixed: 320px plus two 16px offsets overflows a
-			// 320px phone. Border only, no ring: two edges on one card is one too many.
+			// Capped, not fixed: 320px plus two 16px offsets overflows a 320px phone.
 			toast:
-				'!w-[min(320px,calc(100vw-2rem))] !rounded-lg !border !border-border !bg-card !shadow-craft-lg !p-3 !gap-2.5 !items-start',
+				'!w-[min(320px,calc(100vw-2rem))] !rounded-xl !border !border-border !bg-card !shadow-lg !p-3 !gap-2.5 !items-start',
 			content: '!gap-0.5',
-			// 13/12, the system's two smallest steps. Was 12.5/11.5, below the floor.
-			title: '!text-[13px] !font-medium !leading-snug !text-foreground',
+			title: '!text-sm !font-medium !leading-snug !text-foreground',
 			description: '!text-xs !text-muted-foreground !leading-relaxed',
-			// A plain glyph, not a 32px tinted badge with a ring: the badge was heavier
-			// than the message and ate width the description needed.
+			// A plain glyph: a tinted badge outweighed the message and ate its width.
 			icon: '!size-4 !shrink-0 !m-0 !mt-0.5 !bg-transparent !ring-0',
 			closeButton:
-				'!size-5 !rounded-md !border-0 !bg-transparent !text-faint hover:!bg-accent hover:!text-foreground',
+				'!size-6 !rounded-md !border-0 !bg-transparent !text-muted-foreground hover:!bg-accent hover:!text-foreground',
 			actionButton: '!text-xs !font-medium',
 			cancelButton: '!text-xs !text-muted-foreground',
 			success: '[&_[data-icon]]:!text-success',
@@ -90,19 +73,19 @@
 	{...restProps}
 >
 	{#snippet loadingIcon()}
-		<IconLoader2 class="size-4 animate-spin" />
+		<IconLoader2 class="size-4 animate-spin" /><span class="sr-only">Loading:</span>
 	{/snippet}
 	{#snippet successIcon()}
-		<IconCircleCheck class="size-4" />
+		<IconCircleCheck class="size-4" /><span class="sr-only">Success:</span>
 	{/snippet}
 	{#snippet errorIcon()}
-		<IconAlertOctagon class="size-4" />
+		<IconAlertOctagon class="size-4" /><span class="sr-only">Error:</span>
 	{/snippet}
 	{#snippet infoIcon()}
-		<IconInfoCircle class="size-4" />
+		<IconInfoCircle class="size-4" /><span class="sr-only">Info:</span>
 	{/snippet}
 	{#snippet warningIcon()}
-		<IconAlertTriangle class="size-4" />
+		<IconAlertTriangle class="size-4" /><span class="sr-only">Warning:</span>
 	{/snippet}
 	{#snippet closeIcon()}
 		<IconX class="size-3.5" />

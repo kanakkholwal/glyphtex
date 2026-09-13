@@ -15,12 +15,8 @@ export interface PersistedStateOptions<T> {
 	 * same document) and re-read when the key changes. Defaults to `true`.
 	 */
 	syncTabs?: boolean;
-	/**
-	 * Override how the value is (de)serialized. Defaults to a type-aware
-	 * serializer inferred from `initialValue`: strings stored raw, numbers /
-	 * booleans coerced, everything else JSON. Inferring from the initial value
-	 * keeps backward-compatibility with keys that were written as raw strings.
-	 */
+	/** Defaults to a serializer inferred from `initialValue` (raw strings, coerced numbers and
+	 *  booleans, JSON otherwise), which keeps reading keys written as raw strings. */
 	serializer?: Serializer<T>;
 	/**
 	 * Observe parse / quota failures instead of letting them pass silently.
@@ -47,12 +43,8 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return proto === Object.prototype || proto === null;
 }
 
-/**
- * Build a serializer from the *initial* value's runtime type. This mirrors the
- * React hook's branching and, crucially, keeps reading values that earlier
- * code wrote as raw (un-quoted) strings.
- */
-export function inferSerializer<T>(initialValue: T): Serializer<T> {
+/** Serializer chosen by the initial value's runtime type; keeps reading raw, unquoted strings. */
+function inferSerializer<T>(initialValue: T): Serializer<T> {
 	const type = typeof initialValue;
 
 	if (type === "string") {
@@ -79,9 +71,7 @@ export function inferSerializer<T>(initialValue: T): Serializer<T> {
 		};
 	}
 
-	// object | array | null | bigint | symbol | function → JSON, with a couple
-	// of shape guards so genuinely corrupt data falls back instead of poisoning
-	// the reactive value.
+	// Everything else is JSON, with shape guards so corrupt data falls back instead of poisoning the value.
 	return {
 		serialize: (v) => JSON.stringify(v),
 		deserialize: (raw) => {
@@ -154,11 +144,7 @@ export class PersistedState<T> {
 		this.#broadcast();
 	}
 
-	/**
-	 * Detach the cross-context listeners. Only needed for component-scoped
-	 * instances: module-level singletons live for the page's lifetime and
-	 * never need teardown.
-	 */
+	/** Detach the listeners. Only component-scoped instances need it; module singletons live for the page. */
 	dispose(): void {
 		if (!isBrowser) return;
 		if (this.#onStorage) window.removeEventListener("storage", this.#onStorage);
@@ -168,7 +154,7 @@ export class PersistedState<T> {
 	}
 
 	#area(): Storage {
-		return this.#storage === "session" ? window.sessionStorage : window.localStorage;
+		return area(this.#storage);
 	}
 
 	#read(): T {
@@ -211,19 +197,16 @@ export class PersistedState<T> {
 	}
 
 	#subscribe(): void {
-		// Cross-document: native `storage` events fire in *other* windows/tabs
-		// that share this origin (Tauri v2 webviews do). `event.key` is null on a
-		// `clear()`, which we also honour by re-reading.
+		// Native `storage` fires in other windows on this origin (Tauri v2 webviews too).
+		// `event.key` is null on `clear()`, which also re-reads.
 		this.#onStorage = (event: StorageEvent) => {
 			if (event.key !== null && event.key !== this.#key) return;
 			if (event.storageArea && event.storageArea !== this.#area()) return;
 			this.#current = this.#read();
 		};
 
-		// Same-document: native `storage` does NOT fire in the window that wrote
-		// it, so a second instance of the same key in this document wouldn't see
-		// the change. The custom channel covers that; the source guard stops an
-		// instance from reacting to its own write.
+		// `storage` never fires in the writing window, so this channel syncs same-document
+		// instances; the source guard skips an instance's own write.
 		this.#onSameDoc = (event: Event) => {
 			const detail = (event as CustomEvent<SameDocDetail>).detail;
 			if (!detail || detail.key !== this.#key || detail.area !== this.#storage) return;
@@ -236,18 +219,6 @@ export class PersistedState<T> {
 	}
 }
 
-/**
- * Convenience factory for when a `new` reads awkwardly at the call site.
- * Returns the same `PersistedState` instance: read/write via `.current`.
- */
-export function persisted<T>(
-	key: string,
-	initialValue: T,
-	options?: PersistedStateOptions<T>
-): PersistedState<T> {
-	return new PersistedState(key, initialValue, options);
-}
-
 interface SafeStorageOptions<T> {
 	storage?: StorageArea;
 	serializer?: Serializer<T>;
@@ -258,12 +229,8 @@ function area(storage: StorageArea): Storage {
 	return storage === "session" ? window.sessionStorage : window.localStorage;
 }
 
-/**
- * Non-reactive twin of `PersistedState` for call sites that just need a safe
- * read/write (SDK bootstrap, anonymous install-id, one-shot route reads)
- * without paying for a reactive rune or cross-tab listeners. Same null / parse
- * / quota guarantees.
- */
+/** Non-reactive twin of `PersistedState` for one-shot reads and writes (SDK bootstrap, install id).
+ *  Same null, parse and quota guarantees, without a rune or listeners. */
 export const safeStorage = {
 	get<T>(key: string, fallback: T, options: SafeStorageOptions<T> = {}): T {
 		if (!isBrowser) return fallback;

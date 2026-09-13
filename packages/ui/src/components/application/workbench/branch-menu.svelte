@@ -41,12 +41,12 @@
 					<IconGitBranch class="size-3.5 shrink-0" />
 					<span class="truncate">{head.branch ?? 'HEAD'}</span>
 					{#if behind}
-						<span class="text-faint inline-flex shrink-0 items-center tabular-nums">
+						<span class="text-muted-foreground inline-flex shrink-0 items-center tabular-nums">
 							<IconArrowDown class="size-3" />{behind}
 						</span>
 					{/if}
 					{#if ahead}
-						<span class="text-faint inline-flex shrink-0 items-center tabular-nums">
+						<span class="text-muted-foreground inline-flex shrink-0 items-center tabular-nums">
 							<IconArrowUp class="size-3" />{ahead}
 						</span>
 					{/if}
@@ -56,7 +56,7 @@
 		</DropdownMenuTrigger>
 		<DropdownMenuContent align="start" class="w-56">
 			<DropdownMenuGroup>
-				<DropdownMenuGroupHeading class="text-faint text-xs font-medium">
+				<DropdownMenuGroupHeading class="text-muted-foreground text-xs font-medium">
 					{head.unborn ? 'No commits yet' : (head.upstream ?? 'No upstream')}
 				</DropdownMenuGroupHeading>
 				<DropdownMenuItem disabled>

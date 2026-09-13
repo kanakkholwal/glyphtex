@@ -30,10 +30,10 @@
 
 <script lang="ts">
 	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { Spring } from 'svelte/motion';
+	import { Spring, prefersReducedMotion } from 'svelte/motion';
 	import { slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	import { cn } from '@glyphtex/ui/utils';
+	import { CRAFT_FOCUS_RING_INSET, cn } from '@glyphtex/ui/utils';
 
 	let {
 		title,
@@ -49,12 +49,6 @@
 		class: className
 	}: PanelSectionProps = $props();
 
-	// Two modes:
-	//   • Static (default): a labelled section with optional action: same
-	//     visual as the legacy PanelSection.
-	//   • Collapsible: header becomes a button that toggles a slide-animated
-	//     body, with a spring-rotated chevron mirroring DialKit's Folder.
-
 	const isControlled = $derived(open !== undefined);
 	// svelte-ignore state_referenced_locally
 	let internalOpen = $state(defaultOpen);
@@ -68,7 +62,7 @@
 	});
 
 	$effect(() => {
-		chevronRotation.set(isOpen ? 0 : -90);
+		chevronRotation.set(isOpen ? 0 : -90, { instant: prefersReducedMotion.current });
 	});
 
 	function toggle() {
@@ -90,13 +84,13 @@
 				onclick={toggle}
 				aria-expanded={isOpen}
 				class={cn(
-					'group/section flex min-h-5 items-center justify-between gap-2 rounded-sm outline-none transition-colors',
-					'hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/30'
+					CRAFT_FOCUS_RING_INSET,
+					'group/section flex min-h-5 items-center justify-between gap-2 rounded-sm transition-colors hover:text-foreground'
 				)}
 			>
 				<div class="flex min-w-0 items-center gap-1.5">
 					<span
-						class="flex size-3 shrink-0 items-center justify-center text-muted-foreground/70 transition-colors group-hover/section:text-muted-foreground"
+						class="flex size-3 shrink-0 items-center justify-center text-muted-foreground transition-colors group-hover/section:text-foreground"
 						aria-hidden="true"
 						style:transform={`rotate(${chevronRotation.current}deg)`}
 					>
@@ -104,7 +98,7 @@
 					</span>
 					{#if title}
 						<span
-							class="text-xs font-medium text-faint group-hover/section:text-muted-foreground"
+							class="text-xs font-medium text-muted-foreground group-hover/section:text-foreground"
 							title={hint}
 						>
 							{title}
@@ -123,7 +117,7 @@
 			<header class="flex min-h-5 items-center justify-between gap-2">
 				<div class="flex min-w-0 items-center gap-1.5">
 					{#if title}
-						<h3 class="text-xs font-medium text-faint" title={hint}>
+						<h3 class="text-xs font-medium text-muted-foreground" title={hint}>
 							{title}
 						</h3>
 					{/if}
@@ -138,7 +132,7 @@
 		{#if collapsible}
 			{#if isOpen}
 				<div
-					transition:slide={{ duration: 220, easing: cubicOut }}
+					transition:slide={{ duration: prefersReducedMotion.current ? 0 : 220, easing: cubicOut }}
 					style="clip-path: inset(0 -20px);"
 				>
 					{#if flush}

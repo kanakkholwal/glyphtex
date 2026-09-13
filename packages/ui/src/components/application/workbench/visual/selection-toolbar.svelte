@@ -172,7 +172,7 @@
 					type="button"
 					role="menuitemcheckbox"
 					aria-checked={active.has(item.id)}
-					class="hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-[0.8125rem] {active.has(
+					class="hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm {active.has(
 						item.id
 					)
 						? 'bg-accent/60 text-foreground'
@@ -180,7 +180,7 @@
 					onclick={() => run(item.id)}
 				>
 					<span class="flex-1">{item.label}</span>
-					{#if item.hint}<span class="text-faint font-mono text-[0.6875rem]">{item.hint}</span>{/if}
+					{#if item.hint}<span class="text-muted-foreground font-mono text-xs">{item.hint}</span>{/if}
 				</button>
 			{/each}
 		</div>

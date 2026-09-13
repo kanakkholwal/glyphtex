@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PostMeta } from "$lib/server/content";
-	import { IconArrowUpRight } from "@tabler/icons-svelte";
+	import { IconArrowRight } from "@tabler/icons-svelte";
 
 	let { post, featured = false }: { post: PostMeta; featured?: boolean } = $props();
 
@@ -18,30 +18,33 @@
 <a
 	href={post.url}
 	class={[
-		"group flex flex-col rounded-2xl border border-hairline bg-surface-card p-6 transition-colors hover:border-foreground/25",
+		"group flex h-full flex-col rounded-2xl border border-border bg-card p-5 outline-none transition-[border-color] duration-200 ease-craft hover:border-border-strong focus-visible:ring-2 focus-visible:ring-ring dark:bg-background",
 		featured && "sm:p-8"
 	]}
 >
-	<div class="flex items-center gap-2 text-xs text-muted-foreground">
+	<span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-muted-foreground">
 		<span class="font-medium text-foreground">{post.category}</span>
 		{#if dateLabel}<span aria-hidden="true">·</span><time datetime={post.date}>{dateLabel}</time>{/if}
-		<span aria-hidden="true">·</span><span>{post.readingMinutes} min read</span>
-	</div>
+		{#if post.readingMinutes > 0}
+			<span aria-hidden="true">·</span><span>{post.readingMinutes} min read</span>
+		{/if}
+	</span>
 	<h3
 		class={[
-			"mt-3 font-semibold tracking-tight text-foreground",
-			featured ? "text-2xl" : "text-lg"
+			"mt-3 text-balance font-medium text-foreground",
+			featured ? "text-heading-sm" : "text-body-lg"
 		]}
 	>
 		{post.title}
 	</h3>
-	<p class="mt-2 line-clamp-3 text-[0.9375rem] leading-relaxed text-muted-foreground">
-		{post.description}
-	</p>
+	<p class="mt-2 line-clamp-3 text-pretty text-body text-muted-foreground">{post.description}</p>
 	<span
-		class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground/70 transition-colors group-hover:text-foreground"
+		class="mt-auto flex items-center gap-1 pt-4 text-body font-medium text-muted-foreground transition-colors group-hover:text-foreground"
 	>
 		Read
-		<IconArrowUpRight class="size-4" stroke-width={2} />
+		<IconArrowRight
+			class="size-4 transition-transform duration-200 ease-craft group-hover:translate-x-0.5"
+			aria-hidden="true"
+		/>
 	</span>
 </a>

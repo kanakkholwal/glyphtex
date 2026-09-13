@@ -53,9 +53,8 @@
 		right: "justify-end"
 	};
 
-	// Parsing is cheap per cell but a long table reparses on every keystroke in the
-	// document, so the results are kept. Bounded: every intermediate text a cell
-	// passes through while being typed lands in here.
+	// Cached because a long table reparses on every keystroke; bounded because every
+	// intermediate typed text lands here.
 	const parsed = new Map<string, Inline[]>();
 	const PARSE_CACHE = 512;
 	function runsOf(text: string): Inline[] {
@@ -85,9 +84,9 @@
 	}
 
 	const HANDLE =
-		"text-faint hover:bg-accent hover:text-foreground flex items-center justify-center rounded-sm opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100";
+		"text-muted-foreground hover:bg-accent hover:text-foreground flex items-center justify-center rounded-sm opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100";
 	const ITEM =
-		"text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-[0.8125rem]";
+		"text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm";
 </script>
 
 <div class="group/table flex overflow-x-auto px-3 py-2 {PLACE[align]}">
@@ -204,7 +203,7 @@
 					<Icon size={14} class="shrink-0" />
 					{align.label}
 					{#if grid.columns[m.index] === align.id}
-						<span class="bg-brand ml-auto size-1.5 rounded-full"></span>
+						<span class="bg-primary ml-auto size-1.5 rounded-full"></span>
 					{/if}
 				</button>
 			{/each}

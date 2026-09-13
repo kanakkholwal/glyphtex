@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
 
-	// PDF.js layer styles (canvas/text/annotation positioning + selection). This is
-	// the *component* stylesheet only: NOT the full pdf.js viewer app, so there is
-	// no browser PDF toolbar/chrome. We re-theme the bits we care about below.
+	// PDF.js layer styles only (canvas/text/annotation positioning), not the viewer app's chrome.
+	// Re-themed below.
 	import "pdfjs-dist/web/pdf_viewer.css";
 
 	import {
@@ -14,13 +13,7 @@
 	import FindBar from "./pdf-view/find-bar.svelte";
 	import ThumbnailRail from "./pdf-view/thumbnail-rail.svelte";
 
-	/**
-	 * PdfView: headless PDF preview built on PDF.js' `PDFViewer` component, the
-	 * same engine Overleaf uses. Renders, per page, a canvas + a selectable text
-	 * layer + a clickable annotation layer, virtualized. No toolbar: every control
-	 * here is ours. This component is a thin shell; the engine + behaviour live in
-	 * {@link PdfViewController} (imported lazily so pdf.js never runs during SSR).
-	 */
+	// Headless PDF.js `PDFViewer` shell; behaviour lives in PdfViewController, which loads pdf.js lazily.
 	let {
 		data,
 		onreverse,
@@ -133,7 +126,7 @@
 	{#if ctrl.hasRendered && numPages > 1}
 		<!-- Same collapse-by-width curve as the workbench's other panels. -->
 		<div
-			class="shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.625,0.05,0,1)] motion-reduce:transition-none"
+			class="shrink-0 overflow-hidden transition-[width] duration-300 ease-craft motion-reduce:transition-none"
 			style:width={showThumbnails ? '120px' : '0px'}
 			aria-hidden={!showThumbnails}
 		>

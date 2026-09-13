@@ -3,11 +3,7 @@
 	import { Button, type ButtonSize } from "@glyphtex/ui/button";
 	import { IconSun, IconMoon, IconDeviceDesktop } from "@tabler/icons-svelte";
 
-	/**
-	 * ThemeToggle: cycles light → dark → system. Reads/writes the settings
-	 * store, so a change here syncs to every other window/tab instantly.
-	 * Lightweight (no editor deps): safe to drop in the marketing nav.
-	 */
+	// Cycles light, dark, system through the settings store. No editor deps, so marketing pages can use it.
 	let { class: className = "", size = "icon-sm" }: { class?: string; size?: ButtonSize } = $props();
 
 	const labels: Record<Appearance, string> = {

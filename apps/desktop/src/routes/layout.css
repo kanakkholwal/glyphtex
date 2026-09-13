@@ -1,35 +1,27 @@
-/* Desktop app styles: pulls in the shared GlyphTeX design system (tokens, base,
-   Tailwind, tw-animate-css). App-specific overrides can follow below. */
 @import "@glyphtex/ui/app.css";
 
-/* Belt-and-suspenders: ensure the shared component sources are scanned even
-   if automatic detection roots at the app. (Shared CSS also declares this.) */
+/* Automatic source detection roots at the app, so scan the shared components explicitly. */
 @source "../../../../packages/ui/src";
 
-/* --- Page transitions (View Transitions API) ----------------------------
-   The clicked project card and the editor surface share a per-project
-   `view-transition-name` (see `projectViewTransitionName`), so they morph
-   into one another. Everything else cross-fades via the `root` snapshot.
-   Motion uses the app's `ease-craft` curve. */
+/* --- Page transitions --- */
+/* Card and editor share `projectViewTransitionName`, so they morph; the rest cross-fades. */
 ::view-transition-group(*) {
 	animation-duration: 360ms;
-	animation-timing-function: cubic-bezier(0.625, 0.05, 0, 1);
+	animation-timing-function: var(--ease-craft);
 }
 ::view-transition-old(root),
 ::view-transition-new(root) {
 	animation-duration: 240ms;
-	animation-timing-function: cubic-bezier(0.625, 0.05, 0, 1);
+	animation-timing-function: var(--ease-craft);
 }
-/* Let the morphing surface's old/new images blend cleanly as it resizes. */
 ::view-transition-image-pair(*) {
 	isolation: auto;
 }
 
-/* The morphing surface (card ⇄ editor) scales between very different sizes, so
-   its incoming image pixel-snaps near the end. Blur it in and clear the blur as
-   it settles to mask that: the brand logo (`app-logo`) is unaffected. */
+/* The morph scales between very different sizes and the new image pixel-snaps near the end.
+   A settling blur masks it. */
 ::view-transition-new(.morph-surface) {
-	animation: glyphtex-morph-in 360ms cubic-bezier(0.625, 0.05, 0, 1) both;
+	animation: glyphtex-morph-in 360ms var(--ease-craft) both;
 }
 @keyframes glyphtex-morph-in {
 	from {
@@ -46,8 +38,7 @@
 	}
 }
 
-/* Returning to the projects home: give the logo a little settle-pop as it
-   lands (the glide is the group's job; this pops the new image on top). */
+/* Landing back home: the group glides the logo, this pops the new image. */
 :root[data-vt="to-home"]::view-transition-new(app-logo) {
 	animation: glyphtex-logo-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 	transform-origin: left center;

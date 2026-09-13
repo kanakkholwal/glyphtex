@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
 	import { IconLayoutSidebar } from "@tabler/icons-svelte";
 	import type { ComponentProps } from "svelte";
 	import { Button } from "../button";
@@ -23,7 +22,7 @@
 	data-slot="sidebar-trigger"
 	variant="ghost"
 	size="icon-sm"
-	class={cn('cn-sidebar-trigger', className)}
+	class={className}
 	type="button"
 	onclick={(e) => {
 		onclick?.(e);

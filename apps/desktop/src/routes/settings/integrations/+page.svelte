@@ -1,23 +1,25 @@
 <script lang="ts">
+	import { projectHost } from "$lib/project";
+	import SettingsHeader from "$lib/settings-header.svelte";
+	import SettingsSwitch from "$lib/settings-switch.svelte";
 	import { Badge } from "@glyphtex/ui/badge";
 	import { Button } from "@glyphtex/ui/button";
 	import { SettingsField } from "@glyphtex/ui/settings-field";
 	import { SettingsSection } from "@glyphtex/ui/settings-section";
 	import { Spinner } from "@glyphtex/ui/spinner";
 	import { toast } from "@glyphtex/ui/sonner";
-	import { IconCheck, IconCloud } from "@tabler/icons-svelte";
+	import { IconCheck } from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
-	import { projectHost } from "$lib/project";
 
-	// Reflect the *actual* OS state, queried on mount, so re-visiting the page
-	// never falsely offers "Add" for an entry that's already registered.
-	//   null  → still checking
-	//   false → not registered (offer Add)
-	//   true  → registered (show Added + offer Remove)
-	let registered = $state<boolean | null>(null);
+	// The folder menu entry is a Windows registry key; other platforms get file associations only.
+	const supported = typeof navigator !== "undefined" && /windows/i.test(navigator.userAgent);
+
+	// null while checking. Queried from the OS so a revisit never offers Add for an existing entry.
+	let registered = $state<boolean | null>(supported ? null : false);
 	let busy = $state(false);
 
 	onMount(async () => {
+		if (!supported) return;
 		try {
 			registered = (await projectHost.shellIntegrationRegistered?.()) ?? false;
 		} catch (e) {
@@ -26,97 +28,85 @@
 		}
 	});
 
-	async function addShellIntegration() {
+	async function setShellIntegration(add: boolean) {
 		if (busy) return;
 		busy = true;
 		try {
-			const msg = await projectHost.registerShellIntegration?.();
-			registered = true;
-			toast.success(msg ?? "Added “Open with GlyphTeX” to the folder menu.");
+			const msg = add
+				? await projectHost.registerShellIntegration?.()
+				: await projectHost.unregisterShellIntegration?.();
+			registered = add;
+			toast.success(
+				msg ??
+					(add
+						? "Added “Open with GlyphTeX” to the folder menu."
+						: "Removed “Open with GlyphTeX” from the folder menu.")
+			);
 		} catch (e) {
-			// Plain language for the toast; raw cause to the console (§5).
-			console.error("[integrations] register shell integration failed", e);
-			toast.error("Could not add “Open with GlyphTeX” to the folder menu.");
+			console.error("[integrations] shell integration change failed", e);
+			toast.error(
+				add
+					? "Couldn't add “Open with GlyphTeX” to the folder menu."
+					: "Couldn't remove “Open with GlyphTeX” from the folder menu."
+			);
 		} finally {
 			busy = false;
 		}
 	}
 
-	async function removeShellIntegration() {
-		if (busy) return;
-		busy = true;
-		try {
-			const msg = await projectHost.unregisterShellIntegration?.();
-			registered = false;
-			toast.success(msg ?? "Removed “Open with GlyphTeX” from the folder menu.");
-		} catch (e) {
-			console.error("[integrations] unregister shell integration failed", e);
-			toast.error("Could not remove “Open with GlyphTeX” from the folder menu.");
-		} finally {
-			busy = false;
-		}
-	}
+	const description = $derived(
+		!supported
+			? "Windows only. On this system, .tex and .glyx files open with GlyphTeX through the installer."
+			: registered
+				? "Right-click any folder and choose “Open with GlyphTeX”."
+				: "Adds “Open with GlyphTeX” to the folder right-click menu."
+	);
 </script>
 
-<div class="flex flex-col gap-8">
-	<header>
-		<h2 class="font-display text-2xl font-semibold tracking-tight">Integrations</h2>
-		<p class="text-muted-foreground mt-1.5 text-sm">
-			OS integration and (later) cloud sync. The LaTeX engine lives under Engine.
-		</p>
-	</header>
+<SettingsHeader title="Integrations" description="How GlyphTeX connects to your system." />
 
-	<SettingsSection label="System">
-		<div class="px-5 py-4">
-			<SettingsField
-				label="Shell integration"
-				description={registered
-					? 'Added: right-click any folder and choose “Open with GlyphTeX”.'
-					: 'Add an “Open with GlyphTeX” entry to the folder right-click menu. (.tex and .glyx files are associated by the installer.)'}
-				layout="row"
-			>
-				{#if registered === null}
-					<Button variant="default_soft" size="xs" disabled>
-						<Spinner class="size-3.5" /> Checking…
+<SettingsSection label="System">
+	<div class="px-5 py-4">
+		<SettingsField label="Folder menu" {description} layout="row">
+			{#if registered === null}
+				<Button variant="outline" disabled>
+					<Spinner class="size-4" /> Checking…
+				</Button>
+			{:else if registered}
+				<div class="flex items-center gap-3">
+					<span class="inline-flex items-center gap-1 text-body font-medium text-success">
+						<IconCheck size={16} aria-hidden="true" /> Added
+					</span>
+					<Button variant="outline" disabled={busy} onclick={() => setShellIntegration(false)}>
+						{busy ? 'Removing…' : 'Remove'}
 					</Button>
-				{:else if registered}
-					<div class="flex items-center gap-2">
-						<span class="text-success inline-flex items-center gap-1 text-xs font-medium">
-							<IconCheck size={14} /> Added
-						</span>
-						<Button
-							variant="ghost"
-							size="xs"
-							class="text-muted-foreground hover:text-destructive"
-							disabled={busy}
-							onclick={removeShellIntegration}
-						>
-							{busy ? 'Removing…' : 'Remove'}
-						</Button>
-					</div>
-				{:else}
-					<Button variant="default_soft" size="xs" disabled={busy} onclick={addShellIntegration}>
-						{#if busy}
-							<Spinner class="size-3.5" /> Adding…
-						{:else}
-							Add to menu
-						{/if}
-					</Button>
-				{/if}
-			</SettingsField>
-		</div>
-	</SettingsSection>
+				</div>
+			{:else}
+				<Button
+					variant="outline"
+					disabled={busy || !supported}
+					onclick={() => setShellIntegration(true)}
+				>
+					{#if busy}
+						<Spinner class="size-4" /> Adding…
+					{:else}
+						Add to menu
+					{/if}
+				</Button>
+			{/if}
+		</SettingsField>
+	</div>
+</SettingsSection>
 
-	<SettingsSection label="Cloud sync">
-		{#snippet action()}
-			<Badge variant="secondary">Coming soon</Badge>
-		{/snippet}
-		<div class="text-muted-foreground flex items-center gap-3 px-5 py-5 text-sm">
-			<IconCloud size={20} class="shrink-0 opacity-70" />
-			<p class="leading-relaxed">
-				Optional end-to-end encrypted sync across your devices. GlyphTeX stays local-first: this
-				will always be opt-in.
-			</p>
-		</div>
-	</SettingsSection>
-</div>
+<SettingsSection label="Cloud sync" description="GlyphTeX stays local-first. Sync will always be opt-in.">
+	{#snippet action()}
+		<Badge variant="secondary">Coming soon</Badge>
+	{/snippet}
+	<SettingsSwitch
+		label="Sync across devices"
+		description="End-to-end encrypted. Not available yet."
+		checked={false}
+		disabled
+		onchange={() => {}}
+	/>
+</SettingsSection>

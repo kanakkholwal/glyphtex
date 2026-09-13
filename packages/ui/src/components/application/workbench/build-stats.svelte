@@ -46,7 +46,7 @@
 	<dl class="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
 		{#each stats as stat (stat.label)}
 			<div class="min-w-0">
-				<dt class="text-faint text-xs">{stat.label}</dt>
+				<dt class="text-muted-foreground text-xs">{stat.label}</dt>
 				<dd class="text-foreground mt-0.5 truncate text-lg font-medium tabular-nums">
 					{stat.value}
 				</dd>
@@ -65,15 +65,14 @@
 				<h3 class="text-foreground text-xs font-medium">
 					Last {builds.length} builds
 				</h3>
-				<p class="text-faint text-xs tabular-nums">
+				<p class="text-muted-foreground text-xs tabular-nums">
 					peak {seconds(peak)}{#if failed}
 						· {failed} failed{/if}
 				</p>
 			</div>
 
-			<!-- Bars, not a sparkline: builds are discrete events, and each one gets a
-			     hit area and a tooltip. Failure is in the count above as well as the
-			     colour, so it does not rest on hue alone. -->
+			<!-- Bars: builds are discrete events with their own hit area and tooltip.
+			     Failure is also in the count above, not hue alone. -->
 			<div
 				class="mt-2.5 flex h-16 items-end gap-px"
 				role="img"
@@ -84,7 +83,7 @@
 				{#each builds as build, i (i)}
 					<div
 						class="min-w-0 flex-1 rounded-t-[2px] transition-colors {build.ok
-							? 'bg-brand/50 hover:bg-brand'
+							? 'bg-primary/50 hover:bg-primary'
 							: 'bg-destructive'}"
 						style:height={`${Math.max(6, (build.ms / peak) * 100)}%`}
 						title="{seconds(build.ms)} · {build.ok ? 'ok' : 'failed'} · {bytes(build.bytes)}"

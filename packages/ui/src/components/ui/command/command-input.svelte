@@ -18,7 +18,7 @@
 <div data-slot="command-input-wrapper" class="p-1 pb-0">
 	<InputGroup.Root
 		class={cn(
-			'bg-input/30 border-border/60 h-8! rounded-md! shadow-none! *:data-[slot=input-group-addon]:pl-2!',
+			'bg-background border-border h-8! rounded-md! shadow-none! *:data-[slot=input-group-addon]:pl-2!',
 			wrapperClass
 		)}
 	>
@@ -33,7 +33,7 @@
 			bind:value
 		/>
 		<InputGroup.Addon>
-			<IconSearch class="size-4 shrink-0 opacity-50" />
+			<IconSearch class="text-muted-foreground size-4 shrink-0" />
 		</InputGroup.Addon>
 	</InputGroup.Root>
 </div>

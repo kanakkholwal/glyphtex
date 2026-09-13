@@ -49,11 +49,8 @@
 	import { Spinner } from '@glyphtex/ui/spinner';
 	import { IconRefresh } from '@tabler/icons-svelte';
 
-	/**
-	 * EngineSettings: pick the compile engine (bundled Tectonic or a local
-	 * System TeX install), list / download / activate / remove Tectonic versions
-	 * from GitHub releases (no app rebuild), and manage the package cache.
-	 */
+	// Pick the engine (Tectonic or System TeX), manage Tectonic versions from GitHub releases
+	// without a rebuild, and manage the package cache.
 	let { engine }: { engine: EngineManager } = $props();
 
 	const kindOpts: { value: EngineKind; label: string }[] = [
@@ -87,11 +84,7 @@
 		if (!loaded && !loading) refresh();
 	}
 
-	/**
-	 * Svelte action: run `callback` once, when `node` first enters the viewport.
-	 * Lets each engine view lazily load (versions / detection) on scroll-in
-	 * instead of requiring a manual click.
-	 */
+	/** Svelte action: run `callback` once, when `node` first enters the viewport (lazy engine views). */
 	function onVisible(node: HTMLElement, callback: () => void) {
 		const io = new IntersectionObserver(
 			(entries) => {
@@ -327,12 +320,12 @@
 								</span>
 								{#if v.active}
 									<span
-										class="bg-brand-subtle text-brand inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide"
+										class="bg-primary/10 text-primary inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide"
 									>
 										Active
 									</span>
 								{:else if v.installed}
-									<span class="text-faint shrink-0 text-xs font-medium uppercase tracking-wide">
+									<span class="text-muted-foreground shrink-0 text-xs font-medium uppercase tracking-wide">
 										Installed
 									</span>
 								{/if}

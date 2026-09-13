@@ -65,7 +65,12 @@ export const readingMinutes = (content: unknown): number =>
 
 const visible = (data: Frontmatter): boolean => dev || data.draft !== true;
 
-function toPost(entry: { slugs: string[]; url: string; data: unknown }): PostMeta {
+function toPost(entry: {
+	slugs: string[];
+	url: string;
+	data: unknown;
+	content?: unknown;
+}): PostMeta {
 	const data = (entry.data ?? {}) as Frontmatter;
 	return {
 		slug: entry.slugs.join("/"),
@@ -79,7 +84,12 @@ function toPost(entry: { slugs: string[]; url: string; data: unknown }): PostMet
 		hero: str(data, "hero") || undefined,
 		heroAlt: str(data, "heroAlt") || undefined,
 		featured: data.featured === true,
-		readingMinutes: typeof data.readingMinutes === "number" ? data.readingMinutes : 0
+		readingMinutes:
+			typeof data.readingMinutes === "number"
+				? data.readingMinutes
+				: entry.content
+					? readingMinutes(entry.content)
+					: 0
 	};
 }
 
@@ -131,11 +141,8 @@ export function groupDocs(): { category: string; items: DocMeta[] }[] {
 	return [...groups.entries()].map(([category, items]) => ({ category, items }));
 }
 
-/**
- * Posts sharing the most tags with `slug`, newest first as the tie-break. Keeps
- * every article one hop from its cluster, which is what the internal linking
- * strategy depends on.
- */
+/** Posts sharing the most tags with `slug`, newest first on a tie. Internal linking relies on
+ *  every article staying one hop from its tag cluster. */
 export function relatedPosts(slug: string, limit = 3): PostMeta[] {
 	const all = listPosts();
 	const current = all.find((post) => post.slug === slug);

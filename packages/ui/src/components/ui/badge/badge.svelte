@@ -1,29 +1,32 @@
 <script lang="ts" module>
+	import { twMergeConfig } from "@glyphtex/ui/utils";
 	import { type VariantProps, tv } from "tailwind-variants";
 
-	export const badgeVariants = tv({
-		base: "h-5 gap-1 rounded-pill border border-transparent px-2 py-0.5 text-xs font-medium transition-all has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive group/badge inline-flex w-fit shrink-0 items-center justify-center overflow-hidden whitespace-nowrap transition-colors focus-visible:ring-[3px] [&>svg]:pointer-events-none",
-		variants: {
-			variant: {
-				default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-				secondary: "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
-				destructive:
-					"bg-destructive/10 [a]:hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 text-destructive dark:bg-destructive/20",
-				success:
-					"bg-success/10 [a]:hover:bg-success/20 focus-visible:ring-success/20 text-success dark:bg-success/20",
-				warning:
-					"bg-warning/10 [a]:hover:bg-warning/20 focus-visible:ring-warning/20 text-warning dark:bg-warning/20",
-				info: "bg-info/10 [a]:hover:bg-info/20 focus-visible:ring-info/20 text-info dark:bg-info/20",
-				brand: "bg-brand-subtle [a]:hover:bg-brand/15 focus-visible:ring-brand/20 text-brand",
-				outline: "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
-				ghost: "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-				link: "text-primary underline-offset-4 hover:underline"
+	// Status badges carry a word or glyph as well as the tint: colour is never the only signal.
+	export const badgeVariants = tv(
+		{
+			base: "group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border border-transparent px-2 py-0.5 text-caption font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:pointer-events-none [&>svg]:size-3!",
+			variants: {
+				variant: {
+					default: "bg-action text-action-foreground [a]:hover:bg-action/90",
+					primary: "bg-primary/10 text-primary [a]:hover:bg-primary/15",
+					secondary: "bg-muted text-foreground [a]:hover:bg-surface-strong",
+					destructive: "bg-destructive/10 text-destructive [a]:hover:bg-destructive/15",
+					success: "bg-success/10 text-success [a]:hover:bg-success/15",
+					warning: "bg-warning/10 text-warning [a]:hover:bg-warning/15",
+					info: "bg-info/10 text-info [a]:hover:bg-info/15",
+					outline: "border-border text-foreground [a]:hover:bg-muted",
+					ghost: "text-muted-foreground hover:bg-muted",
+					link: "text-primary underline-offset-4 hover:underline",
+					brand: "bg-primary/10 text-primary [a]:hover:bg-primary/15"
+				}
+			},
+			defaultVariants: {
+				variant: "default"
 			}
 		},
-		defaultVariants: {
-			variant: "default"
-		}
-	});
+		{ twMergeConfig }
+	);
 
 	export type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
 </script>

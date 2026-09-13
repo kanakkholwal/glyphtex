@@ -17,6 +17,10 @@
 	onMount(() => {
 		connectWorkbench();
 		initAnalytics();
+		const boot = document.getElementById("boot");
+		if (!boot) return;
+		boot.dataset.done = "";
+		setTimeout(() => boot.remove(), 200);
 	});
 
 	// Every view is reported here, including the first: backends are configured

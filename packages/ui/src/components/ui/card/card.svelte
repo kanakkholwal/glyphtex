@@ -2,6 +2,7 @@
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
 
+	// Hairline and radius, no shadow at rest. `panel` is the public-page card (canvas-toned in dark).
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -11,7 +12,7 @@
 		...restProps
 	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
 		size?: "default" | "sm";
-		tone?: "default" | "default_soft" | "editorial";
+		tone?: "default" | "default_soft" | "editorial" | "panel";
 	} = $props();
 </script>
 
@@ -21,13 +22,11 @@
 	data-size={size}
 	data-tone={tone}
 	class={cn(
-		'text-card-foreground transition-all duration-200',
-		tone === 'default' && 'bg-card border-border/40 shadow-sm',
-		tone === 'default_soft' && 'bg-surface-soft/65 border-hairline shadow-craft-sm',
-		tone === 'editorial' && 'bg-card border-hairline shadow-craft-lg',
+		'group/card flex flex-col gap-4 overflow-hidden border border-border text-card-foreground',
+		tone === 'default_soft' ? 'bg-muted' : 'bg-card',
+		(tone === 'panel' || tone === 'editorial') && 'dark:bg-background',
 		size === 'default' && 'rounded-2xl p-6 md:p-8',
 		size === 'sm' && 'rounded-xl p-4 md:p-5',
-		'group/card flex flex-col gap-4 overflow-hidden',
 		className
 	)}
 	{...restProps}

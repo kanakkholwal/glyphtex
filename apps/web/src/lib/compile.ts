@@ -129,9 +129,8 @@ function bytesToBase64(bytes: Uint8Array): string {
 	return btoa(binary);
 }
 
-// Only clean successes are cached. A recovered compile that still reported
-// missing packs must recompile after the user installs them, and a failure is
-// where the user is actively editing — neither is stable input→output.
+// Only clean successes are cached: a build missing packs must recompile after install,
+// and a failure is mid-edit. Neither is stable input to output.
 const compileCache = new CompileCache<CompileOutcome>();
 
 /** Single-file compile; the multi-file path with one `main.tex` mounted. */
@@ -139,14 +138,8 @@ export function compileLatex(source: string): Promise<CompileOutcome> {
 	return compileFiles([{ name: "main.tex", text: source }], "main.tex", "scratch");
 }
 
-/**
- * Compile `entry` with every file mounted, so `\input` and `\includegraphics`
- * resolve. Binary members carry `data`; text members carry `text`.
- *
- * `docId` identifies the document across calls. Two documents can share a file
- * name: `main.tex` is the usual one: so the worker needs this to know when to
- * unmount the previous one rather than compile against its leftovers.
- */
+/** Compile `entry` with every file mounted. `docId` tells the worker when to unmount the
+ *  previous document, since two documents often share `main.tex`. */
 export async function compileFiles(
 	files: CompileFile[],
 	entry: string,
@@ -159,9 +152,8 @@ export async function compileFiles(
 		return { error: `The main file "${entry}" is not part of this document.` };
 	}
 
-	// Nothing changed since the last clean build of this document: return it
-	// without waking the engine. This is the common "compile fired but the source
-	// is identical" case (auto-compile on an idle timer, or Compile pressed twice).
+	// Unchanged since the last clean build (idle auto-compile, Compile pressed twice):
+	// return it without waking the engine.
 	const sig = signature(files, entry);
 	const cached = compileCache.get(docId, sig);
 	if (cached) return cached;

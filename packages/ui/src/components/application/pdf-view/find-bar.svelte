@@ -9,7 +9,7 @@
 </script>
 
 <div
-	class="border-border bg-card shadow-craft-lg absolute top-3 right-3 z-20 flex items-center gap-1 rounded-lg border p-1.5"
+	class="border-border bg-card shadow-lg absolute top-3 right-3 z-20 flex items-center gap-1 rounded-lg border p-1.5"
 	role="search"
 >
 	<!-- Find field with the Aa toggle inside it (matches the editor find bar). -->

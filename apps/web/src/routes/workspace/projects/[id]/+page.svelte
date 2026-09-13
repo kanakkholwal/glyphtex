@@ -4,6 +4,7 @@
 	import { resolve } from "$app/paths";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
+	import { IconFileAlert, IconUpload } from "@tabler/icons-svelte";
 
 	import type { PackDefinition } from "glyphtex-engine";
 	import {
@@ -91,14 +92,13 @@
 			status = "loading";
 			loadError = "";
 			try {
-				const found = await getProject(wanted);
+				// Independent reads: a missing id just yields no files.
+				const [found, files] = await Promise.all([getProject(wanted), readFiles(wanted)]);
 				if (stale) return;
 				if (!found) {
 					status = "missing";
 					return;
 				}
-				const files = await readFiles(wanted);
-				if (stale) return;
 				binary = new SvelteMap(binaryMap(files));
 				project = found;
 				initialFiles = toGlyphFiles(files);
@@ -163,11 +163,10 @@
 		onWorkingTreeChanged(async (changed) => {
 			if (changed !== id || !ctrl) return;
 			try {
-				const files = await readFiles(id);
+				const [files, found] = await Promise.all([readFiles(id), getProject(id)]);
 				binary = new SvelteMap(binaryMap(files));
 				latest = toGlyphFiles(files);
 				await ctrl.files.reloadFrom(latest.map((f) => ({ name: f.name, content: f.content })));
-				const found = await getProject(id);
 				if (found) project = found;
 			} catch (error) {
 				toast.error(error instanceof Error ? error.message : "Could not reload this document.");
@@ -186,12 +185,12 @@
 
 	// Asked once per project, before the first compile can build the wrong file.
 	// A settled choice or a single candidate never opens this.
-	let showMainFile = $state(false);
-	$effect(() => {
-		if (!project || project.entryConfirmed) return;
-		if ((project.entryCandidates?.length ?? 0) < 2) return;
-		showMainFile = true;
-	});
+	const needsMainFile = $derived(
+		Boolean(project && !project.entryConfirmed && (project.entryCandidates?.length ?? 0) >= 2)
+	);
+	// Closing without choosing hides the prompt for this document for the rest of the session.
+	let mainFileDismissed = $state<string | undefined>(undefined);
+	const showMainFile = $derived(needsMainFile && mainFileDismissed !== project?.id);
 
 	function chooseMain(path: string): void {
 		if (!project) return;
@@ -459,42 +458,54 @@
 	<title>{project ? `${project.name} · GlyphTeX` : 'GlyphTeX'}</title>
 </svelte:head>
 
-{#if status === 'missing'}
-	<div
-		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
-	>
-		<h1 class="text-lg font-semibold">This document no longer exists</h1>
-		<p class="text-muted-foreground text-sm">
-			It may have been deleted, or the browser cleared its storage.
-		</p>
-		<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
-	</div>
-{:else if status === 'error'}
-	<div
-		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
-	>
-		<h1 class="text-lg font-semibold">Could not open this document</h1>
-		<p class="text-muted-foreground text-sm">{loadError}</p>
-		<div class="mt-1 flex items-center gap-3">
-			<Button variant="outline" size="sm" onclick={() => (reloadToken += 1)}>Try again</Button>
-			<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
+{#snippet notice(title: string, body: string, retry: boolean)}
+	<main id="main" class="bg-canvas flex min-h-dvh items-center justify-center px-4 py-10">
+		<div class="panel-card flex w-full max-w-md flex-col items-center gap-4 p-8 text-center">
+			<span
+				class="border-border bg-background text-muted-foreground grid size-12 place-items-center rounded-xl border"
+				aria-hidden="true"
+			>
+				<IconFileAlert size={24} />
+			</span>
+			<div class="flex flex-col gap-2">
+				<h1 class="text-heading-sm font-medium">{title}</h1>
+				<p class="text-body text-muted-foreground">{body}</p>
+			</div>
+			<div class="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">
+				{#if retry}
+					<Button variant="outline" href={resolve('/workspace')}>Back to documents</Button>
+					<Button onclick={() => (reloadToken += 1)}>Try again</Button>
+				{:else}
+					<Button href={resolve('/workspace')}>Back to documents</Button>
+				{/if}
+			</div>
 		</div>
-	</div>
+	</main>
+{/snippet}
+
+{#if status === 'missing'}
+	{@render notice(
+		'This document no longer exists',
+		'It may have been deleted, or the browser cleared its storage.',
+		false
+	)}
+{:else if status === 'error'}
+	{@render notice('Could not open this document', loadError, true)}
 {:else if status === 'loading'}
 	<div class="flex min-h-dvh flex-col items-center justify-center gap-4">
 		<Logo size="lg" />
-		<p class="text-muted-foreground text-sm" role="status">Opening document…</p>
+		<p class="text-muted-foreground text-body" role="status">Opening document…</p>
 	</div>
 {:else if project && initialFiles}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		class="flex h-dvh flex-col"
 		ondragover={onDragOver}
 		ondragleave={() => (dragging = false)}
 		ondrop={onDrop}
-		role="application"
-		aria-label="{project.name} workspace"
 	>
-		<EngineNotices
+		<h1 class="sr-only">{project.name}</h1>
+	<EngineNotices
 			{missingPacks}
 			{unsupportedFiles}
 			{requiresBiber}
@@ -539,10 +550,11 @@
 
 		{#if dragging}
 			<div
-				class="border-brand bg-background/80 pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-xl border-2 border-dashed backdrop-blur-sm"
+				class="border-primary bg-background/90 pointer-events-none fixed inset-3 z-50 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed"
 				role="status"
 			>
-				<p class="text-sm font-medium">Drop files to add them to this document</p>
+				<IconUpload size={28} class="text-primary" aria-hidden="true" />
+				<p class="text-body-lg font-medium">Drop files to add them to this document</p>
 			</div>
 		{/if}
 	</div>
@@ -590,22 +602,16 @@
 	<EngineInstallDialog bind:open={showInstall} ondone={onInstalled} />
 
 	<MainFileDialog
-		bind:open={showMainFile}
+		bind:open={
+			() => showMainFile,
+			(next) => {
+				if (!next) mainFileDismissed = project?.id;
+			}
+		}
 		candidates={project.entryCandidates ?? []}
 		current={project.entry}
 		onchoose={chooseMain}
 	/>
 {:else}
-	<div
-		class="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-3 px-6 text-center"
-	>
-		<h1 class="text-lg font-semibold">Could not open this document</h1>
-		<p class="text-muted-foreground text-sm">
-			It loaded without any content, which shouldn’t happen.
-		</p>
-		<div class="mt-1 flex items-center gap-3">
-			<Button variant="outline" size="sm" onclick={() => (reloadToken += 1)}>Try again</Button>
-			<a class="text-sm underline" href={resolve('/workspace')}>Back to documents</a>
-		</div>
-	</div>
+	{@render notice('Could not open this document', 'It loaded without any content, which should not happen.', true)}
 {/if}

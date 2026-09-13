@@ -6,6 +6,7 @@
 		IconBug,
 		IconBulb,
 		IconCircleCheck,
+		IconCircleXFilled,
 		IconClipboardCheck,
 		IconClipboardText,
 		IconInfoCircle,
@@ -18,11 +19,7 @@
 	import HistoryView from "./history-view.svelte";
 	import type { DockTab } from "./types";
 
-	/**
-	 * The build dock: parsed **Problems**, the raw compile **Log**, build **Stats**,
-	 * and recent **History**. Errors stay visible even while the last good PDF is
-	 * still shown.
-	 */
+	// Build dock: Problems, raw Log, Builds and History. Errors stay visible over the last good PDF.
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 
 	const files = $derived(ctrl.files);
@@ -67,14 +64,15 @@
 
 {#snippet row(problem: (typeof compile.problems)[number])}
 	<span class="mt-0.5 shrink-0">
+		<!-- Shape and a word carry severity, not colour alone. -->
 		{#if problem.severity === 'info'}
-			<IconInfoCircle size={14} class="text-muted-foreground" />
+			<IconInfoCircle size={14} class="text-muted-foreground" aria-hidden="true" />
+		{:else if problem.severity === 'error'}
+			<IconCircleXFilled size={14} class="text-destructive" aria-hidden="true" />
 		{:else}
-			<IconAlertTriangleFilled
-				size={14}
-				class={problem.severity === 'error' ? 'text-destructive' : 'text-warning'}
-			/>
+			<IconAlertTriangleFilled size={14} class="text-warning" aria-hidden="true" />
 		{/if}
+		<span class="sr-only">{problem.severity}:</span>
 	</span>
 	{#if problem.line != null}
 		<span
@@ -83,7 +81,7 @@
 			L{problem.line}
 		</span>
 	{/if}
-	<span class="text-foreground/90 min-w-0 flex-1 font-mono text-xs leading-relaxed break-words">
+	<span class="text-foreground min-w-0 flex-1 font-mono text-xs leading-relaxed break-words">
 		{problem.message}
 	</span>
 {/snippet}
@@ -93,18 +91,22 @@
 		{#each tabs as tab (tab.id)}
 			{@const active = layout.dockTab === tab.id}
 			<button
-				class="cursor-pointer rounded-md px-2 py-1 text-xs font-medium transition-colors {active
-					? 'bg-accent text-foreground'
-					: 'text-muted-foreground hover:text-foreground'}"
+				class="focus-visible:ring-ring cursor-pointer rounded-md px-2 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset {active
+					? 'bg-accent text-foreground font-medium'
+					: 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'}"
 				aria-pressed={active}
 				onclick={() => (layout.dockTab = tab.id)}
 			>
 				{tab.label}
 				{#if tab.id === 'problems' && (errors || warnings)}
-					<span class="ml-1 tabular-nums"
+					<span class="ml-1 tabular-nums" aria-hidden="true"
 						>{#if errors}<span class="text-destructive">{errors}</span
-							>{/if}{#if errors && warnings}<span class="text-faint">/</span
+							>{/if}{#if errors && warnings}<span class="text-muted-foreground">/</span
 							>{/if}{#if warnings}<span class="text-warning">{warnings}</span>{/if}</span
+					>
+					<span class="sr-only"
+						>{errors} {errors === 1 ? 'error' : 'errors'}, {warnings}
+						{warnings === 1 ? 'warning' : 'warnings'}</span
 					>
 				{/if}
 			</button>
@@ -145,18 +147,16 @@
 		</div>
 	</div>
 
-	<!-- Full width. The build-stats card used to be pinned beside this column,
-	     taking ~200px off the log at every dock height; it is a tab now. -->
+	<!-- Full width: build stats are a tab, not a card taking ~200px off the log. -->
 	<div class="min-h-0 flex-1 overflow-auto p-2">
 		{#if compile.compileHint}
-			<!-- Actionable engine hint (biber/biblatex skew, 0-DPI JPEG…), shown on
-			     every tab because it explains the whole build, not one problem. -->
+			<!-- Engine hint (biber/biblatex skew, 0-DPI JPEG), on every tab: it explains the whole build. -->
 			<div
 				class="border-border bg-card mb-2 flex items-start gap-2 rounded-md border p-2.5"
 				role="status"
 			>
-				<IconBulb size={15} class="text-brand mt-0.5 shrink-0" />
-				<p class="text-foreground/90 min-w-0 flex-1 text-xs leading-relaxed">
+				<IconBulb size={15} class="text-primary mt-0.5 shrink-0" />
+				<p class="text-foreground min-w-0 flex-1 text-xs leading-relaxed">
 					{compile.compileHint}
 				</p>
 			</div>
@@ -172,11 +172,10 @@
 				<ul>
 					{#each compile.problems as problem, i (i)}
 						<li>
-							<!-- Problems without a line number render as plain rows: a disabled
-							     button is an affordance that says "click me" and then doesn't. -->
+							<!-- No line number means a plain row: a disabled button promises a click that does nothing. -->
 							{#if problem.line != null}
 								<button
-									class="hover:bg-accent flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left transition-colors"
+									class="hover:bg-accent focus-visible:ring-ring flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset"
 									title="Go to line {problem.line}"
 									onclick={() => goToProblem(problem.line)}
 								>
@@ -196,9 +195,9 @@
 					<p
 						class="border-border/60 text-muted-foreground mt-1 border-t px-2 py-2 text-xs leading-relaxed"
 					>
-						Looks like a GlyphTeX bug rather than your document?: Copy the log, then
+						Looks like a GlyphTeX bug rather than your document? Copy the log, then
 						<a
-							class="text-brand font-medium hover:underline"
+							class="text-primary font-medium hover:underline"
 							href={ISSUES_URL}
 							target="_blank"
 							rel="noreferrer noopener"

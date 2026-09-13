@@ -11,11 +11,7 @@
 	import { Logo } from '@glyphtex/ui/logo';
 	import { IconBrandGithub, IconWorld } from '@tabler/icons-svelte';
 
-	/**
-	 * AboutDialog: a compact "About GlyphTeX" card: the brand lockup, a one-line
-	 * description of what the app is, the build version, and links out to the
-	 * source and the website. Purely informational; no actions beyond the links.
-	 */
+	// Informational About card: lockup, one-line description, version and links out.
 	let {
 		open = $bindable(false),
 		platform = 'desktop',
@@ -39,7 +35,7 @@
 				</p>
 			</div>
 
-			<div class="text-muted-foreground/80 flex items-center gap-2 text-xs">
+			<div class="text-muted-foreground flex items-center gap-2 text-xs">
 				<span class="tabular-nums">Version {version}</span>
 				<span class="bg-border h-3 w-px"></span>
 				<span class="capitalize">{platform}</span>
@@ -68,7 +64,7 @@
 				</Button>
 			</div>
 
-			<p class="text-muted-foreground/60 text-xs">
+			<p class="text-muted-foreground text-xs">
 				Built by <a
 					href="https://x.com/kanakkholwal"
 					target="_blank"

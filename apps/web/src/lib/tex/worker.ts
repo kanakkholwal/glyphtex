@@ -23,9 +23,8 @@ let booting: Promise<TexEngine> | null = null;
 /** Loaded during boot; null when this deployment ships no packs. */
 let packIndex: PackIndex | null = null;
 
-// The engine outlives any one document, and its filesystem is a single flat map
-// shared by bundle and project files. Tracking who owns what is what keeps one
-// document's sources: and its .aux: from being inherited by the next.
+// One flat engine filesystem is shared by bundle and every document; tracking ownership
+// keeps one document's sources and .aux from leaking into the next.
 let bundleNames = new Set<string>();
 let mounted = emptyMount();
 
@@ -46,7 +45,7 @@ async function fetchCached(
 	const key = `${url}?v=${version}`;
 	const cache = await openEngineCache();
 
-	const cached = await cache?.match(key);
+	const cached = await cache?.match(key).catch(() => undefined);
 	if (cached) {
 		report(total, total, "Loading the compiler…");
 		return new Uint8Array(await cached.arrayBuffer());
@@ -104,14 +103,27 @@ async function fetchCached(
 	return bytes;
 }
 
-async function evictOldVersions(version: string): Promise<void> {
+async function evictOldVersions(version: string, index: PackIndex | null): Promise<void> {
 	const cache = await openEngineCache();
 	if (!cache) return;
 	for (const request of await cache.keys()) {
 		// Unversioned by design: it tells an offline client which version it has.
 		if (request.url.endsWith("/engine/manifest.json")) continue;
-		if (!request.url.includes(`v=${version}`)) await cache.delete(request);
+		// Packs are keyed by their own hash, not the engine version: keep what the index still lists.
+		if (new URL(request.url).pathname.startsWith("/engine/packs/")) {
+			if (!index || isCurrentPack(request.url, index)) continue;
+		} else if (request.url.includes(`v=${version}`)) continue;
+		await cache.delete(request);
 	}
+}
+
+function isCurrentPack(url: string, index: PackIndex): boolean {
+	const { pathname, search } = new URL(url);
+	if (pathname.endsWith("/packs-index.json")) return true;
+	const hash = new URLSearchParams(search).get("v");
+	return index.packs.some(
+		(p: PackDefinition) => pathname.endsWith(`/pack-${p.id}.tar.gz`) && p.hash === hash
+	);
 }
 
 /** Concurrent callers share one attempt; a failed attempt is discarded. */
@@ -180,7 +192,7 @@ function boot(report: Report): Promise<TexEngine> {
 			}
 		}
 
-		await evictOldVersions(manifest.version).catch(() => {
+		await evictOldVersions(manifest.version, packIndex).catch(() => {
 			/* housekeeping: never fail a working boot over it */
 		});
 
