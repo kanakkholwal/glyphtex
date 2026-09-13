@@ -62,6 +62,7 @@
 	import { fade, fly } from 'svelte/transition';
 	import AboutDialog from './about-dialog.svelte';
 	import { motionMs as ms } from './motion';
+	import { TEMPLATE_CATEGORIES, type ProjectTemplate } from '../../lib/project-templates';
 
 	/** Home screen for every project. The host owns the data and every action; an absent
 	 *  handler hides its control (folder actions are desktop-only). */
@@ -84,7 +85,10 @@
 		helpHref,
 		activeScope = 'all',
 		scopeHrefs,
-		loading = false
+		loading = false,
+		templates = [],
+		templatesLoading = false,
+		onusetemplate
 	}: {
 		/** Drives the About dialog's platform line and the drop hint. */
 		platform?: 'web' | 'desktop';
@@ -119,6 +123,12 @@
 		scopeHrefs?: Partial<Record<Scope, string>>;
 		/** First read of the project store. The shell renders; the library skeletons. */
 		loading?: boolean;
+		/** Starter documents for the Templates scope, with their attribution. */
+		templates?: ProjectTemplate[];
+		/** The catalog chunk is still loading. */
+		templatesLoading?: boolean;
+		/** Create a project from a template. Return the new id to have the home open it. */
+		onusetemplate?: (id: string) => string | void | Promise<string | void>;
 	} = $props();
 
 	type Sort = 'newest' | 'oldest' | 'name';
@@ -216,6 +226,47 @@
 	const showStart = $derived(scope === 'all' && !loading);
 	// Search, sort and view only when there is something to act on; the empty state says the rest.
 	const showTools = $derived(loading || query.trim() !== '' || scoped.length > 0);
+
+	let templateQuery = $state('');
+	let templateCategory = $state<string>('all');
+	let usingTemplate = $state<string | null>(null);
+
+	const templateCounts = $derived.by(() => {
+		const acc: Record<string, number> = {};
+		for (const t of templates) acc[t.category] = (acc[t.category] ?? 0) + 1;
+		return acc;
+	});
+	const templateTabs = $derived([
+		{ id: 'all', label: 'All', count: templates.length },
+		...TEMPLATE_CATEGORIES.filter((c) => templateCounts[c.id]).map((c) => ({
+			id: c.id as string,
+			label: c.label,
+			count: templateCounts[c.id]
+		}))
+	]);
+	const visibleTemplates = $derived.by(() => {
+		const q = templateQuery.trim().toLowerCase();
+		return templates.filter(
+			(t) =>
+				(templateCategory === 'all' || t.category === templateCategory) &&
+				(!q ||
+					t.title.toLowerCase().includes(q) ||
+					t.description.toLowerCase().includes(q) ||
+					t.author.toLowerCase().includes(q))
+		);
+	});
+	const categoryLabel = (id: string) => TEMPLATE_CATEGORIES.find((c) => c.id === id)?.label ?? id;
+
+	async function useTemplate(id: string) {
+		if (usingTemplate) return;
+		usingTemplate = id;
+		try {
+			const created = await onusetemplate?.(id);
+			if (typeof created === 'string') onopen?.(created);
+		} finally {
+			usingTemplate = null;
+		}
+	}
 
 	const sorts: { id: Sort; label: string }[] = [
 		{ id: 'newest', label: 'Last edited' },
@@ -430,7 +481,7 @@
 											? recent.length
 											: item.id === 'starred'
 												? starred.length
-												: 0}
+												: templates.length}
 								<Sidebar.MenuItem>
 									<Sidebar.MenuButton
 										isActive={activeScope === item.id}
@@ -624,6 +675,11 @@
 										<IconCloudDownload /> Clone repository
 									</Button>
 								{/if}
+								{#if onusetemplate && scopeHrefs?.templates}
+									<Button variant="ghost" href={scopeHrefs.templates}>
+										<IconTemplate /> Start from a template
+									</Button>
+								{/if}
 							</div>
 
 							{#if onclone && cloning}
@@ -709,7 +765,103 @@
 					</p>
 				{/if}
 
-				{#if projects.length > 0 || loading || scope !== 'all'}
+				{#if scope === 'templates' && templatesLoading}
+					<div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3" aria-busy="true" aria-label="Loading templates" role="status">
+						{#each { length: 8 } as _, i (i)}
+							<div class="border-border flex animate-pulse flex-col gap-3 rounded-2xl border p-4" style:animation-delay={`ms`}>
+								<div class="bg-muted h-3 w-1/3 rounded-full"></div>
+								<div class="bg-muted h-4 w-4/5 rounded-full"></div>
+								<div class="bg-muted h-3 w-full rounded-full"></div>
+								<div class="bg-muted h-10 w-full rounded-lg"></div>
+							</div>
+						{/each}
+					</div>
+				{:else if scope === 'templates' && templates.length > 0}
+					<section aria-label="Template gallery" class="mt-6">
+						<div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+							<div class="no-scrollbar -mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1" role="group" aria-label="Filter templates by use">
+								{#each templateTabs as tab (tab.id)}
+									{@const active = templateCategory === tab.id}
+									<button
+										class="focus-visible:ring-ring flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm outline-none transition-colors duration-150 focus-visible:ring-2 {active
+											? 'border-border bg-card text-foreground font-medium shadow-xs'
+											: 'text-muted-foreground hover:bg-muted hover:text-foreground border-transparent'}"
+										aria-pressed={active}
+										onclick={() => (templateCategory = tab.id)}
+									>
+										{tab.label}
+										<span class="text-muted-foreground text-xs tabular-nums">{tab.count}</span>
+									</button>
+								{/each}
+							</div>
+							<div class="relative w-full lg:w-64">
+								<IconSearch size={16} class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2" aria-hidden="true" />
+								<input
+									bind:value={templateQuery}
+									type="search"
+									class="bg-background border-border text-foreground placeholder:text-placeholder focus-visible:border-ring focus-visible:ring-ring h-10 w-full rounded-lg border py-1 pr-3 pl-9 text-sm outline-none focus-visible:ring-2"
+									placeholder="Search templates"
+									spellcheck="false"
+									aria-label="Search templates"
+								/>
+							</div>
+						</div>
+
+						<p class="text-muted-foreground mt-4 text-sm" aria-live="polite">
+							{visibleTemplates.length} {visibleTemplates.length === 1 ? 'template' : 'templates'} · each keeps its author's licence and credit
+						</p>
+
+						{#if visibleTemplates.length === 0}
+							<div class="border-border-strong mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center">
+								<p class="text-foreground text-md font-medium">No templates match “{templateQuery}”</p>
+								<Button variant="outline" onclick={() => { templateQuery = ''; templateCategory = 'all'; }}>
+									<IconX /> Clear filters
+								</Button>
+							</div>
+						{:else}
+							<ul class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3" aria-label="Templates">
+								{#each visibleTemplates as t (t.id)}
+									<li class="border-border bg-card hover:border-border-strong flex flex-col gap-3 rounded-2xl border p-4 transition-[border-color] duration-200 ease-craft">
+										<div class="flex items-center justify-between gap-2">
+											<span class="text-muted-foreground text-xs font-medium">{categoryLabel(t.category)}</span>
+											<span class="border-border text-muted-foreground rounded-md border px-1.5 py-0.5 font-mono text-xs">{t.documentClass}</span>
+										</div>
+										<div class="min-w-0 flex-1">
+											<h3 class="text-foreground line-clamp-2 text-md font-medium">{t.title}</h3>
+											{#if t.description}
+												<p class="text-muted-foreground mt-1 line-clamp-3 text-sm">{t.description}</p>
+											{/if}
+										</div>
+										<p class="text-muted-foreground truncate text-xs" title={`${t.author} · ${t.license}`}>
+											by <span class="text-foreground">{t.author}</span> · {t.license.replace('Creative Commons ', '')}
+										</p>
+										<div class="flex items-center gap-2">
+											<Button
+												variant="outline"
+												class="flex-1"
+												disabled={usingTemplate !== null}
+												onclick={() => useTemplate(t.id)}
+											>
+												{usingTemplate === t.id ? 'Creating…' : 'Use template'}
+											</Button>
+											<Button
+												href={t.sourceUrl}
+												target="_blank"
+												rel="noopener noreferrer"
+												variant="ghost"
+												size="icon"
+												aria-label={`Original source of ${t.title}`}
+												title="Original source"
+											>
+												<IconExternalLink />
+											</Button>
+										</div>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</section>
+				{:else if projects.length > 0 || loading || scope !== 'all'}
 					<section
 						aria-label={scope === 'all' ? 'All projects' : scopeLabel}
 						class={scope === 'all' ? 'mt-10' : 'mt-6'}

@@ -1,7 +1,13 @@
 <script lang="ts">
-	import { goto } from "$app/navigation";
+	import { goto, replaceState } from "$app/navigation";
 	import { resolve } from "$app/paths";
+	import { page } from "$app/state";
 	import { ProjectsHome, type Scope } from "@glyphtex/ui/application";
+	import {
+		loadTemplateCatalog,
+		loadTemplateFiles,
+		type ProjectTemplate
+	} from "@glyphtex/ui/project-templates";
 	import { Button } from "@glyphtex/ui/button";
 	import { toast } from "@glyphtex/ui/sonner";
 	import { IconDatabaseOff, IconLoader2, IconUpload } from "@tabler/icons-svelte";
@@ -74,6 +80,14 @@
 	onMount(async () => {
 		try {
 			await refresh();
+			// Arriving from the public gallery: create the project it asked for, then open it.
+			const use = page.url.searchParams.get("use");
+			if (use) {
+				// Drop the parameter first, so Back never lands here and creates a second copy.
+				replaceState(resolve("/workspace/templates"), {});
+				const id = await createFromTemplate(use);
+				if (id) open(id);
+			}
 		} catch (error) {
 			failure = error instanceof Error ? error.message : "Could not read saved documents.";
 		} finally {
@@ -166,6 +180,37 @@
 			return project.id;
 		} catch (error) {
 			report(error, "Could not create the document.");
+		}
+	}
+
+	// Loaded only when the gallery opens, so the catalog never ships with the workspace.
+	let templates = $state.raw<ProjectTemplate[]>([]);
+	let templatesLoading = $state(false);
+	let catalogRequested = false;
+
+	$effect(() => {
+		if (scope !== "templates" || catalogRequested) return;
+		catalogRequested = true;
+		templatesLoading = true;
+		loadTemplateCatalog()
+			.then((list) => (templates = list))
+			.catch((error) => report(error, "Could not load the templates."))
+			.finally(() => (templatesLoading = false));
+	});
+
+	async function createFromTemplate(id: string): Promise<string | void> {
+		try {
+			const template = (templates.length > 0 ? templates : await loadTemplateCatalog()).find(
+				(t) => t.id === id
+			);
+			const files = await loadTemplateFiles(id);
+			const project = await createProject(template?.title ?? "Untitled", files);
+			track("document_created", { source: "template", location: "workspace" });
+			await refresh();
+			void requestPersistence();
+			return project.id;
+		} catch (error) {
+			report(error, "Could not create a project from that template.");
 		}
 	}
 
@@ -299,6 +344,9 @@
 			{loading}
 			{projects}
 			oncreate={handleCreate}
+			{templates}
+			{templatesLoading}
+			onusetemplate={createFromTemplate}
 			onopen={open}
 			onrename={rename}
 			onduplicate={duplicate}

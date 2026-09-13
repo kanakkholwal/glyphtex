@@ -4,6 +4,11 @@
 	import { resolve } from "$app/paths";
 	import { message } from "@tauri-apps/plugin-dialog";
 	import { ProjectsHome, type Scope } from "@glyphtex/ui/application";
+	import {
+		loadTemplateCatalog,
+		loadTemplateFiles,
+		type ProjectTemplate
+	} from "@glyphtex/ui/project-templates";
 	import { projects } from "@glyphtex/ui/projects";
 	import { projectHost } from "$lib/project";
 	import { gitProvider } from "$lib/git";
@@ -58,6 +63,43 @@
 			);
 		}
 		return projects.create().id;
+	}
+
+	// The catalog is a lazy chunk, fetched the first time the Templates scope opens.
+	let templates = $state.raw<ProjectTemplate[]>([]);
+	let templatesLoading = $state(false);
+	let catalogRequested = false;
+
+	$effect(() => {
+		if (scope !== "templates" || catalogRequested) return;
+		catalogRequested = true;
+		templatesLoading = true;
+		loadTemplateCatalog()
+			.then((list) => (templates = list))
+			.catch((e) =>
+				reportError("Couldn't load templates", "The template gallery failed to load.", e)
+			)
+			.finally(() => (templatesLoading = false));
+	});
+
+	async function createFromTemplate(id: string): Promise<string | undefined> {
+		const template = templates.find((t) => t.id === id);
+		try {
+			if (!projectHost.createLocalProject) return undefined;
+			const [files, root] = await Promise.all([
+				loadTemplateFiles(id),
+				projectHost.createLocalProject(template?.title ?? "Untitled project")
+			]);
+			await Promise.all(files.map((f) => projectHost.writeFile(`${root}/${f.path}`, f.text)));
+			return projects.remember(root).id;
+		} catch (e) {
+			await reportError(
+				"Couldn't create from template",
+				"GlyphTeX couldn't create a project from that template.",
+				e
+			);
+			return undefined;
+		}
 	}
 
 	async function openFolder() {
@@ -123,6 +165,9 @@
 	{scopeHrefs}
 	projects={projects.list}
 	oncreate={newProject}
+	{templates}
+	{templatesLoading}
+	onusetemplate={createFromTemplate}
 	onopenfolder={openFolder}
 	onimport={importZip}
 	onclone={cloneRepo}
