@@ -4,7 +4,6 @@
 		Sheet,
 		SheetContent,
 		SheetDescription,
-		SheetFooter,
 		SheetHeader,
 		SheetTitle
 	} from "@glyphtex/ui/sheet";
@@ -69,7 +68,7 @@
 <Sheet bind:open>
 	<SheetContent
 		side={wide.current ? 'right' : 'bottom'}
-		class="max-h-[90dvh] gap-0 overflow-y-auto data-[side=bottom]:rounded-t-2xl data-[side=right]:sm:max-w-md"
+		class="gap-0 overflow-y-auto data-[side=bottom]:max-h-[90dvh] data-[side=bottom]:rounded-t-2xl data-[side=right]:w-full data-[side=right]:sm:max-w-md"
 	>
 		<SheetHeader class="gap-1 p-6 pr-14">
 			<SheetTitle class="text-body-lg">Storage</SheetTitle>
@@ -78,7 +77,7 @@
 			</SheetDescription>
 		</SheetHeader>
 
-		<div class="text-body flex flex-col gap-6 px-6 pb-2">
+		<div class="text-body flex flex-col gap-6 px-6 pb-6">
 			{#if !status}
 				<p class="text-muted-foreground" role="status">Checking…</p>
 			{:else if status.unknown}
@@ -166,7 +165,13 @@
 						</Button>
 					{/if}
 					{#if refused && !status.persisted}
-						<p class="text-warning text-caption" role="status">{refused}</p>
+						<p
+							class="border-border text-foreground text-caption flex items-start gap-2 rounded-lg border p-3"
+							role="status"
+						>
+							<IconAlertTriangle size={16} class="text-warning mt-px shrink-0" aria-hidden="true" />
+							<span><span class="font-medium">Not protected yet.</span> {refused}</span>
+						</p>
 					{/if}
 				</section>
 			{/if}
@@ -176,9 +181,5 @@
 				keep.
 			</p>
 		</div>
-
-		<SheetFooter class="p-6">
-			<Button onclick={() => (open = false)}>Done</Button>
-		</SheetFooter>
 	</SheetContent>
 </Sheet>

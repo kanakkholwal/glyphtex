@@ -5,14 +5,15 @@
 	import { footerCols, footerSocials } from "$lib/landing/nav-data";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
-	import { IconBrandGithub, IconMail } from "@tabler/icons-svelte";
+	import { IconBrandGithub, IconMail, IconBrandX } from "@tabler/icons-svelte";
 
 	const home = resolve("/");
 	const year = new Date().getFullYear();
 
 	const socialIcons = {
 		GitHub: IconBrandGithub,
-		Contact: IconMail
+		Contact: IconMail,
+		Twitter: IconBrandX
 	} as const;
 
 	const resolveAny = resolve as (route: string) => ResolvedPathname;

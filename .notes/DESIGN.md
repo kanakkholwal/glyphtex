@@ -29,6 +29,7 @@ both apps. `packages/design` is unused. Never hardcode a hex in a component.
 | --- | --- | --- | --- |
 | Page canvas (public pages) | `#f5f5f5` | `#0a0a0a` | `--canvas` → `bg-canvas` |
 | App background | `#ffffff` | `#0a0a0a` | `--background` |
+| App card (projects home) | `#ffffff` | `#161616`, cards inside `#1d1d1d` | `--workspace` → `workspace-card` (re-points `--background` and `--card`) |
 | Card | `#ffffff` | `#171717` | `--card` |
 | Muted fill, hover fill | `#f5f5f5` | `#262626` | `--muted` |
 | Stronger fill (tile on muted) | `#efefef` | `#2a2a2a` | `--surface-strong` |
@@ -217,11 +218,20 @@ FAQ). `GuideLauncher` owns the h1: Orbit Explore search over the real docs and b
 
 ### Navbar and footer
 
-`SiteHeader` follows the Rune Icons navbar: a full-width bar on `bg-canvas` with a 2px dashed bottom rule, content in `rail-column`. Logo left; Docs and Blog centred as 40px bordered buttons (current page: card fill, medium weight, `aria-current`); right: outline GitHub button with the live star count (compact, hidden when GitHub is unavailable, streamed from the root layout), bordered theme toggle, and near-black "Open the workspace" from `md`. Below `sm` the links, workspace and theme move into the focus-trapped menu. The hero keeps the page's one blue action.
+`SiteHeader` follows the Rune Icons navbar: a full-width bar on `bg-canvas` with a 2px dashed bottom rule, content in `rail-column`. Logo left. Docs, Errors and Blog sit centred in one segmented track (`bg-muted` p-1, 32px items); the current page is the raised `bg-card` thumb with `shadow-xs`, medium weight and `aria-current`, so it reads without colour. Right: outline GitHub button with the live star count (compact, hidden when GitHub is unavailable, streamed from the root layout), outline X button, bordered theme toggle, and near-black "Open the workspace" from `xl`. Below `md` the links, workspace and theme move into the focus-trapped menu.
 
 `SiteFooter` is a 22px card: logo, description, 40px social buttons, four link columns with caption
 h2s, a legal line, then the oversized `GLYPHTEX` wordmark at 5% ink with a blue spotlight that
 follows a mouse pointer.
+
+C:\Users\kanak### Projects home (`ProjectsHome`, web `/workspace` and the desktop home)
+
+Orbit's workspace home. The sidebar sits on `bg-canvas` (36px rows; active: base fill, medium weight, blue icon; project counts); the main area is a white card inset 8px from `md` with a 14px radius and a hairline. A 56px context bar holds the sidebar toggle, the scope and the theme toggle.
+
+- **All projects** opens with an h1, then a start row: a dashed "New LaTeX project" card (48px blue icon tile, the page's one `primary` action, outline import actions, a ghost Clone that expands an inline 40px URL field) beside "Jump back in", the four most recently edited projects as 56px rows.
+- **Library:** count, 40px search (`/` focuses it), sort menu labelled with the current order, grid/list segmented control. Grid cards are 18px bordered cards with a page thumbnail in a 14px muted inset (it carries the view-transition name that morphs into the editor), title, files or "On disk" with the edit time, a star glyph with a word for screen readers, and a 32px actions menu that stays visible on touch. The whole card opens the project.
+- **Recent, Starred, Templates** use the scope as the only heading, skip the start row, and show search, sort and view only when there is something to act on; otherwise one honest empty state with one next action.
+- **Storage (web):** a card in the sidebar footer with a labelled `progressbar` and a written warning past 80%. "Storage" opens a full-height right sheet on desktop and a bottom sheet (max 90dvh) on phones; refusals show as a bordered callout with a warning glyph.
 
 ### Boot splash
 

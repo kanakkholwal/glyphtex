@@ -2,14 +2,15 @@
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import { track } from "$lib/analytics";
-	import { navLinks, REPO_URL } from "$lib/landing/nav-data";
+	import { footerSocials, navLinks, REPO_URL } from "$lib/landing/nav-data";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
 	import { ThemeToggle } from "@glyphtex/ui/theme-toggle";
-	import { IconBrandGithub, IconMenu2, IconX } from "@tabler/icons-svelte";
+	import { IconBrandGithub, IconBrandX, IconMenu2, IconX } from "@tabler/icons-svelte";
 
 	const home = resolve("/");
 	const repo = REPO_URL;
+	const xHref = footerSocials.find((s) => s.label === "Twitter")?.href;
 	const format = new Intl.NumberFormat("en", { notation: "compact" });
 
 	// Streamed from the root layout; null hides the count rather than showing a guess.
@@ -86,7 +87,7 @@
 
 		<!-- One segmented track: the current page is the raised thumb, so it reads without colour. -->
 		<ul
-			class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-lg bg-muted p-1 sm:flex"
+			class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-lg bg-muted p-1 md:flex"
 		>
 			{#each navLinks as link (link.href)}
 				{@const current = isCurrent(link.href)}
@@ -124,11 +125,25 @@
 					{/if}
 				{/await}
 			</Button>
+			{#if xHref}
+				<Button
+					href={xHref}
+					target="_blank"
+					rel="noopener noreferrer"
+					variant="outline"
+					size="icon"
+					aria-label="GlyphTeX on X"
+					class="hidden sm:inline-flex"
+					onclick={() => track('outbound_clicked', { destination: 'twitter', location: 'nav' })}
+				>
+					<IconBrandX class="size-4" aria-hidden="true" />
+				</Button>
+			{/if}
 			<ThemeToggle size="icon" class="hidden border border-border bg-card sm:inline-flex dark:bg-background" />
 			<Button
 				href={resolve('/workspace')}
 				variant="default"
-				class="hidden md:inline-flex"
+				class="hidden xl:inline-flex"
 				onclick={() => track('cta_clicked', { target: 'workspace', location: 'nav' })}
 			>
 				Open the workspace
@@ -140,7 +155,7 @@
 				aria-expanded={open}
 				aria-controls="mobile-nav"
 				aria-label={open ? 'Close menu' : 'Open menu'}
-				class="grid size-10 place-items-center rounded-md border border-border bg-card text-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring sm:hidden dark:bg-background"
+				class="grid size-10 place-items-center rounded-md border border-border bg-card text-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring md:hidden dark:bg-background"
 			>
 				{#if open}
 					<IconX class="size-5" />
@@ -154,10 +169,10 @@
 
 {#if open}
 	<!-- Presentational pointer shortcut: a full-page <button> here read as one giant control to screen readers. -->
-	<div class="fixed inset-0 z-40 bg-fixed-dark/20 sm:hidden" aria-hidden="true" onclick={close}></div>
+	<div class="fixed inset-0 z-40 bg-fixed-dark/20 md:hidden" aria-hidden="true" onclick={close}></div>
 	<div
 		id="mobile-nav"
-		class="fixed inset-x-3 top-20 z-50 rounded-xl border border-border bg-popover p-2 shadow-lg sm:hidden"
+		class="fixed inset-x-3 top-20 z-50 rounded-xl border border-border bg-popover p-2 shadow-lg md:hidden"
 		{@attach menuFocus}
 	>
 		<ul class="flex flex-col">
