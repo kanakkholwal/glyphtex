@@ -1,0 +1,154 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper, margin=16mm, top=14mm, bottom=18mm]{geometry}
+\usepackage{xcolor}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage[skins, breakable]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{ragged2e}
+
+% Newsletter colours.
+\definecolor{brand}{HTML}{0F4C5C}
+\definecolor{brandlight}{HTML}{E3EEF0}
+\definecolor{warm}{HTML}{E36414}
+
+% Issue details used in the masthead and footer.
+\newcommand{\newslettername}{The Lab Bench}
+\newcommand{\issue}{Issue 12, Autumn 2026}
+\newcommand{\unit}{Department of Chemistry, Example University}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\footnotesize\color{brand}\newslettername\ \textbullet\ \issue}
+\fancyfoot[R]{\footnotesize\color{brand}Page \thepage}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlength{\columnsep}{7mm}
+\setlist{leftmargin=1.1em, itemsep=1pt, topsep=2pt}
+
+% Story headlines: sans serif, coloured, with a thin rule.
+\titleformat{\section}{\sffamily\bfseries\large\color{brand}}{}{0pt}{}[\vspace{-4pt}{\color{warm}\rule{1.5cm}{1.5pt}}]
+\titlespacing*{\section}{0pt}{10pt}{6pt}
+\titleformat{\subsection}{\sffamily\bfseries\normalsize}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{6pt}{2pt}
+
+% A highlight box. Usage: \begin{highlight}{Title} ... \end{highlight}
+\newtcolorbox{highlight}[1]{enhanced, breakable, colback=brandlight, colframe=brandlight, arc=2mm,
+  left=3mm, right=3mm, top=2mm, bottom=2mm, fonttitle=\sffamily\bfseries, coltitle=brand,
+  title=#1, attach title to upper={\par\smallskip}, borderline west={3pt}{0pt}{warm}}
+
+\begin{document}
+
+% Masthead.
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[brand] (current page.north west) rectangle ([yshift=-46mm]current page.north east);
+\end{tikzpicture}
+\vspace*{-2mm}
+{\color{white}
+\begin{minipage}[t]{0.7\textwidth}
+  {\sffamily\bfseries\fontsize{38}{42}\selectfont \newslettername\par}
+  \vspace{2mm}
+  {\sffamily\large \unit\par}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.26\textwidth}
+  \raggedleft\sffamily
+  \vspace{4mm}
+  {\bfseries \issue\par}
+  \vspace{1mm}
+  {\small news from our labs\par}
+\end{minipage}
+}
+\vspace{16mm}
+
+\raggedcolumns
+\begin{multicols}{3}
+\RaggedRight
+\setlength{\parskip}{4pt}
+
+\section{A word from the head of department}
+Welcome back to a busy term. We have four new group leaders, a refurbished teaching lab and more students than ever before.
+Thank you to everyone who helped during the building move. Please keep sending stories for the next issue.
+
+\hfill\emph{Prof. Helen Achterberg}
+
+\section{New spectrometer arrives}
+After two years of planning, the new 600\,MHz spectrometer is installed in room B112.
+Training sessions start in week three. Book a slot through the facility page.
+
+\begin{center}
+  % Swap the placeholder for a TikZ drawing if you like.
+  \tikz\node[draw=brand, fill=white, minimum width=0.95\columnwidth, minimum height=40mm, font=\small\sffamily]{Image placeholder};
+\end{center}
+
+\begin{highlight}{Research spotlight}
+  The Okonkwo group has built a catalyst that splits water using only iron and light.
+  Their paper appeared in \emph{Example Chemistry Letters} this summer.
+\end{highlight}
+
+\columnbreak
+
+\section{Awards and grants}
+\begin{itemize}
+  \item Dr. Luis Ferreira: Early Career Medal.
+  \item Mei Lin: best poster at the Example Materials Meeting.
+  \item Novak group: three year grant for battery recycling.
+\end{itemize}
+
+\section{Welcome to our new staff}
+\subsection{Dr. Sara Haddad}
+Joins from Example Institute to lead a group on soft materials.
+\subsection{Dr. Kwame Asante}
+Computational chemist working on reaction prediction.
+
+\section{From the teaching lab}
+The first year lab reopened in September with 40 new fume hoods and digital balances at every bench.
+Students now record results on tablets, which cuts marking time and lets demonstrators spot mistakes during the session.
+
+Thanks to the technical team, who rebuilt the lab over the summer while keeping outreach sessions running.
+If you would like to help design new second year experiments, contact the teaching coordinator.
+
+\begin{highlight}{Recent publications}
+  \small
+  \begin{enumerate}[leftmargin=1.3em]
+    \item Okonkwo, C. et al. Iron photocatalysts for water splitting. \emph{Ex. Chem. Lett.} 2026.
+    \item Haddad, S. and Brun, P. Self healing gels. \emph{Soft Matter Examples} 2026.
+    \item Asante, K. Graph models for yield. \emph{J. Example Comput. Chem.} 2025.
+  \end{enumerate}
+\end{highlight}
+
+\columnbreak
+
+\section{Student corner}
+Our PhD society ran a coffee and cake afternoon that raised funds for a local science club.
+Next up: a pub quiz on 23 October.
+
+\begin{highlight}{Upcoming events}
+  \small
+  \begin{tabular}{@{}l@{\hspace{2mm}}p{0.62\linewidth}@{}}
+    \textbf{2 Oct} & Departmental colloquium \\
+    \textbf{9 Oct} & Safety induction for new starters \\
+    \textbf{23 Oct} & PhD society quiz night \\
+    \textbf{6 Nov} & Open day for school groups \\
+  \end{tabular}
+\end{highlight}
+
+\begin{highlight}{Safety reminder}
+  Fire drills run on the first Monday of each month. Check that your lab's emergency contact sheet is up to date.
+\end{highlight}
+
+\section{Photo of the term}
+\tikz\node[draw=brand, fill=white, minimum width=0.95\columnwidth, minimum height=34mm, font=\small\sffamily]{Image placeholder};
+
+\section{Contribute}
+Send stories, photos or news to \texttt{news@chem.example.edu} by 15 November.
+
+\end{multicols}
+
+\end{document}

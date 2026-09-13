@@ -1,0 +1,85 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme{Singapore}
+\usecolortheme{dolphin}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{pgfplots}
+\usepackage{amssymb}
+\pgfplotsset{compat=1.18}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+% Status markers used in the checklist slide.
+\newcommand{\done}{\textcolor{green!50!black}{$\checkmark$}}
+\newcommand{\wip}{\textcolor{orange}{$\circ$}}
+\newcommand{\blocked}{\textcolor{red}{$\times$}}
+
+\title{Weekly Group Update}
+\author{Chen Wei}
+\date{Group meeting, 14 September 2026}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Progress}
+\begin{frame}{Since last meeting}
+  % Mark each task with \done, \wip or \blocked.
+  \begin{tabular}{cl}
+    \done & Cleaned the sensor dataset (3 bad runs removed) \\
+    \done & Reran baseline with new split \\
+    \wip & Hyperparameter sweep, 60\% complete \\
+    \blocked & GPU queue access, waiting on IT ticket \\
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Current result}
+  \begin{columns}[c]
+    \begin{column}{0.55\textwidth}
+      \centering
+      % Replace the table data with your own measurements.
+      \begin{tikzpicture}
+        \begin{axis}[width=7.5cm, height=5cm, xlabel={Epoch}, ylabel={Validation loss},
+            legend pos=north east, grid=major, grid style={gray!20}]
+          \addplot[thick, blue, mark=*] coordinates {(1,0.92) (2,0.71) (3,0.60) (4,0.55) (5,0.53)};
+          \addlegendentry{New split}
+          \addplot[thick, gray, dashed, mark=square*] coordinates {(1,0.95) (2,0.80) (3,0.72) (4,0.69) (5,0.68)};
+          \addlegendentry{Old split}
+        \end{axis}
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \begin{block}{Takeaway}
+        The new split lowers validation loss by about 20\%.
+      \end{block}
+      \begin{alertblock}{Caveat}
+        Only one seed so far.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Plans}
+\begin{frame}{Next two weeks}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Planned}
+      \begin{enumerate}
+        \item Finish sweep with 3 seeds.
+        \item Draft methods section.
+        \item Share code with Maria.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Questions for the group}
+      \begin{itemize}
+        \item Is 3 seeds enough for the workshop paper?
+        \item Does anyone have spare GPU hours?
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}

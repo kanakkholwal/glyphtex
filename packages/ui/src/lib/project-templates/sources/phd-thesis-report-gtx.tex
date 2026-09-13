@@ -1,0 +1,153 @@
+\documentclass[12pt,a4paper,oneside]{report}
+\usepackage[a4paper,inner=3.5cm,outer=2.5cm,top=2.5cm,bottom=3cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{microtype}
+\usepackage[titles]{tocloft}
+\usepackage[title,titletoc]{appendix}
+\usepackage[hidelinks]{hyperref}
+
+% Most universities require 1.5 or double line spacing. Check your regulations.
+\onehalfspacing
+
+% Fill these in once and they are reused on the title page and declaration.
+\newcommand{\thesistitle}{Adaptive Control of Soft Robotic Actuators in Unstructured Environments}
+\newcommand{\thesisauthor}{Your Full Name}
+\newcommand{\thesisdegree}{Doctor of Philosophy}
+\newcommand{\thesisdept}{School of Engineering}
+\newcommand{\thesisuni}{Example University}
+\newcommand{\thesisyear}{2026}
+
+\newtheorem{proposition}{Proposition}[chapter]
+
+\begin{document}
+
+\pagenumbering{roman}
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\LARGE\bfseries\thesistitle\par}
+  \vspace{2cm}
+  {\Large\thesisauthor\par}
+  \vfill
+  A thesis submitted in fulfilment of the requirements\\
+  for the degree of \textit{\thesisdegree}\\[1em]
+  \thesisdept\\
+  \thesisuni\\[2em]
+  \thesisyear
+\end{titlepage}
+
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+I, \thesisauthor, declare that this thesis is my own work and has not been submitted for any other degree.
+Replace this with the exact wording your university requires.
+
+\vspace{2cm}
+\noindent Signed: \rule{6cm}{0.4pt}\qquad Date: \rule{3cm}{0.4pt}
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+Write a one-page summary of the whole thesis: the problem, your approach, the main contributions and what they mean for the field.
+
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+Thank your supervisors, examiners, funders, colleagues, friends and family.
+
+\tableofcontents
+\cleardoublepage\phantomsection
+\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+\cleardoublepage\phantomsection
+\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
+
+\chapter*{Abbreviations}
+\addcontentsline{toc}{chapter}{Abbreviations}
+\begin{tabular}{@{}ll@{}}
+DOF & Degrees of freedom \\
+PID & Proportional, integral and derivative \\
+RL & Reinforcement learning \\
+\end{tabular}
+
+\cleardoublepage
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+\label{ch:intro}
+\section{Motivation}
+Explain why the problem matters to the field and to the wider world.
+\section{Research questions}
+\begin{enumerate}
+  \item First research question.
+  \item Second research question.
+\end{enumerate}
+\section{Contributions}
+List what is new in this thesis and which chapter delivers each part.
+\section{Thesis outline}
+Chapter~\ref{ch:background} reviews prior work, Chapter~\ref{ch:method} presents the method and Chapter~\ref{ch:results} evaluates it.
+
+\chapter{Background and related work}
+\label{ch:background}
+Survey the literature and identify the gap your work addresses \cite{ref1}.
+
+\chapter{Methodology}
+\label{ch:method}
+\section{Model}
+The actuator dynamics are approximated by
+\begin{equation}
+  M(q)\ddot{q} + C(q,\dot{q})\dot{q} + K q = \tau .
+  \label{eq:dynamics}
+\end{equation}
+\begin{proposition}
+State any formal claims your method relies on, then prove or justify them.
+\end{proposition}
+
+\section{Experimental setup}
+Figure~\ref{fig:setup} shows where a photo or diagram of the setup belongs.
+\begin{figure}[ht]
+  \centering
+  \fbox{\parbox[c][6cm][c]{0.75\linewidth}{\centering Figure placeholder}}
+  \caption{Experimental test rig.}
+  \label{fig:setup}
+\end{figure}
+
+\chapter{Results}
+\label{ch:results}
+\begin{table}[ht]
+  \centering
+  \caption{Tracking error across controllers (placeholder values).}
+  \label{tab:error}
+  \begin{tabular}{lcc}
+    \toprule
+    Controller & RMS error (mm) & Settling time (s) \\
+    \midrule
+    PID & 4.8 & 1.9 \\
+    Model predictive & 2.6 & 1.2 \\
+    Proposed & 1.4 & 0.8 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+Describe Table~\ref{tab:error} and the key trends.
+
+\chapter{Discussion}
+Interpret the results against the research questions and discuss limitations.
+
+\chapter{Conclusions and future work}
+Summarise the answers to each research question and outline what should come next.
+
+\begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibitem{ref1} A.~Author, \emph{Title of a Relevant Book}, Publisher, 2020.
+\bibitem{ref2} B.~Author and C.~Author, Title of a journal article, \emph{Journal Name} 5 (2022) 1--20.
+\end{thebibliography}
+
+\begin{appendices}
+\chapter{Supplementary data}
+Put long tables, derivations and code listings here.
+\chapter{Ethics approval}
+Include approval numbers or letters if your research needed them.
+\end{appendices}
+
+\end{document}

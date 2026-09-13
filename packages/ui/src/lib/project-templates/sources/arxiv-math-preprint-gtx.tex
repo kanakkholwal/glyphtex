@@ -1,0 +1,102 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[colorlinks,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage{cleveref}
+
+% Theorem-like environments share one counter, numbered within sections.
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% Handy shortcuts. Add your own notation here.
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}
+
+\title{A Note on Contractive Maps in Weighted Sequence Spaces}
+\author{First Author\thanks{Department of Mathematics, Example University. \texttt{first@example.edu}}
+  \and Second Author\thanks{School of Sciences, Sample Institute.}}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+State the main theorem informally and explain why it is interesting. Mention the key technique in one sentence.
+\end{abstract}
+
+\noindent\textbf{MSC 2020:} 47H10, 46B45.\quad \textbf{Keywords:} fixed point, weighted $\ell^p$ space, contraction.
+
+\section{Introduction}
+Give background, state the main result early and outline the paper.
+Our main result is \cref{thm:main}, which builds on the classical argument in \cite{banach}.
+
+\section{Preliminaries}
+\begin{definition}\label{def:weighted}
+Let $w = (w_n)_{n\in\N}$ be a sequence of positive weights. The weighted space $\ell^p_w$ consists of real sequences $x$ with
+\[
+  \norm{x}_{p,w} \coloneqq \Bigl( \sum_{n=1}^{\infty} w_n \abs{x_n}^p \Bigr)^{1/p} < \infty .
+\]
+\end{definition}
+
+\begin{lemma}\label{lem:complete}
+For every $1 \le p < \infty$ the space $(\ell^p_w, \norm{\cdot}_{p,w})$ is complete.
+\end{lemma}
+
+\begin{proof}
+Replace this sketch with your argument. Take a Cauchy sequence, show coordinatewise convergence, then use Fatou's lemma to bound the norm of the limit.
+\end{proof}
+
+\section{Main result}
+\begin{theorem}\label{thm:main}
+Let $T\colon \ell^p_w \to \ell^p_w$ satisfy $\norm{Tx - Ty}_{p,w} \le q \norm{x-y}_{p,w}$ for some $q \in [0,1)$. Then $T$ has a unique fixed point.
+\end{theorem}
+
+\begin{proof}
+By \cref{lem:complete} the space is complete. Fix $x_0$ and set $x_{k+1} = T x_k$. Then
+\begin{equation}\label{eq:geometric}
+  \norm{x_{k+1} - x_k}_{p,w} \le q^k \norm{x_1 - x_0}_{p,w},
+\end{equation}
+so $(x_k)$ is Cauchy by \eqref{eq:geometric}. Its limit is a fixed point, and uniqueness follows because two fixed points $x,y$ give $\norm{x-y} \le q\norm{x-y}$.
+\end{proof}
+
+\begin{corollary}
+Every iterate sequence of $T$ converges to the fixed point at a geometric rate.
+\end{corollary}
+
+\begin{example}
+Take $w_n = 2^{-n}$ and $(Tx)_n = \tfrac{1}{2} x_{n+1}$. Work through the constants here.
+\end{example}
+
+\begin{remark}
+Use remarks for comments that are not essential to the logical flow.
+\end{remark}
+
+\section{Open questions}
+\begin{enumerate}[label=(Q\arabic*)]
+  \item Does the result extend to $p = \infty$?
+  \item What happens for non-summable weights?
+\end{enumerate}
+
+\section*{Acknowledgements}
+Thank colleagues and grant bodies here.
+
+\begin{thebibliography}{9}
+\bibitem{banach} S.~Banach, Sur les op\'erations dans les ensembles abstraits et leur application aux \'equations int\'egrales, \emph{Fund. Math.} 3 (1922), 133--181.
+\bibitem{book} A.~Author, \emph{Topics in Functional Analysis}, Example Publishers, 2015.
+\end{thebibliography}
+
+\end{document}

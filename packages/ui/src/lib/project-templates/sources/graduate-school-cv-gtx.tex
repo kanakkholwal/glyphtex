@@ -1,0 +1,94 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+% The wide left margin holds the section titles.
+\usepackage[letterpaper,left=5cm,right=2cm,top=2cm,bottom=2cm,marginparwidth=3.2cm,marginparsep=0.6cm]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{ink}{RGB}{40,70,110}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.4ex}
+
+\titleformat{\section}[leftmargin]{\normalfont\bfseries\color{ink}\filleft}{}{0pt}{}
+\titlespacing{\section}{3.2cm}{2.2ex}{0.6cm}
+
+% \item-like entry: \cventry{bold title}{right side date}
+\newcommand{\cventry}[2]{\textbf{#1}\hfill #2\par}
+
+\newcommand{\pub}[2]{\hangindent=1.6em\hangafter=1\makebox[1.6em][l]{[#1]}#2\par}
+
+\setlist[itemize]{leftmargin=1.1em,itemsep=0pt,topsep=1pt}
+
+\begin{document}
+
+% Name and contact line. The header spans into the left margin.
+\hspace*{-3.8cm}\begin{minipage}{\dimexpr\textwidth+3.8cm}
+  {\LARGE\bfseries Priya Shah}\hfill{\small Applicant, PhD in Computational Biology}\\[-1ex]
+  {\color{ink}\rule{\linewidth}{1pt}}\\
+  \small 45 Maple Street, Sampleville \textbullet\ priya.shah@example.org \textbullet\ +1 555 0144 \textbullet\ orcid.example/0000-0000
+\end{minipage}
+
+\section{Education}
+\cventry{BSc in Biochemistry, Example University}{2021 to 2025}
+GPA 3.86 / 4.00. Minor in Computer Science.\par
+Honours thesis: \emph{Predicting protein stability from sequence with small neural networks}.
+
+\section{Research Experience}
+\cventry{Undergraduate Researcher, Chen Lab}{2023 to 2025}
+Department of Biochemistry, Example University. Supervisor: Dr.\ Morgan Chen.
+\begin{itemize}
+  \item Trained sequence models on 40,000 mutant proteins; improved accuracy by 9 points over baseline.
+  \item Wrote a reproducible analysis pipeline now used by two lab members.
+\end{itemize}
+\cventry{Summer Research Intern, Placeholder Genomics Institute}{Summer 2023}
+\begin{itemize}
+  \item Benchmarked three read alignment tools on simulated bacterial genomes.
+\end{itemize}
+
+\section{Publications and Posters}
+% One \pub per item; bold your own name.
+\pub{1}{\textbf{P. Shah} and M. Chen. Small models for protein stability. \emph{Poster}, Example Undergraduate Research Symposium, 2024.}
+\pub{2}{L. Ortiz, \textbf{P. Shah} and M. Chen. A benchmark of stability predictors. \emph{In preparation}.}
+
+\section{Honours and Awards}
+\cventry{Dean's Undergraduate Research Award}{2024}
+\cventry{Example Foundation Scholarship (merit based)}{2021 to 2025}
+
+\section{Test Scores}
+% Delete this section if your programme does not require tests.
+GRE General: Verbal 162, Quantitative 168, Analytical Writing 5.0.
+
+\section{Relevant Coursework}
+\begin{tabular}[t]{@{}p{0.45\linewidth}p{0.45\linewidth}@{}}
+  Molecular Biology & Machine Learning \\
+  Physical Chemistry & Linear Algebra \\
+  Algorithms & Biostatistics \\
+\end{tabular}
+
+\section{Technical Skills}
+\textbf{Programming:} Python, R, Bash. \textbf{Tools:} PyTorch, Git, Snakemake.\par
+\textbf{Wet lab:} PCR, protein purification, circular dichroism.
+
+\section{Teaching and Outreach}
+\cventry{Peer Tutor, Chemistry Learning Centre}{2022 to 2025}
+Weekly tutoring for introductory chemistry students.
+
+\section{References}
+\begin{minipage}[t]{0.48\linewidth}
+  \textbf{Dr.\ Morgan Chen}\\
+  Associate Professor\\
+  Example University\\
+  m.chen@example.edu
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+  \textbf{Dr.\ Jordan Ellis}\\
+  Senior Scientist\\
+  Placeholder Genomics Institute\\
+  j.ellis@example.org
+\end{minipage}
+
+\end{document}

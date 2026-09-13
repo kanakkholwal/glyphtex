@@ -1,7 +1,7 @@
 # Dependencies
 node_modules/
 .pnpm-store/
-
+.notes/
 # Build output
 .svelte-kit/
 build/

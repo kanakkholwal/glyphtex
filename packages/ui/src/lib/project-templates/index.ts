@@ -13,6 +13,8 @@ export type TemplateCategory =
 
 export type ProjectTemplate = {
 	id: string;
+	/** "overleaf": taken from the Overleaf gallery under its author's licence. "glyphtex": written for GlyphTeX. */
+	origin: "overleaf" | "glyphtex";
 	title: string;
 	description: string;
 	category: TemplateCategory;
@@ -58,17 +60,25 @@ function attribution(t: ProjectTemplate): string {
 	const lines = [
 		`# ${t.title}`,
 		"",
-		`This project started from "${t.title}" by ${t.author}.`,
+		t.origin === "glyphtex"
+			? `This project started from "${t.title}", a template written for GlyphTeX and dedicated to the public domain.`
+			: `This project started from "${t.title}" by ${t.author}.`,
 		"",
 		`- Source: ${t.sourceUrl}`,
 		`- Licence: ${t.license}${t.licenseUrl ? ` (${t.licenseUrl})` : ""}`,
-		`- Retrieved for GlyphTeX in September 2026`,
+		t.origin === "glyphtex"
+			? `- Written for GlyphTeX, September 2026`
+			: `- Retrieved for GlyphTeX in September 2026`,
 		"",
 		t.changes.length > 0
 			? `Changes made by GlyphTeX:\n\n${t.changes.map((c) => `- ${c}`).join("\n")}`
-			: "No changes were made to the original source.",
+			: t.origin === "glyphtex"
+				? ""
+				: "No changes were made to the original source.",
 		"",
-		"Keep this file if you share the project: the licence asks that the author is credited.",
+		t.origin === "glyphtex"
+			? "You can use, change and share it without credit."
+			: "Keep this file if you share the project: the licence asks that the author is credited.",
 		""
 	];
 	return lines.join("\n");

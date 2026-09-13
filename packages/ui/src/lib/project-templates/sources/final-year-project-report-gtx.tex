@@ -1,0 +1,123 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{codebg}{RGB}{245,245,245}
+\lstset{basicstyle=\ttfamily\small,backgroundcolor=\color{codebg},frame=single,rulecolor=\color{gray!40},breaklines=true,columns=fullflexible}
+
+% Compact chapter headings suit a shorter report.
+\titleformat{\chapter}{\normalfont\LARGE\bfseries}{\thechapter.}{0.6em}{}
+\titlespacing*{\chapter}{0pt}{0pt}{1.5em}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+{\large BSc (Hons) Computer Science\par}
+{\large Final Year Project Report\par}
+\vspace{3cm}
+{\huge\bfseries StudySync: A Shared Revision Planner for University Students\par}
+\vspace{3cm}
+\begin{tabularx}{0.7\linewidth}{@{}lX@{}}
+Student & Your Name \\
+Student ID & 12345678 \\
+Supervisor & Dr Supervisor Name \\
+Second marker & Dr Marker Name \\
+Word count & 9\,850 \\
+\end{tabularx}
+\vfill
+{Department of Computing, Example University\par}
+{April 2026\par}
+\end{titlepage}
+
+\pagenumbering{roman}
+\chapter*{Abstract}
+In under 300 words, say what you built or investigated, how you evaluated it and what you found.
+
+\chapter*{Statement of originality}
+I confirm that this report is my own work and that all sources are acknowledged. \\[2em]
+Signature: \rule{5cm}{0.4pt}
+
+\tableofcontents
+
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+\section{Problem statement}
+Describe the problem your project tackles and who has it.
+\section{Aims and objectives}
+\begin{enumerate}
+  \item Build a working prototype that lets students share revision timetables.
+  \item Evaluate usability with at least ten participants.
+\end{enumerate}
+
+\chapter{Background research}
+Review existing products and relevant academic work.
+
+\chapter{Requirements}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+ID & Priority & Requirement \\
+\midrule
+FR1 & Must & Users can create a revision session with a date and subject. \\
+FR2 & Must & Users can invite classmates to a shared plan. \\
+FR3 & Should & The app sends a reminder before each session. \\
+NFR1 & Must & Pages load in under two seconds on a mobile connection. \\
+\bottomrule
+\end{tabularx}
+
+\chapter{Design and implementation}
+\section{Architecture}
+Explain the main components and how they talk to each other.
+\section{Key code}
+Include only short, interesting excerpts.
+\begin{lstlisting}[language=Python]
+def overlapping(a, b):
+    return a.start < b.end and b.start < a.end
+\end{lstlisting}
+
+\chapter{Testing and evaluation}
+\begin{table}[ht]
+\centering
+\caption{System Usability Scale results (example).}
+\begin{tabular}{lc}
+\toprule
+Measure & Score \\
+\midrule
+Mean SUS score & 78.5 \\
+Participants & 12 \\
+Tasks completed without help & 92\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter{Conclusion}
+\section{Achievements}
+Relate the outcome to each objective.
+\section{Reflection}
+Say what went well, what you would change and what you learned.
+\section{Future work}
+Suggest realistic next steps.
+
+\begin{thebibliography}{9}
+\bibitem{nielsen} J.~Author, \emph{Usability Engineering Example}, Publisher, 1993.
+\bibitem{sus} K.~Author, A quick usability scale, in \emph{Usability Evaluation in Practice}, 1996, pp.~189--194.
+\end{thebibliography}
+
+\appendix
+\chapter{Project plan}
+Include your original Gantt chart or plan here.
+\chapter{User guide}
+Explain how to install and run the software.
+
+\end{document}

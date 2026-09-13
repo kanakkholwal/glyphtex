@@ -1,0 +1,91 @@
+\documentclass[a4paper,landscape]{article}
+\usepackage[top=1.5cm, bottom=0.5cm, left=0.5cm, right=0.5cm]{geometry}
+\usepackage{tikz}
+\usepackage{graphicx}
+
+% GlyphTeX: the gallery page ships no image files, so each \includegraphics draws a labelled box.
+\AtBeginDocument{\renewcommand{\includegraphics}[2][]{\fbox{\parbox[c][3cm][c]{0.4\linewidth}{\centering\small Image placeholder\\\texttt{\detokenize{#2}}}}}}
+\begin{document}
+
+% Header row: M/A and Objectives with dotted lines
+\noindent
+\begin{tabular}{@{}p{6cm}@{\hspace{3cm}}p{19.5cm}@{}}
+    \textbf{\LARGE M/A:}\hspace{0.3cm}\dotfill & \textbf{Objectives:} \dotfill
+\end{tabular}
+
+\vspace{0.1cm}
+
+\begin{center}
+\begin{tikzpicture}
+
+% === Cell dimensions ===
+\def\cellh{3}     % row height (weeks)
+\def\headerh{0.7} % header row height
+\def\cellw{3.5}   % column width (days)
+\def\col0w{3}     % width of the "Objectives" column
+
+% === Number of rows and columns ===
+\def\nrows{5} % number of weeks (rows)
+\def\ncols{8} % 1 Objectives + 7 days
+
+% === Horizontal lines ===
+\draw (0,0) -- (\col0w+7*\cellw,0);                   % top line (header start)
+\draw (0,-\headerh) -- (\col0w+7*\cellw,-\headerh);   % bottom of header
+\foreach \i in {1,...,\nrows} {
+    \draw (0,-\headerh-\i*\cellh) -- (\col0w+7*\cellw,-\headerh-\i*\cellh);
+}
+
+% === Vertical lines ===
+\draw (0,0) -- (0,-\headerh-\nrows*\cellh);           % left border
+\draw (\col0w,0) -- (\col0w,-\headerh-\nrows*\cellh); % end of objectives column
+\foreach \j in {1,...,7} {
+    \draw (\col0w+\j*\cellw,0) -- (\col0w+\j*\cellw,-\headerh-\nrows*\cellh);
+}
+
+% === Header text ===
+\node at (\col0w/2,-\headerh/2) {Focus};
+\node at (\col0w+0.5*\cellw,-\headerh/2) {Monday};
+\node at (\col0w+1.5*\cellw,-\headerh/2) {Tuesday};
+\node at (\col0w+2.5*\cellw,-\headerh/2) {Wednesday};
+\node at (\col0w+3.5*\cellw,-\headerh/2) {Thursday};
+\node at (\col0w+4.5*\cellw,-\headerh/2) {Friday};
+\node at (\col0w+5.5*\cellw,-\headerh/2) {Saturday};
+\node at (\col0w+6.5*\cellw,-\headerh/2) {Sunday};
+
+% === Week labels on the left side ===
+\foreach \i in {1,...,\nrows} {
+    \node[rotate=90, anchor=center] at (-0.4,-\headerh-\i*\cellh+\cellh/2) {Week \i};
+}
+
+% === Dotted lines inside Objectives column ===
+\foreach \i in {1,...,\nrows} { % loop over weeks
+    \foreach \k in {1,...,6} {   % six dotted rows inside each week
+        \draw (0.05*\col0w, -\headerh-\i*\cellh + \cellh*\k/7 - 0.15) 
+              node[anchor=west] {$\cdot\cdot\cdot\cdot\cdot\cdot\cdot\cdot\cdot\cdot\cdot\cdot\cdot\;\cdot$};
+    }
+}
+
+% === Small horizontal lines inside each day cell ===
+\foreach \i in {1,...,\nrows} {
+    \foreach \j in {1,...,7} {
+        % Compute coordinates
+        \pgfmathsetmacro\x{\col0w + (\j-1)*\cellw}
+        \pgfmathsetmacro\y{-\headerh - (\i-1)*\cellh}
+        % Draw line
+        \node[anchor=north west, xshift=2pt, yshift=-8pt] at (\x,\y) {\rule{0.5cm}{0.1pt}};
+    }
+}
+
+% === Logo in the middle of the table ===
+\node[opacity=0.1] 
+    at ({(\col0w + 7*\cellw)/2}, {-(\headerh + \nrows*\cellh)/2}) 
+    {\includegraphics[width=20cm]{logo.png}};
+
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.3cm}
+\noindent
+\textbf{Results:} \dotfill
+
+\end{document}

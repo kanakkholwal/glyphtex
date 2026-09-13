@@ -1,0 +1,79 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper, landscape, margin=14mm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+
+% Pick the month and year. The grid, weekdays and day count update automatically.
+\newcommand{\calyear}{2026}
+\newcommand{\calmonth}{10}
+
+% Add events as \event{day}{text}. Use \\ for a line break.
+\newcommand{\event}[2]{\expandafter\def\csname calevent#1\endcsname{#2}}
+\event{2}{Team lunch}
+\event{9}{Project\\deadline}
+\event{15}{Dentist 10:00}
+\event{21}{Book club}
+\event{31}{Halloween party}
+
+% Colours for the header, weekends and events.
+\definecolor{calink}{HTML}{283044}
+\definecolor{calaccent}{HTML}{EF8354}
+\definecolor{calweekend}{HTML}{F1F3F6}
+
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\newcommand{\monthname}[1]{\ifcase#1\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi}
+
+\begin{document}
+
+% Weekday of the 1st (Monday = 0), days in the month and rows needed.
+\pgfmathtruncatemacro{\yy}{\calmonth < 3 ? \calyear - 1 : \calyear}
+\pgfmathtruncatemacro{\sunfirst}{mod(\yy + div(\yy,4) - div(\yy,100) + div(\yy,400) + {0,3,2,5,0,3,5,1,4,6,2,4}[\calmonth-1] + 1, 7)}
+\pgfmathtruncatemacro{\offset}{mod(\sunfirst + 6, 7)}
+\pgfmathtruncatemacro{\leap}{(mod(\calyear,4) == 0 && mod(\calyear,100) != 0) || mod(\calyear,400) == 0}
+\pgfmathtruncatemacro{\ndays}{{31,28,31,30,31,30,31,31,30,31,30,31}[\calmonth-1] + (\calmonth == 2 ? \leap : 0)}
+\pgfmathtruncatemacro{\nrows}{ceil((\offset + \ndays) / 7)}
+\pgfmathsetlengthmacro{\cellh}{142mm / \nrows}
+
+\begin{tikzpicture}[x=38.4mm, y=-\cellh]
+  % Header with month and year.
+  \node[anchor=south west, font=\bfseries\fontsize{44}{48}\selectfont, text=calink, inner sep=0pt]
+    at (0,-0.1) {\monthname{\calmonth}};
+  \node[anchor=south east, font=\fontsize{44}{48}\selectfont, text=calaccent, inner sep=0pt]
+    at (7,-0.1) {\calyear};
+
+  % Weekday names row.
+  \foreach \name [count=\i from 0] in {Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday} {
+    \fill[calink] (\i,0) rectangle ++(1,-8mm);
+    \node[text=white, font=\small\bfseries] at (\i+0.5,-4mm) {\name};
+  }
+
+  \begin{scope}[yshift=-10mm]
+    % Weekend shading and grid.
+    \fill[calweekend] (5,0) rectangle (7,\nrows);
+    \foreach \c in {1,...,6} {\draw[calink!30] (\c,0) -- (\c,\nrows);}
+    \foreach \r in {1,...,\nrows} {\draw[calink!30] (0,\r) -- (7,\r);}
+    \draw[calink, line width=1pt] (0,0) rectangle (7,\nrows);
+
+    % Day numbers and events.
+    \foreach \d in {1,...,\ndays} {
+      \pgfmathtruncatemacro{\pos}{\offset + \d - 1}
+      \pgfmathtruncatemacro{\col}{mod(\pos, 7)}
+      \pgfmathtruncatemacro{\row}{div(\pos, 7)}
+      \node[anchor=north west, font=\large\bfseries, text=calink] at (\col+0.03,\row+0.04) {\d};
+      \ifcsname calevent\d\endcsname
+        \node[anchor=south west, fill=calaccent!20, draw=calaccent, rounded corners=2pt,
+          font=\scriptsize, align=left, text width=30mm] at (\col+0.05,\row+0.95) {\csname calevent\d\endcsname};
+      \fi
+    }
+  \end{scope}
+\end{tikzpicture}
+
+\vfill
+{\small\color{calink!70} Notes:\ \hrulefill\par}
+
+\end{document}

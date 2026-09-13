@@ -1,0 +1,58 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a2paper, margin=30mm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+
+% Only two colours: paper and ink, plus one accent.
+\definecolor{paper}{HTML}{F4F1EA}
+\definecolor{ink}{HTML}{111111}
+\definecolor{signal}{HTML}{D62828}
+
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% A small label above a detail, used in the bottom grid.
+\newcommand{\detail}[2]{{\fontsize{13}{16}\selectfont\color{ink!55}#1\par}\vspace{2mm}{\fontsize{20}{26}\selectfont\bfseries #2\par}}
+
+\begin{document}
+\pagecolor{paper}
+\color{ink}
+
+{\fontsize{16}{20}\selectfont\bfseries 2026 \hfill Exhibition \hfill 14.10 to 30.11\par}
+\vspace{4mm}
+\rule{\linewidth}{1.5pt}
+\vspace{36mm}
+
+% The headline. Short words at huge sizes work best.
+{\fontsize{190}{165}\selectfont\bfseries\raggedright
+Less\par
+Is\par
+\textcolor{signal}{Loud.}\par}
+
+\vfill
+
+\begin{minipage}[t]{0.55\linewidth}
+  \fontsize{19}{27}\selectfont
+  A quiet show of posters, books and signs made with a single typeface and nothing else.
+  Forty designers, one rule: no images.
+\end{minipage}
+
+\vspace{30mm}
+\rule{\linewidth}{1.5pt}
+\vspace{8mm}
+
+% Edit the three details at the bottom.
+\begin{minipage}[t]{0.32\linewidth}
+  \detail{Where}{Hall 3, Example\\Design Museum}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\linewidth}
+  \detail{When}{Tuesday to Sunday\\10:00 to 18:00}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.3\linewidth}
+  \detail{Entry}{Free\\example.org/less}
+\end{minipage}
+
+\end{document}

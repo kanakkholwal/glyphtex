@@ -1,0 +1,73 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\title[About Beamer]
+{About the Beamer class in presentation making}
+
+\subtitle{A short story}
+
+\author[Arthur, Doe] % (optional, for multiple authors)
+{A.~B.~Arthur\inst{1} \and J.~Doe\inst{2}}
+
+\institute[UofT] % (optional)
+{
+  \inst{1}%
+  Faculty of Physics\\
+  Very Famous University
+  \and
+  \inst{2}%
+  Faculty of Chemistry\\
+  Very Famous University
+}
+
+\date[ICLR 2023] % (optional)
+{ICLR, May 2023}
+
+\logo{\includegraphics[height=0.8cm]{logo_uoft}}
+
+\definecolor{uoftblue}{RGB}{6,41,88}
+\setbeamercolor{titlelike}{bg=uoftblue}
+\setbeamerfont{title}{series=\bfseries}
+
+% GlyphTeX: the gallery page ships no image files, so each \includegraphics draws a labelled box.
+\AtBeginDocument{\renewcommand{\includegraphics}[2][]{\fbox{\parbox[c][3cm][c]{0.4\linewidth}{\centering\small Image placeholder\\\texttt{\detokenize{#2}}}}}}
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Table of Contents}
+\tableofcontents
+\end{frame}
+
+\section{First section}
+
+\begin{frame}
+\frametitle{Sample frame title}
+This is some text in the first frame. This is some text in the first frame. This is some text in the first frame.
+\end{frame}
+
+\section{Second section}
+
+\begin{frame}
+\frametitle{Highlighting text}
+
+In this slide, some important text will be
+\alert{highlighted} because it's important.
+Please, don't abuse it.
+
+\begin{block}{Remark}
+Sample text
+\end{block}
+
+\begin{alertblock}{Important theorem}
+Sample text in red box
+\end{alertblock}
+
+\begin{examples}
+Sample text in green box. The title of the block is ``Examples".
+\end{examples}
+\end{frame}
+
+\end{document}

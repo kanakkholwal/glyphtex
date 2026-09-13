@@ -1,0 +1,120 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2cm,headheight=14pt]{geometry}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{siunitx}
+\DeclareSIUnit\molar{M}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{ink}{RGB}{35,60,95}
+\definecolor{paper}{RGB}{252,250,243}
+\setlength{\parindent}{0pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small\textsf{Lab notebook: Project Name}}
+\rhead{\small\textsf{Researcher Name}}
+\cfoot{\small\thepage}
+
+% Each dated entry starts with \entry{date}{short title}.
+\titleformat{\section}{\normalfont\sffamily\large\bfseries\color{ink}}{}{0pt}{}
+\newcommand{\entry}[2]{\clearpage\section{#1 \textbar\ #2}}
+
+% Boxes for the recurring parts of an entry.
+\newtcolorbox{aim}{enhanced,breakable,colback=paper,colframe=ink,boxrule=0.6pt,arc=1mm,title=Aim,fonttitle=\sffamily\bfseries}
+\newtcolorbox{observation}{enhanced,breakable,colback=white,colframe=ink!50,boxrule=0.4pt,arc=1mm,title=Observations,fonttitle=\sffamily\bfseries,coltitle=black,colbacktitle=ink!10}
+\newtcolorbox{nextsteps}{enhanced,breakable,colback=ink!5,colframe=ink!5,arc=1mm,left=2mm}
+
+\begin{document}
+
+\begin{center}
+{\sffamily\Huge\bfseries\color{ink} Research Notebook\par}
+\vspace{0.5em}
+{\large Project: Enzyme kinetics of variant lactase\par}
+\vspace{0.3em}
+Owner: Researcher Name \quad Lab: Room 2.14 \quad Started: 5 January 2026
+\end{center}
+
+\vspace{1em}
+\begin{tcolorbox}[colback=paper,colframe=ink,title=How to use this notebook,fonttitle=\sffamily\bfseries]
+Add a new entry for every working day. Record what you planned, what you actually did, raw observations and what to try next. Never delete a failed result: note why it failed.
+\end{tcolorbox}
+
+\tableofcontents
+
+\entry{2026-01-05}{Buffer preparation}
+
+\begin{aim}
+Prepare phosphate buffer for the week's assays and check its pH.
+\end{aim}
+
+\textbf{Materials}
+\begin{itemize}[nosep]
+  \item \SI{0.1}{\molar} sodium phosphate, \SI{500}{\milli\litre}
+  \item pH meter, calibrated at 09:10
+\end{itemize}
+
+\textbf{Procedure}
+\begin{enumerate}[nosep]
+  \item Dissolved salts in \SI{400}{\milli\litre} deionised water.
+  \item Adjusted to pH 7.0 and topped up to volume.
+\end{enumerate}
+
+\begin{observation}
+Final pH 7.02 at \SI{22}{\celsius}. Solution clear. Stored at \SI{4}{\celsius}, bottle labelled B-01.
+\end{observation}
+
+\begin{nextsteps}
+\textbf{Next:} run the substrate dilution series tomorrow. Order more ONPG.
+\end{nextsteps}
+
+\entry{2026-01-06}{Substrate dilution series}
+
+\begin{aim}
+Measure initial reaction rates at six substrate concentrations.
+\end{aim}
+
+\begin{center}
+\begin{tabular}{ccc}
+\hline
+Tube & [S] (\si{\milli\molar}) & $A_{420}$ after \SI{60}{\second} \\
+\hline
+1 & 0.5 & 0.081 \\
+2 & 1.0 & 0.142 \\
+3 & 2.0 & 0.231 \\
+4 & 4.0 & 0.330 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{observation}
+Tube 4 showed bubbles in the cuvette; repeat before fitting. Sketch or paste plots below.
+\end{observation}
+
+\fbox{\parbox[c][4cm][c]{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\centering\textsf{Figure placeholder: rate against [S]}}}
+
+\begin{nextsteps}
+\textbf{Next:} repeat tube 4, then fit Michaelis and Menten parameters.
+\end{nextsteps}
+
+\entry{YYYY-MM-DD}{Entry title}
+Copy this empty entry for each new day.
+
+\begin{aim}
+What do you plan to do today?
+\end{aim}
+
+\begin{observation}
+What happened? Include numbers, units and anything unexpected.
+\end{observation}
+
+\begin{nextsteps}
+\textbf{Next:}
+\end{nextsteps}
+
+\end{document}

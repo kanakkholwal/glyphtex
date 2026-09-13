@@ -1,0 +1,109 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm,headheight=14pt]{geometry}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{caption}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{band}{RGB}{30,70,110}
+\captionsetup{font=small,labelfont=bf}
+
+% Report details used on the cover block and in the header.
+\newcommand{\reportnumber}{TR-2026-014}
+\newcommand{\reporttitle}{Tensile Testing of 3D-Printed PLA Specimens}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small\reportnumber}
+\rhead{\small\reporttitle}
+\cfoot{\small Page \thepage\ of \pageref{LastPage}}
+
+\begin{document}
+
+\thispagestyle{empty}
+{\color{band}\rule{\linewidth}{4pt}}
+\vspace{0.5em}
+
+{\noindent\Huge\bfseries\reporttitle\par}
+\vspace{0.4em}
+{\noindent\large Technical Report \reportnumber\par}
+\vspace{1.2em}
+
+\noindent\begin{tabularx}{\linewidth}{@{}lX@{}}
+\textbf{Prepared by} & Lab Member Name, Mechanical Testing Laboratory \\
+\textbf{Supervisor} & Supervisor Name \\
+\textbf{Date of tests} & 2 to 6 March 2026 \\
+\textbf{Status} & Draft for internal review \\
+\end{tabularx}
+
+\vspace{1em}
+{\color{band}\rule{\linewidth}{0.6pt}}
+
+\section*{Summary}
+In three or four sentences, say what was tested, how, and the most important number.
+
+\tableofcontents
+
+\section{Objective}
+State what question the tests were designed to answer.
+
+\section{Equipment and materials}
+\begin{itemize}
+  \item Universal testing machine, \SI{10}{\kilo\newton} load cell
+  \item PLA filament, \SI{1.75}{\milli\metre}, printed at \SI{210}{\celsius}
+  \item Digital calipers with \SI{0.01}{\milli\metre} resolution
+\end{itemize}
+
+\section{Procedure}
+\begin{enumerate}
+  \item Condition specimens for \SI{48}{\hour} at \SI{23}{\celsius}.
+  \item Measure gauge width and thickness at three points.
+  \item Load at a crosshead speed of \SI{5}{\milli\metre\per\minute} until fracture.
+\end{enumerate}
+Ultimate tensile strength is computed as $\sigma_u = F_{\max}/A_0$.
+
+\section{Results}
+Table~\ref{tab:results} lists the measured values and Figure~\ref{fig:curve} shows where the stress and strain plot belongs.
+
+\begin{table}[ht]
+\centering
+\caption{Tensile results by infill orientation (example data).}
+\label{tab:results}
+\begin{tabular}{l S[table-format=1.0] S[table-format=2.1] S[table-format=1.2] S[table-format=1.1]}
+\toprule
+{Orientation} & {$n$} & {$\sigma_u$ (\si{\mega\pascal})} & {$E$ (\si{\giga\pascal})} & {Strain at break (\%)} \\
+\midrule
+0\textdegree  & 5 & 52.3 & 3.41 & 3.2 \\
+45\textdegree & 5 & 44.8 & 3.12 & 2.7 \\
+90\textdegree & 5 & 31.6 & 2.95 & 1.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\fbox{\parbox[c][5.5cm][c]{0.8\linewidth}{\centering\textsf{Figure placeholder}\\[0.3em]\small Replace with a stress and strain plot}}
+\caption{Representative stress and strain curves.}
+\label{fig:curve}
+\end{figure}
+
+\section{Discussion}
+Explain trends, likely sources of error and whether the objective was met.
+
+\section{Conclusions and recommendations}
+\begin{enumerate}
+  \item First conclusion, backed by a number from the results.
+  \item Recommendation for design or further testing.
+\end{enumerate}
+
+\appendix
+\section{Raw measurements}
+Attach full data tables or calibration certificates here.
+
+\end{document}

@@ -1,0 +1,148 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[skins]{tcolorbox}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+% Assignment details.
+\newcommand{\course}{CS 150 Data Structures}
+\newcommand{\assignment}{Assignment 2: Hash Tables}
+\newcommand{\student}{Kai Turner (ID 20260417)}
+
+\definecolor{codebg}{RGB}{248,248,250}
+\definecolor{codekw}{RGB}{0,90,170}
+\definecolor{codestr}{RGB}{160,60,20}
+\definecolor{codecom}{RGB}{100,120,100}
+\definecolor{head}{RGB}{40,40,60}
+
+% Code style: change language or colours here.
+\lstdefinestyle{assignment}{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestr},
+  commentstyle=\color{codecom}\itshape,
+  backgroundcolor=\color{codebg},
+  numbers=left, numberstyle=\tiny\color{gray}, numbersep=8pt,
+  frame=leftline, framerule=2pt, rulecolor=\color{codekw},
+  xleftmargin=18pt, showstringspaces=false, breaklines=true,
+  columns=fullflexible, keepspaces=true, tabsize=4
+}
+\lstset{style=assignment}
+
+\titleformat{\section}{\Large\sffamily\bfseries\color{head}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\sffamily\bfseries\color{head}}{\thesubsection}{0.6em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\course}
+\fancyhead[R]{\small\sffamily\student}
+\fancyfoot[C]{\small\thepage}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+% Labelled answer block: \begin{answerbox}{task number} ... \end{answerbox}
+\newtcolorbox{answerbox}[1]{enhanced,colback=white,colframe=codekw,boxrule=0.6pt,arc=2pt,
+  title={\sffamily\bfseries Answer to Task #1},colbacktitle=codekw,coltitle=white}
+
+\begin{document}
+
+\begin{center}
+  {\sffamily\small\color{gray}\course}\\[4pt]
+  {\sffamily\LARGE\bfseries\color{head}\assignment}\\[6pt]
+  \student \quad\textbar\quad Submitted \today
+\end{center}
+
+\begin{tcolorbox}[enhanced,colback=codebg,colframe=codebg,borderline west={3pt}{0pt}{codestr},arc=0pt]
+  \textbf{Deliverables.} A single file \texttt{hashtable.py}, this write-up as a PDF, and the output of the test script. Late submissions lose 10 percent per day.
+\end{tcolorbox}
+
+\section{Tasks}
+% Edit the task list to match your assignment brief.
+\begin{enumerate}[label=\textbf{Task \arabic*.},leftmargin=*,align=left]
+  \item Implement a hash table with separate chaining that supports \texttt{put}, \texttt{get} and \texttt{remove}.
+  \item Resize the table when the load factor exceeds 0.75.
+  \item Measure the average time of \texttt{get} for $10^3$ to $10^6$ keys and explain the results.
+\end{enumerate}
+
+\section{Implementation}
+\subsection{Core class}
+\begin{lstlisting}
+class HashTable:
+    """A hash table using separate chaining."""
+
+    def __init__(self, capacity=8):
+        self.buckets = [[] for _ in range(capacity)]
+        self.size = 0
+
+    def _index(self, key):
+        return hash(key) % len(self.buckets)
+
+    def put(self, key, value):
+        bucket = self.buckets[self._index(key)]
+        for pair in bucket:
+            if pair[0] == key:
+                pair[1] = value  # update existing key
+                return
+        bucket.append([key, value])
+        self.size += 1
+        if self.size / len(self.buckets) > 0.75:
+            self._resize()
+\end{lstlisting}
+
+\subsection{Resizing}
+Doubling the number of buckets keeps chains short. Every item must be rehashed because the index depends on the table length.
+\begin{lstlisting}[firstnumber=20]
+    def _resize(self):
+        old = self.buckets
+        self.buckets = [[] for _ in range(2 * len(old))]
+        self.size = 0
+        for bucket in old:
+            for key, value in bucket:
+                self.put(key, value)
+\end{lstlisting}
+
+\subsection{Testing}
+Run the tests from a terminal with \lstinline[language=bash]!python -m pytest tests/!. Sample output:
+\begin{lstlisting}[language={},numbers=none,backgroundcolor=\color{black!85},basicstyle=\ttfamily\small\color{white},rulecolor=\color{black}]
+============ 6 passed in 0.04s ============
+\end{lstlisting}
+
+\section{Answers}
+
+\begin{answerbox}{1}
+All three operations hash the key to a bucket and then scan that bucket. With a good hash function and a bounded load factor the expected chain length is constant, so each operation runs in $O(1)$ expected time.
+\end{answerbox}
+
+\begin{answerbox}{2}
+The table resizes when \texttt{size / capacity > 0.75}. A single resize costs $O(n)$, but because the capacity doubles each time the amortised cost per insertion remains $O(1)$.
+\end{answerbox}
+
+\begin{answerbox}{3}
+\begin{center}
+\begin{tabular}{rrr}
+  \toprule
+  Keys & Mean \texttt{get} time (ns) & Resizes \\
+  \midrule
+  1,000 & 142 & 7 \\
+  10,000 & 150 & 11 \\
+  100,000 & 161 & 14 \\
+  1,000,000 & 188 & 17 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+Lookup time stays almost flat, which matches the $O(1)$ expectation. The small increase at one million keys is likely caused by CPU cache misses rather than longer chains.
+\end{answerbox}
+
+\section{Reflection}
+Write a few sentences about what you found difficult, what you would improve and any sources or help you used.
+
+\end{document}

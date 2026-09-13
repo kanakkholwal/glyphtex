@@ -1,0 +1,66 @@
+\documentclass[12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+\definecolor{slate}{RGB}{70,80,95}
+
+% Fill in these details once; they are reused below.
+\newcommand{\employee}{Taylor Reed}
+\newcommand{\position}{Senior Accountant}
+\newcommand{\manager}{Chris Walker}
+\newcommand{\employer}{Sample Financial Services}
+\newcommand{\lastday}{Friday, 30 October 2026}
+
+\begin{document}
+
+% Your name and address, centred at the top.
+\begin{center}
+  {\Large\scshape \employee}\\[2pt]
+  {\color{slate}\small 310 Oak Avenue, Example City, CA 90000 \quad taylor.reed@example.com}
+\end{center}
+\vspace{-0.6em}
+{\color{slate}\rule{\textwidth}{0.6pt}}
+
+\today
+
+\manager\\
+Finance Manager\\
+\employer\\
+1200 Commerce Drive\\
+Example City, CA 90001
+
+\textbf{Re: Notice of resignation}
+
+Dear \manager,
+
+Please accept this letter as formal notice of my resignation from my position as \position\ at \employer. In line with my four-week notice period, my last working day will be \lastday.
+
+I am grateful for the opportunities I have had over the past five years. Working on the audit readiness project with you and the team taught me a great deal, and I will value those experiences throughout my career.
+
+To make the handover as smooth as possible, I propose the following:
+
+% A small checklist you can edit or remove.
+\begin{tabular}{@{}p{0.62\textwidth}l@{}}
+  \toprule
+  \textbf{Task} & \textbf{Target date} \\
+  \midrule
+  Document month-end closing procedures & 9 October \\
+  Train a colleague on supplier reconciliations & 16 October \\
+  Hand over open audit queries & 23 October \\
+  \bottomrule
+\end{tabular}
+
+I am happy to help with recruiting or training my replacement during this time. Thank you again for your support, and I wish you and the company continued success.
+
+Kind regards,
+
+\vspace{2.5em}
+\employee
+
+\end{document}

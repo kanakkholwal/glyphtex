@@ -1,0 +1,51 @@
+\documentclass[12 pt]{article}        	%sets the font to 12 pt and says this is an article (as opposed to book or other documents)
+\usepackage{amsfonts, amssymb}					% packages to get the fonts, symbols used in most math
+  
+%\usepackage{setspace}               		% Together with \doublespacing below allows for doublespacing of the document
+
+\oddsidemargin=-0.5cm                 	% These three commands create the margins required for class
+\setlength{\textwidth}{6.5in}         	%
+\addtolength{\voffset}{-20pt}        		%
+\addtolength{\headsep}{25pt}           	%
+
+
+
+\pagestyle{myheadings}                           	% tells LaTeX to allow you to enter information in the heading
+\markright{Murphy Waggoner\hfill \today \hfill} 	% put your name instead of Murphy Waggoner 
+																									% and put the proposition number from the book
+                                                	% LaTeX will put your name on the left, the date the paper 
+                                                	% is generated in the middle 
+                                                 	% and a page number on the right
+
+
+
+\newcommand{\eqn}[0]{\begin{array}{rcl}}%begin an aligned equation - allows for aligning = or inequalities.  Always use with $$ $$
+\newcommand{\eqnend}[0]{\end{array} }  	%end the aligned equation
+
+\newcommand{\qed}[0]{$\square$}        	% make an unfilled square the default for ending a proof
+
+%\doublespacing                         	% Together with the package setspace above allows for doublespacing of the document
+
+\begin{document}												% end of preamble and beginning of text that will be printed
+
+        																% makes the word Proposition and the proposition number bold face  
+\textbf{Proposition R.231:}							% the Proposition number from the book (this one is fictitious)
+Prove that $A = \left\{m + n\sqrt{3}\ |\ m,n \in \mathbb{Z} \right\}$ is closed under mulitplication.
+                                   
+																				% be sure to leave at least one blank line here so that 
+																				% the Proof starts with a new paragraph
+
+\textbf{Proof:}              						% makes the word Proof bold face
+Let $A = \left\{m + n\sqrt{3}\ |\ m,n \in \mathbb{Z} \right\},$ 
+and let $m + n\sqrt{3}$ and $p + q\sqrt{3}$ be elements of $A$.
+Then 
+$$\eqn 
+\left( m + n\sqrt{3} \right)\left(p + q\sqrt{3} \right) & = & mp + mq\sqrt{3} + np\sqrt{3}  + 3qn\\
+																												& = & (mp + 3qn) + (mq + np)\sqrt{3}.\\    
+																															  \eqnend$$
+Since $m, n, p, q \in \mathbb{Z}$, $mp + 3nq$ and $ mq + np$ are both integers.  Therefore, 
+$$\left( m + n\sqrt{3} \right)\left(p + q\sqrt{3}   \right) \in A,$$ 
+and $A$ is closed under multiplication. \qed
+
+
+\end{document}

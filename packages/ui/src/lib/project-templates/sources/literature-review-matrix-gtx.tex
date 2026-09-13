@@ -1,0 +1,93 @@
+% The references below are written to refs.bib when you compile. Edit entries here.
+\begin{filecontents*}[overwrite]{refs.bib}
+@article{garcia2020,
+  author  = {Garcia, Lucia and Patel, Ravi},
+  title   = {Peer tutoring and mathematics anxiety in secondary schools},
+  journal = {Journal of Example Education},
+  year    = {2020},
+  volume  = {18},
+  number  = {3},
+  pages   = {201--219}
+}
+@article{kim2021,
+  author  = {Kim, Hana},
+  title   = {Online feedback tools in first-year writing courses},
+  journal = {Example Review of Learning Technology},
+  year    = {2021},
+  volume  = {9},
+  pages   = {45--63}
+}
+@book{osei2019,
+  author    = {Osei, Kwame},
+  title     = {Classroom Talk and Conceptual Change},
+  publisher = {Example Academic Press},
+  year      = {2019}
+}
+@inproceedings{novak2022,
+  author    = {Novak, Petra and Silva, Joao},
+  title     = {Formative quizzes at scale: a quasi-experiment},
+  booktitle = {Proceedings of the Example Conference on Learning Analytics},
+  year      = {2022},
+  pages     = {112--120}
+}
+\end{filecontents*}
+\documentclass[10pt,a4paper]{article}
+\usepackage[a4paper,landscape,margin=1.6cm]{geometry}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage[authoryear,round]{natbib}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{headbg}{RGB}{40,55,75}
+\definecolor{rowbg}{RGB}{242,245,249}
+\setlength{\parindent}{0pt}
+
+% Column widths for the matrix. Adjust the numbers if text wraps badly.
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\head}[1]{\textcolor{white}{\bfseries #1}}
+
+\begin{document}
+
+{\Large\bfseries Literature Review Matrix\par}
+\smallskip
+Topic: feedback and peer learning in classrooms \quad|\quad Compiled by Your Name \quad|\quad Last updated 13 September 2026
+
+\medskip
+Use one row per source. Fill every column even when the answer is ``not reported'', so gaps become visible.
+
+\medskip
+\renewcommand{\arraystretch}{1.35}
+\small
+\begin{longtable}{@{}P{3.2cm}P{3.4cm}P{2.6cm}P{2.4cm}P{4.6cm}P{4.4cm}@{}}
+\rowcolor{headbg}
+\head{Source} & \head{Research question} & \head{Design} & \head{Sample} & \head{Key findings} & \head{Relevance and gaps} \\
+\endfirsthead
+\rowcolor{headbg}
+\head{Source} & \head{Research question} & \head{Design} & \head{Sample} & \head{Key findings} & \head{Relevance and gaps} \\
+\endhead
+\bottomrule
+\endlastfoot
+\citet{garcia2020} & Does peer tutoring reduce mathematics anxiety? & Randomised trial & 312 students, 8 schools & Anxiety fell by a moderate amount over one term & Strong design; no follow-up beyond one term \\
+\rowcolor{rowbg}
+\citet{kim2021} & How do students use online feedback tools? & Mixed methods & 96 students, 1 university & Most students read feedback but few revise & Single site; shows the uptake problem \\
+\citet{osei2019} & How does classroom talk change understanding? & Theoretical and case studies & 4 classrooms & Structured talk supports conceptual change & Useful framework for my coding scheme \\
+\rowcolor{rowbg}
+\citet{novak2022} & Do weekly quizzes improve exam results? & Quasi-experiment & 1\,450 students & Small positive effect on final grades & Large sample; possible selection bias \\
+\end{longtable}
+
+\normalsize
+\section*{Synthesis notes}
+\begin{itemize}
+  \item \textbf{Agreement:} note where sources point the same way.
+  \item \textbf{Disagreement:} note conflicting findings and possible reasons.
+  \item \textbf{Gap for my study:} one sentence on what nobody has tested yet.
+\end{itemize}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

@@ -1,0 +1,76 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper, margin=12mm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+
+% Planner colours.
+\definecolor{plink}{HTML}{3D405B}
+\definecolor{placcent}{HTML}{81B29A}
+\definecolor{plsoft}{HTML}{F4F1DE}
+\definecolor{plwarm}{HTML}{E07A5F}
+
+% Edit the week title and the seven day labels.
+\newcommand{\weektitle}{Week of 12 October 2026}
+\newcommand{\daylist}{Monday 12, Tuesday 13, Wednesday 14, Thursday 15, Friday 16, Saturday 17, Sunday 18}
+
+% Habits to track, one per row in the tracker (up to four fit).
+\newcommand{\habitlist}{Drink water, Move 30 min, Read, Sleep by 23:00}
+
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\begin{tikzpicture}[x=1mm, y=-1mm, line cap=round]
+  % Header.
+  \node[anchor=north west, font=\bfseries\fontsize{30}{34}\selectfont, text=plink, inner sep=0pt] at (0,0) {Weekly Planner};
+  \node[anchor=north east, font=\large, text=plwarm, inner sep=0pt] at (186,3) {\weektitle};
+  \draw[plink, line width=1.5pt] (0,13) -- (186,13);
+
+  % Top priorities strip.
+  \fill[plsoft] (0,17) rectangle (120,46);
+  \node[anchor=north west, font=\small\bfseries, text=plink] at (3,19) {TOP PRIORITIES};
+  \foreach \k in {1,2,3} {
+    \draw[placcent, line width=1pt] (5,21+7*\k) circle (1.8);
+    \draw[plink!30] (10,23+7*\k) -- (116,23+7*\k);
+  }
+  \fill[plsoft] (124,17) rectangle (186,46);
+  \node[anchor=north west, font=\small\bfseries, text=plink] at (127,19) {FOCUS WORD};
+  \node[font=\itshape\Large, text=plink!60] at (155,35) {steady};
+
+  % Day boxes: two columns of four, the last slot holds notes.
+  \foreach \day [count=\i from 0] in \daylist {
+    \pgfmathtruncatemacro{\col}{mod(\i,2)}
+    \pgfmathtruncatemacro{\row}{div(\i,2)}
+    \pgfmathsetmacro{\bx}{\col*95}
+    \pgfmathsetmacro{\by}{51+\row*45}
+    \draw[plink!40, rounded corners=3pt] (\bx,\by) rectangle (\bx+91,\by+41);
+    \fill[plink, rounded corners=3pt] (\bx,\by) rectangle (\bx+91,\by+8);
+    \fill[plink] (\bx,\by+4) rectangle (\bx+91,\by+8);
+    \node[anchor=west, text=white, font=\small\bfseries] at (\bx+3,\by+4) {\day};
+    \foreach \l in {1,...,6} {
+      \draw[plink!15] (\bx+3,\by+8+5*\l) -- (\bx+88,\by+8+5*\l);
+    }
+  }
+  \draw[placcent, rounded corners=3pt, line width=1pt] (95,186) rectangle (186,227);
+  \node[anchor=north west, font=\small\bfseries, text=placcent!70!black] at (98,188) {NOTES};
+
+  % Habit tracker grid.
+  \node[anchor=north west, font=\small\bfseries, text=plink] at (0,232) {HABIT TRACKER};
+  \foreach \d [count=\j from 0] in {M,T,W,T,F,S,S} {
+    \node[font=\small\bfseries, text=plink] at (60+\j*12,240) {\d};
+  }
+  \foreach \h [count=\r from 0] in \habitlist {
+    \node[anchor=west, font=\small, text=plink] at (0,247+\r*6) {\h};
+    \foreach \j in {0,...,6} {
+      \draw[placcent, line width=0.8pt] (60+\j*12,247+\r*6) circle (2.2);
+    }
+  }
+  \fill[plsoft, rounded corners=3pt] (148,234) rectangle (186,268);
+  \node[anchor=north west, font=\small\bfseries, text=plink] at (151,236) {WINS};
+\end{tikzpicture}
+
+\end{document}

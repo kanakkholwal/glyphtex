@@ -1,0 +1,101 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,left=1.8cm,right=1.8cm,top=5.6cm,bottom=1.6cm]{geometry}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{eso-pic}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+
+% Palette: swap these three colours to restyle the whole page.
+\definecolor{coral}{RGB}{255,94,91}
+\definecolor{plum}{RGB}{61,38,69}
+\definecolor{sun}{RGB}{255,200,87}
+
+% Header band with overlapping shapes, drawn behind the first page.
+\AddToShipoutPictureBG*{%
+  \AtPageUpperLeft{%
+    \begin{tikzpicture}[overlay]
+      \fill[plum] (0,0) rectangle (\paperwidth,-4.6cm);
+      \fill[coral] (\paperwidth-7cm,0) -- (\paperwidth,0) -- (\paperwidth,-4.6cm) -- (\paperwidth-3.5cm,-4.6cm) -- cycle;
+      \fill[sun] (\paperwidth-4.2cm,-4.6cm) circle (1.1cm);
+      \fill[coral] (1.8cm,-4.6cm) rectangle (5cm,-4.75cm);
+      % Your name, role and contact line.
+      \node[anchor=north west,text=white,font=\fontsize{34}{38}\selectfont\bfseries] at (1.7cm,-1cm) {Sam Delgado};
+      \node[anchor=north west,text=sun,font=\large] at (1.8cm,-2.5cm) {Visual and Brand Designer};
+      \node[anchor=north west,text=white,font=\small] at (1.8cm,-3.4cm) {sam.delgado@example.com \quad portfolio.example.com/sam \quad Lisbon (fictional studio address)};
+    \end{tikzpicture}}}
+
+% Round coloured marker used as a text-free icon.
+\newcommand{\marker}[1]{\tikz[baseline=-0.6ex]\fill[#1] circle (3.5pt);}
+
+% Section title with a short coloured bar.
+\newcommand{\block}[1]{\par\vspace{1.2em}{\large\bfseries\color{plum}\MakeUppercase{#1}}\par\vspace{0.1em}\tikz\fill[coral] (0,0) rectangle (1.2cm,0.12cm);\par\vspace{0.5em}}
+
+% \work{client or studio}{role}{year}
+\newcommand{\work}[3]{{\bfseries\color{plum}#1}\hfill{\color{coral}\bfseries #3}\par{\itshape #2}\par\vspace{0.2em}}
+
+% A dotted rating from 1 to 5: \rating{Figma}{5}
+\newcommand{\rating}[2]{#1\hfill\foreach \i in {1,...,5}{\ifnum\i>#2\tikz[baseline=-0.6ex]\draw[plum!40] circle (2.5pt);\else\tikz[baseline=-0.6ex]\fill[coral] circle (2.5pt);\fi\hspace{1pt}}\par\vspace{2pt}}
+
+\setlist[itemize]{leftmargin=1em,itemsep=1pt,topsep=2pt,label={\color{coral}\textbullet}}
+
+\begin{document}
+
+\begin{minipage}[t]{0.62\textwidth}
+  \raggedright
+  \block{Hello}
+  I design brand identities, packaging and editorial layouts for small independent businesses. I like bold colour, honest typography and ideas that can be explained in one sentence.
+
+  \block{Selected Work}
+  \work{Harbour Coffee Roasters}{Brand identity and packaging system}{2025}
+  \begin{itemize}
+    \item Logo, colour system and 12 bag designs; sales grew 30 percent after relaunch.
+  \end{itemize}
+  \vspace{0.4em}
+  \work{Example City Book Festival}{Poster series and wayfinding}{2024}
+  \begin{itemize}
+    \item Eight posters and signage for four venues; shortlisted for a regional design prize.
+  \end{itemize}
+  \vspace{0.4em}
+  \work{Studio Placeholder}{Junior Designer}{2021 to 2023}
+  \begin{itemize}
+    \item Produced social media campaigns and print collateral for 20 clients.
+    \item Built the studio's shared template library.
+  \end{itemize}
+
+  \block{Education}
+  \work{BA Graphic Communication}{Example School of Art and Design}{2018 to 2021}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.32\textwidth}
+  \raggedright
+  \block{Toolkit}
+  \rating{Figma}{5}
+  \rating{Illustrator}{5}
+  \rating{InDesign}{4}
+  \rating{Photoshop}{4}
+  \rating{After Effects}{3}
+  \rating{Blender}{2}
+
+  \block{Strengths}
+  \marker{coral}\ Visual identity\par\vspace{3pt}
+  \marker{sun}\ Typography\par\vspace{3pt}
+  \marker{plum}\ Illustration\par\vspace{3pt}
+  \marker{coral}\ Art direction\par
+
+  \block{Recognition}
+  \textbf{Shortlist}, Regional Design Prize (fictional), 2024\par\vspace{3pt}
+  \textbf{Feature}, Sample Design Journal, 2023
+
+  \block{Languages}
+  Portuguese, English, French
+\end{minipage}
+
+\end{document}

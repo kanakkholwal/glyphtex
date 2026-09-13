@@ -1,0 +1,73 @@
+% Project:  TeX PhD Motivation Letter Template
+% Author:   Deep Ghuge
+
+% EDIT main.tex directly
+
+\documentclass[11pt]{report}
+\usepackage[margin=0.59in]{geometry}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{hyperref}
+
+\definecolor{goodcream}{RGB}{255, 230, 208} % corrected the RGB values to represent royal purple more accurately
+\newcommand{\mediumsize}{\fontsize{15pt}{16pt}\selectfont}
+
+\begin{document}
+\begin{titlepage}
+
+    \begin{tikzpicture}[remember picture,overlay]
+        \draw[line width=15 pt, color=goodcream]
+            ($(current page.north west) + (0.30in,-0.30in)$) rectangle
+            ($(current page.south east) + (-0.30in,0.30in)$);
+    \end{tikzpicture}
+
+    \begin{minipage}[t]{0.95\textwidth}
+        \hfill
+        \raggedleft
+        \textbf{ Jane Doe} \\
+        New York, NY \\
+        \today\\
+        \href{mailto:jane.doe@email.com}{jane.doe@email.com} \\
+        +1 436-823-9879 \\
+        \url{http://jane-doe.com} \\
+        \url{http://linkedin.com/in/jane-doe}
+    \end{minipage}
+
+\raggedright \textbf{Maria Winter, Ph.D.} \\ Department of Political Science \\ Harvard University \\ Cambridge, MA 02138, USA \\ \href{mailto:maria.winter@harvard.edu}{maria.winter@harvard.edu}\\
+
+\vspace{0.7em}
+
+\raggedright To whom it may concern,\\
+
+\vspace{0.7em}
+
+I am writing to express my interest in the doctoral program in the Department of Political Science at Harvard University, as it has always been my lifelong ambition to become a political advisor to the President of the United States of America.
+
+\vspace{0.7em}
+
+Thanks to the swift progress of my Bachelor's and Master's degrees, it is plain that studying and doing research are endeavors I would like to engage in even more. While studying for my BSc in Behavioural Psychology at Yale University, I developed a strong interest in the interaction between individuals and their environment, and I found this very intriguing and interesting, specifically its influence in world politics today. After my Bachelor's, I pursued a Master's degree in Political Communications, also at Yale University, which I completed in January 2018.
+
+\vspace{0.7em}
+
+I believe that there is no better place to continue my academic career in Politics as it relates to Behavioural Psychology than the Political Science department at Harvard University. I consider it a very rich experience to get the opportunity to meet students from all over the world and learn about their culture and values. Hence, courses like Democracy and Citizenship, Public Policy Analysis, and Management of Religious Diversity would give me more insight into how politics is affected in the world today by many other factors aside from Behavioural Psychology. Considering the pedigree as well as the content of the Master's degree in Political Science at Yale University, combined with the knowledge I have garnered from my previous studies, I am confident that this Ph.D. brings me a step closer to my goal of becoming a political advisor to the President of the United States.
+
+\vspace{0.7em}
+
+I believe that I am a very diligent and highly motivated student; while studying for my Bachelor's and my Master's, I did not fail any exam or fail to turn in any due assignment. I am certain to push through with the dedication I have always worked with to accomplish my goals and gain more knowledge and insight into political science. I developed a very deep interest in politics from my experience in working with the \textit{party name}, a political party in \textit{country name}. Here, I attended meetings, determined political campaigning activities, designed accurate slogans and texts for campaign purposes, and devoted myself to offline and online political campaigning.
+
+\vspace{0.7em}
+
+Studying Political Science at Harvard University is an opportunity I would love to dedicate myself to wholeheartedly, and I hope that during my stay in Boston, Massachusetts, I will be able to contribute to the community in the best way that I can. Considering my academic performance so far and my desire to enrich mine and others' knowledge in political science, I am convinced that I will be a valuable addition to the program. I hope to be given this chance, as I am confident that I am capable of meeting and even exceeding your expectations.
+
+\vspace{0.7em}
+
+Thank you for considering my application.
+
+\vspace{0.7em}
+
+\raggedright Yours sincerely,\\
+\textbf{Jane Doe}
+
+\end{titlepage}
+\end{document}

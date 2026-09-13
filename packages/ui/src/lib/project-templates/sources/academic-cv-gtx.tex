@@ -1,0 +1,100 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage[hidelinks]{hyperref}
+
+% Accent colour used for headings and rules.
+\definecolor{accent}{RGB}{120,30,40}
+
+\titleformat{\section}{\large\scshape\color{accent}}{}{0pt}{}[\vspace{-0.6ex}{\color{accent}\titlerule}]
+\titlespacing*{\section}{0pt}{3ex}{1.5ex}
+\setlength{\parindent}{0pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+% Footer shows your name and page count.
+\fancyfoot[L]{\small Alex Morgan, Curriculum Vitae}
+\fancyfoot[R]{\small Page \thepage\ of \pageref{LastPage}}
+
+% \entry{dates}{title}{place}{details}
+\newcommand{\entry}[4]{%
+  \begin{tabularx}{\textwidth}{@{}p{2.6cm}X@{}}
+    \small #1 & \textbf{#2}, #3\par\small #4
+  \end{tabularx}\par\smallskip}
+
+\newlist{pubs}{enumerate}{1}
+\setlist[pubs]{leftmargin=1.1cm,itemsep=0.5ex}
+
+\begin{document}
+
+% Your name and contact details.
+\begin{center}
+  {\Huge\scshape Alex Morgan}\\[1ex]
+  Assistant Professor of Environmental Science\\
+  Department of Earth Systems, Example University\\[0.5ex]
+  \small 12 College Road, Exampletown \quad
+  \href{mailto:alex.morgan@example.edu}{alex.morgan@example.edu} \quad
+  \url{https://example.edu/amorgan}
+\end{center}
+
+\section{Research Interests}
+Coastal wetland ecology, carbon storage in tidal soils, long-term ecological monitoring and open field data.
+
+\section{Academic Appointments}
+\entry{2023 to present}{Assistant Professor}{Example University}{Leads the Coastal Carbon Lab; supervises three doctoral students.}
+\entry{2020 to 2023}{Postdoctoral Fellow}{Northfield Institute of Technology}{Built a sensor network across twelve salt marsh sites.}
+
+\section{Education}
+\entry{2020}{PhD in Ecology}{Sample State University}{Thesis: \emph{Sediment carbon dynamics in restored tidal marshes}. Advisor: Prof.\ Jordan Lee.}
+\entry{2015}{MSc in Environmental Science}{Sample State University}{Graduated with distinction.}
+\entry{2013}{BSc in Biology}{Lakeside College}{First class honours.}
+
+\section{Grants and Funding}
+\entry{2024 to 2027}{Principal Investigator}{National Research Fund (fictional)}{\emph{Mapping blue carbon along eroding coastlines}, 420,000 EUR.}
+\entry{2021 to 2023}{Co-Investigator}{Coastal Futures Foundation}{\emph{Low-cost soil sensors for community monitoring}, 85,000 EUR.}
+
+\section{Publications}
+% Number journal papers J1, J2 and conference papers C1, C2. Bold your own name.
+\textbf{Journal articles}
+\begin{pubs}[label={[J\arabic*]}]
+  \item \textbf{A. Morgan}, S. Patel and J. Lee. Carbon burial rates in restored marshes. \emph{Journal of Example Ecology}, 14(2):101 to 118, 2024.
+  \item R. Chen and \textbf{A. Morgan}. Tidal inundation and root growth. \emph{Wetland Letters}, 9:33 to 41, 2022.
+  \item \textbf{A. Morgan} and J. Lee. A decade of marsh monitoring data. \emph{Open Field Data}, 3(1):1 to 12, 2020.
+\end{pubs}
+\textbf{Conference papers}
+\begin{pubs}[label={[C\arabic*]}]
+  \item \textbf{A. Morgan}. Sensor networks for coastal carbon. In \emph{Proceedings of the Example Coastal Symposium}, 2023.
+\end{pubs}
+
+\section{Teaching}
+\entry{2023 to present}{Instructor}{Example University}{ENV 210 Wetland Ecology (60 students, lectures and field labs).}
+\entry{2018 to 2019}{Teaching Assistant}{Sample State University}{BIO 101 Introductory Biology.}
+
+\section{Supervision}
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+  \item Taylor Brooks, PhD candidate, expected 2027.
+  \item Sam Rivera, MSc, 2024. Now at the Coastal Futures Foundation.
+\end{itemize}
+
+\section{Service}
+\begin{itemize}[leftmargin=*,itemsep=0pt]
+  \item Reviewer for \emph{Journal of Example Ecology} and \emph{Wetland Letters}.
+  \item Organising committee, Example Coastal Symposium 2025.
+  \item Departmental equality and diversity committee, 2023 to present.
+\end{itemize}
+
+\section{Invited Talks}
+\entry{2024}{Keynote}{Regional Wetlands Forum}{\emph{What restored marshes can and cannot store.}}
+
+\section{References}
+Available on request.
+
+\end{document}

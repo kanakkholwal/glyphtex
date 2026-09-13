@@ -1,0 +1,123 @@
+\documentclass[11pt,a4paper,twoside,openright]{book}
+\usepackage[a4paper,inner=3cm,outer=2.2cm,top=2.5cm,bottom=2.8cm]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{emptypage}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{partcolor}{RGB}{20,80,90}
+
+% Chapter headings: large number on the right, rule, then the title.
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\color{partcolor}}
+  {\filleft\fontsize{48}{48}\selectfont\thechapter}
+  {1ex}
+  {\titlerule[1pt]\vspace{1ex}\filright\Huge}
+  [\vspace{1ex}]
+\titleformat{\part}[display]
+  {\normalfont\centering\color{partcolor}}
+  {\Large\scshape Part \thepart}
+  {2ex}
+  {\Huge\bfseries}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\leftmark}
+\fancyhead[RO]{\small\rightmark}
+\fancyfoot[LE,RO]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{document}
+
+\frontmatter
+\begin{titlepage}
+  \centering
+  {\scshape Example University\par}
+  {\small Faculty of Social Sciences\par}
+  \vspace{4cm}
+  {\color{partcolor}\rule{\linewidth}{1pt}\par}
+  \vspace{0.8em}
+  {\Huge\bfseries Community Energy Cooperatives and Local Trust\par}
+  \vspace{0.5em}
+  {\Large A Mixed-Methods Study of Three Rural Towns\par}
+  {\color{partcolor}\rule{\linewidth}{1pt}\par}
+  \vfill
+  {\large Student Name\par}
+  \vspace{0.5em}
+  Dissertation submitted for the degree of Master of Science\\
+  Supervised by Dr Supervisor Name\\[1em]
+  September 2026
+\end{titlepage}
+
+\chapter{Abstract}
+Summarise the dissertation in about 300 words.
+
+\chapter{Acknowledgements}
+Thank the people who helped you.
+
+\tableofcontents
+\listoftables
+
+\mainmatter
+
+\part{Foundations}
+
+\chapter{Introduction}
+\section{Background}
+Set the scene for your topic.
+\section{Aims and objectives}
+State the overall aim and two to four measurable objectives.
+\section{Structure of the dissertation}
+Part~I covers context and theory, Part~II the empirical work, and Part~III the synthesis.
+
+\chapter{Literature review}
+\section{Theme one}
+Organise the review by theme, not by author.
+\section{Theme two}
+Finish with the gap your study fills.
+
+\part{Empirical study}
+
+\chapter{Methodology}
+\section{Research design}
+Justify your choice of methods.
+\section{Data collection}
+Describe participants, instruments and ethics.
+
+\chapter{Findings}
+\begin{table}[ht]
+\centering
+\caption{Survey respondents by town (example).}
+\label{tab:respondents}
+\begin{tabular}{lrr}
+\toprule
+Town & Responses & Response rate (\%) \\
+\midrule
+Northfield & 142 & 38 \\
+Easton & 97 & 29 \\
+Westbury & 118 & 33 \\
+\bottomrule
+\end{tabular}
+\end{table}
+Present quantitative results such as Table~\ref{tab:respondents}, then the qualitative themes.
+
+\part{Synthesis}
+
+\chapter{Discussion}
+Link findings back to the literature review.
+
+\chapter{Conclusion}
+Answer the research aim directly and give recommendations.
+
+\backmatter
+
+\begin{thebibliography}{9}
+\bibitem{a} A.~Author, \emph{Energy and Community}, Example Press, 2019.
+\bibitem{b} B.~Author, Trust in local institutions, \emph{Journal of Rural Studies Example} 44 (2021) 12--25.
+\end{thebibliography}
+
+\end{document}

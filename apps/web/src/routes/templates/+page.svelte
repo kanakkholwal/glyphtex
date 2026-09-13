@@ -9,12 +9,13 @@
 
 	let { data } = $props();
 
-	const authors = $derived(new Set(data.templates.map((t) => t.author)).size);
+	const sourced = $derived(data.templates.filter((t) => t.origin === "overleaf"));
+	const authors = $derived(new Set(sourced.map((t) => t.author)).size);
 </script>
 
 <Seo
 	title="LaTeX templates that compile offline · GlyphTeX"
-	description="Free LaTeX templates for theses, journal articles, CVs, letters, posters, assignments and slides. Each one compiles in GlyphTeX and credits its original author."
+	description="Free LaTeX templates for theses, journal articles, CVs, letters, posters, assignments and slides. Each one compiles offline in GlyphTeX, and community templates credit their authors."
 	canonical="/templates"
 />
 
@@ -24,7 +25,7 @@
 			badge={`${data.templates.length} templates`}
 			title="Start from a template"
 			accent="that already compiles."
-			lede="Theses, papers, CVs, letters, posters and slides from the Overleaf community gallery. Every one was compiled with GlyphTeX's own engine before it was listed, and each keeps its author's credit."
+			lede="Theses, papers, CVs, letters, posters and slides. Some come from the Overleaf community gallery with their author's credit; the rest were written for GlyphTeX and are free to use. Every one compiled offline before it was listed."
 		/>
 	</RailRow>
 
@@ -38,7 +39,7 @@
 		<SplitSection
 			title="Credit where"
 			accent="it's due."
-			description={`${authors} authors wrote these. Each template is shared under the licence they chose, all of which allow reuse.`}
+			description={`${authors} community authors wrote ${sourced.length} of these, shared under licences that allow reuse. The rest were written for GlyphTeX and dedicated to the public domain.`}
 		>
 			<ul class="grid gap-3 sm:grid-cols-3">
 				<li class="panel-card flex flex-col gap-1 p-5">
@@ -56,7 +57,7 @@
 				<li class="panel-card flex flex-col gap-1 p-5">
 					<h3 class="text-body-lg font-medium text-foreground">Changes disclosed</h3>
 					<p class="text-body text-muted-foreground">
-						The only edit is swapping missing images for labelled boxes, and it is noted.
+						The only change to a sourced template is swapping missing images for labelled boxes, and it is noted.
 					</p>
 				</li>
 			</ul>

@@ -1,0 +1,116 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[letterpaper,margin=1in,headheight=28pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{xcolor}
+\usepackage[skins,breakable]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% Course and student details for the header.
+\newcommand{\course}{MATH 221: Linear Algebra}
+\newcommand{\psetnumber}{4}
+\newcommand{\student}{Robin Park}
+\newcommand{\duedate}{Friday, 2 October 2026}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textbf{\course}\\Problem Set \psetnumber}
+\fancyhead[R]{\student\\Due \duedate}
+\fancyfoot[C]{\thepage\ / \pageref{LastPage}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\definecolor{probblue}{RGB}{30,80,150}
+\definecolor{solgreen}{RGB}{235,245,238}
+
+% Problems are numbered automatically; the optional argument gives a short title.
+\newcounter{problem}
+\newenvironment{problem}[1][]{%
+  \refstepcounter{problem}\par\bigskip
+  {\color{probblue}\large\bfseries Problem \theproblem\if\relax\detokenize{#1}\relax\else\ (#1)\fi}\par\nopagebreak
+}{\par}
+
+% Solutions sit in a light box that can break across pages.
+\newenvironment{solution}{%
+  \begin{tcolorbox}[enhanced,breakable,colback=solgreen,colframe=solgreen,
+    borderline west={3pt}{0pt}{green!45!black},arc=0pt,left=8pt]
+  \textbf{Solution.}\ }{\hfill$\blacksquare$\end{tcolorbox}}
+
+\newcommand{\R}{\mathbb{R}}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+\begin{document}
+
+\begin{problem}[Solving a system]
+Find all solutions of the linear system
+\[
+\begin{aligned}
+  x + 2y - z &= 3,\\
+  2x + 5y + z &= 8,\\
+  -x - y + 4z &= -1.
+\end{aligned}
+\]
+\end{problem}
+
+\begin{solution}
+Row reduce the augmented matrix:
+\[
+\left[\begin{array}{ccc|c} 1 & 2 & -1 & 3\\ 2 & 5 & 1 & 8\\ -1 & -1 & 4 & -1 \end{array}\right]
+\sim
+\left[\begin{array}{ccc|c} 1 & 2 & -1 & 3\\ 0 & 1 & 3 & 2\\ 0 & 1 & 3 & 2 \end{array}\right]
+\sim
+\left[\begin{array}{ccc|c} 1 & 0 & -7 & -1\\ 0 & 1 & 3 & 2\\ 0 & 0 & 0 & 0 \end{array}\right].
+\]
+So $z = t$ is free, $y = 2 - 3t$ and $x = -1 + 7t$. The solution set is the line
+\[
+  \begin{pmatrix} x\\ y\\ z \end{pmatrix} = \begin{pmatrix} -1\\ 2\\ 0 \end{pmatrix} + t\begin{pmatrix} 7\\ -3\\ 1 \end{pmatrix}, \qquad t \in \R.
+\]
+\end{solution}
+
+\begin{problem}[Eigenvalues]
+Let $A = \begin{pmatrix} 4 & 1\\ 2 & 3 \end{pmatrix}$.
+\begin{enumerate}[label=(\alph*)]
+  \item Compute the eigenvalues of $A$.
+  \item Find an eigenvector for each eigenvalue.
+  \item Is $A$ diagonalisable? Justify your answer.
+\end{enumerate}
+\end{problem}
+
+\begin{solution}
+\begin{enumerate}[label=(\alph*)]
+  \item $\det(A - \lambda I) = (4-\lambda)(3-\lambda) - 2 = \lambda^2 - 7\lambda + 10 = (\lambda-2)(\lambda-5)$, so $\lambda_1 = 2$ and $\lambda_2 = 5$.
+  \item For $\lambda_1 = 2$: $(A - 2I)v = 0$ gives $v_1 = (1, -2)^{T}$. For $\lambda_2 = 5$: $v_2 = (1, 1)^{T}$.
+  \item Yes. The two eigenvalues are distinct, so $v_1, v_2$ are linearly independent and $A = PDP^{-1}$ with $P = [v_1\ v_2]$ and $D = \operatorname{diag}(2, 5)$.
+\end{enumerate}
+\end{solution}
+
+\begin{problem}
+Prove that for all vectors $u, v \in \R^n$,
+\[
+  \norm{u + v}^2 + \norm{u - v}^2 = 2\norm{u}^2 + 2\norm{v}^2.
+\]
+\end{problem}
+
+\begin{solution}
+Expand both norms using the dot product:
+\begin{align*}
+  \norm{u+v}^2 &= u\cdot u + 2\,u\cdot v + v\cdot v,\\
+  \norm{u-v}^2 &= u\cdot u - 2\,u\cdot v + v\cdot v.
+\end{align*}
+Adding the two lines, the cross terms cancel and we obtain $2\,u\cdot u + 2\,v\cdot v = 2\norm{u}^2 + 2\norm{v}^2$.
+\end{solution}
+
+\begin{problem}[Your turn]
+% Copy this block for more problems.
+State the problem here.
+\end{problem}
+
+\begin{solution}
+Write your solution here.
+\end{solution}
+
+\end{document}

@@ -1,0 +1,94 @@
+\documentclass[11pt,openany]{book}
+\usepackage[paperwidth=6in,paperheight=9in,inner=0.9in,outer=0.75in,top=0.9in,bottom=0.9in]{geometry}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{emptypage}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{muted}{gray}{0.45}
+
+% Sections of the book become quiet, centred part titles.
+\titleformat{\part}[display]{\normalfont\centering}{}{0pt}{\Large\scshape\MakeLowercase}
+\titleformat{\chapter}[block]{\normalfont\centering\Large\itshape}{}{0pt}{}
+\titlespacing*{\chapter}{0pt}{0.8in}{0.4in}
+\titleformat{\section}[block]{\normalfont\centering\large\scshape}{}{0pt}{}
+
+% Table of contents without chapter numbers, with dotted leaders.
+\titlecontents{part}[0pt]{\addvspace{1.2em}\scshape}{}{}{\hfill}
+\titlecontents{chapter}[1.5em]{\addvspace{0.3em}}{}{}{\titlerule*[0.6pc]{.}\contentspage}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\small\color{muted}\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\color{muted}\thepage}}
+
+% \begin{poem}{Title} starts a poem listed in the contents.
+% End lines with \\ and leave a blank line between stanzas.
+\newenvironment{poem}[1]{\chapter*{#1}\addcontentsline{toc}{chapter}{#1}\begin{verse}}{\end{verse}}
+% \essay{Title}{Note under the title} starts a prose piece.
+\newcommand{\essay}[2]{\chapter*{#1}\addcontentsline{toc}{chapter}{#1}{\centering\small\color{muted}\itshape #2\par}\bigskip}
+\newcommand{\epigraph}[2]{\begin{flushright}\begin{minipage}{0.65\linewidth}\small\itshape #1\par\smallskip\raggedleft\upshape\scshape #2\end{minipage}\end{flushright}\bigskip}
+
+\setlength{\parindent}{1.2em}
+
+\begin{document}
+
+\frontmatter
+\thispagestyle{empty}
+\begin{center}
+\vspace*{2in}
+{\Huge\itshape Tidelines\par}
+\vspace{0.2in}
+{\color{muted}\large\scshape poems and short essays\par}
+\vfill
+{\large Author Name\par}
+\end{center}
+
+\clearpage
+\tableofcontents
+
+\mainmatter
+
+\part{Morning}
+
+\begin{poem}{Kettle}
+Before the light, the kettle starts its low \\
+and patient argument with cold. \\
+I stand and let it win.
+
+Replace these lines with your own poem. \\
+A blank line starts a new stanza, \\
+and the last line needs no backslashes.
+\end{poem}
+
+\begin{poem}{Inventory of a Small Window}
+One sparrow, one wire, \\
+a neighbour's shirt that will not dry, \\
+the whole of Tuesday.
+\end{poem}
+
+\part{Distance}
+
+\essay{On Walking the Long Way}{First published in Example Review, Spring 2025}
+\epigraph{Write a short quotation that sets the tone of the essay.}{Name of Source}
+
+Essays run as normal paragraphs. Open with a concrete scene or image rather than a thesis statement, then let the argument grow from it.
+
+Each new paragraph is indented. Keep the notes line under the title for publication history, dedications or the place and year of writing.
+
+\begin{poem}{Postcard, Unsent}
+The harbour here is smaller than you said. \\
+The boats are painted, and the paint is tired. \\
+I keep the card. I keep the stamp.
+\end{poem}
+
+\backmatter
+\chapter*{Notes and acknowledgements}
+List where pieces first appeared and thank anyone who helped.
+
+\end{document}

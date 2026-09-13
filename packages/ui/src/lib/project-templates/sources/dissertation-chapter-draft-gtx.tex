@@ -1,0 +1,87 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[left=2.5cm,right=4cm,top=2.5cm,bottom=2.5cm,marginparwidth=3cm]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{todonotes}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\doublespacing
+
+% Set this to the chapter number it will have in the full thesis.
+\setcounter{chapter}{2}
+
+% Drafting helpers. \wordtarget prints a reminder; \fixme adds a margin note.
+\newcommand{\wordtarget}[1]{{\color{gray}\small\textit{[Target: about #1 words]}}\par}
+\newcommand{\fixme}[1]{\todo[color=orange!30,size=\scriptsize]{#1}}
+\newcommand{\draftstatus}{Draft 2, sent to supervisor 14 September 2026}
+
+\begin{document}
+
+\begin{center}
+\fcolorbox{gray}{gray!8}{\parbox{0.9\linewidth}{\singlespacing\small
+\textbf{Chapter draft.} \draftstatus.\\
+Working title of thesis: \textit{Title of Your Thesis}. Author: Your Name.\\
+Remove this box and the notes before merging into the full thesis.}}
+\end{center}
+
+\chapter{Evidence from Regional Archives}
+\label{ch:archives}
+
+\section*{Chapter overview}
+\wordtarget{300}
+Tell the reader what this chapter argues, how it connects to the previous chapter and what comes next.
+\fixme{Link back to the research question stated in Chapter 1.}
+
+\section{Introduction}
+\wordtarget{800}
+Frame the specific question the chapter answers.
+
+\section{Sources and approach}
+\wordtarget{1500}
+Describe the material used in this chapter only. Refer to the full methods chapter rather than repeating it.
+
+\begin{table}[ht]
+\centering
+\caption{Archival collections consulted (example).}
+\label{tab:collections}
+\begin{tabular}{lrl}
+\toprule
+Collection & Items read & Date range \\
+\midrule
+County minute books & 214 & 1880 to 1910 \\
+Parish correspondence & 96 & 1885 to 1902 \\
+Newspaper cuttings & 340 & 1878 to 1915 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Analysis}
+\wordtarget{3000}
+\subsection{First theme}
+Build the argument with evidence from Table~\ref{tab:collections}.
+\fixme{Add two more quotations here.}
+\subsection{Second theme}
+Contrast or extend the first theme.
+
+\section{Discussion}
+\wordtarget{1200}
+What does this chapter add to the thesis as a whole?
+
+\section{Chapter summary}
+\wordtarget{300}
+Summarise the chapter in a few sentences and point forward to the next one.
+
+\section*{Notes to self}
+\begin{itemize}
+  \item Check page numbers for all archive references.
+  \item Ask supervisor whether Section 3.4 belongs in the next chapter.
+\end{itemize}
+
+\begin{thebibliography}{9}
+\bibitem{c1} A.~Historian, \emph{Local Government in Transition}, Example Press, 2011.
+\bibitem{c2} B.~Scholar, Reading minute books, \emph{Archive Studies Example} 17 (2016) 55--72.
+\end{thebibliography}
+
+\end{document}
