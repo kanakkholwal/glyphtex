@@ -90,35 +90,35 @@
 }
 
 .dark {
-	--background: #0a0a0a;
-	--canvas: #0a0a0a;
-	/* Lifts the app card off the canvas; muted ink still 7.00:1 on it. */
-	--workspace: #161616;
-	--card: #171717;
-	--popover: #171717;
-	--muted: #262626;
-	--secondary: #262626;
-	--accent: #262626;
-	--surface-strong: #2a2a2a;
+	--background: #151515;
+	--canvas: #151515;
+	/* Lifts the app card off the canvas: +2.6 L*, the same step the other repos use. */
+	--workspace: #1a1a1d;
+	--card: #1a1a1d;
+	--popover: #1a1a1d;
+	--muted: #212124;
+	--secondary: #212124;
+	--accent: #212124;
+	--surface-strong: #2b2b2f;
 
-	--foreground: #fafafa;
-	--card-foreground: #fafafa;
-	--popover-foreground: #fafafa;
-	--secondary-foreground: #fafafa;
-	--accent-foreground: #fafafa;
-	--muted-foreground: #a1a1a1;
-	--placeholder: #8a8a8a;
+	--foreground: #e9e9ec;
+	--card-foreground: #e9e9ec;
+	--popover-foreground: #e9e9ec;
+	--secondary-foreground: #e9e9ec;
+	--accent-foreground: #e9e9ec;
+	--muted-foreground: #a3a3a9;
+	--placeholder: #8d8d95;
 
 	--primary: #59aaf8;
 	--primary-foreground: #0a0a0a;
 	--primary-active: #4ba3f7;
 
-	--action: #fafafa;
-	--action-foreground: #0a0a0a;
+	--action: #e9e9ec;
+	--action-foreground: #08080a;
 
-	--border: rgb(255 255 255 / 0.1);
-	--border-strong: rgb(255 255 255 / 0.16);
-	--input: rgb(255 255 255 / 0.15);
+	--border: #2b2b2f;
+	--border-strong: #3c3c42;
+	--input: #75757e;
 	--ring: #59aaf8;
 
 	--destructive: #ff6b61;
@@ -130,11 +130,11 @@
 	--info: #5ac8dc;
 	--info-foreground: #04181c;
 
-	--sidebar: #0a0a0a;
-	--sidebar-foreground: #a1a1a1;
-	--sidebar-accent: #262626;
-	--sidebar-accent-foreground: #fafafa;
-	--sidebar-border: rgb(255 255 255 / 0.1);
+	--sidebar: #151515;
+	--sidebar-foreground: #a3a3a9;
+	--sidebar-accent: #212124;
+	--sidebar-accent-foreground: #e9e9ec;
+	--sidebar-border: #2b2b2f;
 
 	--chart-1: #59aaf8;
 	--chart-2: #fafafa;
@@ -584,14 +584,15 @@
 	}
 }
 
-/* The workbench keeps the JetBrains Islands dark surfaces its editor theme is built on. */
+/* The workbench keeps the JetBrains Islands surfaces its syntax theme is built on, so it
+   is the one place that does not take the shared ramp. */
 /* The app's main card: re-points --background so everything inside sits on the workspace tone. */
 @utility workspace-card {
 	--background: var(--workspace);
 	--card: var(--workspace);
 	background-color: var(--workspace);
 	@variant dark {
-		--card: #1d1d1d;
+		--card: #212124;
 	}
 }
 
