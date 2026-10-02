@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { revealOnScroll, staggerDelay } from "$lib/motion";
 	import { cn } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
 
@@ -30,7 +31,8 @@
 			<div class={cn('flex flex-col gap-2', sticky && 'lg:sticky lg:top-28')}>
 				<svelte:element
 					this={`h${headingLevel}`}
-					class="text-balance text-heading-lg font-medium text-foreground"
+					class="reveal text-balance text-heading-lg font-medium text-foreground"
+					{@attach revealOnScroll}
 				>
 					{title}
 					{#if accent}
@@ -39,13 +41,23 @@
 					{/if}
 				</svelte:element>
 				{#if description}
-					<p class="max-w-sm text-pretty text-body text-muted-foreground">{description}</p>
+					<p
+						class="reveal max-w-sm text-pretty text-body text-muted-foreground"
+						style={staggerDelay(1)}
+						{@attach revealOnScroll}
+					>
+						{description}
+					</p>
 				{/if}
 				{#if aside}
-					<div class="mt-6">{@render aside()}</div>
+					<div class="reveal mt-6" style={staggerDelay(2)} {@attach revealOnScroll}>
+						{@render aside()}
+					</div>
 				{/if}
 			</div>
 		</div>
-		<div class="min-w-0 flex-1">{@render children()}</div>
+		<div class="reveal min-w-0 flex-1" style={staggerDelay(1)} {@attach revealOnScroll}>
+			{@render children()}
+		</div>
 	</div>
 </div>

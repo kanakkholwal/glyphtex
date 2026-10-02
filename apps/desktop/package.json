@@ -4,7 +4,8 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"ui:dev": "vite dev",
+		"ui:dev": "cross-env PORTLESS_HTTPS=0 portless",
+		"ui:dev:app": "vite dev",
 		"ui:build": "vite build",
 		"ui:preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -19,6 +20,10 @@
 		"tauri": "tauri",
 		"dev": "tauri dev",
 		"build": "tauri build"
+	},
+	"portless": {
+		"name": "desktop.glyphtex",
+		"script": "ui:dev:app"
 	},
 	"dependencies": {
 		"@glyphtex/ui": "workspace:*",

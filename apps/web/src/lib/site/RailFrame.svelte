@@ -8,7 +8,12 @@
 	let { class: className, children }: { class?: string; children: Snippet } = $props();
 </script>
 
-<div class={cn('relative flex min-h-dvh w-full flex-col overflow-x-clip bg-canvas text-foreground', className)}>
+<div
+	class={cn(
+		'public-theme relative flex min-h-dvh w-full flex-col overflow-x-clip bg-canvas text-foreground',
+		className
+	)}
+>
 	<a
 		href="#main"
 		class="sr-only z-[60] rounded-md bg-background px-3 py-2 text-body font-medium focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:ring-2 focus:ring-ring"

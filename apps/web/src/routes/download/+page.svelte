@@ -2,6 +2,7 @@
 	import { resolve } from "$app/paths";
 	import { track } from "$lib/analytics";
 	import { REPO_SLUG, REPO_URL } from "$lib/landing/nav-data";
+	import { revealOnScroll, staggerDelay } from "$lib/motion";
 	import Seo from "$lib/seo/Seo.svelte";
 	import { BrandPanel, PageHero, RailFrame, RailRow, SplitSection } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
@@ -269,9 +270,9 @@
 			{/snippet}
 
 			<ul class="grid grid-cols-1 gap-3 md:grid-cols-3">
-				{#each platforms as p (p.id)}
+				{#each platforms as p, i (p.id)}
 					{@const items = assets[p.id]}
-					<li class="panel-card flex flex-col p-5">
+					<li class="reveal panel-card flex flex-col p-5" style={staggerDelay(i)} {@attach revealOnScroll}>
 						<div class="flex items-start justify-between gap-3">
 							<span
 								class="grid size-10 place-items-center rounded-lg border border-border bg-background text-foreground"

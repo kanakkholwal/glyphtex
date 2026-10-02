@@ -23,7 +23,8 @@ export default defineConfig({
 	// --- Tauri integration ---------------------------------------------------
 	clearScreen: false,
 	server: {
-		// Fixed port so Tauri's devUrl stays stable.
+		// Default for direct `vite dev`; portless overrides via --port when run through `pnpm ui:dev`,
+		// which is what Tauri's devUrl (desktop.glyphtex.localhost) actually proxies to.
 		port: 1420,
 		strictPort: true,
 		host: host || false,

@@ -29,7 +29,7 @@
 					title: post.title,
 					description: post.description,
 					url: post.url,
-					image: post.hero,
+					image: `/og/blog/${post.slug}`,
 					published: post.date,
 					modified: post.updated,
 					tags: post.tags

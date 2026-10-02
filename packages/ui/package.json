@@ -33,6 +33,18 @@
 			"svelte": "./src/components/ui/theme-toggle/index.ts",
 			"default": "./src/components/ui/theme-toggle/index.ts"
 		},
+		"./mega-navbar": {
+			"svelte": "./src/components/blocks/mega-navbar/index.ts",
+			"default": "./src/components/blocks/mega-navbar/index.ts"
+		},
+		"./table-of-contents": {
+			"svelte": "./src/components/blocks/table-of-contents/index.ts",
+			"default": "./src/components/blocks/table-of-contents/index.ts"
+		},
+		"./breadcrumb": {
+			"svelte": "./src/components/blocks/breadcrumb/index.ts",
+			"default": "./src/components/blocks/breadcrumb/index.ts"
+		},
 		"./badge": {
 			"svelte": "./src/components/ui/badge/index.ts",
 			"default": "./src/components/ui/badge/index.ts"

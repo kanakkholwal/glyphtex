@@ -4,6 +4,7 @@
 	import Seo from "$lib/seo/Seo.svelte";
 	import { BrandPanel, PageHero, RailFrame, RailRow, SplitSection } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
+	import { Card } from "@glyphtex/ui/card";
 	import { IconArrowRight, IconBook2 } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
 
@@ -64,16 +65,22 @@
 						<li>
 							<a
 								href={item.url}
-								class="group flex h-full items-start gap-4 rounded-2xl border border-border bg-card p-5 outline-none transition-[border-color] duration-200 ease-craft hover:border-border-strong focus-visible:ring-2 focus-visible:ring-ring dark:bg-background"
+								class="group block h-full rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
 							>
-								<span class="flex min-w-0 flex-1 flex-col gap-1">
-									<span class="text-body-lg font-medium text-foreground">{item.title}</span>
-									<span class="text-pretty text-body text-muted-foreground">{item.description}</span>
-								</span>
-								<IconArrowRight
-									class="mt-1 size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-craft group-hover:translate-x-0.5"
-									aria-hidden="true"
-								/>
+								<Card
+									tone="framed"
+									size="sm"
+									class="h-full flex-row items-start gap-4 transition-[border-color] duration-200 ease-craft group-hover:border-border-strong"
+								>
+									<span class="flex min-w-0 flex-1 flex-col gap-1">
+										<span class="text-body-lg font-medium text-foreground">{item.title}</span>
+										<span class="text-pretty text-body text-muted-foreground">{item.description}</span>
+									</span>
+									<IconArrowRight
+										class="mt-1 size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-craft group-hover:translate-x-0.5"
+										aria-hidden="true"
+									/>
+								</Card>
 							</a>
 						</li>
 					{/each}
