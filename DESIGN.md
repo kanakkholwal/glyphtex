@@ -24,16 +24,16 @@ Body type is **Inter Variable**, with Framer leaning hard into Inter's character
 - **Sky Blue** ({colors.accent-blue}): The single chromatic accent. Hyperlinks, focused-input rings, and a few selection states. Never used for backgrounds or as a brand fill.
 
 ### Surface
-- **Canvas** ({colors.canvas}): Default page background — near-black with a faint warmth. Footer, pricing, hero, and FAQ all sit on it.
-- **Surface 1** ({colors.surface-1}): One step above canvas — pricing cards, secondary buttons, mockup tiles.
-- **Surface 2** ({colors.surface-2}): Two steps above — featured pricing card, hero pill backdrop, selected pricing tab.
-- **Hairline** ({colors.hairline}): 1px borders on input groups, comparison-table dividers.
+- **Canvas** ({colors.canvas}): Default page background, `#151515` / `oklch(19.57% 0 0)`. Footer, pricing, hero, and FAQ all sit on it. Shared with nexonauts, orbit and college-ecosystem; see `.notes/DESIGN.md`.
+- **Surface 1** ({colors.surface-1}): One step above canvas, +2.6 L\*. Pricing cards, secondary buttons, mockup tiles.
+- **Surface 2** ({colors.surface-2}): Two steps above, +3.5 L\* over Surface 1. Featured pricing card, hero pill backdrop, selected pricing tab.
+- **Hairline** ({colors.hairline}): 1px borders on input groups, comparison-table dividers. A solid neutral, not white at low alpha, so it measures the same on every surface.
 - **Hairline Soft** ({colors.hairline-soft}): Subtler dividers — between FAQ rows and footer column rules.
 - **Inverse Canvas** ({colors.inverse-canvas}): Pure white — used as the surface of light-on-dark pill CTAs and a small set of light-mode template thumbnails embedded in the showcase grid.
 
 ### Text
-- **Ink** ({colors.ink}): All headline and emphasized body type — pure white.
-- **Ink Muted** ({colors.ink-muted}): Secondary type — gray (#999999) used for meta info, footer columns, comparison-row labels, deselected pricing tabs. Hierarchy on the dark canvas is carried by ink → ink-muted contrast, not by weight changes.
+- **Ink** ({colors.ink}): All headline and emphasized body type. Bone white, not pure white: `#fafafa` on this ground measures over 18:1 and halates on OLED.
+- **Ink Muted** ({colors.ink-muted}): Secondary type, `#a3a3a9`, 7.28:1 on the canvas. Meta info, footer columns, comparison-row labels, deselected pricing tabs. Hierarchy on the dark canvas is carried by ink to ink-muted contrast, not by weight changes.
 
 ### Semantic
 - **Success Green** ({colors.semantic-success}): Pricing comparison-table checkmarks. Glyph fill, not surface.

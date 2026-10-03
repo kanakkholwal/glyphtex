@@ -4,7 +4,8 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "cross-env PORTLESS_HTTPS=0 portless",
+		"dev:app": "vite dev",
 		"build": "vite build",
 		"sync:engine": "node ./scripts/sync-engine.mjs",
 		"preview": "vite preview",
@@ -14,6 +15,10 @@
 		"check:watch": "docvia build && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"pretest": "esbuild src/lib/tex/tar.ts src/lib/tex/mount.ts src/lib/citations.ts src/lib/compile-cache.ts src/lib/storage/projects.ts src/lib/storage/entry.ts src/lib/storage/bridge.ts src/lib/storage/zip.ts src/lib/storage/import.ts src/lib/storage/ignore.ts src/lib/git/diff.ts src/lib/git/status.ts --bundle --format=esm --outdir=test/.build --outbase=src/lib --out-extension:.js=.mjs --log-level=error",
 		"test": "node --test test/*.test.mjs"
+	},
+	"portless": {
+		"name": "web.glyphtex",
+		"script": "dev:app"
 	},
 	"dependencies": {
 		"@docvia/renderer-core": "^0.2.3",

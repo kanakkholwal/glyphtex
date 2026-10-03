@@ -6,11 +6,23 @@
 	import { AUTHOR } from "$lib/seo/site";
 	import Seo from "$lib/seo/Seo.svelte";
 	import { RailFrame, RailRow } from "$lib/site";
+	import {
+		Breadcrumb,
+		BreadcrumbItem,
+		BreadcrumbLink,
+		BreadcrumbList,
+		BreadcrumbPage,
+		BreadcrumbSeparator
+	} from "@glyphtex/ui/breadcrumb";
+	import { Badge } from "@glyphtex/ui/badge";
 	import { Button } from "@glyphtex/ui/button";
-	import { IconArrowLeft, IconArrowRight } from "@tabler/icons-svelte";
+	import { IconArrowRight } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
 
 	let { data }: PageProps = $props();
+
+	// Plain, per-post card: title + category on a neutral background, not the article's own art.
+	const ogImage = $derived(`/og/blog/${data.meta.slug}`);
 
 	const dateLabel = $derived(
 		data.meta.date
@@ -30,7 +42,7 @@
 					title: data.meta.title,
 					description: data.meta.description,
 					url: data.meta.url,
-					image: data.meta.hero,
+					image: ogImage,
 					published: data.meta.date,
 					modified: data.meta.updated,
 					tags: data.meta.tags
@@ -55,8 +67,8 @@
 	title={data.meta.title}
 	description={data.meta.description}
 	canonical={data.meta.url}
-	image={data.meta.hero}
-	imageAlt={data.meta.heroAlt}
+	image={ogImage}
+	imageAlt={data.meta.title}
 	type="article"
 	published={data.meta.date}
 	modified={data.meta.updated ?? data.meta.date}
@@ -69,15 +81,23 @@
 	<RailRow divider={false} label="Article" class="px-3 pt-28 pb-12 sm:px-6 sm:pt-32">
 		<div class="flex flex-col gap-10 px-1 sm:px-4 lg:px-10">
 			<header class="flex max-w-3xl flex-col gap-4">
-				<a
-					href="/blog"
-					class="-ml-1 flex min-h-10 w-fit items-center gap-1.5 rounded-md px-1 text-body text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-				>
-					<IconArrowLeft class="size-4" aria-hidden="true" />
-					All articles
-				</a>
-				<p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-muted-foreground">
-					<span class="font-medium text-primary">{data.meta.category}</span>
+				<Breadcrumb>
+					<BreadcrumbList>
+						<BreadcrumbItem>
+							<BreadcrumbLink href="/">Home</BreadcrumbLink>
+						</BreadcrumbItem>
+						<BreadcrumbSeparator />
+						<BreadcrumbItem>
+							<BreadcrumbLink href="/blog">Blog</BreadcrumbLink>
+						</BreadcrumbItem>
+						<BreadcrumbSeparator />
+						<BreadcrumbItem>
+							<BreadcrumbPage class="line-clamp-1">{data.meta.title}</BreadcrumbPage>
+						</BreadcrumbItem>
+					</BreadcrumbList>
+				</Breadcrumb>
+				<p class="flex flex-wrap items-center gap-2 text-caption text-muted-foreground">
+					<Badge variant="primary">{data.meta.category}</Badge>
 					{#if dateLabel}<span aria-hidden="true">·</span><time datetime={data.meta.date}>{dateLabel}</time>{/if}
 					<span aria-hidden="true">·</span><span>{data.readingMinutes} min read</span>
 				</p>
@@ -97,18 +117,6 @@
 					<span>By <a href="/about" class="{quiet} font-medium text-foreground">{AUTHOR.name}</a></span>
 				</p>
 			</header>
-
-			{#if data.meta.hero}
-				<!-- Heroes are SVG, so no @unpic/svelte; add it if a raster hero lands. -->
-				<img
-					src={data.meta.hero}
-					alt={data.meta.heroAlt ?? ""}
-					width="1600"
-					height="900"
-					class="aspect-video w-full max-w-5xl rounded-2xl border border-border object-cover"
-					fetchpriority="high"
-				/>
-			{/if}
 
 			<div class="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_17rem]">
 				<div class="min-w-0">

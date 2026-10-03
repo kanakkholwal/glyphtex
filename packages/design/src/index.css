@@ -116,17 +116,17 @@
 
 .dark,
 [data-theme="dark"] {
-	--canvas: oklch(0.16 0 0); /* near-black with faint warmth */
-	--surface-1: oklch(16% 0.005 60); /* charcoal lift — cards */
-	--surface-2: oklch(22% 0.005 60); /* featured / selected lift */
+	--canvas: oklch(19.57% 0 0); /* #151515, shared with the other Nexonauts surfaces */
+	--surface-1: oklch(21.91% 0.006 286); /* cards, +2.6 L* over canvas */
+	--surface-2: oklch(24.90% 0.006 286); /* featured lift, +3.5 L* over surface-1 */
 	--inverse-canvas: oklch(100% 0 0); /* pure white pill CTAs */
 
-	--hairline: oklch(100% 0 0 / 0.1);
-	--hairline-soft: oklch(100% 0 0 / 0.06);
+	--hairline: oklch(29.07% 0.007 286);
+	--hairline-soft: oklch(24.10% 0.008 286);
 
 	/* - Ink (binary, no mid-tone grays) - */
-	--ink: oklch(100% 0 0);
-	--ink-muted: oklch(64% 0 0); /* ≈ #999999 */
+	--ink: oklch(93.49% 0.004 286);
+	--ink-muted: oklch(71.73% 0.009 286); /* #a3a3a9 */
 
 	/* - Signal accent - */
 	--accent-blue: oklch(68% 0.19 240);
@@ -142,26 +142,26 @@
 	--primary: oklch(92.249% 0.23442 125.904);
 	--primary-foreground: oklch(15.907% 0.00002 271.152);
 
-	--background: oklch(20.352% 0.00157 197.844);
-	--foreground: oklch(95.514% 0.00011 271.152);
+	--background: oklch(19.57% 0 0);
+	--foreground: oklch(93.49% 0.004 286);
 
-	--card: oklch(0.27 0 0);
-	--card-foreground: oklch(95.514% 0.00011 271.152);
+	--card: oklch(21.91% 0.006 286);
+	--card-foreground: oklch(93.49% 0.004 286);
 
-	--popover: oklch(20.463% 0.00002 271.152);
-	--popover-foreground: oklch(95.514% 0.00011 271.152);
+	--popover: oklch(21.91% 0.006 286);
+	--popover-foreground: oklch(93.49% 0.004 286);
 
-	--secondary: oklch(26.033% 0.00003 271.152);
-	--secondary-foreground: oklch(95.514% 0.00011 271.152);
+	--secondary: oklch(24.90% 0.006 286);
+	--secondary-foreground: oklch(93.49% 0.004 286);
 
 	--tertiary: oklch(70.767% 0.14487 235.831);
 	--tertiary-foreground: oklch(94.007% 0.00011 271.152);
 
-	--muted: oklch(26.033% 0.00003 271.152);
-	--muted-foreground: oklch(64.009% 0.00007 271.152);
+	--muted: oklch(24.90% 0.006 286);
+	--muted-foreground: oklch(71.73% 0.009 286);
 
-	--accent: oklch(26.033% 0.00003 271.152);
-	--accent-foreground: oklch(95.514% 0.00011 271.152);
+	--accent: oklch(24.90% 0.006 286);
+	--accent-foreground: oklch(93.49% 0.004 286);
 
 	--destructive: oklch(63.575% 0.20881 25.397);
 	--destructive-foreground: oklch(100% 0.00011 271.152);
@@ -181,12 +181,10 @@
 	--lane-audio: oklch(0.74 0.12 215);
 	--lane-markup: oklch(0.74 0.15 285);
 
-	--border: oklch(23.929% 0.00003 271.152);
-	--border-subtle: oklch(100% 0.00011 271.152 / 0.05);
-	/* Input surface — lifted above the card (0.27) and popover (0.205) surfaces so
-      a filled field reads clearly in dark dialogs. The old 0.301 sat ~3% over the
-      card, which all but vanished; 0.34 keeps a visible recess without glowing. */
-	--input: oklch(0.34 0 0);
+	--border: oklch(29.07% 0.007 286);
+	--border-subtle: oklch(24.10% 0.008 286);
+	/* Solid, not white at low alpha: a hairline then reads the same on every surface. */
+	--input: oklch(35.84% 0.010 286);
 	--ring: var(--primary);
 
 	--noise-bg: linear-gradient(oklch(33.881% 0.00279 16.535), oklch(22.213% 0.00003 271.152));

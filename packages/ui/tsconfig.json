@@ -15,10 +15,10 @@
 		"baseUrl": ".",
 		"ignoreDeprecations": "6.0",
 		"paths": {
-			"$lib": ["src/lib/*"],
-			"$hooks": ["src/hooks/*"],
-			"$components": ["src/components/*"],
-			"$ui": ["src/components/ui/*"]
+			"$lib/*": ["src/lib/*"],
+			"$hooks/*": ["src/hooks/*"],
+			"$components/*": ["src/components/*"],
+			"$ui/*": ["src/components/ui/*"]
 		}
 	},
 	"include": ["src"]

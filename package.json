@@ -39,6 +39,8 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.8",
+		"cross-env": "^10.1.0",
+		"portless": "^0.15.6",
 		"turbo": "^2"
 	}
 }

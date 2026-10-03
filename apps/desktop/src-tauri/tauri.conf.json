@@ -5,7 +5,7 @@
 	"identifier": "com.nexonauts.glyphtex",
 	"build": {
 		"frontendDist": "../build",
-		"devUrl": "http://localhost:1420",
+		"devUrl": "http://desktop.glyphtex.localhost",
 		"beforeDevCommand": "pnpm run ui:dev",
 		"beforeBuildCommand": "pnpm run ui:build"
 	},

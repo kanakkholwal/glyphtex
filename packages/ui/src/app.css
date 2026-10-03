@@ -84,41 +84,46 @@
 
 	--radius: 0.625rem;
 	--ease-craft: cubic-bezier(0.32, 0.72, 0, 1);
+	/* Motion-only, from baby-ui's token scale (no color/radius taken): shared duration vocabulary
+	   for public-route blocks (nav surface, dropdown, panel-exit). */
+	--duration-dropdown: 150ms;
+	--duration-panel-exit: 200ms;
+	--duration-overlay: 250ms;
 	--icon-nav: 14px;
 	--icon-control: 16px;
 	--icon-card: 20px;
 }
 
 .dark {
-	--background: #0a0a0a;
-	--canvas: #0a0a0a;
-	/* Lifts the app card off the canvas; muted ink still 7.00:1 on it. */
-	--workspace: #161616;
-	--card: #171717;
-	--popover: #171717;
-	--muted: #262626;
-	--secondary: #262626;
-	--accent: #262626;
-	--surface-strong: #2a2a2a;
+	--background: #151515;
+	--canvas: #151515;
+	/* Lifts the app card off the canvas: +2.6 L*, the same step the other repos use. */
+	--workspace: #1a1a1d;
+	--card: #1a1a1d;
+	--popover: #1a1a1d;
+	--muted: #212124;
+	--secondary: #212124;
+	--accent: #212124;
+	--surface-strong: #2b2b2f;
 
-	--foreground: #fafafa;
-	--card-foreground: #fafafa;
-	--popover-foreground: #fafafa;
-	--secondary-foreground: #fafafa;
-	--accent-foreground: #fafafa;
-	--muted-foreground: #a1a1a1;
-	--placeholder: #8a8a8a;
+	--foreground: #e9e9ec;
+	--card-foreground: #e9e9ec;
+	--popover-foreground: #e9e9ec;
+	--secondary-foreground: #e9e9ec;
+	--accent-foreground: #e9e9ec;
+	--muted-foreground: #a3a3a9;
+	--placeholder: #8d8d95;
 
 	--primary: #59aaf8;
 	--primary-foreground: #0a0a0a;
 	--primary-active: #4ba3f7;
 
-	--action: #fafafa;
-	--action-foreground: #0a0a0a;
+	--action: #e9e9ec;
+	--action-foreground: #08080a;
 
-	--border: rgb(255 255 255 / 0.1);
-	--border-strong: rgb(255 255 255 / 0.16);
-	--input: rgb(255 255 255 / 0.15);
+	--border: #2b2b2f;
+	--border-strong: #3c3c42;
+	--input: #75757e;
 	--ring: #59aaf8;
 
 	--destructive: #ff6b61;
@@ -130,11 +135,11 @@
 	--info: #5ac8dc;
 	--info-foreground: #04181c;
 
-	--sidebar: #0a0a0a;
-	--sidebar-foreground: #a1a1a1;
-	--sidebar-accent: #262626;
-	--sidebar-accent-foreground: #fafafa;
-	--sidebar-border: rgb(255 255 255 / 0.1);
+	--sidebar: #151515;
+	--sidebar-foreground: #a3a3a9;
+	--sidebar-accent: #212124;
+	--sidebar-accent-foreground: #e9e9ec;
+	--sidebar-border: #2b2b2f;
 
 	--chart-1: #59aaf8;
 	--chart-2: #fafafa;
@@ -503,13 +508,18 @@
 	border-color: var(--border);
 }
 
-/* A dark panel card is told apart from the canvas by its hairline alone. */
+/* Framed, baby-ui's inset-rim recipe: a true edge plus a soft ring just inside it, so the
+   surface reads as distinct in both themes without matching fill to the canvas. --background
+   and --card share a hex in light mode, so the ring uses --muted instead of baby-ui's --background. */
 @utility panel-card {
 	background-color: var(--card);
 	border: 1px solid var(--border);
 	border-radius: var(--radius-2xl);
+	/* --muted and --card are the same hex in GlyphTeX's light theme, so the ring there borrows
+	   --muted; --background diverges from --card in every dark theme this app ships. */
+	box-shadow: inset 0 0 0 4px var(--muted);
 	@variant dark {
-		background-color: var(--background);
+		box-shadow: inset 0 0 0 4px var(--background);
 	}
 }
 
@@ -576,6 +586,20 @@
 	background-size: 24px 24px;
 }
 
+/* One-shot scroll entrance; pairs with motion.ts's revealOnScroll attachment. Reduced motion
+   is handled globally below, so this stays plain opacity/transform. */
+@utility reveal {
+	opacity: 0;
+	transform: translateY(12px);
+	transition:
+		opacity var(--duration-overlay) var(--ease-craft),
+		transform var(--duration-overlay) var(--ease-craft);
+	&[data-revealed] {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 @utility pressable {
 	transition: transform 200ms var(--ease-craft);
 	&:active {
@@ -584,14 +608,15 @@
 	}
 }
 
-/* The workbench keeps the JetBrains Islands dark surfaces its editor theme is built on. */
+/* The workbench keeps the JetBrains Islands surfaces its syntax theme is built on, so it
+   is the one place that does not take the shared ramp. */
 /* The app's main card: re-points --background so everything inside sits on the workspace tone. */
 @utility workspace-card {
 	--background: var(--workspace);
 	--card: var(--workspace);
 	background-color: var(--workspace);
 	@variant dark {
-		--card: #1d1d1d;
+		--card: #212124;
 	}
 }
 
@@ -610,6 +635,35 @@
 		--sidebar: #202020;
 		--sidebar-accent: #2f2f2f;
 		--sidebar-border: #2a2a2a;
+	}
+}
+
+/* Public marketing pages only (never the workbench): baby-ui's dark neutral ramp, verbatim,
+   except --primary/--primary-active/--ring (GlyphTeX's own accent) and anything code/editor-only. */
+@utility public-theme {
+	@variant dark {
+		--background: #151515;
+		--canvas: #151515;
+		--foreground: oklch(96% 0 0);
+		--card: #1c1c1c;
+		--card-foreground: oklch(96% 0 0);
+		--popover: #1c1c1c;
+		--popover-foreground: oklch(96% 0 0);
+		--muted: #1c1c1c;
+		--muted-foreground: oklch(62% 0 0);
+		--secondary: #1c1c1c;
+		--secondary-foreground: oklch(96% 0 0);
+		--border: rgb(255 255 255 / 0.05);
+		--border-strong: rgb(255 255 255 / 0.1);
+		--input: rgb(255 255 255 / 0.05);
+		--destructive: oklch(69% 0.2 25);
+		--destructive-foreground: #151515;
+		--success: oklch(70% 0.18 155);
+		--success-foreground: #151515;
+		--warning: oklch(78% 0.18 75);
+		--warning-foreground: #151515;
+		--info: oklch(70% 0.15 255);
+		--info-foreground: #151515;
 	}
 }
 
