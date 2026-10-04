@@ -8,7 +8,6 @@
 		DropdownMenuLabel,
 		DropdownMenuItem,
 		DropdownMenuSeparator,
-		DropdownMenuShortcut,
 		DropdownMenuTrigger
 	} from "@glyphtex/ui/dropdown-menu";
 	import { settings } from "@glyphtex/ui/settings";
@@ -94,12 +93,13 @@
 					checked={settings.autoCompile}
 					onCheckedChange={(v) => (settings.autoCompile = v)}
 				>
-					Live compile
-					<DropdownMenuShortcut>Recompiles as you type</DropdownMenuShortcut>
+					<span class="flex min-w-0 flex-col">
+						<span>Live compile</span>
+						<span class="text-muted-foreground text-xs">Recompiles as you type</span>
+					</span>
 				</DropdownMenuCheckboxItem>
 
 				<DropdownMenuSeparator />
-				<!-- GroupHeading throws outside a Group and takes the menu down: keep them together. -->
 				<div role="group">
 					<DropdownMenuLabel>
 						Main file

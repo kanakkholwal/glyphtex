@@ -56,6 +56,14 @@ restore its one-line re-export of `cn` from `./utils`. Add the package export in
   `Well` or `panel-card`. One closing `BrandPanel` (a plain well) per page at most.
 - The site ⌘K menu is `SiteCommand`, opened from anywhere with `openSiteCommand()`.
 
+## Workspace
+
+- The editor is **Islands**: `workbench-surface` sets the canvas (`bg-canvas`) one step from the panels.
+  The side panel, editor (tabs, code and PDF share one island), bottom dock and right panel are `rounded-xl`
+  islands with 6px gaps; the gaps are the resize handles. The title bar sits on the canvas, no border.
+- The projects home keeps its sidebar layout; its main card is an island like the editor's.
+- Density stays 12/13/14 through `data-density="compact"`. Panel toggles and shortcut-bound UI never animate open.
+
 ## Motion
 
 - CSS only, tokens only: `duration-(--duration-instant|fast|base|slow)`, `ease-(--ease-out)`, press scales

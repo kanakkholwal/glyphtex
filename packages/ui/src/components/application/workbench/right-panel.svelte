@@ -27,6 +27,8 @@
 	}
 
 	const WIDTH_PX = 320;
+	// The canvas gap left of the island, inside the animated width.
+	const GAP_PX = 6;
 </script>
 
 <svelte:window
@@ -41,11 +43,11 @@
 	class="shrink-0 overflow-hidden transition-[width] duration-(--duration-slow) ease-(--ease-out) motion-reduce:transition-none {open
 		? ''
 		: 'pointer-events-none'}"
-	style:width={open ? `${WIDTH_PX}px` : '0px'}
+	style:width={open ? `${WIDTH_PX + GAP_PX}px` : '0px'}
 	aria-hidden={!open}
 >
 	<aside
-		class="border-border bg-sidebar flex h-full min-h-0 flex-col border-l"
+		class="bg-sidebar ml-1.5 flex h-full min-h-0 flex-col overflow-hidden rounded-xl"
 		style:width={`${WIDTH_PX}px`}
 		aria-label={title}
 	>

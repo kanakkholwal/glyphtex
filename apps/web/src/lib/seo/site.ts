@@ -6,12 +6,12 @@ export const AUTHOR = {
 	name: "Kanak Kholwal",
 	role: "Creator of GlyphTeX",
 	bio: "Builds local-first writing tools. Wrote the Tectonic WASM engine that compiles LaTeX inside your browser tab.",
-	avatar: "/authors/kanak.svg",
+	avatar: "https://github.com/kanakkholwal.png",
 	url: `${SITE_URL}/about`,
 	sameAs: [
 		"https://github.com/kanakkholwal",
 		"https://x.com/kanakkholwal",
-		"https://www.linkedin.com/in/kanakkholwal"
+		"https://www.linkedin.com/in/kanak-kholwal"
 	]
 } as const;
 

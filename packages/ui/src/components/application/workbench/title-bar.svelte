@@ -80,7 +80,7 @@
 	<span class={crumbSep} aria-hidden="true">/</span>
 {/snippet}
 
-<header class="border-border bg-card flex h-11 shrink-0 items-center gap-1 border-b px-2">
+<header class="flex h-11 shrink-0 items-center gap-1 px-2">
 	<!-- Breadcrumb root: mark and way back are one control. The label drops below
 	     `sm`, leaving the mark as the target. -->
 	<a

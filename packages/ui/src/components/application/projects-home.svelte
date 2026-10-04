@@ -8,6 +8,7 @@
 
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
+	import { shortcutCap } from '@glyphtex/ui/shortcut';
 	import {
 		Dialog,
 		DialogContent,
@@ -218,8 +219,10 @@
 	];
 
 	// Active rail row: the base fill, medium weight and a blue icon, so it reads without colour.
-	const railRow = 'h-9 rounded-lg px-2.5 text-sm data-active:font-medium data-active:[&>svg]:text-primary';
-	const groupLabel = 'text-muted-foreground h-7 px-2.5 text-xs font-medium';
+	// Active scope is a raised pill on the canvas, read by fill and weight rather than colour.
+	const railRow =
+		'h-9 rounded-lg px-2.5 text-sm hover:bg-foreground/[0.04] data-active:bg-background data-active:font-medium data-active:shadow-(--surface-shadow)';
+	const groupLabel = 'text-muted-foreground h-7 px-2.5 font-mono text-xs lowercase';
 
 	const scopeLabel = $derived(scopes.find((s) => s.id === scope)?.label ?? 'All projects');
 	const ScopeIcon = $derived(scopes.find((s) => s.id === scope)?.icon ?? IconHome);
@@ -493,7 +496,7 @@
 												<Icon /><span>{item.label}</span>
 												{#if count > 0 && !loading}
 													<span
-														class="text-muted-foreground ml-auto text-xs tabular-nums group-data-[collapsible=icon]:hidden"
+														class="text-muted-foreground ml-auto font-mono text-xs tabular-nums group-data-[collapsible=icon]:hidden"
 														>{count}</span
 													>
 												{/if}
@@ -554,10 +557,10 @@
 			<Sidebar.Footer class="p-2 group-data-[collapsible=icon]:hidden">
 				<!-- Warning past 80%: the browser starts evicting under storage pressure. -->
 				{@const tight = storagePct >= 80}
-				<div class="border-border bg-card rounded-xl border p-3">
+				<div class="bg-background rounded-xl p-3 shadow-(--surface-shadow)">
 					<div class="flex items-center justify-between gap-2 text-xs">
 						<span class="text-foreground font-medium">Local storage</span>
-						<span class="text-muted-foreground tabular-nums">
+						<span class="text-muted-foreground font-mono tabular-nums">
 							{formatBytes(storage.used)} / {formatBytes(storage.total)}
 						</span>
 					</div>
@@ -590,7 +593,7 @@
 	<Sidebar.Inset
 		id="main"
 		tabindex={-1}
-		class="workspace-card border-border min-h-0 overflow-hidden outline-none md:my-2 md:mr-2 md:rounded-xl md:border dark:border-border-strong"
+		class="workspace-card min-h-0 overflow-hidden outline-none md:my-1.5 md:mr-1.5 md:rounded-xl md:shadow-(--surface-shadow)"
 	>
 		<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
 			<header
@@ -609,8 +612,12 @@
 
 			<div class="mx-auto w-full max-w-6xl px-4 pt-8 pb-20 sm:px-8 lg:px-12">
 				{#if showStart}
-					<div class="flex flex-col gap-1">
-						<h1 class="text-xl md:text-2xl text-foreground font-medium">
+					<div class="flex flex-col gap-2">
+						<p class="text-muted-foreground font-mono text-xs">
+							workspace{#if projects.length > 0} · {projects.length}
+								{projects.length === 1 ? 'document' : 'documents'}{/if}
+						</p>
+						<h1 class="pixel text-2xl text-foreground md:text-4xl">
 							{projects.length === 0 ? 'Start your first document' : 'Your documents'}
 						</h1>
 						<p class="text-muted-foreground text-md">
@@ -625,11 +632,11 @@
 					>
 						<section
 							aria-labelledby="start-title"
-							class="border-border-strong bg-card flex flex-col gap-5 rounded-2xl border border-dashed p-5 sm:p-6"
+							class="border-border flex flex-col gap-5 rounded-2xl border border-dashed p-5 sm:p-6"
 						>
 							<div class="flex items-start gap-4">
 								<span
-									class="bg-primary text-primary-foreground grid size-12 shrink-0 place-items-center rounded-xl"
+									class="bg-card text-foreground grid size-11 shrink-0 place-items-center rounded-xl"
 									aria-hidden="true"
 								>
 									<IconFileText size={24} />
@@ -714,23 +721,23 @@
 						{#if projects.length > 0}
 							<section
 								aria-labelledby="recent-title"
-								class="border-border bg-card flex flex-col rounded-2xl border p-2"
+								class="flex flex-col"
 							>
 								<h2
 									id="recent-title"
-									class="text-muted-foreground px-3 pt-2 pb-1 text-xs font-medium"
+									class="text-muted-foreground px-1 pb-2 font-mono text-xs"
 								>
-									Jump back in
+									jump back in
 								</h2>
 								<ul class="flex flex-col">
 									{#each latest as p (p.id)}
 										<li>
 											<button
-												class="group hover:bg-muted focus-visible:ring-ring flex min-h-14 w-full items-center gap-3 rounded-xl px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset"
+												class="group border-border hover:bg-foreground/[0.03] focus-visible:ring-ring flex min-h-14 w-full items-center gap-3 rounded-lg border-t border-dashed px-2 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset"
 												onclick={() => onopen?.(p.id)}
 											>
 												<span
-													class="border-border text-muted-foreground group-hover:text-primary grid size-9 shrink-0 place-items-center rounded-lg border transition-colors"
+													class="bg-card text-muted-foreground group-hover:text-foreground grid size-9 shrink-0 place-items-center rounded-lg transition-colors"
 													aria-hidden="true"
 												>
 													{#if p.root}<IconFolder size={18} />{:else}<IconFileText size={18} />{/if}
@@ -753,7 +760,8 @@
 						{/if}
 					</div>
 				{:else}
-					<h1 class="text-xl md:text-2xl text-foreground font-medium">{scopeLabel}</h1>
+					<p class="text-muted-foreground mb-2 font-mono text-xs">workspace / {scope}</p>
+					<h1 class="pixel text-2xl text-foreground md:text-4xl">{scopeLabel}</h1>
 					<p class="text-muted-foreground text-md mt-1">
 						{scope === 'recent'
 							? 'Projects you edited in the last 7 days.'
@@ -768,7 +776,7 @@
 				{#if scope === 'templates' && templatesLoading}
 					<div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3" aria-busy="true" aria-label="Loading templates" role="status">
 						{#each { length: 8 } as _, i (i)}
-							<div class="border-border flex animate-pulse flex-col gap-3 rounded-2xl border p-4" style:animation-delay={`ms`}>
+							<div class="border-border flex animate-pulse flex-col gap-3 rounded-2xl border p-4" style:animation-delay={`${i * 70}ms`}>
 								<div class="bg-muted h-3 w-1/3 rounded-full"></div>
 								<div class="bg-muted h-4 w-4/5 rounded-full"></div>
 								<div class="bg-muted h-3 w-full rounded-full"></div>
@@ -783,14 +791,14 @@
 								{#each templateTabs as tab (tab.id)}
 									{@const active = templateCategory === tab.id}
 									<button
-										class="focus-visible:ring-ring flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2 {active
-											? 'border-border bg-card text-foreground font-medium shadow-xs'
-											: 'text-muted-foreground hover:bg-muted hover:text-foreground border-transparent'}"
+										class="focus-visible:ring-ring flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2 {active
+											? 'bg-primary text-primary-foreground border-transparent'
+											: 'border-border text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground'}"
 										aria-pressed={active}
 										onclick={() => (templateCategory = tab.id)}
 									>
 										{tab.label}
-										<span class="text-muted-foreground text-xs tabular-nums">{tab.count}</span>
+										<span class="font-mono text-xs tabular-nums {active ? '' : 'text-muted-foreground'}">{tab.count}</span>
 									</button>
 								{/each}
 							</div>
@@ -807,12 +815,12 @@
 							</div>
 						</div>
 
-						<p class="text-muted-foreground mt-4 text-sm" aria-live="polite">
+						<p class="text-muted-foreground mt-4 font-mono text-xs" aria-live="polite">
 							{visibleTemplates.length} {visibleTemplates.length === 1 ? 'template' : 'templates'} · each keeps its author's licence and credit
 						</p>
 
 						{#if visibleTemplates.length === 0}
-							<div class="border-border-strong mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center">
+							<div class="border-border mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center">
 								<p class="text-foreground text-md font-medium">No templates match “{templateQuery}”</p>
 								<Button variant="outline" onclick={() => { templateQuery = ''; templateCategory = 'all'; }}>
 									<IconX /> Clear filters
@@ -821,10 +829,10 @@
 						{:else}
 							<ul class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3" aria-label="Templates">
 								{#each visibleTemplates as t (t.id)}
-									<li class="border-border bg-card hover:border-border-strong flex flex-col gap-3 rounded-2xl border p-4 transition-[border-color] duration-(--duration-base) ease-(--ease-out)">
+									<li class="border-border bg-background hover:border-border-strong flex flex-col gap-3 rounded-2xl border p-4 transition-[border-color] duration-(--duration-base) ease-(--ease-out)">
 										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground text-xs font-medium">{categoryLabel(t.category)}</span>
-											<span class="border-border text-muted-foreground rounded-md border px-1.5 py-0.5 font-mono text-xs">{t.documentClass}</span>
+											<span class="text-muted-foreground font-mono text-xs">{categoryLabel(t.category)}</span>
+											<span class="text-muted-foreground font-mono text-xs">{t.documentClass}</span>
 										</div>
 										<div class="min-w-0 flex-1">
 											<h3 class="text-foreground line-clamp-2 text-md font-medium">{t.title}</h3>
@@ -832,24 +840,27 @@
 												<p class="text-muted-foreground mt-1 line-clamp-3 text-sm">{t.description}</p>
 											{/if}
 										</div>
-										<p class="text-muted-foreground truncate text-xs" title={`${t.author} · ${t.license}`}>
+										<p class="text-muted-foreground border-border truncate border-t border-dashed pt-3 font-mono text-xs" title={`${t.author} · ${t.license}`}>
 											by <span class="text-foreground">{t.author}</span> · {t.license.replace('Creative Commons ', '')}
 										</p>
 										<div class="flex items-center gap-2">
 											<Button
 												variant="outline"
+												size="sm"
 												class="flex-1"
-												disabled={usingTemplate !== null}
+												loading={usingTemplate === t.id}
+												loadingLabel="Creating…"
+												disabled={usingTemplate !== null && usingTemplate !== t.id}
 												onclick={() => useTemplate(t.id)}
 											>
-												{usingTemplate === t.id ? 'Creating…' : 'Use template'}
+												Use template
 											</Button>
 											<Button
 												href={t.sourceUrl}
 												target="_blank"
 												rel="noopener noreferrer"
 												variant="ghost"
-												size="icon"
+												size="icon-sm"
 												aria-label={`Original source of ${t.title}`}
 												title="Original source"
 											>
@@ -864,14 +875,14 @@
 				{:else if projects.length > 0 || loading || scope !== 'all'}
 					<section
 						aria-label={scope === 'all' ? 'All projects' : scopeLabel}
-						class={scope === 'all' ? 'mt-10' : 'mt-6'}
+						class={scope === 'all' ? 'border-border mt-12 border-t border-dashed pt-8' : 'mt-6'}
 					>
 						<div class="flex flex-wrap items-center gap-2">
 							<div class="mr-auto flex items-baseline gap-2">
 								{#if scope === 'all'}
-									<h2 class="text-base text-foreground font-medium">All projects</h2>
+									<h2 class="pixel text-foreground text-2xl">library.</h2>
 								{/if}
-								<span class="text-muted-foreground text-sm tabular-nums" aria-live="polite">
+								<span class="text-muted-foreground font-mono text-xs tabular-nums" aria-live="polite">
 									{#if loading}
 										Reading local storage…
 									{:else if query.trim()}
@@ -914,7 +925,7 @@
 									</button>
 								{:else}
 									<kbd
-										class="border-border text-muted-foreground pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded border px-1.5 font-mono text-xs"
+										class="{shortcutCap({ size: 'md' })} pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2"
 										aria-hidden="true">/</kbd
 									>
 								{/if}
@@ -994,7 +1005,7 @@
 									</div>
 								{:else if filtered.length === 0}
 									<div
-										class="border-border-strong mt-5 flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center"
+										class="border-border mt-5 flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center"
 									>
 										<span
 											class="border-border text-muted-foreground grid size-12 place-items-center rounded-xl border"
@@ -1044,12 +1055,12 @@
 									</div>
 								{:else if view === 'list'}
 									<ul
-										class="border-border bg-card mt-5 flex flex-col overflow-hidden rounded-2xl border"
+										class="mt-5 flex flex-col"
 										aria-label="Projects"
 									>
 										{#each filtered as p, i (p.id)}
 											<li
-												class="group hover:bg-muted relative flex min-h-16 items-center gap-3 border-b px-4 py-2.5 transition-colors last:border-b-0"
+												class="group border-border hover:bg-foreground/[0.03] relative flex min-h-16 items-center gap-3 rounded-lg border-t border-dashed px-2 py-2.5 transition-colors duration-(--duration-fast)"
 												in:fly={{ y: 4, duration: ms(200), delay: ms(Math.min(i, 8) * 14), easing: cubicOut }}
 												out:fade={{ duration: ms(120), easing: cubicOut }}
 												animate:flip={{ duration: ms(280), easing: cubicOut }}
@@ -1070,7 +1081,7 @@
 									>
 										{#each filtered as p, i (p.id)}
 											<li
-												class="group border-border bg-card hover:border-border-strong relative flex flex-col rounded-2xl border p-2 transition-[border-color] duration-(--duration-base) ease-(--ease-out)"
+												class="group border-border bg-background hover:border-border-strong relative flex flex-col rounded-2xl border p-1.5 transition-[border-color] duration-(--duration-base) ease-(--ease-out)"
 												in:fly={{ y: 6, duration: ms(240), delay: ms(Math.min(i, 8) * 15), easing: cubicOut }}
 												out:fade={{ duration: ms(140), easing: cubicOut }}
 												animate:flip={{ duration: ms(320), easing: cubicOut }}
