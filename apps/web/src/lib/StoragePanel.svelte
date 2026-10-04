@@ -2,6 +2,7 @@
 	import { Button } from "@glyphtex/ui/button";
 	import {
 		Sheet,
+		SheetClose,
 		SheetContent,
 		SheetDescription,
 		SheetHeader,
@@ -70,14 +71,17 @@
 		side={wide.current ? 'right' : 'bottom'}
 		class="gap-0 overflow-y-auto data-[side=bottom]:max-h-[90dvh] data-[side=bottom]:rounded-t-2xl data-[side=right]:w-full data-[side=right]:sm:max-w-md"
 	>
-		<SheetHeader class="gap-1 p-6 pr-14">
-			<SheetTitle class="text-base">Storage</SheetTitle>
-			<SheetDescription class="text-md text-muted-foreground">
-				Documents are stored in this browser on this device. They are never uploaded.
-			</SheetDescription>
+		<SheetHeader class="items-start border-b border-dashed border-border px-6 py-5">
+			<div class="flex min-w-0 flex-col gap-1">
+				<SheetTitle class="text-base font-medium">Storage</SheetTitle>
+				<SheetDescription class="text-muted-foreground text-sm">
+					Documents are stored in this browser on this device. They are never uploaded.
+				</SheetDescription>
+			</div>
+			<SheetClose class="-mt-1 -mr-2 shrink-0" />
 		</SheetHeader>
 
-		<div class="text-md flex flex-col gap-6 px-6 pb-6">
+		<div class="flex flex-col gap-8 px-6 py-6 text-sm">
 			{#if !status}
 				<p class="text-muted-foreground" role="status">Checking…</p>
 			{:else if status.unknown}
@@ -87,17 +91,15 @@
 				</p>
 			{:else}
 				<section class="flex flex-col gap-2" aria-labelledby="storage-usage">
-					<div class="flex items-baseline justify-between gap-3">
-						<h3 id="storage-usage" class="text-muted-foreground text-md font-normal">
-							Used by this site
-						</h3>
-						<span class="font-medium tabular-nums">
-							{formatBytes(status.usage)}
-							<span class="text-muted-foreground font-normal">of {formatBytes(status.quota)}</span>
+					<h3 id="storage-usage" class="text-muted-foreground font-mono text-xs">used by this site</h3>
+					<p class="flex items-baseline gap-2">
+						<span class="text-foreground font-mono text-2xl tabular-nums">{formatBytes(status.usage)}</span>
+						<span class="text-muted-foreground font-mono text-xs tabular-nums">
+							of {formatBytes(status.quota)}
 						</span>
-					</div>
+					</p>
 					<div
-						class="bg-muted h-2 w-full overflow-hidden rounded-full"
+						class="bg-muted h-1.5 w-full overflow-hidden rounded-full"
 						role="progressbar"
 						aria-valuenow={Math.round(pct)}
 						aria-valuemin={0}
@@ -105,7 +107,7 @@
 						aria-label="Browser storage used"
 					>
 						<div
-							class="h-full rounded-full transition-[width] duration-(--duration-drawer) {low
+							class="h-full rounded-full transition-[width] duration-(--duration-drawer) ease-(--ease-out) {low
 								? 'bg-destructive'
 								: 'bg-primary'}"
 							style:width="{Math.max(pct, 1)}%"
@@ -122,18 +124,18 @@
 					{/if}
 				</section>
 
-				<dl class="border-border divide-border divide-y rounded-xl border">
-					<div class="flex items-center justify-between gap-3 px-4 py-3">
+				<dl class="flex flex-col">
+					<div class="border-border flex items-center justify-between gap-3 border-t border-dashed py-3 last:border-b">
 						<dt class="text-muted-foreground">Your documents</dt>
-						<dd class="font-medium tabular-nums">{formatBytes(documents)}</dd>
+						<dd class="text-foreground font-mono text-xs tabular-nums">{formatBytes(documents)}</dd>
 					</div>
-					<div class="flex items-center justify-between gap-3 px-4 py-3">
+					<div class="border-border flex items-center justify-between gap-3 border-t border-dashed py-3 last:border-b">
 						<dt class="text-muted-foreground">Limit per document</dt>
-						<dd class="font-medium tabular-nums">{formatBytes(PER_PROJECT_BYTES)}</dd>
+						<dd class="text-foreground font-mono text-xs tabular-nums">{formatBytes(PER_PROJECT_BYTES)}</dd>
 					</div>
-					<div class="flex items-center justify-between gap-3 px-4 py-3">
+					<div class="border-border flex items-center justify-between gap-3 border-t border-dashed py-3 last:border-b">
 						<dt class="text-muted-foreground">Limit per file</dt>
-						<dd class="font-medium tabular-nums">{formatBytes(PER_FILE_BYTES)}</dd>
+						<dd class="text-foreground font-mono text-xs tabular-nums">{formatBytes(PER_FILE_BYTES)}</dd>
 					</div>
 				</dl>
 
@@ -149,7 +151,7 @@
 							/>
 						{/if}
 						<div class="min-w-0 flex-1">
-							<h3 class="text-md font-medium">
+							<h3 class="text-sm font-medium">
 								{status.persisted ? 'Protected from cleanup' : 'Not protected from cleanup'}
 							</h3>
 							<p class="text-muted-foreground text-xs mt-0.5">

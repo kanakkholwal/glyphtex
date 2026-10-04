@@ -6,7 +6,7 @@
 	import { openSiteCommand } from "$lib/site/command";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
-	import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@glyphtex/ui/sheet";
+	import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@glyphtex/ui/sheet";
 	import { shortcutCap } from "@glyphtex/ui/shortcut";
 	import { ThemeToggle } from "@glyphtex/ui/theme-toggle";
 	import { IconBrandGithub, IconMenu2, IconSearch } from "@tabler/icons-svelte";
@@ -123,6 +123,7 @@
 			<SheetTitle>
 				<Logo size={22} badge text={true} class="text-base" />
 			</SheetTitle>
+			<SheetClose class="-mr-2" />
 		</SheetHeader>
 		<nav aria-label="Mobile" class="flex-1 overflow-y-auto p-3">
 			<ul class="flex flex-col">

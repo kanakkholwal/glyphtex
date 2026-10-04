@@ -410,8 +410,13 @@
 	}
 }
 
+/* Islands: panels sit on a canvas one step away from them (lighter panels light, darker canvas dark). */
 @utility workbench-surface {
+	--canvas: var(--muted);
+	--sidebar: var(--background);
+	--sidebar-accent: var(--muted);
 	@variant dark {
+		--canvas: #111112;
 		--background: #191919;
 		--card: #232323;
 		--popover: #282828;
@@ -421,7 +426,7 @@
 		--surface-strong: #2f2f2f;
 		--border: #373737;
 		--input: #373737;
-		--sidebar: #202020;
+		--sidebar: var(--background);
 		--sidebar-accent: #2f2f2f;
 		--sidebar-border: #2a2a2a;
 	}

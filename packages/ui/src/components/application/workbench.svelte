@@ -59,7 +59,7 @@
 />
 
 <div
-	class="workbench-surface bg-background text-foreground flex h-full min-h-0 flex-col overflow-hidden"
+	class="workbench-surface bg-canvas text-foreground flex h-full min-h-0 flex-col overflow-hidden"
 >
 	<a
 		href="#main"
@@ -73,11 +73,11 @@
        primary side bar right"); the editor column keeps the rest. -->
 	<div
 		bind:this={layout.shellEl}
-		class="flex min-h-0 flex-1 {layout.sidebarRight ? 'flex-row-reverse' : ''}"
+		class="flex min-h-0 flex-1 px-1.5 pb-1.5 {layout.sidebarRight ? 'flex-row-reverse' : ''}"
 	>
 		<!-- Collapses by width, not unmounting, so panel state survives a toggle. -->
 		<div
-			class="shrink-0 overflow-hidden {PANEL_EASE} {layout.resizingSidebar
+			class="shrink-0 overflow-hidden rounded-xl {PANEL_EASE} {layout.resizingSidebar
 				? 'transition-none'
 				: 'transition-[width]'} {layout.panelCollapsed ? 'pointer-events-none' : ''}"
 			style:width={layout.panelCollapsed ? '0px' : `${layout.sidebarWidth}px`}
@@ -157,7 +157,7 @@
 
 		{#if !layout.panelCollapsed}
 			<div
-				class="group relative z-10 flex w-1 shrink-0 cursor-col-resize touch-none items-center justify-center"
+				class="group relative z-10 flex w-1.5 shrink-0 cursor-col-resize touch-none items-center justify-center"
 				role="separator"
 				aria-orientation="vertical"
 				aria-label="Resize sidebar"
@@ -167,7 +167,7 @@
 				<span
 					class="h-10 w-0.5 rounded-full transition-colors {layout.resizingSidebar
 						? 'bg-primary'
-						: 'bg-border group-hover:bg-primary/60'}"
+						: 'bg-transparent group-hover:bg-primary/60'}"
 				></span>
 			</div>
 		{/if}
@@ -182,10 +182,12 @@
 		>
 			<!-- Above the Visual/LaTeX split: a mode is a lens on one file, so "which
 			     file" must not change its answer (or its position) when you switch. -->
-			<Toolbar {ctrl} />
-
 			<div class="flex min-h-0 min-w-0 flex-1">
 				<div class="flex min-h-0 min-w-0 flex-1 flex-col">
+					<div
+						class="bg-background flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl shadow-(--surface-shadow)"
+					>
+					<Toolbar {ctrl} />
 					<div
 						bind:this={layout.bodyEl}
 						id="glyphtex-doc-surface"
@@ -242,10 +244,11 @@
 							{/if}
 						{/if}
 					</div>
+					</div>
 
 					{#if compile.showProblems}
 						<div
-							class="group border-border relative z-10 flex h-1 shrink-0 cursor-row-resize touch-none items-center justify-center border-t"
+							class="group relative z-10 flex h-1.5 shrink-0 cursor-row-resize touch-none items-center justify-center"
 							role="separator"
 							aria-orientation="horizontal"
 							aria-label="Resize panel"
@@ -268,7 +271,7 @@
 						style:height={compile.showProblems ? `${layout.dockH}px` : '0px'}
 						aria-hidden={!compile.showProblems}
 					>
-						<div class="flex" style:height={`${layout.dockH}px`}>
+						<div class="flex overflow-hidden rounded-xl" style:height={`${layout.dockH}px`}>
 							<BottomDock {ctrl} />
 						</div>
 					</div>

@@ -265,10 +265,7 @@
 </script>
 
 <aside
-	class="bg-sidebar border-sidebar-border flex h-full min-h-0 shrink-0 flex-col {settings.sidebarPosition ===
-	'right'
-		? 'border-l'
-		: 'border-r'}"
+	class="bg-sidebar flex h-full min-h-0 shrink-0 flex-col"
 	style:width={`${widthPx}px`}
 	aria-label={store.heading}
 >
