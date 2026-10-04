@@ -16,7 +16,7 @@
 	let { files }: { files: FileStore } = $props();
 </script>
 
-<Dialog open={files.pending !== null} onOpenChange={(o) => (o ? null : files.cancelPending())}>
+<Dialog bind:open={() => files.pending !== null, (o) => (o ? null : files.cancelPending())}>
 	<DialogContent class="sm:max-w-md">
 		{#if files.pending?.kind === 'conflict'}
 			<DialogHeader>
@@ -56,7 +56,7 @@
 				<Button variant="destructive" size="sm" onclick={() => files.resolveConflict('replace')}>
 					Replace
 				</Button>
-				<Button size="sm" onclick={() => files.resolveConflict('rename', files.conflictName)}
+				<Button variant="dark" size="sm" onclick={() => files.resolveConflict('rename', files.conflictName)}
 					>Keep both</Button
 				>
 			</DialogFooter>

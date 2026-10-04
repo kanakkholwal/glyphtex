@@ -36,16 +36,16 @@
 					     transition, and swapping the span in would make the pill jump. -->
 					<button
 						{...props}
-						class="ease-craft focus-visible:ring-ring flex h-7 cursor-pointer items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-inset transition-[background-color,color,padding,column-gap] duration-200 motion-reduce:transition-none {on
-							? 'bg-accent text-foreground gap-1.5 px-2 font-medium'
-							: 'text-muted-foreground hover:bg-accent hover:text-foreground gap-0 px-1.5'}"
+						class="ease-(--ease-out) focus-visible:ring-ring flex h-7 cursor-pointer items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-inset transition-[background-color,color,padding,column-gap] duration-(--duration-base) motion-reduce:transition-none {on
+							? 'bg-muted text-foreground gap-1.5 px-2 font-medium'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground gap-0 px-1.5'}"
 						aria-pressed={on}
 						aria-label={view.label}
 						onclick={() => onselect?.(view.id)}
 					>
 						<Icon class="size-4 shrink-0 {on ? 'text-primary' : ''}" />
 						<span
-							class="ease-craft overflow-hidden text-xs whitespace-nowrap transition-[max-width,opacity] duration-200 motion-reduce:transition-none {on
+							class="ease-(--ease-out) overflow-hidden text-xs whitespace-nowrap transition-[max-width,opacity] duration-(--duration-base) motion-reduce:transition-none {on
 								? 'max-w-24 opacity-100'
 								: 'max-w-0 opacity-0'}"
 						>

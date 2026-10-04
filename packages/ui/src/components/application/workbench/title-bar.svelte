@@ -186,7 +186,7 @@
 				<IconLoader2 size={13} class="animate-spin" />
 				<span class="hidden lg:inline">Saving…</span>
 			{:else}
-				<IconCheck size={13} class="text-success" />
+				<IconCheck size={13} class="text-success-strong" />
 				<span class="hidden lg:inline">Saved</span>
 			{/if}
 		</span>

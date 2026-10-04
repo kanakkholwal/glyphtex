@@ -6,8 +6,6 @@ updated: "2026-08-22"
 author: "Kanak Kholwal"
 category: "Opinion"
 tags: [local-first, latex, privacy, engineering]
-hero: "/blog/why-local-first-latex.svg"
-heroAlt: "A manuscript staying on a personal laptop rather than travelling to a remote server."
 faq:
   - q: "Why does it matter where LaTeX compiles?"
     a: "Compiling remotely means your source is uploaded to a third party. For unpublished research, embargoed theses, or work under review, that is an avoidable exposure. Compiling locally keeps the manuscript on your device."

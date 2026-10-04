@@ -71,13 +71,13 @@
 		class="gap-0 overflow-y-auto data-[side=bottom]:max-h-[90dvh] data-[side=bottom]:rounded-t-2xl data-[side=right]:w-full data-[side=right]:sm:max-w-md"
 	>
 		<SheetHeader class="gap-1 p-6 pr-14">
-			<SheetTitle class="text-body-lg">Storage</SheetTitle>
-			<SheetDescription class="text-body text-muted-foreground">
+			<SheetTitle class="text-base">Storage</SheetTitle>
+			<SheetDescription class="text-md text-muted-foreground">
 				Documents are stored in this browser on this device. They are never uploaded.
 			</SheetDescription>
 		</SheetHeader>
 
-		<div class="text-body flex flex-col gap-6 px-6 pb-6">
+		<div class="text-md flex flex-col gap-6 px-6 pb-6">
 			{#if !status}
 				<p class="text-muted-foreground" role="status">Checking…</p>
 			{:else if status.unknown}
@@ -88,7 +88,7 @@
 			{:else}
 				<section class="flex flex-col gap-2" aria-labelledby="storage-usage">
 					<div class="flex items-baseline justify-between gap-3">
-						<h3 id="storage-usage" class="text-muted-foreground text-body font-normal">
+						<h3 id="storage-usage" class="text-muted-foreground text-md font-normal">
 							Used by this site
 						</h3>
 						<span class="font-medium tabular-nums">
@@ -105,14 +105,14 @@
 						aria-label="Browser storage used"
 					>
 						<div
-							class="h-full rounded-full transition-[width] duration-500 {low
+							class="h-full rounded-full transition-[width] duration-(--duration-drawer) {low
 								? 'bg-destructive'
 								: 'bg-primary'}"
 							style:width="{Math.max(pct, 1)}%"
 						></div>
 					</div>
 					{#if low}
-						<p class="text-destructive text-caption flex items-start gap-1.5">
+						<p class="text-destructive-strong text-xs flex items-start gap-1.5">
 							<IconAlertTriangle size={14} class="mt-px shrink-0" aria-hidden="true" />
 							<span>
 								<span class="font-medium">Nearly full.</span> Delete a document or some images: browsers
@@ -140,7 +140,7 @@
 				<section class="flex flex-col gap-3">
 					<div class="flex items-start gap-3">
 						{#if status.persisted}
-							<IconShieldCheck size={20} class="text-success mt-0.5 shrink-0" aria-hidden="true" />
+							<IconShieldCheck size={20} class="text-success-strong mt-0.5 shrink-0" aria-hidden="true" />
 						{:else}
 							<IconShieldOff
 								size={20}
@@ -149,10 +149,10 @@
 							/>
 						{/if}
 						<div class="min-w-0 flex-1">
-							<h3 class="text-body font-medium">
+							<h3 class="text-md font-medium">
 								{status.persisted ? 'Protected from cleanup' : 'Not protected from cleanup'}
 							</h3>
-							<p class="text-muted-foreground text-caption mt-0.5">
+							<p class="text-muted-foreground text-xs mt-0.5">
 								{status.persisted
 									? 'The browser will not clear these documents to reclaim space.'
 									: 'The browser may clear these documents when storage runs low.'}
@@ -166,17 +166,17 @@
 					{/if}
 					{#if refused && !status.persisted}
 						<p
-							class="border-border text-foreground text-caption flex items-start gap-2 rounded-lg border p-3"
+							class="border-border text-foreground text-xs flex items-start gap-2 rounded-lg border p-3"
 							role="status"
 						>
-							<IconAlertTriangle size={16} class="text-warning mt-px shrink-0" aria-hidden="true" />
+							<IconAlertTriangle size={16} class="text-warning-strong mt-px shrink-0" aria-hidden="true" />
 							<span><span class="font-medium">Not protected yet.</span> {refused}</span>
 						</p>
 					{/if}
 				</section>
 			{/if}
 
-			<p class="text-muted-foreground text-caption">
+			<p class="text-muted-foreground text-xs">
 				Clearing site data in your browser deletes every document here. Export anything you want to
 				keep.
 			</p>

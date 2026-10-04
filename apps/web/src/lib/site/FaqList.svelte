@@ -30,38 +30,38 @@
 	onValueChange={(v) => {
 		if (v) onopen?.(Number(v));
 	}}
-	class={cards ? 'flex flex-col gap-3' : 'border-t border-border'}
+	class={cards ? 'flex flex-col gap-2' : 'border-t border-dashed border-border'}
 >
 	{#each items as item, i (item.q)}
 		<Accordion.Item
 			value={String(i)}
 			class={cards
-				? 'rounded-2xl border border-border bg-card px-4 sm:px-6 dark:bg-background'
-				: 'border-b border-border'}
+				? 'panel-card px-4 sm:px-5'
+				: 'border-b border-dashed border-border'}
 		>
 			<Accordion.Header level={3}>
 				<Accordion.Trigger
-					class="group flex min-h-14 w-full items-center justify-between gap-6 rounded-sm py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+					class="group flex min-h-14 w-full items-center justify-between gap-6 rounded-sm py-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				>
 					<span class="flex items-center gap-4">
 						{#if cards}
-							<span class="text-body font-semibold tabular-nums text-primary" aria-hidden="true">
+							<span class="font-mono text-xs text-accent-ink tabular-nums" aria-hidden="true">
 								{String(i + 1).padStart(2, '0')}
 							</span>
 						{/if}
-						<span class={cn('font-medium text-foreground', cards ? 'text-body-lg' : 'text-body')}>
+						<span class={cn('font-medium text-foreground', cards ? 'text-base' : 'text-sm')}>
 							{item.q}
 						</span>
 					</span>
 					{#if cards}
 						<IconChevronDown
 							aria-hidden="true"
-							class="size-4 shrink-0 text-muted-foreground transition-transform duration-300 ease-craft group-data-[state=open]:rotate-180"
+							class="size-4 shrink-0 text-muted-foreground transition-transform duration-(--duration-base) ease-(--ease-out) group-data-[state=open]:rotate-180"
 						/>
 					{:else}
 						<IconPlus
 							aria-hidden="true"
-							class="size-4 shrink-0 text-muted-foreground transition-transform duration-300 ease-craft group-hover:text-foreground group-data-[state=open]:rotate-45"
+							class="size-4 shrink-0 text-muted-foreground transition-transform duration-(--duration-base) ease-(--ease-out) group-hover:text-foreground group-data-[state=open]:rotate-45"
 						/>
 					{/if}
 				</Accordion.Trigger>
@@ -71,8 +71,8 @@
 			>
 				<p
 					class={cn(
-						'max-w-2xl text-pretty pb-5 text-body leading-relaxed text-muted-foreground',
-						cards && 'sm:pl-10'
+						'max-w-2xl pb-5 text-sm leading-relaxed text-pretty text-muted-foreground',
+						cards && 'sm:pl-8'
 					)}
 				>
 					{item.a}

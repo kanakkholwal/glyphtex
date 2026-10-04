@@ -53,7 +53,7 @@
 	>
 		<IconChevronRight
 			size={14}
-			class="shrink-0 transition-transform duration-200 ease-craft motion-reduce:transition-none {store.rootExpanded
+			class="shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) motion-reduce:transition-none {store.rootExpanded
 				? 'rotate-90'
 				: ''}"
 		/>
@@ -77,7 +77,7 @@
 				Create a new file or upload to get started.
 			</p>
 		</div>
-		<Button size="sm" onclick={() => store.createFileHere()}>
+		<Button variant="dark" size="sm" onclick={() => store.createFileHere()}>
 			<IconPlus /> New file
 		</Button>
 	</div>

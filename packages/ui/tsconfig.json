@@ -11,13 +11,17 @@
 		"strict": true,
 		"module": "es2015",
 		"moduleResolution": "bundler",
-		"lib": ["ES2022"],
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
 		"baseUrl": ".",
 		"ignoreDeprecations": "6.0",
 		"paths": {
+			"$lib": ["src/lib"],
 			"$lib/*": ["src/lib/*"],
+			"$hooks": ["src/hooks"],
 			"$hooks/*": ["src/hooks/*"],
+			"$components": ["src/components"],
 			"$components/*": ["src/components/*"],
+			"$ui": ["src/components/ui"],
 			"$ui/*": ["src/components/ui/*"]
 		}
 	},

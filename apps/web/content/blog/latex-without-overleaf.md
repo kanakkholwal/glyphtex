@@ -7,8 +7,6 @@ author: "Kanak Kholwal"
 category: "Guide"
 tags: [latex, local-first, overleaf, workflow]
 featured: true
-hero: "/blog/latex-without-overleaf.svg"
-heroAlt: "A LaTeX source file compiling to a PDF entirely on a laptop, with no cloud server in the loop."
 faq:
   - q: "Do I need an internet connection to write LaTeX?"
     a: "No. Once the compiler is on your machine or cached in your browser, compiling a document is fully offline. GlyphTeX compiles in the browser tab or in a desktop app, so nothing is uploaded."

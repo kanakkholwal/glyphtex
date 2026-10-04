@@ -1,53 +1,29 @@
 <script lang="ts">
-	import {
-		CRAFT_OVERLAY_ANIMATION,
-		CRAFT_OVERLAY_SURFACE,
-		cn,
-		type WithoutChildrenOrChild
-	} from "@glyphtex/ui/utils";
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import type { ComponentProps } from "svelte";
-	import {
-		dropdownMenuContentSizeVariants,
-		setDropdownMenuSize,
-		type DropdownMenuSize
-	} from "./context";
-	import DropdownMenuPortal from "./dropdown-menu-portal.svelte";
+	import { ANCHORED, stagger } from "../../../lib/anchor.js";
+	import { cn } from "../../../lib/cn.js";
+	import { menu } from "../../../lib/menu.js";
 
 	let {
-		ref = $bindable(null),
+		class: classProp,
 		sideOffset = 4,
 		align = "start",
-		size = "default",
-		portalProps,
-		class: className,
-		preventScroll = false,
-		...restProps
-	}: DropdownMenuPrimitive.ContentProps & {
-		size?: DropdownMenuSize;
-		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DropdownMenuPortal>>;
-	} = $props();
+		ref = $bindable(null),
+		...rest
+	}: DropdownMenuPrimitive.ContentProps = $props();
 
-	setDropdownMenuSize(() => size);
+	$effect(() => {
+		if (ref) stagger(ref.querySelectorAll<HTMLElement>("[role='menuitem']"));
+	});
 </script>
 
-<DropdownMenuPortal {...portalProps}>
+<DropdownMenuPrimitive.Portal>
 	<DropdownMenuPrimitive.Content
 		bind:ref
-		data-slot="dropdown-menu-content"
-		data-size={size}
 		{sideOffset}
 		{align}
-		{preventScroll}
-		class={cn(
-			CRAFT_OVERLAY_ANIMATION,
-			CRAFT_OVERLAY_SURFACE,
-			// Unfold from the corner nearest the trigger instead of the centre.
-			'origin-(--bits-floating-transform-origin)',
-			'z-50 w-(--bits-dropdown-menu-anchor-width) max-h-(--bits-dropdown-menu-content-available-height) overflow-x-hidden overflow-y-auto outline-none data-[state=closed]:overflow-hidden',
-			dropdownMenuContentSizeVariants({ size }),
-			className
-		)}
-		{...restProps}
+		{...rest}
+		data-slot="dropdown-menu-content"
+		class={cn(ANCHORED, "static", menu().surface(), classProp)}
 	/>
-</DropdownMenuPortal>
+</DropdownMenuPrimitive.Portal>

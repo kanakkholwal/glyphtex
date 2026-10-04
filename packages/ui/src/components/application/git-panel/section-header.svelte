@@ -25,7 +25,7 @@
 >
 	<IconChevronRight
 		size={12}
-		class="shrink-0 transition-transform duration-200 ease-craft {store
+		class="shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) {store
 			.sections[sectionKey]
 			? 'rotate-90'
 			: ''}"

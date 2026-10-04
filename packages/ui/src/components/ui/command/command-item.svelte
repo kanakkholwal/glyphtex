@@ -1,27 +1,34 @@
 <script lang="ts">
 	import { Command as CommandPrimitive } from "bits-ui";
-	import { cn } from "@glyphtex/ui/utils";
-	import { IconCheck } from "@tabler/icons-svelte";
+	import { cn } from "../../../lib/cn.js";
+	import { getCommand } from "./context";
 
 	let {
-		ref = $bindable(null),
-		class: className,
 		children,
-		...restProps
-	}: CommandPrimitive.ItemProps = $props();
+		value,
+		keywords = "",
+		class: classProp,
+		onSelect,
+		onclick,
+		...rest
+	}: Omit<CommandPrimitive.ItemProps, "keywords" | "onSelect" | "value"> & {
+		value: string;
+		keywords?: string;
+		/** Fires on click or Enter, like cmdk. `onclick` is an alias. */
+		onSelect?: () => void;
+		onclick?: () => void;
+	} = $props();
+
+	const command = getCommand();
 </script>
 
 <CommandPrimitive.Item
-	bind:ref
+	{value}
+	keywords={keywords ? keywords.split(/\s+/) : undefined}
+	onSelect={onSelect ?? onclick}
 	data-slot="command-item"
-	class={cn(
-		"group/command-item data-selected:bg-accent data-selected:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex min-h-8 cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-hidden select-none in-data-[slot=dialog-content]:rounded-md! data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-		className
-	)}
-	{...restProps}
+	class={cn(command.styles.item(), classProp)}
+	{...rest}
 >
 	{@render children?.()}
-	<IconCheck
-		class="text-primary ml-auto opacity-0 group-has-[[data-slot=command-shortcut]]/command-item:hidden group-data-[checked=true]/command-item:opacity-100"
-	/>
 </CommandPrimitive.Item>

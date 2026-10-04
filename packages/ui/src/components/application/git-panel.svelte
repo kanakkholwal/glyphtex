@@ -117,7 +117,7 @@
 		<!-- Merge-in-progress banner -->
 		{#if store.head?.merging}
 			<div
-				class="border-warning/40 bg-warning/10 text-warning flex items-start gap-1.5 rounded border px-2 py-1.5 text-xs leading-snug"
+				class="border-warning/40 bg-warning/10 text-warning-strong flex items-start gap-1.5 rounded border px-2 py-1.5 text-xs leading-snug"
 			>
 				<IconAlertTriangle size={13} class="mt-px shrink-0" />
 				<span>
@@ -131,7 +131,7 @@
 		<CommitBox {store} />
 
 		{#if store.error}
-			<p class="text-destructive px-0.5 text-xs leading-snug">{store.error}</p>
+			<p class="text-destructive-strong px-0.5 text-xs leading-snug">{store.error}</p>
 		{/if}
 
 		<!-- Staged -->
@@ -180,7 +180,7 @@
 					<Button
 						variant="ghost"
 						size="xs"
-						class="text-muted-foreground hover:text-destructive"
+						class="text-muted-foreground hover:text-destructive-strong"
 						title="Discard all changes"
 						disabled={store.busy}
 						onclick={() => store.discard(store.unstaged.map((c) => c.path))}

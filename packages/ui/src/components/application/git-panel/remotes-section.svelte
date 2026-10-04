@@ -57,7 +57,7 @@
 						class={INPUT_CLS}
 					/>
 					<div class="flex gap-1.5">
-						<Button
+						<Button variant="dark"
 							size="xs"
 							disabled={store.busy || !store.newRemoteName.trim() || !store.newRemoteUrl.trim()}
 							onclick={() => store.addRemote()}
@@ -78,7 +78,7 @@
 						<input bind:value={store.editName} placeholder="Name" class={INPUT_CLS} />
 						<input bind:value={store.editUrl} placeholder="URL" class={INPUT_CLS} />
 						<div class="flex gap-1.5">
-							<Button
+							<Button variant="dark"
 								size="xs"
 								disabled={store.busy || !store.editName.trim() || !store.editUrl.trim()}
 								onclick={() => store.saveRemote(r)}
@@ -126,7 +126,7 @@
 						<Button
 							variant="ghost"
 							size="icon-xs"
-							class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
+							class="text-muted-foreground hover:text-destructive-strong opacity-0 group-hover:opacity-100"
 							title="Remove remote"
 							aria-label="Remove remote"
 							disabled={store.busy}

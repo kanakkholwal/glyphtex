@@ -148,9 +148,9 @@
 					This document needs {missingPacks.map((p) => p.label).join(', ')} ({packSizeMB} MB).
 				</p>
 				{#if error}
-					<p class="text-destructive mt-1 text-xs" role="alert">Could not add packages: {error}</p>
+					<p class="text-destructive-strong mt-1 text-xs" role="alert">Could not add packages: {error}</p>
 				{/if}
-				<Button size="sm" class="mt-2" onclick={onadd} disabled={installing}>
+				<Button variant="dark" size="sm" class="mt-2" onclick={onadd} disabled={installing}>
 					{installing ? 'Adding…' : 'Add packages'}
 				</Button>
 			</div>
@@ -169,7 +169,7 @@
 
 	{#if unsupportedFiles.length > 0 && show(unsupportedId)}
 		<div class={card} transition:fly={enter}>
-			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" aria-hidden="true" />
+			<IconAlertTriangle class="text-warning-strong mt-0.5 size-4 shrink-0" aria-hidden="true" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Unavailable packages</p>
 				<p class="text-muted-foreground mt-0.5 text-xs">
@@ -204,7 +204,7 @@
 
 	{#if requiresBiber && show('biber')}
 		<div class={card} transition:fly={enter}>
-			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" aria-hidden="true" />
+			<IconAlertTriangle class="text-warning-strong mt-0.5 size-4 shrink-0" aria-hidden="true" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Bibliography not generated</p>
 				<p class="text-muted-foreground mt-0.5 text-xs">
@@ -232,21 +232,21 @@
 <Dialog bind:open={reportOpen}>
 	<DialogContent class="gap-5 p-6 sm:max-w-xl">
 		<DialogHeader>
-			<DialogTitle class="text-body-lg">Request package support</DialogTitle>
-			<DialogDescription class="text-body">
+			<DialogTitle class="text-base">Request package support</DialogTitle>
+			<DialogDescription class="text-md">
 				This is the whole report. Only the class and package declarations were copied from your
 				document: no prose, data or file names.
 			</DialogDescription>
 		</DialogHeader>
 
 		<pre
-			class="border-border bg-muted text-muted-foreground text-caption max-h-72 overflow-auto rounded-xl border p-3 font-mono whitespace-pre-wrap">{reportBody}</pre>
+			class="border-border bg-muted text-muted-foreground text-xs max-h-72 overflow-auto rounded-xl border p-3 font-mono whitespace-pre-wrap">{reportBody}</pre>
 
 		<DialogFooter class="-mx-6 -mb-6 p-6 pt-4">
 			<Button variant="outline" onclick={copyReport}>
 				<IconCopy aria-hidden="true" /> Copy
 			</Button>
-			<Button
+			<Button variant="dark"
 				href={supportIssueUrl(REPO_URL, report)}
 				target="_blank"
 				rel="noopener noreferrer"

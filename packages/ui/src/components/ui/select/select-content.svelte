@@ -1,52 +1,39 @@
 <script lang="ts">
-	import type { WithoutChildrenOrChild } from "@glyphtex/ui/utils";
-	import {
-		CRAFT_OVERLAY_ANIMATION,
-		CRAFT_OVERLAY_SURFACE,
-		cn,
-		type WithoutChild
-	} from "@glyphtex/ui/utils";
 	import { Select as SelectPrimitive } from "bits-ui";
-	import type { ComponentProps } from "svelte";
-	import SelectPortal from "./select-portal.svelte";
-	import SelectScrollDownButton from "./select-scroll-down-button.svelte";
-	import SelectScrollUpButton from "./select-scroll-up-button.svelte";
+	import { ANCHORED } from "../../../lib/anchor.js";
+	import { cn } from "../../../lib/cn.js";
+	import { menu } from "../../../lib/menu.js";
+	import { type SelectContentSize, selectContent } from "./variants";
 
 	let {
-		ref = $bindable(null),
-		class: className,
-		sideOffset = 4,
-		portalProps,
+		class: classProp,
 		children,
-		preventScroll = false,
-		...restProps
-	}: WithoutChild<SelectPrimitive.ContentProps> & {
-		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof SelectPortal>>;
+		sideOffset = 6,
+		size,
+		...rest
+	}: SelectPrimitive.ContentProps & {
+		/** Match the trigger's `size`. */
+		size?: SelectContentSize;
 	} = $props();
 </script>
 
-<SelectPortal {...portalProps}>
+<SelectPrimitive.Portal>
 	<SelectPrimitive.Content
-		bind:ref
 		{sideOffset}
-		{preventScroll}
+		{...rest}
 		data-slot="select-content"
+		data-size={size}
 		class={cn(
-			CRAFT_OVERLAY_ANIMATION,
-			CRAFT_OVERLAY_SURFACE,
-			'relative isolate z-50 min-w-36 max-h-(--bits-select-content-available-height) overflow-x-hidden overflow-y-auto p-1',
-			className
+			ANCHORED,
+			menu().surface(),
+			// At least the trigger's width, growing to the longest option so labels never clip.
+			"static z-50 max-h-[min(16rem,var(--bits-select-content-available-height))] w-max min-w-[var(--bits-select-anchor-width)] max-w-[min(24rem,var(--bits-select-content-available-width))] overflow-x-hidden overflow-y-auto scroll-area",
+			selectContent({ size }),
+			classProp,
 		)}
-		{...restProps}
 	>
-		<SelectScrollUpButton />
-		<SelectPrimitive.Viewport
-			class={cn(
-				'h-(--bits-select-anchor-height) w-full min-w-(--bits-select-anchor-width) scroll-my-1'
-			)}
-		>
+		<SelectPrimitive.Viewport>
 			{@render children?.()}
 		</SelectPrimitive.Viewport>
-		<SelectScrollDownButton />
 	</SelectPrimitive.Content>
-</SelectPortal>
+</SelectPrimitive.Portal>

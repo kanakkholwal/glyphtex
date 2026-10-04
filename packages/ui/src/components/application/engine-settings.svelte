@@ -37,7 +37,7 @@
 
 <script lang="ts">
 	import { Button } from '@glyphtex/ui/button';
-	import { Segmented } from '@glyphtex/ui/segmented';
+	import { ToggleGroup, ToggleGroupItem } from '@glyphtex/ui/toggle-group';
 	import {
 		settings,
 		TEX_PROGRAM_LABELS,
@@ -225,13 +225,18 @@
 	<!-- Which engine compiles: bundled Tectonic, or a local System TeX install. -->
 	<SettingsSection label="Compile engine">
 		<div class="flex flex-col gap-3 p-5">
-			<Segmented
-				options={kindOpts}
+			<ToggleGroup
 				value={settings.engineKind}
-				onValueChange={(v) => (settings.engineKind = v as EngineKind)}
-				size="md"
-				aria-label="Compile engine"
-			/>
+				onValueChange={(v) => {
+					if (typeof v === 'string' && v) settings.engineKind = v as EngineKind;
+				}}
+				label="Compile engine"
+				class="w-full"
+			>
+				{#each kindOpts as opt (opt.value)}
+					<ToggleGroupItem value={opt.value} class="flex-1">{opt.label}</ToggleGroupItem>
+				{/each}
+			</ToggleGroup>
 			<p class="text-muted-foreground text-xs leading-relaxed">
 				{#if settings.engineKind === 'system'}
 					Your local TeX install, driven through latexmk.
@@ -251,7 +256,7 @@
 				{:else if systemReady}
 					<div class="flex items-center gap-2">
 						<span
-							class="bg-success/10 text-success inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide"
+							class="bg-success/10 text-success-strong inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide"
 						>
 							Detected
 						</span>
@@ -262,13 +267,18 @@
 					{#if programOpts.length}
 						<div class="flex flex-col gap-1.5">
 							<span class="text-muted-foreground text-xs font-medium">TeX program</span>
-							<Segmented
-								options={programOpts}
-								value={settings.texProgram}
-								onValueChange={(v) => (settings.texProgram = v as TexProgram)}
-								size="md"
-								aria-label="TeX program"
-							/>
+							<ToggleGroup
+				value={settings.texProgram}
+				onValueChange={(v) => {
+					if (typeof v === 'string' && v) settings.texProgram = v as TexProgram;
+				}}
+				label="TeX program"
+				class="w-full"
+			>
+				{#each programOpts as opt (opt.value)}
+					<ToggleGroupItem value={opt.value} class="flex-1">{opt.label}</ToggleGroupItem>
+				{/each}
+			</ToggleGroup>
 						</div>
 					{/if}
 				{:else}
@@ -279,7 +289,7 @@
 						<span class="text-foreground">TeX Live</span> or
 						<span class="text-foreground">MiKTeX</span> (both free, cross-platform), then re-check.
 						<div class="mt-2.5">
-							<Button variant="default_soft" size="xs" onclick={detectSystem}>Re-check</Button>
+							<Button variant="secondary" size="xs" onclick={detectSystem}>Re-check</Button>
 						</div>
 					</div>
 				{/if}
@@ -289,7 +299,7 @@
 		<!-- Tectonic versions, pulled live from GitHub releases. -->
 		<SettingsSection label={`${engine.label} versions`}>
 			{#snippet action()}
-				<Button variant="default_soft" size="xs" onclick={refresh} disabled={loading}>
+				<Button variant="secondary" size="xs" onclick={refresh} disabled={loading}>
 					{#if loading}
 						<Spinner class="size-3.5" /> Checking…
 					{:else}
@@ -300,7 +310,7 @@
 
 			<div use:onVisible={autoCheck}>
 				{#if error}
-					<p class="text-destructive px-5 py-4 text-sm">{error}</p>
+					<p class="text-destructive-strong px-5 py-4 text-sm">{error}</p>
 				{:else if loading && !versions.length}
 					<p class="text-muted-foreground px-5 py-4 text-sm">Checking available versions…</p>
 				{:else if !versions.length}
@@ -332,7 +342,7 @@
 								<div class="ml-auto flex shrink-0 items-center gap-1.5">
 									{#if !v.installed}
 										<Button
-											variant="default_soft"
+										 variant="secondary"
 											size="xs"
 											onclick={() => download(v.version)}
 											disabled={busy === v.version}
@@ -341,7 +351,7 @@
 										</Button>
 									{:else}
 										{#if !v.active}
-											<Button variant="default_soft" size="xs" onclick={() => use(v.version)}
+											<Button variant="secondary" size="xs" onclick={() => use(v.version)}
 												>Use</Button
 											>
 										{/if}
@@ -349,7 +359,7 @@
 											<Button
 												variant="ghost"
 												size="xs"
-												class="text-muted-foreground hover:text-destructive"
+												class="text-muted-foreground hover:text-destructive-strong"
 												onclick={() => remove(v.version)}
 												disabled={busy === v.version}
 												title="Uninstall this version"
@@ -392,7 +402,7 @@
 					</p>
 					<div class="flex items-center gap-2">
 						{#if engine.prefetch}
-							<Button variant="default_soft" size="xs" onclick={prefetch} disabled={prefetching}>
+							<Button variant="secondary" size="xs" onclick={prefetch} disabled={prefetching}>
 								{prefetching ? 'Caching…' : 'Prefetch common'}
 							</Button>
 						{/if}

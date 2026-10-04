@@ -14,8 +14,10 @@ const CACHE = `glyphtex-cache-${version}`;
 // must never wipe the ~15 MB compiler. Entries are keyed by engine content hash.
 const ENGINE_CACHE = "glyphtex-engine";
 
-// `/engine/*` is excluded: ~15 MB the install dialog asks consent for first.
-const PRECACHE = [...build, ...files].filter((p) => !p.startsWith("/engine/"));
+// `/engine/*` is excluded: ~15 MB the install dialog asks consent for first. `/og/*` is for crawlers.
+const PRECACHE = [...build, ...files].filter(
+	(p) => !p.startsWith("/engine/") && !p.startsWith("/og/")
+);
 
 // `caches.open` can reject (private windows, blocked site data); callers must
 // degrade to "no caching today" rather than failing every request on the page.
@@ -33,17 +35,13 @@ sw.addEventListener("install", (event) => {
 			const cache = await openCache(CACHE);
 			// Precaching is an optimisation; a failure must not stop activation.
 			await cache?.addAll(PRECACHE).catch(() => {});
-			// No skipWaiting here: an updated worker parks in "waiting" so the
-			// running editor keeps its code until the user clicks Update. The page
-			// asks us to take over via the SKIP_WAITING message below. First
-			// install has no active worker to wait behind, so it activates anyway.
+			// No skipWaiting: an update waits so the open editor keeps its code until the user clicks
+			// Update (SKIP_WAITING below). A first install has nothing to wait behind.
 		})()
 	);
 });
 
-// The update banner clicks through to here: activate now, and `clients.claim`
-// in `activate` plus the page's controllerchange listener reload onto the new
-// build.
+// The update banner lands here; `clients.claim` plus the page's controllerchange reload onto the build.
 sw.addEventListener("message", (event) => {
 	if (event.data === "SKIP_WAITING") void sw.skipWaiting();
 });

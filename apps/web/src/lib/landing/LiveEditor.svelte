@@ -93,12 +93,9 @@
 
 <div {@attach whenVisible} class="flex h-[26rem] flex-col overflow-hidden text-left sm:h-[30rem]">
 	<div class="flex min-h-0 flex-1">
-		<!-- File list. Real switching: each file opens in the editor with its own
-		     undo history, and edits survive moving between them. -->
-		<div
-			class="hidden w-52 shrink-0 flex-col gap-0.5 border-r border-border p-2 sm:flex"
-		>
-			<div class="flex items-center gap-2 px-2 pt-1 pb-2.5 text-sm text-muted-foreground">
+		<!-- Each file keeps its own undo history, and edits survive switching. -->
+		<div class="hidden w-52 shrink-0 flex-col gap-0.5 border-r border-border p-2 sm:flex">
+			<div class="flex items-center gap-2 px-2 pt-1 pb-2.5 font-mono text-xs text-muted-foreground">
 				<IconFolder class="size-4" stroke-width={1.75} aria-hidden="true" />
 				sample-paper
 			</div>
@@ -112,10 +109,10 @@
 					}}
 					aria-current={activePath === file.path ? "true" : undefined}
 					class={[
-						'flex h-8 items-center gap-2 rounded-md px-2 text-left font-mono text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+						'flex h-8 items-center gap-2 rounded-md px-2 text-left font-mono text-xs transition-colors duration-(--duration-fast) outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
 						activePath === file.path
-							? 'bg-muted font-medium text-foreground'
-							: 'text-muted-foreground hover:bg-muted hover:text-foreground'
+							? 'bg-foreground/[0.06] text-foreground'
+							: 'text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground'
 					]}
 					style={file.path.includes('/') ? 'padding-left: 1.25rem' : undefined}
 				>
@@ -127,9 +124,9 @@
 
 		<div class="flex min-w-0 flex-1 flex-col">
 			<div
-				class="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5 text-sm"
+				class="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5 font-mono text-xs"
 			>
-				<span class="truncate font-mono text-muted-foreground">{activePath}</span>
+				<span class="truncate text-muted-foreground">{activePath}</span>
 				<span class="inline-flex shrink-0 items-center gap-1.5 text-muted-foreground">
 					<span class="size-1.5 rounded-full {live ? 'bg-success' : 'bg-placeholder'}"
 					></span>
@@ -166,11 +163,17 @@
 	<div
 		class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3"
 	>
-		<p class="text-body text-muted-foreground" aria-live="polite">
+		<p class="font-mono text-xs text-muted-foreground" aria-live="polite">
 			{dirty ? 'Edited, not saved' : 'Edits stay in this tab'}
 		</p>
-		<Button variant="default" disabled={opening} onclick={openInWorkspace}>
-			{opening ? 'Opening…' : 'Open this in the workspace'}
+		<Button
+			variant="dark"
+			size="sm"
+			loading={opening}
+			loadingLabel="Opening…"
+			onclick={openInWorkspace}
+		>
+			Open this in the workspace
 			<IconArrowRight aria-hidden="true" />
 		</Button>
 	</div>

@@ -1,41 +1,24 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import {
-		DROPDOWN_MENU_ROW,
-		dropdownMenuItemSizeVariants,
-		getDropdownMenuSize,
-		type DropdownMenuSize
-	} from "./context";
+	import { cn } from "../../../lib/cn.js";
+	import { menu } from "../../../lib/menu.js";
 
 	let {
-		ref = $bindable(null),
-		class: className,
-		inset,
-		size,
-		variant = "default",
-		...restProps
+		class: classProp,
+		destructive = false,
+		inset = false,
+		...rest
 	}: DropdownMenuPrimitive.ItemProps & {
+		destructive?: boolean;
 		inset?: boolean;
-		size?: DropdownMenuSize;
-		variant?: "default" | "destructive";
 	} = $props();
 
-	const contentSize = getDropdownMenuSize();
-	const resolvedSize = $derived(size ?? contentSize());
+	const variant = $derived(destructive ? "destructive" : "default");
 </script>
 
 <DropdownMenuPrimitive.Item
-	bind:ref
+	{...rest}
 	data-slot="dropdown-menu-item"
-	data-inset={inset}
-	data-variant={variant}
-	class={cn(
-		DROPDOWN_MENU_ROW,
-		dropdownMenuItemSizeVariants({ size: resolvedSize }),
-		'group/dropdown-menu-item data-inset:pl-8',
-		'data-[variant=destructive]:text-destructive data-[variant=destructive]:data-highlighted:bg-destructive/10 data-[variant=destructive]:data-highlighted:text-destructive data-[variant=destructive]:[&_svg]:text-destructive!',
-		className
-	)}
-	{...restProps}
+	data-inset={inset || undefined}
+	class={cn(menu({ variant }).item(), classProp)}
 />

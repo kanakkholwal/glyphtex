@@ -4,25 +4,14 @@
 	import PostCard from "$lib/content/PostCard.svelte";
 	import { articleLd, breadcrumbLd, faqLd, serialise } from "$lib/seo/jsonld";
 	import { AUTHOR } from "$lib/seo/site";
+	import { ogImageUrl } from "$lib/seo/og";
 	import Seo from "$lib/seo/Seo.svelte";
-	import { RailFrame, RailRow } from "$lib/site";
-	import {
-		Breadcrumb,
-		BreadcrumbItem,
-		BreadcrumbLink,
-		BreadcrumbList,
-		BreadcrumbPage,
-		BreadcrumbSeparator
-	} from "@glyphtex/ui/breadcrumb";
-	import { Badge } from "@glyphtex/ui/badge";
+	import { RailFrame, RailRow, Section, Well } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
-	import { IconArrowRight } from "@tabler/icons-svelte";
+	import { IconArrowLeft, IconArrowRight } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
 
 	let { data }: PageProps = $props();
-
-	// Plain, per-post card: title + category on a neutral background, not the article's own art.
-	const ogImage = $derived(`/og/blog/${data.meta.slug}`);
 
 	const dateLabel = $derived(
 		data.meta.date
@@ -42,7 +31,7 @@
 					title: data.meta.title,
 					description: data.meta.description,
 					url: data.meta.url,
-					image: ogImage,
+					image: ogImageUrl(data.meta.url),
 					published: data.meta.date,
 					modified: data.meta.updated,
 					tags: data.meta.tags
@@ -67,8 +56,6 @@
 	title={data.meta.title}
 	description={data.meta.description}
 	canonical={data.meta.url}
-	image={ogImage}
-	imageAlt={data.meta.title}
 	type="article"
 	published={data.meta.date}
 	modified={data.meta.updated ?? data.meta.date}
@@ -78,101 +65,96 @@
 />
 
 <RailFrame>
-	<RailRow divider={false} label="Article" class="px-3 pt-28 pb-12 sm:px-6 sm:pt-32">
-		<div class="flex flex-col gap-10 px-1 sm:px-4 lg:px-10">
-			<header class="flex max-w-3xl flex-col gap-4">
-				<Breadcrumb>
-					<BreadcrumbList>
-						<BreadcrumbItem>
-							<BreadcrumbLink href="/">Home</BreadcrumbLink>
-						</BreadcrumbItem>
-						<BreadcrumbSeparator />
-						<BreadcrumbItem>
-							<BreadcrumbLink href="/blog">Blog</BreadcrumbLink>
-						</BreadcrumbItem>
-						<BreadcrumbSeparator />
-						<BreadcrumbItem>
-							<BreadcrumbPage class="line-clamp-1">{data.meta.title}</BreadcrumbPage>
-						</BreadcrumbItem>
-					</BreadcrumbList>
-				</Breadcrumb>
-				<p class="flex flex-wrap items-center gap-2 text-caption text-muted-foreground">
-					<Badge variant="primary">{data.meta.category}</Badge>
+	<RailRow divider={false} label="Article" class="pb-16">
+		<div class="flex flex-col gap-10">
+			<header class="flex flex-col">
+				<a
+					href={resolve('/blog')}
+					class="flex w-fit items-center gap-1.5 rounded-sm font-mono text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+				>
+					<IconArrowLeft class="size-3.5" aria-hidden="true" />
+					All articles
+				</a>
+				<p
+					class="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground tabular-nums"
+				>
+					<span>{data.meta.category}</span>
 					{#if dateLabel}<span aria-hidden="true">·</span><time datetime={data.meta.date}>{dateLabel}</time>{/if}
 					<span aria-hidden="true">·</span><span>{data.readingMinutes} min read</span>
 				</p>
-				<h1 class="text-balance text-heading-lg font-medium text-foreground md:text-display">
-					{data.meta.title}
-				</h1>
-				<p class="text-pretty text-body-lg text-muted-foreground">{data.meta.description}</p>
-				<p class="flex items-center gap-3 text-body text-muted-foreground">
+				<h1 class="pixel mt-4 text-4xl text-balance text-foreground">{data.meta.title}</h1>
+				<p class="mt-4 text-base text-pretty text-muted-foreground sm:text-lg">
+					{data.meta.description}
+				</p>
+				<p class="mt-6 flex items-center gap-3 text-sm text-muted-foreground">
 					<!-- SVG avatar: @unpic/svelte is for raster images. -->
 					<img
 						src={AUTHOR.avatar}
 						alt=""
-						width="36"
-						height="36"
-						class="size-9 rounded-full border border-border object-cover"
+						width="32"
+						height="32"
+						class="size-8 rounded-full border border-border object-cover"
 					/>
-					<span>By <a href="/about" class="{quiet} font-medium text-foreground">{AUTHOR.name}</a></span>
+					<span>By <a href={resolve('/about')} class="{quiet} font-medium text-foreground">{AUTHOR.name}</a></span>
 				</p>
 			</header>
 
-			<div class="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_17rem]">
+
+			<div class="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_15rem]">
 				<div class="min-w-0">
 					<article>
 						<ArticleBody content={data.content} />
 					</article>
 
 					{#if data.meta.tags.length}
-						<ul class="mt-12 flex max-w-3xl flex-wrap gap-2" aria-label="Topics">
-							{#each data.meta.tags as tag (tag)}
-								<li>
-									<a
-										href="/blog/tag/{encodeURIComponent(tag)}"
-										class="flex min-h-10 items-center rounded-full border border-border bg-card px-3.5 text-body text-foreground outline-none transition-colors duration-150 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring dark:bg-background"
-									>
-										{tag}
-									</a>
-								</li>
-							{/each}
-						</ul>
+						<div class="mt-12 flex flex-wrap items-baseline gap-x-4 gap-y-2">
+							<span class="font-mono text-xs text-muted-foreground">Topics</span>
+							<ul class="group/list flex flex-wrap gap-x-4 gap-y-2" aria-label="Topics">
+								{#each data.meta.tags as tag (tag)}
+									<li>
+										<a
+											href="/blog/tag/{encodeURIComponent(tag)}"
+											class="rounded-sm font-mono text-xs text-foreground underline-offset-4 outline-none transition-opacity duration-(--duration-fast) group-hover/list:opacity-50 hover:underline hover:opacity-100! focus-visible:opacity-100! focus-visible:ring-2 focus-visible:ring-ring"
+										>
+											{tag}
+										</a>
+									</li>
+								{/each}
+							</ul>
+						</div>
 					{/if}
 
-					<div class="mt-8 max-w-3xl">
+					<div class="mt-8">
 						<AuthorCard />
 					</div>
 				</div>
 
-				<aside class="flex flex-col gap-8 lg:sticky lg:top-28 lg:self-start">
-					<div class="panel-card flex flex-col gap-3 p-5">
-						<p class="text-body-lg font-medium text-foreground">Try it now</p>
-						<p class="text-body text-muted-foreground">
-							Compile LaTeX in your browser. No account, nothing uploaded.
-						</p>
-						<Button href={resolve('/workspace')} variant="primary" class="w-full">
-							Open the workspace
-							<IconArrowRight />
-						</Button>
-					</div>
+				<aside class="flex flex-col gap-8 lg:sticky lg:top-24 lg:self-start">
 					<div class="hidden lg:block">
 						<Toc headings={data.headings} />
 					</div>
+					<Well bodyClass="flex flex-col gap-3 p-4">
+						<p class="text-sm font-medium text-foreground">Try it now</p>
+						<p class="text-sm text-muted-foreground">
+							Compile LaTeX in your browser. No account, nothing uploaded.
+						</p>
+						<Button href={resolve('/workspace')} variant="default" size="sm" class="w-full">
+							Open the workspace
+							<IconArrowRight />
+						</Button>
+					</Well>
 				</aside>
 			</div>
 		</div>
 	</RailRow>
 
 	{#if data.related.length}
-		<RailRow label="Keep reading">
-			<div class="flex flex-col gap-5 px-1 py-6 sm:px-4 sm:py-8 lg:px-10">
-				<h2 class="text-heading-sm font-medium text-foreground">Keep reading</h2>
-				<ul class="grid grid-cols-1 gap-3 md:grid-cols-3">
-					{#each data.related as post (post.slug)}
-						<li><PostCard {post} /></li>
-					{/each}
-				</ul>
-			</div>
-		</RailRow>
+		<Section id="keep-reading" title="keep reading.">
+			<ul class="group/list flex flex-col">
+				{#each data.related as post (post.slug)}
+					<li><PostCard {post} /></li>
+				{/each}
+			</ul>
+		</Section>
 	{/if}
 </RailFrame>

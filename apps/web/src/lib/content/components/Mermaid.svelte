@@ -69,15 +69,15 @@
 		{:else}
 			<!-- Also the prerendered payload, so the diagram is readable without JS. -->
 			<pre
-				class="m-0 overflow-x-auto text-left font-mono text-caption text-muted-foreground">{code}</pre>
+				class="m-0 overflow-x-auto text-left font-mono text-xs text-muted-foreground">{code}</pre>
 		{/if}
 	</div>
 	{#if caption}
-		<figcaption class="mt-3 text-center text-body text-muted-foreground">{caption}</figcaption>
+		<figcaption class="mt-3 text-center text-sm text-muted-foreground">{caption}</figcaption>
 	{/if}
 	{#if failed}
-		<figcaption class="mt-2 text-center text-caption text-destructive">
-			<span class="font-semibold">Error:</span> the diagram could not be drawn, so its source is shown.
+		<figcaption class="mt-2 text-center text-xs text-destructive-strong">
+			<span class="font-medium">Error:</span> the diagram could not be drawn, so its source is shown.
 		</figcaption>
 	{/if}
 </figure>

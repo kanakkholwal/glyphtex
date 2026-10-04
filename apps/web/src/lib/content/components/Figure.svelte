@@ -12,6 +12,6 @@
 		<img {src} {alt} loading="lazy" decoding="async" class="size-full object-cover" />
 	</div>
 	{#if caption}
-		<figcaption class="mt-3 text-pretty text-body text-muted-foreground">{caption}</figcaption>
+		<figcaption class="mt-3 text-sm text-pretty text-muted-foreground">{caption}</figcaption>
 	{/if}
 </figure>

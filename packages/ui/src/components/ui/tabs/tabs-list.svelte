@@ -1,148 +1,145 @@
-<script lang="ts" module>
-	import { twMergeConfig } from "@glyphtex/ui/utils";
-	import { tv, type VariantProps } from "tailwind-variants";
-	export const tabsListVariants = tv(
-		{
-			base: "rounded-lg p-[3px] group-data-horizontal/tabs:h-9 data-[variant=line]:rounded-none group/tabs-list text-muted-foreground inline-flex w-fit items-center justify-center group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
-			variants: {
-				variant: {
-					default: "bg-muted",
-					line: "gap-1 bg-transparent",
-					soft: 'bg-muted/60 [&_[data-slot="tabs-trigger"][data-state=active]_svg]:text-primary [&_[data-slot="tabs-trigger"][data-state=active]]:text-foreground [&_[data-slot="tabs-trigger"]]:text-muted-foreground [&_[data-slot="tabs-trigger"]:hover]:text-foreground [&_[data-slot="tabs-trigger"]]:shadow-transparent'
-				}
-			},
-			defaultVariants: {
-				variant: "default"
-			}
-		},
-		{ twMergeConfig }
-	);
-	export type TabsListVariant = VariantProps<typeof tabsListVariants>["variant"];
-</script>
-
 <script lang="ts">
-	import { cn } from '@glyphtex/ui/utils';
-	import { Tabs as TabsPrimitive } from 'bits-ui';
-	import { cubicOut } from 'svelte/easing';
-	import { Tween, prefersReducedMotion } from 'svelte/motion';
+	import { Tabs as TabsPrimitive } from "bits-ui";
+	import { cn } from "../../../lib/cn.js";
+	import { getTabs } from "./context";
+	import { tabsFrame } from "./variants";
 
-	let {
-		ref = $bindable(null),
-		variant = 'default',
-		class: className,
-		children,
-		...restProps
-	}: TabsPrimitive.ListProps & {
-		variant?: TabsListVariant;
-	} = $props();
+	let { children, class: classProp, ...rest }: TabsPrimitive.ListProps = $props();
 
-	// Sliding indicator measured from the DOM, so it stays decoupled from bits-ui's value state.
-	let indicatorVisible = $state(false);
-	let isVertical = $state(false);
-	let firstMeasure = true;
+	const tabs = getTabs();
+	const frame = $derived(tabsFrame({ variant: tabs.variant, size: tabs.size }));
 
-	const x = new Tween(0, { duration: 260, easing: cubicOut });
-	const y = new Tween(0, { duration: 260, easing: cubicOut });
-	const w = new Tween(0, { duration: 260, easing: cubicOut });
-	const h = new Tween(0, { duration: 260, easing: cubicOut });
+	let root = $state<HTMLDivElement>();
+	let viewport = $state<HTMLDivElement>();
+	let list = $state<HTMLDivElement | null>(null);
+	let rects = $state<Record<string, { left: number; width: number }>>({});
+	let edges = $state({ overflow: false, left: false, right: false });
 
-	function syncIndicator() {
-		const el = ref as HTMLElement | null;
-		if (!el) return;
-		const active = el.querySelector<HTMLElement>('[data-slot="tabs-trigger"][data-state="active"]');
-		if (!active) {
-			indicatorVisible = false;
-			return;
+	const indicator = $derived(rects[tabs.value] ?? { left: 0, width: 0 });
+
+	function measure() {
+		if (!list || !viewport || !root) return;
+		const next: Record<string, { left: number; width: number }> = {};
+		for (const el of list.querySelectorAll<HTMLElement>("[data-tab]")) {
+			const id = el.dataset.tab;
+			if (id) next[id] = { left: el.offsetLeft, width: el.offsetWidth };
 		}
-		const listRect = el.getBoundingClientRect();
-		const tRect = active.getBoundingClientRect();
-		const nx = tRect.left - listRect.left;
-		const ny = tRect.top - listRect.top;
-		const nw = tRect.width;
-		const nh = tRect.height;
+		rects = next;
 
-		isVertical =
-			el.dataset.orientation === 'vertical' || el.closest('[data-orientation="vertical"]') !== null;
-
-		// Snap on first measure so the indicator doesn't grow from (0,0) and fight
-		// the dialog/page enter motion. Subsequent updates Tween.
-		if (firstMeasure || prefersReducedMotion.current) {
-			x.set(nx, { duration: 0 });
-			y.set(ny, { duration: 0 });
-			w.set(nw, { duration: 0 });
-			h.set(nh, { duration: 0 });
-			firstMeasure = false;
-		} else {
-			x.target = nx;
-			y.target = ny;
-			w.target = nw;
-			h.target = nh;
-		}
-		indicatorVisible = true;
+		// Overlay arrows sit above the viewport, so they never shrink its scroll range.
+		const max = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+		const from = Math.max(0, Math.min(max, Math.abs(viewport.scrollLeft)));
+		edges = {
+			overflow: viewport.scrollWidth > root.clientWidth + 1,
+			left: from > 1,
+			right: from < max - 1
+		};
 	}
 
 	$effect(() => {
-		const el = ref as HTMLElement | null;
-		if (!el) return;
-		syncIndicator();
-		const mo = new MutationObserver(() => syncIndicator());
-		mo.observe(el, {
-			subtree: true,
-			attributes: true,
-			attributeFilter: ['data-state']
-		});
-		const ro = new ResizeObserver(() => syncIndicator());
-		ro.observe(el);
-		el.querySelectorAll('[data-slot="tabs-trigger"]').forEach((t) => ro.observe(t));
+		if (!root || !viewport || !list) return;
+		measure();
+		const observer = new ResizeObserver(measure);
+		observer.observe(root);
+		observer.observe(list);
+		const port = viewport;
+		port.addEventListener("scroll", measure, { passive: true });
 		return () => {
-			mo.disconnect();
-			ro.disconnect();
+			observer.disconnect();
+			port.removeEventListener("scroll", measure);
 		};
 	});
+
+	/** Keep the selected tab clear of the arrows that overlay the faded edges. */
+	$effect(() => {
+		const el = list?.querySelector<HTMLElement>(`[data-tab="${CSS.escape(tabs.value)}"]`);
+		if (!el || !viewport || !edges.overflow) return;
+		const frame = viewport.getBoundingClientRect();
+		const item = el.getBoundingClientRect();
+		const left = frame.left + (edges.left ? 36 : 0);
+		const right = frame.right - (edges.right ? 36 : 0);
+		const delta = item.left < left ? item.left - left : item.right > right ? item.right - right : 0;
+		if (delta) viewport.scrollBy({ left: delta, behavior: "smooth" });
+	});
+
+	const mask = $derived(
+		edges.overflow
+			? `linear-gradient(to right, ${edges.left ? "transparent, black 40px" : "black, black 0"}, ${
+					edges.right ? "black calc(100% - 40px), transparent" : "black 100%"
+				})`
+			: undefined
+	);
+
+	function scroll(direction: number) {
+		viewport?.scrollBy({
+			left: direction * viewport.clientWidth * 0.8,
+			behavior: "smooth"
+		});
+	}
+
+	const ARROW =
+		"absolute inset-y-0 z-20 inline-flex w-9 items-center justify-center text-foreground transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-0";
 </script>
 
-<TabsPrimitive.List
-	bind:ref
-	data-slot="tabs-list"
-	data-variant={variant}
+<div
+	bind:this={root}
 	class={cn(
-		'relative',
-		tabsListVariants({ variant }),
-		// The live indicator owns the active fill; z-10 keeps labels above it.
-		indicatorVisible &&
-			variant !== 'line' && [
-				'[&_[data-slot=tabs-trigger][data-state=active]]:!bg-transparent',
-				'[&_[data-slot=tabs-trigger][data-state=active]]:!shadow-none',
-				'[&_[data-slot=tabs-trigger]]:z-10'
-			],
-		indicatorVisible &&
-			variant === 'line' && [
-				'[&_[data-slot=tabs-trigger][data-state=active]]:after:opacity-0',
-				'[&_[data-slot=tabs-trigger]]:z-10'
-			],
-		className
+		"relative isolate flex w-full min-w-0 max-w-full items-center",
+		edges.overflow && tabs.variant === "pill" && "rounded-full bg-card",
+		edges.overflow && tabs.variant === "segment" && "rounded-lg bg-card",
 	)}
-	{...restProps}
 >
-	{#if indicatorVisible && variant !== 'line'}
-		<span
-			aria-hidden="true"
-			class={cn(
-				'pointer-events-none absolute left-0 top-0 z-0 rounded-md will-change-transform',
-				variant === 'soft' && 'bg-card',
-				variant === 'default' && 'bg-background shadow-xs'
-			)}
-			style="transform: translate({x.current}px, {y.current}px); width: {w.current}px; height: {h.current}px;"
-		></span>
+	{#if edges.overflow}
+		<button
+			type="button"
+			aria-label="Scroll tabs left"
+			disabled={!edges.left}
+			onclick={() => scroll(-1)}
+			class={cn(ARROW, "left-0 rounded-l-full")}
+		>
+			<svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="size-4">
+				<path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+			</svg>
+		</button>
 	{/if}
-	{#if indicatorVisible && variant === 'line'}
-		<span
-			aria-hidden="true"
-			class="pointer-events-none absolute z-0 bg-foreground will-change-transform"
-			style={isVertical
-				? `transform: translateY(${y.current}px); top: 0; right: -3px; height: ${h.current}px; width: 2px;`
-				: `transform: translateX(${x.current}px); bottom: -3px; left: 0; height: 2px; width: ${w.current}px;`}
-		></span>
+
+	<div
+		bind:this={viewport}
+		style:mask-image={mask}
+		style:-webkit-mask-image={mask}
+		class={cn(
+			"scrollbar-none w-full min-w-0 overflow-x-auto",
+			edges.overflow && "[border-radius:inherit]",
+		)}
+	>
+		<TabsPrimitive.List
+			bind:ref={list}
+			data-slot="tabs-list"
+			class={cn(frame.list(), classProp)}
+			{...rest}
+		>
+			<span
+				aria-hidden="true"
+				style:transform="translateX({indicator.left}px)"
+				style:width="{indicator.width}px"
+				class={frame.indicator()}
+			></span>
+
+			{@render children?.()}
+		</TabsPrimitive.List>
+	</div>
+
+	{#if edges.overflow}
+		<button
+			type="button"
+			aria-label="Scroll tabs right"
+			disabled={!edges.right}
+			onclick={() => scroll(1)}
+			class={cn(ARROW, "right-0 rounded-r-full")}
+		>
+			<svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="size-4">
+				<path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+			</svg>
+		</button>
 	{/if}
-	{@render children?.()}
-</TabsPrimitive.List>
+</div>

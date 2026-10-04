@@ -21,13 +21,13 @@
 
 <div class="border-border/70 mt-1 border-t pt-1">
 	<button
-		class="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-xs font-medium transition-colors"
+		class="text-muted-foreground hover:bg-muted hover:text-foreground flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-xs font-medium transition-colors"
 		aria-expanded={open}
 		onclick={() => (open = !open)}
 	>
 		<IconChevronRight
 			size={14}
-			class="shrink-0 transition-transform duration-200 ease-craft {open
+			class="shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) {open
 				? 'rotate-90'
 				: ''}"
 		/>

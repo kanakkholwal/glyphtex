@@ -30,9 +30,6 @@ export default defineConfig({
 		updated: z.string().optional(),
 		author: z.string().default("Kanak Kholwal"),
 		category: z.string().optional(),
-		hero: z.string().optional(),
-		heroAlt: z.string().optional(),
-		heroPrompt: z.string().optional(),
 		featured: z.boolean().default(false),
 		canonical: z.string().optional(),
 		// Answer-first pairs, rendered as a block and emitted as FAQPage JSON-LD.

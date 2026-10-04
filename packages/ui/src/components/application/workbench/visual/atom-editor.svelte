@@ -128,7 +128,7 @@
 				<button
 					type="button"
 					title={symbol.insert}
-					class="text-muted-foreground hover:bg-accent hover:text-foreground h-7 min-w-8 rounded px-1.5 font-mono text-xs"
+					class="text-muted-foreground hover:bg-muted hover:text-foreground h-7 min-w-8 rounded px-1.5 font-mono text-xs"
 					onclick={() => insertSymbol(symbol.insert)}
 				>
 					{symbol.label}
@@ -156,7 +156,7 @@
 	{/if}
 
 	<div class="mt-2.5 flex items-center gap-1">
-		<Button size="sm" class="mr-1 h-8" onclick={apply}>Apply</Button>
+		<Button variant="dark" size="sm" class="mr-1 h-8" onclick={apply}>Apply</Button>
 		<Button size="sm" variant="ghost" class="h-8" onclick={onclose}>Cancel</Button>
 		{#if isLink && onunlink}
 			<Button
@@ -174,7 +174,7 @@
 			size="sm"
 			variant="ghost"
 			title={isLink ? 'Delete the link and its text' : 'Delete'}
-			class="text-muted-foreground hover:text-destructive h-8 gap-1.5 px-2 {isLink && onunlink
+			class="text-muted-foreground hover:text-destructive-strong h-8 gap-1.5 px-2 {isLink && onunlink
 				? ''
 				: 'ml-auto'}"
 			onclick={onremove}

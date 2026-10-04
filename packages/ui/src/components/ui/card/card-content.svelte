@@ -1,20 +1,15 @@
 <script lang="ts">
+	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import { cn } from "../../../lib/cn.js";
 
 	let {
-		ref = $bindable(null),
-		class: className,
 		children,
-		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+		class: classProp,
+		...rest
+	}: { children?: Snippet; class?: string } & HTMLAttributes<HTMLDivElement> = $props();
 </script>
 
-<div
-	bind:this={ref}
-	data-slot="card-content"
-	class={cn('px-4 group-data-[size=sm]/card:px-3', className)}
-	{...restProps}
->
+<div {...rest} data-slot="card-content" class={cn("px-6", classProp)}>
 	{@render children?.()}
 </div>

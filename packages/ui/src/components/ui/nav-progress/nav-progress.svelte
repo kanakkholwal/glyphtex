@@ -1,107 +1,56 @@
 <script lang="ts">
 	import { navigating } from "$app/state";
-	import { cubicOut } from "svelte/easing";
-	import { Tween, prefersReducedMotion } from "svelte/motion";
+	import { cn } from "../../../lib/cn.js";
 
-	/** Top-of-page bar driven by `navigating`: trickles toward 0.9 while loading, then fills and fades.
-	 *  `shadow` is accepted for older call sites and ignored: the design system has no glows. */
-	let {
-		color = "var(--color-primary)",
-		height = 3,
-		trickleSpeed = 200,
-		minimum = 0.08,
-		duration = 300
-	}: {
-		color?: string;
-		height?: number;
-		trickleSpeed?: number;
-		minimum?: number;
-		duration?: number;
-		shadow?: boolean;
-	} = $props();
+	// Fast navigations finish before this; only a load the visitor would notice shows the bar.
+	const SHOW_AFTER_MS = 150;
 
-	const progress = new Tween(0, {
-		duration: () => (prefersReducedMotion.current ? 0 : duration),
-		easing: cubicOut
-	});
+	let { class: className }: { class?: string } = $props();
 
 	let visible = $state(false);
-	let trickleInterval: ReturnType<typeof setInterval> | null = null;
-	// Deferred completion work bails when a newer navigation bumped this, or a stale
-	// callback hides the bar mid-way through a chained navigation.
-	let navGeneration = 0;
-
-	function startTrickle() {
-		if (trickleInterval) return;
-		trickleInterval = setInterval(() => {
-			const remaining = 0.9 - progress.target;
-			if (remaining <= 0) return;
-			const increment = remaining * 0.1 + Math.random() * 0.02;
-			progress.set(Math.min(progress.target + increment, 0.9));
-		}, trickleSpeed);
-	}
-
-	function stopTrickle() {
-		if (trickleInterval) {
-			clearInterval(trickleInterval);
-			trickleInterval = null;
-		}
-	}
+	const pending = $derived(navigating.to !== null);
 
 	$effect(() => {
-		const active = navigating.to !== null;
-		const token = ++navGeneration;
-		if (active) {
-			visible = true;
-			progress.set(minimum, { duration: 0 });
-			startTrickle();
-		} else {
-			stopTrickle();
-			const finish = prefersReducedMotion.current ? 0 : duration * 0.5;
-			progress.set(1, { duration: finish }).then(() => {
-				if (token !== navGeneration) return;
-				setTimeout(() => {
-					if (token !== navGeneration) return;
-					visible = false;
-					progress.set(0, { duration: 0 });
-				}, 200);
-			});
+		if (!pending) {
+			visible = false;
+			return;
 		}
+		const timer = setTimeout(() => (visible = true), SHOW_AFTER_MS);
+		return () => clearTimeout(timer);
 	});
 </script>
 
-{#if visible}
-	<div
-		class="nav-progress"
-		style="
-			--progress: {progress.current};
-			--color: {color};
-			--height: {height}px;
-		"
-		aria-hidden="true"
-	>
-		<div class="bar"></div>
-	</div>
-{/if}
+<div
+	aria-hidden="true"
+	class={cn(
+		"pointer-events-none fixed inset-x-0 top-0 z-[100] h-0.5 overflow-hidden opacity-0",
+		"transition-opacity duration-(--duration-base) ease-(--ease-out)",
+		visible && "opacity-100",
+		className
+	)}
+>
+	<div class="sweep h-full w-2/5 bg-primary"></div>
+</div>
+<span role="status" class="sr-only">{visible ? "Loading page" : ""}</span>
 
 <style>
-	.nav-progress {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		z-index: 9999;
-		pointer-events: none;
-		height: var(--height);
+	.sweep {
+		animation: sweep 1.1s var(--ease-in-out) infinite;
 	}
 
-	.bar {
-		height: 100%;
-		background: var(--color);
-		border-radius: 0 2px 2px 0;
-		transform-origin: left center;
-		transform: scaleX(var(--progress));
-		/* The Tween animates; a CSS transition would double it. */
-		transition: transform 0ms;
+	@keyframes sweep {
+		from {
+			translate: -100% 0;
+		}
+		to {
+			translate: 250% 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.sweep {
+			width: 100%;
+			animation: none;
+		}
 	}
 </style>

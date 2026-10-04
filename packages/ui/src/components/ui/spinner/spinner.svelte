@@ -1,26 +1,17 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
-	import { IconLoader } from "@tabler/icons-svelte";
-	import type { SVGAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type SpinnerSize, spinnerIcon } from "./variants";
 
 	let {
-		class: className,
-		role = "status",
-		// we add name, color, and stroke for compatibility with different icon libraries props
-		name,
-		color,
-		stroke,
-		"aria-label": ariaLabel = "Loading",
-		...restProps
-	}: SVGAttributes<SVGSVGElement> = $props();
+		size = "md",
+		label = "Loading",
+		class: classProp
+	}: { size?: SpinnerSize; label?: string; class?: string } = $props();
 </script>
 
-<IconLoader
-	{role}
-	name={name === null ? undefined : name}
-	color={color === null ? undefined : color}
-	stroke={stroke === null ? undefined : stroke}
-	aria-label={ariaLabel}
-	class={cn('size-4 animate-spin', className)}
-	{...restProps}
-/>
+<span role="status" aria-label={label} class={cn("inline-flex", classProp)}>
+	<svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class={spinnerIcon({ size })}>
+		<circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.8" opacity="0.22" />
+		<path d="M14.2 8A6.2 6.2 0 0 0 8 1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+	</svg>
+</span>

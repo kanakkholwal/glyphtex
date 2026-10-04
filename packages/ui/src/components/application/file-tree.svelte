@@ -108,7 +108,7 @@
 		el?.scrollIntoView({ block: 'nearest', behavior: reduced.current ? 'auto' : 'smooth' });
 	});
 
-	// --- Activation -------------------------------------------------------------
+	// --- Activation ---
 	function activate(row: TreeRow, mods: { meta?: boolean; shift?: boolean } = {}) {
 		const wasOnlySelection = store.selectedKeys.length === 1 && store.isSelected(row.key);
 		store.pick(row.key, mods);
@@ -190,7 +190,7 @@
 		}
 	}
 
-	// --- Rename -----------------------------------------------------------------
+	// --- Rename ---
 	function startRename(row: TreeRow) {
 		renamingKey = row.key;
 		renameValue = row.node.name;
@@ -212,7 +212,7 @@
 		input.setSelectionRange(0, isFile && dot > 0 ? dot : input.value.length);
 	}
 
-	// --- Drag & drop ------------------------------------------------------------
+	// --- Drag & drop ---
 	let springTimer: ReturnType<typeof setTimeout> | undefined;
 	function cancelSpring() {
 		clearTimeout(springTimer);
@@ -256,7 +256,7 @@
 		store.dropInto(row.dropDir);
 	}
 
-	// --- Context menu -----------------------------------------------------------
+	// --- Context menu ---
 	function openMenu(event: MouseEvent, row: TreeRow) {
 		event.preventDefault();
 		event.stopPropagation();
@@ -346,12 +346,12 @@
 					row.key
 						? 'bg-primary/10 ring-primary/40 ring-1 ring-inset'
 						: selected
-							? 'bg-accent text-accent-foreground font-medium'
+							? 'bg-muted text-foreground font-medium'
 							: active
-								? 'text-foreground bg-accent/40'
+								? 'text-foreground bg-muted/40'
 								: row.dirty
-									? 'text-foreground hover:bg-accent'
-									: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
+									? 'text-foreground hover:bg-muted'
+									: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 					style:padding-left={indent(row.depth)}
 					title={row.dirty && !folder ? `${node.name}: unsaved` : node.name}
 					draggable="true"
@@ -402,7 +402,7 @@
 					>
 						<IconChevronRight
 							size={14}
-							class="transition-transform duration-200 ease-craft motion-reduce:transition-none {row.expanded
+							class="transition-transform duration-(--duration-base) ease-(--ease-out) motion-reduce:transition-none {row.expanded
 								? 'rotate-90'
 								: ''}"
 						/>
@@ -423,7 +423,7 @@
 				<button
 					type="button"
 					tabindex="-1"
-					class="text-muted-foreground hover:bg-accent hover:text-foreground absolute top-1/2 right-1 grid size-5 -translate-y-1/2 place-items-center rounded opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 [@media(pointer:coarse)]:opacity-100"
+					class="text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1/2 right-1 grid size-5 -translate-y-1/2 place-items-center rounded opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 [@media(pointer:coarse)]:opacity-100"
 					title={folder ? 'Folder actions' : 'File actions'}
 					aria-label={`Actions for ${node.name}`}
 					onclick={(e) => openMenu(e, row)}

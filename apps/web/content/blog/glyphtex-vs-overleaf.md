@@ -6,8 +6,6 @@ updated: "2026-08-22"
 author: "Kanak Kholwal"
 category: "Comparison"
 tags: [overleaf, comparison, latex, local-first]
-hero: "/blog/glyphtex-vs-overleaf.svg"
-heroAlt: "Side-by-side comparison of a browser-based local editor and a hosted cloud editor."
 faq:
   - q: "Is GlyphTeX a drop-in replacement for Overleaf?"
     a: "For solo writing, yes. You edit the same .tex files and compile to the same PDF. The one thing GlyphTeX does not replicate is Overleaf's real-time co-editing in a shared document."

@@ -30,7 +30,7 @@
 					{#snippet child({ props })}
 						<button
 							{...props}
-							class="grid size-6.5 cursor-pointer place-items-center rounded-[6px] transition-colors {active
+							class="grid size-6.5 cursor-pointer place-items-center rounded-sm transition-colors {active
 								? 'bg-card text-foreground shadow-xs'
 								: 'text-muted-foreground hover:text-foreground'}"
 							aria-pressed={active}
@@ -53,7 +53,7 @@
 				{#snippet child({ props })}
 					<button
 						{...props}
-						class="text-muted-foreground hover:bg-accent hover:text-foreground grid size-7 cursor-pointer place-items-center rounded-md transition-colors"
+						class="text-muted-foreground hover:bg-muted hover:text-foreground grid size-7 cursor-pointer place-items-center rounded-md transition-colors"
 						aria-label={stacked ? 'Stack side by side' : 'Stack vertically'}
 						onclick={() => (layout.splitDir = stacked ? 'horizontal' : 'vertical')}
 					>

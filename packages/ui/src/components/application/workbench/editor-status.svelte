@@ -53,9 +53,9 @@
 
 		<button
 			class="inline-flex shrink-0 items-center gap-1 transition-colors hover:text-foreground {errors
-				? 'text-destructive'
+				? 'text-destructive-strong'
 				: warnings
-					? 'text-warning'
+					? 'text-warning-strong'
 					: ''}"
 			title="Show problems and the compile log"
 			aria-pressed={compile.showProblems}

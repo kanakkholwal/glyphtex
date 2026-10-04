@@ -4,10 +4,8 @@ export const REPO_SLUG = "kanakkholwal/glyphtex";
 export const REPO_URL = `https://github.com/${REPO_SLUG}`;
 export const CONTACT_EMAIL = "mailto:support@nexonauts.com";
 
-const HOW: NavLink = { label: "How it works", href: "/#open" };
-const COMPILE: NavLink = { label: "Compiling", href: "/#compile" };
-const AUDIENCE: NavLink = { label: "For academics", href: "/#audience" };
-const INSTITUTIONS: NavLink = { label: "Institutions", href: "/#institutions" };
+const TRY: NavLink = { label: "Try it", href: "/#try" };
+const WHY: NavLink = { label: "Why local", href: "/#why" };
 const FAQ: NavLink = { label: "FAQ", href: "/#faq" };
 
 const ENGINE: NavLink = { label: "The engine", href: "/engine" };
@@ -24,7 +22,7 @@ const ABOUT: NavLink = { label: "About", href: "/about" };
 export const navLinks: NavLink[] = [TEMPLATES, DOCS, { label: "Errors", href: "/errors" }, BLOG];
 
 export const footerCols: { title: string; links: NavLink[] }[] = [
-	{ title: "Product", links: [HOW, COMPILE, AUDIENCE, INSTITUTIONS, FAQ] },
+	{ title: "Product", links: [TRY, WHY, TEMPLATES, FAQ] },
 	{ title: "Learn", links: [DOCS, ERRORS, BLOG, ENGINE] },
 	{ title: "Get started", links: [WORKSPACE, TEMPLATES, DOWNLOAD] },
 	{

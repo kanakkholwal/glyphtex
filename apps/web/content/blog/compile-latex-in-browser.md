@@ -6,8 +6,6 @@ updated: "2026-08-22"
 author: "Kanak Kholwal"
 category: "Tutorial"
 tags: [latex, browser, tutorial, getting-started]
-hero: "/blog/compile-latex-in-browser.svg"
-heroAlt: "A browser tab compiling LaTeX source into a PDF preview, with no installer in sight."
 faq:
   - q: "Can you really compile LaTeX in a browser?"
     a: "Yes. GlyphTeX compiles the Tectonic engine to WebAssembly, so the full LaTeX compiler runs inside the browser tab. It produces the same PDF a local install would, with no server involved."

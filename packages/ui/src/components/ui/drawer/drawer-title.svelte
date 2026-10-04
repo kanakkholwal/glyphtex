@@ -1,12 +1,22 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
-	import { Drawer as DrawerPrimitive } from "vaul-svelte";
+	import type { Snippet } from "svelte";
+	import { Drawer } from "vaul-svelte";
+	import { cn } from "../../../lib/cn.js";
 
-	let { class: className, ...restProps }: DrawerPrimitive.TitleProps = $props();
+	let {
+		children,
+		class: classProp,
+		...rest
+	}: { children?: Snippet; class?: string } & Omit<Drawer.TitleProps, "children"> = $props();
 </script>
 
-<DrawerPrimitive.Title
+<Drawer.Title
 	data-slot="drawer-title"
-	class={cn('font-heading text-foreground text-base font-medium', className)}
-	{...restProps}
-/>
+	class={cn(
+		"flex items-center gap-2 font-semibold text-foreground text-lg [&>svg]:size-5 [&>svg]:text-muted-foreground",
+		classProp,
+	)}
+	{...rest}
+>
+	{@render children?.()}
+</Drawer.Title>

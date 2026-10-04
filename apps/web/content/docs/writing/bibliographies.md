@@ -1,6 +1,6 @@
 ---
 title: "LaTeX bibliographies with BibTeX and biblatex"
-description: "How to add citations and a reference list in LaTeX using BibTeX or biblatex: the .bib file, citing sources, choosing a style, and the compile sequence that makes them appear."
+description: "Add citations and a reference list in LaTeX with BibTeX or biblatex: the .bib file, citing, choosing a style, and the compile order that makes them appear."
 category: "Writing"
 order: 21
 updated: "2026-08-22"
@@ -95,12 +95,12 @@ flowchart LR
 - **classic BibTeX:** compile, run **bibtex**, compile, compile.
 
 :::callout{type=tip title="GlyphTeX runs the passes for you"}
-The GlyphTeX engine detects that a bibliography is present and runs the multi-pass sequence automatically, so `[?]` placeholders resolve without you sequencing the tools by hand.
+In the GlyphTeX browser workspace, use `backend=bibtex` instead: Biber has no browser build, so a `backend=biber` document compiles without its reference list and the editor shows a notice with this one-line change. With BibTeX, the engine detects the bibliography and runs the passes automatically, so `[?]` placeholders resolve on their own.
 :::
 
 ## Why citations show as [?]
 
-If you see `[?]` or an empty reference list, the bibliography tool did not run or the passes ran out of order. Recompile through the full sequence above. With GlyphTeX this happens automatically; with a manual toolchain, run biber or bibtex between compiles.
+If you see `[?]` or an empty reference list, the bibliography tool did not run or the passes ran out of order. Recompile through the full sequence above. With GlyphTeX and BibTeX this happens automatically; with a manual toolchain, run biber or bibtex between compiles. [Why citations show as [?]](/blog/latex-citations-question-marks) walks through every cause.
 
 ## Related
 

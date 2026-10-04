@@ -1,13 +1,11 @@
 ---
 title: "Overleaf alternatives in 2026: 7 options compared"
-description: "The best Overleaf alternatives for writing LaTeX, from browser editors to desktop apps. Compare privacy, offline support, price, and collaboration to pick the right one."
+description: "Overleaf alternatives for LaTeX, from browser editors to desktop apps, compared on privacy, offline support, price and collaboration."
 date: "2026-08-12"
 updated: "2026-08-22"
 author: "Kanak Kholwal"
 category: "Comparison"
 tags: [overleaf, comparison, latex, tools]
-hero: "/blog/overleaf-alternatives.svg"
-heroAlt: "A grid of LaTeX editor options arranged from cloud-hosted to fully local."
 faq:
   - q: "What is the best free Overleaf alternative?"
     a: "For zero setup and full privacy, a browser engine like GlyphTeX is the closest free match: it compiles LaTeX in the tab with no account. For a native desktop editor, TeXstudio with a local TeX distribution is a solid free option."

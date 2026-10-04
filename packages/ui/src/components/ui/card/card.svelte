@@ -1,39 +1,42 @@
 <script lang="ts">
+	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
-	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import { cn } from "../../../lib/cn.js";
+	import { type CardVariant, cardFrame } from "./variants";
 
-	// Hairline and radius, no shadow at rest. `panel` is the public-page card (canvas-toned in dark).
+	// Slot names and class shape follow shadcn-svelte, so this drops into an existing project.
 	let {
-		ref = $bindable(null),
-		class: className,
 		children,
-		size = "default",
-		tone = "default",
-		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
-		size?: "default" | "sm";
-		tone?: "default" | "default_soft" | "editorial" | "panel" | "framed";
-	} = $props();
+		class: classProp,
+		interactive = false,
+		variant = "default",
+		...rest
+	}: {
+		children?: Snippet;
+		class?: string;
+		interactive?: boolean;
+		variant?: CardVariant;
+	} & HTMLAttributes<HTMLDivElement> = $props();
+
+	const LIFT =
+		"transition-[transform,scale,translate,border-color] duration-(--duration-base) ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-border-strong motion-reduce:hover:translate-y-0";
+	const frame = $derived(cardFrame({ variant }));
 </script>
 
-<div
-	bind:this={ref}
-	data-slot="card"
-	data-size={size}
-	data-tone={tone}
-	class={cn(
-		'group/card flex flex-col gap-4 overflow-hidden border border-border text-card-foreground',
-		tone === 'default_soft' ? 'bg-muted' : 'bg-card',
-		(tone === 'panel' || tone === 'editorial') && 'dark:bg-background',
-		// baby-ui's inset-rim: a soft ring just inside the hairline, same idea as Dialog/Sheet.
-		// --muted and --card share a hex in light mode, so dark mode borrows --background instead.
-		tone === 'framed' &&
-			'shadow-[inset_0_0_0_4px_var(--muted)] dark:shadow-[inset_0_0_0_4px_var(--background)]',
-		size === 'default' && 'rounded-2xl p-6 md:p-8',
-		size === 'sm' && 'rounded-xl p-4 md:p-5',
-		className
-	)}
-	{...restProps}
->
-	{@render children?.()}
-</div>
+{#if variant === "framed"}
+	<!-- Inset frame, same treatment as Dialog: a rim in bg-background around a bg-card body. -->
+	<div
+		data-slot="card"
+		data-variant="framed"
+		{...rest}
+		class={cn(frame.root(), interactive && LIFT, classProp)}
+	>
+		<div class={frame.body()}>
+			{@render children?.()}
+		</div>
+	</div>
+{:else}
+	<div data-slot="card" {...rest} class={cn(frame.root(), frame.body(), interactive && LIFT, classProp)}>
+		{@render children?.()}
+	</div>
+{/if}

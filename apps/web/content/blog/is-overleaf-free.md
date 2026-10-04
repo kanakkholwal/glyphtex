@@ -6,8 +6,6 @@ updated: "2026-08-22"
 author: "Kanak Kholwal"
 category: "Guide"
 tags: [overleaf, pricing, latex, free]
-hero: "/blog/is-overleaf-free.svg"
-heroAlt: "A pricing gate separating a limited free tier from an unlimited local workflow."
 faq:
   - q: "Is Overleaf free to use?"
     a: "Overleaf has a free plan that covers basic writing and compiling. It limits compile time per run, the number of collaborators per project, and access to full version history, which move to paid plans."
@@ -75,7 +73,7 @@ The limits above exist because compiling costs the host money on shared servers.
 
 ::stats{items="Free :: Every feature | No cap :: Compile time | Unlimited :: Collaborators via Git" source="Local compilation removes the server-cost limits that drive paid tiers."}
 
-Version history comes free too, through Git, which records every change and lets you roll back to any commit.
+With a local setup, version history comes free too: keep the project in Git, which records every change and lets you roll back to any commit.
 
 ::cta{title="Compile a long document, free" body="Open the browser workspace and compile your full thesis with no time limit. No account needed." label="Open the workspace" href="/workspace" from="is-overleaf-free"}
 

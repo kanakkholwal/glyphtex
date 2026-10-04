@@ -33,14 +33,7 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export {
-	CRAFT_FOCUS_RING,
-	CRAFT_FOCUS_RING_INSET,
-	CRAFT_OVERLAY_ANIMATION,
-	CRAFT_OVERLAY_BACKDROP_ANIMATION,
-	CRAFT_OVERLAY_SURFACE,
-	CRAFT_SCRIM
-} from "./craft-utils";
+export { CRAFT_FOCUS_RING_INSET } from "./craft-utils";
 
 export type WithoutChild<T> = T extends { child?: any } ? Omit<T, "child"> : T;
 export type WithoutChildren<T> = T extends { children?: any } ? Omit<T, "children"> : T;

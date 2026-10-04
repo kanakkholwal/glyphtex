@@ -19,13 +19,8 @@
 	} from '@tabler/icons-svelte';
 	import { SEARCH_BTN, SEARCH_COUNT, SEARCH_INPUT, searchPill } from './search-ui';
 
-	/**
-	 * EditorFindBar: a sticky find/replace bar that docks at the bottom of the
-	 * editor pane (VS Code's bottom-widget language). Self-contained input state;
-	 * emits the full option set to the host via `onsearch`, and the host drives
-	 * the CodeEditor's findAll / replace API. Mirrors the side-panel Search view's
-	 * chrome (the Aa / W / .* pill toggles) so the two stay visually consistent.
-	 */
+	// The host drives the CodeEditor's find/replace from `onsearch`; the pill toggles match the
+	// side-panel Search view so the two read as one control.
 	let {
 		resultCount = 0,
 		activeIndex = 0,
@@ -134,7 +129,7 @@
 	>
 		<IconChevronRight
 			size={15}
-			class="transition-transform duration-200 {showReplace ? 'rotate-90' : ''}"
+			class="transition-transform duration-(--duration-base) {showReplace ? 'rotate-90' : ''}"
 		/>
 	</button>
 

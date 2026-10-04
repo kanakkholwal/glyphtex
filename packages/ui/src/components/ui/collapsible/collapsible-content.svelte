@@ -1,45 +1,29 @@
 <script lang="ts">
 	import { Collapsible as CollapsiblePrimitive } from "bits-ui";
-	import { cn } from "@glyphtex/ui/utils";
-	import { cubicOut } from "svelte/easing";
-	import { prefersReducedMotion } from "svelte/motion";
-	import { slide } from "svelte/transition";
+	import { cn } from "../../../lib/cn.js";
 
-	// `hiddenUntilFound` must be off: it overrides `forceMount`, which keeps the `child`
-	// snippet alive so `{#if open}` owns the slide. Svelte `slide` bypasses the CSS motion guard.
 	let {
-		ref = $bindable(null),
-		class: className,
-		duration = 240,
-		easing = cubicOut,
 		children,
-		...restProps
-	}: CollapsiblePrimitive.ContentProps & {
-		duration?: number;
-		easing?: (t: number) => number;
-	} = $props();
+		class: classProp,
+		...rest
+	}: Omit<CollapsiblePrimitive.ContentProps, "child" | "forceMount"> = $props();
 </script>
 
-<CollapsiblePrimitive.Content
-	bind:ref
-	forceMount
-	hiddenUntilFound={false}
-	data-slot="collapsible-content"
-	{...restProps}
->
+<!-- grid-template-rows animates to content height without measuring it; forceMount keeps
+	the panel mounted while closed, or the transition has no prior frame to animate from. -->
+<CollapsiblePrimitive.Content {...rest} forceMount>
 	{#snippet child({ props, open })}
-		{#if open}
-			<div
-				{...props}
-				transition:slide={{
-					duration: prefersReducedMotion.current ? 0 : duration,
-					easing,
-					axis: 'y'
-				}}
-				class={cn('overflow-hidden', className)}
-			>
-				{@render children?.()}
+		<div
+			data-slot="collapsible-content"
+			{...props}
+			inert={!open}
+			class="grid grid-rows-[0fr] transition-[grid-template-rows] duration-[var(--duration-dropdown)] ease-[var(--ease-out-quad)] data-[state=open]:grid-rows-[1fr] data-[state=open]:duration-[var(--duration-collapse)] motion-reduce:transition-none"
+		>
+			<div class="overflow-hidden">
+				<div class={cn("px-1 pb-2 text-muted-foreground text-sm", classProp)}>
+					{@render children?.()}
+				</div>
 			</div>
-		{/if}
+		</div>
 	{/snippet}
 </CollapsiblePrimitive.Content>

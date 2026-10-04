@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import { absolute, AUTHOR, DEFAULT_OG_IMAGE, SITE_NAME, SITE_TAGLINE } from "./site";
+	import { OG_HEIGHT, OG_WIDTH, ogImageUrl } from "./og";
+	import { absolute, AUTHOR, SITE_NAME, SITE_TAGLINE } from "./site";
 
 	type Props = {
 		title: string;
@@ -25,7 +26,7 @@
 		title,
 		description,
 		canonical,
-		image = DEFAULT_OG_IMAGE,
+		image,
 		imageAlt,
 		type = "website",
 		noindex = false,
@@ -39,7 +40,15 @@
 
 	const url = $derived(absolute(canonical ?? page.url.pathname));
 	const fullTitle = $derived(title.includes(SITE_NAME) ? title : `${title} · ${SITE_NAME}`);
-	const ogImage = $derived(absolute(image));
+	// Indexable pages default to their build-time card (scripts/og.mjs); noindex pages get none.
+	const isCard = $derived(!image && !noindex);
+	const ogImage = $derived(
+		image
+			? absolute(image)
+			: isCard
+				? absolute(ogImageUrl(canonical ?? page.url.pathname))
+				: undefined
+	);
 	const ogImageAlt = $derived(imageAlt ?? SITE_TAGLINE);
 	// Full snippets and large image previews in Google and AI answer engines.
 	const robots = "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
@@ -61,8 +70,15 @@
 	<meta property="og:title" content={fullTitle} />
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={url} />
-	<meta property="og:image" content={ogImage} />
-	<meta property="og:image:alt" content={ogImageAlt} />
+	{#if ogImage}
+		<meta property="og:image" content={ogImage} />
+		<meta property="og:image:alt" content={ogImageAlt} />
+		{#if isCard}
+			<meta property="og:image:width" content={String(OG_WIDTH)} />
+			<meta property="og:image:height" content={String(OG_HEIGHT)} />
+			<meta property="og:image:type" content="image/png" />
+		{/if}
+	{/if}
 
 	{#if type === "article"}
 		{#if published}<meta property="article:published_time" content={published} />{/if}
@@ -74,13 +90,15 @@
 		{/each}
 	{/if}
 
-	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
 	<meta name="twitter:site" content={twitterHandle} />
 	<meta name="twitter:creator" content={twitterHandle} />
 	<meta name="twitter:title" content={fullTitle} />
 	<meta name="twitter:description" content={description} />
-	<meta name="twitter:image" content={ogImage} />
-	<meta name="twitter:image:alt" content={ogImageAlt} />
+	{#if ogImage}
+		<meta name="twitter:image" content={ogImage} />
+		<meta name="twitter:image:alt" content={ogImageAlt} />
+	{/if}
 
 	{#each jsonld as block, i (i)}
 		<!-- eslint-disable-next-line svelte/no-at-html-tags -->

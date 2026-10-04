@@ -7,12 +7,13 @@
 	let { headings }: Props = $props();
 
 	const items = $derived(
-		headings
-			.filter((h) => h.depth === 2 || h.depth === 3)
-			.map((h): TocItem => ({ id: h.id, label: h.text, depth: h.depth as 2 | 3 }))
+		headings.flatMap((h): TocItem[] =>
+			h.depth === 2 || h.depth === 3 ? [{ id: h.id, label: h.text, depth: h.depth }] : []
+		)
 	);
 </script>
 
 {#if items.length > 2}
-	<TableOfContents {items} scrollOffset={88} />
+	<!-- 80px clears the 64px sticky site header with a little air. -->
+	<TableOfContents {items} scrollOffset={80} />
 {/if}

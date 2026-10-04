@@ -80,7 +80,7 @@
 			placeholder="Add a note or #tag"
 			aria-label="New note"
 		/>
-		<Button type="submit" size="icon-sm" disabled={!notes.draft.trim()} aria-label="Add note">
+		<Button variant="dark" type="submit" size="icon-sm" disabled={!notes.draft.trim()} aria-label="Add note">
 			<IconPlus />
 		</Button>
 	</form>
@@ -91,8 +91,8 @@
 			{@const active = notes.filter === f.id}
 			<button
 				class="flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs transition-colors {active
-					? 'bg-accent text-foreground font-medium'
-					: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
+					? 'bg-muted text-foreground font-medium'
+					: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 				aria-pressed={active}
 				onclick={() => (notes.filter = f.id)}
 			>
@@ -116,11 +116,10 @@
 		{:else}
 			<ul class="flex flex-col gap-0.5">
 				{#each notes.visible as note (note.id)}
-					<li class="group hover:bg-accent flex items-start gap-2 rounded-md px-1.5 py-1.5">
+					<li class="group hover:bg-muted flex items-start gap-2 rounded-md px-1.5 py-1.5">
 						<Checkbox
 							class="mt-0.5 shrink-0"
-							checked={note.done}
-							onCheckedChange={() => notes.toggle(note.id)}
+							bind:checked={() => note.done, () => notes.toggle(note.id)}
 							aria-label={note.done ? 'Mark as open' : 'Mark as done'}
 						/>
 						<div class="min-w-0 flex-1">
@@ -135,7 +134,7 @@
 								<!-- Tags are labels, not links. Brand blue is reserved for things
 								     you can click. -->
 								{#each note.tags as tag (tag)}
-									<span class="bg-accent text-muted-foreground rounded px-1.5 py-px text-xs">
+									<span class="bg-muted text-muted-foreground rounded px-1.5 py-px text-xs">
 										{tag}
 									</span>
 								{/each}
@@ -145,7 +144,7 @@
 							</div>
 						</div>
 						<button
-							class="text-muted-foreground hover:text-destructive grid size-5 shrink-0 place-items-center rounded opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+							class="text-muted-foreground hover:text-destructive-strong grid size-5 shrink-0 place-items-center rounded opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
 							title="Delete note"
 							aria-label="Delete note"
 							onclick={() => notes.remove(note.id)}

@@ -17,7 +17,7 @@
 		rows={2}
 		class="resize-none text-xs"
 	/>
-	<Button size="sm" disabled={!store.canCommit} onclick={() => store.commit()}>
+	<Button variant="dark" size="sm" disabled={!store.canCommit} onclick={() => store.commit()}>
 		<IconGitCommit size={14} />
 		{#if store.busy}
 			Committing…
@@ -28,17 +28,17 @@
 		{/if}
 	</Button>
 {:else if store.syncAction === 'push'}
-	<Button size="sm" disabled={store.busy} onclick={() => store.runPrimarySync()}>
+	<Button variant="dark" size="sm" disabled={store.busy} onclick={() => store.runPrimarySync()}>
 		<IconArrowUp size={14} />
 		{store.busy ? 'Pushing…' : `Push${store.head?.ahead ? ` ${store.head.ahead}` : ''}`}
 	</Button>
 {:else if store.syncAction === 'pull'}
-	<Button size="sm" disabled={store.busy} onclick={() => store.runPrimarySync()}>
+	<Button variant="dark" size="sm" disabled={store.busy} onclick={() => store.runPrimarySync()}>
 		<IconArrowDown size={14} />
 		{store.busy ? 'Pulling…' : `Pull${store.head?.behind ? ` ${store.head.behind}` : ''}`}
 	</Button>
 {:else if store.syncAction === 'sync'}
-	<Button size="sm" disabled={store.busy} onclick={() => store.runPrimarySync()}>
+	<Button variant="dark" size="sm" disabled={store.busy} onclick={() => store.runPrimarySync()}>
 		<IconRefresh size={14} />
 		{store.busy ? 'Syncing…' : 'Sync Changes'}
 	</Button>

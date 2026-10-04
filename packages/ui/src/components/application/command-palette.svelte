@@ -13,6 +13,7 @@
 
 <script lang="ts">
 	import {
+		Command,
 		CommandDialog,
 		CommandEmpty,
 		CommandGroup,
@@ -62,55 +63,28 @@
 
 <CommandDialog
 	bind:open
-	title="Go to file or run a command"
+	label="Go to file or run a command"
 	description="Search files by name, or any command by what it does"
 	class="sm:max-w-[34rem]"
 >
-	<CommandInput placeholder="Go to a file, or run a command…" />
-	<CommandList>
-		<CommandEmpty>Nothing matches</CommandEmpty>
-		<CommandGroup heading={projectName}>
-			{#each files as f (f.id)}
-				{@const p = parts(f.name)}
-				<CommandItem value={f.name} onSelect={() => choose(f.id)} class="gap-2.5 py-2">
-					<IconFile class="text-muted-foreground shrink-0" />
-					<span class="text-foreground truncate">{p.base}</span>
-					{#if p.dir}
-						<span class="text-muted-foreground truncate text-xs">{p.dir}</span>
-					{/if}
-					<!-- data-slot=command-shortcut suppresses the default check indicator
-					     and keeps this group flush-right. -->
-					<span data-slot="command-shortcut" class="ml-auto flex shrink-0 items-center gap-2">
-						{#if f.id === activeId}
-							<span class="text-muted-foreground text-xs">open</span>
+	<Command>
+		<CommandInput placeholder="Go to a file, or run a command…" />
+		<CommandList>
+			<CommandEmpty>Nothing matches</CommandEmpty>
+			<CommandGroup heading={projectName}>
+				{#each files as f (f.id)}
+					{@const p = parts(f.name)}
+					<CommandItem value={f.name} onSelect={() => choose(f.id)} class="gap-2.5 py-2">
+						<IconFile class="text-muted-foreground shrink-0" />
+						<span class="text-foreground truncate">{p.base}</span>
+						{#if p.dir}
+							<span class="text-muted-foreground truncate text-xs">{p.dir}</span>
 						{/if}
-						<IconCornerDownLeft
-							size={14}
-							class="text-muted-foreground opacity-0 transition-opacity group-data-[selected=true]/command-item:opacity-100"
-						/>
-					</span>
-				</CommandItem>
-			{/each}
-		</CommandGroup>
-
-		{#if commands.length}
-			<CommandSeparator />
-			<CommandGroup heading="Commands">
-				{#each commands as command (command.id)}
-					<!-- The group name is part of `value` so typing "view" finds every View
-					     command, the way scanning the old menu did. -->
-					<CommandItem
-						value="{command.label} {command.group}"
-						disabled={command.disabled}
-						onSelect={() => runCommand(command)}
-						class="gap-2.5 py-2"
-					>
-						<IconTerminal2 class="text-muted-foreground shrink-0" />
-						<span class="text-foreground truncate">{command.label}</span>
-						<span class="text-muted-foreground shrink-0 text-xs">{command.group}</span>
+						<!-- data-slot=command-shortcut suppresses the default check indicator
+						     and keeps this group flush-right. -->
 						<span data-slot="command-shortcut" class="ml-auto flex shrink-0 items-center gap-2">
-							{#if command.shortcut}
-								<span class="text-muted-foreground text-xs">{command.shortcut}</span>
+							{#if f.id === activeId}
+								<span class="text-muted-foreground text-xs">open</span>
 							{/if}
 							<IconCornerDownLeft
 								size={14}
@@ -120,6 +94,35 @@
 					</CommandItem>
 				{/each}
 			</CommandGroup>
-		{/if}
-	</CommandList>
+
+			{#if commands.length}
+				<CommandSeparator />
+				<CommandGroup heading="Commands">
+					{#each commands as command (command.id)}
+						<!-- The group name is part of `value` so typing "view" finds every View
+						     command, the way scanning the old menu did. -->
+						<CommandItem
+							value="{command.label} {command.group}"
+							disabled={command.disabled}
+							onSelect={() => runCommand(command)}
+							class="gap-2.5 py-2"
+						>
+							<IconTerminal2 class="text-muted-foreground shrink-0" />
+							<span class="text-foreground truncate">{command.label}</span>
+							<span class="text-muted-foreground shrink-0 text-xs">{command.group}</span>
+							<span data-slot="command-shortcut" class="ml-auto flex shrink-0 items-center gap-2">
+								{#if command.shortcut}
+									<span class="text-muted-foreground text-xs">{command.shortcut}</span>
+								{/if}
+								<IconCornerDownLeft
+									size={14}
+									class="text-muted-foreground opacity-0 transition-opacity group-data-[selected=true]/command-item:opacity-100"
+								/>
+							</span>
+						</CommandItem>
+					{/each}
+				</CommandGroup>
+			{/if}
+		</CommandList>
+	</Command>
 </CommandDialog>

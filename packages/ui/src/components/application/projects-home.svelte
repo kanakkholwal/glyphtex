@@ -361,7 +361,7 @@
 {#snippet starBadge(p: Project)}
 	{#if p.starred}
 		<span class="relative z-10 shrink-0" title="Starred">
-			<IconStarFilled class="text-warning size-4" aria-hidden="true" />
+			<IconStarFilled class="text-warning-strong size-4" aria-hidden="true" />
 			<span class="sr-only">Starred</span>
 		</span>
 	{/if}
@@ -373,7 +373,7 @@
 			{#snippet child({ props })}
 				<button
 					{...props}
-					class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring relative z-10 grid size-8 shrink-0 place-items-center rounded-md outline-none transition-[opacity,color,background-color] duration-200 ease-craft focus-visible:opacity-100 focus-visible:ring-2 data-[state=open]:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+					class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring relative z-10 grid size-8 shrink-0 place-items-center rounded-md outline-none transition-[opacity,color,background-color] duration-(--duration-base) ease-(--ease-out) focus-visible:opacity-100 focus-visible:ring-2 data-[state=open]:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
 					aria-label={`Actions for ${p.name}`}
 				>
 					<IconDotsVertical size={16} />
@@ -384,7 +384,7 @@
 			{#if onstar}
 				<DropdownMenuItem onclick={() => onstar?.(p.id, !p.starred)}>
 					{#if p.starred}
-						<IconStarFilled class="text-warning" /> Unstar
+						<IconStarFilled class="text-warning-strong" /> Unstar
 					{:else}
 						<IconStar /> Star
 					{/if}
@@ -403,7 +403,7 @@
 				</DropdownMenuItem>
 			{/if}
 			<DropdownMenuSeparator />
-			<DropdownMenuItem variant="destructive" onclick={() => (pendingDelete = p)}>
+			<DropdownMenuItem destructive onclick={() => (pendingDelete = p)}>
 				<IconTrash /> Delete
 			</DropdownMenuItem>
 		</DropdownMenuContent>
@@ -570,14 +570,14 @@
 						aria-valuenow={Math.round(storagePct)}
 					>
 						<div
-							class="h-full rounded-full transition-[width] duration-500 ease-craft {tight
+							class="h-full rounded-full transition-[width] duration-(--duration-drawer) ease-(--ease-out) {tight
 								? 'bg-warning'
 								: 'bg-primary'}"
 							style:width={`${Math.max(storagePct, 2)}%`}
 						></div>
 					</div>
 					{#if tight}
-						<p class="text-warning mt-2 text-xs font-medium">Nearly full. The browser may clear it.</p>
+						<p class="text-warning-strong mt-2 text-xs font-medium">Nearly full. The browser may clear it.</p>
 					{/if}
 				</div>
 			</Sidebar.Footer>
@@ -594,7 +594,7 @@
 	>
 		<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
 			<header
-				class="bg-background/95 sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-3 backdrop-blur-sm transition-colors duration-200 sm:px-4 {scrolled
+				class="bg-background/95 sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-3 backdrop-blur-sm transition-colors duration-(--duration-base) sm:px-4 {scrolled
 					? 'border-border'
 					: 'border-transparent'}"
 			>
@@ -610,10 +610,10 @@
 			<div class="mx-auto w-full max-w-6xl px-4 pt-8 pb-20 sm:px-8 lg:px-12">
 				{#if showStart}
 					<div class="flex flex-col gap-1">
-						<h1 class="text-heading-sm md:text-heading text-foreground font-medium">
+						<h1 class="text-xl md:text-2xl text-foreground font-medium">
 							{projects.length === 0 ? 'Start your first document' : 'Your documents'}
 						</h1>
-						<p class="text-muted-foreground text-body">
+						<p class="text-muted-foreground text-md">
 							{platform === 'web'
 								? 'Projects live in this browser and compile on this device.'
 								: 'Projects live in folders on this computer and compile locally.'}
@@ -635,10 +635,10 @@
 									<IconFileText size={24} />
 								</span>
 								<div class="min-w-0">
-									<h2 id="start-title" class="text-body-lg text-foreground font-medium">
+									<h2 id="start-title" class="text-base text-foreground font-medium">
 										New LaTeX project
 									</h2>
-									<p class="text-muted-foreground text-body mt-0.5">
+									<p class="text-muted-foreground text-md mt-0.5">
 										Opens a blank article with a sections folder.
 										{platform === 'web' ? 'Or drop a folder or .zip anywhere on this page.' : ''}
 									</p>
@@ -646,7 +646,7 @@
 							</div>
 
 							<div class="flex flex-wrap items-center gap-2">
-								<Button variant="primary" onclick={handleCreate}>
+								<Button variant="default" onclick={handleCreate}>
 									<IconPlus /> New project
 								</Button>
 								{#if onimport}
@@ -700,7 +700,7 @@
 										}}
 									/>
 									<div class="flex gap-2">
-										<Button disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
+										<Button variant="dark" disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
 											{cloneBusy ? 'Cloning…' : 'Clone'}
 										</Button>
 										<Button variant="ghost" disabled={cloneBusy} onclick={() => (cloning = false)}>
@@ -742,7 +742,7 @@
 												{@render starBadge(p)}
 												<IconArrowRight
 													size={16}
-													class="text-muted-foreground shrink-0 transition-transform duration-200 ease-craft group-hover:translate-x-0.5"
+													class="text-muted-foreground shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) group-hover:translate-x-0.5"
 													aria-hidden="true"
 												/>
 											</button>
@@ -753,8 +753,8 @@
 						{/if}
 					</div>
 				{:else}
-					<h1 class="text-heading-sm md:text-heading text-foreground font-medium">{scopeLabel}</h1>
-					<p class="text-muted-foreground text-body mt-1">
+					<h1 class="text-xl md:text-2xl text-foreground font-medium">{scopeLabel}</h1>
+					<p class="text-muted-foreground text-md mt-1">
 						{scope === 'recent'
 							? 'Projects you edited in the last 7 days.'
 							: scope === 'starred'
@@ -783,7 +783,7 @@
 								{#each templateTabs as tab (tab.id)}
 									{@const active = templateCategory === tab.id}
 									<button
-										class="focus-visible:ring-ring flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm outline-none transition-colors duration-150 focus-visible:ring-2 {active
+										class="focus-visible:ring-ring flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2 {active
 											? 'border-border bg-card text-foreground font-medium shadow-xs'
 											: 'text-muted-foreground hover:bg-muted hover:text-foreground border-transparent'}"
 										aria-pressed={active}
@@ -821,7 +821,7 @@
 						{:else}
 							<ul class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3" aria-label="Templates">
 								{#each visibleTemplates as t (t.id)}
-									<li class="border-border bg-card hover:border-border-strong flex flex-col gap-3 rounded-2xl border p-4 transition-[border-color] duration-200 ease-craft">
+									<li class="border-border bg-card hover:border-border-strong flex flex-col gap-3 rounded-2xl border p-4 transition-[border-color] duration-(--duration-base) ease-(--ease-out)">
 										<div class="flex items-center justify-between gap-2">
 											<span class="text-muted-foreground text-xs font-medium">{categoryLabel(t.category)}</span>
 											<span class="border-border text-muted-foreground rounded-md border px-1.5 py-0.5 font-mono text-xs">{t.documentClass}</span>
@@ -869,7 +869,7 @@
 						<div class="flex flex-wrap items-center gap-2">
 							<div class="mr-auto flex items-baseline gap-2">
 								{#if scope === 'all'}
-									<h2 class="text-body-lg text-foreground font-medium">All projects</h2>
+									<h2 class="text-base text-foreground font-medium">All projects</h2>
 								{/if}
 								<span class="text-muted-foreground text-sm tabular-nums" aria-live="polite">
 									{#if loading}
@@ -948,7 +948,7 @@
 							>
 								{#each [{ id: 'grid', label: 'Grid view', icon: IconLayoutGrid }, { id: 'list', label: 'List view', icon: IconLayoutList }] as const as mode (mode.id)}
 									<button
-										class="focus-visible:ring-ring grid size-8 place-items-center rounded-md outline-none transition-[color,background-color,box-shadow] duration-200 ease-craft focus-visible:ring-2 focus-visible:ring-inset {view ===
+										class="focus-visible:ring-ring grid size-8 place-items-center rounded-md outline-none transition-[color,background-color,box-shadow] duration-(--duration-base) ease-(--ease-out) focus-visible:ring-2 focus-visible:ring-inset {view ===
 										mode.id
 											? 'bg-card text-foreground shadow-xs'
 											: 'text-muted-foreground hover:text-foreground'}"
@@ -963,7 +963,7 @@
 							</div>
 
 							{#if !showStart && scope !== 'templates'}
-								<Button onclick={handleCreate}>
+								<Button variant="dark" onclick={handleCreate}>
 									<IconPlus /> New project
 								</Button>
 							{/if}
@@ -1070,7 +1070,7 @@
 									>
 										{#each filtered as p, i (p.id)}
 											<li
-												class="group border-border bg-card hover:border-border-strong relative flex flex-col rounded-2xl border p-2 transition-[border-color] duration-200 ease-craft"
+												class="group border-border bg-card hover:border-border-strong relative flex flex-col rounded-2xl border p-2 transition-[border-color] duration-(--duration-base) ease-(--ease-out)"
 												in:fly={{ y: 6, duration: ms(240), delay: ms(Math.min(i, 8) * 15), easing: cubicOut }}
 												out:fade={{ duration: ms(140), easing: cubicOut }}
 												animate:flip={{ duration: ms(320), easing: cubicOut }}
@@ -1101,7 +1101,7 @@
 <AboutDialog bind:open={aboutOpen} {platform} />
 
 <!-- Disk-backed projects show their path: confirming deletes the folder itself. -->
-<Dialog open={pendingDelete !== null} onOpenChange={(o) => (o ? null : (pendingDelete = null))}>
+<Dialog bind:open={() => pendingDelete !== null, (o) => (o ? null : (pendingDelete = null))}>
 	<DialogContent class="sm:max-w-md">
 		<DialogHeader>
 			<DialogTitle>Delete “{pendingDelete?.name}”?</DialogTitle>

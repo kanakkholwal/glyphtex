@@ -169,8 +169,8 @@
 				role="menuitem"
 				disabled={row.disabled}
 				class="flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm outline-none disabled:pointer-events-none disabled:opacity-40 {row.destructive
-					? 'text-destructive hover:bg-destructive/10 focus-visible:bg-destructive/10'
-					: 'text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:bg-accent focus-visible:text-foreground'}"
+					? 'text-destructive-strong hover:bg-destructive/10 focus-visible:bg-destructive/10'
+					: 'text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground'}"
 				onclick={() => onpick(row.id)}
 			>
 				{#if Icon}
@@ -189,7 +189,7 @@
 	   pointer, not the centre, because that is where it came from. */
 	.glyphtex-tree-menu {
 		transform-origin: top left;
-		animation: tree-menu-in 140ms var(--ease-craft);
+		animation: tree-menu-in var(--duration-fast) var(--ease-out);
 	}
 	@keyframes tree-menu-in {
 		from {

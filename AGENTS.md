@@ -25,10 +25,9 @@ apps/
                   (crates/tectonic-wasm → packages/tex-engine). NO database, NO auth, NO server
                   user-state — local-first by design.
 packages/
-  ui/             @glyphtex/ui — shared Svelte 5 components (shadcn-svelte + bits-ui), the shared
-                  rune stores (settings, projects), and the Workbench used by both apps.
-  design/         @glyphtex/design — design tokens / Tailwind 4 theme (./index.css). Tokens are
-                  owned by the design layer; consume them, don't hardcode values.
+  ui/             @glyphtex/ui: baby-ui components (shadcn-svelte CLI, bits-ui underneath), the design
+                  tokens (src/styles/registry.css + src/app.css), the shared rune stores (settings,
+                  projects), and the Workbench used by both apps.
 ```
 
 Shared frontend: **Svelte 5.56**, **SvelteKit 2.63**, **Vite 8**, **Tailwind 4.3**,
@@ -97,17 +96,17 @@ re-run that isn't needed is a no-op. npm goes out via trusted publishing (OIDC),
    on both sides, in the same change.
 8. **Heavy work never blocks the UI/event loop.** Rust: `async fn` + `spawn_blocking` (the macOS
    rule, §4). Frontend: no synchronous heavy work on render; debounce compile-as-you-type.
-9. **Design tokens only, no hardcoded colors.** The spec is `.notes/DESIGN.md`; the single live
-   token file is `packages/ui/src/app.css`, imported by both apps. `bg-primary` is the blue accent
-   (selected, focus, the one brand action); near-black actions are `bg-action`. Ink hierarchy is
-   `foreground` → `muted-foreground` (no third step, it fails 4.5:1). Radii: `rounded-md` 8 (controls)
-   → `rounded-xl` 14 (menus, insets) → `rounded-2xl` 18 (cards) → `rounded-3xl` 22 (panels). Public
-   pages use type roles (`text-caption` … `text-display-xl`); workbench chrome keeps `text-xs`/`sm`/`md`
-   = 12/13/14. No `text-[Npx]`, no opacity on text tokens. `@glyphtex/design` is unused: do not add tokens there.
+9. **Design tokens only, no hardcoded colors.** The spec is root `DESIGN.md` (page rules in
+   `.notes/design-contract.md`). Tokens: baby-ui's in `packages/ui/src/styles/registry.css` (CLI-managed),
+   GlyphTeX's layer in `packages/ui/src/app.css`. `bg-primary` is the blue accent (selected, focus, the one
+   primary action); near-black actions are Button `variant="dark"`. `bg-accent` is the brand blue, never a
+   hover fill. Ink is `foreground` or `muted-foreground`. Public pages use the Tailwind scale (xs/sm/base/lg/
+   2xl/4xl) with `pixel` for display; the workspace keeps 12/13/14 via `data-density="compact"`. No
+   `text-[Npx]`, no opacity on text tokens.
    **@tabler/icons-svelte only** (not Lucide, no Iconify layer — import icons
    directly). Raster images render through **`@unpic/svelte`**'s `Image`, never a
    bare `<img>`. The editor stays **JetBrains Mono**.
-10. **Import via aliases — `@glyphtex/ui/*`, `@glyphtex/design`, `$lib`.** Never deep `../../..` climbs
+10. **Import via aliases: `@glyphtex/ui/*`, `$lib`.** Never deep `../../..` climbs
     across package or app boundaries.
 11. **Leave the gates green.** `fmt`/`format:rust`, `clippy`, `svelte-check`, and `cargo test` must
     pass before a change is "done." A red build is never a stopping point.
@@ -272,7 +271,7 @@ Runes era — no Svelte 4 idioms in new code. Shared by desktop and web via `@gl
   `ProjectHost`, not to `invoke` directly.
 
 ### Project conventions
-- **Design system:** shadcn-svelte components + `@glyphtex/design` token CSS variables. **No
+- **Design system:** baby-ui components (shadcn-svelte CLI) + the token layer in `packages/ui`. **No
   hardcoded colors. @tabler/icons-svelte only. JetBrains Mono in the editor.**
 - **bits-ui wrappers** (Dialog/Sheet/Dropdown/Select/Popover) — match the existing wrappers'
   conventions (e.g. `showCloseButton`, `interactOutsideBehavior`) rather than re-styling inline.
@@ -360,7 +359,7 @@ A change is done when, for every area it touched:
 - [ ] Gates green: `format:rust`/`clippy` (Rust), `svelte-check`, `cargo test`, `pnpm check`/`build`.
 - [ ] (Rust) all `target_os` trees compile; spawns go through `no_window()`; new threads/processes
       have RAII teardown; heavy commands are `async`/off the UI thread.
-- [ ] (Frontend) no banned Svelte 4 idioms; `@glyphtex/design` tokens + Tabler icons only; JetBrains
+- [ ] (Frontend) no banned Svelte 4 idioms; design tokens + Tabler icons only; JetBrains
       Mono preserved; `tauri build` tested if desktop runtime behaviour changed.
 - [ ] (Web) Workers-runtime-safe; no module-scope request state; dev-only/Node code stripped from
       the build; the persistent TeX cache not wiped on deploy.

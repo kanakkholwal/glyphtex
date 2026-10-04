@@ -89,7 +89,7 @@
 	const top = $derived(rect.top > 48 ? rect.top - 38 : rect.bottom + 8);
 
 	const BUTTON =
-		"flex size-[26px] items-center justify-center rounded transition-colors hover:bg-accent hover:text-foreground";
+		"flex size-[26px] items-center justify-center rounded transition-colors hover:bg-muted hover:text-foreground";
 
 	function run(id: string) {
 		more = false;
@@ -117,7 +117,7 @@
 				aria-label={action.label}
 				aria-pressed={active.has(action.id)}
 				class="{BUTTON} {active.has(action.id)
-					? 'bg-accent text-foreground'
+					? 'bg-muted text-foreground'
 					: 'text-muted-foreground'}"
 				onclick={() => run(action.id)}
 			>
@@ -155,7 +155,7 @@
 		title="More formatting"
 		aria-label="More formatting"
 		aria-expanded={more}
-		class="{BUTTON} {more ? 'bg-accent text-foreground' : 'text-muted-foreground'}"
+		class="{BUTTON} {more ? 'bg-muted text-foreground' : 'text-muted-foreground'}"
 		onclick={() => (more = !more)}
 	>
 		<IconDots size={15} />
@@ -172,10 +172,10 @@
 					type="button"
 					role="menuitemcheckbox"
 					aria-checked={active.has(item.id)}
-					class="hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm {active.has(
+					class="hover:bg-muted hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm {active.has(
 						item.id
 					)
-						? 'bg-accent/60 text-foreground'
+						? 'bg-muted/60 text-foreground'
 						: 'text-muted-foreground'}"
 					onclick={() => run(item.id)}
 				>

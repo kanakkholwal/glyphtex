@@ -9,15 +9,8 @@ export type GitView = "tree" | "list";
 export type DiffView = "side" | "inline";
 /** Which side of the workbench the activity bar + side panel dock on. */
 export type SidebarPosition = "left" | "right";
-/**
- * When edits are written back to disk (VS Code parity):
- *  - `off`: only on an explicit save (⌘/Ctrl+S).
- *  - `afterDelay`: automatically a short while after you stop typing.
- *  - `onFocusChange`: when the editor loses focus (switching files, blurring
- *                       the window).
- * Compilation always uses the last *saved* content, so this also controls when
- * the preview refreshes.
- */
+/** When edits reach disk: `off` on explicit save, `afterDelay` after typing stops, `onFocusChange` on blur.
+ *  Compiles read saved content, so this also sets when the preview refreshes. */
 export type AutoSaveMode = "off" | "afterDelay" | "onFocusChange";
 
 export const AUTO_SAVE_LABELS: Record<AutoSaveMode, string> = {
@@ -52,9 +45,9 @@ export type DocFont = "default" | "serif" | "mono";
 /** Serif is a system stack, not a webfont: nothing ships a serif face offline, and
  *  a network font would break the "works on a plane" promise for a taste option. */
 export const DOC_FONT_STACKS: Record<DocFont, string> = {
-	default: "'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif",
+	default: "'Geist Variable', ui-sans-serif, system-ui, sans-serif",
 	serif: "Georgia, 'Iowan Old Style', 'Times New Roman', ui-serif, serif",
-	mono: "'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace"
+	mono: "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace"
 };
 export const DOC_FONT_LABELS: Record<DocFont, string> = {
 	default: "Default",
@@ -72,25 +65,22 @@ export interface EditorSettings {
 	autoSave: AutoSaveMode;
 	/** Idle time before "After delay" auto-save writes, in milliseconds. */
 	autoSaveDelayMs: number;
-	/**
-	 * Allow `\write18` (shell escape) during compilation: required by packages
-	 * that run external tools (e.g. `minted`/Pygments, `gnuplot`). Off by default:
-	 * it lets a document run arbitrary system commands, so it's opt-in.
-	 */
+	/** Allow `\write18` for packages that run external tools (`minted`, `gnuplot`). Opt-in: it lets a
+	 *  document run arbitrary system commands. */
 	shellEscape: boolean;
 	/** Compile engine: bundled Tectonic (XeTeX) or a local System TeX install. */
 	engineKind: EngineKind;
 	/** Which TeX program System TeX drives (via latexmk). */
 	texProgram: TexProgram;
 
-	// --- Reading surface (the page menu's presentation section) ---------------
+	// --- Reading surface ---
 	docFont: DocFont;
 	/** Drops the document canvas from 16px to 14px. */
 	docSmallText: boolean;
 	/** Lets the canvas fill the pane instead of holding a 708px measure. */
 	docFullWidth: boolean;
 
-	// --- Explorer -------------------------------------------------------------
+	// --- Explorer ---
 	/** Fold `.aux`, `.toc`, `.log` and the rest of a compile's output out of the
 	 *  file tree. They are rewritten every build and are rarely worth the rows. */
 	hideGenerated: boolean;
@@ -153,7 +143,7 @@ class SettingsStore {
 		});
 	}
 
-	// --- appearance -----------------------------------------------------------
+	// --- appearance ---
 	get appearance(): Appearance {
 		return this.#appearance.current;
 	}
@@ -201,7 +191,7 @@ class SettingsStore {
 		root.style.colorScheme = dark ? "dark" : "light";
 	}
 
-	// --- editor preferences ---------------------------------------------------
+	// --- editor preferences ---
 	get editor(): EditorSettings {
 		return this.#editor.current;
 	}
@@ -274,7 +264,7 @@ class SettingsStore {
 		this.patchEditor({ texProgram: value });
 	}
 
-	// --- reading surface ------------------------------------------------------
+	// --- reading surface ---
 	get docFont(): DocFont {
 		return this.#editor.current.docFont ?? "default";
 	}
@@ -299,7 +289,7 @@ class SettingsStore {
 		this.patchEditor({ docFullWidth: value });
 	}
 
-	// --- explorer -------------------------------------------------------------
+	// --- explorer ---
 	get hideGenerated(): boolean {
 		return this.#editor.current.hideGenerated ?? false;
 	}
@@ -307,7 +297,7 @@ class SettingsStore {
 		this.patchEditor({ hideGenerated: value });
 	}
 
-	// --- source control -------------------------------------------------------
+	// --- source control ---
 	/** Source Control changes layout (persisted). */
 	get gitView(): GitView {
 		return this.#gitView.current;

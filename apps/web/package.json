@@ -6,7 +6,8 @@
 	"scripts": {
 		"dev": "cross-env PORTLESS_HTTPS=0 portless",
 		"dev:app": "vite dev",
-		"build": "vite build",
+		"build": "node scripts/og.mjs && vite build",
+		"og": "node scripts/og.mjs",
 		"sync:engine": "node ./scripts/sync-engine.mjs",
 		"preview": "vite preview",
 		"prepare": "docvia build || echo '' && svelte-kit sync || echo ''",
@@ -51,6 +52,7 @@
 		"svelte": "^5.56.7",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.0",
+		"takumi-js": "^2.14.0",
 		"typescript": "^6.0.3",
 		"unist-util-visit": "^5.1.0",
 		"vite": "^8.0.16",

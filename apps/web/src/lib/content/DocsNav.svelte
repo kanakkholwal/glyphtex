@@ -8,7 +8,7 @@
 <nav aria-label="Documentation" class="flex flex-col gap-6">
 	{#each groups as group (group.category)}
 		<div class="flex flex-col">
-			<p class="pb-1 pl-3 text-caption font-medium text-muted-foreground">{group.category}</p>
+			<p class="pb-1.5 pl-3 font-mono text-xs text-muted-foreground">{group.category}</p>
 			<ul class="flex flex-col gap-0.5">
 				{#each group.items as item (item.slug)}
 					{@const active = page.url.pathname === item.url}
@@ -17,10 +17,10 @@
 							href={item.url}
 							aria-current={active ? "page" : undefined}
 							class={[
-								"flex min-h-10 items-center rounded-lg px-3 py-1.5 text-body outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring",
+								"flex min-h-9 items-center rounded-md px-3 py-1.5 text-sm outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-ring",
 								active
-									? "bg-muted font-medium text-foreground"
-									: "text-muted-foreground hover:bg-muted hover:text-foreground"
+									? "bg-foreground/[0.06] font-medium text-foreground"
+									: "text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
 							]}
 						>
 							{item.title}

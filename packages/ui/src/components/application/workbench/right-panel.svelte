@@ -38,7 +38,7 @@
 <!-- Collapses by width so scroll and the draft note survive a toggle; the inner
      box holds the real width so content doesn't reflow mid-animation. -->
 <div
-	class="shrink-0 overflow-hidden transition-[width] duration-300 ease-craft motion-reduce:transition-none {open
+	class="shrink-0 overflow-hidden transition-[width] duration-(--duration-slow) ease-(--ease-out) motion-reduce:transition-none {open
 		? ''
 		: 'pointer-events-none'}"
 	style:width={open ? `${WIDTH_PX}px` : '0px'}

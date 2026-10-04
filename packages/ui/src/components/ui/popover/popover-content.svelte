@@ -1,41 +1,27 @@
 <script lang="ts">
-	import {
-		CRAFT_OVERLAY_ANIMATION,
-		CRAFT_OVERLAY_SURFACE,
-		cn,
-		type WithoutChildrenOrChild
-	} from "@glyphtex/ui/utils";
 	import { Popover as PopoverPrimitive } from "bits-ui";
-	import type { ComponentProps } from "svelte";
-
-	type PortalProps = WithoutChildrenOrChild<ComponentProps<typeof PopoverPrimitive.Portal>>;
+	import { ANCHORED } from "../../../lib/anchor.js";
+	import { cn } from "../../../lib/cn.js";
+	import { popover } from "./variants";
 
 	let {
-		ref = $bindable(null),
-		class: className,
+		class: classProp,
+		sideOffset = 4,
 		align = "center",
-		sideOffset = 6,
-		portalProps,
-		preventScroll = false,
-		...restProps
+		container,
+		...rest
 	}: PopoverPrimitive.ContentProps & {
-		portalProps?: PortalProps;
+		/** Portal target; defaults to the body. Pass a fullscreen element so the popover stays visible. */
+		container?: HTMLElement | null;
 	} = $props();
 </script>
 
-<PopoverPrimitive.Portal {...portalProps}>
+<PopoverPrimitive.Portal to={container ?? "body"}>
 	<PopoverPrimitive.Content
-		bind:ref
-		data-slot="popover-content"
-		{align}
 		{sideOffset}
-		{preventScroll}
-		class={cn(
-			CRAFT_OVERLAY_ANIMATION,
-			CRAFT_OVERLAY_SURFACE,
-			'z-50 w-72 origin-(--bits-floating-transform-origin) p-4 outline-none',
-			className
-		)}
-		{...restProps}
+		{align}
+		{...rest}
+		data-slot="popover-content"
+		class={cn(ANCHORED, "static", popover().surface(), popover().content(), classProp)}
 	/>
 </PopoverPrimitive.Portal>

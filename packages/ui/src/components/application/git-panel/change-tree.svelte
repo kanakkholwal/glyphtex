@@ -37,7 +37,7 @@
 	{@const open = activeDiffPath === c.path}
 	<div
 		class="hover:bg-muted/60 group flex items-center gap-1 rounded py-0.5 pr-1 text-xs {open
-			? 'bg-accent/60'
+			? 'bg-muted/60'
 			: ''}"
 		style:padding-left={tree ? indent(depth) : '4px'}
 	>
@@ -58,7 +58,7 @@
 			<Button
 				variant="ghost"
 				size="icon-xs"
-				class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+				class="text-muted-foreground hover:text-destructive-strong opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
 				title="Discard changes"
 				aria-label="Discard changes"
 				disabled={store.busy}
@@ -103,7 +103,7 @@
 			>
 				<IconChevronRight
 					size={13}
-					class="shrink-0 transition-transform duration-200 ease-craft {expanded
+					class="shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) {expanded
 						? 'rotate-90'
 						: ''}"
 				/>
