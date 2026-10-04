@@ -168,7 +168,7 @@
 	   pointer, not the centre, because that is where it came from. */
 	.glyphtex-tab-menu {
 		transform-origin: top left;
-		animation: tab-menu-in 140ms var(--ease-craft);
+		animation: tab-menu-in var(--duration-fast) var(--ease-out);
 	}
 	@keyframes tab-menu-in {
 		from {

@@ -20,7 +20,7 @@
 		classProp,
 	)}
 >
-	<span class="min-w-0 flex-1 truncate text-left">{@render children?.()}</span>
+	<span class="flex min-w-0 flex-1 items-center gap-2 truncate text-left">{@render children?.()}</span>
 	<svg
 		viewBox="0 0 16 16"
 		fill="none"

@@ -521,6 +521,16 @@
 	select {
 		cursor: pointer;
 	}
+	button:not(:disabled),
+	[role="button"]:not([aria-disabled="true"]),
+	summary,
+	label:has(input[type="checkbox"], input[type="radio"]),
+	input[type="checkbox"],
+	input[type="radio"],
+	input[type="range"],
+	select {
+		cursor: pointer;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -841,4 +851,23 @@
 }
 .slider-glide[data-orientation="vertical"] {
 	transition-property: inset-block-end, bottom, top, height, scale, box-shadow;
+}
+:root,
+.dark {
+	--card-foreground: var(--foreground);
+	--popover-foreground: var(--foreground);
+	--primary: var(--accent);
+	--primary-foreground: var(--accent-fg);
+	--secondary: var(--muted);
+	--secondary-foreground: var(--foreground);
+	--accent-foreground: var(--accent-fg);
+	--destructive: var(--danger);
+	--input: var(--border);
+	--accent-ink: var(--accent);
+	--ring: var(--accent-ink);
+	--surface: var(--card);
+	--overlay: var(--popover);
+	--default: color-mix(in oklab, var(--foreground) 6%, transparent);
+	--default-hover: color-mix(in oklab, var(--foreground) 10%, transparent);
+	--primary-hover: color-mix(in oklab, var(--primary) 90%, var(--foreground));
 }

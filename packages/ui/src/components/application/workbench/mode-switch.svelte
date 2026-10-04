@@ -36,7 +36,7 @@
 				{#snippet child({ props })}
 					<button
 						{...props}
-						class="flex h-6.5 items-center gap-1.5 rounded-[6px] px-2 text-xs font-medium transition-colors {active
+						class="flex h-6.5 items-center gap-1.5 rounded-sm px-2 text-xs font-medium transition-colors {active
 							? 'bg-card text-foreground shadow-xs'
 							: 'text-muted-foreground hover:text-foreground'} {blocked
 							? 'cursor-not-allowed opacity-40'

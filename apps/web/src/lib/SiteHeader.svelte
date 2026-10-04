@@ -2,104 +2,74 @@
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import { track } from "$lib/analytics";
-	import { footerSocials, navLinks, REPO_URL } from "$lib/landing/nav-data";
+	import { navLinks, REPO_URL } from "$lib/landing/nav-data";
+	import { openSiteCommand } from "$lib/site/command";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
+	import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@glyphtex/ui/sheet";
+	import { shortcutCap } from "@glyphtex/ui/shortcut";
 	import { ThemeToggle } from "@glyphtex/ui/theme-toggle";
-	import { IconBrandGithub, IconBrandX, IconMenu2, IconX } from "@tabler/icons-svelte";
+	import { IconBrandGithub, IconMenu2, IconSearch } from "@tabler/icons-svelte";
 
 	const home = resolve("/");
-	const repo = REPO_URL;
-	const xHref = footerSocials.find((s) => s.label === "Twitter")?.href;
 	const format = new Intl.NumberFormat("en", { notation: "compact" });
 
-	// Streamed from the root layout; null hides the count rather than showing a guess.
-	const stars = $derived(page.data.stars as Promise<number | null> | undefined);
+	// From the root layout; null hides the count rather than showing a guess.
+	const stars = $derived(typeof page.data.stars === "number" ? page.data.stars : null);
 
-	let open = $state(false);
-	let toggleRef = $state<HTMLButtonElement | null>(null);
-
-	function close() {
-		if (!open) return;
-		open = false;
-		// Otherwise focus drops to <body> and a keyboard user restarts from the top.
-		toggleRef?.focus();
-	}
-
-	// The panel is a dismissible overlay, so focus moves into it and stays until it closes.
-	function menuFocus(node: HTMLElement) {
-		const focusables = () =>
-			Array.from(node.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")).filter(
-				(el) => el.offsetParent !== null
-			);
-
-		focusables()[0]?.focus();
-
-		function onKeydown(event: KeyboardEvent) {
-			if (event.key !== "Tab") return;
-			const items = focusables();
-			if (items.length === 0) return;
-			const first = items[0];
-			const last = items[items.length - 1];
-			if (event.shiftKey && document.activeElement === first) {
-				event.preventDefault();
-				last.focus();
-			} else if (!event.shiftKey && document.activeElement === last) {
-				event.preventDefault();
-				first.focus();
-			}
-		}
-
-		node.addEventListener("keydown", onKeydown);
-		return () => node.removeEventListener("keydown", onKeydown);
-	}
+	let menuOpen = $state(false);
+	// Apple glyph after hydration only; SSR and first paint say Ctrl.
+	let mod = $state("Ctrl");
+	$effect(() => {
+		if (/Mac|iPhone|iPad/.test(navigator.platform)) mod = "⌘";
+	});
 
 	const resolveAny = resolve as (route: string) => string;
-	function hrefFor(href: string, external = false): string {
-		if (external) return href;
-		// Internal paths must start with a single `/` and have no scheme.
-		if (!href.startsWith("/") || href.startsWith("//")) return href;
-		return resolveAny(href);
-	}
-
-	const isCurrent = (href: string) =>
-		href.startsWith("/") && !href.includes("#") && page.url.pathname.startsWith(href);
+	const isCurrent = (href: string) => href !== "/" && page.url.pathname.startsWith(href);
 </script>
 
-<svelte:window
-	onkeydown={(e) => {
-		if (e.key === 'Escape') close();
-	}}
-/>
-
-<header class="fixed inset-x-0 top-0 z-50 border-b-2 border-dashed border-border bg-canvas">
-	<nav
-		aria-label="Primary"
-		class="rail-column relative mx-auto flex items-center justify-between px-3 py-3 sm:px-4"
+{#snippet githubButton(location: string)}
+	<Button
+		href={REPO_URL}
+		target="_blank"
+		rel="noopener noreferrer"
+		variant="ghost"
+		size="sm"
+		class="text-muted-foreground"
+		onclick={() => track('outbound_clicked', { destination: 'github', location })}
 	>
-		<a
-			href={home}
-			class="-m-1.5 flex items-center rounded-md p-1.5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-			aria-label="GlyphTeX home"
-		>
-			<Logo size={26} badge text={true} class="text-body-lg" />
-		</a>
+		<IconBrandGithub aria-hidden="true" />
+		<span class="sr-only">GlyphTeX on GitHub</span>
+		{#if stars !== null}
+			<span class="font-mono tabular-nums">{format.format(stars)}<span class="sr-only"> stars</span></span>
+		{/if}
+	</Button>
+{/snippet}
 
-		<!-- One segmented track: the current page is the raised thumb, so it reads without colour. -->
-		<ul
-			class="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-lg bg-muted p-1 md:flex"
-		>
+<header
+	class="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-dashed border-border bg-background/85 px-5 backdrop-blur-md sm:px-6 lg:px-10"
+>
+	<a
+		href={home}
+		class="-m-1.5 flex shrink-0 items-center rounded-md p-1.5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		aria-label="GlyphTeX home"
+	>
+		<Logo size={24} badge text={true} class="text-base" />
+	</a>
+
+	<nav aria-label="Primary" class="ml-4 hidden md:block">
+		<ul class="flex items-center gap-1">
 			{#each navLinks as link (link.href)}
 				{@const current = isCurrent(link.href)}
 				<li>
 					<a
-						href={hrefFor(link.href, link.external)}
+						href={resolveAny(link.href)}
 						aria-current={current ? 'page' : undefined}
 						class={[
-							'inline-flex h-8 items-center rounded-md px-3.5 text-body outline-none transition-[color,background-color,box-shadow] duration-200 ease-craft focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+							'inline-flex h-8 items-center rounded-lg px-2.5 text-sm outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-ring',
 							current
-								? 'bg-card font-medium text-foreground shadow-xs dark:bg-background'
-								: 'text-muted-foreground hover:text-foreground'
+								? 'font-medium text-foreground'
+								: 'text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground'
 						]}
 					>
 						{link.label}
@@ -107,102 +77,93 @@
 				</li>
 			{/each}
 		</ul>
-
-		<div class="flex items-center gap-2">
-			<Button
-				href={repo}
-				target="_blank"
-				rel="noopener noreferrer"
-				variant="outline"
-				class="gap-1.5 px-3"
-				onclick={() => track('outbound_clicked', { destination: 'github', location: 'nav' })}
-			>
-				<IconBrandGithub class="size-4" aria-hidden="true" />
-				<span class="sr-only">GlyphTeX on GitHub</span>
-				{#await stars then count}
-					{#if typeof count === 'number'}
-						<span class="tabular-nums">{format.format(count)}<span class="sr-only"> stars</span></span>
-					{/if}
-				{/await}
-			</Button>
-			{#if xHref}
-				<Button
-					href={xHref}
-					target="_blank"
-					rel="noopener noreferrer"
-					variant="outline"
-					size="icon"
-					aria-label="GlyphTeX on X"
-					class="hidden sm:inline-flex"
-					onclick={() => track('outbound_clicked', { destination: 'twitter', location: 'nav' })}
-				>
-					<IconBrandX class="size-4" aria-hidden="true" />
-				</Button>
-			{/if}
-			<ThemeToggle size="icon" class="hidden border border-border bg-card sm:inline-flex dark:bg-background" />
-			<Button
-				href={resolve('/workspace')}
-			 variant="dark"
-				class="hidden xl:inline-flex"
-				onclick={() => track('cta_clicked', { target: 'workspace', location: 'nav' })}
-			>
-				Open the workspace
-			</Button>
-			<button
-				bind:this={toggleRef}
-				type="button"
-				onclick={() => (open ? close() : (open = true))}
-				aria-expanded={open}
-				aria-controls="mobile-nav"
-				aria-label={open ? 'Close menu' : 'Open menu'}
-				class="grid size-10 place-items-center rounded-md border border-border bg-card text-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring md:hidden dark:bg-background"
-			>
-				{#if open}
-					<IconX class="size-5" />
-				{:else}
-					<IconMenu2 class="size-5" />
-				{/if}
-			</button>
-		</div>
 	</nav>
+
+	<div class="ml-auto flex items-center gap-1">
+		<button
+			type="button"
+			onclick={openSiteCommand}
+			class="hidden h-8 items-center gap-2 rounded-lg px-2 text-sm text-muted-foreground outline-none transition-[color,background-color,scale] duration-(--duration-fast) hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring active:scale-(--press-scale-sm) sm:flex"
+		>
+			<IconSearch class="size-4" aria-hidden="true" />
+			Search
+			<span class="flex items-center gap-1" aria-hidden="true">
+				<kbd class={shortcutCap({ size: 'md' })}>{mod}</kbd>
+				<kbd class={shortcutCap({ size: 'md' })}>K</kbd>
+			</span>
+		</button>
+		<span aria-hidden="true" class="mx-1.5 hidden h-4 w-px bg-border sm:block"></span>
+		<span class="hidden sm:contents">{@render githubButton('nav')}</span>
+		<ThemeToggle size="icon-sm" class="text-muted-foreground" />
+		<Button
+			href={resolve('/workspace')}
+			variant="dark"
+			size="sm"
+			class="ml-2 hidden sm:inline-flex"
+			onclick={() => track('cta_clicked', { target: 'workspace', location: 'nav' })}
+		>
+			Open the editor
+		</Button>
+		<Button
+			variant="ghost"
+			size="icon-sm"
+			class="md:hidden"
+			aria-label="Open menu"
+			aria-expanded={menuOpen}
+			onclick={() => (menuOpen = true)}
+		>
+			<IconMenu2 />
+		</Button>
+	</div>
 </header>
 
-{#if open}
-	<!-- Presentational pointer shortcut: a full-page <button> here read as one giant control to screen readers. -->
-	<div class="fixed inset-0 z-40 bg-fixed-dark/20 md:hidden" aria-hidden="true" onclick={close}></div>
-	<div
-		id="mobile-nav"
-		class="fixed inset-x-3 top-20 z-50 rounded-xl border border-border bg-popover p-2 shadow-lg md:hidden"
-		{@attach menuFocus}
-	>
-		<ul class="flex flex-col">
-			{#each navLinks as link (link.href)}
-				<li>
-					<a
-						href={hrefFor(link.href, link.external)}
-						onclick={close}
-						class="flex min-h-11 items-center rounded-lg px-3 text-body-lg font-medium text-foreground transition-colors hover:bg-muted"
-					>
-						{link.label}
-					</a>
-				</li>
-			{/each}
-			<li>
-				<a
-					href={resolve('/workspace')}
+<Sheet bind:open={menuOpen}>
+	<SheetContent side="right" class="flex w-[min(20rem,85vw)] flex-col gap-0 p-0">
+		<SheetHeader class="border-b border-dashed border-border px-5 py-4">
+			<SheetTitle>
+				<Logo size={22} badge text={true} class="text-base" />
+			</SheetTitle>
+		</SheetHeader>
+		<nav aria-label="Mobile" class="flex-1 overflow-y-auto p-3">
+			<ul class="flex flex-col">
+				{#each navLinks as link (link.href)}
+					<li>
+						<a
+							href={resolveAny(link.href)}
+							aria-current={isCurrent(link.href) ? 'page' : undefined}
+							onclick={() => (menuOpen = false)}
+							class="flex min-h-11 items-center rounded-lg px-3 text-base font-medium text-foreground transition-colors hover:bg-foreground/[0.06] aria-[current=page]:bg-foreground/[0.06]"
+						>
+							{link.label}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</nav>
+		<div class="flex flex-col gap-2 border-t border-dashed border-border p-4">
+			<Button
+				href={resolve('/workspace')}
+				variant="dark"
+				onclick={() => {
+					track('cta_clicked', { target: 'workspace', location: 'nav' });
+					menuOpen = false;
+				}}
+			>
+				Open the editor
+			</Button>
+			<div class="flex items-center justify-between">
+				{@render githubButton('nav_mobile')}
+				<button
+					type="button"
+					class="h-8 rounded-lg px-2 text-sm text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
 					onclick={() => {
-						track('cta_clicked', { target: 'workspace', location: 'nav' });
-						close();
+						menuOpen = false;
+						openSiteCommand();
 					}}
-					class="flex min-h-11 items-center rounded-lg px-3 text-body-lg font-medium text-foreground transition-colors hover:bg-muted"
 				>
-					Open the workspace
-				</a>
-			</li>
-			<li class="flex min-h-11 items-center justify-between px-3">
-				<span class="text-body-lg font-medium text-foreground">Theme</span>
-				<ThemeToggle size="icon" />
-			</li>
-		</ul>
-	</div>
-{/if}
+					Search
+				</button>
+			</div>
+		</div>
+	</SheetContent>
+</Sheet>

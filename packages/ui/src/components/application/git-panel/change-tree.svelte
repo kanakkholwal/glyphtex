@@ -103,7 +103,7 @@
 			>
 				<IconChevronRight
 					size={13}
-					class="shrink-0 transition-transform duration-200 ease-craft {expanded
+					class="shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) {expanded
 						? 'rotate-90'
 						: ''}"
 				/>

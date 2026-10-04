@@ -25,6 +25,8 @@ vite.config.ts.timestamp-*
 # TeX engine artifacts — build outputs of crates/tectonic-wasm, copied in by
 # `pnpm sync:engine`. ~15 MB; not source.
 /static/engine
+# Rendered by scripts/og.mjs on every build.
+/static/og
 
 # Bundled test fixtures, rebuilt by `pnpm test`.
 test/.build/

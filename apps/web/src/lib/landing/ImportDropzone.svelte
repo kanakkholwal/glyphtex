@@ -120,42 +120,42 @@
 <svelte:window ondragover={onDragOver} ondragleave={onDragLeave} ondrop={onDrop} />
 
 <div
-	class="@container rounded-2xl border border-dashed p-5 transition-colors {dragging
+	class="@container rounded-2xl border border-dashed p-4 transition-colors duration-(--duration-fast) sm:p-5 {dragging
 		? 'border-primary bg-primary/5'
-		: 'border-border bg-card dark:bg-background'}"
+		: 'border-border'}"
 >
 	<div class="flex flex-col gap-4 @2xl:flex-row @2xl:items-center">
 		<div class="flex min-w-0 flex-1 items-center gap-3">
 			<span
-				class="border-border bg-background grid size-10 shrink-0 place-items-center rounded-lg border"
+				class="grid size-9 shrink-0 place-items-center rounded-lg bg-card"
 				aria-hidden="true"
 			>
 				{#if importing}
-					<IconLoader2 class="text-foreground size-5 animate-spin" stroke-width={1.75} />
+					<IconLoader2 class="size-4.5 animate-spin text-foreground" stroke-width={1.75} />
 				{:else}
-					<IconUpload class="text-primary size-5" stroke-width={1.75} />
+					<IconUpload class="size-4.5 text-muted-foreground" stroke-width={1.75} />
 				{/if}
 			</span>
 			<div class="min-w-0">
-				<h3 class="text-body-lg text-foreground font-medium">
+				<h3 class="text-sm font-medium text-foreground">
 					{dragging ? 'Drop to open' : 'Already have a project?'}
 				</h3>
-				<p class="text-body text-muted-foreground @2xl:truncate">
+				<p class="text-sm text-muted-foreground @2xl:truncate">
 					{status || 'Drop it here or choose one. Nothing is uploaded.'}
 				</p>
 			</div>
 		</div>
 
 		<div class="flex flex-wrap gap-2 @2xl:shrink-0 @2xl:flex-nowrap">
-			<Button variant="outline" disabled={importing} onclick={() => zipInput?.click()}>
+			<Button variant="outline" size="sm" disabled={importing} onclick={() => zipInput?.click()}>
 				<IconUpload stroke-width={1.75} aria-hidden="true" />
 				Overleaf .zip
 			</Button>
-			<Button variant="outline" disabled={importing} onclick={() => folderInput?.click()}>
+			<Button variant="outline" size="sm" disabled={importing} onclick={() => folderInput?.click()}>
 				<IconFolder stroke-width={1.75} aria-hidden="true" />
 				Folder
 			</Button>
-			<Button variant="outline" disabled={importing} onclick={() => texInput?.click()}>
+			<Button variant="outline" size="sm" disabled={importing} onclick={() => texInput?.click()}>
 				<IconFileText stroke-width={1.75} aria-hidden="true" />
 				.tex files
 			</Button>
@@ -163,7 +163,7 @@
 	</div>
 
 	{#if error}
-		<p role="alert" class="text-body text-destructive-strong mt-3 flex items-start gap-2">
+		<p role="alert" class="mt-3 flex items-start gap-2 text-sm text-destructive-strong">
 			<IconAlertTriangle class="mt-0.5 size-4 shrink-0" stroke-width={1.75} aria-hidden="true" />
 			<span><span class="font-medium">Import failed.</span> {error}</span>
 		</p>
@@ -202,11 +202,11 @@
 		aria-hidden="true"
 	>
 		<div
-			class="border-primary bg-card flex flex-col items-center gap-3 rounded-3xl border border-dashed px-10 py-8 text-center shadow-lg"
+			class="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-primary bg-popover px-10 py-8 text-center shadow-(--overlay-shadow)"
 		>
 			<IconUpload class="text-primary size-7" stroke-width={1.75} />
-			<p class="text-body-xl text-foreground font-medium">Drop to open it here</p>
-			<p class="text-body text-muted-foreground">
+			<p class="text-lg font-medium text-foreground">Drop to open it here</p>
+			<p class="text-sm text-muted-foreground">
 				An Overleaf .zip, a project folder, or loose .tex files.
 			</p>
 		</div>

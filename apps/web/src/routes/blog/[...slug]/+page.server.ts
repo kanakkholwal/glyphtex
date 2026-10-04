@@ -26,9 +26,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
 			category: String(data.category ?? "Article"),
 			date: String(data.date ?? ""),
-			updated: data.updated ? String(data.updated) : undefined,
-			hero: data.hero ? String(data.hero) : undefined,
-			heroAlt: data.heroAlt ? String(data.heroAlt) : undefined
+			updated: data.updated ? String(data.updated) : undefined
 		},
 		related: relatedPosts(segments.join("/"))
 	};

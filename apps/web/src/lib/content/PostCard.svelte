@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PostMeta } from "$lib/server/content";
-	import { IconArrowRight } from "@tabler/icons-svelte";
 
+	/** One post as a dashed-rule row; dims with its siblings when the parent list has `group/list`. */
 	let { post, featured = false }: { post: PostMeta; featured?: boolean } = $props();
 
 	const dateLabel = $derived(
@@ -17,34 +17,25 @@
 
 <a
 	href={post.url}
-	class={[
-		"group flex h-full flex-col rounded-2xl border border-border bg-card p-5 outline-none transition-[border-color] duration-200 ease-craft hover:border-border-strong focus-visible:ring-2 focus-visible:ring-ring dark:bg-background",
-		featured && "sm:p-8"
-	]}
+	class="flex flex-col gap-1.5 border-t border-dashed border-border py-5 outline-none transition-opacity duration-(--duration-fast) group-hover/list:opacity-50 hover:opacity-100! focus-visible:opacity-100! focus-visible:ring-2 focus-visible:ring-ring"
 >
-	<span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-muted-foreground">
-		<span class="font-medium text-foreground">{post.category}</span>
+	<span
+		class="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-muted-foreground tabular-nums"
+	>
+		<span>{post.category}</span>
 		{#if dateLabel}<span aria-hidden="true">·</span><time datetime={post.date}>{dateLabel}</time>{/if}
 		{#if post.readingMinutes > 0}
 			<span aria-hidden="true">·</span><span>{post.readingMinutes} min read</span>
 		{/if}
 	</span>
 	<h3
-		class={[
-			"mt-3 text-balance font-medium text-foreground",
-			featured ? "text-heading-sm" : "text-body-lg"
-		]}
+		class={["text-balance font-medium text-foreground", featured ? "text-lg" : "text-base"]}
 	>
 		{post.title}
 	</h3>
-	<p class="mt-2 line-clamp-3 text-pretty text-body text-muted-foreground">{post.description}</p>
-	<span
-		class="mt-auto flex items-center gap-1 pt-4 text-body font-medium text-muted-foreground transition-colors group-hover:text-foreground"
+	<p
+		class={["text-pretty text-sm text-muted-foreground", !featured && "line-clamp-2"]}
 	>
-		Read
-		<IconArrowRight
-			class="size-4 transition-transform duration-200 ease-craft group-hover:translate-x-0.5"
-			aria-hidden="true"
-		/>
-	</span>
+		{post.description}
+	</p>
 </a>

@@ -468,8 +468,8 @@
 				<IconFileAlert size={24} />
 			</span>
 			<div class="flex flex-col gap-2">
-				<h1 class="text-heading-sm font-medium">{title}</h1>
-				<p class="text-body text-muted-foreground">{body}</p>
+				<h1 class="text-xl font-medium">{title}</h1>
+				<p class="text-md text-muted-foreground">{body}</p>
 			</div>
 			<div class="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">
 				{#if retry}
@@ -494,7 +494,7 @@
 {:else if status === 'loading'}
 	<div class="flex min-h-dvh flex-col items-center justify-center gap-4">
 		<Logo size="lg" />
-		<p class="text-muted-foreground text-body" role="status">Opening document…</p>
+		<p class="text-muted-foreground text-md" role="status">Opening document…</p>
 	</div>
 {:else if project && initialFiles}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -554,7 +554,7 @@
 				role="status"
 			>
 				<IconUpload size={28} class="text-primary" aria-hidden="true" />
-				<p class="text-body-lg font-medium">Drop files to add them to this document</p>
+				<p class="text-base font-medium">Drop files to add them to this document</p>
 			</div>
 		{/if}
 	</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
 	import { track } from "$lib/analytics";
+	import Well from "$lib/site/Well.svelte";
 	import { Button } from "@glyphtex/ui/button";
 	import { IconArrowRight } from "@tabler/icons-svelte";
 
@@ -18,19 +19,21 @@
 	const target = $derived(href.startsWith("/") ? resolveAny(href) : href);
 </script>
 
-<aside
-	class="not-prose panel-card my-10 flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between"
->
-	<div>
-		<p class="text-body-lg font-medium text-foreground">{title}</p>
-		<p class="mt-1 max-w-md text-pretty text-body text-muted-foreground">{body}</p>
-	</div>
-	<Button variant="dark"
-		href={target}
-		class="shrink-0"
-		onclick={() => track('cta_clicked', { target: 'workspace', location: 'content', from })}
-	>
-		{label}
-		<IconArrowRight />
-	</Button>
+<aside class="not-prose my-10">
+	<Well bodyClass="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+		<div>
+			<p class="text-base font-medium text-foreground">{title}</p>
+			<p class="mt-1 max-w-md text-sm text-pretty text-muted-foreground">{body}</p>
+		</div>
+		<Button
+			variant="dark"
+			size="sm"
+			href={target}
+			class="shrink-0"
+			onclick={() => track('cta_clicked', { target: 'workspace', location: 'content', from })}
+		>
+			{label}
+			<IconArrowRight />
+		</Button>
+	</Well>
 </aside>

@@ -57,7 +57,7 @@
 		ctrl.reload();
 	});
 
-	// --- Imperative API (accessed via bind:this from the host toolbar) --------
+	// --- Imperative API ---
 	export function revealLocation(loc: ForwardLoc) {
 		ctrl.revealLocation(loc);
 	}
@@ -126,7 +126,7 @@
 	{#if ctrl.hasRendered && numPages > 1}
 		<!-- Same collapse-by-width curve as the workbench's other panels. -->
 		<div
-			class="shrink-0 overflow-hidden transition-[width] duration-300 ease-craft motion-reduce:transition-none"
+			class="shrink-0 overflow-hidden transition-[width] duration-(--duration-slow) ease-(--ease-out) motion-reduce:transition-none"
 			style:width={showThumbnails ? '120px' : '0px'}
 			aria-hidden={!showThumbnails}
 		>

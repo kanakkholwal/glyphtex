@@ -98,7 +98,7 @@
 					>
 						<IconChevronRight
 							size={13}
-							class="transition-transform duration-150 motion-reduce:transition-none {row.collapsed
+							class="transition-transform duration-(--duration-fast) motion-reduce:transition-none {row.collapsed
 								? ''
 								: 'rotate-90'}"
 						/>

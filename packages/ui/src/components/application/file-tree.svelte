@@ -108,7 +108,7 @@
 		el?.scrollIntoView({ block: 'nearest', behavior: reduced.current ? 'auto' : 'smooth' });
 	});
 
-	// --- Activation -------------------------------------------------------------
+	// --- Activation ---
 	function activate(row: TreeRow, mods: { meta?: boolean; shift?: boolean } = {}) {
 		const wasOnlySelection = store.selectedKeys.length === 1 && store.isSelected(row.key);
 		store.pick(row.key, mods);
@@ -190,7 +190,7 @@
 		}
 	}
 
-	// --- Rename -----------------------------------------------------------------
+	// --- Rename ---
 	function startRename(row: TreeRow) {
 		renamingKey = row.key;
 		renameValue = row.node.name;
@@ -212,7 +212,7 @@
 		input.setSelectionRange(0, isFile && dot > 0 ? dot : input.value.length);
 	}
 
-	// --- Drag & drop ------------------------------------------------------------
+	// --- Drag & drop ---
 	let springTimer: ReturnType<typeof setTimeout> | undefined;
 	function cancelSpring() {
 		clearTimeout(springTimer);
@@ -256,7 +256,7 @@
 		store.dropInto(row.dropDir);
 	}
 
-	// --- Context menu -----------------------------------------------------------
+	// --- Context menu ---
 	function openMenu(event: MouseEvent, row: TreeRow) {
 		event.preventDefault();
 		event.stopPropagation();
@@ -402,7 +402,7 @@
 					>
 						<IconChevronRight
 							size={14}
-							class="transition-transform duration-200 ease-craft motion-reduce:transition-none {row.expanded
+							class="transition-transform duration-(--duration-base) ease-(--ease-out) motion-reduce:transition-none {row.expanded
 								? 'rotate-90'
 								: ''}"
 						/>

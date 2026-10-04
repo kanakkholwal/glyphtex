@@ -67,8 +67,8 @@
 			>
 				<IconCpu size={20} />
 			</span>
-			<DialogTitle class="text-body-lg">Set up the LaTeX compiler</DialogTitle>
-			<DialogDescription class="text-body">
+			<DialogTitle class="text-base">Set up the LaTeX compiler</DialogTitle>
+			<DialogDescription class="text-md">
 				GlyphTeX compiles LaTeX right in your browser with the same engine as the desktop app. It
 				downloads once (about {totalMB} MB) and stays cached on this device.
 			</DialogDescription>
@@ -76,7 +76,7 @@
 
 		<div class="border-border bg-muted flex items-start gap-3 rounded-xl border p-3">
 			<IconWifiOff size={16} class="text-muted-foreground mt-0.5 shrink-0" aria-hidden="true" />
-			<p class="text-muted-foreground text-caption min-w-0 flex-1">
+			<p class="text-muted-foreground text-xs min-w-0 flex-1">
 				After this, compiling works <span class="text-foreground font-medium">fully offline</span>.
 				Your documents never leave your device.
 			</p>
@@ -84,7 +84,7 @@
 
 		{#if installing}
 			<div class="flex flex-col gap-2">
-				<div class="text-caption flex items-center gap-2">
+				<div class="text-xs flex items-center gap-2">
 					<IconLoader2 size={14} class="text-muted-foreground animate-spin" aria-hidden="true" />
 					<span class="text-foreground min-w-0 flex-1 truncate font-medium">
 						{progress?.label ?? 'Preparing…'}
@@ -104,7 +104,7 @@
 				>
 					{#if measurable}
 						<div
-							class="bg-primary h-full rounded-full transition-[width] duration-200"
+							class="bg-primary h-full rounded-full transition-[width] duration-(--duration-base)"
 							style:width="{pct}%"
 						></div>
 					{:else}
@@ -113,7 +113,7 @@
 					{/if}
 				</div>
 				{#if sizeLabel}
-					<p class="text-muted-foreground text-caption tabular-nums">{sizeLabel}</p>
+					<p class="text-muted-foreground text-xs tabular-nums">{sizeLabel}</p>
 				{/if}
 			</div>
 		{/if}
@@ -124,7 +124,7 @@
 				role="alert"
 			>
 				<IconAlertTriangle size={16} class="text-destructive-strong mt-0.5 shrink-0" aria-hidden="true" />
-				<p class="text-foreground text-caption min-w-0 flex-1">
+				<p class="text-foreground text-xs min-w-0 flex-1">
 					<span class="font-medium">Download failed.</span>
 					{error}
 				</p>

@@ -189,7 +189,7 @@
 	   pointer, not the centre, because that is where it came from. */
 	.glyphtex-tree-menu {
 		transform-origin: top left;
-		animation: tree-menu-in 140ms var(--ease-craft);
+		animation: tree-menu-in var(--duration-fast) var(--ease-out);
 	}
 	@keyframes tree-menu-in {
 		from {

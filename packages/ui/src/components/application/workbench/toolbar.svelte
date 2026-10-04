@@ -25,7 +25,7 @@
 				{#snippet child({ props })}
 					<button
 						{...props}
-						class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
+						class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-(--ease-out) grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-(--duration-fast) motion-reduce:transition-none"
 						aria-label="Toggle sidebar"
 						aria-pressed={!layout.panelCollapsed}
 						onclick={() => (layout.panelCollapsed = !layout.panelCollapsed)}
@@ -50,7 +50,7 @@
 
 <!-- Plain toolbar rail; in Visual it goes translucent so the prose page reads through. -->
 <div
-	class="ease-craft flex h-9 shrink-0 items-stretch border-b transition-colors duration-200 motion-reduce:transition-none {quiet
+	class="ease-(--ease-out) flex h-9 shrink-0 items-stretch border-b transition-colors duration-(--duration-base) motion-reduce:transition-none {quiet
 		? 'glyphtex-tab-rail--quiet border-border/50'
 		: 'border-border bg-background'}"
 >

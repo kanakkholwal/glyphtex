@@ -3,19 +3,18 @@
 	import { IconCheck } from "@tabler/icons-svelte";
 	import type { Snippet } from "svelte";
 
-	// Hairline label chip. At most two per view.
+	// Quiet mono label; the name is kept for older call sites, it no longer tilts.
 	let {
 		children,
 		tail,
-		icon: Icon = IconCheck,
-		tilt = "left",
+		icon: Icon,
 		class: className
 	}: {
 		children: Snippet;
-		/** Replaces the icon tile, e.g. a one-word tag. */
+		/** Trailing one-word tag. */
 		tail?: Snippet;
-		/** Tile glyph; the check suits a claim, not a warning. */
 		icon?: typeof IconCheck;
+		/** Accepted for older call sites. */
 		tilt?: "left" | "right";
 		class?: string;
 	} = $props();
@@ -23,17 +22,11 @@
 
 <span
 	class={cn(
-		'flex w-fit items-center gap-2 rounded-md border border-border p-0.5 pl-2.5 text-caption font-semibold text-foreground',
-		tilt === 'left' ? '-rotate-2' : 'rotate-1',
+		'inline-flex w-fit items-center gap-1.5 rounded-md border border-dashed border-border px-2 py-0.5 font-mono text-xs text-muted-foreground',
 		className
 	)}
 >
+	{#if Icon}<Icon class="size-3.5" aria-hidden="true" />{/if}
 	<span>{@render children()}</span>
-	<span class="rounded-sm border border-border bg-background px-1 py-1 leading-none">
-		{#if tail}
-			<span class="px-0.5">{@render tail()}</span>
-		{:else}
-			<Icon class="size-3.5" aria-hidden="true" />
-		{/if}
-	</span>
+	{#if tail}<span class="text-foreground">{@render tail()}</span>{/if}
 </span>

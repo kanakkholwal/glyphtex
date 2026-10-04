@@ -2,7 +2,9 @@
 	import { afterNavigate } from "$app/navigation";
 	import { connectWorkbench, initAnalytics, trackPageview } from "$lib/analytics";
 	import { SITE_NAME } from "$lib/seo/site";
+	import { NavProgress } from "@glyphtex/ui/nav-progress";
 	import { settings } from "@glyphtex/ui/settings";
+	import { TooltipProvider } from "@glyphtex/ui/tooltip";
 	import { onMount } from "svelte";
 	import "./layout.css";
 
@@ -38,6 +40,9 @@
 		title="{SITE_NAME} Blog"
 		href="/blog/rss.xml"
 	/>
-
 </svelte:head>
-{@render children()}
+<NavProgress />
+<!-- baby-ui tooltips need one provider above them; the old primitive made its own. -->
+<TooltipProvider delayDuration={400}>
+	{@render children()}
+</TooltipProvider>

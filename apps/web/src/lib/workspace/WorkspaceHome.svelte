@@ -314,14 +314,14 @@
 				<IconDatabaseOff size={24} />
 			</span>
 			<div class="flex flex-col gap-2">
-				<h1 class="text-heading-sm font-medium">Local storage is unavailable</h1>
-				<p class="text-body text-muted-foreground">
+				<h1 class="text-xl font-medium">Local storage is unavailable</h1>
+				<p class="text-md text-muted-foreground">
 					Private windows and blocked site data both prevent saving. Allow site data for this site,
 					or reopen GlyphTeX in a normal window.
 				</p>
 			</div>
 			<Button variant="dark" class="w-full sm:w-auto" onclick={() => location.reload()}>Try again</Button>
-			<details class="text-caption text-muted-foreground w-full text-left">
+			<details class="text-xs text-muted-foreground w-full text-left">
 				<summary class="focus-visible:ring-ring rounded-sm text-center outline-none focus-visible:ring-2">
 					Details
 				</summary>
@@ -387,13 +387,13 @@
 		role="status"
 	>
 		<IconUpload size={28} class="text-primary" aria-hidden="true" />
-		<p class="text-body-lg font-medium">Drop a folder or .zip to import a document</p>
+		<p class="text-base font-medium">Drop a folder or .zip to import a document</p>
 	</div>
 {/if}
 
 {#if importing}
 	<div class="bg-background/90 fixed inset-0 z-50 flex items-center justify-center" role="status">
-		<p class="text-body flex items-center gap-2 font-medium">
+		<p class="text-md flex items-center gap-2 font-medium">
 			<IconLoader2 size={18} class="text-muted-foreground animate-spin" aria-hidden="true" />
 			Importing…
 		</p>

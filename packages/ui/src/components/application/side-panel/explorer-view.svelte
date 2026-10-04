@@ -53,7 +53,7 @@
 	>
 		<IconChevronRight
 			size={14}
-			class="shrink-0 transition-transform duration-200 ease-craft motion-reduce:transition-none {store.rootExpanded
+			class="shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) motion-reduce:transition-none {store.rootExpanded
 				? 'rotate-90'
 				: ''}"
 		/>

@@ -1,7 +1,6 @@
 export const SITE_URL = "https://glyphtex.nexonauts.com";
 export const SITE_NAME = "GlyphTeX";
 export const SITE_TAGLINE = "A local-first LaTeX editor for academic writing";
-export const DEFAULT_OG_IMAGE = "/og/default.svg";
 
 export const AUTHOR = {
 	name: "Kanak Kholwal",

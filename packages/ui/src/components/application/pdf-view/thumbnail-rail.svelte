@@ -76,7 +76,7 @@
 				>
 					<canvas
 						bind:this={canvases[n - 1]}
-						class="border-border block w-[104px] rounded-[3px] border bg-fixed-light shadow-sm transition-[outline-color] {active
+						class="border-border block w-[104px] rounded-xs border bg-fixed-light shadow-sm transition-[outline-color] {active
 							? 'outline-primary outline-2'
 							: 'outline-transparent outline-2'}"
 						style:height="134px"

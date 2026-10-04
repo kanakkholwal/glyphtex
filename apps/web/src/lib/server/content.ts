@@ -12,8 +12,6 @@ export type PostMeta = {
 	category: string;
 	date: string;
 	updated?: string;
-	hero?: string;
-	heroAlt?: string;
 	featured: boolean;
 	readingMinutes: number;
 };
@@ -81,8 +79,6 @@ function toPost(entry: {
 		category: str(data, "category", "Article"),
 		date: str(data, "date"),
 		updated: str(data, "updated") || undefined,
-		hero: str(data, "hero") || undefined,
-		heroAlt: str(data, "heroAlt") || undefined,
 		featured: data.featured === true,
 		readingMinutes:
 			typeof data.readingMinutes === "number"

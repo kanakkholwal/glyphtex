@@ -43,7 +43,7 @@
 				>
 					<IconChevronRight
 						size={13}
-						class="transition-transform duration-200 {store.showErrorDetails ? 'rotate-90' : ''}"
+						class="transition-transform duration-(--duration-base) {store.showErrorDetails ? 'rotate-90' : ''}"
 					/>
 					{store.showErrorDetails ? 'Hide details' : 'Show details'}
 				</button>

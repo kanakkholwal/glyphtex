@@ -5,7 +5,9 @@ export const menu = tv({
 	slots: {
 		surface: "min-w-44 rounded-xl bg-popover p-1 shadow-(--overlay-shadow)",
 		item: [
-			"relative flex w-full cursor-default select-none items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
+			"relative flex w-full cursor-default select-none items-center justify-start gap-2 rounded-md px-2.5 py-1.5",
+			// Leading icons sit beside the label; the shortcut and chevron push right with ml-auto.
+			"[&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 			// The fill follows the pointer at once; a press squishes to 0.98 and eases back over 250ms.
 			"text-left text-sm outline-none transition-[color,background-color,scale] [transition-duration:var(--duration-instant),var(--duration-instant),var(--duration-slow)] ease-[var(--ease-out-quart)]",
 			"active:scale-[var(--press-scale-row)] motion-reduce:transition-none",

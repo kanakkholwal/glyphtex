@@ -222,7 +222,7 @@
 					? 'text-foreground font-medium'
 					: 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'} {dragging
 					? 'bg-muted z-30 shadow-md'
-					: 'ease-craft transition-[background-color,color] duration-150 motion-reduce:transition-none'}"
+					: 'ease-(--ease-out) transition-[background-color,color] duration-(--duration-fast) motion-reduce:transition-none'}"
 				style:transform={dragging ? `translateX(${drag?.dx}px)` : undefined}
 				role="presentation"
 				oncontextmenu={(e) => {
@@ -271,7 +271,7 @@
 
 				{#if files.canCloseTab}
 					<button
-						class="glyphtex-tab-close group/close hover:bg-muted ease-craft grid size-6 shrink-0 place-items-center rounded-[5px] transition-[background-color,opacity,transform] duration-150 motion-reduce:transition-none {dirty ||
+						class="glyphtex-tab-close group/close hover:bg-muted ease-(--ease-out) grid size-6 shrink-0 place-items-center rounded-sm transition-[background-color,opacity,transform] duration-(--duration-fast) motion-reduce:transition-none {dirty ||
 						active
 							? ''
 							: 'opacity-0 group-hover/tab:opacity-100 focus-visible:opacity-100'}"
@@ -317,7 +317,7 @@
 					{#snippet child({ props })}
 						<button
 							{...props}
-							class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
+							class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-(--ease-out) grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-(--duration-fast) motion-reduce:transition-none"
 							aria-label="All open files"
 							aria-haspopup="menu"
 							onclick={(e) => {
@@ -340,7 +340,7 @@
 					{#snippet child({ props })}
 						<button
 							{...props}
-							class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-craft grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-150 motion-reduce:transition-none"
+							class="text-muted-foreground hover:bg-muted/60 hover:text-foreground ease-(--ease-out) grid size-7 shrink-0 place-items-center rounded-md transition-colors duration-(--duration-fast) motion-reduce:transition-none"
 							aria-label="New file"
 							onclick={() => onnew?.()}
 						>
@@ -420,13 +420,13 @@
 	/* Same curve and duration as the Segmented control's pill. */
 	.glyphtex-tab-pill {
 		transition:
-			transform 200ms var(--ease-craft),
-			width 200ms var(--ease-craft);
+			transform var(--duration-base) var(--ease-out),
+			width var(--duration-base) var(--ease-out);
 	}
 
 	/* A tab arriving should not pop into existence; leaving is quicker than landing. */
 	.glyphtex-tab-slot {
-		animation: tab-in 160ms var(--ease-craft);
+		animation: tab-in var(--duration-fast) var(--ease-out);
 	}
 	@keyframes tab-in {
 		from {
@@ -437,7 +437,7 @@
 
 	/* Confirms the press before the content swaps. The swap itself stays instant. */
 	.glyphtex-tab {
-		transition: transform 100ms var(--ease-craft);
+		transition: transform var(--duration-instant) var(--ease-out);
 	}
 	.glyphtex-tab:active {
 		transform: scale(0.98);
@@ -456,7 +456,7 @@
 
 	.glyphtex-tab-menu {
 		transform-origin: top left;
-		animation: tab-menu-in 140ms var(--ease-craft);
+		animation: tab-menu-in var(--duration-fast) var(--ease-out);
 	}
 	@keyframes tab-menu-in {
 		from {

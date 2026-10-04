@@ -13,6 +13,7 @@
 		children
 	}: {
 		title: string;
+		/** Tail of the title, set in muted ink. */
 		accent?: string;
 		description?: string;
 		/** Keeps the title column in view while the content scrolls. */
@@ -24,25 +25,21 @@
 	} = $props();
 </script>
 
-<div class={cn('relative w-full px-1 py-6 sm:px-4 sm:py-8 lg:px-16 lg:py-10', className)}>
-	<div class="flex flex-col gap-10 lg:flex-row lg:gap-20">
-		<div class="flex shrink-0 flex-col gap-2 lg:w-110">
-			<div class={cn('flex flex-col gap-2', sticky && 'lg:sticky lg:top-28')}>
+<div class={cn('relative w-full py-2 sm:py-4', className)}>
+	<div class="flex flex-col gap-8 lg:flex-row lg:gap-16">
+		<div class="flex shrink-0 flex-col gap-2 lg:w-80">
+			<div class={cn('flex flex-col gap-2', sticky && 'lg:sticky lg:top-24')}>
 				<svelte:element
 					this={`h${headingLevel}`}
-					class="text-balance text-heading-lg font-medium text-foreground"
+					class="pixel cursor-default text-2xl text-balance text-foreground hover:[--elsh:60]"
 				>
-					{title}
-					{#if accent}
-						<br />
-						<span class="text-primary">{accent}</span>
-					{/if}
+					{title}{#if accent}{' '}<span class="text-muted-foreground">{accent}</span>{/if}
 				</svelte:element>
 				{#if description}
-					<p class="max-w-sm text-pretty text-body text-muted-foreground">{description}</p>
+					<p class="max-w-sm text-sm text-pretty text-muted-foreground">{description}</p>
 				{/if}
 				{#if aside}
-					<div class="mt-6">{@render aside()}</div>
+					<div class="mt-5">{@render aside()}</div>
 				{/if}
 			</div>
 		</div>

@@ -12,7 +12,7 @@
 		children
 	}: {
 		id?: string;
-		/** Full-bleed dashed rule above the row. The first row passes `false`. */
+		/** Dashed rule above the row. The first row passes `false`. */
 		divider?: boolean;
 		/** Names the section for assistive tech. */
 		label?: string;
@@ -25,13 +25,14 @@
 	const noop = () => {};
 </script>
 
-{#if divider}
-	<div aria-hidden="true" class="rail-dash w-full border-t-2"></div>
-{/if}
 <section
 	{id}
 	aria-label={label}
-	class={cn('rail-column mx-auto flex scroll-mt-24 flex-col p-3 sm:p-6', className)}
+	class={cn(
+		'flex scroll-mt-20 flex-col px-5 py-10 sm:px-6 lg:px-10',
+		divider && 'border-t border-dashed border-border',
+		className
+	)}
 	{@attach section ? viewSection(section) : noop}
 >
 	{@render children()}

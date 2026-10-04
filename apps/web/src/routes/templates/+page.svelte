@@ -3,7 +3,7 @@
 	import TemplateGallery from "$lib/landing/TemplateGallery.svelte";
 	import { REPO_URL } from "$lib/landing/nav-data";
 	import Seo from "$lib/seo/Seo.svelte";
-	import { BrandPanel, PageHero, RailFrame, RailRow, SplitSection } from "$lib/site";
+	import { BrandPanel, PageHero, RailFrame, RailRow, Section } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
 	import { IconBrandGithub, IconTemplate } from "@tabler/icons-svelte";
 
@@ -11,11 +11,26 @@
 
 	const sourced = $derived(data.templates.filter((t) => t.origin === "overleaf"));
 	const authors = $derived(new Set(sourced.map((t) => t.author)).size);
+
+	const credits = [
+		{
+			title: "Named on every card",
+			body: "Author, licence and a link to the original page, before you use it."
+		},
+		{
+			title: "Kept in your project",
+			body: "New projects include a TEMPLATE-LICENSE.md, so the credit travels when you share."
+		},
+		{
+			title: "Changes disclosed",
+			body: "The only change to a sourced template is swapping missing images for labelled boxes, and it is noted."
+		}
+	];
 </script>
 
 <Seo
 	title="LaTeX templates that compile offline · GlyphTeX"
-	description="Free LaTeX templates for theses, journal articles, CVs, letters, posters, assignments and slides. Each one compiles offline in GlyphTeX, and community templates credit their authors."
+	description="Free LaTeX templates for theses, journal articles, CVs, letters, posters and slides. Each one compiles offline in GlyphTeX and credits its author."
 	canonical="/templates"
 />
 
@@ -29,40 +44,26 @@
 		/>
 	</RailRow>
 
-	<RailRow id="gallery" label="Template gallery" section="templates_gallery">
-		<div class="px-1 pb-6 sm:px-4 lg:px-16">
-			<TemplateGallery templates={data.templates} />
-		</div>
-	</RailRow>
+	<Section id="gallery" number={1} title="all templates." section="templates_gallery">
+		<TemplateGallery templates={data.templates} />
+	</Section>
 
-	<RailRow label="Credits" section="templates_credits">
-		<SplitSection
-			title="Credit where"
-			accent="it's due."
-			description={`${authors} community authors wrote ${sourced.length} of these, shared under licences that allow reuse. The rest were written for GlyphTeX and dedicated to the public domain.`}
-		>
-			<ul class="grid gap-3 sm:grid-cols-3">
-				<li class="panel-card flex flex-col gap-1 p-5">
-					<h3 class="text-body-lg font-medium text-foreground">Named on every card</h3>
-					<p class="text-body text-muted-foreground">
-						Author, licence and a link to the original page, before you use it.
-					</p>
+	<Section
+		id="credits"
+		number={2}
+		title="credit where it's due."
+		description={`${authors} community authors wrote ${sourced.length} of these, shared under licences that allow reuse. The rest were written for GlyphTeX and dedicated to the public domain.`}
+		section="templates_credits"
+	>
+		<ul class="grid gap-x-10 sm:grid-cols-3">
+			{#each credits as c (c.title)}
+				<li class="border-t border-dashed border-border py-5">
+					<h3 class="text-sm font-medium text-foreground">{c.title}</h3>
+					<p class="mt-1 text-sm text-pretty text-muted-foreground">{c.body}</p>
 				</li>
-				<li class="panel-card flex flex-col gap-1 p-5">
-					<h3 class="text-body-lg font-medium text-foreground">Kept in your project</h3>
-					<p class="text-body text-muted-foreground">
-						New projects include a TEMPLATE-LICENSE.md, so the credit travels when you share.
-					</p>
-				</li>
-				<li class="panel-card flex flex-col gap-1 p-5">
-					<h3 class="text-body-lg font-medium text-foreground">Changes disclosed</h3>
-					<p class="text-body text-muted-foreground">
-						The only change to a sourced template is swapping missing images for labelled boxes, and it is noted.
-					</p>
-				</li>
-			</ul>
-		</SplitSection>
-	</RailRow>
+			{/each}
+		</ul>
+	</Section>
 
 	<RailRow label="Get started" section="templates_cta">
 		<BrandPanel
@@ -70,7 +71,7 @@
 			body="Every template opens in the workspace, in your browser, with nothing uploaded."
 		>
 			{#snippet icon()}
-				<IconTemplate class="size-10" stroke-width={1.5} aria-hidden="true" />
+				<IconTemplate aria-hidden="true" />
 			{/snippet}
 			{#snippet actions()}
 				<Button href={resolve("/workspace")} variant="dark">Open the workspace</Button>
@@ -78,7 +79,7 @@
 					href="{REPO_URL}/blob/main/packages/ui/src/lib/project-templates/ATTRIBUTION.md"
 					target="_blank"
 					rel="noopener noreferrer"
-					variant="light"
+					variant="outline"
 				>
 					Full attribution list
 					<IconBrandGithub />

@@ -1,58 +1,47 @@
 <script lang="ts">
 	import { cn } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
+	import Well from "./Well.svelte";
 
-	// Text stays a large headline or centred body copy, away from the panel's light streaks.
+	// The closing call to action: one line, one sentence of support, the actions.
 	let {
 		title,
 		body,
 		icon,
 		actions,
-		size = "default",
 		class: className
 	}: {
 		title: string;
 		body?: string;
 		icon?: Snippet;
 		actions?: Snippet;
-		/** `hero` is the landing's closing CTA scale. */
+		/** Accepted for older call sites. */
 		size?: "default" | "hero";
 		class?: string;
 	} = $props();
 </script>
 
-<section
-	class={cn(
-		'panel-brand relative w-full overflow-hidden rounded-3xl px-6',
-		size === 'hero' ? 'py-20 sm:py-24' : 'py-16 sm:py-20',
-		className
-	)}
+<Well
+	class={cn('w-full', className)}
+	bodyClass="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8"
 >
-	<div class="relative mx-auto flex max-w-4xl flex-col items-center text-center">
+	<div class="flex items-start gap-4">
 		{#if icon}
 			<span
-				class="mb-4 grid size-20 rotate-2 place-items-center rounded-3xl bg-fixed-light text-brand-panel shadow-lg"
+				class="hidden size-10 shrink-0 place-items-center rounded-lg bg-card text-muted-foreground sm:grid [&_svg]:size-5"
+				aria-hidden="true"
 			>
 				{@render icon()}
 			</span>
 		{/if}
-		<h2
-			class={cn(
-				'text-balance font-medium text-fixed-light',
-				size === 'hero'
-					? 'text-heading sm:text-heading-lg md:text-display lg:text-display-xl'
-					: 'text-heading sm:text-heading-lg md:text-display'
-			)}
-		>
-			{title}
-		</h2>
-		{#if body}
-			<p class="mt-4 max-w-md text-pretty text-body text-fixed-light/85 md:text-body-lg">{body}</p>
-		{/if}
-		{#if actions}
-			<div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-				{@render actions()}
-			</div>
-		{/if}
+		<div>
+			<h2 class="text-lg font-medium text-balance text-foreground">{title}</h2>
+			{#if body}
+				<p class="mt-1 max-w-md text-sm text-pretty text-muted-foreground">{body}</p>
+			{/if}
+		</div>
 	</div>
-</section>
+	{#if actions}
+		<div class="flex flex-wrap gap-2">{@render actions()}</div>
+	{/if}
+</Well>

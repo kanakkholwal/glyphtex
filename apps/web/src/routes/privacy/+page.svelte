@@ -92,8 +92,8 @@
 		},
 		{
 			name: "git_action",
-			when: "You initialise, commit, push, pull, or clone in source control.",
-			data: "Which of those actions, and whether a pull hit conflicts."
+			when: "You clone a Git repository into a new document.",
+			data: "Only that a clone happened."
 		}
 	];
 
@@ -126,7 +126,8 @@
 
 	const link =
 		"rounded-sm font-medium text-primary underline underline-offset-4 outline-none hover:decoration-2 focus-visible:ring-2 focus-visible:ring-ring";
-	const h2 = "scroll-mt-28 font-heading text-subheading font-medium text-foreground";
+	const h2 = "pixel scroll-mt-20 text-2xl text-foreground";
+	const code = "rounded-sm bg-muted px-1 font-mono text-sm text-foreground";
 </script>
 
 <Seo
@@ -145,17 +146,17 @@
 		/>
 	</RailRow>
 
-	<RailRow label="Privacy policy">
-		<div
-			class="grid grid-cols-1 gap-10 px-1 py-6 sm:px-4 sm:py-8 lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-16 lg:px-16 lg:py-10"
-		>
-			<div class="flex max-w-3xl min-w-0 flex-col gap-10 text-body-lg text-muted-foreground">
+	<RailRow label="Privacy policy" class="lg:py-16">
+		<div class="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_14rem] lg:gap-16">
+			<div
+				class="flex min-w-0 flex-col gap-12 text-base text-pretty text-muted-foreground"
+			>
 				<section class="flex flex-col gap-4" aria-labelledby="short">
 					<h2 id="short" class={h2}>The short version</h2>
 					<p>
-						Your documents stay on your device unless you push them to a Git host yourself. They are stored by your browser, on your
-						computer, and are never uploaded to us or anyone else. There is no account, no server
-						that holds your work, and no way for us to read it.
+						Your documents stay on your device. They are
+						stored by your browser, on your computer, and are never uploaded to us or anyone else.
+						There is no account, no server that holds your work, and no way for us to read it.
 					</p>
 					<p>
 						This <em>website</em> does use analytics, so we can see which pages are read and roughly
@@ -173,11 +174,9 @@
 						there is nothing for us to restore. Export a zip if you need a backup.
 					</p>
 					<p>
-						When you push or pull in source control, the request goes to the Git host you
-						configured and, because browsers cannot reach Git servers directly, through a relay
-						proxy. That relay sees the request and any access token in it. The relay address is
-						yours to change or to blank out in the source control settings. We do not operate it,
-						and we do not receive that traffic.
+						When you clone a repository, the request goes to that Git host and, because browsers cannot
+						reach Git servers directly, through a relay proxy. That relay sees the request and any
+						access token in it. We do not operate it, and we do not receive that traffic.
 					</p>
 				</section>
 
@@ -195,16 +194,16 @@
 						>. We may replace this provider later; this page will say so when we do.
 					</p>
 
-					<div id="analytics-choice" class="panel-card scroll-mt-28 p-5">
+					<div id="analytics-choice" class="panel-card scroll-mt-20 p-5">
 						{#if configured === false}
-							<p class="text-body text-muted-foreground">
+							<p class="text-sm text-muted-foreground">
 								Analytics are not configured on this deployment, so nothing is sent from this site.
 							</p>
 						{:else}
 							<label class="flex min-h-11 cursor-pointer items-center justify-between gap-4">
-								<span class="flex flex-col">
-									<span class="text-body-lg font-medium text-foreground">Analytics in this browser</span>
-									<span class="text-body text-muted-foreground" aria-live="polite">
+								<span class="flex flex-col gap-0.5">
+									<span class="text-sm font-medium text-foreground">Analytics in this browser</span>
+									<span class="text-sm text-muted-foreground" aria-live="polite">
 										{allowed ? "On: events below are sent." : "Off: nothing is sent from this browser."}
 									</span>
 								</span>
@@ -217,16 +216,16 @@
 									}}
 								/>
 							</label>
-							<p class="mt-3 text-caption text-muted-foreground">
+							<p class="mt-3 text-xs text-muted-foreground">
 								Saved in this browser only. If site storage is blocked, analytics stay off.
 							</p>
 						{/if}
 					</div>
 
-					<h3 class="pt-2 font-heading text-body-lg font-semibold text-foreground">Events</h3>
-					<div class="panel-card overflow-x-auto">
-						<table class="w-full min-w-136 border-collapse text-left text-body">
-							<thead class="bg-muted">
+					<h3 class="pt-2 text-base font-medium text-foreground">Events</h3>
+					<div class="overflow-x-auto rounded-xl border border-border">
+						<table class="w-full min-w-136 border-collapse text-left text-sm">
+							<thead class="bg-card">
 								<tr>
 									<th scope="col" class="px-4 py-3 font-medium text-foreground">Event</th>
 									<th scope="col" class="px-4 py-3 font-medium text-foreground">Sent when</th>
@@ -235,8 +234,8 @@
 							</thead>
 							<tbody>
 								{#each events as e (e.name)}
-									<tr class="border-t border-border align-top">
-										<td class="px-4 py-3 font-mono text-caption wrap-break-word text-foreground">{e.name}</td>
+									<tr class="border-t border-dashed border-border align-top">
+										<td class="px-4 py-3 font-mono text-xs wrap-break-word text-foreground">{e.name}</td>
 										<td class="px-4 py-3 text-muted-foreground">{e.when}</td>
 										<td class="px-4 py-3 text-muted-foreground">{e.data}</td>
 									</tr>
@@ -244,7 +243,7 @@
 							</tbody>
 						</table>
 					</div>
-					<p class="text-body text-muted-foreground">
+					<p class="text-sm text-muted-foreground">
 						File counts are reported as buckets (1, 2-5, 6-20, 21-100, 100+) rather than exact
 						numbers, so a document's shape cannot be inferred from them.
 					</p>
@@ -252,9 +251,9 @@
 
 				<section class="flex flex-col gap-4" aria-labelledby="never">
 					<h2 id="never" class={h2}>What is never collected</h2>
-					<ul class="flex list-disc flex-col gap-2 pl-5 marker:text-primary">
+					<ul class="flex flex-col">
 						{#each never as item (item)}
-							<li class="pl-1">{item}</li>
+							<li class="border-t border-dashed border-border py-3">{item}</li>
 						{/each}
 					</ul>
 				</section>
@@ -271,14 +270,9 @@
 					<h2 id="verify" class={h2}>Verifying this</h2>
 					<p>
 						GlyphTeX is GPLv3 and the whole client is open source. Everything described here is in
-						<code class="rounded-sm bg-muted px-1 font-mono text-body text-foreground"
-							>apps/web/src/lib/analytics/</code
-						>, and the event list above mirrors the typed union in
-						<code class="rounded-sm bg-muted px-1 font-mono text-body text-foreground">types.ts</code
-						>. The editor reports its own events through
-						<code class="rounded-sm bg-muted px-1 font-mono text-body text-foreground"
-							>packages/ui/src/lib/state/telemetry.ts</code
-						>, which does nothing at all unless this website installs a sink: that is why the
+						<code class={code}>apps/web/src/lib/analytics/</code>, and the event list above mirrors
+						the typed union in <code class={code}>types.ts</code>. The editor reports its own events
+						through <code class={code}>packages/ui/src/lib/state/telemetry.ts</code>, which does nothing at all unless this website installs a sink: that is why the
 						desktop build sends none. If this page and the code ever disagree,
 						<a href="{REPO_URL}/issues" rel="noreferrer noopener" target="_blank" class={link}
 							>open an issue</a
@@ -297,12 +291,12 @@
 			</div>
 
 			<aside class="hidden lg:block">
-				<nav aria-label="On this page" class="sticky top-28 flex flex-col">
-					<p class="pb-2 text-caption font-medium text-muted-foreground">On this page</p>
+				<nav aria-label="On this page" class="group/list sticky top-24 flex flex-col">
+					<p class="pb-3 font-mono text-xs text-muted-foreground">On this page</p>
 					{#each toc as item (item.id)}
 						<a
 							href="#{item.id}"
-							class="flex min-h-10 items-center rounded-md px-2 text-body text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+							class="border-t border-dashed border-border py-2.5 text-sm text-foreground outline-none transition-opacity duration-(--duration-fast) group-hover/list:opacity-50 hover:opacity-100! focus-visible:opacity-100! focus-visible:ring-2 focus-visible:ring-ring"
 						>
 							{item.label}
 						</a>

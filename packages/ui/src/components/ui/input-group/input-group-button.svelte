@@ -18,7 +18,7 @@
 	} = $props();
 </script>
 
-<Button variant="dark"
+<Button
 	bind:ref
 	{type}
 	data-size={size}

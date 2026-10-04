@@ -232,15 +232,15 @@
 <Dialog bind:open={reportOpen}>
 	<DialogContent class="gap-5 p-6 sm:max-w-xl">
 		<DialogHeader>
-			<DialogTitle class="text-body-lg">Request package support</DialogTitle>
-			<DialogDescription class="text-body">
+			<DialogTitle class="text-base">Request package support</DialogTitle>
+			<DialogDescription class="text-md">
 				This is the whole report. Only the class and package declarations were copied from your
 				document: no prose, data or file names.
 			</DialogDescription>
 		</DialogHeader>
 
 		<pre
-			class="border-border bg-muted text-muted-foreground text-caption max-h-72 overflow-auto rounded-xl border p-3 font-mono whitespace-pre-wrap">{reportBody}</pre>
+			class="border-border bg-muted text-muted-foreground text-xs max-h-72 overflow-auto rounded-xl border p-3 font-mono whitespace-pre-wrap">{reportBody}</pre>
 
 		<DialogFooter class="-mx-6 -mb-6 p-6 pt-4">
 			<Button variant="outline" onclick={copyReport}>

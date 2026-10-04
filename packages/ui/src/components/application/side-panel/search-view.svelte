@@ -161,7 +161,7 @@
 		>
 			<IconChevronRight
 				size={15}
-				class="transition-transform duration-200 motion-reduce:transition-none {store.showReplace
+				class="transition-transform duration-(--duration-base) motion-reduce:transition-none {store.showReplace
 					? 'rotate-90'
 					: ''}"
 			/>
@@ -333,7 +333,7 @@
 				>
 					<IconChevronRight
 						size={13}
-						class="shrink-0 transition-transform duration-200 ease-craft motion-reduce:transition-none {open
+						class="shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) motion-reduce:transition-none {open
 							? 'rotate-90'
 							: ''}"
 					/>

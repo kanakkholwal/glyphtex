@@ -204,6 +204,14 @@
 		"./shortcut": {
 			"svelte": "./src/components/ui/shortcut/index.ts",
 			"default": "./src/components/ui/shortcut/index.ts"
+		},
+		"./nav-progress": {
+			"svelte": "./src/components/ui/nav-progress/index.ts",
+			"default": "./src/components/ui/nav-progress/index.ts"
+		},
+		"./table-of-contents": {
+			"svelte": "./src/components/ui/table-of-contents/index.ts",
+			"default": "./src/components/ui/table-of-contents/index.ts"
 		}
 	},
 	"peerDependencies": {
@@ -222,11 +230,8 @@
 		"@codemirror/view": "^6.43.8",
 		"@fontsource-variable/geist": "^5.2.9",
 		"@fontsource-variable/geist-mono": "^5.2.8",
-		"@fontsource-variable/google-sans": "^5.3.1",
-		"@fontsource-variable/inter": "^5.2.8",
+		"@fontsource-variable/geist-pixel": "^5.3.1",
 		"@fontsource-variable/jetbrains-mono": "^5.2.8",
-		"@fontsource-variable/quicksand": "^5.3.0",
-		"@fontsource-variable/source-code-pro": "^5.3.0",
 		"@lezer/highlight": "^1.2.3",
 		"@tabler/icons-svelte": "^3.44.0",
 		"@unified-latex/unified-latex-types": "^1.8.4",
@@ -239,22 +244,25 @@
 		"svelte-sonner": "^1.2.1",
 		"tailwind-merge": "^3.7.0",
 		"tailwind-variants": "^3.3.1",
-		"tw-animate-css": "^1.4.0",
 		"vaul-svelte": "1.0.0-next.7"
 	},
 	"devDependencies": {
 		"@internationalized/date": "^3.12.2",
+		"@sveltejs/kit": "^2.65.0",
 		"@sveltejs/package": "^2.5.8",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/typography": "^0.5.19",
 		"esbuild": "^0.28.1",
 		"shadcn-svelte": "^1.7.0",
 		"svelte": "^5.56.7",
-		"tailwindcss": "^4.2.1"
+		"svelte-check": "^4.6.0",
+		"tailwindcss": "^4.2.1",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.16"
 	},
 	"scripts": {
 		"build": "exit 0",
-		"check": "exit 0",
+		"check": "svelte-check --tsconfig ./tsconfig.json --threshold error",
 		"pretest": "esbuild test/entry.ts --bundle --format=esm --outfile=test/.build/editor.mjs --log-level=error && esbuild src/lib/tex-doc/index.ts --bundle --format=esm --outfile=test/.build/tex-doc.mjs --log-level=error",
 		"test": "node --test test/*.test.mjs",
 		"test:browser": "node ./test/browser/editor-smoke.mjs && node ./test/browser/editor-behaviour.mjs && node ./test/browser/visual-editing.mjs"

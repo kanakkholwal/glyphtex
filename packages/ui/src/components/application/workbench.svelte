@@ -48,7 +48,7 @@
 
 	/** One curve for every panel that opens or closes, so the chrome moves as a set. */
 	const PANEL_EASE =
-		'duration-300 ease-craft motion-reduce:transition-none';
+		'duration-(--duration-slow) ease-(--ease-out) motion-reduce:transition-none';
 </script>
 
 <svelte:window
