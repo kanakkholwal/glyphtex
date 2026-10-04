@@ -112,7 +112,7 @@
 						></div>
 					</div>
 					{#if low}
-						<p class="text-destructive text-caption flex items-start gap-1.5">
+						<p class="text-destructive-strong text-caption flex items-start gap-1.5">
 							<IconAlertTriangle size={14} class="mt-px shrink-0" aria-hidden="true" />
 							<span>
 								<span class="font-medium">Nearly full.</span> Delete a document or some images: browsers
@@ -140,7 +140,7 @@
 				<section class="flex flex-col gap-3">
 					<div class="flex items-start gap-3">
 						{#if status.persisted}
-							<IconShieldCheck size={20} class="text-success mt-0.5 shrink-0" aria-hidden="true" />
+							<IconShieldCheck size={20} class="text-success-strong mt-0.5 shrink-0" aria-hidden="true" />
 						{:else}
 							<IconShieldOff
 								size={20}
@@ -169,7 +169,7 @@
 							class="border-border text-foreground text-caption flex items-start gap-2 rounded-lg border p-3"
 							role="status"
 						>
-							<IconAlertTriangle size={16} class="text-warning mt-px shrink-0" aria-hidden="true" />
+							<IconAlertTriangle size={16} class="text-warning-strong mt-px shrink-0" aria-hidden="true" />
 							<span><span class="font-medium">Not protected yet.</span> {refused}</span>
 						</p>
 					{/if}

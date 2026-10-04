@@ -76,7 +76,7 @@
 		<figcaption class="mt-3 text-center text-body text-muted-foreground">{caption}</figcaption>
 	{/if}
 	{#if failed}
-		<figcaption class="mt-2 text-center text-caption text-destructive">
+		<figcaption class="mt-2 text-center text-caption text-destructive-strong">
 			<span class="font-semibold">Error:</span> the diagram could not be drawn, so its source is shown.
 		</figcaption>
 	{/if}

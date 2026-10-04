@@ -68,7 +68,7 @@
 			{/each}
 		</fieldset>
 
-		<Button class="w-full sm:ml-auto sm:w-auto" onclick={confirm} disabled={!selected}>
+		<Button variant="dark" class="w-full sm:ml-auto sm:w-auto" onclick={confirm} disabled={!selected}>
 			Use this file
 		</Button>
 	</DialogContent>

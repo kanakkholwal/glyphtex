@@ -157,7 +157,7 @@
 		>
 			{#snippet actions()}
 				<Button
-					variant="primary"
+				 variant="default"
 					href={resolve('/workspace')}
 					onclick={() => track('cta_clicked', { target: 'workspace', location: 'engine_hero' })}
 				>
@@ -392,7 +392,7 @@
 			{/snippet}
 			{#snippet actions()}
 				<Button
-					variant="ink"
+				 variant="dark"
 					href={resolve('/workspace')}
 					onclick={() => track('cta_clicked', { target: 'workspace', location: 'engine_footer' })}
 				>

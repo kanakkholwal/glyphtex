@@ -220,8 +220,8 @@
 
 	const CHIP =
 		"flex h-7 min-w-9 items-center justify-center rounded px-2 text-xs transition-colors";
-	const OFF = "text-muted-foreground hover:text-foreground hover:bg-accent/60";
-	const ON = "bg-accent text-foreground";
+	const OFF = "text-muted-foreground hover:text-foreground hover:bg-muted/60";
+	const ON = "bg-muted text-foreground";
 	const FIELD =
 		"border-border text-foreground focus-visible:border-ring w-full rounded-md border bg-transparent px-2 py-1 text-xs outline-none";
 </script>
@@ -261,7 +261,7 @@
 								{#each imageFiles as name (name)}
 									<button
 										type="button"
-										class="text-muted-foreground hover:bg-accent hover:text-foreground block w-full truncate px-3 py-1.5 text-left text-sm"
+										class="text-muted-foreground hover:bg-muted hover:text-foreground block w-full truncate px-3 py-1.5 text-left text-sm"
 										onclick={() => chooseImage(name)}
 									>
 										{name}
@@ -275,7 +275,7 @@
 							{#if ctrl.onAddFiles}
 								<button
 									type="button"
-									class="border-border text-foreground hover:bg-accent flex w-full items-center gap-2 border-t px-3 py-2 text-sm"
+									class="border-border text-foreground hover:bg-muted flex w-full items-center gap-2 border-t px-3 py-2 text-sm"
 									onclick={uploadImage}
 								>
 									<IconUpload size={15} />
@@ -488,7 +488,7 @@
 			label="{isTable ? 'Table' : 'Figure'} caption"
 			placeholder="Describe this {isTable ? 'table' : 'figure'}"
 			attributes={{ 'data-float-caption': '' }}
-			class="text-foreground hover:bg-accent/60 focus-visible:bg-accent/60 relative inline-block min-w-48 rounded-sm text-sm"
+			class="text-foreground hover:bg-muted/60 focus-visible:bg-muted/60 relative inline-block min-w-48 rounded-sm text-sm"
 			oninput={commitCaption}
 			onatom={(el) => onatom?.(el)}
 		/>

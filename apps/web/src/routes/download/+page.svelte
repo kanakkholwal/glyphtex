@@ -2,7 +2,6 @@
 	import { resolve } from "$app/paths";
 	import { track } from "$lib/analytics";
 	import { REPO_SLUG, REPO_URL } from "$lib/landing/nav-data";
-	import { revealOnScroll, staggerDelay } from "$lib/motion";
 	import Seo from "$lib/seo/Seo.svelte";
 	import { BrandPanel, PageHero, RailFrame, RailRow, SplitSection } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
@@ -220,7 +219,7 @@
 			lede="Use the browser workspace for real work. The desktop builds below are old prototypes: unsupported, missing most of the current editor, and kept only for reference."
 		>
 			{#snippet actions()}
-				<Button href={resolve('/workspace')} variant="primary">
+				<Button href={resolve('/workspace')} variant="default">
 					Open the workspace
 					<IconArrowRight />
 				</Button>
@@ -243,7 +242,7 @@
 					<p
 						class="flex w-fit items-start gap-2 rounded-lg border border-warning/40 bg-warning/5 px-3 py-2 text-body text-foreground"
 					>
-						<IconAlertTriangle class="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+						<IconAlertTriangle class="mt-0.5 size-4 shrink-0 text-warning-strong" aria-hidden="true" />
 						<span><span class="font-semibold">Unsupported.</span> Bugs in these builds will not be fixed.</span>
 					</p>
 					<p class="text-body text-muted-foreground" aria-live="polite">
@@ -270,9 +269,9 @@
 			{/snippet}
 
 			<ul class="grid grid-cols-1 gap-3 md:grid-cols-3">
-				{#each platforms as p, i (p.id)}
+				{#each platforms as p (p.id)}
 					{@const items = assets[p.id]}
-					<li class="reveal panel-card flex flex-col p-5" style={staggerDelay(i)} {@attach revealOnScroll}>
+					<li class="panel-card flex flex-col p-5">
 						<div class="flex items-start justify-between gap-3">
 							<span
 								class="grid size-10 place-items-center rounded-lg border border-border bg-background text-foreground"
@@ -376,7 +375,7 @@
 											>
 											<Button variant="ghost" onclick={copyCmd} aria-label="Copy command">
 												{#if copied}
-													<IconCheck class="text-success" aria-hidden="true" /> Copied
+													<IconCheck class="text-success-strong" aria-hidden="true" /> Copied
 												{:else}
 													<IconCopy aria-hidden="true" /> Copy
 												{/if}
@@ -441,7 +440,7 @@
 			body="Development happens in the browser workspace first. Watch the repository to hear when the desktop app is picked back up."
 		>
 			{#snippet actions()}
-				<Button href={resolve('/workspace')} variant="ink">Open the workspace</Button>
+				<Button href={resolve('/workspace')} variant="dark">Open the workspace</Button>
 				<Button href={REPO_URL} target="_blank" rel="noopener noreferrer" variant="light">
 					<IconBrandGithub />
 					Watch on GitHub

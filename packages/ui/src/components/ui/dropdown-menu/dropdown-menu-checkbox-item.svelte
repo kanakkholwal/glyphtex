@@ -1,48 +1,44 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import { IconCheck, IconMinus } from "@tabler/icons-svelte";
-	import { cn, type WithoutChildrenOrChild } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
-	import { DROPDOWN_MENU_ROW, dropdownMenuItemSizeVariants, getDropdownMenuSize } from "./context";
+	import { cn } from "../../../lib/cn.js";
+	import { menu } from "../../../lib/menu.js";
 
 	let {
-		ref = $bindable(null),
+		class: classProp,
 		checked = $bindable(false),
-		indeterminate = $bindable(false),
-		class: className,
-		children: childrenProp,
-		...restProps
-	}: WithoutChildrenOrChild<DropdownMenuPrimitive.CheckboxItemProps> & {
+		children: label,
+		closeOnSelect = false,
+		...rest
+	}: Omit<DropdownMenuPrimitive.CheckboxItemProps, "children"> & {
 		children?: Snippet;
 	} = $props();
 
-	const contentSize = getDropdownMenuSize();
+	const styles = menu();
 </script>
 
 <DropdownMenuPrimitive.CheckboxItem
-	bind:ref
 	bind:checked
-	bind:indeterminate
+	{closeOnSelect}
+	{...rest}
 	data-slot="dropdown-menu-checkbox-item"
-	class={cn(
-		DROPDOWN_MENU_ROW,
-		dropdownMenuItemSizeVariants({ size: contentSize() }),
-		'pr-8 data-inset:pl-8',
-		className
-	)}
-	{...restProps}
+	data-inset=""
+	class={cn(styles.item(), classProp)}
 >
-	{#snippet children({ checked, indeterminate })}
-		<span
-			class="absolute right-2 flex items-center justify-center pointer-events-none"
-			data-slot="dropdown-menu-checkbox-item-indicator"
-		>
-			{#if indeterminate}
-				<IconMinus class="text-primary" />
-			{:else if checked}
-				<IconCheck class="text-primary" />
-			{/if}
+	{#snippet children({ checked: on })}
+		<span class={styles.indicator()}>
+			<!-- Always mounted so the tick can draw in and back out. -->
+			<svg viewBox="0 0 16 16" fill="none" aria-hidden="true" data-on={on} class={styles.check()}>
+				<path
+					d="m3.5 8.5 3 3 6-7"
+					pathLength="1"
+					stroke="currentColor"
+					stroke-width="1.6"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				/>
+			</svg>
 		</span>
-		{@render childrenProp?.()}
+		{@render label?.()}
 	{/snippet}
 </DropdownMenuPrimitive.CheckboxItem>

@@ -271,7 +271,7 @@
 
 				{#if files.canCloseTab}
 					<button
-						class="glyphtex-tab-close group/close hover:bg-accent ease-craft grid size-6 shrink-0 place-items-center rounded-[5px] transition-[background-color,opacity,transform] duration-150 motion-reduce:transition-none {dirty ||
+						class="glyphtex-tab-close group/close hover:bg-muted ease-craft grid size-6 shrink-0 place-items-center rounded-[5px] transition-[background-color,opacity,transform] duration-150 motion-reduce:transition-none {dirty ||
 						active
 							? ''
 							: 'opacity-0 group-hover/tab:opacity-100 focus-visible:opacity-100'}"
@@ -385,7 +385,7 @@
 			<button
 				type="button"
 				role="menuitem"
-				class="hover:bg-accent focus-visible:bg-accent flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm outline-none {file.id ===
+				class="hover:bg-muted focus-visible:bg-muted flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm outline-none {file.id ===
 				files.activeId
 					? 'text-foreground font-medium'
 					: 'text-muted-foreground'}"

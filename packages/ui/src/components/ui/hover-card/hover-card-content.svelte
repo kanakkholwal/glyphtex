@@ -1,38 +1,26 @@
 <script lang="ts">
-	import {
-		CRAFT_OVERLAY_ANIMATION,
-		CRAFT_OVERLAY_SURFACE,
-		cn,
-		type WithoutChildrenOrChild
-	} from "@glyphtex/ui/utils";
 	import { LinkPreview as HoverCardPrimitive } from "bits-ui";
-	import type { ComponentProps } from "svelte";
-	import HoverCardPortal from "./hover-card-portal.svelte";
+	import { ANCHORED } from "../../../lib/anchor.js";
+	import { cn } from "../../../lib/cn.js";
 
 	let {
-		ref = $bindable(null),
-		class: className,
+		class: classProp,
 		align = "center",
 		sideOffset = 4,
-		portalProps,
-		...restProps
-	}: HoverCardPrimitive.ContentProps & {
-		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof HoverCardPortal>>;
-	} = $props();
+		...rest
+	}: HoverCardPrimitive.ContentProps = $props();
 </script>
 
-<HoverCardPortal {...portalProps}>
+<HoverCardPrimitive.Portal>
 	<HoverCardPrimitive.Content
-		bind:ref
-		data-slot="hover-card-content"
 		{align}
 		{sideOffset}
+		{...rest}
+		data-slot="hover-card-content"
 		class={cn(
-			CRAFT_OVERLAY_ANIMATION,
-			CRAFT_OVERLAY_SURFACE,
-			'z-50 w-64 origin-(--bits-floating-transform-origin) p-4 text-sm outline-hidden',
-			className
+			ANCHORED,
+			"static z-50 w-64 rounded-xl bg-popover p-3 text-sm shadow-(--overlay-shadow)",
+			classProp,
 		)}
-		{...restProps}
 	/>
-</HoverCardPortal>
+</HoverCardPrimitive.Portal>

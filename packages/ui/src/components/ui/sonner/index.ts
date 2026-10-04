@@ -1,2 +1,3 @@
+// Kept as the import path for existing callers; the toaster itself is baby-ui's.
 export { toast } from "svelte-sonner";
-export { default as Toaster } from "./sonner.svelte";
+export { Toaster } from "../toast";

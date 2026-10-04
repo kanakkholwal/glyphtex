@@ -62,7 +62,7 @@
 
 <CommandDialog
 	bind:open
-	title="Go to file or run a command"
+	label="Go to file or run a command"
 	description="Search files by name, or any command by what it does"
 	class="sm:max-w-[34rem]"
 >

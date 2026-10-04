@@ -5,8 +5,6 @@
 		DropdownMenuCheckboxItem,
 		DropdownMenuContent,
 		DropdownMenuItem,
-		DropdownMenuRadioGroup,
-		DropdownMenuRadioItem,
 		DropdownMenuSeparator,
 		DropdownMenuSub,
 		DropdownMenuSubContent,
@@ -89,7 +87,7 @@
 				{#each fonts as font (font)}
 					{@const active = settings.docFont === font}
 					<button
-						class="{tile} {active ? 'bg-accent' : 'hover:bg-accent/60'}"
+						class="{tile} {active ? 'bg-muted' : 'hover:bg-muted/60'}"
 						role="radio"
 						aria-checked={active}
 						onclick={() => (settings.docFont = font)}
@@ -123,7 +121,7 @@
 					{@const active = layout.viewMode === item.value}
 					{@const Icon = item.icon}
 					<button
-						class="{tile} {active ? 'bg-accent' : 'hover:bg-accent/60'}"
+						class="{tile} {active ? 'bg-muted' : 'hover:bg-muted/60'}"
 						role="radio"
 						aria-checked={active}
 						onclick={() => (layout.viewMode = item.value)}
@@ -164,14 +162,15 @@
 				<IconDeviceFloppy class="text-muted-foreground" /> Save
 			</DropdownMenuSubTrigger>
 			<DropdownMenuSubContent class="w-44">
-				<DropdownMenuRadioGroup
-					value={settings.autoSave}
-					onValueChange={(v) => (settings.autoSave = v as AutoSaveMode)}
-				>
-					{#each autoSaveModes as mode (mode)}
-						<DropdownMenuRadioItem value={mode}>{AUTO_SAVE_LABELS[mode]}</DropdownMenuRadioItem>
-					{/each}
-				</DropdownMenuRadioGroup>
+				{#each autoSaveModes as mode (mode)}
+					<DropdownMenuCheckboxItem
+						checked={settings.autoSave === mode}
+						onCheckedChange={() => (settings.autoSave = mode)}
+						closeOnSelect
+					>
+						{AUTO_SAVE_LABELS[mode]}
+					</DropdownMenuCheckboxItem>
+				{/each}
 			</DropdownMenuSubContent>
 		</DropdownMenuSub>
 
@@ -194,14 +193,15 @@
 				<AppearanceIcon class="text-muted-foreground" /> Appearance
 			</DropdownMenuSubTrigger>
 			<DropdownMenuSubContent class="w-44">
-				<DropdownMenuRadioGroup
-					value={settings.appearance}
-					onValueChange={(v) => (settings.appearance = v as Appearance)}
-				>
-					{#each appearances as option (option.value)}
-						<DropdownMenuRadioItem value={option.value}>{option.label}</DropdownMenuRadioItem>
-					{/each}
-				</DropdownMenuRadioGroup>
+				{#each appearances as option (option.value)}
+					<DropdownMenuCheckboxItem
+						checked={settings.appearance === option.value}
+						onCheckedChange={() => (settings.appearance = option.value)}
+						closeOnSelect
+					>
+						{option.label}
+					</DropdownMenuCheckboxItem>
+				{/each}
 			</DropdownMenuSubContent>
 		</DropdownMenuSub>
 	</DropdownMenuContent>

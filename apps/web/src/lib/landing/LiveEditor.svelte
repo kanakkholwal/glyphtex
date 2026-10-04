@@ -169,7 +169,7 @@
 		<p class="text-body text-muted-foreground" aria-live="polite">
 			{dirty ? 'Edited, not saved' : 'Edits stay in this tab'}
 		</p>
-		<Button variant="default" disabled={opening} onclick={openInWorkspace}>
+		<Button variant="dark" disabled={opening} onclick={openInWorkspace}>
 			{opening ? 'Opening…' : 'Open this in the workspace'}
 			<IconArrowRight aria-hidden="true" />
 		</Button>

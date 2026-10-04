@@ -73,7 +73,7 @@
 				<IconTemplate class="size-10" stroke-width={1.5} aria-hidden="true" />
 			{/snippet}
 			{#snippet actions()}
-				<Button href={resolve("/workspace")} variant="ink">Open the workspace</Button>
+				<Button href={resolve("/workspace")} variant="dark">Open the workspace</Button>
 				<Button
 					href="{REPO_URL}/blob/main/packages/ui/src/lib/project-templates/ATTRIBUTION.md"
 					target="_blank"

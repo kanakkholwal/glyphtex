@@ -163,7 +163,7 @@
 	</div>
 
 	{#if error}
-		<p role="alert" class="text-body text-destructive mt-3 flex items-start gap-2">
+		<p role="alert" class="text-body text-destructive-strong mt-3 flex items-start gap-2">
 			<IconAlertTriangle class="mt-0.5 size-4 shrink-0" stroke-width={1.75} aria-hidden="true" />
 			<span><span class="font-medium">Import failed.</span> {error}</span>
 		</p>

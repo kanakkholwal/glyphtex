@@ -1,34 +1,38 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import { IconChevronRight } from "@tabler/icons-svelte";
-	import { cn } from "@glyphtex/ui/utils";
-	import { DROPDOWN_MENU_ROW, dropdownMenuItemSizeVariants, getDropdownMenuSize } from "./context";
+	import { cn } from "../../../lib/cn.js";
+	import { menu } from "../../../lib/menu.js";
 
 	let {
-		ref = $bindable(null),
-		class: className,
-		inset,
+		class: classProp,
+		inset = false,
 		children,
-		...restProps
-	}: DropdownMenuPrimitive.SubTriggerProps & {
-		inset?: boolean;
-	} = $props();
-
-	const contentSize = getDropdownMenuSize();
+		...rest
+	}: DropdownMenuPrimitive.SubTriggerProps & { inset?: boolean } = $props();
 </script>
 
 <DropdownMenuPrimitive.SubTrigger
-	bind:ref
+	{...rest}
 	data-slot="dropdown-menu-sub-trigger"
-	data-inset={inset}
+	data-inset={inset || undefined}
 	class={cn(
-		DROPDOWN_MENU_ROW,
-		dropdownMenuItemSizeVariants({ size: contentSize() }),
-		'data-[state=open]:bg-accent data-[state=open]:text-accent-foreground data-inset:pl-8',
-		className
+		menu().item(),
+		classProp,
 	)}
-	{...restProps}
 >
-	{@render children?.()}
-	<IconChevronRight class="ml-auto" />
+	<span class="min-w-0 flex-1 truncate text-left">{@render children?.()}</span>
+	<svg
+		viewBox="0 0 16 16"
+		fill="none"
+		aria-hidden="true"
+		class="ml-2 size-3.5 shrink-0 text-muted-foreground"
+	>
+		<path
+			d="m6 3.5 4.5 4.5L6 12.5"
+			stroke="currentColor"
+			stroke-width="1.5"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/>
+	</svg>
 </DropdownMenuPrimitive.SubTrigger>

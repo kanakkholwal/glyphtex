@@ -107,7 +107,7 @@
 				<div
 					class="border-destructive/30 bg-destructive/5 mx-auto max-w-prose rounded-lg border p-4"
 				>
-					<p class="text-destructive text-sm font-medium">Could not display the PDF.</p>
+					<p class="text-destructive-strong text-sm font-medium">Could not display the PDF.</p>
 					<pre
 						class="text-muted-foreground mt-2 overflow-auto font-mono text-xs whitespace-pre-wrap">{ctrl.errorMsg}</pre>
 				</div>

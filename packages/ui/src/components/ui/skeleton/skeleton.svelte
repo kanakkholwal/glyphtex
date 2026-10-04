@@ -1,18 +1,28 @@
 <script lang="ts">
-	import { cn, type WithElementRef, type WithoutChildren } from "@glyphtex/ui/utils";
 	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type SkeletonShape, skeleton } from "./variants";
 
 	let {
-		ref = $bindable(null),
-		class: className,
-		...restProps
-	}: WithoutChildren<WithElementRef<HTMLAttributes<HTMLDivElement>>> = $props();
+		width,
+		height,
+		shape = "line",
+		class: classProp,
+		...rest
+	}: HTMLAttributes<HTMLDivElement> & {
+		/** Overrides the class width; omit to size with classes. */
+		width?: string;
+		height?: string;
+		shape?: SkeletonShape;
+		class?: string;
+	} = $props();
 </script>
 
 <div
-	bind:this={ref}
-	data-slot="skeleton"
 	aria-hidden="true"
-	class={cn('bg-muted rounded-md animate-pulse', className)}
-	{...restProps}
+	data-slot="skeleton"
+	{...rest}
+	style:width
+	style:height
+	class={cn(skeleton({ shape }), classProp)}
 ></div>

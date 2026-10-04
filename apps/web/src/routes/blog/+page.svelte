@@ -29,7 +29,7 @@
 					title: post.title,
 					description: post.description,
 					url: post.url,
-					image: `/og/blog/${post.slug}`,
+					image: post.hero,
 					published: post.date,
 					modified: post.updated,
 					tags: post.tags
@@ -109,7 +109,7 @@
 				<IconNews class="size-10" stroke-width={1.5} aria-hidden="true" />
 			{/snippet}
 			{#snippet actions()}
-				<Button href={resolve('/workspace')} variant="ink">Open the workspace</Button>
+				<Button href={resolve('/workspace')} variant="dark">Open the workspace</Button>
 				<Button href={resolve('/docs')} variant="light">Read the docs</Button>
 			{/snippet}
 		</BrandPanel>

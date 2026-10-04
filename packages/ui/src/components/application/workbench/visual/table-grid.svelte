@@ -84,9 +84,9 @@
 	}
 
 	const HANDLE =
-		"text-muted-foreground hover:bg-accent hover:text-foreground flex items-center justify-center rounded-sm opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100";
+		"text-muted-foreground hover:bg-muted hover:text-foreground flex items-center justify-center rounded-sm opacity-0 transition-opacity group-hover/table:opacity-100 group-focus-within/table:opacity-100";
 	const ITEM =
-		"text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm";
+		"text-muted-foreground hover:bg-muted hover:text-foreground flex h-7 w-full items-center gap-2 rounded px-2 text-left text-sm";
 </script>
 
 <div class="group/table flex overflow-x-auto px-3 py-2 {PLACE[align]}">
@@ -149,7 +149,7 @@
 							<BlockEditor
 								runs={runsOf(cell.text)}
 								tag="span"
-								class="focus-visible:bg-accent/60 block rounded-sm"
+								class="focus-visible:bg-muted/60 block rounded-sm"
 								label="Row {r + 1}, column {c + 1}"
 								oninput={(runs) => commitCell(r, c, runs)}
 								onatom={(el) => onatom?.(el)}
@@ -229,7 +229,7 @@
 			<button
 				type="button"
 				role="menuitem"
-				class="{ITEM} hover:text-destructive"
+				class="{ITEM} hover:text-destructive-strong"
 				disabled={grid.columns.length < 2}
 				onclick={() => run(tex.deleteTableColumn(grid, m.index))}
 			>
@@ -258,7 +258,7 @@
 			<button
 				type="button"
 				role="menuitem"
-				class="{ITEM} hover:text-destructive"
+				class="{ITEM} hover:text-destructive-strong"
 				disabled={grid.rows.length < 2}
 				onclick={() => run(tex.deleteTableRow(grid, m.index))}
 			>

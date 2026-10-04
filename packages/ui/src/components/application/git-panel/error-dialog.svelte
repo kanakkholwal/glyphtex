@@ -20,15 +20,14 @@
 </script>
 
 <Dialog
-	open={!!store.gitError}
-	onOpenChange={(o) => {
+	bind:open={() => !!store.gitError, (o) => {
 		if (!o) store.gitError = undefined;
 	}}
 >
 	<DialogContent class="sm:max-w-md">
 		<DialogHeader>
 			<DialogTitle class="flex items-center gap-2">
-				<span class="text-destructive shrink-0"><IconAlertTriangle size={18} /></span>
+				<span class="text-destructive-strong shrink-0"><IconAlertTriangle size={18} /></span>
 				{store.gitError?.title}
 			</DialogTitle>
 			<DialogDescription class="leading-relaxed">
@@ -57,7 +56,7 @@
 		{/if}
 
 		<DialogFooter>
-			<Button size="sm" onclick={() => (store.gitError = undefined)}>Dismiss</Button>
+			<Button variant="dark" size="sm" onclick={() => (store.gitError = undefined)}>Dismiss</Button>
 		</DialogFooter>
 	</DialogContent>
 </Dialog>

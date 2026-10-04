@@ -103,7 +103,7 @@
 		>
 			{#snippet aside()}
 				<div class="flex flex-wrap gap-2">
-					<Button
+					<Button variant="dark"
 						href={institutionMailto}
 						onclick={() => track('cta_clicked', { target: 'institution', location: 'faq' })}
 					>
@@ -139,7 +139,7 @@
 			{#snippet actions()}
 				<Button
 					href={resolve('/workspace')}
-					variant="ink"
+				 variant="dark"
 					onclick={() => track('cta_clicked', { target: 'workspace', location: 'final_cta' })}
 				>
 					Open the workspace

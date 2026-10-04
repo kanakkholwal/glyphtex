@@ -134,7 +134,7 @@
 		<div class="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
 			<div
 				class="grid size-14 place-items-center rounded-2xl {fallback === 'unreadable'
-					? 'bg-destructive/10 text-destructive'
+					? 'bg-destructive/10 text-destructive-strong'
 					: 'bg-muted text-muted-foreground'}"
 			>
 				{#if fallback === 'unreadable'}

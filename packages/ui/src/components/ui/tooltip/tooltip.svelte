@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { Tooltip as TooltipPrimitive } from "bits-ui";
-	import TooltipProvider from "./tooltip-provider.svelte";
 
-	let { open = $bindable(false), ...restProps }: TooltipPrimitive.RootProps = $props();
+	let {
+		open = $bindable(false),
+		delay = 400,
+		...rest
+	}: TooltipPrimitive.RootProps & { delay?: number } = $props();
 </script>
 
-<TooltipProvider>
-	<TooltipPrimitive.Root bind:open {...restProps} />
-</TooltipProvider>
+<TooltipPrimitive.Root bind:open delayDuration={delay} {...rest} />

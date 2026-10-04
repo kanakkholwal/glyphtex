@@ -57,7 +57,7 @@
 
 		<div class="mt-8 flex flex-wrap items-center gap-2 sm:gap-3">
 			{#if notFound}
-				<Button href={resolve('/')} variant="primary">
+				<Button href={resolve('/')} variant="default">
 					<IconHome />
 					Home
 				</Button>
@@ -66,7 +66,7 @@
 					Go back
 				</Button>
 			{:else}
-				<Button variant="primary" onclick={() => location.reload()}>
+				<Button variant="default" onclick={() => location.reload()}>
 					<IconRefresh />
 					Try again
 				</Button>

@@ -1,19 +1,28 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
 	import { Collapsible as CollapsiblePrimitive } from "bits-ui";
+	import type { Snippet } from "svelte";
+	import { cn } from "../../../lib/cn.js";
 
 	let {
-		ref = $bindable(null),
+		children,
 		open = $bindable(false),
-		class: className,
-		...restProps
-	}: CollapsiblePrimitive.RootProps = $props();
+		disabled = false,
+		class: classProp,
+		...rest
+	}: {
+		children?: Snippet;
+		open?: boolean;
+		disabled?: boolean;
+		class?: string;
+	} = $props();
 </script>
 
 <CollapsiblePrimitive.Root
-	bind:ref
+	{...rest}
 	bind:open
+	{disabled}
 	data-slot="collapsible"
-	class={cn(className)}
-	{...restProps}
-/>
+	class={cn("w-full", classProp)}
+>
+	{@render children?.()}
+</CollapsiblePrimitive.Root>

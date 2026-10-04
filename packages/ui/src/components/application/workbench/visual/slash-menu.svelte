@@ -213,7 +213,7 @@
 				role="option"
 				aria-selected={i === active}
 				class="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm {i === active
-					? 'bg-accent text-foreground'
+					? 'bg-muted text-foreground'
 					: 'text-muted-foreground'}"
 				onpointerenter={() => (cursor = i)}
 				onpointerdown={(e) => e.preventDefault()}

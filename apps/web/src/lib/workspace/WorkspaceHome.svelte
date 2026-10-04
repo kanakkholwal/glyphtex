@@ -308,7 +308,7 @@
 	>
 		<div class="panel-card flex w-full max-w-md flex-col items-center gap-4 p-8 text-center">
 			<span
-				class="border-border bg-background text-destructive grid size-12 place-items-center rounded-xl border"
+				class="border-border bg-background text-destructive-strong grid size-12 place-items-center rounded-xl border"
 				aria-hidden="true"
 			>
 				<IconDatabaseOff size={24} />
@@ -320,7 +320,7 @@
 					or reopen GlyphTeX in a normal window.
 				</p>
 			</div>
-			<Button class="w-full sm:w-auto" onclick={() => location.reload()}>Try again</Button>
+			<Button variant="dark" class="w-full sm:w-auto" onclick={() => location.reload()}>Try again</Button>
 			<details class="text-caption text-muted-foreground w-full text-left">
 				<summary class="focus-visible:ring-ring rounded-sm text-center outline-none focus-visible:ring-2">
 					Details

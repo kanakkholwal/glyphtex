@@ -45,7 +45,7 @@
 					href="{REPO_URL}/issues/new/choose"
 					target="_blank"
 					rel="noopener noreferrer"
-					variant="ink"
+				 variant="dark"
 					onclick={() => track('outbound_clicked', { destination: 'github_issues', location: 'errors' })}
 				>
 					Ask on GitHub

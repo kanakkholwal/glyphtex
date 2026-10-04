@@ -3,8 +3,7 @@
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
-		DropdownMenuGroup,
-		DropdownMenuGroupHeading,
+		DropdownMenuLabel,
 		DropdownMenuItem,
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
@@ -55,21 +54,21 @@
 			{/snippet}
 		</DropdownMenuTrigger>
 		<DropdownMenuContent align="start" class="w-56">
-			<DropdownMenuGroup>
-				<DropdownMenuGroupHeading class="text-muted-foreground text-xs font-medium">
+			<div role="group">
+				<DropdownMenuLabel>
 					{head.unborn ? 'No commits yet' : (head.upstream ?? 'No upstream')}
-				</DropdownMenuGroupHeading>
+				</DropdownMenuLabel>
 				<DropdownMenuItem disabled>
 					<IconGitBranch class="text-muted-foreground" />
 					<span class="truncate font-mono text-xs">{head.branch ?? 'HEAD'}</span>
 				</DropdownMenuItem>
 				{#if head.merging}
 					<DropdownMenuItem disabled>
-						<IconGitMerge class="text-warning" />
+						<IconGitMerge class="text-warning-strong" />
 						<span class="text-xs">Merge in progress</span>
 					</DropdownMenuItem>
 				{/if}
-			</DropdownMenuGroup>
+			</div>
 			<DropdownMenuSeparator />
 			<DropdownMenuItem onSelect={() => onopenpanel?.()}>Open Source Control</DropdownMenuItem>
 		</DropdownMenuContent>

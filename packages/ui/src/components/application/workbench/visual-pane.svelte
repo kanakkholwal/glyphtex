@@ -943,8 +943,8 @@
 				type="button"
 				aria-pressed={action.active}
 				class="flex h-7 items-center rounded px-2 text-xs transition-colors {action.active
-					? 'bg-accent text-foreground'
-					: 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'}"
+					? 'bg-muted text-foreground'
+					: 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'}"
 				onclick={action.run}
 			>
 				{action.label}
@@ -1178,7 +1178,7 @@
 			onopensource={() => openInSource(block)}
 		/>
 	{:else}
-		<div class="border-border bg-accent/40 mt-4 rounded-lg border border-dashed px-3 py-2">
+		<div class="border-border bg-muted/40 mt-4 rounded-lg border border-dashed px-3 py-2">
 			<div class="text-muted-foreground flex items-center gap-2 text-xs">
 				<IconAlertTriangle size={13} class="shrink-0" />
 				<span class="font-medium">{block.label}</span>
@@ -1308,7 +1308,7 @@
 								tabindex="-1"
 								aria-label="Insert block below"
 								title="Insert block below"
-								class="text-muted-foreground hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-['']"
+								class="text-muted-foreground hover:text-foreground hover:bg-muted relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-['']"
 								onclick={(e) => insertAfterBlock(i, e.currentTarget)}
 							>
 								<IconPlus size={15} />
@@ -1320,9 +1320,9 @@
 								title="Block actions"
 								aria-haspopup="menu"
 								aria-expanded={blockMenu?.index === i}
-								class="hover:text-foreground hover:bg-accent relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-[''] {blockMenu?.index ===
+								class="hover:text-foreground hover:bg-muted relative flex size-6 items-center justify-center rounded after:absolute after:-inset-2 after:content-[''] {blockMenu?.index ===
 								i
-									? 'bg-accent text-foreground'
+									? 'bg-muted text-foreground'
 									: 'text-muted-foreground'}"
 								onclick={(e) =>
 									(blockMenu = { rect: e.currentTarget.getBoundingClientRect(), index: i })}

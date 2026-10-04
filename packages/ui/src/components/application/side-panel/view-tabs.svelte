@@ -37,8 +37,8 @@
 					<button
 						{...props}
 						class="ease-craft focus-visible:ring-ring flex h-7 cursor-pointer items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-inset transition-[background-color,color,padding,column-gap] duration-200 motion-reduce:transition-none {on
-							? 'bg-accent text-foreground gap-1.5 px-2 font-medium'
-							: 'text-muted-foreground hover:bg-accent hover:text-foreground gap-0 px-1.5'}"
+							? 'bg-muted text-foreground gap-1.5 px-2 font-medium'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground gap-0 px-1.5'}"
 						aria-pressed={on}
 						aria-label={view.label}
 						onclick={() => onselect?.(view.id)}

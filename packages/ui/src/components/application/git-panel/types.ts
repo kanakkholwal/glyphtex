@@ -122,12 +122,12 @@ export const STATUS_LABEL: Record<string, string> = {
 	conflicted: "!"
 };
 export const STATUS_CLASS: Record<string, string> = {
-	modified: "text-warning",
-	deleted: "text-destructive",
-	untracked: "text-success",
-	added: "text-success",
+	modified: "text-warning-strong",
+	deleted: "text-destructive-strong",
+	untracked: "text-success-strong",
+	added: "text-success-strong",
 	renamed: "text-primary",
-	conflicted: "text-destructive"
+	conflicted: "text-destructive-strong"
 };
 
 export const INPUT_CLS =

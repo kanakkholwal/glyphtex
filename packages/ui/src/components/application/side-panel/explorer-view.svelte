@@ -77,7 +77,7 @@
 				Create a new file or upload to get started.
 			</p>
 		</div>
-		<Button size="sm" onclick={() => store.createFileHere()}>
+		<Button variant="dark" size="sm" onclick={() => store.createFileHere()}>
 			<IconPlus /> New file
 		</Button>
 	</div>

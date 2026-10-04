@@ -4,14 +4,6 @@
 	import { articleLd, breadcrumbLd, faqLd, serialise } from "$lib/seo/jsonld";
 	import Seo from "$lib/seo/Seo.svelte";
 	import { RailFrame, RailRow } from "$lib/site";
-	import {
-		Breadcrumb,
-		BreadcrumbItem,
-		BreadcrumbLink,
-		BreadcrumbList,
-		BreadcrumbPage,
-		BreadcrumbSeparator
-	} from "@glyphtex/ui/breadcrumb";
 	import { IconChevronDown } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
 
@@ -88,21 +80,6 @@
 				</details>
 
 				<header class="flex max-w-3xl flex-col">
-					<Breadcrumb class="mb-3">
-						<BreadcrumbList>
-							<BreadcrumbItem>
-								<BreadcrumbLink href="/">Home</BreadcrumbLink>
-							</BreadcrumbItem>
-							<BreadcrumbSeparator />
-							<BreadcrumbItem>
-								<BreadcrumbLink href="/docs">Docs</BreadcrumbLink>
-							</BreadcrumbItem>
-							<BreadcrumbSeparator />
-							<BreadcrumbItem>
-								<BreadcrumbPage class="line-clamp-1">{data.meta.title}</BreadcrumbPage>
-							</BreadcrumbItem>
-						</BreadcrumbList>
-					</Breadcrumb>
 					<p class="text-caption font-medium text-primary">{data.meta.category}</p>
 					<h1 class="mt-2 text-balance text-heading-lg font-medium text-foreground md:text-display">
 						{data.meta.title}

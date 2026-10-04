@@ -25,7 +25,7 @@
 		<p class="text-body-lg font-medium text-foreground">{title}</p>
 		<p class="mt-1 max-w-md text-pretty text-body text-muted-foreground">{body}</p>
 	</div>
-	<Button
+	<Button variant="dark"
 		href={target}
 		class="shrink-0"
 		onclick={() => track('cta_clicked', { target: 'workspace', location: 'content', from })}

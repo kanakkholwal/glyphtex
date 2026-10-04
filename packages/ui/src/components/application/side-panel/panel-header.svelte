@@ -147,7 +147,7 @@
 					{#if hasDelete}
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
-							variant="destructive"
+							destructive
 							disabled={!store.effectiveSel}
 							onSelect={() => store.deleteSelected()}
 						>

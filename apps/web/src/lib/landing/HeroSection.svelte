@@ -3,7 +3,6 @@
 	import { track } from "$lib/analytics";
 	import LocalCompile from "$lib/illustrations/LocalCompile.svelte";
 	import { REPO_URL } from "$lib/landing/nav-data";
-	import { revealOnScroll, staggerDelay } from "$lib/motion";
 	import { CountUp, TiltedChip } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
 	import { Skeleton } from "@glyphtex/ui/skeleton";
@@ -32,41 +31,33 @@
 
 <div class="grid min-h-[60vh] grid-cols-1 gap-10 lg:min-h-[calc(100svh-14rem)] lg:grid-cols-2 lg:gap-6">
 	<div class="flex h-full flex-col justify-center py-8 lg:py-0">
-		<div class="reveal" {@attach revealOnScroll}>
-			<TiltedChip>
-				<span class="text-primary">Free</span> and open source, GPLv3
-			</TiltedChip>
-		</div>
+		<TiltedChip>
+			<span class="text-primary">Free</span> and open source, GPLv3
+		</TiltedChip>
 
 		<h1
-			class="reveal mt-4 text-heading-sm font-medium text-foreground sm:text-heading-lg md:text-display lg:text-display-xl"
-			style={staggerDelay(1)}
-			{@attach revealOnScroll}
+			class="mt-4 text-heading-sm font-medium text-foreground sm:text-heading-lg md:text-display lg:text-display-xl"
 		>
 			Write <span class="text-primary">LaTeX</span>
 			<br />
 			<span class="text-primary">on your machine</span>
 		</h1>
 
-		<p
-			class="reveal mt-4 max-w-lg text-pretty text-body text-muted-foreground md:text-body-lg"
-			style={staggerDelay(2)}
-			{@attach revealOnScroll}
-		>
+		<p class="mt-4 max-w-lg text-pretty text-body text-muted-foreground md:text-body-lg">
 			A LaTeX editor that compiles in your browser tab. Your projects stay on your device, keep
 			working offline, and carry their full history in Git. No account.
 		</p>
 
-		<div class="reveal mt-8 flex flex-wrap gap-2 sm:gap-4" style={staggerDelay(3)} {@attach revealOnScroll}>
+		<div class="mt-8 flex flex-wrap gap-2 sm:gap-4">
 			<Button
 				href={resolve('/workspace')}
-				variant="primary"
+			 variant="default"
 				onclick={() => track('cta_clicked', { target: 'workspace', location: 'hero' })}
 			>
 				Open the workspace
 				<IconArrowRight />
 			</Button>
-			<Button
+			<Button variant="dark"
 				href={REPO_URL}
 				target="_blank"
 				rel="noopener noreferrer"
@@ -78,9 +69,7 @@
 		</div>
 
 		<dl
-			class="reveal mt-10 grid max-w-xl grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 sm:grid-cols-4"
-			style={staggerDelay(4)}
-			{@attach revealOnScroll}
+			class="mt-10 grid max-w-xl grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 sm:grid-cols-4"
 		>
 			{#await stars}
 				<div class="flex flex-col gap-0.5">
@@ -98,11 +87,7 @@
 		</dl>
 	</div>
 
-	<div
-		class="reveal flex min-h-0 items-center justify-center pb-8 lg:py-12"
-		style={staggerDelay(1)}
-		{@attach revealOnScroll}
-	>
+	<div class="flex min-h-0 items-center justify-center pb-8 lg:py-12">
 		<LocalCompile class="max-h-[min(34rem,calc(100svh-14rem))] max-w-xl" />
 	</div>
 </div>

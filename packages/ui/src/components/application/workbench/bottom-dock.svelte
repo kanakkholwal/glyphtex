@@ -68,9 +68,9 @@
 		{#if problem.severity === 'info'}
 			<IconInfoCircle size={14} class="text-muted-foreground" aria-hidden="true" />
 		{:else if problem.severity === 'error'}
-			<IconCircleXFilled size={14} class="text-destructive" aria-hidden="true" />
+			<IconCircleXFilled size={14} class="text-destructive-strong" aria-hidden="true" />
 		{:else}
-			<IconAlertTriangleFilled size={14} class="text-warning" aria-hidden="true" />
+			<IconAlertTriangleFilled size={14} class="text-warning-strong" aria-hidden="true" />
 		{/if}
 		<span class="sr-only">{problem.severity}:</span>
 	</span>
@@ -92,17 +92,17 @@
 			{@const active = layout.dockTab === tab.id}
 			<button
 				class="focus-visible:ring-ring cursor-pointer rounded-md px-2 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset {active
-					? 'bg-accent text-foreground font-medium'
-					: 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'}"
+					? 'bg-muted text-foreground font-medium'
+					: 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'}"
 				aria-pressed={active}
 				onclick={() => (layout.dockTab = tab.id)}
 			>
 				{tab.label}
 				{#if tab.id === 'problems' && (errors || warnings)}
 					<span class="ml-1 tabular-nums" aria-hidden="true"
-						>{#if errors}<span class="text-destructive">{errors}</span
+						>{#if errors}<span class="text-destructive-strong">{errors}</span
 							>{/if}{#if errors && warnings}<span class="text-muted-foreground">/</span
-							>{/if}{#if warnings}<span class="text-warning">{warnings}</span>{/if}</span
+							>{/if}{#if warnings}<span class="text-warning-strong">{warnings}</span>{/if}</span
 					>
 					<span class="sr-only"
 						>{errors} {errors === 1 ? 'error' : 'errors'}, {warnings}
@@ -127,7 +127,7 @@
 			<Button
 				variant="ghost"
 				size="icon-sm"
-				class={copied ? 'text-success' : ''}
+				class={copied ? 'text-success-strong' : ''}
 				title="Copy raw log"
 				aria-label="Copy raw log"
 				disabled={!compile.compileLog}
@@ -175,7 +175,7 @@
 							<!-- No line number means a plain row: a disabled button promises a click that does nothing. -->
 							{#if problem.line != null}
 								<button
-									class="hover:bg-accent focus-visible:ring-ring flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset"
+									class="hover:bg-muted focus-visible:ring-ring flex w-full cursor-pointer items-start gap-2 rounded-md px-2 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset"
 									title="Go to line {problem.line}"
 									onclick={() => goToProblem(problem.line)}
 								>

@@ -11,19 +11,19 @@
 		note: {
 			icon: IconInfoCircle,
 			box: "border-info/35 bg-info/5",
-			mark: "text-info",
+			mark: "text-info-strong",
 			label: "Note"
 		},
 		tip: {
 			icon: IconBulb,
 			box: "border-success/35 bg-success/5",
-			mark: "text-success",
+			mark: "text-success-strong",
 			label: "Tip"
 		},
 		warn: {
 			icon: IconAlertTriangle,
 			box: "border-warning/40 bg-warning/5",
-			mark: "text-warning",
+			mark: "text-warning-strong",
 			label: "Careful"
 		}
 	} as const;

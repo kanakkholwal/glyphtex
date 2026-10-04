@@ -40,8 +40,8 @@ const ATOM_CLASS: Record<string, string> = {
 	label: "text-muted-foreground text-[0.75em]",
 	link: "text-primary underline underline-offset-2",
 	footnote: "text-primary align-super text-[0.7em]",
-	comment: "text-muted-foreground bg-accent/60 rounded px-1 text-[0.8em] font-mono",
-	raw: "text-muted-foreground bg-accent rounded px-1 py-0.5 text-[0.8em] font-mono"
+	comment: "text-muted-foreground bg-muted/60 rounded px-1 text-[0.8em] font-mono",
+	raw: "text-muted-foreground bg-muted rounded px-1 py-0.5 text-[0.8em] font-mono"
 };
 
 function esc(text: string): string {

@@ -13,7 +13,7 @@
 		type SidebarPosition
 	} from "@glyphtex/ui/settings";
 	import { SettingsField } from "@glyphtex/ui/settings-field";
-	import { SliderControl } from "@glyphtex/ui/slider-control";
+	import { Slider } from "@glyphtex/ui/slider";
 	import { Spinner } from "@glyphtex/ui/spinner";
 	import { Switch } from "@glyphtex/ui/switch";
 	import { IconCheck } from "@tabler/icons-svelte";
@@ -71,7 +71,7 @@
 	description = ''
 )}
 	<SettingsField size="sm" {label} {description} layout="row">
-		<Select type="single" value={current} onValueChange={onChange}>
+		<Select bind:value={() => current, onChange}>
 			<SelectTrigger size="sm" class="min-w-[7.5rem] text-xs" aria-label={label}>
 				{opts.find((o) => o.value === current)?.label ?? current}
 			</SelectTrigger>
@@ -117,14 +117,16 @@
 
 		<!-- 10 to 32 in steps of 1. This was 8 to 80 in steps of 2, which put the
 		     default of 13 between two stops: you could not select it back. -->
-		<SliderControl
+		<Slider
+			variant="inline"
+			size="sm"
 			label="Font size"
 			value={settings.fontSize}
 			min={10}
 			max={32}
 			step={1}
-			unit="px"
-			onchange={(v) => (settings.fontSize = v)}
+			formatValue={(v) => `${v}px`}
+			onValueChange={(v) => (settings.fontSize = v as number)}
 		/>
 
 		{@render switchField(

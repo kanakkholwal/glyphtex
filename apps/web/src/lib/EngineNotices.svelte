@@ -148,9 +148,9 @@
 					This document needs {missingPacks.map((p) => p.label).join(', ')} ({packSizeMB} MB).
 				</p>
 				{#if error}
-					<p class="text-destructive mt-1 text-xs" role="alert">Could not add packages: {error}</p>
+					<p class="text-destructive-strong mt-1 text-xs" role="alert">Could not add packages: {error}</p>
 				{/if}
-				<Button size="sm" class="mt-2" onclick={onadd} disabled={installing}>
+				<Button variant="dark" size="sm" class="mt-2" onclick={onadd} disabled={installing}>
 					{installing ? 'Adding…' : 'Add packages'}
 				</Button>
 			</div>
@@ -169,7 +169,7 @@
 
 	{#if unsupportedFiles.length > 0 && show(unsupportedId)}
 		<div class={card} transition:fly={enter}>
-			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" aria-hidden="true" />
+			<IconAlertTriangle class="text-warning-strong mt-0.5 size-4 shrink-0" aria-hidden="true" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Unavailable packages</p>
 				<p class="text-muted-foreground mt-0.5 text-xs">
@@ -204,7 +204,7 @@
 
 	{#if requiresBiber && show('biber')}
 		<div class={card} transition:fly={enter}>
-			<IconAlertTriangle class="text-warning mt-0.5 size-4 shrink-0" aria-hidden="true" />
+			<IconAlertTriangle class="text-warning-strong mt-0.5 size-4 shrink-0" aria-hidden="true" />
 			<div class="min-w-0 flex-1">
 				<p class="text-sm font-medium">Bibliography not generated</p>
 				<p class="text-muted-foreground mt-0.5 text-xs">
@@ -246,7 +246,7 @@
 			<Button variant="outline" onclick={copyReport}>
 				<IconCopy aria-hidden="true" /> Copy
 			</Button>
-			<Button
+			<Button variant="dark"
 				href={supportIssueUrl(REPO_URL, report)}
 				target="_blank"
 				rel="noopener noreferrer"

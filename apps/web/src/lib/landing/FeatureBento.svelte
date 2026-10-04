@@ -1,7 +1,6 @@
 <script lang="ts">
 	import RevisionStack from "$lib/illustrations/RevisionStack.svelte";
 	import { REPO_SLUG } from "$lib/landing/nav-data";
-	import { revealOnScroll, staggerDelay } from "$lib/motion";
 	import {
 		IconAlertTriangle,
 		IconBrandGithub,
@@ -16,11 +15,9 @@
 	import type { Snippet } from "svelte";
 </script>
 
-{#snippet card(title: string, body: string, visual: Snippet, className = "", index = 0)}
+{#snippet card(title: string, body: string, visual: Snippet, className = "")}
 	<article
-		class="reveal relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-border text-card-foreground md:rounded-3xl {className}"
-		style={staggerDelay(index)}
-		{@attach revealOnScroll}
+		class="relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-border text-card-foreground md:rounded-3xl {className}"
 	>
 		<div
 			class="relative z-0 flex min-h-40 flex-1 items-center justify-center overflow-hidden p-4 md:p-6"
@@ -83,7 +80,7 @@
 {#snippet errors()}
 	<div class="flex w-full max-w-sm flex-col gap-2">
 		<div class="flex items-start gap-3 rounded-xl border border-border bg-card p-3 shadow-sm">
-			<IconAlertTriangle class="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+			<IconAlertTriangle class="mt-0.5 size-4 shrink-0 text-destructive-strong" aria-hidden="true" />
 			<span class="min-w-0 flex-1">
 				<span class="block text-body font-medium text-foreground">
 					<span class="sr-only">Error:</span> Undefined control sequence
@@ -140,16 +137,12 @@
 		{@render card(
 			'Your drafts stay yours',
 			'Projects live in your browser on your own device. Nothing is uploaded or stored by us.',
-			stayLocal,
-			'',
-			0
+			stayLocal
 		)}
 		{@render card(
 			'Compiles with the network off',
 			'Download the engine once, then write and build on a plane or a train.',
-			offline,
-			'',
-			1
+			offline
 		)}
 	</div>
 
@@ -157,27 +150,18 @@
 		'Every revision, kept',
 		'Built-in Git keeps your full history, free. Push to GitHub, GitLab or your university server.',
 		history,
-		'lg:col-span-3',
-		2
+		'lg:col-span-3'
 	)}
 
 	<div class="grid min-h-0 grid-cols-1 gap-2 md:gap-4 lg:col-span-5 lg:grid-rows-[5fr_5fr]">
 		{@render card(
 			'Errors point at the line',
 			'The log is read for you, so each problem links straight to the file and line that caused it.',
-			errors,
-			'',
-			3
+			errors
 		)}
 		<div class="grid min-h-0 grid-cols-1 gap-2 md:grid-cols-2 md:gap-4">
-			{@render card(
-				'Bring your Overleaf project',
-				'Drop the exported .zip and keep writing.',
-				importZip,
-				'',
-				4
-			)}
-			{@render card('Built in the open', 'Read the code, report a bug, send a fix.', openSource, '', 5)}
+			{@render card('Bring your Overleaf project', 'Drop the exported .zip and keep writing.', importZip)}
+			{@render card('Built in the open', 'Read the code, report a bug, send a fix.', openSource)}
 		</div>
 	</div>
 </div>

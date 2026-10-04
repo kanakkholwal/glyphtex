@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { viewSection } from "$lib/analytics";
-	import { revealOnScroll } from "$lib/motion";
 	import { cn } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
 
@@ -32,9 +31,8 @@
 <section
 	{id}
 	aria-label={label}
-	class={cn('reveal rail-column mx-auto flex scroll-mt-24 flex-col p-3 sm:p-6', className)}
+	class={cn('rail-column mx-auto flex scroll-mt-24 flex-col p-3 sm:p-6', className)}
 	{@attach section ? viewSection(section) : noop}
-	{@attach revealOnScroll}
 >
 	{@render children()}
 </section>

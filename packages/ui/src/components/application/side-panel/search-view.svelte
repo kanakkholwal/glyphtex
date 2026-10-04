@@ -248,7 +248,7 @@
 
 	{#if result.error}
 		<p
-			class="text-destructive flex items-start gap-1.5 px-1.5 pt-1 text-xs"
+			class="text-destructive-strong flex items-start gap-1.5 px-1.5 pt-1 text-xs"
 			role="alert"
 		>
 			<IconAlertTriangle size={13} class="mt-px shrink-0" />
@@ -292,7 +292,7 @@
 	{#if !result.error && !scanning && result.otherTotal > 0}
 		<button
 			type="button"
-			class="text-muted-foreground hover:bg-accent hover:text-foreground mt-0.5 flex h-7 w-full items-center gap-1.5 rounded-md px-1.5 text-left text-xs transition-colors"
+			class="text-muted-foreground hover:bg-muted hover:text-foreground mt-0.5 flex h-7 w-full items-center gap-1.5 rounded-md px-1.5 text-left text-xs transition-colors"
 			aria-pressed={includeOther}
 			onclick={() => onincludeother?.(!includeOther)}
 		>
@@ -327,7 +327,7 @@
 				{@const open = isOpen(group)}
 				<button
 					type="button"
-					class="text-muted-foreground hover:bg-accent hover:text-foreground flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-left transition-colors"
+					class="text-muted-foreground hover:bg-muted hover:text-foreground flex h-7 w-full items-center gap-1 rounded-md px-1.5 text-left transition-colors"
 					aria-expanded={open}
 					onclick={() => ontogglegroup?.(group.id)}
 				>
@@ -364,8 +364,8 @@
 							aria-selected={on}
 							tabindex={on ? 0 : -1}
 							class="flex h-7 w-full items-center gap-1.5 rounded-md pr-2 pl-6 text-left transition-colors {on
-								? 'bg-accent text-accent-foreground'
-								: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
+								? 'bg-muted text-foreground'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 							title={`${group.name}:${m.line}`}
 							onkeydown={(e) => onRowKeydown(e, rows.findIndex((r) => r.group.id === group.id && r.i === i))}
 							onclick={() => ongotoresult?.(index)}

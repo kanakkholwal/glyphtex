@@ -474,9 +474,9 @@
 			<div class="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">
 				{#if retry}
 					<Button variant="outline" href={resolve('/workspace')}>Back to documents</Button>
-					<Button onclick={() => (reloadToken += 1)}>Try again</Button>
+					<Button variant="dark" onclick={() => (reloadToken += 1)}>Try again</Button>
 				{:else}
-					<Button href={resolve('/workspace')}>Back to documents</Button>
+					<Button variant="dark" href={resolve('/workspace')}>Back to documents</Button>
 				{/if}
 			</div>
 		</div>

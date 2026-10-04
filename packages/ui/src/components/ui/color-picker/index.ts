@@ -1,19 +1,10 @@
-import Root, {
-	formatHex,
-	hslToRgb,
-	parseColor,
-	rgbToHsl,
-	type ColorPickerProps,
-	type ColorValue
-} from "./color-picker.svelte";
-
+export { default as ColorPicker, type ColorFormat } from "./color-picker.svelte";
 export {
-	Root,
-	Root as ColorPicker,
-	formatHex,
-	hslToRgb,
-	parseColor,
-	rgbToHsl,
-	type ColorPickerProps,
-	type ColorValue
-};
+	colorPicker,
+	type ColorPickerVariant,
+	type ColorPickerSize,
+	arrowStep,
+	pickScreenColor,
+	hasEyeDropper
+} from "./variants";
+export { default as Root } from "./color-picker.svelte";

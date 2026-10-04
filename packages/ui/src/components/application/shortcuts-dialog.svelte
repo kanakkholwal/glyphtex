@@ -6,7 +6,7 @@
 		DialogHeader,
 		DialogTitle
 	} from "@glyphtex/ui/dialog";
-	import { Kbd } from "@glyphtex/ui/kbd";
+	import { shortcutCap } from "@glyphtex/ui/shortcut";
 	import { IconKeyboard } from "@tabler/icons-svelte";
 
 	import { isMacPlatform, shortcutCategories, shortcutsByCategory, formatCombo } from "./shortcuts";
@@ -56,7 +56,7 @@
 												<span class="text-muted-foreground text-xs">or</span>
 											{/if}
 											{#each caps(combo) as cap (cap)}
-												<Kbd>{cap}</Kbd>
+												<kbd class={shortcutCap({ size: 'md' })}>{cap}</kbd>
 											{/each}
 										{/each}
 									</span>

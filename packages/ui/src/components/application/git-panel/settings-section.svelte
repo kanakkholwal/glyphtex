@@ -19,7 +19,7 @@
 				class="border-warning/40 bg-warning/10 text-foreground flex w-full items-start gap-1.5 rounded border px-1.5 py-1 text-left text-xs"
 				onclick={() => store.startEditSettings()}
 			>
-				<IconAlertTriangle size={13} class="text-warning mt-px shrink-0" />
+				<IconAlertTriangle size={13} class="text-warning-strong mt-px shrink-0" />
 				<span>
 					Set a name and email, or this commit is attributed to “{store.settings?.name}”.
 				</span>
@@ -66,7 +66,7 @@
 				{/if}
 
 				<div class="mt-0.5 flex gap-1.5">
-					<Button
+					<Button variant="dark"
 						size="xs"
 						disabled={store.busy || !store.authorName.trim() || !store.authorEmail.trim()}
 						onclick={() => store.saveSettings()}

@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
 	import { track } from "$lib/analytics";
-	import { Badge } from "@glyphtex/ui/badge";
 	import { Button } from "@glyphtex/ui/button";
-	import { Card } from "@glyphtex/ui/card";
-	import { revealOnScroll, staggerDelay } from "$lib/motion";
 	import { type ProjectTemplate, TEMPLATE_CATEGORIES } from "@glyphtex/ui/project-templates";
 	import { cn } from "@glyphtex/ui/utils";
 	import { IconArrowRight, IconExternalLink, IconSearch, IconX } from "@tabler/icons-svelte";
@@ -106,45 +103,46 @@
 		</div>
 	{:else}
 		<ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-label="Templates">
-			{#each visible as t, i (t.id)}
-				<li class="reveal" style={staggerDelay(i % 8)} {@attach revealOnScroll}>
-					<Card tone="framed" size="sm" class="h-full gap-3">
-						<div class="flex items-center justify-between gap-2">
-							<span class="text-caption font-medium text-muted-foreground">{label(t.category)}</span>
-							<Badge variant="outline" class="font-mono">{t.documentClass}</Badge>
-						</div>
-						<div class="min-w-0 flex-1">
-							<h3 class="line-clamp-2 text-body-lg font-medium text-foreground">{t.title}</h3>
-							{#if t.description}
-								<p class="mt-1 line-clamp-3 text-body text-muted-foreground">{t.description}</p>
-							{/if}
-						</div>
-						<p class="truncate text-caption text-muted-foreground" title={`${t.author} · ${t.license}`}>
-							by <span class="text-foreground">{t.author}</span> · {t.license.replace("Creative Commons ", "")}
-						</p>
-						<div class="flex items-center gap-2">
-							<Button
-								href={useHref(t.id)}
-								variant="outline"
-								class="flex-1"
-								onclick={() => track("cta_clicked", { target: "template", location: "templates" })}
-							>
-								Use template
-								<IconArrowRight />
-							</Button>
-							<Button
-								href={t.sourceUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								variant="ghost"
-								size="icon"
-								aria-label={`Original source of ${t.title}`}
-								title="Original source"
-							>
-								<IconExternalLink />
-							</Button>
-						</div>
-					</Card>
+			{#each visible as t (t.id)}
+				<li class="panel-card flex flex-col gap-3 p-5">
+					<div class="flex items-center justify-between gap-2">
+						<span class="text-caption font-medium text-muted-foreground">{label(t.category)}</span>
+						<span
+							class="rounded-md border border-border px-1.5 py-0.5 font-mono text-caption text-muted-foreground"
+							>{t.documentClass}</span
+						>
+					</div>
+					<div class="min-w-0 flex-1">
+						<h3 class="line-clamp-2 text-body-lg font-medium text-foreground">{t.title}</h3>
+						{#if t.description}
+							<p class="mt-1 line-clamp-3 text-body text-muted-foreground">{t.description}</p>
+						{/if}
+					</div>
+					<p class="truncate text-caption text-muted-foreground" title={`${t.author} · ${t.license}`}>
+						by <span class="text-foreground">{t.author}</span> · {t.license.replace("Creative Commons ", "")}
+					</p>
+					<div class="flex items-center gap-2">
+						<Button
+							href={useHref(t.id)}
+							variant="outline"
+							class="flex-1"
+							onclick={() => track("cta_clicked", { target: "template", location: "templates" })}
+						>
+							Use template
+							<IconArrowRight />
+						</Button>
+						<Button
+							href={t.sourceUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							variant="ghost"
+							size="icon"
+							aria-label={`Original source of ${t.title}`}
+							title="Original source"
+						>
+							<IconExternalLink />
+						</Button>
+					</div>
 				</li>
 			{/each}
 		</ul>

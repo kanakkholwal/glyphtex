@@ -87,7 +87,7 @@
 				<IconWriting class="size-10" stroke-width={1.5} aria-hidden="true" />
 			{/snippet}
 			{#snippet actions()}
-				<Button href={resolve('/workspace')} variant="ink">Open the workspace</Button>
+				<Button href={resolve('/workspace')} variant="dark">Open the workspace</Button>
 				<Button href={resolve('/blog')} variant="light">Read the blog</Button>
 			{/snippet}
 		</BrandPanel>

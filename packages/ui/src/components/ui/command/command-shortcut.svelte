@@ -1,23 +1,17 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
+	import type { Snippet } from "svelte";
 	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { getCommand } from "./context";
 
 	let {
-		ref = $bindable(null),
-		class: className,
 		children,
-		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLSpanElement>> = $props();
+		class: classProp,
+		...rest
+	}: { children?: Snippet; class?: string } & HTMLAttributes<HTMLSpanElement> = $props();
+	const command = getCommand();
 </script>
 
-<span
-	bind:this={ref}
-	data-slot="command-shortcut"
-	class={cn(
-		'text-muted-foreground group-data-selected/command-item:text-foreground ml-auto text-xs tracking-widest',
-		className
-	)}
-	{...restProps}
->
+<span {...rest} data-slot="command-shortcut" class={cn(command.styles.shortcut(), classProp)}>
 	{@render children?.()}
 </span>

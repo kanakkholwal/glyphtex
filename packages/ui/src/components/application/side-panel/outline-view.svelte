@@ -66,8 +66,8 @@
 					aria-expanded={row.hasChildren ? !row.collapsed : undefined}
 					aria-selected={on}
 					class="flex h-full w-full items-center rounded-md pr-2 text-left transition-colors {on
-						? 'bg-accent text-foreground'
-						: 'hover:bg-accent/60 hover:text-foreground ' +
+						? 'bg-muted text-foreground'
+						: 'hover:bg-muted/60 hover:text-foreground ' +
 							(row.depth === 0 ? 'text-foreground' : 'text-muted-foreground')}"
 					style:padding-left={`${row.depth * STEP + 26}px`}
 					title={row.item.title}

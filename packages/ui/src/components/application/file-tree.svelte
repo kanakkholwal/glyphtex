@@ -346,12 +346,12 @@
 					row.key
 						? 'bg-primary/10 ring-primary/40 ring-1 ring-inset'
 						: selected
-							? 'bg-accent text-accent-foreground font-medium'
+							? 'bg-muted text-foreground font-medium'
 							: active
-								? 'text-foreground bg-accent/40'
+								? 'text-foreground bg-muted/40'
 								: row.dirty
-									? 'text-foreground hover:bg-accent'
-									: 'text-muted-foreground hover:bg-accent hover:text-foreground'}"
+									? 'text-foreground hover:bg-muted'
+									: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 					style:padding-left={indent(row.depth)}
 					title={row.dirty && !folder ? `${node.name}: unsaved` : node.name}
 					draggable="true"
@@ -423,7 +423,7 @@
 				<button
 					type="button"
 					tabindex="-1"
-					class="text-muted-foreground hover:bg-accent hover:text-foreground absolute top-1/2 right-1 grid size-5 -translate-y-1/2 place-items-center rounded opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 [@media(pointer:coarse)]:opacity-100"
+					class="text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1/2 right-1 grid size-5 -translate-y-1/2 place-items-center rounded opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 [@media(pointer:coarse)]:opacity-100"
 					title={folder ? 'Folder actions' : 'File actions'}
 					aria-label={`Actions for ${node.name}`}
 					onclick={(e) => openMenu(e, row)}

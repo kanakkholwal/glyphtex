@@ -361,7 +361,7 @@
 {#snippet starBadge(p: Project)}
 	{#if p.starred}
 		<span class="relative z-10 shrink-0" title="Starred">
-			<IconStarFilled class="text-warning size-4" aria-hidden="true" />
+			<IconStarFilled class="text-warning-strong size-4" aria-hidden="true" />
 			<span class="sr-only">Starred</span>
 		</span>
 	{/if}
@@ -384,7 +384,7 @@
 			{#if onstar}
 				<DropdownMenuItem onclick={() => onstar?.(p.id, !p.starred)}>
 					{#if p.starred}
-						<IconStarFilled class="text-warning" /> Unstar
+						<IconStarFilled class="text-warning-strong" /> Unstar
 					{:else}
 						<IconStar /> Star
 					{/if}
@@ -403,7 +403,7 @@
 				</DropdownMenuItem>
 			{/if}
 			<DropdownMenuSeparator />
-			<DropdownMenuItem variant="destructive" onclick={() => (pendingDelete = p)}>
+			<DropdownMenuItem destructive onclick={() => (pendingDelete = p)}>
 				<IconTrash /> Delete
 			</DropdownMenuItem>
 		</DropdownMenuContent>
@@ -577,7 +577,7 @@
 						></div>
 					</div>
 					{#if tight}
-						<p class="text-warning mt-2 text-xs font-medium">Nearly full. The browser may clear it.</p>
+						<p class="text-warning-strong mt-2 text-xs font-medium">Nearly full. The browser may clear it.</p>
 					{/if}
 				</div>
 			</Sidebar.Footer>
@@ -646,7 +646,7 @@
 							</div>
 
 							<div class="flex flex-wrap items-center gap-2">
-								<Button variant="primary" onclick={handleCreate}>
+								<Button variant="default" onclick={handleCreate}>
 									<IconPlus /> New project
 								</Button>
 								{#if onimport}
@@ -700,7 +700,7 @@
 										}}
 									/>
 									<div class="flex gap-2">
-										<Button disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
+										<Button variant="dark" disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
 											{cloneBusy ? 'Cloning…' : 'Clone'}
 										</Button>
 										<Button variant="ghost" disabled={cloneBusy} onclick={() => (cloning = false)}>
@@ -963,7 +963,7 @@
 							</div>
 
 							{#if !showStart && scope !== 'templates'}
-								<Button onclick={handleCreate}>
+								<Button variant="dark" onclick={handleCreate}>
 									<IconPlus /> New project
 								</Button>
 							{/if}
@@ -1101,7 +1101,7 @@
 <AboutDialog bind:open={aboutOpen} {platform} />
 
 <!-- Disk-backed projects show their path: confirming deletes the folder itself. -->
-<Dialog open={pendingDelete !== null} onOpenChange={(o) => (o ? null : (pendingDelete = null))}>
+<Dialog bind:open={() => pendingDelete !== null, (o) => (o ? null : (pendingDelete = null))}>
 	<DialogContent class="sm:max-w-md">
 		<DialogHeader>
 			<DialogTitle>Delete “{pendingDelete?.name}”?</DialogTitle>

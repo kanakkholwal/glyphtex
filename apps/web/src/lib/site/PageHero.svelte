@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { revealOnScroll, staggerDelay } from "$lib/motion";
 	import { cn } from "@glyphtex/ui/utils";
 	import type { IconCheck } from "@tabler/icons-svelte";
 	import type { Snippet } from "svelte";
@@ -37,15 +36,9 @@
 >
 	<div class="flex flex-col">
 		{#if badge}
-			<div class="reveal" {@attach revealOnScroll}>
-				<TiltedChip class="mb-4" icon={badgeIcon}>{badge}</TiltedChip>
-			</div>
+			<TiltedChip class="mb-4" icon={badgeIcon}>{badge}</TiltedChip>
 		{/if}
-		<h1
-			class="reveal text-balance text-heading-lg font-medium text-foreground md:text-display"
-			style={staggerDelay(1)}
-			{@attach revealOnScroll}
-		>
+		<h1 class="text-balance text-heading-lg font-medium text-foreground md:text-display">
 			{title}
 			{#if accent}
 				<br />
@@ -53,27 +46,13 @@
 			{/if}
 		</h1>
 		{#if lede}
-			<p
-				class="reveal mt-4 max-w-xl text-pretty text-body text-muted-foreground md:text-body-lg"
-				style={staggerDelay(2)}
-				{@attach revealOnScroll}
-			>
-				{lede}
-			</p>
+			<p class="mt-4 max-w-xl text-pretty text-body text-muted-foreground md:text-body-lg">{lede}</p>
 		{/if}
 		{#if actions}
-			<div
-				class="reveal mt-8 flex flex-wrap items-center gap-2 sm:gap-4"
-				style={staggerDelay(3)}
-				{@attach revealOnScroll}
-			>
-				{@render actions()}
-			</div>
+			<div class="mt-8 flex flex-wrap items-center gap-2 sm:gap-4">{@render actions()}</div>
 		{/if}
 	</div>
 	{#if aside}
-		<div class="reveal min-w-0" style={staggerDelay(1)} {@attach revealOnScroll}>
-			{@render aside()}
-		</div>
+		<div class="min-w-0">{@render aside()}</div>
 	{/if}
 </div>

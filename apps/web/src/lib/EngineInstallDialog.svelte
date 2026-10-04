@@ -49,17 +49,17 @@
 		}
 	}
 
-	// Required install: dismiss paths are disabled on <DialogContent> below, so the
-	// dialog only closes when `start()` sets `open = false` on success.
+	// Required install: the setter drops Escape and backdrop closes, so the dialog
+	// only closes when `start()` sets `open = false` on success.
 </script>
 
-<Dialog bind:open>
-	<DialogContent
-		showCloseButton={false}
-		interactOutsideBehavior="ignore"
-		escapeKeydownBehavior="ignore"
-		class="gap-5 p-6 sm:max-w-md"
-	>
+<Dialog
+	bind:open={() => open, (next) => {
+		if (next) open = true;
+	}}
+	dismissOnBackdrop={false}
+>
+	<DialogContent class="gap-5 p-6 sm:max-w-md">
 		<DialogHeader class="gap-3">
 			<span
 				class="border-border bg-card text-primary grid size-10 place-items-center rounded-lg border"
@@ -123,7 +123,7 @@
 				class="border-destructive/30 bg-destructive/5 flex items-start gap-2 rounded-xl border p-3"
 				role="alert"
 			>
-				<IconAlertTriangle size={16} class="text-destructive mt-0.5 shrink-0" aria-hidden="true" />
+				<IconAlertTriangle size={16} class="text-destructive-strong mt-0.5 shrink-0" aria-hidden="true" />
 				<p class="text-foreground text-caption min-w-0 flex-1">
 					<span class="font-medium">Download failed.</span>
 					{error}
@@ -131,7 +131,7 @@
 			</div>
 		{/if}
 
-		<Button variant="primary" class="w-full sm:ml-auto sm:w-auto" onclick={start} disabled={installing}>
+		<Button variant="default" class="w-full sm:ml-auto sm:w-auto" onclick={start} disabled={installing}>
 			{#if installing}
 				Installing…
 			{:else if error}
