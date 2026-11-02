@@ -1,7 +1,7 @@
 // Hand-written because these archives are committed: system `tar` implementations
 // disagree on padding and `./` prefixes, so the same input would not give the
 // same bytes. Reader is apps/web/src/lib/tex/tar.ts — flat ustar, regular files.
-import { gzipSync, constants } from "node:zlib";
+import { constants, gunzipSync, gzipSync } from "node:zlib";
 
 const BLOCK = 512;
 
@@ -54,4 +54,24 @@ export function packTarGz(files) {
 	// to different bytes every run and the artifact churns on every rebuild.
 	const gz = gzipSync(Buffer.concat(chunks), { level: constants.Z_BEST_COMPRESSION, mtime: 0 });
 	return { gz, raw, count: names.length };
+}
+
+/** The inverse of packTarGz: flat regular files by name, for reading committed packs back. */
+export function unpackTarGz(gz) {
+	const bytes = gunzipSync(gz);
+	const files = new Map();
+	const field = (at, len) => {
+		const slice = bytes.subarray(at, at + len);
+		const end = slice.indexOf(0);
+		return Buffer.from(end === -1 ? slice : slice.subarray(0, end)).toString("utf8");
+	};
+	for (let at = 0; at + BLOCK <= bytes.length; ) {
+		const name = field(at, 100);
+		if (!name) break;
+		const size = Number.parseInt(field(at + 124, 12).trim() || "0", 8);
+		if (bytes[at + 156] === 0x30)
+			files.set(name, new Uint8Array(bytes.subarray(at + BLOCK, at + BLOCK + size)));
+		at += BLOCK + Math.ceil(size / BLOCK) * BLOCK;
+	}
+	return files;
 }

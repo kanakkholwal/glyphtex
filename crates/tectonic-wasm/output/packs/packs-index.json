@@ -198,16 +198,30 @@
 			"hash": "924c9519391c8488"
 		},
 		{
+			"id": "icons",
+			"label": "Icons (Font Awesome 5)",
+			"description": "Font Awesome 5 icon commands (\\faHome, \\faGithub, \\faIcon{...}). A filename-loaded shim: upstream fontawesome5 enumerates glyph names at load, which traps the WASM engine, so this renders from the upstream codepoint mapping instead.",
+			"packages": [
+				"fontawesome5"
+			],
+			"requires": [],
+			"optional": true,
+			"bytes": 363201,
+			"hash": "0ad27abbe4a98219"
+		},
+		{
 			"id": "exams",
 			"label": "Exams & worksheets",
 			"description": "The exam class: numbered questions and parts, points, grade tables and answer keys you can show or hide.",
 			"packages": [
 				"exam"
 			],
-			"requires": [],
+			"requires": [
+				"fonts-latinmodern"
+			],
 			"optional": false,
-			"bytes": 177567,
-			"hash": "a39088a54b9e67ed"
+			"bytes": 59583,
+			"hash": "8c8ad71003f6f13c"
 		},
 		{
 			"id": "symbols",
@@ -233,18 +247,6 @@
 			"optional": false,
 			"bytes": 106853,
 			"hash": "fdeb3be1b05996c0"
-		},
-		{
-			"id": "icons",
-			"label": "Icons (Font Awesome 5)",
-			"description": "Font Awesome 5 icon commands (\\faHome, \\faGithub, \\faIcon{...}). A filename-loaded shim: upstream fontawesome5 enumerates glyph names at load, which traps the WASM engine, so this renders from the upstream codepoint mapping instead.",
-			"packages": [
-				"fontawesome5"
-			],
-			"requires": [],
-			"optional": true,
-			"bytes": 363201,
-			"hash": "0ad27abbe4a98219"
 		}
 	],
 	"provides": {
@@ -677,6 +679,13 @@
 		"lmvtlo10.pfb": "fonts-latinmodern",
 		"lmvtt10.pfb": "fonts-latinmodern",
 		"lmvtto10.pfb": "fonts-latinmodern",
+		"FontAwesome5Brands-Regular-400.otf": "icons",
+		"FontAwesome5Free-Regular-400.otf": "icons",
+		"FontAwesome5Free-Solid-900.otf": "icons",
+		"fontawesome5-mapping.def": "icons",
+		"fontawesome5.sty": "icons",
+		"tufontawesomebrands.fd": "icons",
+		"tufontawesomefree.fd": "icons",
 		"exam.cls": "exams",
 		"eurosym.sty": "symbols",
 		"pifont.sty": "symbols",
@@ -689,13 +698,6 @@
 		"fontspec.sty": "opentype-fonts",
 		"fontspec-xetex.sty": "opentype-fonts",
 		"fontspec.cfg": "opentype-fonts",
-		"texgyretermes-regular.otf": "opentype-fonts",
-		"FontAwesome5Brands-Regular-400.otf": "icons",
-		"FontAwesome5Free-Regular-400.otf": "icons",
-		"FontAwesome5Free-Solid-900.otf": "icons",
-		"fontawesome5-mapping.def": "icons",
-		"fontawesome5.sty": "icons",
-		"tufontawesomebrands.fd": "icons",
-		"tufontawesomefree.fd": "icons"
+		"texgyretermes-regular.otf": "opentype-fonts"
 	}
 }

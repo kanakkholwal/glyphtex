@@ -81,6 +81,19 @@ Adding a pack is a data change plus a rebuild — no new code paths.
    duplicate core or each other.
 4. Commit the built `.tar.gz` and the regenerated index.
 
+To add or fix packs without touching the others, pass `--only`:
+
+```
+node scripts/build-packs.mjs --bundle <core-dir> --only exams,symbols
+```
+
+Every other shipped pack is kept byte for byte and treated as an owner, so the
+new pack `requires` it instead of copying its files. Prefer this whenever the
+TeX Live on your machine is newer than the one the core was built from:
+rebuilding a working pack from a newer snapshot is how `science` broke.
+`test/packs-compile.test.mjs` compiles every fixture against the committed
+packs, so a broken pack fails CI rather than a user's compile.
+
 ### Enumerable sets a fixture cannot reach
 
 Some packages expose a large set of runtime-selectable files that no single

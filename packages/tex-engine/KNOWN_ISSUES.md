@@ -32,7 +32,8 @@ TeX Live 2026 as installed in November 2026 (hyperref 2026-10-09):
   commands": their current versions shell out, which the engine does not allow.
 
 **Impact.** A full `rebuild-bundle.mjs` is blocked until the engine handles the new
-kernel. New packs can still be built against the shipped core with `build-packs.mjs`,
-restricted to just the new pack ids; their fixtures prove they compile against the
-shipped format. That is how `exams`, `symbols` and `opentype-fonts` were added.
-Do not rebuild existing packs from the newer snapshot: `science` breaks.
+kernel. New packs can still be built against the shipped core with
+`build-packs.mjs --only <ids>`, which keeps every other pack as committed; their
+fixtures prove they compile against the shipped format. That is how `exams`,
+`symbols` and `opentype-fonts` were added. Do not rebuild existing packs from the
+newer snapshot: `science` breaks, and `test/packs-compile.test.mjs` will say so.
