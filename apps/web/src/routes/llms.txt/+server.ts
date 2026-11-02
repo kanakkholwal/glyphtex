@@ -1,12 +1,17 @@
 import { listDocs, listPosts } from "$lib/server/content";
+import { listPackages } from "$lib/server/packages";
 import { absolute, SITE_TAGLINE } from "$lib/seo/site";
+import { templatePath } from "$lib/templates/slug";
+import { loadTemplateCatalog } from "@glyphtex/ui/project-templates";
 import type { RequestHandler } from "./$types";
 
 export const prerender = true;
 
 // The llms.txt convention: a plain-markdown map of the site for AI assistants.
-export const GET: RequestHandler = () => {
+export const GET: RequestHandler = async () => {
 	const posts = listPosts();
+	const packages = (await listPackages()).filter((p) => p.hasPage);
+	const templates = (await loadTemplateCatalog()).filter((t) => t.origin === "glyphtex");
 	const docs = listDocs();
 
 	const line = (title: string, url: string, note: string) =>
@@ -28,9 +33,16 @@ export const GET: RequestHandler = () => {
 		`## Blog`,
 		...posts.map((p) => line(p.title, p.url, p.description)),
 		"",
+		`## Templates (public domain, compile offline)`,
+		...templates.map((t) => line(t.title, templatePath(t.id), t.description)),
+		"",
+		`## LaTeX package reference`,
+		...packages.map((p) => line(p.name, `/packages/${p.name}`, p.detail)),
+		"",
 		`## Key pages`,
 		line("Browser workspace", "/workspace", "open the editor, no account"),
 		line("Desktop app", "/download", "early prototype builds, not maintained"),
+		line("LaTeX packages", "/packages", "what each package adds, with templates that use it"),
 		line("The engine", "/engine", "how LaTeX compiles in the browser"),
 		line("Privacy", "/privacy", "what is and is not collected"),
 		""

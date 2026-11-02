@@ -8,10 +8,9 @@ export { default as SelectTrigger } from "./select-trigger.svelte";
 export { default as SelectValue } from "./select-value.svelte";
 export {
 	selectTrigger,
-	selectContent,
-	type SelectContentSize,
 	type SelectTriggerVariant,
-	type SelectTriggerSize
+	type SelectTriggerSize,
+	type SelectContentSize
 } from "./variants";
 export { default as Root } from "./select.svelte";
 export { default as Content } from "./select-content.svelte";

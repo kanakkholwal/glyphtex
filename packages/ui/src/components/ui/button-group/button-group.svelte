@@ -1,41 +1,16 @@
-<script lang="ts" module>
-	import { twMergeConfig } from "@glyphtex/ui/utils";
-	import { tv, type VariantProps } from "tailwind-variants";
-
-	export const buttonGroupVariants = tv(
-		{
-			// `md` is `--radius` (8px), which is what Buttons carry. It used to round the
-			// outer ends to `lg`, so the one consumer overrode both back with `!important`.
-			base: "has-[>[data-slot=button-group]]:gap-2 has-[select[aria-hidden=true]:last-child]:[&>[data-slot=select-trigger]:last-of-type]:rounded-r-md flex w-fit items-stretch [&>*]:focus-visible:relative [&>*]:focus-visible:z-10 [&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1",
-			variants: {
-				orientation: {
-					horizontal:
-						"[&>[data-slot]:not(:has(~[data-slot]))]:rounded-r-md! [&>[data-slot]]:rounded-r-none [&>[data-slot]~[data-slot]]:rounded-l-none [&>[data-slot]~[data-slot]]:border-l-0",
-					vertical:
-						"[&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-md! flex-col [&>[data-slot]]:rounded-b-none [&>[data-slot]~[data-slot]]:rounded-t-none [&>[data-slot]~[data-slot]]:border-t-0"
-				}
-			},
-			defaultVariants: {
-				orientation: "horizontal"
-			}
-		},
-		{ twMergeConfig }
-	);
-
-	export type ButtonGroupOrientation = VariantProps<typeof buttonGroupVariants>["orientation"];
-</script>
-
 <script lang="ts">
-	import { cn, type WithElementRef } from '@glyphtex/ui/utils';
-	import type { HTMLAttributes } from 'svelte/elements';
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type ButtonGroupOrientation, buttonGroup } from "./variants";
 
 	let {
 		ref = $bindable(null),
-		class: className,
+		class: classProp,
 		children,
-		orientation = 'horizontal',
-		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
+		orientation = "horizontal",
+		...rest
+	}: HTMLAttributes<HTMLDivElement> & {
+		ref?: HTMLDivElement | null;
 		orientation?: ButtonGroupOrientation;
 	} = $props();
 </script>
@@ -45,8 +20,8 @@
 	role="group"
 	data-slot="button-group"
 	data-orientation={orientation}
-	class={cn(buttonGroupVariants({ orientation }), className)}
-	{...restProps}
+	class={cn(buttonGroup({ orientation }).root(), classProp)}
+	{...rest}
 >
 	{@render children?.()}
 </div>

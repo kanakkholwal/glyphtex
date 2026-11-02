@@ -88,8 +88,8 @@
 </script>
 
 <Seo
-	title="GlyphTeX · A local-first LaTeX editor for academic writing"
-	description="GlyphTeX is a free, open source LaTeX editor that compiles in your browser. Projects stay on your device, work offline and are never uploaded. No account."
+	title="Free offline LaTeX editor, an Overleaf alternative · GlyphTeX"
+	description="A free, open source LaTeX editor and Overleaf alternative that compiles in your browser. No account, works offline, and your projects never leave your device."
 	canonical="/"
 	jsonld={[
 		serialise(organisationLd()),

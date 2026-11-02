@@ -16,7 +16,7 @@
 		children,
 		class: classProp,
 		variant = "default",
-		size = "md",
+		size = "default",
 		dot = false,
 		...rest
 	}: Props = $props();

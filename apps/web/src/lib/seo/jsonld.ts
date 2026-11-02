@@ -90,6 +90,38 @@ export function articleLd(input: {
 	};
 }
 
+export function templateLd(input: {
+	title: string;
+	description: string;
+	url: string;
+	downloadUrl: string;
+	author: string;
+	original: boolean;
+	license?: string;
+	basedOn?: string;
+	packages: readonly string[];
+}): Json {
+	return {
+		"@context": "https://schema.org",
+		"@type": "SoftwareSourceCode",
+		name: input.title,
+		description: input.description,
+		url: absolute(input.url),
+		programmingLanguage: "LaTeX",
+		codeSampleType: "template",
+		encodingFormat: "text/x-tex",
+		contentUrl: absolute(input.downloadUrl),
+		license: input.license,
+		author: input.original
+			? { "@id": `${SITE_URL}/#organization` }
+			: { "@type": "Person", name: input.author },
+		isBasedOn: input.basedOn,
+		keywords: input.packages.length ? input.packages.join(", ") : undefined,
+		isAccessibleForFree: true,
+		inLanguage: "en"
+	};
+}
+
 export function faqLd(items: readonly { q: string; a: string }[]): Json | null {
 	if (!items.length) return null;
 	return {

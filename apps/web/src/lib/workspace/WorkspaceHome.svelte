@@ -17,6 +17,7 @@
 	import { cloneToProject } from "$lib/git";
 	import StoragePanel from "$lib/StoragePanel.svelte";
 	import { toProjectCard } from "$lib/storage/bridge";
+	import { templatePreview } from "$lib/templates";
 	import {
 		filesFromDataTransfer,
 		importFolder,
@@ -346,6 +347,7 @@
 			oncreate={handleCreate}
 			{templates}
 			{templatesLoading}
+			{templatePreview}
 			onusetemplate={createFromTemplate}
 			onopen={open}
 			onrename={rename}

@@ -1,2 +1,6 @@
-// baby-ui components import cn from here; GlyphTeX's merge config knows the text roles.
-export { cn } from "./utils";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+	return twMerge(clsx(inputs));
+}

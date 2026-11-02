@@ -119,7 +119,37 @@
 	const thumb = $derived(track && range ? thumbStyle(track, range, up) : "");
 </script>
 
-<nav aria-label={label} bind:this={list} class={cn(styles.root(), className)}>
+{#if variant === "minimap"}
+	<nav
+		data-slot="table-of-contents-minimap"
+		aria-label={label}
+		class={cn(styles.minimap(), className)}
+	>
+		<ul class={styles.minimapList()}>
+			{#each items as item, i (item.id)}
+				{@const current = range !== null && i >= range[0] && i <= range[1]}
+				<li>
+					<a
+						href="#{item.id}"
+						data-depth={item.depth}
+						data-active={current ? "" : undefined}
+						aria-current={current ? "location" : undefined}
+						class={styles.minimapLink()}
+					>
+						<span class={styles.minimapLabel()}>{item.label}</span>
+						<span aria-hidden="true" class={styles.minimapTick()}></span>
+					</a>
+				</li>
+			{/each}
+		</ul>
+	</nav>
+{:else}
+<nav
+	data-slot="table-of-contents"
+	aria-label={label}
+	bind:this={list}
+	class={cn(styles.root(), className)}
+>
 	{#if track}
 		<div
 			aria-hidden="true"
@@ -140,6 +170,7 @@
 		{@const r = itemRail(items, i, curve)}
 		{@const current = range !== null && i >= range[0] && i <= range[1]}
 		<a
+			data-slot="table-of-contents-link"
 			href="#{item.id}"
 			aria-current={current ? "location" : undefined}
 			class={[styles.link(), i === 0 && "pt-0", i === items.length - 1 && "pb-0"]}
@@ -166,3 +197,4 @@
 		</a>
 	{/each}
 </nav>
+{/if}

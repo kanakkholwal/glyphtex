@@ -12,7 +12,7 @@ export const colorPicker = tv({
 		// Sized to its content, a swatch plus "#RRGGBB", not the InputGroup's full width.
 		field: "w-fit",
 		// A full-width property row: label, then the hex and the swatch that opens the picker.
-		row: "flex w-full items-center gap-2 rounded-lg border border-input bg-background px-2.5 transition-[border-color,box-shadow] duration-(--duration-fast) ease-[var(--ease-out)] hover:border-border-strong focus-within:border-ring focus-within:ring-2 focus-within:ring-ring motion-reduce:transition-none has-disabled:pointer-events-none has-disabled:opacity-50",
+		row: "flex w-full items-center gap-2 rounded-lg border border-input bg-(--field) px-2.5 transition-[border-color,box-shadow] duration-(--duration-fast) ease-[var(--ease-ui-out)] hover:border-border-strong focus-within:border-ring focus-within:ring-2 focus-within:ring-ring motion-reduce:transition-none has-disabled:pointer-events-none has-disabled:opacity-50",
 		rowLabel: "min-w-0 flex-1 truncate text-muted-foreground",
 		// Reads as text until pointed at or focused; typing a hex commits on Enter or blur.
 		rowHex:
@@ -21,7 +21,7 @@ export const colorPicker = tv({
 			"grid place-items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none",
 		swatch: [
 			"block shrink-0 rounded-md ring-1 ring-foreground/10 ring-inset",
-			"transition-[scale,background-color] duration-(--duration-fast) ease-[var(--ease-out)] active:scale-[var(--press-scale-icon)] motion-reduce:transition-none"
+			"transition-[scale,background-color] duration-(--duration-fast) ease-[var(--ease-ui-out)] active:scale-[var(--press-scale-icon)] motion-reduce:transition-none"
 		],
 		hexInput: "w-[10ch] flex-none font-mono uppercase tabular-nums",
 		content: "w-auto border-0 bg-transparent p-0 shadow-none",
@@ -42,10 +42,10 @@ export const colorPicker = tv({
 		discs: "flex flex-wrap items-center gap-2",
 		// A native radio sits under each disc, so arrow keys and forms work as radios do.
 		discLabel:
-			"relative block shrink-0 cursor-pointer transition-[scale] duration-(--duration-fast) ease-[var(--ease-out)] hover:scale-110 active:scale-[var(--press-scale-icon)] has-disabled:pointer-events-none has-disabled:opacity-50 motion-reduce:transition-none",
+			"relative block shrink-0 cursor-pointer transition-[scale] duration-(--duration-fast) ease-[var(--ease-ui-out)] hover:scale-110 active:scale-[var(--press-scale-icon)] has-disabled:pointer-events-none has-disabled:opacity-50 motion-reduce:transition-none",
 		// The chosen disc is ringed in its own colour, offset so the ring reads on any surface.
 		discOption: [
-			"block rounded-full ring-1 ring-foreground/10 ring-inset transition-[box-shadow] duration-(--duration-fast) ease-[var(--ease-out)] motion-reduce:transition-none",
+			"block rounded-full ring-1 ring-foreground/10 ring-inset transition-[box-shadow] duration-(--duration-fast) ease-[var(--ease-ui-out)] motion-reduce:transition-none",
 			"peer-checked:shadow-[0_0_0_2px_var(--background),0_0_0_4px_var(--disc)]",
 			"peer-focus-visible:outline-2 peer-focus-visible:outline-ring peer-focus-visible:outline-offset-4"
 		]
@@ -70,7 +70,7 @@ export const colorPicker = tv({
 				disc: "size-6",
 				discOption: "size-6"
 			},
-			md: {
+			default: {
 				row: "h-9 text-sm",
 				swatch: "size-5",
 				area: "size-48",
@@ -92,7 +92,7 @@ export const colorPicker = tv({
 		// Inside the full picker the square spans the panel and sits flush with its top.
 		{ variant: ["inline", "field", "row"], class: { area: "h-36 w-full rounded-none" } }
 	],
-	defaultVariants: { variant: "field", size: "md" }
+	defaultVariants: { variant: "field", size: "default" }
 });
 
 export type ColorPickerVariant = NonNullable<VariantProps<typeof colorPicker>["variant"]>;

@@ -3,6 +3,8 @@ import { LATEX_COMMANDS, LATEX_PACKAGES } from "@glyphtex/ui/editor";
 import { loadTemplateCatalog, TEMPLATE_CATEGORIES } from "@glyphtex/ui/project-templates";
 import type { PageServerLoad } from "./$types";
 
+export const prerender = true;
+
 export const load: PageServerLoad = async () => {
 	// Counts only: the catalog itself never reaches the landing bundle.
 	const templates = await loadTemplateCatalog();

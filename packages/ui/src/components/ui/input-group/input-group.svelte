@@ -6,7 +6,7 @@
 	let {
 		ref = $bindable(null),
 		class: classProp,
-		size = "md",
+		size = "default",
 		children,
 		...rest
 	}: HTMLAttributes<HTMLDivElement> & {
