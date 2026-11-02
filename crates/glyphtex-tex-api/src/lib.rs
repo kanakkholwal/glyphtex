@@ -1,19 +1,4 @@
-//! Typed API surface for the GlyphTeX TeX engine, plus TeX log parsing.
-//!
-//! This crate holds everything that does *not* need the TeX engine: the option
-//! and result types that cross the WebAssembly boundary as JSON, and the parser
-//! that turns a TeX log into structured diagnostics.
-//!
-//! Keeping it separate from the engine crate has a practical payoff. The engine
-//! must be built for `wasm32-unknown-emscripten` against a C toolchain; this
-//! crate builds anywhere. So the TypeScript declarations — generated from these
-//! types by `ts-rs` — can be produced and tested on any machine:
-//!
-//! ```console
-//! $ cargo test -p glyphtex-tex-api
-//! ```
-//!
-//! which writes `.ts` files into `bindings/`.
+#![doc = include_str!("../README.md")]
 
 pub mod api;
 pub mod logparse;

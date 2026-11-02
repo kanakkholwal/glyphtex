@@ -4,6 +4,7 @@ export { ExitStatus } from "./imports.js";
 export type { EngineIo } from "./imports.js";
 
 export { parsePackIndex, resolveMissing, defaultPacks, PACK_INDEX_VERSION } from "./packs.js";
+export { gunzip, untar, unpackTarGz } from "./tar.js";
 export type { PackDefinition, PackIndex, InstalledPack } from "./packs.js";
 
 export type {

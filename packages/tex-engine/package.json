@@ -15,6 +15,7 @@
 		"bundle-manifest.json",
 		"packs.config.json",
 		"dist",
+		"examples",
 		"src",
 		"wasm"
 	],
