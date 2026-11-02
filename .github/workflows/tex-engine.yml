@@ -248,7 +248,8 @@ jobs:
         id: published
         run: |
           v='${{ steps.version.outputs.value }}'
-          code=$(curl -s -o /dev/null -w '%{http_code}' \
+          # crates.io answers 403 to requests without a User-Agent, which read as "not published".
+          code=$(curl -s -o /dev/null -w '%{http_code}' -A 'glyphtex-release (github.com/kanakkholwal/glyphtex)' \
             "https://crates.io/api/v1/crates/glyphtex-tex-api/$v")
           if [ "$code" = 200 ]; then
             echo "::notice::glyphtex-tex-api $v is already on crates.io; skipping."
