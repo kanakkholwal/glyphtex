@@ -196,6 +196,55 @@
 			"optional": false,
 			"bytes": 7881728,
 			"hash": "924c9519391c8488"
+		},
+		{
+			"id": "exams",
+			"label": "Exams & worksheets",
+			"description": "The exam class: numbered questions and parts, points, grade tables and answer keys you can show or hide.",
+			"packages": [
+				"exam"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 177567,
+			"hash": "a39088a54b9e67ed"
+		},
+		{
+			"id": "symbols",
+			"label": "Symbols",
+			"description": "The euro sign and dingbats such as ticks, crosses and arrows: eurosym and pifont.",
+			"packages": [
+				"eurosym",
+				"pifont"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 63232,
+			"hash": "99c32b9ccd5fdd0a"
+		},
+		{
+			"id": "opentype-fonts",
+			"label": "OpenType fonts",
+			"description": "fontspec, for choosing OpenType fonts by file name, with TeX Gyre Termes as a ready serif.",
+			"packages": [
+				"fontspec"
+			],
+			"requires": [],
+			"optional": false,
+			"bytes": 106853,
+			"hash": "fdeb3be1b05996c0"
+		},
+		{
+			"id": "icons",
+			"label": "Icons (Font Awesome 5)",
+			"description": "Font Awesome 5 icon commands (\\faHome, \\faGithub, \\faIcon{...}). A filename-loaded shim: upstream fontawesome5 enumerates glyph names at load, which traps the WASM engine, so this renders from the upstream codepoint mapping instead.",
+			"packages": [
+				"fontawesome5"
+			],
+			"requires": [],
+			"optional": true,
+			"bytes": 363201,
+			"hash": "0ad27abbe4a98219"
 		}
 	],
 	"provides": {
@@ -627,6 +676,26 @@
 		"lmvtl10.pfb": "fonts-latinmodern",
 		"lmvtlo10.pfb": "fonts-latinmodern",
 		"lmvtt10.pfb": "fonts-latinmodern",
-		"lmvtto10.pfb": "fonts-latinmodern"
+		"lmvtto10.pfb": "fonts-latinmodern",
+		"exam.cls": "exams",
+		"eurosym.sty": "symbols",
+		"pifont.sty": "symbols",
+		"feymr10.tfm": "symbols",
+		"upsy.fd": "symbols",
+		"upzd.fd": "symbols",
+		"feymr10.pfb": "symbols",
+		"psyr.tfm": "symbols",
+		"uzdr.pfb": "symbols",
+		"fontspec.sty": "opentype-fonts",
+		"fontspec-xetex.sty": "opentype-fonts",
+		"fontspec.cfg": "opentype-fonts",
+		"texgyretermes-regular.otf": "opentype-fonts",
+		"FontAwesome5Brands-Regular-400.otf": "icons",
+		"FontAwesome5Free-Regular-400.otf": "icons",
+		"FontAwesome5Free-Solid-900.otf": "icons",
+		"fontawesome5-mapping.def": "icons",
+		"fontawesome5.sty": "icons",
+		"tufontawesomebrands.fd": "icons",
+		"tufontawesomefree.fd": "icons"
 	}
 }

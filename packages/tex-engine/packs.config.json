@@ -134,6 +134,24 @@
 			"packages": ["fontawesome5"],
 			"vendor": "fontawesome5",
 			"optional": true
+		},
+		{
+			"id": "exams",
+			"label": "Exams & worksheets",
+			"description": "The exam class: numbered questions and parts, points, grade tables and answer keys you can show or hide.",
+			"packages": ["exam"]
+		},
+		{
+			"id": "symbols",
+			"label": "Symbols",
+			"description": "The euro sign and dingbats such as ticks, crosses and arrows: eurosym and pifont.",
+			"packages": ["eurosym", "pifont"]
+		},
+		{
+			"id": "opentype-fonts",
+			"label": "OpenType fonts",
+			"description": "fontspec, for choosing OpenType fonts by file name, with TeX Gyre Termes as a ready serif.",
+			"packages": ["fontspec"]
 		}
 	]
 }

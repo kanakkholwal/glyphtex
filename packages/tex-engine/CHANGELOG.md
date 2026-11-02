@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Three packs that ship with the engine: `exams` (the `exam` class, requested
+  in #40), `symbols` (`eurosym`, `pifont`) and `opentype-fonts` (`fontspec`, with
+  TeX Gyre Termes). Built against the shipped core; see `KNOWN_ISSUES.md` for why
+  the core was not rebuilt.
+
+### Fixed
+
+- The optional `icons` pack (Font Awesome 5) is now actually built and shipped.
+  0.1.3 announced it, but its tarball was never committed, so `fontawesome5`
+  still failed as a missing file.
+- `bundle-manifest.json` and `packs.config.json` are now exported, so consumers
+  can list what the engine supports without unpacking the bundle.
+
 ## 0.1.3
 
 ### Added
