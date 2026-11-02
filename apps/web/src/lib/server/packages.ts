@@ -6,6 +6,7 @@ import {
 } from "$lib/packages/coverage";
 import { LATEX_COMMANDS, LATEX_ENVIRONMENTS, LATEX_PACKAGES } from "@glyphtex/ui/editor";
 import type { ProjectTemplate } from "@glyphtex/ui/project-templates";
+import { engineCoverage, type PackageSupport } from "./engine-packages";
 import { templatePackageUses } from "./templates";
 
 export type PackageSummary = {
@@ -13,6 +14,8 @@ export type PackageSummary = {
 	detail: string;
 	coverage: PackageCoverage;
 	hasPage: boolean;
+	/** How it reaches a compile in GlyphTeX; null when no fixture verifies it yet. */
+	support: PackageSupport | null;
 };
 
 export type PackageEntry = { name: string; syntax: string; detail: string; context?: string };
@@ -24,7 +27,7 @@ export type PackageDetail = PackageSummary & {
 };
 
 export async function listPackages(): Promise<PackageSummary[]> {
-	const uses = await templatePackageUses();
+	const [uses, engine] = await Promise.all([templatePackageUses(), engineCoverage()]);
 	const coverage = packageCoverage(
 		LATEX_PACKAGES,
 		LATEX_COMMANDS,
@@ -34,7 +37,8 @@ export async function listPackages(): Promise<PackageSummary[]> {
 	return LATEX_PACKAGES.map((p) => {
 		const c = coverage.get(p.name) ?? { commands: 0, environments: 0, templates: 0 };
 		const detail = p.detail.replace(/\.$/, "");
-		return { name: p.name, detail, coverage: c, hasPage: hasPackagePage(c) };
+		const support = engine.support.get(p.name) ?? null;
+		return { name: p.name, detail, coverage: c, hasPage: hasPackagePage(c), support };
 	}).sort((a, b) => a.name.localeCompare(b.name));
 }
 

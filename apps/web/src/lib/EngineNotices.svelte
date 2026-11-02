@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { REQUEST_ETA } from "$lib/packages/request";
 	import { Button } from "@glyphtex/ui/button";
 	import {
 		Dialog,
@@ -177,7 +178,7 @@
 						.slice(0, 3)
 						.join(', ')}{unsupportedFiles.length > 3
 						? ` and ${unsupportedFiles.length - 3} more`
-						: ''}. These aren't supported in the browser yet.
+						: ''}. These aren't supported in the browser yet. Requests usually ship in {REQUEST_ETA}.
 				</p>
 				<Button
 					size="sm"
