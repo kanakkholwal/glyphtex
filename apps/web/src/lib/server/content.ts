@@ -1,5 +1,5 @@
 import { dev } from "$app/environment";
-import { blog, docs } from "virtual:docvia/source";
+import { blog, developers, docs } from "virtual:docvia/source";
 
 export type FaqItem = { q: string; a: string };
 
@@ -108,8 +108,10 @@ export function listTags(): { tag: string; count: number }[] {
 		.sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
-export function listDocs(): DocMeta[] {
-	return docs
+type DocCollection = typeof docs | typeof developers;
+
+function listCollection(collection: DocCollection, fallbackCategory: string): DocMeta[] {
+	return collection
 		.getPages()
 		.filter((entry) => visible((entry.data ?? {}) as Frontmatter))
 		.map((entry) => {
@@ -119,7 +121,7 @@ export function listDocs(): DocMeta[] {
 				url: entry.url,
 				title: str(data, "title", entry.slugs.join("/")),
 				description: str(data, "description"),
-				category: str(data, "category", "Guides"),
+				category: str(data, "category", fallbackCategory),
 				order: typeof data.order === "number" ? data.order : 99,
 				updated: str(data, "updated") || undefined
 			};
@@ -127,15 +129,22 @@ export function listDocs(): DocMeta[] {
 		.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 }
 
-export function groupDocs(): { category: string; items: DocMeta[] }[] {
+function groupByCategory(items: DocMeta[]): { category: string; items: DocMeta[] }[] {
 	const groups = new Map<string, DocMeta[]>();
-	for (const doc of listDocs()) {
+	for (const doc of items) {
 		const bucket = groups.get(doc.category) ?? [];
 		bucket.push(doc);
 		groups.set(doc.category, bucket);
 	}
 	return [...groups.entries()].map(([category, items]) => ({ category, items }));
 }
+
+export const listDocs = (): DocMeta[] => listCollection(docs, "Guides");
+export const groupDocs = () => groupByCategory(listDocs());
+
+/** The npm package and Rust crate documentation under /developers. */
+export const listDevelopers = (): DocMeta[] => listCollection(developers, "Developers");
+export const groupDevelopers = () => groupByCategory(listDevelopers());
 
 /** Posts sharing the most tags with `slug`, newest first on a tie. Internal linking relies on
  *  every article staying one hop from its tag cluster. */
@@ -152,4 +161,4 @@ export function relatedPosts(slug: string, limit = 3): PostMeta[] {
 		.map((entry) => entry.post);
 }
 
-export { blog, docs };
+export { blog, developers, docs };

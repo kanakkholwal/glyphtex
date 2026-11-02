@@ -73,6 +73,14 @@ const PAGES = [
 		description: "Writing about local-first LaTeX, compiled on your own machine."
 	},
 	{
+		path: "/developers",
+		eyebrow: "For developers",
+		title: "Compile LaTeX",
+		tail: "in JavaScript and Rust.",
+		description:
+			"A WebAssembly TeX compiler on npm, and a Rust crate for TeX logs and the engine's types."
+	},
+	{
 		path: "/about",
 		eyebrow: "About",
 		title: "Kanak Kholwal",
@@ -136,6 +144,7 @@ function contentCards(collection, eyebrow) {
 
 const posts = contentCards("blog", "Blog");
 const docs = contentCards("docs", "Docs");
+const developers = contentCards("developers", "Developers");
 const tags = [...new Set(posts.flatMap((p) => p.tags))].map((tag) => ({
 	path: `/blog/tag/${tag}`,
 	eyebrow: "Topic",
@@ -245,7 +254,7 @@ const fonts = await Promise.all(
 	})
 );
 
-const all = [...PAGES, ...posts, ...docs, ...tags, ...templates, ...packagePages];
+const all = [...PAGES, ...posts, ...docs, ...developers, ...tags, ...templates, ...packagePages];
 for (const entry of all) {
 	const png = await render(card(entry), {
 		width: OG_WIDTH,

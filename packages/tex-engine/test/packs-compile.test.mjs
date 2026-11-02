@@ -12,7 +12,7 @@ import { describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
-import { parsePackIndex, TexEngine } from "../dist/index.js";
+import { parsePackIndex, TexEngine, untar } from "../dist/index.js";
 import { PACK_FIXTURES } from "./fixtures/packs.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -36,30 +36,9 @@ if (process.env.GLYPHTEX_REQUIRE_ENGINE && !haveArtifacts) {
 	);
 }
 
-/** Regular files of a POSIX ustar archive, by name. Enough for the packs this repo builds. */
-function untar(bytes) {
-	const files = new Map();
-	const text = (at, len) => {
-		const slice = bytes.subarray(at, at + len);
-		const end = slice.indexOf(0);
-		return Buffer.from(end === -1 ? slice : slice.subarray(0, end)).toString("utf8");
-	};
-	for (let at = 0; at + 512 <= bytes.length; ) {
-		const name = text(at, 100);
-		if (!name) break;
-		const size = Number.parseInt(text(at + 124, 12).trim() || "0", 8);
-		const type = String.fromCharCode(bytes[at + 156] || 48);
-		const prefix = text(at + 345, 155);
-		if (type === "0") {
-			const full = prefix ? `${prefix}/${name}` : name;
-			files.set(full.split("/").pop(), bytes.subarray(at + 512, at + 512 + size));
-		}
-		at += 512 + Math.ceil(size / 512) * 512;
-	}
-	return files;
-}
-
-describe("pack fixtures", { skip: haveArtifacts ? false : "wasm, bundle or packs not available" }, () => {
+describe("pack fixtures", {
+	skip: haveArtifacts ? false : "wasm, bundle or packs not available"
+}, () => {
 	const index = haveArtifacts
 		? parsePackIndex(JSON.parse(readFileSync(join(packsDir, "packs-index.json"), "utf8")))
 		: { packs: [] };
@@ -91,7 +70,9 @@ describe("pack fixtures", { skip: haveArtifacts ? false : "wasm, bundle or packs
 			}
 			for (const id of closure(fixture.id)) {
 				assert.ok(byId.has(id), `pack "${id}" is not in packs-index.json`);
-				engine.addFiles(untar(gunzipSync(readFileSync(join(packsDir, `pack-${id}.tar.gz`)))));
+				engine.addFiles(
+					untar(new Uint8Array(gunzipSync(readFileSync(join(packsDir, `pack-${id}.tar.gz`)))))
+				);
 			}
 			for (const [name, text] of Object.entries(fixture.files ?? {})) engine.addFile(name, text);
 			engine.addFile("main.tex", fixture.source);

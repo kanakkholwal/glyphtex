@@ -1,0 +1,6 @@
+import { groupDevelopers } from "$lib/server/content";
+import type { PageServerLoad } from "./$types";
+
+export const prerender = true;
+
+export const load: PageServerLoad = () => ({ groups: groupDevelopers() });
