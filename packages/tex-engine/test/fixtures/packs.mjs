@@ -231,5 +231,43 @@ Body text set in the IEEE conference class.
 \faHome\ \faStar\ \faGithub\ \faIcon{rocket}\par
 {\Huge\faHeart}
 \end{document}`
+	},
+	{
+		// The issue #40 preamble: exam with answers and points, beside packages core ships.
+		id: "exams",
+		source: String.raw`\documentclass[answers,addpoints]{exam}
+\usepackage{listings,tikz,amsmath}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\begin{document}
+\begin{questions}
+\question[2] What is $2+2$?
+\begin{solution}Four.\end{solution}
+\question Explain both parts.
+\begin{parts}
+\part[1] The first part.
+\part[2] The second part.
+\end{parts}
+\end{questions}
+\gradetable[h][questions]
+\end{document}`
+	},
+	{
+		id: "symbols",
+		source: String.raw`\documentclass{article}
+\usepackage{eurosym,pifont}
+\begin{document}
+Price: \euro{}5. Done: \ding{51}. Wrong: \ding{55}. Next: \ding{224}.
+\end{document}`
+	},
+	{
+		// By file name: the browser engine has no system fonts to look up by family.
+		id: "opentype-fonts",
+		source: String.raw`\documentclass{article}
+\usepackage{fontspec}
+\setmainfont{texgyretermes-regular.otf}
+\begin{document}
+Set in TeX Gyre Termes through fontspec.
+\end{document}`
 	}
 ];

@@ -14,7 +14,8 @@ export default defineConfig({
 	renderer: createSvelteRenderer(),
 	collections: [
 		{ name: "blog", sourceDir: "content/blog", baseUrl: "/blog" },
-		{ name: "docs", sourceDir: "content/docs", baseUrl: "/docs" }
+		{ name: "docs", sourceDir: "content/docs", baseUrl: "/docs" },
+		{ name: "developers", sourceDir: "content/developers", baseUrl: "/developers" }
 	],
 	components: {
 		callout: component("Callout"),
@@ -39,10 +40,26 @@ export default defineConfig({
 	syntax: {
 		highlighter: "shiki",
 		theme: "github-dark",
-		langs: ["latex", "tex", "bash", "json", "ts", "js", "svelte", "yaml", "toml", "diff"]
+		langs: [
+			"latex",
+			"tex",
+			"bash",
+			"json",
+			"ts",
+			"js",
+			"svelte",
+			"yaml",
+			"toml",
+			"diff",
+			"rust",
+			"console"
+		]
 	},
 	plugins: [
-		shiki({ theme: "github-dark", langs: ["latex", "tex", "bash", "json", "ts", "yaml", "diff"] })
+		shiki({
+			theme: "github-dark",
+			langs: ["latex", "tex", "bash", "json", "ts", "js", "yaml", "diff", "rust", "toml", "console"]
+		})
 	],
 	theme: { name: "glyphtex", options: {} }
 });

@@ -63,6 +63,33 @@ export function softwareLd(): Json {
 	};
 }
 
+/** A published library: the npm package or the crate. */
+export function libraryLd(input: {
+	name: string;
+	description: string;
+	url: string;
+	language: string;
+	registry: string;
+	repository: string;
+	license: string;
+	version?: string;
+}): Json {
+	return {
+		"@context": "https://schema.org",
+		"@type": "SoftwareSourceCode",
+		name: input.name,
+		description: input.description,
+		url: absolute(input.url),
+		programmingLanguage: input.language,
+		codeRepository: input.repository,
+		downloadUrl: input.registry,
+		license: input.license,
+		version: input.version,
+		author: person,
+		isAccessibleForFree: true
+	};
+}
+
 export function articleLd(input: {
 	type?: "BlogPosting" | "TechArticle";
 	title: string;

@@ -1,6 +1,9 @@
 // Build the optional package packs and the index that maps files to them.
 //
-//   node scripts/build-packs.mjs --bundle <core-dir> [--out <dir>]
+//   node scripts/build-packs.mjs --bundle <core-dir> [--out <dir>] [--only <id,id>]
+//
+// --only rebuilds just those packs and keeps every other shipped pack byte for
+// byte. Rebuilding a working pack from a newer TeX Live is how `science` broke.
 //
 // Each pack converges the same way the core bundle does — compile its fixture,
 // feed `result.missingFiles` back in from TeX Live, repeat — but starting from
@@ -16,7 +19,7 @@ import { fileURLToPath } from "node:url";
 
 import { TexEngine } from "../dist/index.js";
 import { PACK_FIXTURES } from "../test/fixtures/packs.mjs";
-import { packTarGz } from "./lib/targz.mjs";
+import { packTarGz, unpackTarGz } from "./lib/targz.mjs";
 import { globTexmf } from "./lib/texmf.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -48,6 +51,26 @@ try {
 }
 
 const config = JSON.parse(readFileSync(resolve(pkgRoot, "packs.config.json"), "utf8"));
+
+const onlyAt = argv.indexOf("--only");
+const only =
+	onlyAt === -1
+		? null
+		: new Set(
+				(argv[onlyAt + 1] ?? "")
+					.split(",")
+					.map((id) => id.trim())
+					.filter(Boolean)
+			);
+if (only) {
+	const unknown = [...only].filter((id) => !config.packs.some((p) => p.id === id));
+	if (only.size === 0 || unknown.length) {
+		console.error(
+			`--only needs pack ids from packs.config.json${unknown.length ? `; unknown: ${unknown.join(", ")}` : ""}`
+		);
+		process.exit(1);
+	}
+}
 
 const lookup = new Map();
 function kpse(name) {
@@ -100,7 +123,28 @@ const provides = {};
 /** id -> files, for packs already built; lets later packs depend on them. */
 const packFiles = new Map();
 
+// With --only, the shipped packs outside the set are owners exactly as committed: new
+// packs depend on them instead of copying their files, and their entries pass through.
+const kept = [];
+if (only) {
+	const indexPath = resolve(outDir, "packs-index.json");
+	if (!existsSync(indexPath)) {
+		console.error(`--only merges into an existing index, and ${indexPath} does not exist.`);
+		process.exit(1);
+	}
+	const existing = JSON.parse(readFileSync(indexPath, "utf8"));
+	for (const pack of existing.packs) {
+		if (only.has(pack.id)) continue;
+		kept.push(pack);
+		packFiles.set(pack.id, unpackTarGz(readFileSync(resolve(outDir, `pack-${pack.id}.tar.gz`))));
+	}
+	for (const [name, id] of Object.entries(existing.provides))
+		if (!only.has(id)) provides[name] = id;
+	console.log(`keeping ${kept.length} shipped packs; building ${[...only].join(", ")}`);
+}
+
 for (const pack of config.packs) {
+	if (only && !only.has(pack.id)) continue;
 	const { source, files: companions = {} } = fixtures.get(pack.id);
 	/** Files this pack adds on top of core and its dependencies. */
 	const extra = new Map();
@@ -277,11 +321,15 @@ for (const pack of config.packs) {
 	);
 }
 
-const index = { version: 1, packs: built, provides };
+// Config order either way, so a partial rebuild leaves the index diff to the packs it touched.
+const packs = config.packs
+	.map((p) => built.find((b) => b.id === p.id) ?? kept.find((k) => k.id === p.id))
+	.filter(Boolean);
+const index = { version: 1, packs, provides };
 writeFileSync(resolve(outDir, "packs-index.json"), JSON.stringify(index, null, "\t") + "\n");
 
 const total = built.reduce((n, p) => n + p.bytes, 0);
 console.log(
-	`\n${built.length} packs, ${Object.keys(provides).length} files, ${(total / 1048576).toFixed(2)} MB gz total`
+	`\n${built.length} packs, ${built.reduce((n, p) => n + (packFiles.get(p.id)?.size ?? 0), 0)} files, ${(total / 1048576).toFixed(2)} MB gz total`
 );
 console.log(`-> ${outDir}`);

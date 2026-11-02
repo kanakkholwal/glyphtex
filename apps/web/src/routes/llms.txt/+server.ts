@@ -1,4 +1,4 @@
-import { listDocs, listPosts } from "$lib/server/content";
+import { listDevelopers, listDocs, listPosts } from "$lib/server/content";
 import { listPackages } from "$lib/server/packages";
 import { absolute, SITE_TAGLINE } from "$lib/seo/site";
 import { templatePath } from "$lib/templates/slug";
@@ -29,6 +29,9 @@ export const GET: RequestHandler = async () => {
 		"",
 		`## Documentation`,
 		...docs.map((d) => line(d.title, d.url, d.description)),
+		"",
+		`## For developers (npm package and Rust crate)`,
+		...listDevelopers().map((d) => line(d.title, d.url, d.description)),
 		"",
 		`## Blog`,
 		...posts.map((p) => line(p.title, p.url, p.description)),

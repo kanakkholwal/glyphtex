@@ -3,13 +3,13 @@ title: "Fix: Missing character: There is no … in font (emoji, Chinese, symbols
 description: "Why characters such as emoji, Chinese or Greek disappear from the PDF with only 'Missing character: There is no 😀 (U+1F600) in font' in the log, and how to fix it."
 category: "Fixing errors"
 order: 23
-updated: "2026-11-02"
+updated: "2026-11-03"
 tags: [latex, warnings, fonts, unicode, xelatex, troubleshooting]
 faq:
   - q: "Why do characters disappear from my LaTeX PDF?"
     a: "The current font has no glyph for them. XeLaTeX drops the character and writes 'Missing character: There is no … in font' to the log, without stopping the compile."
   - q: "How do I fix Missing character: There is no … in font?"
-    a: "Replace the character with a LaTeX command where one exists, such as $\\alpha$ or \\checkmark. In a full TeX installation you can also load fontspec and choose a font that contains the characters."
+    a: "Replace the character with a LaTeX command where one exists, such as $\\alpha$ or \\checkmark. You can also load fontspec and choose a font that contains the characters; in GlyphTeX, add the font file to the project and load it by file name."
   - q: "What is the pdfLaTeX version of this error?"
     a: "pdfLaTeX stops with 'Package inputenc Error: Unicode character … not set up for use with LaTeX'. The cause is the same: the font setup has no glyph for the character."
 ---
@@ -48,18 +48,20 @@ This works everywhere, GlyphTeX included:
 
 ## Fix 2: choose a font that has the characters
 
-In a full TeX installation (TeX Live or MiKTeX) compiled with XeLaTeX or LuaLaTeX, load `fontspec` and pick a font with the glyphs:
+Load `fontspec` and pick a font with the glyphs. GlyphTeX has no access to fonts installed on your computer, so add the `.otf` or `.ttf` file to the project and load it by file name:
 
 ```latex
 \usepackage{fontspec}
-\setmainfont{Noto Serif}
+\setmainfont{NotoSerif-Regular.ttf}
 
 % or a second font for just a few characters
-\newfontfamily\symbolfont{Noto Sans Symbols 2}
+\newfontfamily\symbolfont{NotoSansSymbols2-Regular.ttf}
 Rated {\symbolfont ★★★★}.
 ```
 
-For Chinese, Japanese or Korean text, use `xeCJK` with a CJK font:
+In a full TeX installation (TeX Live or MiKTeX) with XeLaTeX or LuaLaTeX, you can name installed fonts instead: `\setmainfont{Noto Serif}`.
+
+For Chinese, Japanese or Korean text, a full TeX installation can use `xeCJK` with a CJK font:
 
 ```latex
 \usepackage{xeCJK}
@@ -67,7 +69,7 @@ For Chinese, Japanese or Korean text, use `xeCJK` with a CJK font:
 ```
 
 :::callout{type=warn title="In GlyphTeX today"}
-The browser engine does not include `fontspec` or `xeCJK` yet, so emoji and CJK text cannot be typeset in GlyphTeX. Use the commands in Fix 1, or compile those documents with a full TeX installation.
+`fontspec` works in GlyphTeX, but `xeCJK` does not yet, and XeTeX cannot draw colour emoji. For CJK text or emoji, use a full TeX installation. [Request a package](../../packages#search) if you need one.
 :::
 
 ## The pdfLaTeX equivalent

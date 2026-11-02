@@ -6,7 +6,8 @@
 	import { BrandPanel, PageHero, RailFrame, RailRow, Section } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
 	import { CodeBlock } from "@glyphtex/ui/code-block";
-	import { IconArrowRight, IconPackage } from "@tabler/icons-svelte";
+	import { packageRequestUrl, REQUEST_ETA } from "$lib/packages/request";
+	import { IconArrowRight, IconBrandGithub, IconPackage } from "@tabler/icons-svelte";
 	import type { PageProps } from "./$types";
 
 	let { data }: PageProps = $props();
@@ -49,6 +50,14 @@
 	);
 	const description = $derived(
 		`The ${data.name} LaTeX package: ${data.detail.charAt(0).toLowerCase()}${data.detail.slice(1)}. How to load it, what it adds, and templates that use it.`
+	);
+
+	const supportLine = $derived(
+		data.support?.kind === "core"
+			? "Built into GlyphTeX"
+			: data.support?.kind === "pack"
+				? `In the ${data.support.packLabel} package set`
+				: `Not in GlyphTeX yet · requests usually ship in ${REQUEST_ETA}`
 	);
 
 	const numbers = $derived.by(() => {
@@ -98,12 +107,24 @@
 				<li class="text-foreground">{data.name}</li>
 			</ol>
 		</nav>
-		<PageHero title={data.name} accent="LaTeX package." lede={answer}>
+		<PageHero badge={supportLine} title={data.name} accent="LaTeX package." lede={answer}>
 			{#snippet actions()}
-				<Button href={resolve('/workspace')} variant="dark">
-					Try it in the editor
-					<IconArrowRight />
-				</Button>
+				{#if data.support}
+					<Button href={resolve('/workspace')} variant="dark">
+						Try it in the editor
+						<IconArrowRight />
+					</Button>
+				{:else}
+					<Button
+						href={packageRequestUrl(data.name)}
+						target="_blank"
+						rel="noopener noreferrer"
+						variant="dark"
+					>
+						<IconBrandGithub />
+						Request {data.name}
+					</Button>
+				{/if}
 				{#if data.templates.length}
 					<Button href="#templates" variant="outline">Templates that use it</Button>
 				{/if}

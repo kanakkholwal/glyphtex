@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.4
+
+### Added
+
+- `unpackTarGz`, `gunzip` and `untar`: load the bundle and package sets without
+  another library.
+- A rewritten README with install steps, Node and Web Worker quick starts and a
+  full API reference, plus runnable `examples/` (a Node compile script and a
+  project-folder compiler). The crate's README is now its docs.rs page, with
+  doctested examples and three `cargo run --example` programs.
+- MIT `LICENSE` files in both packages.
+- `bundle-manifest.json` and `packs.config.json` are now exported, so consumers
+  can list what the engine supports without unpacking the bundle.
+- Three packs that ship with the engine: `exams` (the `exam` class, requested
+  in #40), `symbols` (`eurosym`, `pifont`) and `opentype-fonts` (`fontspec`, with
+  TeX Gyre Termes). Built against the shipped core; see `KNOWN_ISSUES.md` for why
+  the core was not rebuilt.
+
+### Fixed
+
+- The optional `icons` pack (Font Awesome 5) is now actually built and shipped.
+  0.1.3 announced it, but its tarball was never committed, so `fontawesome5`
+  still failed as a missing file.
+
 ## 0.1.3
 
 ### Added

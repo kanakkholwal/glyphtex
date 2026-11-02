@@ -1,6 +1,6 @@
 {
 	"name": "glyphtex-engine",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"description": "Typed TypeScript bindings for the GlyphTeX TeX engine (Tectonic compiled to WebAssembly)",
 	"license": "MIT",
 	"type": "module",
@@ -12,7 +12,10 @@
 	"homepage": "https://github.com/kanakkholwal/glyphtex/tree/main/packages/tex-engine#readme",
 	"bugs": "https://github.com/kanakkholwal/glyphtex/issues",
 	"files": [
+		"bundle-manifest.json",
+		"packs.config.json",
 		"dist",
+		"examples",
 		"src",
 		"wasm"
 	],
@@ -25,7 +28,9 @@
 		"./bundle": "./wasm/tectonic-bundle.tar.gz",
 		"./packs/index.json": "./wasm/packs/packs-index.json",
 		"./packs/*": "./wasm/packs/*",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./bundle-manifest.json": "./bundle-manifest.json",
+		"./packs.config.json": "./packs.config.json"
 	},
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",

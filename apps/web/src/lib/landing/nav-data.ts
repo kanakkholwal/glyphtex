@@ -18,12 +18,15 @@ const PRIVACY: NavLink = { label: "Privacy", href: "/privacy" };
 const BLOG: NavLink = { label: "Blog", href: "/blog" };
 const DOCS: NavLink = { label: "Docs", href: "/docs" };
 const ABOUT: NavLink = { label: "About", href: "/about" };
+const DEVELOPERS: NavLink = { label: "Developers", href: "/developers" };
+const PACKAGES: NavLink = { label: "LaTeX packages", href: "/packages" };
 
 export const navLinks: NavLink[] = [TEMPLATES, DOCS, { label: "Errors", href: "/errors" }, BLOG];
 
 export const footerCols: { title: string; links: NavLink[] }[] = [
 	{ title: "Product", links: [TRY, WHY, TEMPLATES, FAQ] },
-	{ title: "Learn", links: [DOCS, ERRORS, BLOG, ENGINE] },
+	{ title: "Learn", links: [DOCS, ERRORS, PACKAGES, BLOG] },
+	{ title: "Developers", links: [DEVELOPERS, ENGINE] },
 	{ title: "Get started", links: [WORKSPACE, TEMPLATES, DOWNLOAD] },
 	{
 		title: "Project",
