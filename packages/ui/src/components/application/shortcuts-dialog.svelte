@@ -56,7 +56,7 @@
 												<span class="text-muted-foreground text-xs">or</span>
 											{/if}
 											{#each caps(combo) as cap (cap)}
-												<kbd class={shortcutCap({ size: 'md' })}>{cap}</kbd>
+												<kbd class={shortcutCap()}>{cap}</kbd>
 											{/each}
 										{/each}
 									</span>

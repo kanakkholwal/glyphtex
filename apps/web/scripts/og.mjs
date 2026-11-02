@@ -4,7 +4,16 @@ import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "n
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { render } from "takumi-js";
+import { TEMPLATE_CATALOG } from "../../../packages/ui/src/lib/project-templates/catalog.ts";
 import { OG_HEIGHT, OG_WIDTH, ogFile } from "../src/lib/seo/og.ts";
+import {
+	LATEX_COMMANDS,
+	LATEX_ENVIRONMENTS,
+	LATEX_PACKAGES
+} from "../../../packages/ui/src/lib/editor/latex-data.ts";
+import { hasPackagePage, packageCoverage } from "../src/lib/packages/coverage.ts";
+import { packagesIn } from "../src/lib/templates/packages.ts";
+import { templatePath } from "../src/lib/templates/slug.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = "glyphtex.nexonauts.com";
@@ -135,6 +144,40 @@ const tags = [...new Set(posts.flatMap((p) => p.tags))].map((tag) => ({
 	description: `Writing on ${tag} from the GlyphTeX blog.`
 }));
 
+// Only originals: Overleaf-sourced template pages are noindex, and noindex pages get no card.
+const templates = TEMPLATE_CATALOG.filter((t) => t.origin === "glyphtex").map((t) => ({
+	path: templatePath(t.id),
+	eyebrow: "LaTeX template",
+	title: t.title,
+	tail: "",
+	description: t.description
+}));
+
+const sourcesDir = join(root, "../../packages/ui/src/lib/project-templates/sources");
+const coverage = packageCoverage(
+	LATEX_PACKAGES,
+	LATEX_COMMANDS,
+	LATEX_ENVIRONMENTS,
+	TEMPLATE_CATALOG.map((t) => packagesIn(readFileSync(join(sourcesDir, `${t.id}.tex`), "utf8")))
+);
+const packagePages = [
+	{
+		path: "/packages",
+		eyebrow: "Reference",
+		title: "LaTeX packages",
+		tail: "and what they add.",
+		description:
+			"What each package is for, its commands and environments, and templates that use it."
+	},
+	...LATEX_PACKAGES.filter((p) => hasPackagePage(coverage.get(p.name))).map((p) => ({
+		path: `/packages/${p.name}`,
+		eyebrow: "LaTeX package",
+		title: p.name,
+		tail: "",
+		description: p.detail
+	}))
+];
+
 const escapeHtml = (s) =>
 	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const clamp = (s, n) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
@@ -202,7 +245,7 @@ const fonts = await Promise.all(
 	})
 );
 
-const all = [...PAGES, ...posts, ...docs, ...tags];
+const all = [...PAGES, ...posts, ...docs, ...tags, ...templates, ...packagePages];
 for (const entry of all) {
 	const png = await render(card(entry), {
 		width: OG_WIDTH,

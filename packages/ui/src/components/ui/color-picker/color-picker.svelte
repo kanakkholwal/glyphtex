@@ -35,7 +35,7 @@
 		swatches = ["#7dd3fc", "#a78bfa", "#86efac", "#fcd34d", "#fda4af", "#f87171", "#e5e7eb"],
 		label = "Colour",
 		variant = "field",
-		size = "md",
+		size = "default",
 		invalid = false,
 		disabled = false,
 		id,

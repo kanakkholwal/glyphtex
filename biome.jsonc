@@ -25,7 +25,9 @@
 			"!packages/tex-engine/src/generated",
 			// Rust, plus the tectonic/emsdk submodules' vendored JS.
 			"!crates",
-			"!pnpm-lock.yaml"
+			"!pnpm-lock.yaml",
+			// Written by @baby-ui/cli on every add or update.
+			"!**/.baby-ui"
 		]
 	},
 	"formatter": {

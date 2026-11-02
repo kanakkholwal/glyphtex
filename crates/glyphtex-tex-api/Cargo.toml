@@ -1,6 +1,6 @@
 [package]
 name = "glyphtex-tex-api"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "Typed API surface and TeX log parsing for the GlyphTeX TeX engine"
 license = "MIT"

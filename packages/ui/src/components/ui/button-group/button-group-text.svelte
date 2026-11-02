@@ -1,31 +1,29 @@
 <script lang="ts">
-	import { cn, type WithElementRef } from "@glyphtex/ui/utils";
-	import type { HTMLAttributes } from "svelte/elements";
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { buttonGroup } from "./variants";
 
 	let {
 		ref = $bindable(null),
-		class: className,
+		class: classProp,
 		child,
-		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
+		children,
+		...rest
+	}: HTMLAttributes<HTMLDivElement> & {
+		ref?: HTMLDivElement | null;
 		child?: Snippet<[{ props: Record<string, unknown> }]>;
 	} = $props();
 
-	const mergedProps = $derived({
-		...restProps,
-		class: cn(
-			"bg-muted gap-2 rounded-lg border px-2.5 text-sm font-medium [&_svg:not([class*='size-'])]:size-4 flex items-center [&_svg]:pointer-events-none",
-			className
-		),
+	const merged = $derived({
+		...rest,
+		class: cn(buttonGroup().text(), classProp),
 		"data-slot": "button-group-text"
 	});
 </script>
 
 {#if child}
-	{@render child({ props: mergedProps })}
+	{@render child({ props: merged })}
 {:else}
-	<div bind:this={ref} {...mergedProps}>
-		{@render mergedProps.children?.()}
-	</div>
+	<div bind:this={ref} {...merged}>{@render children?.()}</div>
 {/if}

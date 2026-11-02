@@ -12,7 +12,7 @@
 
 	let {
 		shortcut,
-		size = "md",
+		size = "default",
 		variant = "default",
 		joined = false,
 		ontrigger,

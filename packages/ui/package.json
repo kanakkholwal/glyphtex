@@ -133,6 +133,22 @@
 			"svelte": "./src/components/ui/textarea/index.ts",
 			"default": "./src/components/ui/textarea/index.ts"
 		},
+		"./image": {
+			"svelte": "./src/lib/image.ts",
+			"default": "./src/lib/image.ts"
+		},
+		"./showcase-card": {
+			"svelte": "./src/components/ui/showcase-card/index.ts",
+			"default": "./src/components/ui/showcase-card/index.ts"
+		},
+		"./code-block": {
+			"svelte": "./src/components/ui/code-block/index.ts",
+			"default": "./src/components/ui/code-block/index.ts"
+		},
+		"./copy-button": {
+			"svelte": "./src/components/ui/copy-button/index.ts",
+			"default": "./src/components/ui/copy-button/index.ts"
+		},
 		"./tooltip": {
 			"svelte": "./src/components/ui/tooltip/index.ts",
 			"default": "./src/components/ui/tooltip/index.ts"

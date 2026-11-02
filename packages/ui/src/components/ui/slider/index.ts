@@ -15,6 +15,7 @@ export {
 	sliderRulerOffset,
 	sliderRulerValueAt
 } from "./core";
+export { attachElastic } from "./elastic";
 export {
 	slider,
 	type SliderSize,

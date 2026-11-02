@@ -2,15 +2,16 @@
 	import { RadioGroup as RadioGroupPrimitive } from "bits-ui";
 	import type { Snippet } from "svelte";
 	import { cn } from "../../../lib/cn.js";
-	import { setRadioGroupItemContext } from "./context";
+	import { attachRadioPill } from "./glide";
 	import { type RadioOrientation, type RadioSize, type RadioVariant, radioGroup } from "./variants";
+	import { setRadioGroupItemContext } from "./context";
 
 	let {
 		children,
 		value = $bindable(""),
 		orientation = "vertical",
 		variant = "default",
-		size = "md",
+		size = "default",
 		disabled = false,
 		name,
 		class: classProp,
@@ -34,16 +35,25 @@
 			return variant;
 		}
 	});
+
+	let root = $state<HTMLElement | null>(null);
+	let pill = $state<HTMLSpanElement | null>(null);
+	$effect(() => {
+		if (variant !== "list" || !root || !pill) return;
+		return attachRadioPill(root, pill);
+	});
 </script>
 
 <RadioGroupPrimitive.Root
 	{...rest}
+	bind:ref={root}
 	bind:value
-	{orientation}
+	orientation={orientation === "grid" ? "vertical" : orientation}
 	{disabled}
 	{name}
 	data-slot="radio-group"
-	class={cn(radioGroup({ orientation }).root(), disabled && "opacity-50", classProp)}
+	class={cn(radioGroup({ orientation, variant }).root(), disabled && "opacity-50", classProp)}
 >
+	{#if variant === "list"}<span bind:this={pill} aria-hidden="true" class={radioGroup({ variant }).pill()}></span>{/if}
 	{@render children?.()}
 </RadioGroupPrimitive.Root>

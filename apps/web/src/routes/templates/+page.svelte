@@ -14,8 +14,8 @@
 
 	const credits = [
 		{
-			title: "Named on every card",
-			body: "Author, licence and a link to the original page, before you use it."
+			title: "Named before you use it",
+			body: "Every card names the author and licence; each template's page links to the original."
 		},
 		{
 			title: "Kept in your project",

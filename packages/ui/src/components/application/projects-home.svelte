@@ -63,7 +63,10 @@
 	import { fade, fly } from 'svelte/transition';
 	import AboutDialog from './about-dialog.svelte';
 	import { motionMs as ms } from './motion';
-	import { TEMPLATE_CATEGORIES, type ProjectTemplate } from '../../lib/project-templates';
+	import type { ProjectTemplate } from '../../lib/project-templates';
+	import { TemplateFilter } from '../../lib/project-templates/filter.svelte';
+	import TemplateCard, { type TemplateCardPreview } from './template-card.svelte';
+	import TemplateFilterBar from './template-filter-bar.svelte';
 
 	/** Home screen for every project. The host owns the data and every action; an absent
 	 *  handler hides its control (folder actions are desktop-only). */
@@ -89,6 +92,7 @@
 		loading = false,
 		templates = [],
 		templatesLoading = false,
+		templatePreview,
 		onusetemplate
 	}: {
 		/** Drives the About dialog's platform line and the drop hint. */
@@ -128,6 +132,8 @@
 		templates?: ProjectTemplate[];
 		/** The catalog chunk is still loading. */
 		templatesLoading?: boolean;
+		/** First-page image per template id; absent shows a placeholder sheet. */
+		templatePreview?: (id: string) => TemplateCardPreview | null;
 		/** Create a project from a template. Return the new id to have the home open it. */
 		onusetemplate?: (id: string) => string | void | Promise<string | void>;
 	} = $props();
@@ -148,7 +154,8 @@
 
 	// "/" focuses search, except while typing, so it can still go into a project name.
 	function onWindowKeydown(e: KeyboardEvent) {
-		if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+		// The template gallery's filter bar owns "/" in that scope.
+		if (scope === 'templates' || e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
 		const t = e.target as HTMLElement | null;
 		if (t?.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t?.tagName ?? '')) return;
 		e.preventDefault();
@@ -230,35 +237,8 @@
 	// Search, sort and view only when there is something to act on; the empty state says the rest.
 	const showTools = $derived(loading || query.trim() !== '' || scoped.length > 0);
 
-	let templateQuery = $state('');
-	let templateCategory = $state<string>('all');
+	const templateFilter = new TemplateFilter(() => templates);
 	let usingTemplate = $state<string | null>(null);
-
-	const templateCounts = $derived.by(() => {
-		const acc: Record<string, number> = {};
-		for (const t of templates) acc[t.category] = (acc[t.category] ?? 0) + 1;
-		return acc;
-	});
-	const templateTabs = $derived([
-		{ id: 'all', label: 'All', count: templates.length },
-		...TEMPLATE_CATEGORIES.filter((c) => templateCounts[c.id]).map((c) => ({
-			id: c.id as string,
-			label: c.label,
-			count: templateCounts[c.id]
-		}))
-	]);
-	const visibleTemplates = $derived.by(() => {
-		const q = templateQuery.trim().toLowerCase();
-		return templates.filter(
-			(t) =>
-				(templateCategory === 'all' || t.category === templateCategory) &&
-				(!q ||
-					t.title.toLowerCase().includes(q) ||
-					t.description.toLowerCase().includes(q) ||
-					t.author.toLowerCase().includes(q))
-		);
-	});
-	const categoryLabel = (id: string) => TEMPLATE_CATEGORIES.find((c) => c.id === id)?.label ?? id;
 
 	async function useTemplate(id: string) {
 		if (usingTemplate) return;
@@ -776,98 +756,61 @@
 				{#if scope === 'templates' && templatesLoading}
 					<div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3" aria-busy="true" aria-label="Loading templates" role="status">
 						{#each { length: 8 } as _, i (i)}
-							<div class="border-border flex animate-pulse flex-col gap-3 rounded-2xl border p-4" style:animation-delay={`${i * 70}ms`}>
-								<div class="bg-muted h-3 w-1/3 rounded-full"></div>
-								<div class="bg-muted h-4 w-4/5 rounded-full"></div>
-								<div class="bg-muted h-3 w-full rounded-full"></div>
-								<div class="bg-muted h-10 w-full rounded-lg"></div>
+							<div class="border-border flex animate-pulse flex-col overflow-hidden rounded-2xl border" style:animation-delay={`${i * 70}ms`}>
+								<div class="bg-card aspect-[4/3]"></div>
+								<div class="border-border flex flex-col gap-2 border-t p-3.5">
+									<div class="bg-muted h-3.5 w-3/5 rounded-full"></div>
+									<div class="bg-muted h-3 w-2/5 rounded-full"></div>
+								</div>
 							</div>
 						{/each}
 					</div>
 				{:else if scope === 'templates' && templates.length > 0}
 					<section aria-label="Template gallery" class="mt-6">
-						<div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-							<div class="no-scrollbar -mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1" role="group" aria-label="Filter templates by use">
-								{#each templateTabs as tab (tab.id)}
-									{@const active = templateCategory === tab.id}
-									<button
-										class="focus-visible:ring-ring flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2 {active
-											? 'bg-primary text-primary-foreground border-transparent'
-											: 'border-border text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground'}"
-										aria-pressed={active}
-										onclick={() => (templateCategory = tab.id)}
-									>
-										{tab.label}
-										<span class="font-mono text-xs tabular-nums {active ? '' : 'text-muted-foreground'}">{tab.count}</span>
-									</button>
-								{/each}
-							</div>
-							<div class="relative w-full lg:w-64">
-								<IconSearch size={16} class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2" aria-hidden="true" />
-								<input
-									bind:value={templateQuery}
-									type="search"
-									class="bg-background border-border text-foreground placeholder:text-placeholder focus-visible:border-ring focus-visible:ring-ring h-10 w-full rounded-lg border py-1 pr-3 pl-9 text-sm outline-none focus-visible:ring-2"
-									placeholder="Search templates"
-									spellcheck="false"
-									aria-label="Search templates"
-								/>
-							</div>
-						</div>
+						<TemplateFilterBar filter={templateFilter} />
 
-						<p class="text-muted-foreground mt-4 font-mono text-xs" aria-live="polite">
-							{visibleTemplates.length} {visibleTemplates.length === 1 ? 'template' : 'templates'} · each keeps its author's licence and credit
-						</p>
-
-						{#if visibleTemplates.length === 0}
+						{#if templateFilter.visible.length === 0}
 							<div class="border-border mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center">
-								<p class="text-foreground text-md font-medium">No templates match “{templateQuery}”</p>
-								<Button variant="outline" onclick={() => { templateQuery = ''; templateCategory = 'all'; }}>
+								<p class="text-foreground text-md font-medium">
+									{templateFilter.query.trim() ? `No templates match “${templateFilter.query.trim()}”` : 'No templates in this view'}
+								</p>
+								<Button variant="outline" onclick={() => templateFilter.clear()}>
 									<IconX /> Clear filters
 								</Button>
 							</div>
 						{:else}
-							<ul class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3" aria-label="Templates">
-								{#each visibleTemplates as t (t.id)}
-									<li class="border-border bg-background hover:border-border-strong flex flex-col gap-3 rounded-2xl border p-4 transition-[border-color] duration-(--duration-base) ease-(--ease-out)">
-										<div class="flex items-center justify-between gap-2">
-											<span class="text-muted-foreground font-mono text-xs">{categoryLabel(t.category)}</span>
-											<span class="text-muted-foreground font-mono text-xs">{t.documentClass}</span>
-										</div>
-										<div class="min-w-0 flex-1">
-											<h3 class="text-foreground line-clamp-2 text-md font-medium">{t.title}</h3>
-											{#if t.description}
-												<p class="text-muted-foreground mt-1 line-clamp-3 text-sm">{t.description}</p>
-											{/if}
-										</div>
-										<p class="text-muted-foreground border-border truncate border-t border-dashed pt-3 font-mono text-xs" title={`${t.author} · ${t.license}`}>
-											by <span class="text-foreground">{t.author}</span> · {t.license.replace('Creative Commons ', '')}
-										</p>
-										<div class="flex items-center gap-2">
-											<Button
-												variant="outline"
-												size="sm"
-												class="flex-1"
-												loading={usingTemplate === t.id}
-												loadingLabel="Creating…"
-												disabled={usingTemplate !== null && usingTemplate !== t.id}
-												onclick={() => useTemplate(t.id)}
-											>
-												Use template
-											</Button>
-											<Button
-												href={t.sourceUrl}
-												target="_blank"
-												rel="noopener noreferrer"
-												variant="ghost"
-												size="icon-sm"
-												aria-label={`Original source of ${t.title}`}
-												title="Original source"
-											>
-												<IconExternalLink />
-											</Button>
-										</div>
-									</li>
+							<ul class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4" aria-label="Templates">
+								{#each templateFilter.visible as t, i (t.id)}
+									<TemplateCard template={t} preview={templatePreview?.(t.id) ?? null} priority={i < 4}>
+										{#snippet action()}
+											<div class="flex items-center gap-1">
+												{#if t.origin === 'overleaf'}
+													<Button
+														href={t.sourceUrl}
+														target="_blank"
+														rel="noopener noreferrer"
+														variant="ghost"
+														size="icon-sm"
+														aria-label={`Original source of ${t.title}`}
+														title="Original source"
+													>
+														<IconExternalLink />
+													</Button>
+												{/if}
+												<Button
+													variant="outline"
+													size="sm"
+													loading={usingTemplate === t.id}
+													loadingLabel="Creating…"
+													disabled={usingTemplate !== null && usingTemplate !== t.id}
+													aria-label={`Use the ${t.title} template`}
+													onclick={() => useTemplate(t.id)}
+												>
+													Use
+												</Button>
+											</div>
+										{/snippet}
+									</TemplateCard>
 								{/each}
 							</ul>
 						{/if}
@@ -925,7 +868,7 @@
 									</button>
 								{:else}
 									<kbd
-										class="{shortcutCap({ size: 'md' })} pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2"
+										class="{shortcutCap()} pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2"
 										aria-hidden="true">/</kbd
 									>
 								{/if}

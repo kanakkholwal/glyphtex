@@ -1,5 +1,12 @@
 export { default as Workbench, type ViewMode } from "./workbench.svelte";
 export { default as ProjectsHome, type Project, type Scope } from "./projects-home.svelte";
+export { default as TemplateCard, type TemplateCardPreview } from "./template-card.svelte";
+export { default as TemplateFilterBar } from "./template-filter-bar.svelte";
+export {
+	TemplateFilter,
+	type TemplateSource,
+	type TemplateTab
+} from "../../lib/project-templates/filter.svelte";
 export { default as CodeEditor } from "./code-editor.svelte";
 export { default as SidePanel } from "./side-panel.svelte";
 export { default as FormatToolbar } from "./format-toolbar.svelte";

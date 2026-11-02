@@ -7,7 +7,11 @@ export const themeToggle = tv({
 			rectangle: "",
 			circle: "",
 			"circle-blur": "",
-			blinds: ""
+			blinds: "",
+			// A disc sweeps across from the start side, the halves part from the centre, or the page rises in.
+			eclipse: "",
+			split: "",
+			rise: ""
 		},
 		start: {
 			"top-left": "",

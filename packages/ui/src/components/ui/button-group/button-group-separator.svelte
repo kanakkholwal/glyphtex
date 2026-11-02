@@ -1,13 +1,14 @@
 <script lang="ts">
-	import { cn } from "@glyphtex/ui/utils";
 	import type { ComponentProps } from "svelte";
-	import { Separator } from "../separator";
+	import { cn } from "../../../lib/cn.js";
+	import Separator from "../separator/separator.svelte";
+	import { buttonGroup } from "./variants";
 
 	let {
 		ref = $bindable(null),
-		class: className,
+		class: classProp,
 		orientation = "vertical",
-		...restProps
+		...rest
 	}: ComponentProps<typeof Separator> = $props();
 </script>
 
@@ -15,9 +16,6 @@
 	bind:ref
 	data-slot="button-group-separator"
 	{orientation}
-	class={cn(
-		'bg-border relative self-stretch data-[orientation=horizontal]:mx-px data-[orientation=horizontal]:w-auto data-[orientation=vertical]:my-px data-[orientation=vertical]:h-auto',
-		className
-	)}
-	{...restProps}
+	class={cn(buttonGroup().separator(), classProp)}
+	{...rest}
 />

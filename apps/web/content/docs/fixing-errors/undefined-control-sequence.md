@@ -62,8 +62,8 @@ The command is real, but the package that defines it was never loaded.
 | `\SI`, `\num` | `siunitx` |
 | `\toprule`, `\midrule` | `booktabs` |
 
-:::callout{type=tip title="Package fetch"}
-In the GlyphTeX browser engine, adding `\usepackage` fetches the package on the next compile automatically. There is nothing to install by hand.
+:::callout{type=tip title="Packages in GlyphTeX"}
+If the package is not in the base engine, GlyphTeX shows a **Missing packages** notice naming the package set that has it. One click adds it, and it stays installed for later compiles.
 :::
 
 ## Cause 3: a custom command used too early

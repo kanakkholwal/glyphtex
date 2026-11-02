@@ -1,3 +1,4 @@
 
 # Bundled test fixtures, rebuilt by `pnpm test`.
 test/.build/
+.baby-ui

@@ -5,12 +5,12 @@ export const spinnerIcon = tv({
 	variants: {
 		size: {
 			sm: "size-3.5",
-			md: "size-5",
+			default: "size-5",
 			lg: "size-8",
 			xl: "size-12"
 		}
 	},
-	defaultVariants: { size: "md" }
+	defaultVariants: { size: "default" }
 });
 
 export type SpinnerSize = NonNullable<VariantProps<typeof spinnerIcon>["size"]>;

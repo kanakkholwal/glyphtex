@@ -39,7 +39,7 @@ html[data-theme-reveal="blinds"]::view-transition-new(root) {
 	mix-blend-mode: normal;
 	mask-repeat: repeat;
 	mask-composite: intersect;
-	animation: theme-reveal-blinds 700ms var(--ease-out);
+	animation: theme-reveal-blinds 700ms var(--ease-ui-out);
 }
 html[data-theme-reveal="blinds"][data-theme-reveal-start="top-left"]::view-transition-new(root) {
 	mask-image: linear-gradient(90deg, #000 0 var(--theme-reveal-slat), transparent calc(var(--theme-reveal-slat) + 20px)), linear-gradient(180deg, #000 0 var(--theme-reveal-slat), transparent calc(var(--theme-reveal-slat) + 20px));
@@ -64,6 +64,67 @@ html[data-theme-reveal="blinds"][data-theme-reveal-start="center"]::view-transit
 html[data-theme-reveal="blinds"][data-theme-reveal-start="bottom-up"]::view-transition-new(root) {
 	mask-image: linear-gradient(0deg, #000 0 var(--theme-reveal-slat), transparent calc(var(--theme-reveal-slat) + 20px));
 	mask-size: 100% 72px;
+}
+html[data-theme-reveal="eclipse"]::view-transition-old(root),
+html[data-theme-reveal="split"]::view-transition-old(root) {
+	animation: none;
+	mix-blend-mode: normal;
+}
+html[data-theme-reveal="eclipse"]::view-transition-new(root) {
+	mix-blend-mode: normal;
+	animation: theme-reveal-eclipse 800ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+html[data-theme-reveal="eclipse"][data-theme-reveal-start$="right"]::view-transition-new(root) {
+	animation-name: theme-reveal-eclipse-right;
+}
+html[data-theme-reveal="split"]::view-transition-new(root) {
+	mix-blend-mode: normal;
+	animation: theme-reveal-split 600ms var(--ease-ui-out);
+}
+html[data-theme-reveal="rise"]::view-transition-old(root) {
+	mix-blend-mode: normal;
+	animation: theme-reveal-sink 320ms ease-in both;
+}
+html[data-theme-reveal="rise"]::view-transition-new(root) {
+	mix-blend-mode: normal;
+	animation: theme-reveal-rise 520ms var(--ease-ui-out) 80ms both;
+}
+@keyframes theme-reveal-eclipse {
+	from {
+		clip-path: circle(110vmax at -110vmax 50%);
+	}
+	to {
+		clip-path: circle(110vmax at 50% 50%);
+	}
+}
+@keyframes theme-reveal-eclipse-right {
+	from {
+		clip-path: circle(110vmax at calc(100% + 110vmax) 50%);
+	}
+	to {
+		clip-path: circle(110vmax at 50% 50%);
+	}
+}
+@keyframes theme-reveal-split {
+	from {
+		clip-path: inset(0 50% 0 50%);
+	}
+	to {
+		clip-path: inset(0 0 0 0);
+	}
+}
+@keyframes theme-reveal-sink {
+	to {
+		opacity: 0;
+		filter: blur(4px);
+	}
+}
+@keyframes theme-reveal-rise {
+	from {
+		opacity: 0;
+		translate: 0 3vh;
+		filter: blur(6px);
+	}
 }
 @keyframes theme-reveal-rect {
 	from {
@@ -148,8 +209,13 @@ export function runThemeReveal(
 	if (variant === "rectangle") {
 		root.style.setProperty("--theme-reveal-from", RECT_FROM[start]);
 		root.dataset.themeReveal = "rect";
-	} else if (variant === "blinds") {
-		root.dataset.themeReveal = "blinds";
+	} else if (
+		variant === "blinds" ||
+		variant === "eclipse" ||
+		variant === "split" ||
+		variant === "rise"
+	) {
+		root.dataset.themeReveal = variant;
 		root.dataset.themeRevealStart = start;
 	} else {
 		root.style.setProperty("--theme-reveal-origin", CIRCLE_ORIGIN[start]);

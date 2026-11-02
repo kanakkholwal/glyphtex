@@ -328,7 +328,8 @@ jobs:
           pnpm install --ignore-workspace --frozen-lockfile=false
           pnpm build
           pnpm sync:wasm
-          npm version "${{ steps.version.outputs.value }}" --no-git-tag-version
+          # --allow-same-version: the committed version may already match the tag.
+          npm version "${{ steps.version.outputs.value }}" --no-git-tag-version --allow-same-version
 
       # Versions on npm are immutable, so a manual re-run after a partial release
       # would otherwise fail on the publish step alone.

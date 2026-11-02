@@ -14,6 +14,11 @@
 	const errorCategory = $derived(
 		data.guides.find((g) => g.kind === "docs" && /error|fix/i.test(g.category))?.category ?? "all"
 	);
+	const errorGuideCount = $derived(
+		errorCategory === "all"
+			? data.guides.length
+			: data.guides.filter((g) => g.category === errorCategory).length
+	);
 </script>
 
 <Seo
@@ -25,7 +30,7 @@
 <RailFrame>
 	<RailRow divider={false} label="Search LaTeX error guides" section="errors_search" class="gap-10">
 		<PageHero
-			badge="{data.guides.length} guides, written for this editor · Free"
+			badge="{errorGuideCount} error {errorGuideCount === 1 ? 'guide' : 'guides'}, written for this editor · Free"
 			title="Stuck on a LaTeX error"
 			accent="today?"
 			lede="Search the guides, or pick a topic to browse."

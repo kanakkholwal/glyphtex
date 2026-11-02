@@ -4,18 +4,21 @@
 	import { track } from "$lib/analytics";
 	import { navLinks, REPO_URL } from "$lib/landing/nav-data";
 	import { openSiteCommand } from "$lib/site/command";
+	import { repoStars } from "$lib/stars.svelte";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
 	import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@glyphtex/ui/sheet";
 	import { shortcutCap } from "@glyphtex/ui/shortcut";
 	import { ThemeToggle } from "@glyphtex/ui/theme-toggle";
 	import { IconBrandGithub, IconMenu2, IconSearch } from "@tabler/icons-svelte";
+	import { onMount } from "svelte";
 
 	const home = resolve("/");
 	const format = new Intl.NumberFormat("en", { notation: "compact" });
 
-	// From the root layout; null hides the count rather than showing a guess.
-	const stars = $derived(typeof page.data.stars === "number" ? page.data.stars : null);
+	// Client-side so every page, prerendered or not, shows the same live count; null hides it.
+	const stars = $derived(repoStars.value);
+	onMount(() => repoStars.load());
 
 	let menuOpen = $state(false);
 	// Apple glyph after hydration only; SSR and first paint say Ctrl.
@@ -88,8 +91,8 @@
 			<IconSearch class="size-4" aria-hidden="true" />
 			Search
 			<span class="flex items-center gap-1" aria-hidden="true">
-				<kbd class={shortcutCap({ size: 'md' })}>{mod}</kbd>
-				<kbd class={shortcutCap({ size: 'md' })}>K</kbd>
+				<kbd class={shortcutCap()}>{mod}</kbd>
+				<kbd class={shortcutCap()}>K</kbd>
 			</span>
 		</button>
 		<span aria-hidden="true" class="mx-1.5 hidden h-4 w-px bg-border sm:block"></span>
