@@ -56,7 +56,7 @@
 		"typescript": "^6.0.3",
 		"unist-util-visit": "^5.1.0",
 		"vite": "^8.0.16",
-		"wrangler": "^4.42.0",
+		"wrangler": "^4.156.0",
 		"zod": "^4.4.3"
 	}
 }
