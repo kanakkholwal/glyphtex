@@ -142,7 +142,7 @@
 					}
 					disabled={!canManage || saving === "memberAccess"}
 				>
-					<SelectTrigger size="sm" class="min-w-32" aria-label="Default member access">
+					<SelectTrigger size="sm" class="w-auto min-w-32 shrink-0" aria-label="Default member access">
 						{ACCESS.find((a) => a.value === view.policy.memberAccess)?.label}
 					</SelectTrigger>
 					<SelectContent>

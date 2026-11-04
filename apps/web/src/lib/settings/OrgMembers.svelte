@@ -216,7 +216,7 @@
 										}
 										disabled={busy}
 									>
-										<SelectTrigger size="sm" class="min-w-28" aria-label={`Role for ${m.user.email}`}>
+										<SelectTrigger size="sm" class="w-auto min-w-28 shrink-0" aria-label={`Role for ${m.user.email}`}>
 											{roleLabel(m.role)}
 										</SelectTrigger>
 										<SelectContent>
@@ -327,7 +327,7 @@
 				<Input type="email" required bind:value={inviteEmail} placeholder="name@university.edu" />
 			</label>
 			<Select bind:value={() => inviteRole, (v) => (inviteRole = v as Role)}>
-				<SelectTrigger class="min-w-28" aria-label="Role">{roleLabel(inviteRole)}</SelectTrigger>
+				<SelectTrigger class="w-auto min-w-28 shrink-0" aria-label="Role">{roleLabel(inviteRole)}</SelectTrigger>
 				<SelectContent>
 					{#each ROLES.filter((r) => isOwner || r.value !== "owner") as r (r.value)}
 						<SelectItem value={r.value}>{r.label}</SelectItem>

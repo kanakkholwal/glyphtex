@@ -19,7 +19,7 @@
 </script>
 
 <Select bind:value={() => value, (v) => onchange(v as GrantableRole)} {disabled}>
-	<SelectTrigger size="sm" class="min-w-28 text-xs" aria-label={label}>
+	<SelectTrigger size="sm" class="w-auto min-w-28 shrink-0 text-xs" aria-label={label}>
 		{ROLE_OPTIONS.find((o) => o.value === value)?.label ?? value}
 	</SelectTrigger>
 	<SelectContent>
