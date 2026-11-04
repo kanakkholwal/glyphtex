@@ -97,7 +97,7 @@
 					aria-valuenow={Math.round(pct)}
 				>
 					<div class="h-full {low ? 'bg-warning' : 'bg-primary'}" style:width={`${docPct}%`}></div>
-					<div class="bg-border-strong h-full" style:width={`${Math.max(0, pct - docPct)}%`}></div>
+					<div class="bg-muted-foreground h-full" style:width={`${Math.max(0, pct - docPct)}%`}></div>
 				</div>
 				<dl class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-4">
 					<div class="flex flex-col">
@@ -108,7 +108,7 @@
 					</div>
 					<div class="flex flex-col">
 						<dt class="text-muted-foreground flex items-center gap-1.5">
-							<span class="bg-border-strong size-2 rounded-sm" aria-hidden="true"></span>Engine and cache
+							<span class="bg-muted-foreground size-2 rounded-sm" aria-hidden="true"></span>Engine and cache
 						</dt>
 						<dd class="text-foreground tabular-nums">{formatBytes(Math.max(0, status.usage - documents))}</dd>
 					</div>
