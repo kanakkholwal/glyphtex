@@ -92,7 +92,7 @@
 
 	// Same card as a toast (radius, border, floating shadow, 16px icon): one notification language.
 	const card =
-		"border-border bg-popover text-popover-foreground pointer-events-auto flex items-start gap-3 rounded-xl border p-3 shadow-lg";
+		"border-border bg-popover text-popover-foreground pointer-events-auto flex items-start gap-3 rounded-xl border p-3 shadow-(--overlay-shadow)";
 
 	// Svelte transitions bypass the CSS reduced-motion guard.
 	const reduced = new MediaQuery("prefers-reduced-motion: reduce");

@@ -15,6 +15,8 @@ export type Project = {
 	updatedAt: number;
 	/** Pinned by the user; drives the Starred scope on the home screen. */
 	starred?: boolean;
+	/** Stored on a GlyphTeX server rather than in this browser; `role` is the viewer's. */
+	cloud?: { role: "owner" | "editor" | "commenter" | "viewer" };
 };
 
 const STARTER_TEX = String.raw`% ${""}New document

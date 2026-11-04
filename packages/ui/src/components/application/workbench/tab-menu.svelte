@@ -127,7 +127,7 @@
 
 <div
 	bind:this={menu}
-	class="border-border bg-popover glyphtex-tab-menu fixed z-50 rounded-lg border p-1 shadow-lg"
+	class="border-border bg-popover glyphtex-tab-menu fixed z-50 rounded-lg border p-1 shadow-(--overlay-shadow)"
 	style:left="{left}px"
 	style:top="{top}px"
 	style:width="{WIDTH}px"

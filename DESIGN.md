@@ -25,9 +25,11 @@ restore its one-line re-export of `cn` from `./utils`. Add the package export in
 
 - Neutrals are baby-ui's (white page, `oklch(17%)` dark). Surfaces: `background`, `card`, `muted`, `popover`;
   ink: `foreground`, `muted-foreground`; hairline: `border`.
-- The accent is GlyphTeX blue in baby-ui's `--accent` slot (`--primary` aliases it): `#025eb8` light (6.37:1 on
+- GlyphTeX blue is `--brand`, fed into `--primary`, `--ring` and `--accent-ink`: `#025eb8` light (6.37:1 on
   white), `#59aaf8` dark (8.04:1 on `#0a0a0a`). Use it for the one primary action per page, links in body copy,
   focus rings, selected states and section numbers (`text-accent-ink`). Never a large flat background.
+- `--accent` is baby-ui's own neutral hover fill (its components use `bg-accent` for hover and open states).
+  GlyphTeX does not override it.
 - Status colours (`success`, `warning`, `destructive`, `info`) only for real status; text uses the `-strong`
   form and always pairs with a glyph or a word.
 - No hex in components, no palette colours, no gradients, glows or dot grids, no opacity on text tokens.
@@ -81,6 +83,6 @@ restore its one-line re-export of `cn` from `./utils`. Add the package export in
 ## Don'ts
 
 - Don't edit `registry.css` by hand or add tokens anywhere but `app.css`.
-- Don't use `bg-accent` as a hover fill (it is the brand blue); use `bg-foreground/[0.03|0.06]` or `bg-muted`.
+- Don't put a brand colour in `--accent`: baby-ui components hover with `bg-accent`. Brand goes in `--primary`.
 - Don't gate server-rendered content behind JS (no opacity-0-until-hydrated reveals).
 - Don't add a second icon set: `@tabler/icons-svelte` only.

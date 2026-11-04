@@ -163,7 +163,7 @@
 
 	{#if more}
 		<div
-			class="border-border bg-popover absolute top-full right-0 z-50 mt-1 w-52 rounded-lg border p-1 shadow-lg"
+			class="border-border bg-popover absolute top-full right-0 z-50 mt-1 w-52 rounded-lg border p-1 shadow-(--overlay-shadow)"
 			role="menu"
 			aria-label="More formatting"
 		>

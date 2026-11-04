@@ -255,7 +255,7 @@
 							role="presentation"
 						></div>
 						<div
-							class="border-border bg-popover absolute right-0 z-50 mt-1 w-64 overflow-hidden rounded-lg border shadow-lg"
+							class="border-border bg-popover absolute right-0 z-50 mt-1 w-64 overflow-hidden rounded-lg border shadow-(--overlay-shadow)"
 						>
 							<div class="max-h-56 overflow-y-auto py-1">
 								{#each imageFiles as name (name)}
@@ -417,7 +417,7 @@
 					role="presentation"
 				></div>
 				<div
-					class="border-border bg-popover absolute right-0 bottom-full z-50 mb-1 w-64 rounded-lg border p-2.5 shadow-lg"
+					class="border-border bg-popover absolute right-0 bottom-full z-50 mb-1 w-64 rounded-lg border p-2.5 shadow-(--overlay-shadow)"
 					role="dialog"
 					aria-label="Float options"
 				>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "../../../lib/cn.js";
-	import RollingDigits from "../../text/rolling-digits/rolling-digits.svelte";
+	import RollingDigits from "../../../components/text/rolling-digits/rolling-digits.svelte";
 
 	let {
 		value,

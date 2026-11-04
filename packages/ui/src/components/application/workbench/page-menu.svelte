@@ -148,6 +148,7 @@
 			<DropdownMenuCheckboxItem
 				checked={settings.lineWrapping}
 				onCheckedChange={(v) => (settings.lineWrapping = v)}
+				indicator="end"
 			>
 				<IconTextWrap class="text-muted-foreground" /> Wrap long lines
 			</DropdownMenuCheckboxItem>
@@ -179,6 +180,7 @@
 		<DropdownMenuCheckboxItem
 			checked={ctrl.compile.showProblems}
 			onCheckedChange={(v) => (ctrl.compile.showProblems = v)}
+			indicator="end"
 		>
 			<IconLayoutBottombar class="text-muted-foreground" /> Bottom panel
 		</DropdownMenuCheckboxItem>

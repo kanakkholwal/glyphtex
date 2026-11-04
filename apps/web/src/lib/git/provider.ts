@@ -532,7 +532,7 @@ export function onWorkingTreeChanged(fn: TreeListener): () => void {
 	return () => listeners.delete(fn);
 }
 
-function notifyTreeChanged(projectId: string): void {
+export function notifyTreeChanged(projectId: string): void {
 	for (const fn of listeners) fn(projectId);
 }
 

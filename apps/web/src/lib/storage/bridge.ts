@@ -14,11 +14,17 @@ export function toProjectCard(p: StoredProject): Project {
 		files: p.paths.map((path) => ({ id: path, name: path, content: "" })),
 		createdAt: p.createdAt,
 		updatedAt: p.updatedAt,
-		starred: p.starred
+		starred: p.starred,
+		...(p.remote && {
+			cloud: { role: p.remote.role as "owner" | "editor" | "commenter" | "viewer" }
+		})
 	};
 }
 
-export function toGlyphFiles(files: StoredFile[]): GlyphFile[] {
+/** Any stored file shape: IndexedDB records and server downloads both fit. */
+type FileContent = Pick<StoredFile, "path" | "text" | "data">;
+
+export function toGlyphFiles(files: FileContent[]): GlyphFile[] {
 	return files.map((f) => {
 		const content = f.data ? BINARY_NOTE : (f.text ?? "");
 		return { id: f.path, name: f.path, content, saved: content };
@@ -45,7 +51,7 @@ export function toCompileFiles(files: GlyphFile[], binary: Map<string, Uint8Arra
 	});
 }
 
-export function binaryMap(files: StoredFile[]): Map<string, Uint8Array> {
+export function binaryMap(files: FileContent[]): Map<string, Uint8Array> {
 	const map = new Map<string, Uint8Array>();
 	for (const f of files) if (f.data) map.set(f.path, f.data);
 	return map;

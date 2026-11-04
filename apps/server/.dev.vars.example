@@ -1,0 +1,6 @@
+# Secrets for Cloudflare (wrangler secret put NAME, or the Deploy to Cloudflare form).
+BETTER_AUTH_SECRET=
+RESEND_API_KEY=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_SECRET=
+GITLAB_CLIENT_SECRET=

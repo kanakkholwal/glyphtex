@@ -12,4 +12,4 @@
 	);
 </script>
 
-<WorkspaceHome {scope} />
+<WorkspaceHome {scope} settings={segment === "settings"} />
