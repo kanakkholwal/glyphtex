@@ -21,6 +21,9 @@ export default defineConfig({
 	],
 
 	server: {
+		// Fixed so OAuth redirect URIs and the API's APP_URL stay valid; portless passes PORT.
+		port: Number(process.env.PORT) || 5173,
+		strictPort: true,
 		fs: {
 			// SvelteKit replaces Vite's workspace-root default with its own narrow list
 			// (src, .svelte-kit, node_modules), and `@glyphtex/ui` is a symlink into

@@ -33,14 +33,17 @@ The button provisions KV, R2, Queues and Hyperdrive and asks for the secrets in 
 ```bash
 pnpm --filter @glyphtex/server services     # Postgres, Valkey, S3, Mailpit (ports from .env)
 pnpm --filter @glyphtex/server migrate      # once, and after pulling new migrations
-pnpm --filter @glyphtex/server dev:local    # API at http://api.glyphtex.localhost
+pnpm --filter @glyphtex/server dev:node     # API at http://localhost:8787
 pnpm --filter @glyphtex/server dev:jobs     # emails and file cleanup
 ```
 
 Put `POSTGRES_PORT`, `REDIS_PORT`, `S3_PORT` and `MAILPIT_PORT` in `apps/server/.env`: compose reads them, so
-the containers and the API agree. Set `PUBLIC_GLYPHTEX_SERVER_URL=http://api.glyphtex.localhost` in
-`apps/web/.env` to show sign-in in the web app. Emails land in Mailpit; set
+the containers and the API agree. Set `PUBLIC_GLYPHTEX_SERVER_URL=http://localhost:8787` in
+`apps/web/.env` and run the web app with `pnpm dev:web` (http://localhost:5173). Emails land in Mailpit; set
 `REQUIRE_EMAIL_VERIFICATION=false` to sign up without opening the verification email.
+
+Keep both on plain `localhost`: Google rejects `*.localhost` redirect URIs, and the session cookie
+needs the web app and API on the same site. OAuth callback: `http://localhost:8787/api/auth/callback/<google|github|gitlab>`.
 
 ## Configuration
 

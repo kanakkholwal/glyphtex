@@ -4,8 +4,8 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "cross-env PORTLESS_HTTPS=0 portless",
-		"dev:app": "vite dev",
+		"dev": "vite dev",
+		"dev:portless": "cross-env PORTLESS_HTTPS=0 portless",
 		"build": "node scripts/og.mjs && vite build",
 		"og": "node scripts/og.mjs",
 		"sync:engine": "node ./scripts/sync-engine.mjs",
@@ -19,7 +19,7 @@
 	},
 	"portless": {
 		"name": "web.glyphtex",
-		"script": "dev:app"
+		"script": "dev"
 	},
 	"dependencies": {
 		"@better-fetch/fetch": "^1.3.3",
