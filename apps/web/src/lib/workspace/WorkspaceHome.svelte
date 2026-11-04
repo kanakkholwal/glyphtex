@@ -18,6 +18,7 @@
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
 	import { CloudError, cloud, type ProjectSummary } from "$lib/cloud/api";
 	import { cloudEnabled, cloudHref } from "$lib/cloud/config";
+	import OrgTemplates from "$lib/cloud/OrgTemplates.svelte";
 	import { cloudSession } from "$lib/cloud/session.svelte";
 	import { linkProject } from "$lib/sync/engine";
 	import { sync } from "$lib/sync/sync.svelte";
@@ -538,6 +539,7 @@
 			{templatesLoading}
 			{templatePreview}
 			onusetemplate={createFromTemplate}
+			templatesLead={activeOrgId ? orgTemplatesLead : undefined}
 			onopen={open}
 			onrename={rename}
 			onduplicate={duplicate}
@@ -599,6 +601,10 @@
 {/if}
 
 <CreateOrgDialog bind:open={createOrgOpen} oncreated={() => void refreshRemote()} />
+
+{#snippet orgTemplatesLead()}
+	{#if activeOrgId}<OrgTemplates orgId={activeOrgId} />{/if}
+{/snippet}
 
 {#snippet settingsBody()}
 	<SettingsView />

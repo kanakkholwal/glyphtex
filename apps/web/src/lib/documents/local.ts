@@ -16,7 +16,12 @@ const toMeta = (p: StoredProject): DocumentMeta => ({
 	entry: p.entry,
 	entryConfirmed: p.entryConfirmed,
 	entryCandidates: p.entryCandidates,
-	...(p.remote && { remoteId: p.remote.id, role: p.remote.role, conflicts: p.remote.conflicts })
+	...(p.remote && {
+		remoteId: p.remote.id,
+		role: p.remote.role,
+		orgId: p.remote.orgId ?? undefined,
+		conflicts: p.remote.conflicts
+	})
 });
 
 const canWrite = (p: StoredProject) => !p.remote || ["owner", "editor"].includes(p.remote.role);

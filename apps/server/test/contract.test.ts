@@ -4,6 +4,7 @@ import type * as Contract from "../src/contract.ts";
 import type { MembersResponse } from "../src/contract.ts";
 import type { fileMeta } from "../src/services/files.ts";
 import type { projectService } from "../src/services/projects.ts";
+import type { orgContentService } from "../src/services/org-content.ts";
 import type { orgService } from "../src/services/orgs.ts";
 import type { sharingService } from "../src/services/sharing.ts";
 
@@ -22,6 +23,7 @@ type Resolved<T> = Wire<Awaited<T>>;
 type Projects = Service<typeof projectService>;
 type Sharing = Service<typeof sharingService>;
 type Orgs = Service<typeof orgService>;
+type OrgContent = Service<typeof orgContentService>;
 const checks = {
 	view: null as unknown as Resolved<ReturnType<Projects["view"]>> satisfies Contract.ProjectView,
 	list: null as unknown as Resolved<
@@ -44,9 +46,18 @@ const checks = {
 	> satisfies Contract.MemberFeatures,
 	orgProjects: null as unknown as Resolved<
 		ReturnType<Orgs["projects"]>
-	> satisfies Contract.ProjectSummary[]
+	> satisfies Contract.ProjectSummary[],
+	templates: null as unknown as Resolved<
+		ReturnType<OrgContent["listTemplates"]>
+	> satisfies Contract.OrgTemplate[],
+	fromTemplate: null as unknown as Resolved<
+		ReturnType<OrgContent["useTemplate"]>
+	> satisfies Contract.ProjectSummary,
+	library: null as unknown as Resolved<
+		ReturnType<OrgContent["library"]>
+	> satisfies Contract.OrgLibrary
 };
 
 test("service results match the wire contract (checked by tsc)", () => {
-	assert.equal(Object.keys(checks).length, 12);
+	assert.equal(Object.keys(checks).length, 15);
 });

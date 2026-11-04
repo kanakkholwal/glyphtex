@@ -140,3 +140,23 @@ export interface AuditPage {
 	/** Pass as `before` for the next page; null on the last one. */
 	next: string | null;
 }
+
+export interface OrgTemplate {
+	projectId: string;
+	title: string;
+	description: string;
+	mainFile: string;
+	createdAt: string;
+}
+
+/** Files every compile of the org's projects can use. Binaries are fetched from `library/raw`. */
+export interface OrgLibrary {
+	projectId: string | null;
+	files: {
+		path: string;
+		kind: "text" | "binary";
+		content: string | null;
+		sha256: string;
+		size: number;
+	}[];
+}

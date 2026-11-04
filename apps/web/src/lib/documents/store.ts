@@ -10,6 +10,8 @@ export type DocumentMeta = {
 	/** Linked documents only: the server copy and the viewer's role on it. */
 	remoteId?: string;
 	role?: string;
+	/** The organization a linked document belongs to; its shared packages join every compile. */
+	orgId?: string;
 	/** Paths whose server copy sits beside them after a sync conflict. */
 	conflicts?: string[];
 };

@@ -114,6 +114,7 @@
 		templates = [],
 		templatesLoading = false,
 		templatePreview,
+		templatesLead,
 		onusetemplate,
 		onupload,
 		account,
@@ -162,6 +163,8 @@
 		templatesLoading?: boolean;
 		/** First-page image per template id; absent shows a placeholder sheet. */
 		templatePreview?: (id: string) => TemplateCardPreview | null;
+		/** Host content above the gallery, e.g. an organization's own templates. */
+		templatesLead?: Snippet;
 		/** Create a project from a template. Return the new id to have the home open it. */
 		onusetemplate?: (id: string) => string | void | Promise<string | void>;
 		/** Copy a browser-only project to the server. Absent hides the action. */
@@ -894,6 +897,7 @@
 				{#if page}
 					<div class="mt-8">{@render page.body()}</div>
 				{:else if scope === 'templates'}
+					{#if templatesLead}<div class="mt-8">{@render templatesLead()}</div>{/if}
 					<section aria-labelledby="templates-label" class="mt-8 flex flex-col gap-3">
 						{@render sectionLabel('templates-label', 'Templates', templatesLoading ? null : templates.length)}
 						{#if templatesLoading}

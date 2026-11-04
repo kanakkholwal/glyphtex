@@ -154,6 +154,76 @@ describe("organizations end to end", {
 		await policy(admin, { shareLinks: true, externalInvites: true });
 	});
 
+	test("admins publish templates and shared packages that every member uses", async () => {
+		const put = (c: Client, id: string, path: string, body: string | Uint8Array) =>
+			c.request(`/api/projects/${id}/files/raw?path=${encodeURIComponent(path)}`, {
+				method: "PUT",
+				headers: { "if-none-match": "*" },
+				body: typeof body === "string" ? body : new Blob([body as BlobPart])
+			});
+		assert.equal((await put(owner, projectId, "report.tex", "\\documentclass{lab}")).status, 201);
+
+		const save = (c: Client) =>
+			c.json(`/api/orgs/${orgId}/templates/${projectId}`, "PUT", { title: "Lab report" });
+		assert.equal((await save(member)).status, 403);
+		assert.equal((await save(admin)).status, 204);
+		assert.equal((await save(outsider)).status, 404);
+
+		const listed = await member.request(`/api/orgs/${orgId}/templates`);
+		const { templates } = (await listed.json()) as { templates: { title: string }[] };
+		assert.deepEqual(
+			templates.map((t) => t.title),
+			["Lab report"]
+		);
+
+		// A member with no access to the source project can still start from it.
+		await policy(admin, { memberAccess: "none" });
+		const used = await member.json(`/api/orgs/${orgId}/templates/${projectId}/use`, "POST", {
+			name: "My report"
+		});
+		assert.equal(used.status, 201, await used.clone().text());
+		const copy = ((await used.json()) as { project: { id: string; role: string } }).project;
+		assert.equal(copy.role, "owner");
+		const text = await member.request(`/api/projects/${copy.id}/files/raw?path=report.tex`);
+		assert.equal(await text.text(), "\\documentclass{lab}");
+		await policy(admin, { memberAccess: "editor" });
+
+		const empty = await member.request(`/api/orgs/${orgId}/library`);
+		assert.deepEqual(await empty.json(), { projectId: null, files: [] });
+		assert.equal((await member.json(`/api/orgs/${orgId}/library`, "POST", {})).status, 403);
+		const created = await admin.json(`/api/orgs/${orgId}/library`, "POST", {});
+		assert.equal(created.status, 201);
+		const libId = ((await created.json()) as { projectId: string }).projectId;
+		const again = await admin.json(`/api/orgs/${orgId}/library`, "POST", {});
+		assert.equal(((await again.json()) as { projectId: string }).projectId, libId);
+
+		assert.equal((await put(admin, libId, "lab.cls", "\\ProvidesClass{lab}")).status, 201);
+		const font = new Uint8Array([0, 1, 0, 0, 7]);
+		assert.equal((await put(admin, libId, "fonts/lab.otf", font)).status, 201);
+
+		const lib = await member.request(`/api/orgs/${orgId}/library`);
+		const { files } = (await lib.json()) as {
+			files: { path: string; content: string | null; size: number }[];
+		};
+		const byPath = Object.fromEntries(files.map((f) => [f.path, f]));
+		assert.equal(byPath["lab.cls"]?.content, "\\ProvidesClass{lab}");
+		assert.equal(
+			byPath["README.txt"]?.size,
+			new TextEncoder().encode(byPath["README.txt"]?.content ?? "").byteLength
+		);
+		const raw = await member.request(`/api/orgs/${orgId}/library/raw?path=fonts/lab.otf`);
+		assert.equal(raw.status, 200);
+		assert.deepEqual(new Uint8Array(await raw.arrayBuffer()), font);
+		assert.equal((await member.request(`/api/orgs/${orgId}/library/raw?path=../x`)).status, 400);
+		assert.equal((await outsider.request(`/api/orgs/${orgId}/library`)).status, 404);
+
+		assert.equal(
+			(await admin.request(`/api/orgs/${orgId}/templates/${projectId}`, { method: "DELETE" }))
+				.status,
+			204
+		);
+	});
+
 	test("removing a member hands their org projects to an owner", async () => {
 		const mine = await member.json("/api/projects", "POST", { name: "Member draft", orgId });
 		const draftId = ((await mine.json()) as { project: { id: string } }).project.id;
@@ -178,7 +248,7 @@ describe("organizations end to end", {
 		const stats = await admin.request(`/api/orgs/${orgId}/stats`);
 		const { stats: s } = (await stats.json()) as { stats: { members: number; projects: number } };
 		assert.equal(s.members, 2);
-		assert.equal(s.projects, 2);
+		assert.equal(s.projects, 4, "thesis, member draft, template copy, shared packages");
 
 		const res = await admin.request(`/api/orgs/${orgId}/audit?limit=100`);
 		const { events } = (await res.json()) as { events: { action: string }[] };

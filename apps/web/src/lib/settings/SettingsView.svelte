@@ -8,13 +8,14 @@
 	import AccountSettings from "./AccountSettings.svelte";
 	import GeneralSettings from "./GeneralSettings.svelte";
 	import OrgAudit from "./OrgAudit.svelte";
+	import OrgLibrary from "./OrgLibrary.svelte";
 	import OrgMembers from "./OrgMembers.svelte";
 	import OrgSettings from "./OrgSettings.svelte";
 	import { activeOrg } from "./org-state.svelte";
 	import StorageSettings from "./StorageSettings.svelte";
 
 	const PERSONAL = ["general", "account", "storage"] as const;
-	const ORG = ["organization", "members", "audit"] as const;
+	const ORG = ["organization", "members", "library", "audit"] as const;
 	type Tab = (typeof PERSONAL)[number] | (typeof ORG)[number];
 
 	const inOrg = $derived(cloudSession.activeOrgId !== null);
@@ -52,6 +53,7 @@
 		{#if inOrg}
 			<TabsTrigger value="organization">Organization</TabsTrigger>
 			<TabsTrigger value="members">Members</TabsTrigger>
+			<TabsTrigger value="library">Library</TabsTrigger>
 			{#if orgTabs.includes("audit")}<TabsTrigger value="audit">Audit</TabsTrigger>{/if}
 		{/if}
 	</TabsList>
@@ -62,6 +64,9 @@
 		<TabsContent value="organization" class="pt-8"><OrgSettings /></TabsContent>
 		<TabsContent value="members" class="pt-8">
 			{#key cloudSession.activeOrgId}<OrgMembers />{/key}
+		</TabsContent>
+		<TabsContent value="library" class="pt-8">
+			{#key cloudSession.activeOrgId}<OrgLibrary />{/key}
 		</TabsContent>
 		{#if orgTabs.includes("audit")}
 			<TabsContent value="audit" class="pt-8">

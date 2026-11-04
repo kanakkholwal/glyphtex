@@ -19,6 +19,7 @@
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
 	import { applyUpdate, watchForUpdate } from "$lib/app-update";
 	import { needsBiber } from "$lib/citations";
+	import { withOrgLibrary } from "$lib/cloud/library";
 	import { compileFiles, engineReady, installPacks, warmEngine } from "$lib/compile";
 	import EngineInstallDialog from "$lib/EngineInstallDialog.svelte";
 	import MainFileDialog from "$lib/MainFileDialog.svelte";
@@ -437,7 +438,8 @@
 		requiresBiber = needsBiber(mainFileSource);
 
 		const startedAt = performance.now();
-		const outcome = await compileFiles(toCompileFiles(files, binary), main, id);
+		const mounted = await withOrgLibrary(toCompileFiles(files, binary), project?.orgId);
+		const outcome = await compileFiles(mounted, main, id);
 		if (outcome.pdf) onboarding.markCompiled();
 		missingPacks = outcome.missingPacks ?? [];
 		unsupportedFiles = outcome.unsupportedFiles ?? [];

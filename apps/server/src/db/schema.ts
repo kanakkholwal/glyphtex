@@ -304,6 +304,35 @@ export const shareLink = pgTable(
 	(t) => [index("share_link_project_idx").on(t.projectId)]
 );
 
+/** Org projects members can start from; the project itself stays the template's source. */
+export const orgTemplate = pgTable(
+	"org_template",
+	{
+		projectId: text("project_id")
+			.primaryKey()
+			.references(() => project.id, { onDelete: "cascade" }),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		title: text("title").notNull(),
+		description: text("description").notNull().default(""),
+		createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+		createdAt: createdAt()
+	},
+	(t) => [index("org_template_org_idx").on(t.organizationId)]
+);
+
+/** The org's shared packages and fonts live in one ordinary project, added to every org compile. */
+export const orgLibrary = pgTable("org_library", {
+	organizationId: text("organization_id")
+		.primaryKey()
+		.references(() => organization.id, { onDelete: "cascade" }),
+	projectId: text("project_id")
+		.notNull()
+		.unique()
+		.references(() => project.id, { onDelete: "cascade" })
+});
+
 export const schema = {
 	user,
 	session,
@@ -320,5 +349,7 @@ export const schema = {
 	projectFile,
 	projectMember,
 	projectInvite,
-	shareLink
+	shareLink,
+	orgTemplate,
+	orgLibrary
 };

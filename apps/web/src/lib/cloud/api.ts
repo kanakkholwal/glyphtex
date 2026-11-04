@@ -2,8 +2,10 @@ import type {
 	AuditPage,
 	Feature,
 	MemberFeatures,
+	OrgLibrary,
 	OrgPolicy,
 	OrgStats,
+	OrgTemplate,
 	OrgView,
 	FileMeta,
 	GrantableRole,
@@ -24,8 +26,10 @@ export type {
 	AuditPage,
 	Feature,
 	MemberFeatures,
+	OrgLibrary,
 	OrgPolicy,
 	OrgStats,
+	OrgTemplate,
 	OrgView,
 	FileMeta,
 	GrantableRole,
@@ -216,7 +220,29 @@ export const cloud = {
 				`${o(orgId)}/audit?limit=50${before ? `&before=${encodeURIComponent(before)}` : ""}`
 			),
 		// better-fetch hands text/* back as a string, not a Blob.
-		auditCsv: (orgId: string) => call<string>(`${o(orgId)}/audit.csv`)
+		auditCsv: (orgId: string) => call<string>(`${o(orgId)}/audit.csv`),
+		templates: async (orgId: string) =>
+			(await json<{ templates: OrgTemplate[] }>(`${o(orgId)}/templates`)).templates,
+		saveTemplate: (orgId: string, projectId: string, title: string, description = "") =>
+			done(`${o(orgId)}/templates/${encodeURIComponent(projectId)}`, {
+				method: "PUT",
+				body: { title, description }
+			}),
+		removeTemplate: (orgId: string, projectId: string) =>
+			done(`${o(orgId)}/templates/${encodeURIComponent(projectId)}`, { method: "DELETE" }),
+		useTemplate: async (orgId: string, projectId: string, name: string) =>
+			(
+				await json<{ project: ProjectSummary }>(
+					`${o(orgId)}/templates/${encodeURIComponent(projectId)}/use`,
+					{ method: "POST", body: { name } }
+				)
+			).project,
+		library: (orgId: string) => json<OrgLibrary>(`${o(orgId)}/library`),
+		libraryBytes: (orgId: string, path: string) =>
+			bytes(`${o(orgId)}/library/raw?path=${encodeURIComponent(path)}`),
+		/** Creates the org's "Shared packages" project on first call; returns its id. */
+		ensureLibrary: async (orgId: string) =>
+			(await json<{ projectId: string }>(`${o(orgId)}/library`, { method: "POST" })).projectId
 	},
 
 	account: {
