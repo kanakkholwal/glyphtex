@@ -22,7 +22,7 @@
 	import { uploadLocalProject } from "$lib/cloud/upload";
 	import { onboarding } from "$lib/workspace/onboarding.svelte";
 	import { cloneToProject } from "$lib/git";
-	import StoragePanel from "$lib/StoragePanel.svelte";
+	import SettingsView from "$lib/settings/SettingsView.svelte";
 	import { toProjectCard } from "$lib/storage/bridge";
 	import { templatePreview } from "$lib/templates";
 	import {
@@ -43,7 +43,18 @@
 	import { requestPersistence, storageStatus } from "$lib/storage/quota";
 	import { starterFiles } from "$lib/storage/template";
 
-	let { scope = "all" }: { scope?: Scope } = $props();
+	let { scope = "all", settings = false }: { scope?: Scope; settings?: boolean } = $props();
+
+	const settingsHref = resolve("/workspace/settings");
+	const settingsPage = $derived(
+		settings
+			? {
+					title: "Settings",
+					description: "Appearance, your account and what this browser stores.",
+					body: settingsBody
+				}
+			: undefined
+	);
 
 	const scopeHrefs: Record<Scope, string> = {
 		all: resolve("/workspace"),
@@ -62,7 +73,6 @@
 	let stored = $state<StoredProject[]>([]);
 	let loading = $state(true);
 	let failure = $state<string | undefined>(undefined);
-	let storageOpen = $state(false);
 
 	// Server projects for the signed-in user. Ids are prefixed so they never collide with
 	// browser ids, and every handler below routes on that prefix.
@@ -83,9 +93,11 @@
 	const account = $derived(
 		cloudEnabled
 			? {
-					href: resolve("/workspace/account"),
-					label: cloudSession.user ? cloudSession.user.name || cloudSession.user.email : "Sign in",
-					signedIn: cloudSession.signedIn
+					href: `${resolve("/workspace/account")}?next=${encodeURIComponent("/workspace")}`,
+					name: cloudSession.user?.name || cloudSession.user?.email || "",
+					email: cloudSession.user?.email ?? "",
+					signedIn: cloudSession.signedIn,
+					onsignout: () => cloudSession.signOut().then(refreshRemote)
 				}
 			: undefined
 	);
@@ -466,7 +478,10 @@
 			onstar={star}
 			{storage}
 			helpHref="https://github.com/kanakkholwal/glyphtex#readme"
-			onsettings={() => (storageOpen = true)}
+			onsettings={() => void goto(`${settingsHref}?tab=storage`)}
+			{settingsHref}
+			onnavigate={(href) => void goto(href)}
+			page={settingsPage}
 			onimport={() => zipInput?.click()}
 			onimportfolder={() => folderInput?.click()}
 			onclone={cloneRepo}
@@ -515,4 +530,6 @@
 	</div>
 {/if}
 
-<StoragePanel bind:open={storageOpen} />
+{#snippet settingsBody()}
+	<SettingsView />
+{/snippet}

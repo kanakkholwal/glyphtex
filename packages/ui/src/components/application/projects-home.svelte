@@ -28,7 +28,18 @@
 	import { Logo } from '@glyphtex/ui/logo';
 	import { projectViewTransitionName } from '@glyphtex/ui/projects';
 	import * as Sidebar from '@glyphtex/ui/sidebar';
-	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
+	import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@glyphtex/ui/empty';
+	import { SearchInput } from '@glyphtex/ui/search-input';
+	import { settings } from '@glyphtex/ui/settings';
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from '@glyphtex/ui/table';
+	import { UserMenu, type UserMenuItem } from '@glyphtex/ui/user-menu';
 	import {
 		IconArrowsSort,
 		IconClock,
@@ -70,6 +81,7 @@
 	} from '@tabler/icons-svelte';
 	import type { Snippet } from 'svelte';
 	import AboutDialog from './about-dialog.svelte';
+	import WorkspaceCommand from './workspace-command.svelte';
 	import type { ProjectTemplate } from '../../lib/project-templates';
 	import { TemplateFilter } from '../../lib/project-templates/filter.svelte';
 	import TemplateCard, { type TemplateCardPreview } from './template-card.svelte';
@@ -103,7 +115,10 @@
 		onusetemplate,
 		onupload,
 		account,
-		checklist
+		checklist,
+		settingsHref,
+		page,
+		onnavigate = (href: string) => (window.location.href = href)
 	}: {
 		/** Drives the About dialog's platform line and the drop hint. */
 		platform?: 'web' | 'desktop';
@@ -148,8 +163,14 @@
 		onusetemplate?: (id: string) => string | void | Promise<string | void>;
 		/** Copy a browser-only project to the server. Absent hides the action. */
 		onupload?: (id: string) => void;
-		/** Account row for the rail footer; absent when the host has no accounts. */
-		account?: { href: string; label: string; signedIn: boolean };
+		/** Signed-in identity or a sign-in link for the rail menu; absent when the host has no accounts. */
+		account?: { href: string; name: string; email: string; signedIn: boolean; onsignout?: () => unknown };
+		/** Adds a Settings destination to the rail. */
+		settingsHref?: string;
+		/** Client-side navigation for menu and palette destinations (web: SvelteKit goto). */
+		onnavigate?: (href: string) => void;
+		/** Replaces the project views with a host page (Settings) inside the same shell. */
+		page?: { title: string; description: string; body: Snippet };
 		/** First-run checklist for the rail; the host owns each item's `done`. */
 		checklist?: { items: { id: string; label: string; done: boolean }[]; ondismiss: () => void };
 	} = $props();
@@ -167,17 +188,6 @@
 	let aboutOpen = $state(false);
 	let pendingDelete = $state<Project | null>(null);
 	const leaving = $derived(Boolean(pendingDelete?.cloud && pendingDelete.cloud.role !== 'owner'));
-	let searchEl = $state<HTMLInputElement>();
-
-	// "/" focuses search, except while typing, so it can still go into a project name.
-	function onWindowKeydown(e: KeyboardEvent) {
-		// The template gallery's filter bar owns "/" in that scope.
-		if (scope === 'templates' || e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
-		const t = e.target as HTMLElement | null;
-		if (t?.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t?.tagName ?? '')) return;
-		e.preventDefault();
-		searchEl?.focus();
-	}
 
 
 	async function handleCreate() {
@@ -328,6 +338,30 @@
 			.map((w) => w[0]?.toUpperCase())
 			.join('') || '?';
 
+	const menuUser = $derived(
+		account?.signedIn
+			? { name: account.name, email: account.email }
+			: {
+					name: platform === 'web' ? 'Guest' : 'This computer',
+					email: account ? 'Not signed in' : 'No account needed'
+				}
+	);
+	const menuItems = $derived<UserMenuItem[]>([
+		...(account && !account.signedIn
+			? [{ label: 'Sign in', icon: loginIcon, onSelect: () => onnavigate(account.href) }]
+			: []),
+		...(settingsHref
+			? [{ label: 'Settings', icon: settingsIcon, onSelect: () => onnavigate(settingsHref) }]
+			: onsettings
+				? [{ label: platform === 'web' ? 'Storage' : 'Settings', icon: settingsIcon, onSelect: () => onsettings?.() }]
+				: []),
+		...(helpHref ? [{ label: 'Help and docs', icon: helpIcon, onSelect: () => window.open(helpHref, '_blank') }] : []),
+		{ label: 'About GlyphTeX', icon: aboutIcon, onSelect: () => (aboutOpen = true) }
+	]);
+
+	let paletteOpen = $state(false);
+	const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+
 	const checklistDone = $derived(checklist?.items.filter((i) => i.done).length ?? 0);
 
 	const pageTitle = $derived(
@@ -456,7 +490,7 @@
 				</button>
 			{/snippet}
 		</DropdownMenuTrigger>
-		<DropdownMenuContent align="end" class="w-52">
+		<DropdownMenuContent align="end">
 			{#if onstar && !p.cloud}
 				<DropdownMenuItem onclick={() => onstar?.(p.id, !p.starred)}>
 					{#if p.starred}
@@ -494,6 +528,11 @@
 		</DropdownMenuContent>
 	</DropdownMenu>
 {/snippet}
+
+{#snippet loginIcon()}<IconLogin />{/snippet}
+{#snippet settingsIcon()}<IconSettings />{/snippet}
+{#snippet helpIcon()}<IconHelpCircle />{/snippet}
+{#snippet aboutIcon()}<IconInfoCircle />{/snippet}
 
 {#snippet sectionLabel(id: string, label: string, count: number | null)}
 	<h2 {id} class="text-muted-foreground text-xs font-medium tracking-wider uppercase">
@@ -571,7 +610,28 @@
 	</div>
 {/snippet}
 
-<svelte:window onkeydown={onWindowKeydown} />
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			paletteOpen = !paletteOpen;
+		}
+	}}
+/>
+
+<WorkspaceCommand
+	bind:open={paletteOpen}
+	{projects}
+	{scopeHrefs}
+	{settingsHref}
+	oncreate={oncreate ? handleCreate : undefined}
+	{onimport}
+	{onimportfolder}
+	{onopenfolder}
+	onclone={onclone ? () => (cloning = true) : undefined}
+	{onopen}
+	navigate={onnavigate}
+/>
 
 <a
 	href="#main"
@@ -591,16 +651,15 @@
 				</a>
 				<Sidebar.Trigger class="size-8 shrink-0" title="Toggle sidebar (Ctrl/⌘ B)" />
 			</div>
-			{#if scope !== 'templates' && projects.length > 0}
-				<button
-					class="border-border bg-background text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-9 items-center gap-2 rounded-lg border px-2.5 text-sm outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
-					onclick={() => searchEl?.focus()}
-				>
-					<IconSearch size={16} aria-hidden="true" />
-					<span class="flex-1 text-left">Search…</span>
-					<kbd class={shortcutCap()} aria-hidden="true">/</kbd>
-				</button>
-			{/if}
+			<button
+				class="border-border bg-background text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-9 items-center gap-2 rounded-lg border px-2.5 text-sm outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+				aria-haspopup="dialog"
+				onclick={() => (paletteOpen = true)}
+			>
+				<IconSearch size={16} aria-hidden="true" />
+				<span class="flex-1 text-left">Search…</span>
+				<kbd class={shortcutCap()} aria-hidden="true">{isMac ? '⌘' : 'Ctrl'} K</kbd>
+			</button>
 		</Sidebar.Header>
 
 		<Sidebar.Content class="gap-3 pt-1">
@@ -636,6 +695,17 @@
 								</Sidebar.MenuItem>
 							{/if}
 						{/each}
+						{#if settingsHref}
+							<Sidebar.MenuItem>
+								<Sidebar.MenuButton isActive={Boolean(page)} class={railRow} tooltipContent="Settings">
+									{#snippet child({ props })}
+										<a href={settingsHref} {...props} aria-current={page ? 'page' : undefined}>
+											<IconSettings /><span>Settings</span>
+										</a>
+									{/snippet}
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
+						{/if}
 					</Sidebar.Menu>
 				</Sidebar.GroupContent>
 			</Sidebar.Group>
@@ -738,58 +808,15 @@
 				</button>
 			{/if}
 
-			<div class="flex items-center gap-1">
-				<DropdownMenu>
-					<DropdownMenuTrigger>
-						{#snippet child({ props })}
-							<button
-								{...props}
-								class="hover:bg-foreground/[0.04] focus-visible:ring-ring data-[state=open]:bg-foreground/[0.04] flex h-10 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-left text-sm outline-none focus-visible:ring-2"
-							>
-								<span
-									class="bg-muted text-foreground grid size-6 shrink-0 place-items-center rounded-full text-xs font-medium"
-									aria-hidden="true"
-								>
-									{#if account?.signedIn}{initials(account.label)}{:else}<IconUser size={14} />{/if}
-								</span>
-								<span class="min-w-0 flex-1 truncate">
-									{account ? account.label : platform === 'web' ? 'This browser' : 'This computer'}
-								</span>
-								<IconSelector size={14} class="text-muted-foreground shrink-0" aria-hidden="true" />
-							</button>
-						{/snippet}
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" side="top" class="w-56">
-						{#if account}
-							<DropdownMenuItem>
-								{#snippet child({ props })}
-									<a {...props} href={account.href}>
-										{#if account.signedIn}<IconUserCircle /> Account{:else}<IconLogin /> Sign in{/if}
-									</a>
-								{/snippet}
-							</DropdownMenuItem>
-						{/if}
-						{#if onsettings}
-							<DropdownMenuItem onclick={() => onsettings?.()}>
-								{#if platform === 'web'}<IconDatabase /> Storage{:else}<IconSettings /> Settings{/if}
-							</DropdownMenuItem>
-						{/if}
-						{#if helpHref}
-							<DropdownMenuItem>
-								{#snippet child({ props })}
-									<a {...props} href={helpHref}>
-										<IconHelpCircle /> Help &amp; docs
-										<IconExternalLink class="text-muted-foreground ml-auto" />
-									</a>
-								{/snippet}
-							</DropdownMenuItem>
-						{/if}
-						<DropdownMenuItem onclick={() => (aboutOpen = true)}>
-							<IconInfoCircle /> About GlyphTeX
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
-				<ThemeToggle size="icon-sm" />
+			<div class="[&_[data-slot=user-menu-trigger]]:w-full">
+				<UserMenu
+					user={menuUser}
+					items={menuItems}
+					showName
+					align="start"
+					bind:theme={() => settings.appearance, (v) => (settings.appearance = v)}
+					onSignOut={account?.signedIn ? account.onsignout : undefined}
+				/>
 			</div>
 		</Sidebar.Footer>
 
@@ -809,11 +836,13 @@
 
 			<div class="mx-auto w-full max-w-6xl px-5 pt-6 pb-20 sm:px-8 md:pt-12 lg:px-12">
 				<header class="flex flex-col gap-1">
-					<h1 class="text-foreground text-2xl font-semibold tracking-tight">{pageTitle}</h1>
-					<p class="text-muted-foreground text-sm">{pageDescription}</p>
+					<h1 class="text-foreground text-2xl font-semibold tracking-tight">{page?.title ?? pageTitle}</h1>
+					<p class="text-muted-foreground text-sm">{page?.description ?? pageDescription}</p>
 				</header>
 
-				{#if scope === 'templates'}
+				{#if page}
+					<div class="mt-8">{@render page.body()}</div>
+				{:else if scope === 'templates'}
 					<section aria-labelledby="templates-label" class="mt-10 flex flex-col gap-4">
 						{@render sectionLabel('templates-label', 'Templates', templatesLoading ? null : templates.length)}
 						{#if templatesLoading}
@@ -928,7 +957,7 @@
 						{#if onclone && cloning}{@render cloneForm()}{/if}
 					</section>
 				{:else}
-					<section aria-labelledby="projects-label" class="mt-10 flex flex-col gap-4">
+					<section aria-labelledby="projects-label" class="mt-8 flex flex-col gap-3">
 						{@render sectionLabel(
 							'projects-label',
 							pageTitle,
@@ -936,6 +965,15 @@
 						)}
 
 						<div class="flex flex-wrap items-center gap-2">
+							<SearchInput
+								id="project-search"
+								label="Search projects"
+								placeholder="Search projects…"
+								shortcut="/"
+								size="sm"
+								class="w-full sm:w-64"
+								bind:value={query}
+							/>
 							{#if hasCloud}
 								<div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by location">
 									{#each locations as l (l.id)}
@@ -952,7 +990,7 @@
 											</Button>
 										{/snippet}
 									</DropdownMenuTrigger>
-									<DropdownMenuContent align="end" class="w-44">
+									<DropdownMenuContent align="end">
 										{#each sorts as option (option.id)}
 											<DropdownMenuCheckboxItem checked={sort === option.id} onCheckedChange={() => (sort = option.id)}>
 												{option.label}
@@ -978,35 +1016,6 @@
 									{/each}
 								</div>
 
-								<div class="relative w-full sm:w-56">
-									<IconSearch
-										size={15}
-										class="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
-										aria-hidden="true"
-									/>
-									<input
-										bind:this={searchEl}
-										bind:value={query}
-										type="search"
-										class="bg-background border-border text-foreground placeholder:text-placeholder focus-visible:border-ring focus-visible:ring-ring h-8 w-full rounded-lg border py-1 pr-8 pl-8 text-sm outline-none focus-visible:ring-2 [&::-webkit-search-cancel-button]:hidden"
-										placeholder="Search projects…"
-										spellcheck="false"
-										aria-label="Search projects"
-										onkeydown={(e) => {
-											if (e.key === 'Escape') query = '';
-										}}
-									/>
-									{#if query}
-										<button
-											class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-1 grid size-6 -translate-y-1/2 place-items-center rounded-md outline-none focus-visible:ring-2"
-											onclick={() => (query = '')}
-											aria-label="Clear search"
-										>
-											<IconX size={14} />
-										</button>
-									{/if}
-								</div>
-
 								{#if onimport || onimportfolder || onopenfolder || onclone}
 									<DropdownMenu>
 										<DropdownMenuTrigger>
@@ -1014,7 +1023,7 @@
 												<Button {...props} variant="outline" size="sm"><IconFileImport /> Import</Button>
 											{/snippet}
 										</DropdownMenuTrigger>
-										<DropdownMenuContent align="end" class="w-52">
+										<DropdownMenuContent align="end">
 											{#if onimport}
 												<DropdownMenuItem onclick={() => onimport?.()}><IconFileImport /> Import .zip</DropdownMenuItem>
 											{/if}
@@ -1056,70 +1065,70 @@
 								{/each}
 							</div>
 						{:else if filtered.length === 0}
-							<div class="border-border flex flex-col items-center gap-3 rounded-xl border px-6 py-16 text-center">
-								<span class="bg-muted text-muted-foreground grid size-10 place-items-center rounded-lg" aria-hidden="true">
-									{#if query.trim()}<IconSearch size={20} />{:else if scope === 'starred'}<IconStar
-											size={20}
-										/>{:else}<IconClock size={20} />{/if}
-								</span>
-								<div class="flex flex-col gap-1">
-									<p class="text-foreground text-sm font-medium">{emptyTitle}</p>
-									<p class="text-muted-foreground max-w-sm text-sm">{emptyBody}</p>
-								</div>
-								{#if query.trim() || location !== 'all'}
-									<Button
-										variant="outline"
-										size="sm"
-										onclick={() => {
-											query = '';
-											location = 'all';
-										}}
-									>
-										<IconX /> Clear filters
-									</Button>
-								{:else if scopeHrefs?.all && scope !== 'all'}
-									<Button variant="outline" size="sm" href={scopeHrefs.all}>
-										<IconHome /> All projects
-									</Button>
-								{/if}
-							</div>
+							<Empty class="border-border rounded-xl border">
+								<EmptyHeader>
+									<EmptyMedia variant="icon">
+										{#if query.trim()}<IconSearch />{:else if scope === 'starred'}<IconStar />{:else}<IconClock />{/if}
+									</EmptyMedia>
+									<EmptyTitle>{emptyTitle}</EmptyTitle>
+									<EmptyDescription>{emptyBody}</EmptyDescription>
+								</EmptyHeader>
+								<EmptyContent>
+									{#if query.trim() || location !== 'all'}
+										<Button
+											variant="outline"
+											size="sm"
+											onclick={() => {
+												query = '';
+												location = 'all';
+											}}
+										>
+											<IconX /> Clear filters
+										</Button>
+									{:else if scopeHrefs?.all && scope !== 'all'}
+										<Button variant="outline" size="sm" href={scopeHrefs.all}>
+											<IconHome /> All projects
+										</Button>
+									{/if}
+								</EmptyContent>
+							</Empty>
 						{:else if view === 'list'}
-							<div class="border-border overflow-x-auto rounded-xl border">
-								<table class="w-full min-w-[36rem] text-sm">
-									<thead>
-										<tr class="border-border text-muted-foreground border-b text-left text-xs">
-											<th class="px-4 py-2.5 font-medium">Name</th>
-											<th class="px-4 py-2.5 font-medium">Location</th>
-											<th class="px-4 py-2.5 font-medium">Files</th>
-											<th class="px-4 py-2.5 font-medium">Edited</th>
-											<th class="w-12 px-2 py-2.5"><span class="sr-only">Actions</span></th>
-										</tr>
-									</thead>
-									<tbody>
-										{#each filtered as p (p.id)}
-											{@const place = placeOf(p)}
-											<tr class="group border-border hover:bg-foreground/[0.03] relative border-b last:border-b-0">
-												<td class="max-w-0 px-4 py-2.5">
-													<div class="flex min-w-0 items-center gap-2.5">
-														{#if p.root}<IconFolder size={16} class="text-muted-foreground shrink-0" />{:else if p.cloud}<IconCloud
-																size={16}
-																class="text-muted-foreground shrink-0"
-															/>{:else}<IconFileText size={16} class="text-muted-foreground shrink-0" />{/if}
-														<div class="min-w-0 flex-1">{@render projectTitle(p)}</div>
-														{@render starBadge(p)}
-													</div>
-												</td>
-												<td class="text-muted-foreground px-4 py-2.5 whitespace-nowrap">
-													<span class="inline-flex items-center gap-1.5"><place.icon size={14} aria-hidden="true" />{place.label}</span>
-												</td>
-												<td class="text-muted-foreground px-4 py-2.5 tabular-nums">{p.cloud ? '·' : p.files.length}</td>
-												<td class="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{relativeTime(p.updatedAt)}</td>
-												<td class="px-2 py-2.5 text-right">{@render projectActions(p)}</td>
-											</tr>
-										{/each}
-									</tbody>
-								</table>
-							</div>
+							<Table variant="framed" class="min-w-[36rem] table-fixed">
+								<TableHeader>
+									<TableRow>
+										<TableHead>Name</TableHead>
+										<TableHead class="w-36">Location</TableHead>
+										<TableHead class="w-20 text-right">Files</TableHead>
+										<TableHead class="w-32">Edited</TableHead>
+										<TableHead class="w-12"><span class="sr-only">Actions</span></TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{#each filtered as p (p.id)}
+										{@const place = placeOf(p)}
+										<TableRow class="group relative">
+											<TableCell class="max-w-0 py-2.5">
+												<div class="flex min-w-0 items-center gap-2.5">
+													{#if p.root}<IconFolder size={16} class="text-muted-foreground shrink-0" />{:else if p.cloud}<IconCloud
+															size={16}
+															class="text-muted-foreground shrink-0"
+														/>{:else}<IconFileText size={16} class="text-muted-foreground shrink-0" />{/if}
+													<div class="min-w-0 flex-1">{@render projectTitle(p)}</div>
+													{@render starBadge(p)}
+												</div>
+											</TableCell>
+											<TableCell class="text-muted-foreground whitespace-nowrap">
+												<span class="inline-flex items-center gap-1.5"
+													><place.icon size={14} aria-hidden="true" />{place.label}</span
+												>
+											</TableCell>
+											<TableCell class="text-muted-foreground text-right tabular-nums">{p.cloud ? '·' : p.files.length}</TableCell>
+											<TableCell class="text-muted-foreground whitespace-nowrap">{relativeTime(p.updatedAt)}</TableCell>
+											<TableCell class="text-right">{@render projectActions(p)}</TableCell>
+										</TableRow>
+									{/each}
+								</TableBody>
+							</Table>
 						{:else}
 							<ul class="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3" aria-label="Projects">
 								{#each filtered as p (p.id)}

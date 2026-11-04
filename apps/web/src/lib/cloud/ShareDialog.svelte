@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
-	import { Badge } from "@glyphtex/ui/badge";
+	import { Avatar, AvatarFallback, AvatarImage } from "@glyphtex/ui/avatar";
 	import { Button } from "@glyphtex/ui/button";
 	import { CopyButton } from "@glyphtex/ui/copy-button";
 	import {
@@ -11,10 +11,31 @@
 		DialogHeader,
 		DialogTitle
 	} from "@glyphtex/ui/dialog";
+	import {
+		DropdownMenu,
+		DropdownMenuContent,
+		DropdownMenuItem,
+		DropdownMenuTrigger
+	} from "@glyphtex/ui/dropdown-menu";
 	import { Input } from "@glyphtex/ui/input";
 	import { Separator } from "@glyphtex/ui/separator";
+	import {
+		Table,
+		TableBody,
+		TableCell,
+		TableHead,
+		TableHeader,
+		TableRow
+	} from "@glyphtex/ui/table";
 	import { toast } from "@glyphtex/ui/sonner";
-	import { IconLink, IconLoader2, IconLogout, IconMail, IconTrash } from "@tabler/icons-svelte";
+	import {
+		IconDots,
+		IconLink,
+		IconLoader2,
+		IconLogout,
+		IconMail,
+		IconTrash
+	} from "@tabler/icons-svelte";
 
 	import type { DocumentMeta } from "$lib/documents/store";
 	import {
@@ -122,10 +143,37 @@
 		void goto(resolve("/workspace"));
 	}
 
+	const initials = (name: string) =>
+		name
+			.split(/[s@.]+/)
+			.filter(Boolean)
+			.slice(0, 2)
+			.map((w) => w[0]?.toUpperCase())
+			.join("") || "?";
 	const roleLabel = (role: string) => role.charAt(0).toUpperCase() + role.slice(1);
 	const expiry = (iso: string | null) =>
 		iso ? `expires ${new Date(iso).toLocaleDateString()}` : "never expires";
 </script>
+
+{#snippet who(name: string, email: string, image: string | null)}
+	<div class="flex min-w-0 items-center gap-3">
+		<Avatar size="sm">
+			{#if image}<AvatarImage src={image} alt="" />{/if}
+			<AvatarFallback>{initials(name || email)}</AvatarFallback>
+		</Avatar>
+		<div class="min-w-0">
+			<p class="text-foreground truncate text-sm font-medium">{name || email}</p>
+			<p class="text-muted-foreground truncate text-xs">{email}</p>
+		</div>
+	</div>
+{/snippet}
+
+{#snippet person(name: string, email: string, image: string | null)}
+	<TableRow>
+		<TableCell class="max-w-0">{@render who(name, email, image)}</TableCell>
+		<TableCell class="text-muted-foreground text-right text-sm">Owner</TableCell>
+	</TableRow>
+{/snippet}
 
 <Dialog bind:open>
 	<DialogContent class="sm:max-w-lg">
@@ -152,55 +200,77 @@
 		{/if}
 
 		<section class="flex flex-col gap-2" aria-labelledby="share-people">
-			<h3 id="share-people" class="text-muted-foreground text-xs font-medium">People with access</h3>
+			<h3 id="share-people" class="sr-only">People with access</h3>
 			{#if loading && !members}
-				<p class="text-muted-foreground flex items-center gap-2 text-sm">
+				<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
 					<IconLoader2 size={14} class="animate-spin" /> Loading…
 				</p>
 			{:else if members}
-				<ul class="flex flex-col gap-1">
-					{#if members.owner}
-						<li class="flex items-center gap-2 py-1">
-							<span class="min-w-0 flex-1 truncate text-sm">
-								{members.owner.name || members.owner.email}
-								<span class="text-muted-foreground">· {members.owner.email}</span>
-							</span>
-							<Badge variant="secondary">Owner</Badge>
-						</li>
-					{/if}
-					{#each members.members as m (m.userId)}
-						<li class="flex items-center gap-2 py-1">
-							<span class="min-w-0 flex-1 truncate text-sm">
-								{m.name || m.email}
-								<span class="text-muted-foreground">· {m.email}</span>
-							</span>
-							{#if canShare}
-								<RoleSelect
-									value={m.role}
-									label={`Role for ${m.email}`}
-									disabled={busy}
-									onchange={(r) =>
-										act(() => cloud.sharing.setRole(document.id, m.userId, r), "Could not change the role.")}
-								/>
-								<Button
-									variant="ghost"
-									size="icon-sm"
-									aria-label={`Remove ${m.email}`}
-									disabled={busy}
-									onclick={() =>
-										act(
-											() => cloud.sharing.removeMember(document.id, m.userId),
-											"Could not remove them."
-										)}
-								>
-									<IconTrash />
-								</Button>
-							{:else}
-								<Badge variant="outline">{roleLabel(m.role)}</Badge>
-							{/if}
-						</li>
-					{/each}
-				</ul>
+				<Table variant="framed" class="table-fixed">
+					<TableHeader>
+						<TableRow>
+							<TableHead>People with access</TableHead>
+							<TableHead class="w-48 text-right">Role</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{#if members.owner}
+							{@render person(members.owner.name, members.owner.email, members.owner.image)}
+						{/if}
+						{#each members.members as m (m.userId)}
+							<TableRow>
+								<TableCell class="max-w-0">
+									{@render who(m.name, m.email, m.image)}
+								</TableCell>
+								<TableCell class="text-right">
+									{#if canShare}
+										<div class="flex items-center justify-end gap-1">
+											<RoleSelect
+												value={m.role}
+												label={`Role for ${m.email}`}
+												disabled={busy}
+												onchange={(r) =>
+													act(
+														() => cloud.sharing.setRole(document.id, m.userId, r),
+														"Could not change the role."
+													)}
+											/>
+											<DropdownMenu>
+												<DropdownMenuTrigger>
+													{#snippet child({ props })}
+														<Button
+															{...props}
+															variant="outline"
+															size="icon-sm"
+															aria-label={`More for ${m.email}`}
+															disabled={busy}
+														>
+															<IconDots />
+														</Button>
+													{/snippet}
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end" class="w-44">
+													<DropdownMenuItem
+														destructive
+														onclick={() =>
+															act(
+																() => cloud.sharing.removeMember(document.id, m.userId),
+																"Could not remove them."
+															)}
+													>
+														<IconTrash /> Remove access
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</div>
+									{:else}
+										<span class="text-muted-foreground text-sm">{roleLabel(m.role)}</span>
+									{/if}
+								</TableCell>
+							</TableRow>
+						{/each}
+					</TableBody>
+				</Table>
 			{/if}
 		</section>
 
@@ -212,7 +282,7 @@
 					{#each invites as i (i.id)}
 						<li class="flex items-center gap-2 py-1 text-sm">
 							<span class="min-w-0 flex-1 truncate">{i.email}</span>
-							<Badge variant="outline">{roleLabel(i.role)}</Badge>
+							<span class="text-muted-foreground text-xs">{roleLabel(i.role)}</span>
 							<Button
 								variant="ghost"
 								size="icon-sm"
