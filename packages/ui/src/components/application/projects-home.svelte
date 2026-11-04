@@ -836,7 +836,7 @@
 
 			<div class="mx-auto w-full max-w-6xl px-5 pt-6 pb-20 sm:px-8 md:pt-12 lg:px-12">
 				<header class="flex flex-col gap-1">
-					<h1 class="text-foreground text-2xl font-semibold tracking-tight">{page?.title ?? pageTitle}</h1>
+					<h1 class="pixel text-foreground text-2xl md:text-4xl">{page?.title ?? pageTitle}</h1>
 					<p class="text-muted-foreground text-sm">{page?.description ?? pageDescription}</p>
 				</header>
 

@@ -25,7 +25,7 @@
 			<Logo size={20} badge class="text-sm font-semibold" />
 		</a>
 		<header class="flex flex-col gap-1">
-			<h1 class="text-foreground text-2xl font-semibold tracking-tight">{title}</h1>
+			<h1 class="pixel text-foreground text-2xl md:text-4xl">{title}</h1>
 			{#if description}<p class="text-muted-foreground text-sm">{description}</p>{/if}
 		</header>
 		<div class="bg-muted rounded-2xl p-1">
