@@ -17,7 +17,8 @@
 		"db:generate": "drizzle-kit generate",
 		"deploy": "wrangler deploy",
 		"check": "tsc --noEmit",
-		"test": "node --test \"test/**/*.test.ts\""
+		"test": "node --test \"test/**/*.test.ts\"",
+		"dev:local": "cross-env PORTLESS_HTTPS=0 portless"
 	},
 	"dependencies": {
 		"@hono/node-server": "^2.1.6",
@@ -72,5 +73,9 @@
 				"description": "Where the GlyphTeX web app is, e.g. https://glyphtex.example.com"
 			}
 		}
+	},
+	"portless": {
+		"name": "api.glyphtex",
+		"script": "dev:node"
 	}
 }
