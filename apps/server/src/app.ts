@@ -4,6 +4,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { accountController } from "./controllers/account.ts";
 import { filesController } from "./controllers/files.ts";
 import { healthController } from "./controllers/health.ts";
+import { orgsController } from "./controllers/orgs.ts";
 import { projectsController } from "./controllers/projects.ts";
 import { publicController } from "./controllers/public.ts";
 import { projectSharingController, redeemController } from "./controllers/sharing.ts";
@@ -53,6 +54,7 @@ export function createApp(
 	app.route("/api/projects", filesController);
 	app.route("/api/projects", projectSharingController);
 	app.route("/api", redeemController);
+	app.route("/api/orgs", orgsController);
 
 	app.notFound((c) => onError(errors.notFound("Route"), c));
 	app.onError(onError);

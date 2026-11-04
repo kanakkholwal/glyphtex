@@ -64,6 +64,16 @@ export const mails = {
 			"Delete my account",
 			url
 		),
+	orgInvite: (to: string, inviter: string, orgName: string, role: string, url: string) =>
+		actionMail(
+			to,
+			`${inviter} invited you to ${orgName} on GlyphTeX`,
+			[
+				`${inviter} invited you to join ${orgName} as ${role === "admin" ? "an admin" : `a ${role}`}.`
+			],
+			"Join organization",
+			url
+		),
 	invite: (to: string, inviter: string, projectName: string, role: string, url: string) =>
 		actionMail(
 			to,

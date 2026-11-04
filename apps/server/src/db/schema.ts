@@ -5,6 +5,7 @@ import {
 	check,
 	index,
 	integer,
+	jsonb,
 	pgTable,
 	primaryKey,
 	text,
@@ -39,6 +40,7 @@ export const session = pgTable(
 		token: text("token").notNull().unique(),
 		ipAddress: text("ip_address"),
 		userAgent: text("user_agent"),
+		activeOrganizationId: text("active_organization_id"),
 		userId: text("user_id")
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
@@ -90,6 +92,114 @@ export const rateLimit = pgTable("rate_limit", {
 	lastRequest: bigint("last_request", { mode: "number" }).notNull()
 });
 
+// --- Better Auth organization plugin (field names are its contract) ---
+
+export const ORG_ROLES = ["owner", "admin", "member"] as const;
+export type OrgRole = (typeof ORG_ROLES)[number];
+
+export const organization = pgTable("organization", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	slug: text("slug").notNull().unique(),
+	logo: text("logo"),
+	metadata: text("metadata"),
+	createdAt: createdAt()
+});
+
+export const member = pgTable(
+	"member",
+	{
+		id: text("id").primaryKey(),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		role: text("role").notNull().default("member"),
+		createdAt: createdAt()
+	},
+	(t) => [
+		uniqueIndex("member_org_user_idx").on(t.organizationId, t.userId),
+		index("member_user_org_idx").on(t.userId)
+	]
+);
+
+export const invitation = pgTable(
+	"invitation",
+	{
+		id: text("id").primaryKey(),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		email: text("email").notNull(),
+		role: text("role"),
+		status: text("status").notNull().default("pending"),
+		expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+		createdAt: createdAt(),
+		inviterId: text("inviter_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" })
+	},
+	(t) => [
+		index("invitation_org_idx").on(t.organizationId),
+		index("invitation_email_idx").on(t.email)
+	]
+);
+
+// --- Organization policy, entitlements and audit ---
+
+export const MEMBER_ACCESS = ["editor", "commenter", "viewer", "none"] as const;
+export type MemberAccess = (typeof MEMBER_ACCESS)[number];
+export const FEATURES = ["ai", "shareLinks", "externalInvites"] as const;
+export type Feature = (typeof FEATURES)[number];
+
+/** One row per org; absent means defaults (see DEFAULT_POLICY in rbac/org.ts). */
+export const orgPolicy = pgTable("org_policy", {
+	organizationId: text("organization_id")
+		.primaryKey()
+		.references(() => organization.id, { onDelete: "cascade" }),
+	memberAccess: text("member_access", { enum: MEMBER_ACCESS }).notNull().default("editor"),
+	shareLinks: boolean("share_links").notNull().default(true),
+	externalInvites: boolean("external_invites").notNull().default(true),
+	ai: boolean("ai").notNull().default(false),
+	seatLimit: integer("seat_limit"),
+	updatedAt: updatedAt()
+});
+
+/** Per-member override of an org policy feature; absent means the org default applies. */
+export const memberFeature = pgTable(
+	"member_feature",
+	{
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		feature: text("feature", { enum: FEATURES }).notNull(),
+		enabled: boolean("enabled").notNull()
+	},
+	(t) => [primaryKey({ columns: [t.organizationId, t.userId, t.feature] })]
+);
+
+export const auditEvent = pgTable(
+	"audit_event",
+	{
+		id: text("id").primaryKey(),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		actorId: text("actor_id").references(() => user.id, { onDelete: "set null" }),
+		action: text("action").notNull(),
+		targetType: text("target_type").notNull(),
+		targetId: text("target_id"),
+		meta: jsonb("meta").$type<Record<string, string | number | boolean | null>>(),
+		createdAt: createdAt()
+	},
+	(t) => [index("audit_org_time_idx").on(t.organizationId, t.createdAt)]
+);
+
 // --- GlyphTeX ---
 
 export const PROJECT_ROLES = ["owner", "editor", "commenter", "viewer"] as const;
@@ -106,10 +216,13 @@ export const project = pgTable(
 		ownerId: text("owner_id")
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
+		organizationId: text("organization_id").references(() => organization.id, {
+			onDelete: "cascade"
+		}),
 		createdAt: createdAt(),
 		updatedAt: updatedAt()
 	},
-	(t) => [index("project_owner_idx").on(t.ownerId)]
+	(t) => [index("project_owner_idx").on(t.ownerId), index("project_org_idx").on(t.organizationId)]
 );
 
 export const projectFile = pgTable(
@@ -197,6 +310,12 @@ export const schema = {
 	account,
 	verification,
 	rateLimit,
+	organization,
+	member,
+	invitation,
+	orgPolicy,
+	memberFeature,
+	auditEvent,
 	project,
 	projectFile,
 	projectMember,

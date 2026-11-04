@@ -4,6 +4,7 @@ import type * as Contract from "../src/contract.ts";
 import type { MembersResponse } from "../src/contract.ts";
 import type { fileMeta } from "../src/services/files.ts";
 import type { projectService } from "../src/services/projects.ts";
+import type { orgService } from "../src/services/orgs.ts";
 import type { sharingService } from "../src/services/sharing.ts";
 
 /** What JSON.stringify turns a server value into: Dates become strings. */
@@ -20,6 +21,7 @@ type Resolved<T> = Wire<Awaited<T>>;
 // Compile-time lockstep: tsc fails here when a service result drifts from the contract.
 type Projects = Service<typeof projectService>;
 type Sharing = Service<typeof sharingService>;
+type Orgs = Service<typeof orgService>;
 const checks = {
 	view: null as unknown as Resolved<ReturnType<Projects["view"]>> satisfies Contract.ProjectView,
 	list: null as unknown as Resolved<
@@ -33,9 +35,18 @@ const checks = {
 	links: null as unknown as Resolved<
 		ReturnType<Sharing["listLinks"]>
 	> satisfies Contract.ShareLink[],
-	joined: null as unknown as Resolved<ReturnType<Sharing["redeemLink"]>> satisfies Contract.Joined
+	joined: null as unknown as Resolved<ReturnType<Sharing["redeemLink"]>> satisfies Contract.Joined,
+	orgView: null as unknown as Resolved<ReturnType<Orgs["view"]>> satisfies Contract.OrgView,
+	orgStats: null as unknown as Resolved<ReturnType<Orgs["stats"]>> satisfies Contract.OrgStats,
+	audit: null as unknown as Resolved<ReturnType<Orgs["audit"]>> satisfies Contract.AuditEvent[],
+	features: null as unknown as Resolved<
+		ReturnType<Orgs["memberFeatures"]>
+	> satisfies Contract.MemberFeatures,
+	orgProjects: null as unknown as Resolved<
+		ReturnType<Orgs["projects"]>
+	> satisfies Contract.ProjectSummary[]
 };
 
 test("service results match the wire contract (checked by tsc)", () => {
-	assert.equal(Object.keys(checks).length, 7);
+	assert.equal(Object.keys(checks).length, 12);
 });

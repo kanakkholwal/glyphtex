@@ -2,13 +2,17 @@
 import type { GrantableRole, ProjectRole } from "./db/schema.ts";
 import type { ProjectPermission } from "./rbac/permissions.ts";
 
-export type { GrantableRole, ProjectPermission, ProjectRole };
+import type { MemberAccess, Feature } from "./db/schema.ts";
+import type { OrgPermission } from "./rbac/org.ts";
+
+export type { Feature, GrantableRole, MemberAccess, OrgPermission, ProjectPermission, ProjectRole };
 
 export interface ProjectSummary {
 	id: string;
 	name: string;
 	mainFile: string;
 	ownerId: string;
+	organizationId: string | null;
 	role: ProjectRole;
 	createdAt: string;
 	updatedAt: string;
@@ -87,4 +91,52 @@ export interface Problem {
 	currentVersion?: number;
 	retryAfterSeconds?: number;
 	issues?: { path: string; message: string }[];
+}
+
+export interface OrgPolicy {
+	memberAccess: MemberAccess;
+	shareLinks: boolean;
+	externalInvites: boolean;
+	ai: boolean;
+	seatLimit: number | null;
+}
+
+export interface OrgView {
+	organization: { id: string; name: string; slug: string; logo: string | null; createdAt: string };
+	role: string;
+	capabilities: OrgPermission[];
+	policy: OrgPolicy;
+	/** What the signed-in member can use here, after their personal overrides. */
+	features: Record<Feature, boolean>;
+}
+
+export interface MemberFeatures {
+	policy: OrgPolicy;
+	features: Record<Feature, boolean>;
+}
+
+export interface OrgStats {
+	members: number;
+	projects: number;
+	storageBytes: number;
+	activeMembers30d: number;
+	projectsEdited7d: number;
+}
+
+export interface AuditEvent {
+	id: string;
+	action: string;
+	targetType: string;
+	targetId: string | null;
+	meta: Record<string, string | number | boolean | null> | null;
+	createdAt: string;
+	actorId: string | null;
+	actorName: string | null;
+	actorEmail: string | null;
+}
+
+export interface AuditPage {
+	events: AuditEvent[];
+	/** Pass as `before` for the next page; null on the last one. */
+	next: string | null;
 }

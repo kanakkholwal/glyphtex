@@ -3,8 +3,10 @@ import { createMiddleware } from "hono/factory";
 import type { AppEnv } from "../context.ts";
 import { AppError, errors } from "../lib/errors.ts";
 import { authorizeProject } from "../rbac/authorize.ts";
+import type { OrgPermission } from "../rbac/org.ts";
 import type { ProjectPermission } from "../rbac/permissions.ts";
 import { projectRepository } from "../repositories/projects.ts";
+import { authorizeOrg } from "../services/orgs.ts";
 
 export const requestContext = createMiddleware<AppEnv>(async (c, next) => {
 	const requestId = c.req.header("cf-ray") ?? c.req.header("x-request-id") ?? crypto.randomUUID();
@@ -64,6 +66,20 @@ export function requireProject(permission: ProjectPermission): MiddlewareHandler
 		await next();
 	});
 	return Object.assign(guard, { [PROJECT_GUARD]: permission });
+}
+
+/** Marks org guards for the same route-coverage test as project guards. */
+export const ORG_GUARD = Symbol("orgGuard");
+
+export function requireOrg(permission: OrgPermission): MiddlewareHandler<AppEnv> {
+	const guard = createMiddleware<AppEnv>(async (c, next) => {
+		const user = currentUser(c);
+		const orgId = c.req.param("orgId");
+		if (!orgId) throw errors.notFound("Organization");
+		c.set("orgAccess", await authorizeOrg(c.var.deps, user.id, orgId, permission));
+		await next();
+	});
+	return Object.assign(guard, { [ORG_GUARD]: permission });
 }
 
 /** RFC 9457 problem details; unknown errors are logged and hidden behind a generic 500. */

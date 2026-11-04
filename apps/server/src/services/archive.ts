@@ -7,6 +7,7 @@ import { fileRepository } from "../repositories/files.ts";
 import { projectRepository } from "../repositories/projects.ts";
 import { projectFile } from "../db/schema.ts";
 import { fileService, type StoredContent } from "./files.ts";
+import { authorizeOrg } from "./orgs.ts";
 
 const JUNK = /(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db|\.git)(\/|$)/;
 const UPLOAD_CONCURRENCY = 8;
@@ -46,7 +47,8 @@ export function archiveService(deps: Deps) {
 	const { db, adapters, config, logger } = deps;
 
 	return {
-		async importZip(ownerId: string, name: string, zip: Uint8Array) {
+		async importZip(ownerId: string, name: string, zip: Uint8Array, orgId?: string) {
+			if (orgId) await authorizeOrg({ db }, ownerId, orgId, "org:create-project");
 			if (zip.byteLength > config.limits.importBytes) {
 				throw errors.tooLarge(`Imports are limited to ${config.limits.importBytes} bytes.`);
 			}
@@ -109,6 +111,7 @@ export function archiveService(deps: Deps) {
 						id: projectId,
 						name,
 						ownerId,
+						organizationId: orgId ?? null,
 						mainFile: detectMainFile(entries)
 					});
 					for (let i = 0; i < entries.length; i += INSERT_BATCH) {

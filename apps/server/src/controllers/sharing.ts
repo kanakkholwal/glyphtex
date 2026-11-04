@@ -22,6 +22,7 @@ export const projectSharingController = new Hono<AppEnv>()
 		async (c) => {
 			await sharingService(c.var.deps).setRole(
 				c.var.access,
+				currentUser(c).id,
 				c.req.param("userId"),
 				c.req.valid("json").role
 			);
@@ -57,7 +58,11 @@ export const projectSharingController = new Hono<AppEnv>()
 		}
 	)
 	.delete("/:projectId/invites/:inviteId", requireProject("project:share"), async (c) => {
-		await sharingService(c.var.deps).revokeInvite(c.var.access, c.req.param("inviteId"));
+		await sharingService(c.var.deps).revokeInvite(
+			c.var.access,
+			currentUser(c).id,
+			c.req.param("inviteId")
+		);
 		return c.body(null, 204);
 	})
 	.get("/:projectId/links", requireProject("project:share"), async (c) =>
@@ -90,7 +95,11 @@ export const projectSharingController = new Hono<AppEnv>()
 		}
 	)
 	.delete("/:projectId/links/:linkId", requireProject("project:share"), async (c) => {
-		await sharingService(c.var.deps).revokeLink(c.var.access, c.req.param("linkId"));
+		await sharingService(c.var.deps).revokeLink(
+			c.var.access,
+			currentUser(c).id,
+			c.req.param("linkId")
+		);
 		return c.body(null, 204);
 	});
 

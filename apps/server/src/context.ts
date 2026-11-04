@@ -4,6 +4,7 @@ import type { Config } from "./config.ts";
 import type { Db } from "./db/client.ts";
 import type { Logger } from "./lib/logger.ts";
 import type { ProjectAccess } from "./rbac/authorize.ts";
+import type { OrgAccess } from "./services/orgs.ts";
 
 /** Everything a request needs, built by the runtime entry (Workers or Node) and injected. */
 export interface Deps {
@@ -22,5 +23,6 @@ export interface AppEnv {
 		user: AuthUser | null;
 		session: AuthSession | null;
 		access: ProjectAccess;
+		orgAccess: OrgAccess;
 	};
 }

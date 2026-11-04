@@ -1,5 +1,6 @@
 import { waitReady } from "../adapters/redis/index.ts";
 import { redisConsumer, startRabbitConsumer } from "../jobs/consumers.ts";
+import { orgRepository } from "../repositories/orgs.ts";
 import { buildNodeDeps } from "./node-deps.ts";
 
 const { deps, redis, close } = await buildNodeDeps();
@@ -17,6 +18,17 @@ const stopped = new Promise<void>((resolve) => {
 });
 
 logger.info("job worker started", { driver: deps.config.queueDriver ?? "redis" });
+
+// Audit retention; idempotent, so several workers pruning at once is harmless.
+const prune = () =>
+	orgRepository(deps.db)
+		.pruneAudit(deps.config.limits.auditRetentionDays)
+		.then((removed) => logger.info("audit pruned", { removed }))
+		.catch((error) => logger.error("audit prune failed", { error }));
+void prune();
+const pruner = setInterval(prune, 6 * 3_600_000);
+process.on("SIGTERM", () => clearInterval(pruner));
+process.on("SIGINT", () => clearInterval(pruner));
 
 if (deps.config.queueDriver === "rabbitmq") {
 	const closeRabbit = await startRabbitConsumer(deps.config.rabbitmqUrl as string, jobDeps, logger);

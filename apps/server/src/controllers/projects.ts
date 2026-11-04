@@ -14,16 +14,22 @@ export const projectsController = new Hono<AppEnv>()
 	.get("/", async (c) => {
 		return c.json({ projects: await projectService(c.var.deps).list(currentUser(c).id) });
 	})
-	.post("/", validate("json", z.object({ name })), async (c) => {
-		const project = await projectService(c.var.deps).create(
-			currentUser(c).id,
-			c.req.valid("json").name
-		);
-		return c.json({ project }, 201);
-	})
+	.post(
+		"/",
+		validate("json", z.object({ name, orgId: z.string().min(1).optional() })),
+		async (c) => {
+			const { name: projectName, orgId } = c.req.valid("json");
+			const project = await projectService(c.var.deps).create(
+				currentUser(c).id,
+				projectName,
+				orgId
+			);
+			return c.json({ project }, 201);
+		}
+	)
 	.post(
 		"/import",
-		validate("query", z.object({ name })),
+		validate("query", z.object({ name, orgId: z.string().min(1).optional() })),
 		(c, next) =>
 			bodyLimit({
 				maxSize: c.var.deps.config.limits.importBytes,
@@ -33,10 +39,12 @@ export const projectsController = new Hono<AppEnv>()
 			})(c, next),
 		async (c) => {
 			const zip = new Uint8Array(await c.req.arrayBuffer());
+			const { name: projectName, orgId } = c.req.valid("query");
 			const result = await archiveService(c.var.deps).importZip(
 				currentUser(c).id,
-				c.req.valid("query").name,
-				zip
+				projectName,
+				zip,
+				orgId
 			);
 			return c.json(result, 201);
 		}
@@ -59,6 +67,6 @@ export const projectsController = new Hono<AppEnv>()
 		}
 	)
 	.delete("/:projectId", requireProject("project:delete"), async (c) => {
-		await projectService(c.var.deps).remove(c.var.access);
+		await projectService(c.var.deps).remove(c.var.access, currentUser(c).id);
 		return c.body(null, 204);
 	});

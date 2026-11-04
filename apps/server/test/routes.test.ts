@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createApp } from "../src/app.ts";
-import { PROJECT_GUARD, session } from "../src/middleware/index.ts";
+import { ORG_GUARD, PROJECT_GUARD, session } from "../src/middleware/index.ts";
 
 const app = createApp(() => {
 	throw new Error("routes test never handles a request");
@@ -19,6 +19,18 @@ test("every project-scoped route runs a project guard", () => {
 	}
 	const missing = [...unguarded].filter((id) => !guarded.has(id));
 	assert.deepEqual(missing, [], `routes without requireProject(): ${missing.join(", ")}`);
+});
+
+test("every org-scoped route runs an org guard", () => {
+	const scoped = app.routes.filter((r) => r.path.includes(":orgId") && r.method !== "ALL");
+	assert.ok(scoped.length >= 7, "expected the org routes to be registered");
+	const guarded = new Set(
+		scoped.filter((r) => ORG_GUARD in r.handler).map((r) => `${r.method} ${r.path}`)
+	);
+	const missing = [...new Set(scoped.map((r) => `${r.method} ${r.path}`))].filter(
+		(id) => !guarded.has(id)
+	);
+	assert.deepEqual(missing, [], `routes without requireOrg(): ${missing.join(", ")}`);
 });
 
 test("only health, auth and public config skip the session gate", () => {

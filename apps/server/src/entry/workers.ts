@@ -20,6 +20,7 @@ import { runJob } from "../jobs/handlers.ts";
 import { type Job, parseJob } from "../jobs/types.ts";
 import { createLogger } from "../lib/logger.ts";
 import { backoffDelay } from "../lib/resilience.ts";
+import { orgRepository } from "../repositories/orgs.ts";
 
 interface Env extends Record<string, unknown> {
 	HYPERDRIVE?: Hyperdrive;
@@ -86,6 +87,18 @@ const app = createApp(({ env, executionCtx }) => {
 
 export default {
 	fetch: app.fetch,
+
+	/** Daily cron (wrangler triggers): drops audit events past the retention window. */
+	async scheduled(_event: unknown, env: Env) {
+		const { config } = envState(env);
+		const { db, close } = openDb(env, config);
+		try {
+			const removed = await orgRepository(db).pruneAudit(config.limits.auditRetentionDays);
+			logger.info("audit pruned", { removed });
+		} finally {
+			await close();
+		}
+	},
 
 	async queue(batch: MessageBatch<unknown>, env: Env) {
 		const { config, adapters } = envState(env);

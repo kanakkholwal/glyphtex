@@ -26,10 +26,15 @@ drizzle/          generated SQL migrations (commit them; never hand-edit)
   `adapters/types.ts` and passes the contract tests.
 - **No module-level singletons holding connections.** Entries build `Deps` and inject them via
   Hono context. On Workers the DB connection is per request and closed by `dispose`.
-- **Every route under `/api/projects/:projectId` uses `requireProject(permission)`.**
-  `test/routes.test.ts` fails otherwise. Unknown projects are 404, not 403.
-- **Grants live in `rbac/permissions.ts` only.** The client gets `capabilities[]`; it never
-  re-derives rules.
+- **Every route under `/api/projects/:projectId` uses `requireProject(permission)`, and every route under
+  `/api/orgs/:orgId` uses `requireOrg(permission)`.** `test/routes.test.ts` fails otherwise. Unknown
+  projects and orgs are 404, not 403.
+- **Grants live in `rbac/` only:** `permissions.ts` (project roles) and `org.ts` (org roles, policy, the
+  org-role to project-role mapping). The client gets `capabilities[]`; it never re-derives rules.
+- **Org membership is Better Auth's** (`/api/auth/organization/*`); its hooks in `auth/auth.ts` write the
+  audit log and hand a leaving member's org projects to an owner. Our routes own policy, stats and audit.
+- **Org projects belong to the org.** Account deletion refuses while the user is the last owner of an
+  org others use, deletes orgs only they belong to, and transfers their org projects first.
 - **Hard deletes only.** No `deleted_at`. Rows cascade from `user`/`project`; blob keys go to the
   `blobs.delete` job, which skips any key still referenced, so a purge can't destroy live data.
 - **Writes need preconditions:** `If-None-Match: *` to create, `If-Match: "<version>"` to

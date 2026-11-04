@@ -1,12 +1,21 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { magicLink } from "better-auth/plugins/magic-link";
+import { organization } from "better-auth/plugins/organization";
 import type { Queue } from "../adapters/types.ts";
 import type { Config } from "../config.ts";
 import type { Db } from "../db/client.ts";
 import { schema } from "../db/schema.ts";
 import { mails } from "../mail/templates.ts";
-import { projectRepository } from "../repositories/projects.ts";
+import { AppError } from "../lib/errors.ts";
+import { orgRepository } from "../repositories/orgs.ts";
+import {
+	assertCanDeleteAccount,
+	PURGE_DELAY_SECONDS,
+	prepareAccountDeletion,
+	transferOrgProjects
+} from "../services/org-lifecycle.ts";
 
 export interface AuthDeps {
 	config: Config;
@@ -14,13 +23,29 @@ export interface AuthDeps {
 	queue: Queue;
 }
 
-// Long enough for the user deletion to commit; the purge job skips any key still referenced.
-const ACCOUNT_PURGE_DELAY_SECONDS = 300;
+/** Better Auth reports hook failures from its own error type; keep our plain-language message. */
+async function asAuthError(run: () => Promise<void>) {
+	try {
+		await run();
+	} catch (error) {
+		if (error instanceof AppError) {
+			throw new APIError(error.status === 409 ? "CONFLICT" : "BAD_REQUEST", {
+				message: error.message
+			});
+		}
+		throw error;
+	}
+}
+
+type HookCtx = { context?: { session?: { user?: { id?: string } } | null } } | undefined;
+const actorOf = (ctx: HookCtx, fallback: string | null) =>
+	ctx?.context?.session?.user?.id ?? fallback;
 
 export function createAuth({ config, db, queue }: AuthDeps) {
 	const sendMail = (mail: ReturnType<(typeof mails)[keyof typeof mails]>) =>
 		queue.enqueue({ type: "email.send", mail });
 	const { google, github, gitlab, gitlabIssuer } = config.oauth;
+	const orgs = orgRepository(db);
 
 	return betterAuth({
 		baseURL: config.publicUrl,
@@ -31,6 +56,14 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 		// No secondaryStorage: Better Auth needs atomic increment/get-and-delete from it, which
 		// KV can't give. Sessions and auth rate limits stay in Postgres, the source of truth.
 		rateLimit: { enabled: true, storage: "database" },
+		hooks: {
+			// Check before the confirmation email goes out, not only when its link is opened.
+			before: createAuthMiddleware(async (ctx) => {
+				if (ctx.path !== "/delete-user") return;
+				const session = await getSessionFromCtx(ctx);
+				if (session) await asAuthError(() => assertCanDeleteAccount(db, session.user.id));
+			})
+		},
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: true,
@@ -57,17 +90,7 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 					sendMail(mails.deleteAccount(user.email, url)),
 				// Hard delete: rows cascade from `user`; blobs are queued here because the
 				// keys are gone once the rows are.
-				beforeDelete: async (user) => {
-					const projects = projectRepository(db);
-					const owned = await projects.listOwned(user.id);
-					const keys = await projects.blobKeysForProjects(owned.map((p) => p.id));
-					if (keys.length) {
-						await queue.enqueue(
-							{ type: "blobs.delete", keys },
-							{ delaySeconds: ACCOUNT_PURGE_DELAY_SECONDS }
-						);
-					}
-				}
+				beforeDelete: (user) => asAuthError(() => prepareAccountDeletion(db, queue, user.id))
 			}
 		},
 		advanced: {
@@ -77,7 +100,109 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 			})
 		},
 		plugins: [
-			magicLink({ sendMagicLink: async ({ email, url }) => sendMail(mails.magicLink(email, url)) })
+			magicLink({ sendMagicLink: async ({ email, url }) => sendMail(mails.magicLink(email, url)) }),
+			organization({
+				creatorRole: "owner",
+				invitationExpiresIn: config.limits.inviteTtlHours * 3600,
+				cancelPendingInvitationsOnReInvite: true,
+				requireEmailVerificationOnInvitation: true,
+				membershipLimit: async (_user, org) =>
+					(await orgs.policy(org.id)).seatLimit ?? Number.MAX_SAFE_INTEGER,
+				sendInvitationEmail: async ({ id, email, organization: org, inviter, role }) =>
+					sendMail(
+						mails.orgInvite(
+							email,
+							inviter.user.name || inviter.user.email,
+							org.name,
+							role,
+							`${config.appUrl}/workspace/org-invite/${encodeURIComponent(id)}`
+						)
+					),
+				organizationHooks: {
+					afterCreateOrganization: async ({ organization: org, user }) =>
+						orgs.audit({
+							organizationId: org.id,
+							actorId: user.id,
+							action: "org.created",
+							targetType: "organization",
+							targetId: org.id
+						}),
+					afterUpdateOrganization: async ({ organization: org, user }) => {
+						if (!org) return;
+						await orgs.audit({
+							organizationId: org.id,
+							actorId: user.id,
+							action: "org.updated",
+							targetType: "organization",
+							targetId: org.id
+						});
+					},
+					// Rows cascade with the org; its files are purged once the delete has committed.
+					beforeDeleteOrganization: async ({ organization: org }) => {
+						const keys = await orgs.blobKeys(org.id);
+						if (keys.length) {
+							await queue.enqueue(
+								{ type: "blobs.delete", keys },
+								{ delaySeconds: PURGE_DELAY_SECONDS }
+							);
+						}
+					},
+					afterAddMember: async ({ member: m, user }, ctx?: HookCtx) =>
+						orgs.audit({
+							organizationId: m.organizationId,
+							actorId: actorOf(ctx, null),
+							action: "member.added",
+							targetType: "user",
+							targetId: user.id,
+							meta: { role: m.role }
+						}),
+					afterRemoveMember: async ({ member: m, user }, ctx?: HookCtx) => {
+						const moved = await transferOrgProjects(db, m.organizationId, user.id);
+						await orgs.audit({
+							organizationId: m.organizationId,
+							actorId: actorOf(ctx, null),
+							action: "member.removed",
+							targetType: "user",
+							targetId: user.id,
+							meta: { projectsTransferred: moved }
+						});
+					},
+					afterUpdateMemberRole: async ({ member: m, previousRole, user }, ctx?: HookCtx) =>
+						orgs.audit({
+							organizationId: m.organizationId,
+							actorId: actorOf(ctx, null),
+							action: "member.role_changed",
+							targetType: "user",
+							targetId: user.id,
+							meta: { from: previousRole, to: m.role }
+						}),
+					afterCreateInvitation: async ({ invitation: inv, inviter }) =>
+						orgs.audit({
+							organizationId: inv.organizationId,
+							actorId: inviter.id,
+							action: "invitation.created",
+							targetType: "invitation",
+							targetId: inv.id,
+							meta: { role: inv.role ?? "member" }
+						}),
+					afterAcceptInvitation: async ({ invitation: inv, user }) =>
+						orgs.audit({
+							organizationId: inv.organizationId,
+							actorId: user.id,
+							action: "invitation.accepted",
+							targetType: "invitation",
+							targetId: inv.id
+						}),
+					afterCancelInvitation: async ({ invitation: inv, cancelledBy }) =>
+						orgs.audit({
+							organizationId: inv.organizationId,
+							actorId: cancelledBy.id,
+							action: "invitation.cancelled",
+							targetType: "invitation",
+							targetId: inv.id
+						})
+				}
+			})
 		]
 	});
 }

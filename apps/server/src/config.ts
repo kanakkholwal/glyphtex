@@ -55,7 +55,8 @@ const schema = z.object({
 	MAX_IMPORT_BYTES: int(100 * 1024 * 1024),
 	API_RATE_LIMIT: int(300),
 	API_RATE_WINDOW_SECONDS: int(60),
-	INVITE_TTL_HOURS: int(24 * 7)
+	INVITE_TTL_HOURS: int(24 * 7),
+	AUDIT_RETENTION_DAYS: int(365)
 });
 
 export type Config = ReturnType<typeof parseConfig>;
@@ -102,7 +103,8 @@ export function parseConfig(env: Record<string, unknown>) {
 			importBytes: e.MAX_IMPORT_BYTES,
 			apiRequests: e.API_RATE_LIMIT,
 			apiWindowSeconds: e.API_RATE_WINDOW_SECONDS,
-			inviteTtlHours: e.INVITE_TTL_HOURS
+			inviteTtlHours: e.INVITE_TTL_HOURS,
+			auditRetentionDays: e.AUDIT_RETENTION_DAYS
 		}
 	};
 }

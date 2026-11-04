@@ -1,137 +1,34 @@
 import assert from "node:assert/strict";
-import { fileURLToPath } from "node:url";
 import { after, before, describe, test } from "node:test";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { strToU8, unzipSync, zipSync } from "fflate";
-import { createApp } from "../src/app.ts";
-import { buildNodeDeps } from "../src/entry/node-deps.ts";
-import { waitReady } from "../src/adapters/redis/index.ts";
-import { redisConsumer } from "../src/jobs/consumers.ts";
+import { type Integration, integrationEnabled, startIntegration } from "./support.ts";
 
-const enabled = process.env.GLYPHTEX_IT === "1";
-const MAILPIT = process.env.MAILPIT_URL ?? "http://localhost:8026";
-const APP_URL = "http://localhost:5173";
-const run = Date.now().toString(36);
+type Client = InstanceType<Integration["Client"]>;
 
-describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () => {
-	let built: Awaited<ReturnType<typeof buildNodeDeps>>;
-	let app: ReturnType<typeof createApp>;
-	let consumer: ReturnType<typeof redisConsumer>;
-	let blocking: ReturnType<typeof built.redis.duplicate>;
+describe("API end to end", { skip: integrationEnabled ? false : "set GLYPHTEX_IT=1" }, () => {
+	let it: Integration;
+	let alice: Client;
+	let bob: Client;
+	let carol: Client;
+	let mallory: Client;
 
 	before(async () => {
-		built = await buildNodeDeps({
-			PUBLIC_URL: "http://localhost:8787",
-			APP_URL,
-			BETTER_AUTH_SECRET: "integration-secret-integration-secret-0123",
-			DATABASE_URL:
-				process.env.DATABASE_URL ?? "postgres://glyphtex:glyphtex@localhost:5433/glyphtex",
-			REDIS_URL: process.env.REDIS_URL ?? "redis://localhost:6380",
-			BLOB_DRIVER: "s3",
-			S3_ENDPOINT: process.env.S3_ENDPOINT ?? "http://localhost:9002",
-			S3_REGION: "us-east-1",
-			S3_BUCKET: "glyphtex",
-			S3_ACCESS_KEY_ID: "glyphtex",
-			S3_SECRET_ACCESS_KEY: "glyphtex-secret",
-			MAIL_DRIVER: "smtp",
-			SMTP_URL: process.env.SMTP_URL ?? "smtp://localhost:1025",
-			API_RATE_LIMIT: "10000"
-		});
-		await migrate(built.deps.db, {
-			migrationsFolder: fileURLToPath(new URL("../drizzle", import.meta.url))
-		});
-		app = createApp(() => ({ deps: built.deps }));
-		blocking = built.redis.duplicate();
-		await waitReady(blocking);
-		consumer = redisConsumer(built.redis, blocking, {
-			db: built.deps.db,
-			blobs: built.deps.adapters.blobs,
-			mailer: built.deps.adapters.mailer,
-			logger: built.deps.logger
-		});
+		it = await startIntegration();
+		alice = new it.Client("alice");
+		bob = new it.Client("bob");
+		carol = new it.Client("carol");
+		mallory = new it.Client("mallory");
 	});
 
 	after(async () => {
-		blocking?.disconnect();
-		await built?.close();
+		await it?.stop();
 	});
 
-	/** Runs every queued job, including delayed ones, as the worker eventually would. */
-	async function drainJobs() {
-		await consumer.promoteDue(Number.POSITIVE_INFINITY);
-		while (await consumer.processOne(1)) {}
-	}
-
-	async function latestLink(to: string, pathPart: string) {
-		await drainJobs();
-		const search = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${to}`)}`);
-		const { messages } = (await search.json()) as { messages: { ID: string }[] };
-		for (const m of messages) {
-			const msg = (await (await fetch(`${MAILPIT}/api/v1/message/${m.ID}`)).json()) as {
-				Text: string;
-			};
-			const url = msg.Text.match(/https?:\/\/\S+/g)?.find((u) => u.includes(pathPart));
-			if (url) return new URL(url);
-		}
-		throw new Error(`no email to ${to} containing ${pathPart}`);
-	}
-
-	let clients = 0;
-	class Client {
-		cookies = new Map<string, string>();
-		email: string;
-		// Distinct client IPs, so Better Auth's per-IP auth limits apply per test user.
-		ip = `10.0.0.${++clients}`;
-		constructor(name: string) {
-			this.email = `${name}-${run}@example.test`;
-		}
-		async request(path: string, init: RequestInit = {}) {
-			const headers = new Headers(init.headers);
-			headers.set("origin", APP_URL);
-			headers.set("x-forwarded-for", this.ip);
-			if (this.cookies.size) {
-				headers.set("cookie", [...this.cookies].map(([k, v]) => `${k}=${v}`).join("; "));
-			}
-			const res = await app.request(path, { ...init, headers });
-			for (const c of res.headers.getSetCookie()) {
-				const [pair] = c.split(";");
-				const [k, ...v] = (pair ?? "").split("=");
-				if (k) this.cookies.set(k.trim(), v.join("="));
-			}
-			return res;
-		}
-		json(path: string, method: string, body?: unknown, headers: Record<string, string> = {}) {
-			return this.request(path, {
-				method,
-				headers: { "content-type": "application/json", ...headers },
-				body: body === undefined ? undefined : JSON.stringify(body)
-			});
-		}
-		async signUp() {
-			const res = await this.json("/api/auth/sign-up/email", "POST", {
-				email: this.email,
-				password: "correct horse battery",
-				name: this.email.split("@")[0]
-			});
-			assert.equal(res.status, 200, await res.clone().text());
-			const verify = await latestLink(this.email, "verify-email");
-			const done = await this.request(`${verify.pathname}${verify.search}`);
-			assert.ok([200, 302].includes(done.status), `verify returned ${done.status}`);
-			const me = await this.request("/api/me");
-			assert.equal(me.status, 200, "auto sign-in after verification");
-			return this;
-		}
-	}
-
-	const alice = new Client("alice");
-	const bob = new Client("bob");
-	const carol = new Client("carol");
-	const mallory = new Client("mallory");
 	let projectId = "";
 	let imageKey = "";
 
 	test("unauthenticated API calls are rejected", async () => {
-		const res = await new Client("anon").request("/api/projects");
+		const res = await new it.Client("anon").request("/api/projects");
 		assert.equal(res.status, 401);
 		assert.equal(res.headers.get("content-type"), "application/problem+json");
 	});
@@ -141,7 +38,7 @@ describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () =
 	});
 
 	test("health checks report dependencies", async () => {
-		const res = await app.request("/readyz");
+		const res = await it.app.request("/readyz");
 		assert.equal(res.status, 200);
 	});
 
@@ -224,7 +121,7 @@ describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () =
 			role: "editor"
 		});
 		assert.equal(invite.status, 201);
-		const link = await latestLink(bob.email, "/invite/");
+		const link = await it.latestLink(bob.email, "/invite/");
 		const token = decodeURIComponent(link.pathname.split("/").pop() ?? "");
 
 		const wrongUser = await mallory.json("/api/invites/accept", "POST", { token });
@@ -284,11 +181,11 @@ describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () =
 	});
 
 	test("members can leave; viewers can't remove others", async () => {
-		const kick = await carol.request(`/api/projects/${projectId}/members/${await userId(bob)}`, {
+		const kick = await carol.request(`/api/projects/${projectId}/members/${await bob.id()}`, {
 			method: "DELETE"
 		});
 		assert.equal(kick.status, 403);
-		const leave = await carol.request(`/api/projects/${projectId}/members/${await userId(carol)}`, {
+		const leave = await carol.request(`/api/projects/${projectId}/members/${await carol.id()}`, {
 			method: "DELETE"
 		});
 		assert.equal(leave.status, 204);
@@ -342,7 +239,7 @@ describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () =
 	});
 
 	test("deleting a project removes rows and purges blobs", async () => {
-		const { db } = built.deps;
+		const { db } = it.built.deps;
 		const row = await db.query.projectFile.findFirst({
 			where: (f, { and, eq }) => and(eq(f.projectId, projectId), eq(f.path, "figures/plot.png"))
 		});
@@ -350,13 +247,13 @@ describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () =
 		assert.ok(imageKey);
 		const res = await alice.request(`/api/projects/${projectId}`, { method: "DELETE" });
 		assert.equal(res.status, 204);
-		await drainJobs();
-		assert.equal(await built.deps.adapters.blobs.get(imageKey), null);
+		await it.drainJobs();
+		assert.equal(await it.built.deps.adapters.blobs.get(imageKey), null);
 		assert.equal((await bob.request(`/api/projects/${projectId}`)).status, 404);
 	});
 
 	test("account deletion is a hard delete of the user and everything they own", async () => {
-		const { db } = built.deps;
+		const { db } = it.built.deps;
 		const imported = await db.query.project.findFirst({
 			where: (p, { eq, and }) => and(eq(p.name, "Imported"))
 		});
@@ -367,7 +264,7 @@ describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () =
 
 		const start = await alice.json("/api/auth/delete-user", "POST", {});
 		assert.equal(start.status, 200, await start.clone().text());
-		const confirm = await latestLink(alice.email, "delete-user");
+		const confirm = await it.latestLink(alice.email, "delete-user");
 		const done = await alice.request(`${confirm.pathname}${confirm.search}`);
 		assert.ok([200, 302].includes(done.status), `delete callback returned ${done.status}`);
 
@@ -377,12 +274,7 @@ describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () =
 			where: (p, { eq }) => eq(p.id, imported?.id ?? "")
 		});
 		assert.equal(leftovers.length, 0);
-		await drainJobs();
-		assert.equal(await built.deps.adapters.blobs.get(blob.blobKey), null);
+		await it.drainJobs();
+		assert.equal(await it.built.deps.adapters.blobs.get(blob.blobKey), null);
 	});
-
-	async function userId(client: Client) {
-		const res = await client.request("/api/me");
-		return ((await res.json()) as { user: { id: string } }).user.id;
-	}
 });
