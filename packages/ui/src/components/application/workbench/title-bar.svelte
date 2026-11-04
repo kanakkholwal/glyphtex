@@ -30,16 +30,19 @@
 	import ModeSwitch from "./mode-switch.svelte";
 	import PageMenu from "./page-menu.svelte";
 	import type { SaveFileFn } from "./types";
+	import type { Snippet } from "svelte";
 
 	// Full-width bar: breadcrumb, editor mode and build. Document actions hang off its node; the rest is ⌘K.
 	let {
 		ctrl,
 		saving,
-		saveFile
+		saveFile,
+		actions
 	}: {
 		ctrl: WorkbenchController;
 		saving?: boolean;
 		saveFile?: SaveFileFn;
+		actions?: Snippet;
 	} = $props();
 
 	const files = $derived(ctrl.files);
@@ -209,6 +212,7 @@
 	{/if}
 
 	<div class="flex shrink-0 items-center gap-0.5">
+		{@render actions?.()}
 		<Tooltip delayDuration={400}>
 			<TooltipTrigger>
 				{#snippet child({ props })}

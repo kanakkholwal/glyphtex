@@ -30,12 +30,22 @@
 	import * as Sidebar from '@glyphtex/ui/sidebar';
 	import { ThemeToggle } from '@glyphtex/ui/theme-toggle';
 	import {
-		IconArrowRight,
 		IconArrowsSort,
 		IconClock,
-		IconCloudDownload,
+		IconCircle,
+		IconCircleCheckFilled,
+		IconDots,
+		IconGitBranch,
+		IconLock,
+		IconSelector,
+		IconUser,
+		IconUsers,
+		IconCloud,
+		IconCloudUpload,
 		IconCopy,
-		IconDotsVertical,
+		IconLogin,
+		IconLogout,
+		IconUserCircle,
 		IconExternalLink,
 		IconFileImport,
 		IconFileText,
@@ -58,11 +68,8 @@
 		IconTrash,
 		IconX
 	} from '@tabler/icons-svelte';
-	import { flip } from 'svelte/animate';
-	import { cubicOut } from 'svelte/easing';
-	import { fade, fly } from 'svelte/transition';
+	import type { Snippet } from 'svelte';
 	import AboutDialog from './about-dialog.svelte';
-	import { motionMs as ms } from './motion';
 	import type { ProjectTemplate } from '../../lib/project-templates';
 	import { TemplateFilter } from '../../lib/project-templates/filter.svelte';
 	import TemplateCard, { type TemplateCardPreview } from './template-card.svelte';
@@ -93,7 +100,10 @@
 		templates = [],
 		templatesLoading = false,
 		templatePreview,
-		onusetemplate
+		onusetemplate,
+		onupload,
+		account,
+		checklist
 	}: {
 		/** Drives the About dialog's platform line and the drop hint. */
 		platform?: 'web' | 'desktop';
@@ -136,6 +146,12 @@
 		templatePreview?: (id: string) => TemplateCardPreview | null;
 		/** Create a project from a template. Return the new id to have the home open it. */
 		onusetemplate?: (id: string) => string | void | Promise<string | void>;
+		/** Copy a browser-only project to the server. Absent hides the action. */
+		onupload?: (id: string) => void;
+		/** Account row for the rail footer; absent when the host has no accounts. */
+		account?: { href: string; label: string; signedIn: boolean };
+		/** First-run checklist for the rail; the host owns each item's `done`. */
+		checklist?: { items: { id: string; label: string; done: boolean }[]; ondismiss: () => void };
 	} = $props();
 
 	type Sort = 'newest' | 'oldest' | 'name';
@@ -150,6 +166,7 @@
 	let renameValue = $state('');
 	let aboutOpen = $state(false);
 	let pendingDelete = $state<Project | null>(null);
+	const leaving = $derived(Boolean(pendingDelete?.cloud && pendingDelete.cloud.role !== 'owner'));
 	let searchEl = $state<HTMLInputElement>();
 
 	// "/" focuses search, except while typing, so it can still go into a project name.
@@ -162,11 +179,6 @@
 		searchEl?.focus();
 	}
 
-	let scrollEl = $state<HTMLElement>();
-	let scrolled = $state(false);
-	function onScroll() {
-		scrolled = (scrollEl?.scrollTop ?? 0) > 4;
-	}
 
 	async function handleCreate() {
 		const id = await oncreate?.();
@@ -206,8 +218,26 @@
 					: projects
 	);
 
+	type Place = 'all' | 'local' | 'cloud' | 'shared';
+	let location = $state<Place>('all');
+	const hasCloud = $derived(projects.some((p) => p.cloud));
+	const locations = $derived<{ id: Place; label: string }[]>([
+		{ id: 'all', label: 'All' },
+		{ id: 'local', label: platform === 'web' ? 'This browser' : 'This computer' },
+		{ id: 'cloud', label: 'Cloud' },
+		{ id: 'shared', label: 'Shared with me' }
+	]);
+	const inLocation = (p: Project) =>
+		location === 'all' ||
+		(location === 'local'
+			? !p.cloud
+			: location === 'cloud'
+				? p.cloud?.role === 'owner'
+				: Boolean(p.cloud && p.cloud.role !== 'owner'));
+
 	const filtered = $derived(
 		scoped
+			.filter(inLocation)
 			.filter((p) => p.name.toLowerCase().includes(query.trim().toLowerCase()))
 			.toSorted((a, b) =>
 				sort === 'name'
@@ -219,7 +249,7 @@
 	);
 
 	const scopes: { id: Scope; label: string; icon: typeof IconPlus }[] = [
-		{ id: 'all', label: 'All projects', icon: IconHome },
+		{ id: 'all', label: 'Projects', icon: IconHome },
 		{ id: 'recent', label: 'Recent', icon: IconClock },
 		{ id: 'starred', label: 'Starred', icon: IconStar },
 		{ id: 'templates', label: 'Templates', icon: IconTemplate }
@@ -228,14 +258,9 @@
 	// Active rail row: the base fill, medium weight and a blue icon, so it reads without colour.
 	// Active scope is a raised pill on the canvas, read by fill and weight rather than colour.
 	const railRow =
-		'h-9 rounded-lg px-2.5 text-sm hover:bg-foreground/[0.04] data-active:bg-background data-active:font-medium data-active:shadow-(--surface-shadow)';
-	const groupLabel = 'text-muted-foreground h-7 px-2.5 font-mono text-xs lowercase';
+		'h-8 rounded-lg px-2.5 text-sm hover:bg-foreground/[0.04] data-active:bg-foreground/[0.06] data-active:font-medium';
+	const groupLabel = 'text-muted-foreground h-7 px-2.5 text-xs';
 
-	const scopeLabel = $derived(scopes.find((s) => s.id === scope)?.label ?? 'All projects');
-	const ScopeIcon = $derived(scopes.find((s) => s.id === scope)?.icon ?? IconHome);
-	const showStart = $derived(scope === 'all' && !loading);
-	// Search, sort and view only when there is something to act on; the empty state says the rest.
-	const showTools = $derived(loading || query.trim() !== '' || scoped.length > 0);
 
 	const templateFilter = new TemplateFilter(() => templates);
 	let usingTemplate = $state<string | null>(null);
@@ -282,10 +307,67 @@
 		return `${mo} mo ago`;
 	}
 
-	const meta = (p: Project) =>
-		p.root
-			? `On disk · edited ${relativeTime(p.updatedAt)}`
-			: `${p.files.length} ${p.files.length === 1 ? 'file' : 'files'} · edited ${relativeTime(p.updatedAt)}`;
+	const placeOf = (p: Project) =>
+		p.cloud
+			? p.cloud.role === 'owner'
+				? { label: 'Cloud', icon: IconCloud }
+				: { label: `Shared · ${p.cloud.role}`, icon: IconUsers }
+			: p.root
+				? { label: 'On disk', icon: IconFolder }
+				: { label: platform === 'web' ? 'This browser' : 'This computer', icon: IconLock };
+	const detail = (p: Project) =>
+		p.cloud
+			? `edited ${relativeTime(p.updatedAt)}`
+			: `${p.files.length} ${p.files.length === 1 ? 'file' : 'files'} · ${relativeTime(p.updatedAt)}`;
+
+	const initials = (name: string) =>
+		name
+			.split(/[\s@.]+/)
+			.filter(Boolean)
+			.slice(0, 2)
+			.map((w) => w[0]?.toUpperCase())
+			.join('') || '?';
+
+	const checklistDone = $derived(checklist?.items.filter((i) => i.done).length ?? 0);
+
+	const pageTitle = $derived(
+		scope === 'recent'
+			? 'Recent'
+			: scope === 'starred'
+				? 'Starred'
+				: scope === 'templates'
+					? 'Templates'
+					: 'Projects'
+	);
+	const pageDescription = $derived(
+		scope === 'recent'
+			? 'Projects you edited in the last 7 days.'
+			: scope === 'starred'
+				? 'Projects you starred from their menu.'
+				: scope === 'templates'
+					? 'Starter documents for theses, papers, CVs and slides.'
+					: platform === 'web'
+						? hasCloud
+							? 'Documents in this browser and on your GlyphTeX server. All of them compile on this device.'
+							: 'Documents saved in this browser. They compile on this device.'
+						: 'Projects in folders on this computer. They compile locally.'
+	);
+	const emptyTitle = $derived(
+		query.trim()
+			? `No projects match “${query.trim()}”`
+			: location !== 'all'
+				? 'Nothing here yet'
+				: scope === 'starred'
+					? 'Nothing starred yet'
+					: 'Nothing edited this week'
+	);
+	const emptyBody = $derived(
+		query.trim() || location !== 'all'
+			? 'Try another filter or clear the search.'
+			: scope === 'starred'
+				? 'Star a project from its menu to keep it here.'
+				: 'Recent shows projects you touched in the last 7 days.'
+	);
 
 	function startRename(p: Project) {
 		renaming = p.id;
@@ -303,15 +385,6 @@
 		if (p) ondelete?.(p.id);
 	}
 
-	// Stable per-project line widths so each thumbnail reads as its own page; purely decorative.
-	function lineWidths(seed: string, n = 5): number[] {
-		let h = 0;
-		for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-		return Array.from({ length: n }, (_, i) => {
-			h = (h * 1103515245 + 12345) >>> 0;
-			return 55 + ((h >> (i + 3)) % 42);
-		});
-	}
 </script>
 
 {#snippet projectTitle(p: Project)}
@@ -320,7 +393,7 @@
 		<input
 			bind:value={renameValue}
 			aria-label="Project name"
-			class="bg-background border-ring text-foreground h-8 w-full rounded-md border px-2 text-sm font-medium outline-none"
+			class="bg-background border-ring text-foreground relative z-10 h-7 w-full rounded-md border px-2 text-sm font-medium outline-none"
 			autofocus
 			onkeydown={(e) => {
 				if (e.key === 'Enter') commitRename(p.id);
@@ -329,16 +402,36 @@
 			onblur={() => commitRename(p.id)}
 		/>
 	{:else}
-		<h3 class="text-foreground truncate text-md font-medium">
+		<h3 class="text-foreground truncate text-sm font-medium">
 			<button
-				class="focus-visible:ring-ring block max-w-full truncate rounded-sm text-left outline-none after:absolute after:inset-0 focus-visible:ring-2"
+				class="focus-visible:ring-ring block max-w-full truncate rounded-sm text-left outline-none after:absolute after:inset-0 after:rounded-[inherit] focus-visible:ring-2"
 				onclick={() => onopen?.(p.id)}
 			>
 				{p.name}
 			</button>
 		</h3>
 	{/if}
-	<p class="text-muted-foreground mt-0.5 truncate text-xs" title={p.root}>{meta(p)}</p>
+{/snippet}
+
+{#snippet projectMeta(p: Project)}
+	{@const place = placeOf(p)}
+	<p class="text-muted-foreground mt-0.5 flex min-w-0 items-center gap-1 truncate text-xs" title={p.root}>
+		<place.icon size={13} class="shrink-0" aria-hidden="true" />
+		<span class="truncate">{place.label} · {detail(p)}</span>
+	</p>
+{/snippet}
+
+{#snippet projectIcon(p: Project)}
+	<span
+		class="bg-muted text-muted-foreground group-hover:text-foreground grid size-10 shrink-0 place-items-center rounded-lg transition-colors duration-(--duration-fast)"
+		style:view-transition-name={projectViewTransitionName(p.id)}
+		style:view-transition-class="morph-surface"
+		aria-hidden="true"
+	>
+		{#if p.root}<IconFolder size={20} />{:else if p.cloud}<IconCloud size={20} />{:else}<IconFileText
+				size={20}
+			/>{/if}
+	</span>
 {/snippet}
 
 {#snippet starBadge(p: Project)}
@@ -356,15 +449,15 @@
 			{#snippet child({ props })}
 				<button
 					{...props}
-					class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring relative z-10 grid size-8 shrink-0 place-items-center rounded-md outline-none transition-[opacity,color,background-color] duration-(--duration-base) ease-(--ease-out) focus-visible:opacity-100 focus-visible:ring-2 data-[state=open]:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+					class="text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-ring relative z-10 grid size-7 shrink-0 place-items-center rounded-md outline-none transition-[opacity,color,background-color] duration-(--duration-base) ease-(--ease-out) focus-visible:opacity-100 focus-visible:ring-2 data-[state=open]:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
 					aria-label={`Actions for ${p.name}`}
 				>
-					<IconDotsVertical size={16} />
+					<IconDots size={16} />
 				</button>
 			{/snippet}
 		</DropdownMenuTrigger>
 		<DropdownMenuContent align="end" class="w-52">
-			{#if onstar}
+			{#if onstar && !p.cloud}
 				<DropdownMenuItem onclick={() => onstar?.(p.id, !p.starred)}>
 					{#if p.starred}
 						<IconStarFilled class="text-warning-strong" /> Unstar
@@ -374,12 +467,21 @@
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 			{/if}
-			<DropdownMenuItem onclick={() => startRename(p)}>
-				<IconPencil /> Rename
-			</DropdownMenuItem>
-			<DropdownMenuItem onclick={() => onduplicate?.(p.id)}>
-				<IconCopy /> Duplicate
-			</DropdownMenuItem>
+			{#if !p.cloud || p.cloud.role === 'owner' || p.cloud.role === 'editor'}
+				<DropdownMenuItem onclick={() => startRename(p)}>
+					<IconPencil /> Rename
+				</DropdownMenuItem>
+			{/if}
+			{#if !p.cloud}
+				<DropdownMenuItem onclick={() => onduplicate?.(p.id)}>
+					<IconCopy /> Duplicate
+				</DropdownMenuItem>
+			{/if}
+			{#if onupload && !p.cloud && !p.root}
+				<DropdownMenuItem onclick={() => onupload?.(p.id)}>
+					<IconCloudUpload /> Save to cloud
+				</DropdownMenuItem>
+			{/if}
 			{#if onreveal && p.root}
 				<DropdownMenuItem onclick={() => onreveal?.(p.id)} class="whitespace-nowrap">
 					<IconFolderShare /> Reveal in file manager
@@ -387,38 +489,85 @@
 			{/if}
 			<DropdownMenuSeparator />
 			<DropdownMenuItem destructive onclick={() => (pendingDelete = p)}>
-				<IconTrash /> Delete
+				{#if p.cloud && p.cloud.role !== 'owner'}<IconLogout /> Leave{:else}<IconTrash /> Delete{/if}
 			</DropdownMenuItem>
 		</DropdownMenuContent>
 	</DropdownMenu>
 {/snippet}
 
-{#snippet pageThumb(p: Project, compact = false)}
-	<!-- Shares its view-transition-name with the editor surface, so opening morphs into it. -->
-	<div
-		class="bg-card border-border relative overflow-hidden rounded-md border {compact
-			? 'size-10'
-			: 'absolute inset-x-6 top-5 bottom-0 rounded-b-none border-b-0'}"
-		style:view-transition-name={projectViewTransitionName(p.id)}
-		style:view-transition-class="morph-surface"
-		aria-hidden="true"
+{#snippet sectionLabel(id: string, label: string, count: number | null)}
+	<h2 {id} class="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+		{label}{#if count !== null}<span class="ml-1.5 tabular-nums">{count}</span>{/if}
+	</h2>
+{/snippet}
+
+{#snippet pill(active: boolean, label: string, onclick: () => void)}
+	<button
+		class="focus-visible:ring-ring h-8 rounded-lg border px-3 text-sm outline-none transition-[background-color,border-color,color] duration-(--duration-fast) ease-(--ease-out) focus-visible:ring-2 {active
+			? 'bg-muted text-foreground border-transparent font-medium'
+			: 'border-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]'}"
+		aria-pressed={active}
+		{onclick}
 	>
-		{#if compact}
-			<span class="flex h-full flex-col justify-center gap-[3px] px-2">
-				<span class="bg-foreground h-[3px] w-3/5 rounded-full"></span>
-				<span class="bg-border-strong h-[2px] w-full rounded-full"></span>
-				<span class="bg-border-strong h-[2px] w-4/5 rounded-full"></span>
-			</span>
-		{:else}
-			<div class="flex flex-col gap-2 p-4">
-				<div class="bg-foreground h-1.5 w-1/2 rounded-full"></div>
-				<div class="mt-1.5 flex flex-col gap-1.5">
-					{#each lineWidths(p.id) as w, i (i)}
-						<div class="bg-border-strong h-1 rounded-full" style:width={`${w}%`}></div>
-					{/each}
-				</div>
-			</div>
-		{/if}
+		{label}
+	</button>
+{/snippet}
+
+{#snippet startRow(icon: typeof IconPlus, title: string, body: string, action: Snippet)}
+	{@const Icon = icon}
+	<li class="flex items-center gap-4 py-3">
+		<span class="bg-muted text-foreground grid size-10 shrink-0 place-items-center rounded-lg" aria-hidden="true">
+			<Icon size={20} />
+		</span>
+		<div class="min-w-0 flex-1">
+			<p class="text-foreground text-sm font-medium">{title}</p>
+			<p class="text-muted-foreground text-sm">{body}</p>
+		</div>
+		{@render action()}
+	</li>
+{/snippet}
+
+{#snippet newAction()}
+	<Button variant="dark" size="sm" onclick={handleCreate}><IconPlus /> New</Button>
+{/snippet}
+{#snippet templateAction()}
+	<Button variant="outline" size="sm" href={scopeHrefs?.templates}>Browse</Button>
+{/snippet}
+{#snippet importAction()}
+	<Button variant="outline" size="sm" onclick={() => onimport?.()}>Import</Button>
+{/snippet}
+{#snippet folderAction()}
+	<Button variant="outline" size="sm" onclick={() => (onimportfolder ? onimportfolder() : onopenfolder?.())}
+		>Choose</Button
+	>
+{/snippet}
+{#snippet cloneAction()}
+	<Button variant="outline" size="sm" onclick={() => (cloning = true)}>Clone</Button>
+{/snippet}
+
+{#snippet cloneForm()}
+	<div class="mt-3 flex flex-col gap-2 sm:flex-row">
+		<label class="sr-only" for="clone-url">Repository URL</label>
+		<!-- svelte-ignore a11y_autofocus -->
+		<input
+			id="clone-url"
+			bind:value={cloneUrl}
+			class="bg-background border-border text-foreground placeholder:text-placeholder focus-visible:border-ring focus-visible:ring-ring h-9 min-w-0 flex-1 rounded-lg border px-3 text-sm outline-none focus-visible:ring-2"
+			placeholder="https://github.com/owner/repo.git"
+			spellcheck="false"
+			autofocus
+			disabled={cloneBusy}
+			onkeydown={(e) => {
+				if (e.key === 'Enter') submitClone();
+				if (e.key === 'Escape') cloning = false;
+			}}
+		/>
+		<div class="flex gap-2">
+			<Button variant="dark" size="sm" disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
+				{cloneBusy ? 'Cloning…' : 'Clone'}
+			</Button>
+			<Button variant="ghost" size="sm" disabled={cloneBusy} onclick={() => (cloning = false)}>Cancel</Button>
+		</div>
 	</div>
 {/snippet}
 
@@ -432,25 +581,30 @@
 </a>
 <Sidebar.Provider class="bg-canvas text-foreground h-dvh min-h-0">
 	<Sidebar.Root variant="sidebar" collapsible="icon" class="border-transparent">
-		<Sidebar.Header class="h-14 justify-center px-2">
-			<a
-				href={platform === 'web' ? '/' : '/workspace'}
-				class="hover:bg-sidebar-accent focus-visible:ring-ring flex h-9 items-center gap-2 rounded-lg px-2 outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:self-center group-data-[collapsible=icon]:px-0"
-			>
-				<Logo
-					size={22}
-					badge
-					viewTransitionName="app-logo"
-					class="text-md font-semibold group-data-[collapsible=icon]:[&>span:last-child]:hidden"
-				/>
-			</a>
+		<Sidebar.Header class="gap-2 px-2 pt-3 pb-1">
+			<div class="flex h-9 items-center gap-1 group-data-[collapsible=icon]:justify-center">
+				<a
+					href={platform === 'web' ? '/' : '/workspace'}
+					class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+				>
+					<Logo size={20} badge viewTransitionName="app-logo" class="text-sm font-semibold" />
+				</a>
+				<Sidebar.Trigger class="size-8 shrink-0" title="Toggle sidebar (Ctrl/⌘ B)" />
+			</div>
+			{#if scope !== 'templates' && projects.length > 0}
+				<button
+					class="border-border bg-background text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-9 items-center gap-2 rounded-lg border px-2.5 text-sm outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+					onclick={() => searchEl?.focus()}
+				>
+					<IconSearch size={16} aria-hidden="true" />
+					<span class="flex-1 text-left">Search…</span>
+					<kbd class={shortcutCap()} aria-hidden="true">/</kbd>
+				</button>
+			{/if}
 		</Sidebar.Header>
 
-		<Sidebar.Content class="gap-2">
+		<Sidebar.Content class="gap-3 pt-1">
 			<Sidebar.Group class="px-2 py-0">
-				<Sidebar.GroupLabel class="{groupLabel} group-data-[collapsible=icon]:hidden">
-					Library
-				</Sidebar.GroupLabel>
 				<Sidebar.GroupContent>
 					<Sidebar.Menu aria-label="Project scopes" class="gap-0.5">
 						{#each scopes as item (item.id)}
@@ -466,17 +620,13 @@
 												? starred.length
 												: templates.length}
 								<Sidebar.MenuItem>
-									<Sidebar.MenuButton
-										isActive={activeScope === item.id}
-										class={railRow}
-										tooltipContent={item.label}
-									>
+									<Sidebar.MenuButton isActive={activeScope === item.id} class={railRow} tooltipContent={item.label}>
 										{#snippet child({ props })}
 											<a {href} {...props} aria-current={activeScope === item.id ? 'page' : undefined}>
 												<Icon /><span>{item.label}</span>
 												{#if count > 0 && !loading}
 													<span
-														class="text-muted-foreground ml-auto font-mono text-xs tabular-nums group-data-[collapsible=icon]:hidden"
+														class="text-muted-foreground ml-auto text-xs tabular-nums group-data-[collapsible=icon]:hidden"
 														>{count}</span
 													>
 												{/if}
@@ -490,81 +640,158 @@
 				</Sidebar.GroupContent>
 			</Sidebar.Group>
 
-			<Sidebar.Group class="mt-auto px-2 py-0">
-				<Sidebar.GroupContent>
-					<Sidebar.Menu class="gap-0.5">
-						{#if onsettings}
-							<Sidebar.MenuItem>
-								<Sidebar.MenuButton
-									class={railRow}
-									tooltipContent={platform === 'web' ? 'Storage' : 'Settings'}
-									onclick={() => onsettings?.()}
-								>
-									{#if platform === 'web'}<IconDatabase /><span>Storage</span>{:else}<IconSettings /><span>Settings</span>{/if}
-								</Sidebar.MenuButton>
-							</Sidebar.MenuItem>
-						{/if}
-						{#if helpHref}
-							<Sidebar.MenuItem>
-								<!-- The trailing external icon marks a row that leaves the workspace. -->
-								<Sidebar.MenuButton class={railRow} tooltipContent={'Help & Docs'}>
-									{#snippet child({ props })}
-										<a {...props} href={helpHref}>
-											<IconHelpCircle /><span>Help &amp; Docs</span>
-											<IconExternalLink
-												class="text-muted-foreground ml-auto !size-3.5 group-data-[collapsible=icon]:hidden"
-											/>
-										</a>
-									{/snippet}
-								</Sidebar.MenuButton>
-							</Sidebar.MenuItem>
-						{/if}
-						<Sidebar.MenuItem>
-							<Sidebar.MenuButton
-								class={railRow}
-								tooltipContent="About GlyphTeX"
-								onclick={() => (aboutOpen = true)}
-							>
-								<IconInfoCircle /><span>About GlyphTeX</span>
-							</Sidebar.MenuButton>
-						</Sidebar.MenuItem>
-					</Sidebar.Menu>
-				</Sidebar.GroupContent>
-			</Sidebar.Group>
+			{#if latest.length > 0}
+				<Sidebar.Group class="px-2 py-0 group-data-[collapsible=icon]:hidden">
+					<Sidebar.GroupLabel class={groupLabel}>Recent</Sidebar.GroupLabel>
+					<Sidebar.GroupContent>
+						<Sidebar.Menu aria-label="Recent projects" class="gap-0.5">
+							{#each latest as p (p.id)}
+								<Sidebar.MenuItem>
+									<Sidebar.MenuButton class={railRow} onclick={() => onopen?.(p.id)}>
+										{#if p.root}<IconFolder />{:else if p.cloud}<IconCloud />{:else}<IconFileText />{/if}
+										<span class="truncate">{p.name}</span>
+									</Sidebar.MenuButton>
+								</Sidebar.MenuItem>
+							{/each}
+						</Sidebar.Menu>
+					</Sidebar.GroupContent>
+				</Sidebar.Group>
+			{/if}
 		</Sidebar.Content>
 
-		{#if storage}
-			<Sidebar.Footer class="p-2 group-data-[collapsible=icon]:hidden">
-				<!-- Warning past 80%: the browser starts evicting under storage pressure. -->
+		<Sidebar.Footer class="gap-2 p-2 group-data-[collapsible=icon]:hidden">
+			{#if checklist && checklistDone < checklist.items.length}
+				<section class="bg-background rounded-xl p-3 shadow-(--surface-shadow)" aria-labelledby="checklist-title">
+					<div class="flex items-center justify-between gap-2">
+						<h2 id="checklist-title" class="text-foreground text-sm font-medium">Getting started</h2>
+						<button
+							class="text-muted-foreground hover:text-foreground hover:bg-foreground/[0.06] focus-visible:ring-ring grid size-6 place-items-center rounded-md outline-none focus-visible:ring-2"
+							aria-label="Hide getting started"
+							onclick={() => checklist?.ondismiss()}
+						>
+							<IconX size={14} />
+						</button>
+					</div>
+					<p class="text-muted-foreground mt-0.5 text-xs tabular-nums">
+						{checklistDone} of {checklist.items.length} done
+					</p>
+					<div
+						class="bg-muted mt-2 h-1 overflow-hidden rounded-full"
+						role="progressbar"
+						aria-label="Getting started progress"
+						aria-valuemin={0}
+						aria-valuemax={checklist.items.length}
+						aria-valuenow={checklistDone}
+					>
+						<div
+							class="bg-primary h-full rounded-full transition-[width] duration-(--duration-slow) ease-(--ease-out)"
+							style:width={`${Math.max(4, (checklistDone / checklist.items.length) * 100)}%`}
+						></div>
+					</div>
+					<ul class="mt-2 flex flex-col gap-1">
+						{#each checklist.items as item (item.id)}
+							<li class="flex items-center gap-2 text-xs">
+								{#if item.done}
+									<IconCircleCheckFilled size={15} class="text-foreground shrink-0" aria-hidden="true" />
+									<span class="text-muted-foreground line-through">{item.label}</span>
+								{:else}
+									<IconCircle size={15} class="text-muted-foreground shrink-0" aria-hidden="true" />
+									<span class="text-foreground">{item.label}</span>
+								{/if}
+								<span class="sr-only">{item.done ? '(done)' : '(to do)'}</span>
+							</li>
+						{/each}
+					</ul>
+				</section>
+			{/if}
+
+			{#if storage}
 				{@const tight = storagePct >= 80}
-				<div class="bg-background rounded-xl p-3 shadow-(--surface-shadow)">
-					<div class="flex items-center justify-between gap-2 text-xs">
-						<span class="text-foreground font-medium">Local storage</span>
-						<span class="text-muted-foreground font-mono tabular-nums">
+				<!-- Warning past 80%: the browser starts evicting under storage pressure. -->
+				<button
+					class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex flex-col gap-1.5 rounded-lg px-2.5 py-2 text-left outline-none focus-visible:ring-2"
+					onclick={() => onsettings?.()}
+					aria-label="Browser storage details"
+				>
+					<span class="flex w-full items-center justify-between gap-2 text-xs">
+						<span class="text-muted-foreground">Browser storage</span>
+						<span class="text-muted-foreground tabular-nums">
 							{formatBytes(storage.used)} / {formatBytes(storage.total)}
 						</span>
-					</div>
-					<div
-						class="bg-muted mt-2 h-1.5 overflow-hidden rounded-full"
+					</span>
+					<span
+						class="bg-muted h-1 w-full overflow-hidden rounded-full"
 						role="progressbar"
 						aria-label="Local storage used"
 						aria-valuemin={0}
 						aria-valuemax={100}
 						aria-valuenow={Math.round(storagePct)}
 					>
-						<div
-							class="h-full rounded-full transition-[width] duration-(--duration-drawer) ease-(--ease-out) {tight
-								? 'bg-warning'
-								: 'bg-primary'}"
+						<span
+							class="block h-full rounded-full {tight ? 'bg-warning' : 'bg-foreground'}"
 							style:width={`${Math.max(storagePct, 2)}%`}
-						></div>
-					</div>
+						></span>
+					</span>
 					{#if tight}
-						<p class="text-warning-strong mt-2 text-xs font-medium">Nearly full. The browser may clear it.</p>
+						<span class="text-warning-strong text-xs font-medium">Nearly full. The browser may clear it.</span>
 					{/if}
-				</div>
-			</Sidebar.Footer>
-		{/if}
+				</button>
+			{/if}
+
+			<div class="flex items-center gap-1">
+				<DropdownMenu>
+					<DropdownMenuTrigger>
+						{#snippet child({ props })}
+							<button
+								{...props}
+								class="hover:bg-foreground/[0.04] focus-visible:ring-ring data-[state=open]:bg-foreground/[0.04] flex h-10 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-left text-sm outline-none focus-visible:ring-2"
+							>
+								<span
+									class="bg-muted text-foreground grid size-6 shrink-0 place-items-center rounded-full text-xs font-medium"
+									aria-hidden="true"
+								>
+									{#if account?.signedIn}{initials(account.label)}{:else}<IconUser size={14} />{/if}
+								</span>
+								<span class="min-w-0 flex-1 truncate">
+									{account ? account.label : platform === 'web' ? 'This browser' : 'This computer'}
+								</span>
+								<IconSelector size={14} class="text-muted-foreground shrink-0" aria-hidden="true" />
+							</button>
+						{/snippet}
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="start" side="top" class="w-56">
+						{#if account}
+							<DropdownMenuItem>
+								{#snippet child({ props })}
+									<a {...props} href={account.href}>
+										{#if account.signedIn}<IconUserCircle /> Account{:else}<IconLogin /> Sign in{/if}
+									</a>
+								{/snippet}
+							</DropdownMenuItem>
+						{/if}
+						{#if onsettings}
+							<DropdownMenuItem onclick={() => onsettings?.()}>
+								{#if platform === 'web'}<IconDatabase /> Storage{:else}<IconSettings /> Settings{/if}
+							</DropdownMenuItem>
+						{/if}
+						{#if helpHref}
+							<DropdownMenuItem>
+								{#snippet child({ props })}
+									<a {...props} href={helpHref}>
+										<IconHelpCircle /> Help &amp; docs
+										<IconExternalLink class="text-muted-foreground ml-auto" />
+									</a>
+								{/snippet}
+							</DropdownMenuItem>
+						{/if}
+						<DropdownMenuItem onclick={() => (aboutOpen = true)}>
+							<IconInfoCircle /> About GlyphTeX
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+				<ThemeToggle size="icon-sm" />
+			</div>
+		</Sidebar.Footer>
 
 		<Sidebar.Rail />
 	</Sidebar.Root>
@@ -575,476 +802,341 @@
 		tabindex={-1}
 		class="workspace-card min-h-0 overflow-hidden outline-none md:my-1.5 md:mr-1.5 md:rounded-xl md:shadow-(--surface-shadow)"
 	>
-		<div bind:this={scrollEl} onscroll={onScroll} class="min-h-0 min-w-0 flex-1 overflow-auto">
-			<header
-				class="bg-background/95 sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-3 backdrop-blur-sm transition-colors duration-(--duration-base) sm:px-4 {scrolled
-					? 'border-border'
-					: 'border-transparent'}"
-			>
-				<Sidebar.Trigger class="size-9" title="Toggle sidebar (Ctrl/⌘ B)" />
-				<span class="bg-border h-5 w-px" aria-hidden="true"></span>
-				<ScopeIcon size={16} class="text-muted-foreground ml-1 shrink-0" aria-hidden="true" />
-				<span class="text-foreground truncate text-md font-medium">{scopeLabel}</span>
-				<div class="ml-auto flex items-center gap-1">
-					<ThemeToggle size="icon" />
-				</div>
-			</header>
+		<div class="min-h-0 min-w-0 flex-1 overflow-auto">
+			<div class="flex h-12 items-center px-3 md:hidden">
+				<Sidebar.Trigger class="size-9" title="Open sidebar" />
+			</div>
 
-			<div class="mx-auto w-full max-w-6xl px-4 pt-8 pb-20 sm:px-8 lg:px-12">
-				{#if showStart}
-					<div class="flex flex-col gap-2">
-						<p class="text-muted-foreground font-mono text-xs">
-							workspace{#if projects.length > 0} · {projects.length}
-								{projects.length === 1 ? 'document' : 'documents'}{/if}
-						</p>
-						<h1 class="pixel text-2xl text-foreground md:text-4xl">
-							{projects.length === 0 ? 'Start your first document' : 'Your documents'}
-						</h1>
-						<p class="text-muted-foreground text-md">
-							{platform === 'web'
-								? 'Projects live in this browser and compile on this device.'
-								: 'Projects live in folders on this computer and compile locally.'}
-						</p>
-					</div>
+			<div class="mx-auto w-full max-w-6xl px-5 pt-6 pb-20 sm:px-8 md:pt-12 lg:px-12">
+				<header class="flex flex-col gap-1">
+					<h1 class="text-foreground text-2xl font-semibold tracking-tight">{pageTitle}</h1>
+					<p class="text-muted-foreground text-sm">{pageDescription}</p>
+				</header>
 
-					<div
-						class="mt-6 grid gap-3 {projects.length > 0 ? 'lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]' : ''}"
-					>
-						<section
-							aria-labelledby="start-title"
-							class="border-border flex flex-col gap-5 rounded-2xl border border-dashed p-5 sm:p-6"
-						>
-							<div class="flex items-start gap-4">
-								<span
-									class="bg-card text-foreground grid size-11 shrink-0 place-items-center rounded-xl"
-									aria-hidden="true"
-								>
-									<IconFileText size={24} />
-								</span>
-								<div class="min-w-0">
-									<h2 id="start-title" class="text-base text-foreground font-medium">
-										New LaTeX project
-									</h2>
-									<p class="text-muted-foreground text-md mt-0.5">
-										Opens a blank article with a sections folder.
-										{platform === 'web' ? 'Or drop a folder or .zip anywhere on this page.' : ''}
-									</p>
-								</div>
-							</div>
-
-							<div class="flex flex-wrap items-center gap-2">
-								<Button variant="default" onclick={handleCreate}>
-									<IconPlus /> New project
-								</Button>
-								{#if onimport}
-									<Button variant="outline" onclick={() => onimport?.()}>
-										<IconFileImport /> Import .zip
-									</Button>
-								{/if}
-								{#if onimportfolder}
-									<Button variant="outline" onclick={() => onimportfolder?.()}>
-										<IconFolderOpen /> Import folder
-									</Button>
-								{/if}
-								{#if onopenfolder}
-									<Button variant="outline" onclick={() => onopenfolder?.()}>
-										<IconFolderOpen /> Open folder
-									</Button>
-								{/if}
-								{#if onclone && !cloning}
-									<Button
-										variant="ghost"
-										onclick={() => {
-											cloning = true;
-											cloneUrl = '';
-										}}
-									>
-										<IconCloudDownload /> Clone repository
-									</Button>
-								{/if}
-								{#if onusetemplate && scopeHrefs?.templates}
-									<Button variant="ghost" href={scopeHrefs.templates}>
-										<IconTemplate /> Start from a template
-									</Button>
-								{/if}
-							</div>
-
-							{#if onclone && cloning}
-								<div class="flex flex-col gap-2 sm:flex-row">
-									<label class="sr-only" for="clone-url">Repository URL</label>
-									<!-- svelte-ignore a11y_autofocus -->
-									<input
-										id="clone-url"
-										bind:value={cloneUrl}
-										class="bg-background border-border text-foreground placeholder:text-placeholder focus-visible:border-ring focus-visible:ring-ring h-10 min-w-0 flex-1 rounded-lg border px-3 text-sm outline-none focus-visible:ring-2"
-										placeholder="https://github.com/owner/repo.git"
-										spellcheck="false"
-										autofocus
-										disabled={cloneBusy}
-										onkeydown={(e) => {
-											if (e.key === 'Enter') submitClone();
-											if (e.key === 'Escape') cloning = false;
-										}}
-									/>
-									<div class="flex gap-2">
-										<Button variant="dark" disabled={cloneBusy || !cloneUrl.trim()} onclick={submitClone}>
-											{cloneBusy ? 'Cloning…' : 'Clone'}
-										</Button>
-										<Button variant="ghost" disabled={cloneBusy} onclick={() => (cloning = false)}>
-											Cancel
-										</Button>
-									</div>
-								</div>
-							{/if}
-						</section>
-
-						{#if projects.length > 0}
-							<section
-								aria-labelledby="recent-title"
-								class="flex flex-col"
+				{#if scope === 'templates'}
+					<section aria-labelledby="templates-label" class="mt-10 flex flex-col gap-4">
+						{@render sectionLabel('templates-label', 'Templates', templatesLoading ? null : templates.length)}
+						{#if templatesLoading}
+							<div
+								class="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4"
+								aria-busy="true"
+								aria-label="Loading templates"
+								role="status"
 							>
-								<h2
-									id="recent-title"
-									class="text-muted-foreground px-1 pb-2 font-mono text-xs"
-								>
-									jump back in
-								</h2>
-								<ul class="flex flex-col">
-									{#each latest as p (p.id)}
-										<li>
-											<button
-												class="group border-border hover:bg-foreground/[0.03] focus-visible:ring-ring flex min-h-14 w-full items-center gap-3 rounded-lg border-t border-dashed px-2 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset"
-												onclick={() => onopen?.(p.id)}
-											>
-												<span
-													class="bg-card text-muted-foreground group-hover:text-foreground grid size-9 shrink-0 place-items-center rounded-lg transition-colors"
-													aria-hidden="true"
-												>
-													{#if p.root}<IconFolder size={18} />{:else}<IconFileText size={18} />{/if}
-												</span>
-												<span class="min-w-0 flex-1">
-													<span class="text-foreground block truncate text-md font-medium">{p.name}</span>
-													<span class="text-muted-foreground block truncate text-xs">{meta(p)}</span>
-												</span>
-												{@render starBadge(p)}
-												<IconArrowRight
-													size={16}
-													class="text-muted-foreground shrink-0 transition-transform duration-(--duration-base) ease-(--ease-out) group-hover:translate-x-0.5"
-													aria-hidden="true"
-												/>
-											</button>
-										</li>
+								{#each { length: 8 } as _, i (i)}
+									<div class="border-border flex animate-pulse flex-col overflow-hidden rounded-xl border">
+										<div class="bg-muted aspect-[4/3]"></div>
+										<div class="flex flex-col gap-2 p-3">
+											<div class="bg-muted h-3 w-3/5 rounded-full"></div>
+											<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
+										</div>
+									</div>
+								{/each}
+							</div>
+						{:else if templates.length > 0}
+							<TemplateFilterBar filter={templateFilter} />
+							{#if templateFilter.visible.length === 0}
+								<div class="border-border flex flex-col items-center gap-3 rounded-xl border px-6 py-16 text-center">
+									<p class="text-foreground text-sm font-medium">
+										{templateFilter.query.trim()
+											? `No templates match “${templateFilter.query.trim()}”`
+											: 'No templates in this view'}
+									</p>
+									<Button variant="outline" size="sm" onclick={() => templateFilter.clear()}>
+										<IconX /> Clear filters
+									</Button>
+								</div>
+							{:else}
+								<ul class="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4" aria-label="Templates">
+									{#each templateFilter.visible as t, i (t.id)}
+										<TemplateCard template={t} preview={templatePreview?.(t.id) ?? null} priority={i < 4}>
+											{#snippet action()}
+												<div class="flex items-center gap-1">
+													{#if t.origin === 'overleaf'}
+														<Button
+															href={t.sourceUrl}
+															target="_blank"
+															rel="noopener noreferrer"
+															variant="ghost"
+															size="icon-sm"
+															aria-label={`Original source of ${t.title}`}
+															title="Original source"
+														>
+															<IconExternalLink />
+														</Button>
+													{/if}
+													<Button
+														variant="outline"
+														size="sm"
+														loading={usingTemplate === t.id}
+														loadingLabel="Creating…"
+														disabled={usingTemplate !== null && usingTemplate !== t.id}
+														aria-label={`Use the ${t.title} template`}
+														onclick={() => useTemplate(t.id)}
+													>
+														Use
+													</Button>
+												</div>
+											{/snippet}
+										</TemplateCard>
 									{/each}
 								</ul>
-							</section>
+							{/if}
 						{/if}
-					</div>
+					</section>
+				{:else if scope === 'all' && !loading && projects.length === 0}
+					<section
+						aria-labelledby="start-title"
+						class="border-border bg-background mt-10 max-w-2xl rounded-2xl border p-6 shadow-(--surface-shadow)"
+					>
+						<h2 id="start-title" class="text-foreground text-base font-medium">Start your first project</h2>
+						<p class="text-muted-foreground mt-0.5 text-sm">
+							{platform === 'web'
+								? 'Pick a starting point. You can also drop a folder or .zip anywhere on this page.'
+								: 'Pick a starting point. Projects are folders on this computer.'}
+						</p>
+						<ul class="divide-border mt-3 flex flex-col divide-y">
+							{@render startRow(IconFileText, 'Blank project', 'A minimal article with a sections folder.', newAction)}
+							{#if onusetemplate && scopeHrefs?.templates}
+								{@render startRow(
+									IconTemplate,
+									'From a template',
+									'Theses, papers, CVs and slides ready to fill in.',
+									templateAction
+								)}
+							{/if}
+							{#if onimport}
+								{@render startRow(
+									IconFileImport,
+									'Import a .zip',
+									'An Overleaf or Prism export, or any LaTeX project archive.',
+									importAction
+								)}
+							{/if}
+							{#if onimportfolder || onopenfolder}
+								{@render startRow(
+									IconFolderOpen,
+									onimportfolder ? 'Import a folder' : 'Open a folder',
+									'Keeps the folder structure as it is.',
+									folderAction
+								)}
+							{/if}
+							{#if onclone}
+								{@render startRow(IconGitBranch, 'Clone a repository', 'Any public Git URL over HTTPS.', cloneAction)}
+							{/if}
+						</ul>
+						{#if onclone && cloning}{@render cloneForm()}{/if}
+					</section>
 				{:else}
-					<p class="text-muted-foreground mb-2 font-mono text-xs">workspace / {scope}</p>
-					<h1 class="pixel text-2xl text-foreground md:text-4xl">{scopeLabel}</h1>
-					<p class="text-muted-foreground text-md mt-1">
-						{scope === 'recent'
-							? 'Projects you edited in the last 7 days.'
-							: scope === 'starred'
-								? 'Projects you starred from their menu.'
-								: scope === 'templates'
-									? 'Starter documents to begin from.'
-									: ''}
-					</p>
-				{/if}
+					<section aria-labelledby="projects-label" class="mt-10 flex flex-col gap-4">
+						{@render sectionLabel(
+							'projects-label',
+							pageTitle,
+							loading ? null : query.trim() || location !== 'all' ? filtered.length : scoped.length
+						)}
 
-				{#if scope === 'templates' && templatesLoading}
-					<div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3" aria-busy="true" aria-label="Loading templates" role="status">
-						{#each { length: 8 } as _, i (i)}
-							<div class="border-border flex animate-pulse flex-col overflow-hidden rounded-2xl border" style:animation-delay={`${i * 70}ms`}>
-								<div class="bg-card aspect-[4/3]"></div>
-								<div class="border-border flex flex-col gap-2 border-t p-3.5">
-									<div class="bg-muted h-3.5 w-3/5 rounded-full"></div>
-									<div class="bg-muted h-3 w-2/5 rounded-full"></div>
+						<div class="flex flex-wrap items-center gap-2">
+							{#if hasCloud}
+								<div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by location">
+									{#each locations as l (l.id)}
+										{@render pill(location === l.id, l.label, () => (location = l.id))}
+									{/each}
 								</div>
-							</div>
-						{/each}
-					</div>
-				{:else if scope === 'templates' && templates.length > 0}
-					<section aria-label="Template gallery" class="mt-6">
-						<TemplateFilterBar filter={templateFilter} />
+							{/if}
+							<div class="ml-auto flex flex-wrap items-center gap-2">
+								<DropdownMenu>
+									<DropdownMenuTrigger>
+										{#snippet child({ props })}
+											<Button {...props} variant="outline" size="icon-sm" aria-label="Sort projects" title="Sort">
+												<IconArrowsSort />
+											</Button>
+										{/snippet}
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="end" class="w-44">
+										{#each sorts as option (option.id)}
+											<DropdownMenuCheckboxItem checked={sort === option.id} onCheckedChange={() => (sort = option.id)}>
+												{option.label}
+											</DropdownMenuCheckboxItem>
+										{/each}
+									</DropdownMenuContent>
+								</DropdownMenu>
 
-						{#if templateFilter.visible.length === 0}
-							<div class="border-border mt-4 flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center">
-								<p class="text-foreground text-md font-medium">
-									{templateFilter.query.trim() ? `No templates match “${templateFilter.query.trim()}”` : 'No templates in this view'}
-								</p>
-								<Button variant="outline" onclick={() => templateFilter.clear()}>
-									<IconX /> Clear filters
+								<div class="border-border flex h-8 items-center rounded-lg border p-0.5" role="group" aria-label="View mode">
+									{#each [{ id: 'grid', label: 'Grid view', icon: IconLayoutGrid }, { id: 'list', label: 'List view', icon: IconLayoutList }] as const as mode (mode.id)}
+										<button
+											class="focus-visible:ring-ring grid size-7 place-items-center rounded-md outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-inset {view ===
+											mode.id
+												? 'bg-muted text-foreground'
+												: 'text-muted-foreground hover:text-foreground'}"
+											aria-label={mode.label}
+											aria-pressed={view === mode.id}
+											title={mode.label}
+											onclick={() => (view = mode.id)}
+										>
+											<mode.icon size={16} />
+										</button>
+									{/each}
+								</div>
+
+								<div class="relative w-full sm:w-56">
+									<IconSearch
+										size={15}
+										class="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
+										aria-hidden="true"
+									/>
+									<input
+										bind:this={searchEl}
+										bind:value={query}
+										type="search"
+										class="bg-background border-border text-foreground placeholder:text-placeholder focus-visible:border-ring focus-visible:ring-ring h-8 w-full rounded-lg border py-1 pr-8 pl-8 text-sm outline-none focus-visible:ring-2 [&::-webkit-search-cancel-button]:hidden"
+										placeholder="Search projects…"
+										spellcheck="false"
+										aria-label="Search projects"
+										onkeydown={(e) => {
+											if (e.key === 'Escape') query = '';
+										}}
+									/>
+									{#if query}
+										<button
+											class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-1 grid size-6 -translate-y-1/2 place-items-center rounded-md outline-none focus-visible:ring-2"
+											onclick={() => (query = '')}
+											aria-label="Clear search"
+										>
+											<IconX size={14} />
+										</button>
+									{/if}
+								</div>
+
+								{#if onimport || onimportfolder || onopenfolder || onclone}
+									<DropdownMenu>
+										<DropdownMenuTrigger>
+											{#snippet child({ props })}
+												<Button {...props} variant="outline" size="sm"><IconFileImport /> Import</Button>
+											{/snippet}
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="end" class="w-52">
+											{#if onimport}
+												<DropdownMenuItem onclick={() => onimport?.()}><IconFileImport /> Import .zip</DropdownMenuItem>
+											{/if}
+											{#if onimportfolder}
+												<DropdownMenuItem onclick={() => onimportfolder?.()}><IconFolderOpen /> Import folder</DropdownMenuItem>
+											{/if}
+											{#if onopenfolder}
+												<DropdownMenuItem onclick={() => onopenfolder?.()}><IconFolderOpen /> Open folder</DropdownMenuItem>
+											{/if}
+											{#if onclone}
+												<DropdownMenuItem onclick={() => (cloning = true)}><IconGitBranch /> Clone repository</DropdownMenuItem>
+											{/if}
+										</DropdownMenuContent>
+									</DropdownMenu>
+								{/if}
+								<Button variant="dark" size="sm" onclick={handleCreate}>
+									<IconPlus /> New project
 								</Button>
 							</div>
+						</div>
+
+						{#if onclone && cloning}{@render cloneForm()}{/if}
+
+						{#if loading}
+							<div
+								class="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3"
+								aria-busy="true"
+								aria-label="Loading projects"
+								role="status"
+							>
+								{#each { length: 6 } as _, i (i)}
+									<div class="border-border flex animate-pulse items-center gap-3 rounded-xl border p-3">
+										<div class="bg-muted size-10 rounded-lg"></div>
+										<div class="flex flex-1 flex-col gap-1.5">
+											<div class="bg-muted h-3 w-3/5 rounded-full"></div>
+											<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
+										</div>
+									</div>
+								{/each}
+							</div>
+						{:else if filtered.length === 0}
+							<div class="border-border flex flex-col items-center gap-3 rounded-xl border px-6 py-16 text-center">
+								<span class="bg-muted text-muted-foreground grid size-10 place-items-center rounded-lg" aria-hidden="true">
+									{#if query.trim()}<IconSearch size={20} />{:else if scope === 'starred'}<IconStar
+											size={20}
+										/>{:else}<IconClock size={20} />{/if}
+								</span>
+								<div class="flex flex-col gap-1">
+									<p class="text-foreground text-sm font-medium">{emptyTitle}</p>
+									<p class="text-muted-foreground max-w-sm text-sm">{emptyBody}</p>
+								</div>
+								{#if query.trim() || location !== 'all'}
+									<Button
+										variant="outline"
+										size="sm"
+										onclick={() => {
+											query = '';
+											location = 'all';
+										}}
+									>
+										<IconX /> Clear filters
+									</Button>
+								{:else if scopeHrefs?.all && scope !== 'all'}
+									<Button variant="outline" size="sm" href={scopeHrefs.all}>
+										<IconHome /> All projects
+									</Button>
+								{/if}
+							</div>
+						{:else if view === 'list'}
+							<div class="border-border overflow-x-auto rounded-xl border">
+								<table class="w-full min-w-[36rem] text-sm">
+									<thead>
+										<tr class="border-border text-muted-foreground border-b text-left text-xs">
+											<th class="px-4 py-2.5 font-medium">Name</th>
+											<th class="px-4 py-2.5 font-medium">Location</th>
+											<th class="px-4 py-2.5 font-medium">Files</th>
+											<th class="px-4 py-2.5 font-medium">Edited</th>
+											<th class="w-12 px-2 py-2.5"><span class="sr-only">Actions</span></th>
+										</tr>
+									</thead>
+									<tbody>
+										{#each filtered as p (p.id)}
+											{@const place = placeOf(p)}
+											<tr class="group border-border hover:bg-foreground/[0.03] relative border-b last:border-b-0">
+												<td class="max-w-0 px-4 py-2.5">
+													<div class="flex min-w-0 items-center gap-2.5">
+														{#if p.root}<IconFolder size={16} class="text-muted-foreground shrink-0" />{:else if p.cloud}<IconCloud
+																size={16}
+																class="text-muted-foreground shrink-0"
+															/>{:else}<IconFileText size={16} class="text-muted-foreground shrink-0" />{/if}
+														<div class="min-w-0 flex-1">{@render projectTitle(p)}</div>
+														{@render starBadge(p)}
+													</div>
+												</td>
+												<td class="text-muted-foreground px-4 py-2.5 whitespace-nowrap">
+													<span class="inline-flex items-center gap-1.5"><place.icon size={14} aria-hidden="true" />{place.label}</span>
+												</td>
+												<td class="text-muted-foreground px-4 py-2.5 tabular-nums">{p.cloud ? '·' : p.files.length}</td>
+												<td class="text-muted-foreground px-4 py-2.5 whitespace-nowrap">{relativeTime(p.updatedAt)}</td>
+												<td class="px-2 py-2.5 text-right">{@render projectActions(p)}</td>
+											</tr>
+										{/each}
+									</tbody>
+								</table>
+							</div>
 						{:else}
-							<ul class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4" aria-label="Templates">
-								{#each templateFilter.visible as t, i (t.id)}
-									<TemplateCard template={t} preview={templatePreview?.(t.id) ?? null} priority={i < 4}>
-										{#snippet action()}
-											<div class="flex items-center gap-1">
-												{#if t.origin === 'overleaf'}
-													<Button
-														href={t.sourceUrl}
-														target="_blank"
-														rel="noopener noreferrer"
-														variant="ghost"
-														size="icon-sm"
-														aria-label={`Original source of ${t.title}`}
-														title="Original source"
-													>
-														<IconExternalLink />
-													</Button>
-												{/if}
-												<Button
-													variant="outline"
-													size="sm"
-													loading={usingTemplate === t.id}
-													loadingLabel="Creating…"
-													disabled={usingTemplate !== null && usingTemplate !== t.id}
-													aria-label={`Use the ${t.title} template`}
-													onclick={() => useTemplate(t.id)}
-												>
-													Use
-												</Button>
-											</div>
-										{/snippet}
-									</TemplateCard>
+							<ul class="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3" aria-label="Projects">
+								{#each filtered as p (p.id)}
+									<li
+										class="group border-border bg-background hover:border-border-strong relative flex items-center gap-3 rounded-xl border p-3 transition-[border-color] duration-(--duration-fast) ease-(--ease-out)"
+									>
+										{@render projectIcon(p)}
+										<div class="min-w-0 flex-1">
+											{@render projectTitle(p)}
+											{@render projectMeta(p)}
+										</div>
+										{@render starBadge(p)}
+										{@render projectActions(p)}
+									</li>
 								{/each}
 							</ul>
 						{/if}
-					</section>
-				{:else if projects.length > 0 || loading || scope !== 'all'}
-					<section
-						aria-label={scope === 'all' ? 'All projects' : scopeLabel}
-						class={scope === 'all' ? 'border-border mt-12 border-t border-dashed pt-8' : 'mt-6'}
-					>
-						<div class="flex flex-wrap items-center gap-2">
-							<div class="mr-auto flex items-baseline gap-2">
-								{#if scope === 'all'}
-									<h2 class="pixel text-foreground text-2xl">library.</h2>
-								{/if}
-								<span class="text-muted-foreground font-mono text-xs tabular-nums" aria-live="polite">
-									{#if loading}
-										Reading local storage…
-									{:else if query.trim()}
-										{filtered.length} of {scoped.length}
-									{:else if scope !== 'all'}
-										{scoped.length}
-										{scoped.length === 1 ? 'project' : 'projects'}
-									{:else}
-										{scoped.length}
-									{/if}
-								</span>
-							</div>
-
-							{#if showTools}
-							<div class="relative w-full sm:w-64">
-								<IconSearch
-									size={16}
-									class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
-									aria-hidden="true"
-								/>
-								<input
-									bind:this={searchEl}
-									bind:value={query}
-									type="search"
-									class="bg-background border-border text-foreground placeholder:text-placeholder focus-visible:border-ring focus-visible:ring-ring h-10 w-full rounded-lg border py-1 pr-9 pl-9 text-sm outline-none focus-visible:ring-2 [&::-webkit-search-cancel-button]:hidden"
-									placeholder="Search projects"
-									spellcheck="false"
-									aria-label="Search projects"
-									onkeydown={(e) => {
-										if (e.key === 'Escape') query = '';
-									}}
-								/>
-								{#if query}
-									<button
-										class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-1.5 grid size-7 -translate-y-1/2 place-items-center rounded-md outline-none focus-visible:ring-2"
-										onclick={() => (query = '')}
-										aria-label="Clear search"
-									>
-										<IconX size={14} />
-									</button>
-								{:else}
-									<kbd
-										class="{shortcutCap()} pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2"
-										aria-hidden="true">/</kbd
-									>
-								{/if}
-							</div>
-
-							<DropdownMenu>
-								<DropdownMenuTrigger>
-									{#snippet child({ props })}
-										<Button {...props} variant="outline" class="px-3" aria-label="Sort projects">
-											<IconArrowsSort />
-											<span class="hidden md:inline">{sorts.find((o) => o.id === sort)?.label}</span>
-										</Button>
-									{/snippet}
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" class="w-44">
-									{#each sorts as option (option.id)}
-										<DropdownMenuCheckboxItem
-											checked={sort === option.id}
-											onCheckedChange={() => (sort = option.id)}
-										>
-											{option.label}
-										</DropdownMenuCheckboxItem>
-									{/each}
-								</DropdownMenuContent>
-							</DropdownMenu>
-
-							<div
-								class="bg-muted flex h-10 items-center gap-0.5 rounded-lg p-1"
-								role="group"
-								aria-label="View mode"
-							>
-								{#each [{ id: 'grid', label: 'Grid view', icon: IconLayoutGrid }, { id: 'list', label: 'List view', icon: IconLayoutList }] as const as mode (mode.id)}
-									<button
-										class="focus-visible:ring-ring grid size-8 place-items-center rounded-md outline-none transition-[color,background-color,box-shadow] duration-(--duration-base) ease-(--ease-out) focus-visible:ring-2 focus-visible:ring-inset {view ===
-										mode.id
-											? 'bg-card text-foreground shadow-xs'
-											: 'text-muted-foreground hover:text-foreground'}"
-										aria-label={mode.label}
-										aria-pressed={view === mode.id}
-										title={mode.label}
-										onclick={() => (view = mode.id)}
-									>
-										<mode.icon size={16} />
-									</button>
-								{/each}
-							</div>
-
-							{#if !showStart && scope !== 'templates'}
-								<Button variant="dark" onclick={handleCreate}>
-									<IconPlus /> New project
-								</Button>
-							{/if}
-							{/if}
-						</div>
-
-						{#key scope}
-							<div in:fade={{ duration: ms(180), easing: cubicOut }}>
-								{#if loading}
-									<div
-										class="mt-5 grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3"
-										aria-busy="true"
-										aria-label="Loading projects"
-										role="status"
-									>
-										{#each { length: 6 } as _, i (i)}
-											<div
-												class="border-border animate-pulse rounded-2xl border p-2"
-												style:animation-delay={`${i * 70}ms`}
-											>
-												<div class="bg-muted aspect-[4/3] rounded-xl"></div>
-												<div class="space-y-1.5 p-2 pt-3">
-													<div class="bg-muted h-3 w-3/5 rounded-full"></div>
-													<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
-												</div>
-											</div>
-										{/each}
-									</div>
-								{:else if filtered.length === 0}
-									<div
-										class="border-border mt-5 flex flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center"
-									>
-										<span
-											class="border-border text-muted-foreground grid size-12 place-items-center rounded-xl border"
-											aria-hidden="true"
-										>
-											{#if query.trim()}<IconSearch size={22} />{:else if scope === 'starred'}<IconStar
-													size={22}
-												/>{:else if scope === 'templates'}<IconTemplate size={22} />{:else}<IconClock
-													size={22}
-												/>{/if}
-										</span>
-										{#if query.trim()}
-											<p class="text-foreground text-md font-medium">No projects match “{query}”</p>
-											<Button variant="outline" onclick={() => (query = '')}>
-												<IconX /> Clear search
-											</Button>
-										{:else if scope === 'templates'}
-											<p class="text-foreground text-md font-medium">No templates yet</p>
-											<p class="text-muted-foreground max-w-sm text-sm">
-												Starter documents will live here. For now, a new project begins from a blank
-												article.
-											</p>
-											<Button variant="outline" onclick={handleCreate}>
-												<IconPlus /> New project
-											</Button>
-										{:else if scope === 'starred'}
-											<p class="text-foreground text-md font-medium">Nothing starred yet</p>
-											<p class="text-muted-foreground max-w-sm text-sm">
-												Star a project from its menu to keep it here.
-											</p>
-											{#if scopeHrefs?.all}
-												<Button variant="outline" href={scopeHrefs.all}>
-													<IconHome /> All projects
-												</Button>
-											{/if}
-										{:else}
-											<p class="text-foreground text-md font-medium">Nothing edited this week</p>
-											<p class="text-muted-foreground max-w-sm text-sm">
-												Recent shows projects you touched in the last 7 days.
-											</p>
-											{#if scopeHrefs?.all}
-												<Button variant="outline" href={scopeHrefs.all}>
-													<IconHome /> All projects
-												</Button>
-											{/if}
-										{/if}
-									</div>
-								{:else if view === 'list'}
-									<ul
-										class="mt-5 flex flex-col"
-										aria-label="Projects"
-									>
-										{#each filtered as p, i (p.id)}
-											<li
-												class="group border-border hover:bg-foreground/[0.03] relative flex min-h-16 items-center gap-3 rounded-lg border-t border-dashed px-2 py-2.5 transition-colors duration-(--duration-fast)"
-												in:fly={{ y: 4, duration: ms(200), delay: ms(Math.min(i, 8) * 14), easing: cubicOut }}
-												out:fade={{ duration: ms(120), easing: cubicOut }}
-												animate:flip={{ duration: ms(280), easing: cubicOut }}
-											>
-												{@render pageThumb(p, true)}
-												<div class="min-w-0 flex-1">
-													{@render projectTitle(p)}
-												</div>
-												{@render starBadge(p)}
-												{@render projectActions(p)}
-											</li>
-										{/each}
-									</ul>
-								{:else}
-									<ul
-										class="mt-5 grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3"
-										aria-label="Projects"
-									>
-										{#each filtered as p, i (p.id)}
-											<li
-												class="group border-border bg-background hover:border-border-strong relative flex flex-col rounded-2xl border p-1.5 transition-[border-color] duration-(--duration-base) ease-(--ease-out)"
-												in:fly={{ y: 6, duration: ms(240), delay: ms(Math.min(i, 8) * 15), easing: cubicOut }}
-												out:fade={{ duration: ms(140), easing: cubicOut }}
-												animate:flip={{ duration: ms(320), easing: cubicOut }}
-											>
-												<div class="bg-muted relative aspect-[4/3] overflow-hidden rounded-xl">
-													{@render pageThumb(p)}
-												</div>
-												<div class="flex items-start gap-1.5 px-2 pt-3 pb-1">
-													<div class="min-w-0 flex-1">
-														{@render projectTitle(p)}
-													</div>
-													{@render starBadge(p)}
-													{@render projectActions(p)}
-												</div>
-											</li>
-										{/each}
-									</ul>
-								{/if}
-							</div>
-						{/key}
 					</section>
 				{/if}
 			</div>
@@ -1058,9 +1150,16 @@
 <Dialog bind:open={() => pendingDelete !== null, (o) => (o ? null : (pendingDelete = null))}>
 	<DialogContent class="sm:max-w-md">
 		<DialogHeader>
-			<DialogTitle>Delete “{pendingDelete?.name}”?</DialogTitle>
+			<DialogTitle
+				>{leaving ? 'Leave' : 'Delete'} “{pendingDelete?.name}”?</DialogTitle
+			>
 			<DialogDescription>
-				{#if pendingDelete?.root}
+				{#if leaving}
+					You lose access until someone shares it with you again. The project stays with its owner.
+				{:else if pendingDelete?.cloud}
+					This permanently deletes the project and all its files from the server for everyone it
+					is shared with. This cannot be undone.
+				{:else if pendingDelete?.root}
 					This permanently deletes the project folder and all its files from your disk. This cannot
 					be undone.
 				{:else}
@@ -1079,7 +1178,7 @@
 		<DialogFooter>
 			<Button variant="ghost" onclick={() => (pendingDelete = null)}>Cancel</Button>
 			<Button variant="destructive" onclick={confirmDelete}>
-				<IconTrash /> Delete
+				{#if leaving}<IconLogout /> Leave{:else}<IconTrash /> Delete{/if}
 			</Button>
 		</DialogFooter>
 	</DialogContent>

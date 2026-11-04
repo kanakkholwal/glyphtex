@@ -13,7 +13,14 @@
 	import { IconDatabaseOff, IconLoader2, IconUpload } from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 
+	import type { Project } from "@glyphtex/ui/projects";
+
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
+	import { cloud, type ProjectSummary } from "$lib/cloud/api";
+	import { cloudEnabled, cloudHref } from "$lib/cloud/config";
+	import { cloudSession } from "$lib/cloud/session.svelte";
+	import { uploadLocalProject } from "$lib/cloud/upload";
+	import { onboarding } from "$lib/workspace/onboarding.svelte";
 	import { cloneToProject } from "$lib/git";
 	import StoragePanel from "$lib/StoragePanel.svelte";
 	import { toProjectCard } from "$lib/storage/bridge";
@@ -57,7 +64,80 @@
 	let failure = $state<string | undefined>(undefined);
 	let storageOpen = $state(false);
 
-	const projects = $derived(stored.map(toProjectCard));
+	// Server projects for the signed-in user. Ids are prefixed so they never collide with
+	// browser ids, and every handler below routes on that prefix.
+	let remote = $state<ProjectSummary[]>([]);
+	const CLOUD = "cloud:";
+	const cloudId = (id: string) => (id.startsWith(CLOUD) ? id.slice(CLOUD.length) : null);
+	const toCloudCard = (p: ProjectSummary): Project => ({
+		id: CLOUD + p.id,
+		name: p.name,
+		files: [],
+		createdAt: Date.parse(p.createdAt),
+		updatedAt: Date.parse(p.updatedAt),
+		cloud: { role: p.role }
+	});
+
+	const projects = $derived([...remote.map(toCloudCard), ...stored.map(toProjectCard)]);
+
+	const account = $derived(
+		cloudEnabled
+			? {
+					href: resolve("/workspace/account"),
+					label: cloudSession.user ? cloudSession.user.name || cloudSession.user.email : "Sign in",
+					signedIn: cloudSession.signedIn
+				}
+			: undefined
+	);
+
+	const checklist = $derived(
+		onboarding.dismissed || loading
+			? undefined
+			: {
+					items: [
+						{ id: "create", label: "Create a project", done: projects.length > 0 },
+						{ id: "compile", label: "Compile it to PDF", done: onboarding.compiled },
+						...(cloudEnabled
+							? [
+									{
+										id: "signin",
+										label: "Sign in to save to the cloud",
+										done: cloudSession.signedIn
+									},
+									{ id: "share", label: "Share a project", done: onboarding.shared }
+								]
+							: [])
+					],
+					ondismiss: onboarding.dismiss
+				}
+	);
+
+	async function refreshRemote(): Promise<void> {
+		if (!cloudEnabled) return;
+		await cloudSession.ensure();
+		if (!cloudSession.signedIn) {
+			remote = [];
+			return;
+		}
+		try {
+			remote = await cloud.projects.list();
+		} catch (error) {
+			// The server being down must never hide documents stored in this browser.
+			report(error, "Could not load your cloud projects.");
+		}
+	}
+
+	async function upload(id: string): Promise<void> {
+		try {
+			const created = await uploadLocalProject(id);
+			await refreshRemote();
+			toast.success("Saved to the cloud. This browser keeps its own copy too.", {
+				action: { label: "Open", onClick: () => void goto(cloudHref(created)) }
+			});
+		} catch (error) {
+			report(error, "Could not upload that document.");
+		}
+	}
 
 	function report(error: unknown, fallback: string): void {
 		const message = error instanceof Error ? error.message : fallback;
@@ -79,6 +159,7 @@
 	}
 
 	onMount(async () => {
+		void refreshRemote();
 		try {
 			await refresh();
 			// Arriving from the public gallery: create the project it asked for, then open it.
@@ -229,6 +310,11 @@
 	}
 
 	function open(id: string): void {
+		const remoteId = cloudId(id);
+		if (remoteId) {
+			void goto(cloudHref(remoteId));
+			return;
+		}
 		void goto(resolve(`/workspace/projects/${id}` as `/workspace/projects/${string}`));
 	}
 
@@ -257,6 +343,16 @@
 	}
 
 	async function rename(id: string, name: string): Promise<void> {
+		const remoteId = cloudId(id);
+		if (remoteId) {
+			try {
+				await cloud.projects.update(remoteId, { name: name.trim() || "Untitled" });
+				await refreshRemote();
+			} catch (error) {
+				report(error, "Could not rename the project.");
+			}
+			return;
+		}
 		const ok = await optimistic(
 			id,
 			{ name: name.trim() || "Untitled" },
@@ -287,6 +383,20 @@
 	}
 
 	async function remove(id: string): Promise<void> {
+		const remoteId = cloudId(id);
+		if (remoteId) {
+			const project = remote.find((p) => p.id === remoteId);
+			const me = cloudSession.user?.id;
+			try {
+				// Owners delete for everyone; anyone else just leaves.
+				if (project?.role === "owner") await cloud.projects.remove(remoteId);
+				else if (me) await cloud.sharing.removeMember(remoteId, me);
+				await refreshRemote();
+			} catch (error) {
+				report(error, "Could not remove the project.");
+			}
+			return;
+		}
 		try {
 			await deleteProject(id);
 			track("document_deleted");
@@ -360,6 +470,9 @@
 			onimport={() => zipInput?.click()}
 			onimportfolder={() => folderInput?.click()}
 			onclone={cloneRepo}
+			onupload={cloudEnabled && cloudSession.signedIn ? upload : undefined}
+			{account}
+			{checklist}
 		/>
 	</div>
 {/if}
