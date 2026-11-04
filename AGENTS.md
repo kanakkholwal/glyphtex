@@ -106,9 +106,9 @@ re-run that isn't needed is a no-op. npm goes out via trusted publishing (OIDC),
    rule, §4). Frontend: no synchronous heavy work on render; debounce compile-as-you-type.
 9. **Design tokens only, no hardcoded colors.** The spec is root `DESIGN.md` (page rules in
    `.notes/design-contract.md`). Tokens: baby-ui's in `packages/ui/src/styles/registry.css` (CLI-managed),
-   GlyphTeX's layer in `packages/ui/src/app.css`. `bg-primary` is the blue accent (selected, focus, the one
-   primary action); near-black actions are Button `variant="dark"`. `bg-accent` is the brand blue, never a
-   hover fill. Ink is `foreground` or `muted-foreground`. Public pages use the Tailwind scale (xs/sm/base/lg/
+   GlyphTeX's layer in `packages/ui/src/app.css`. `bg-primary` is GlyphTeX blue (selected, focus, the one
+   primary action); near-black actions are Button `variant="dark"`. `bg-accent` is baby-ui's neutral hover
+   fill; never put a brand colour in `--accent`. Ink is `foreground` or `muted-foreground`. Public pages use the Tailwind scale (xs/sm/base/lg/
    2xl/4xl) with `pixel` for display; the workspace keeps 12/13/14 via `data-density="compact"`. No
    `text-[Npx]`, no opacity on text tokens.
    **@tabler/icons-svelte only** (not Lucide, no Iconify layer — import icons

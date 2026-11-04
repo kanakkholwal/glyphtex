@@ -25,8 +25,7 @@ export const table = tv({
 			// The header sits on a card rim around a rounded inset body, and
 			// hairlines split the columns. Separate borders, so cells can round the body corners.
 			framed: {
-				// The rim is muted, not card: card equals the page in light mode, which hid the frame.
-				container: "rounded-2xl bg-muted px-1 pb-1",
+				container: "rounded-2xl bg-card px-1 pb-1",
 				root: "border-separate border-spacing-0",
 				head: "relative text-xs after:absolute after:end-0 after:top-1/2 after:h-4 after:w-px after:-translate-y-1/2 after:bg-border last:after:hidden",
 				body: [
@@ -35,7 +34,7 @@ export const table = tv({
 					"[&>tr:last-child>td:first-child]:rounded-bl-xl [&>tr:last-child>td:last-child]:rounded-br-xl"
 				],
 				footer: "[&>tr>td]:pt-2",
-				row: "[&>td]:transition-colors hover:[&>td]:bg-foreground/[0.03] data-[state=selected]:[&>td]:bg-primary/[0.04]"
+				row: "[&>td]:transition-colors hover:[&>td]:bg-card data-[state=selected]:[&>td]:bg-primary/[0.04]"
 			}
 		},
 		density: {

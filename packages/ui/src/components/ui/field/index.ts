@@ -8,7 +8,15 @@ export { default as FieldLegend } from "./field-legend.svelte";
 export { default as FieldSeparator } from "./field-separator.svelte";
 export { default as FieldSet } from "./field-set.svelte";
 export { default as FieldTitle } from "./field-title.svelte";
-export { field, type FieldOrientation, type FieldSize, fieldLegend, type FieldLegendVariant, type FieldErrorEntry, fieldErrorMessages } from "./variants";
+export {
+	field,
+	type FieldOrientation,
+	type FieldSize,
+	fieldLegend,
+	type FieldLegendVariant,
+	type FieldErrorEntry,
+	fieldErrorMessages
+} from "./variants";
 export { default as Root } from "./field.svelte";
 export { default as Content } from "./field-content.svelte";
 export { default as Description } from "./field-description.svelte";

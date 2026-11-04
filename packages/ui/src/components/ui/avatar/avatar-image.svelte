@@ -1,11 +1,11 @@
 <script lang="ts">
-import { Avatar as AvatarPrimitive } from "bits-ui";
-import { cn } from "../../../lib/cn.js";
-import { getAvatar } from "./context";
+	import { Avatar as AvatarPrimitive } from "bits-ui";
+	import { cn } from "../../../lib/cn.js";
+	import { getAvatar } from "./context";
 
-let { src, alt = "", class: classProp, ...rest }: AvatarPrimitive.ImageProps = $props();
+	let { src, alt = "", class: classProp, ...rest }: AvatarPrimitive.ImageProps = $props();
 
-const avatar = getAvatar();
+	const avatar = getAvatar();
 </script>
 
 {#if src && avatar.status !== "error"}

@@ -22,11 +22,11 @@
 	{closeOnSelect}
 	{...rest}
 	data-slot="dropdown-menu-checkbox-item"
-	class={cn(styles.item(), "pr-8", classProp)}
+	data-inset=""
+	class={cn(styles.item(), classProp)}
 >
 	{#snippet children({ checked: on })}
-		<!-- Trailing tick, so labels line up with plain items whether or not a row is checked. -->
-		<span class={cn(styles.indicator(), "right-2.5 left-auto")}>
+		<span class={styles.indicator()}>
 			<!-- Always mounted so the tick can draw in and back out. -->
 			<svg viewBox="0 0 16 16" fill="none" aria-hidden="true" data-on={on} class={styles.check()}>
 				<path

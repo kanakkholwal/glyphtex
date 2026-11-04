@@ -1,11 +1,11 @@
 <script lang="ts">
-import { Avatar as AvatarPrimitive } from "bits-ui";
-import { cn } from "../../../lib/cn.js";
-import { getAvatar } from "./context";
+	import { Avatar as AvatarPrimitive } from "bits-ui";
+	import { cn } from "../../../lib/cn.js";
+	import { getAvatar } from "./context";
 
-let { children, class: classProp, ...rest }: AvatarPrimitive.FallbackProps = $props();
+	let { children, class: classProp, ...rest }: AvatarPrimitive.FallbackProps = $props();
 
-const avatar = getAvatar();
+	const avatar = getAvatar();
 </script>
 
 {#if avatar.status !== "loaded"}

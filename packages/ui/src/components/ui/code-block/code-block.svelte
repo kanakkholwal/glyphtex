@@ -56,7 +56,7 @@
 				>{#each lines as line, i (i)}<span class="flex px-5"
 						>{#if showLineNumbers}<span
 								aria-hidden="true"
-								class="mr-4 inline-block w-6 shrink-0 select-none text-right text-muted-foreground"
+								class="mr-4 inline-block w-6 shrink-0 select-none text-right text-muted-foreground/60"
 								>{i + 1}</span
 							>{/if}<span class="text-foreground">{line || " "}</span></span
 					>{/each}</code

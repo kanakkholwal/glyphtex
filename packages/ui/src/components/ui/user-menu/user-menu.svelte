@@ -1,13 +1,13 @@
 <script lang="ts" module>
-import type { Snippet } from "svelte";
+	import type { Snippet } from "svelte";
 
-export type UserMenuItem = {
-	label: string;
-	icon?: Snippet;
-	/** Shortcut hint such as "⌘,"; the key is not bound. */
-	shortcut?: string;
-	onSelect?: () => void;
-};
+	export type UserMenuItem = {
+		label: string;
+		icon?: Snippet;
+		/** Shortcut hint such as "⌘,"; the key is not bound. */
+		shortcut?: string;
+		onSelect?: () => void;
+	};
 </script>
 
 <script lang="ts">

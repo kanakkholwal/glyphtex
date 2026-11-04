@@ -1,18 +1,18 @@
 <script lang="ts">
-import type { HTMLAttributes } from "svelte/elements";
-import { cn } from "../../../lib/cn.js";
-import { type FieldLegendVariant, fieldLegend } from "./variants";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type FieldLegendVariant, fieldLegend } from "./variants";
 
-let {
-	ref = $bindable(null),
-	class: classProp,
-	variant = "legend",
-	children,
-	...rest
-}: HTMLAttributes<HTMLLegendElement> & {
-	ref?: HTMLLegendElement | null;
-	variant?: FieldLegendVariant;
-} = $props();
+	let {
+		ref = $bindable(null),
+		class: classProp,
+		variant = "legend",
+		children,
+		...rest
+	}: HTMLAttributes<HTMLLegendElement> & {
+		ref?: HTMLLegendElement | null;
+		variant?: FieldLegendVariant;
+	} = $props();
 </script>
 
 <legend

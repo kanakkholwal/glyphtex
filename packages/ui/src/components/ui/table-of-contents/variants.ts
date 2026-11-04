@@ -20,7 +20,7 @@ export const tableOfContents = tv({
 		minimapLink:
 			"group/tick flex h-6 items-center justify-between rounded-sm pr-1 outline-none focus-visible:ring-2 focus-visible:ring-ring",
 		minimapLabel: [
-			"mr-0 max-w-0 truncate text-xs text-muted-foreground opacity-0",
+			"mr-0 max-w-0 truncate text-[11px] text-muted-foreground/80 opacity-0",
 			"transition-[max-width,margin,opacity,color] duration-(--duration-base) ease-(--ease-ui-out) motion-reduce:transition-none",
 			"group-focus-within/minimap:mr-4 group-focus-within/minimap:max-w-56 group-focus-within/minimap:opacity-100 group-hover/minimap:mr-4 group-hover/minimap:max-w-56 group-hover/minimap:opacity-100",
 			"group-data-[depth=3]/tick:group-focus-within/minimap:pl-3 group-data-[depth=3]/tick:group-hover/minimap:pl-3",

@@ -1,31 +1,31 @@
 <script lang="ts">
-import type { Snippet } from "svelte";
-import type { HTMLAttributes } from "svelte/elements";
-import { cn } from "../../../lib/cn.js";
-import { type TableDensity, type TableVariant, table } from "./variants";
-import { setTableStyle } from "./context";
+	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type TableDensity, type TableVariant, table } from "./variants";
+	import { setTableStyle } from "./context";
 
-let {
-	ref = $bindable(null),
-	children,
-	class: className,
-	containerClass,
-	variant = "default",
-	density = "comfortable",
-	...rest
-}: {
-	/** Bindable: the `<table>` element. */
-	ref?: HTMLTableElement | null;
-	children?: Snippet;
-	class?: string;
-	containerClass?: string;
-	variant?: TableVariant;
-	density?: TableDensity;
-} & HTMLAttributes<HTMLTableElement> = $props();
+	let {
+		ref = $bindable(null),
+		children,
+		class: className,
+		containerClass,
+		variant = "default",
+		density = "comfortable",
+		...rest
+	}: {
+		/** Bindable: the `<table>` element. */
+		ref?: HTMLTableElement | null;
+		children?: Snippet;
+		class?: string;
+		containerClass?: string;
+		variant?: TableVariant;
+		density?: TableDensity;
+	} & HTMLAttributes<HTMLTableElement> = $props();
 
-setTableStyle(() => ({ variant, density }));
+	setTableStyle(() => ({ variant, density }));
 
-const classes = $derived(table({ variant, density }));
+	const classes = $derived(table({ variant, density }));
 </script>
 
 <div data-slot="table-container" class={cn(classes.container(), containerClass)}>

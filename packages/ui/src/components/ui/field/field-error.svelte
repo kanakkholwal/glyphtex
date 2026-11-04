@@ -1,20 +1,20 @@
 <script lang="ts">
-import type { HTMLAttributes } from "svelte/elements";
-import { cn } from "../../../lib/cn.js";
-import { type FieldErrorEntry, field, fieldErrorMessages } from "./variants";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type FieldErrorEntry, field, fieldErrorMessages } from "./variants";
 
-let {
-	ref = $bindable(null),
-	class: classProp,
-	errors,
-	children,
-	...rest
-}: HTMLAttributes<HTMLDivElement> & {
-	ref?: HTMLDivElement | null;
-	errors?: FieldErrorEntry[];
-} = $props();
+	let {
+		ref = $bindable(null),
+		class: classProp,
+		errors,
+		children,
+		...rest
+	}: HTMLAttributes<HTMLDivElement> & {
+		ref?: HTMLDivElement | null;
+		errors?: FieldErrorEntry[];
+	} = $props();
 
-const messages = $derived(fieldErrorMessages(errors));
+	const messages = $derived(fieldErrorMessages(errors));
 </script>
 
 {#if children || messages.length}

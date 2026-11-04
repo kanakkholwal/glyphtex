@@ -4,7 +4,7 @@ import {
 	type EmptyScene,
 	SCENE_FRAMES,
 	SHAPE_KINDS,
-	sceneShapePath,
+	sceneShapePath
 } from "./art";
 
 // Shapes lead and details trail: back tiles, body, front tiles, then strokes and the mark.
@@ -37,7 +37,7 @@ const channel = (values: number[], spring: { k: number; c: number }): Channel =>
 	target: Float64Array.from(values),
 	queue: [],
 	...spring,
-	still: true,
+	still: true
 });
 
 /** Integrates one spring vector; a new target keeps the velocity, so shapes retarget mid-flight. */
@@ -53,19 +53,14 @@ function advance(ch: Channel, now: number, dt: number) {
 		const { pos, vel, target, k, c } = ch;
 		for (let s = 0; s < steps; s++) {
 			for (let i = 0; i < pos.length; i++) {
-				const v =
-					(vel[i] ?? 0) +
-					(-k * ((pos[i] ?? 0) - (target[i] ?? 0)) - c * (vel[i] ?? 0)) * h;
+				const v = (vel[i] ?? 0) + (-k * ((pos[i] ?? 0) - (target[i] ?? 0)) - c * (vel[i] ?? 0)) * h;
 				vel[i] = v;
 				pos[i] = (pos[i] ?? 0) + v * h;
 			}
 		}
 		let settled = true;
 		for (let i = 0; i < pos.length; i++) {
-			if (
-				Math.abs((pos[i] ?? 0) - (target[i] ?? 0)) > 0.004 ||
-				Math.abs(vel[i] ?? 0) > 0.02
-			) {
+			if (Math.abs((pos[i] ?? 0) - (target[i] ?? 0)) > 0.004 || Math.abs(vel[i] ?? 0) > 0.02) {
 				settled = false;
 				break;
 			}
@@ -83,7 +78,7 @@ export const initialShapes = (scene: EmptyScene, phase: EmptyPhase) =>
 	SCENE_FRAMES[scene][phase].prims.map((p, i) => ({
 		...sceneShapePath(SHAPE_KINDS[i] ?? "tile", p.geo, p.fx[1], 0, 0),
 		opacity: String(p.fx[0]),
-		tone: p.tone,
+		tone: p.tone
 	}));
 
 /** One frame loop drives every path through the DOM; it sleeps once everything settles. */
@@ -100,16 +95,8 @@ export function createIllustration(paths: SVGPathElement[], start: EmptyFrame) {
 			const g = geo[i];
 			const f = fx[i];
 			if (!g || !f) return;
-			const { d, dash } = sceneShapePath(
-				SHAPE_KINDS[i] ?? "tile",
-				g.pos,
-				f.pos[1] ?? 0,
-				ox,
-				oy,
-			);
-			const opacity = String(
-				Math.round(Math.min(1, Math.max(0, f.pos[0] ?? 0)) * 1000) / 1000,
-			);
+			const { d, dash } = sceneShapePath(SHAPE_KINDS[i] ?? "tile", g.pos, f.pos[1] ?? 0, ox, oy);
+			const opacity = String(Math.round(Math.min(1, Math.max(0, f.pos[0] ?? 0)) * 1000) / 1000);
 			if (node.getAttribute("d") !== d) node.setAttribute("d", d);
 			if (node.getAttribute("opacity") !== opacity) node.setAttribute("opacity", opacity);
 			if (node.getAttribute("stroke-dasharray") !== dash)
@@ -146,7 +133,7 @@ export function createIllustration(paths: SVGPathElement[], start: EmptyFrame) {
 				next.prims.forEach((p, i) => {
 					for (const [ch, values] of [
 						[geo[i], p.geo],
-						[fx[i], p.fx],
+						[fx[i], p.fx]
 					] as const) {
 						if (!ch) continue;
 						ch.queue = [];
@@ -171,14 +158,14 @@ export function createIllustration(paths: SVGPathElement[], start: EmptyFrame) {
 				if (sceneChanged && p.redraw)
 					f.queue = [
 						{ at: now, values: [p.fx[0], 0] },
-						{ at: now + delay + 0.18, values: p.fx },
+						{ at: now + delay + 0.18, values: p.fx }
 					];
 				else
 					f.queue = [
 						{
 							at: now + delay + (p.fx[1] > (f.target[1] ?? 0) + 0.01 ? 0.12 : 0),
-							values: p.fx,
-						},
+							values: p.fx
+						}
 					];
 			});
 			kick();
@@ -186,6 +173,6 @@ export function createIllustration(paths: SVGPathElement[], start: EmptyFrame) {
 		destroy() {
 			if (raf) cancelAnimationFrame(raf);
 			raf = 0;
-		},
+		}
 	};
 }

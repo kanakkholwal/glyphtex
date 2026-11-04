@@ -1,42 +1,42 @@
 <script lang="ts">
-import type { HTMLInputAttributes } from "svelte/elements";
-import InputGroup from "../input-group/input-group.svelte";
-import InputGroupAddon from "../input-group/input-group-addon.svelte";
-import InputGroupInput from "../input-group/input-group-input.svelte";
-import type { InputGroupSize } from "../input-group/variants.js";
-import { cn } from "../../../lib/cn.js";
-import Shortcut from "../shortcut/shortcut.svelte";
-import { type SearchInputVariant, searchInput } from "./variants";
+	import type { HTMLInputAttributes } from "svelte/elements";
+	import InputGroup from "../input-group/input-group.svelte";
+	import InputGroupAddon from "../input-group/input-group-addon.svelte";
+	import InputGroupInput from "../input-group/input-group-input.svelte";
+	import type { InputGroupSize } from "../input-group/variants.js";
+	import { cn } from "../../../lib/cn.js";
+	import Shortcut from "../shortcut/shortcut.svelte";
+	import { type SearchInputVariant, searchInput } from "./variants";
 
-let {
-	label,
-	value = $bindable(""),
-	onValueChange,
-	shortcut,
-	variant = "default",
-	size = "default",
-	placeholder,
-	class: classProp,
-	...rest
-}: Omit<HTMLInputAttributes, "type" | "value" | "size" | "class"> & {
-	/** Accessible name; also the placeholder unless one is given. */
-	label: string;
-	/** Bindable. */
-	value?: string;
-	onValueChange?: (value: string) => void;
-	/** A key that focuses the field from anywhere, e.g. `"/"` or `"mod+k"`; shown while empty. */
-	shortcut?: string;
-	variant?: SearchInputVariant;
-	size?: InputGroupSize;
-	class?: string;
-} = $props();
+	let {
+		label,
+		value = $bindable(""),
+		onValueChange,
+		shortcut,
+		variant = "default",
+		size = "default",
+		placeholder,
+		class: classProp,
+		...rest
+	}: Omit<HTMLInputAttributes, "type" | "value" | "size" | "class"> & {
+		/** Accessible name; also the placeholder unless one is given. */
+		label: string;
+		/** Bindable. */
+		value?: string;
+		onValueChange?: (value: string) => void;
+		/** A key that focuses the field from anywhere, e.g. `"/"` or `"mod+k"`; shown while empty. */
+		shortcut?: string;
+		variant?: SearchInputVariant;
+		size?: InputGroupSize;
+		class?: string;
+	} = $props();
 
-let input = $state<HTMLInputElement | null>(null);
-function set(next: string) {
-	value = next;
-	onValueChange?.(next);
-}
-const s = $derived(searchInput({ variant }));
+	let input = $state<HTMLInputElement | null>(null);
+	function set(next: string) {
+		value = next;
+		onValueChange?.(next);
+	}
+	const s = $derived(searchInput({ variant }));
 </script>
 
 <InputGroup {size} data-slot="search-input" class={cn(s.root(), classProp)}>

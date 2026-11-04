@@ -16,7 +16,7 @@ export const colorPicker = tv({
 		rowLabel: "min-w-0 flex-1 truncate text-muted-foreground",
 		// Reads as text until pointed at or focused; typing a hex commits on Enter or blur.
 		rowHex:
-			"w-[9ch] rounded-sm bg-transparent px-1 text-right font-mono text-foreground uppercase tabular-nums outline-none transition-colors hover:bg-foreground/[0.06] focus:bg-foreground/[0.06] aria-invalid:text-destructive-strong",
+			"w-[9ch] rounded-sm bg-transparent px-1 text-right font-mono text-foreground uppercase tabular-nums outline-none transition-colors hover:bg-accent focus:bg-accent aria-invalid:text-destructive-strong",
 		trigger:
 			"grid place-items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none",
 		swatch: [
@@ -28,7 +28,7 @@ export const colorPicker = tv({
 		extras: "flex flex-wrap items-center gap-1.5 border-border border-t p-2",
 		extrasLabel: "w-full font-mono text-xs text-muted-foreground uppercase",
 		eyedropper:
-			"ms-auto grid size-6 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-foreground/[0.06] hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-3.5",
+			"ms-auto grid size-6 place-items-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring [&_svg]:size-3.5",
 		// The square and the strip take the keyboard as well as the pointer.
 		area: "relative w-full cursor-crosshair touch-none outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
 		areaThumb: thumb,

@@ -22,7 +22,7 @@ export const SHAPE_KINDS: EmptyShapeKind[] = [
 	"tile",
 	"stroke",
 	"stroke",
-	"mark",
+	"mark"
 ];
 export const SCENE_VIEW = { width: 320, height: 216 };
 
@@ -52,24 +52,19 @@ function arc(c: Pt, r: number, from: number, to: number): Seg {
 	const sweep = end - from;
 	return {
 		len: sweep * r,
-		at: (t) => [
-			c[0] + r * Math.cos(from + sweep * t),
-			c[1] + r * Math.sin(from + sweep * t),
-		],
+		at: (t) => [c[0] + r * Math.cos(from + sweep * t), c[1] + r * Math.sin(from + sweep * t)]
 	};
 }
-const arcDeg = (c: Pt, r: number, from: number, to: number) =>
-	arc(c, r, from * RAD, to * RAD);
+const arcDeg = (c: Pt, r: number, from: number, to: number) => arc(c, r, from * RAD, to * RAD);
 const polar = (c: Pt, r: number, deg: number): Pt => [
 	c[0] + r * Math.cos(deg * RAD),
-	c[1] + r * Math.sin(deg * RAD),
+	c[1] + r * Math.sin(deg * RAD)
 ];
 
 function chain(points: Pt[], closed = false) {
 	const segs: Seg[] = [];
 	const n = closed ? points.length : points.length - 1;
-	for (let i = 0; i < n; i++)
-		segs.push(seg(pt(points, i), pt(points, (i + 1) % points.length)));
+	for (let i = 0; i < n; i++) segs.push(seg(pt(points, i), pt(points, (i + 1) % points.length)));
 	return segs;
 }
 
@@ -112,7 +107,7 @@ function curve(points: Pt[]): Seg {
 			const b = pt(dense, i);
 			const u = (goal - num(cum, i - 1)) / (num(cum, i) - num(cum, i - 1) || 1);
 			return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
-		},
+		}
 	};
 }
 
@@ -122,17 +117,14 @@ function allot(lens: number[], n: number) {
 	if (total < 1e-6) return lens.map((_, i) => (i === 0 ? n : 0));
 	const exact = lens.map((len) => (len / total) * n);
 	const counts = exact.map((value, i) =>
-		num(lens, i) > 1e-6 ? Math.max(1, Math.floor(value)) : 0,
+		num(lens, i) > 1e-6 ? Math.max(1, Math.floor(value)) : 0
 	);
 	let sum = counts.reduce((a, b) => a + b, 0);
 	while (sum < n) {
 		let best = -1;
 		for (let i = 0; i < counts.length; i++) {
 			const gain = num(exact, i) - num(counts, i);
-			if (
-				num(lens, i) > 1e-6 &&
-				(best < 0 || gain > num(exact, best) - num(counts, best))
-			)
+			if (num(lens, i) > 1e-6 && (best < 0 || gain > num(exact, best) - num(counts, best)))
 				best = i;
 		}
 		counts[best] = num(counts, best) + 1;
@@ -142,8 +134,7 @@ function allot(lens: number[], n: number) {
 		let best = -1;
 		for (let i = 0; i < counts.length; i++) {
 			const over = num(counts, i) - num(exact, i);
-			if (num(counts, i) > 1 && (best < 0 || over > num(counts, best) - num(exact, best)))
-				best = i;
+			if (num(counts, i) > 1 && (best < 0 || over > num(counts, best) - num(exact, best))) best = i;
 		}
 		counts[best] = num(counts, best) - 1;
 		sum--;
@@ -154,7 +145,7 @@ function allot(lens: number[], n: number) {
 function sample(segs: Seg[], n: number, open: boolean) {
 	const counts = allot(
 		segs.map((s) => s.len),
-		open ? n - 1 : n,
+		open ? n - 1 : n
 	);
 	const out: number[] = [];
 	segs.forEach((s, i) => {
@@ -171,10 +162,9 @@ function rrect(
 	y: number,
 	w: number,
 	h: number,
-	radius: number | [number, number, number, number],
+	radius: number | [number, number, number, number]
 ) {
-	const [tl, tr, br, bl] =
-		typeof radius === "number" ? [radius, radius, radius, radius] : radius;
+	const [tl, tr, br, bl] = typeof radius === "number" ? [radius, radius, radius, radius] : radius;
 	return [
 		seg([x + tl, y], [x + w - tr, y]),
 		arcDeg([x + w - tr, y + tr], tr, -90, 0),
@@ -183,7 +173,7 @@ function rrect(
 		seg([x + w - br, y + h], [x + bl, y + h]),
 		arcDeg([x + bl, y + h - bl], bl, 90, 180),
 		seg([x, y + h - bl], [x, y + tl]),
-		arcDeg([x + tl, y + tl], tl, 180, 270),
+		arcDeg([x + tl, y + tl], tl, 180, 270)
 	];
 }
 
@@ -215,9 +205,7 @@ function cloud(lobes: Lobe[], base: number): Seg[] {
 	for (let i = 1; i < lobes.length - 1; i++) {
 		const lobe = lobes[i];
 		if (lobe)
-			segs.push(
-				arc(lobe.c, lobe.r, angle(lobe.c, pt(joins, i - 1)), angle(lobe.c, pt(joins, i))),
-			);
+			segs.push(arc(lobe.c, lobe.r, angle(lobe.c, pt(joins, i - 1)), angle(lobe.c, pt(joins, i))));
 	}
 	segs.push(arc(last.c, last.r, angle(last.c, pt(joins, joins.length - 1)), Math.PI / 2));
 	segs.push(seg([last.c[0], base], [first.c[0], base]));
@@ -233,13 +221,13 @@ const tile = (
 	h: number,
 	r: number,
 	tone: string,
-	{ rot = 0, skew = 0, z = 1, o = 1 }: TileOptions = {},
+	{ rot = 0, skew = 0, z = 1, o = 1 }: TileOptions = {}
 ): EmptyShape => ({
 	kind: "tile",
 	geo: [cx, cy, w, h, r, rot, skew, z],
 	fx: [o, 1],
 	tone,
-	redraw: false,
+	redraw: false
 });
 const box = (
 	x: number,
@@ -248,7 +236,7 @@ const box = (
 	h: number,
 	r: number,
 	tone: string,
-	options?: TileOptions,
+	options?: TileOptions
 ) => tile(x + w / 2, y + h / 2, w, h, r, tone, options);
 const disc = (c: Pt, r: number, tone: string, options?: TileOptions) =>
 	tile(c[0], c[1], r * 2, r * 2, r, tone, options);
@@ -259,7 +247,7 @@ const body = (segs: Seg[], z: number): EmptyShape => ({
 	geo: [...sample(segs, N, false), z],
 	fx: [1, 1],
 	tone: "outline",
-	redraw: false,
+	redraw: false
 });
 
 type StrokeOptions = {
@@ -273,25 +261,25 @@ type StrokeOptions = {
 const line = (
 	segs: Seg[],
 	tone: string,
-	{ dash = 0, z = 1, z1 = z, o = 1, draw = 1, redraw = false }: StrokeOptions = {},
+	{ dash = 0, z = 1, z1 = z, o = 1, draw = 1, redraw = false }: StrokeOptions = {}
 ): EmptyShape => ({
 	kind: "stroke",
 	geo: [...sample(segs, K, true), dash, z, z1],
 	fx: [o, draw],
 	tone,
-	redraw,
+	redraw
 });
 const rest = (p: Pt, z: number) => line([seg(p, p)], "ink", { z, o: 0, draw: 0 });
 const mark = (
 	[a, b]: [Seg[], Seg[]],
 	tone: string,
-	{ z = 1, o = 1, draw = 1, redraw = true }: StrokeOptions = {},
+	{ z = 1, o = 1, draw = 1, redraw = true }: StrokeOptions = {}
 ): EmptyShape => ({
 	kind: "mark",
 	geo: [...sample(a, M, true), ...sample(b, M, true), 0, z, z],
 	fx: [o, draw],
 	tone,
-	redraw,
+	redraw
 });
 
 function check(c: Pt, s: number): [Seg[], Seg[]] {
@@ -302,22 +290,22 @@ function check(c: Pt, s: number): [Seg[], Seg[]] {
 }
 const cross = (c: Pt, h: number): [Seg[], Seg[]] => [
 	[seg([c[0] - h, c[1] - h], [c[0] + h, c[1] + h])],
-	[seg([c[0] + h, c[1] - h], [c[0] - h, c[1] + h])],
+	[seg([c[0] + h, c[1] - h], [c[0] - h, c[1] + h])]
 ];
 const slashes = (c: Pt): [Seg[], Seg[]] => [
 	[seg([c[0] - 10, c[1] + 5], [c[0] - 2, c[1] - 5])],
-	[seg([c[0] + 2, c[1] + 5], [c[0] + 10, c[1] - 5])],
+	[seg([c[0] + 2, c[1] + 5], [c[0] + 10, c[1] - 5])]
 ];
 const glare = (c: Pt, r: number): [Seg[], Seg[]] => [
 	[arcDeg(c, r, 196, 236)],
-	[arcDeg(c, r, 248, 256)],
+	[arcDeg(c, r, 248, 256)]
 ];
 
 function search(phase: EmptyPhase): EmptyFrame {
 	const card = body(rrect(58, 36, 172, 132, 18), 0.6);
 	const tucked = [
 		tile(144, 102, 96, 58, 14, "tuck", { z: 0.3 }),
-		tile(144, 102, 120, 76, 16, "tuck", { z: 0.3 }),
+		tile(144, 102, 120, 76, 16, "tuck", { z: 0.3 })
 	];
 	if (phase !== "done") {
 		const lens: Pt = [196, 118];
@@ -332,8 +320,8 @@ function search(phase: EmptyPhase): EmptyFrame {
 				disc(lens, 30, "outline", { z: 1.6 }),
 				line([seg(polar(lens, 30, 45), [244, 166])], "ink", { z: 1.6 }),
 				rest([244, 166], 1.6),
-				mark(glare(lens, 20), "muted", { z: 1.6 }),
-			],
+				mark(glare(lens, 20), "muted", { z: 1.6 })
+			]
 		};
 	}
 	const lens: Pt = [204, 61];
@@ -348,8 +336,8 @@ function search(phase: EmptyPhase): EmptyFrame {
 			disc(lens, 9, "outline", { z: 1 }),
 			line([seg(polar(lens, 9, 45), polar(lens, 17, 45))], "ink", { z: 1 }),
 			line([seg([58, 84], [230, 84])], "subtle", { z: 0.6 }),
-			mark(glare(lens, 5), "muted", { z: 1, o: 0, draw: 0 }),
-		],
+			mark(glare(lens, 5), "muted", { z: 1, o: 0, draw: 0 })
+		]
 	};
 }
 
@@ -374,11 +362,11 @@ function offline(phase: EmptyPhase): EmptyFrame {
 						{ c: [100, 96], r: 22 },
 						{ c: [140, 72], r: 34 },
 						{ c: [188, 76], r: 28 },
-						{ c: [220, 98], r: 20 },
+						{ c: [220, 98], r: 20 }
 					],
-					118,
+					118
 				),
-				1.3,
+				1.3
 			),
 			park(hub, 1.3),
 			park(hub, 1.3),
@@ -391,8 +379,8 @@ function offline(phase: EmptyPhase): EmptyFrame {
 				9,
 				phase === "done" ? "success" : phase === "loading" ? "accent" : "outline",
 				{
-					z: 0.7,
-				},
+					z: 0.7
+				}
 			),
 			line([seg([160, 118], [160, top])], wire, { z: 1.3, z1: 1 }),
 			line([seg([160, bottom], [160, 168])], wire, { z: 1, z1: 0.7 }),
@@ -400,9 +388,9 @@ function offline(phase: EmptyPhase): EmptyFrame {
 				? mark(check([160, 185], 18), "success", { z: 0.7 })
 				: mark(slashes([160, 146]), "warning", {
 						z: 1,
-						draw: phase === "loading" ? 0 : 1,
-					}),
-		],
+						draw: phase === "loading" ? 0 : 1
+					})
+		]
 	};
 }
 
@@ -430,14 +418,14 @@ function inbox(phase: EmptyPhase): EmptyFrame {
 					[133, 140],
 					[187, 140],
 					[196, 126],
-					[232, 126],
+					[232, 126]
 				]),
 				"ink",
-				{ z: 0.7 },
+				{ z: 0.7 }
 			),
 			rest(slot, 0.7),
-			mark(check(badge, 16), "success", { z: 1.5, draw: phase === "loading" ? 0 : 1 }),
-		],
+			mark(check(badge, 16), "success", { z: 1.5, draw: phase === "loading" ? 0 : 1 })
+		]
 	};
 }
 
@@ -467,11 +455,11 @@ function map(phase: EmptyPhase): EmptyFrame {
 						[232, 152],
 						[178, 166],
 						[124, 152],
-						[70, 166],
+						[70, 166]
 					],
-					true,
+					true
 				),
-				0.8,
+				0.8
 			),
 			park(start, 0.8),
 			tile(151, 107, 54, 104, 0, "shade", { skew: Math.atan2(14, 54) / RAD, z: 0.8 }),
@@ -481,13 +469,13 @@ function map(phase: EmptyPhase): EmptyFrame {
 				dash: 5,
 				z: 0.8,
 				draw: phase === "loading" ? 0 : 1,
-				redraw: true,
+				redraw: true
 			}),
 			rest(start, 0.8),
 			found
 				? mark(check(pin, 10), "success", { z: 0.8 })
-				: mark(cross([208, 76], 5), "ink", { z: 0.8, draw: phase === "loading" ? 0 : 1 }),
-		],
+				: mark(cross([208, 76], 5), "ink", { z: 0.8, draw: phase === "loading" ? 0 : 1 })
+		]
 	};
 }
 
@@ -505,7 +493,7 @@ function move(frame: EmptyFrame, dx: number, dy: number): EmptyFrame {
 				geo[2 * i + 1] = num(geo, 2 * i + 1) + dy;
 			}
 			return { ...p, geo };
-		}),
+		})
 	};
 }
 
@@ -531,17 +519,14 @@ function center(frame: EmptyFrame) {
 		if (p.kind !== "body" && p.fx[1] < 0.01) continue;
 		for (let i = 0; i < pointCount(p); i++) add(num(p.geo, 2 * i), num(p.geo, 2 * i + 1));
 	}
-	return [
-		SCENE_VIEW.width / 2 - (x0 + x1) / 2,
-		SCENE_VIEW.height / 2 - (y0 + y1) / 2,
-	] as const;
+	return [SCENE_VIEW.width / 2 - (x0 + x1) / 2, SCENE_VIEW.height / 2 - (y0 + y1) / 2] as const;
 }
 
 const builders: Record<EmptyScene, (phase: EmptyPhase) => EmptyFrame> = {
 	search,
 	offline,
 	inbox,
-	map,
+	map
 };
 
 function sceneFrames(id: EmptyScene): Record<EmptyPhase, EmptyFrame> {
@@ -549,7 +534,7 @@ function sceneFrames(id: EmptyScene): Record<EmptyPhase, EmptyFrame> {
 	return {
 		idle: move(builders[id]("idle"), dx, dy),
 		loading: move(builders[id]("loading"), dx, dy),
-		done: move(builders[id]("done"), dx, dy),
+		done: move(builders[id]("done"), dx, dy)
 	};
 }
 
@@ -558,7 +543,7 @@ export const SCENE_FRAMES: Record<EmptyScene, Record<EmptyPhase, EmptyFrame>> = 
 	search: sceneFrames("search"),
 	offline: sceneFrames("offline"),
 	inbox: sceneFrames("inbox"),
-	map: sceneFrames("map"),
+	map: sceneFrames("map")
 };
 
 const fmt = (v: number) => String(Math.round(v * 100) / 100);
@@ -579,7 +564,7 @@ function tilePath(g: ArrayLike<number>, ox: number, oy: number) {
 		[hw - r, -hh + r, -90],
 		[hw - r, hh - r, 0],
 		[-hw + r, hh - r, 90],
-		[-hw + r, -hh + r, 180],
+		[-hw + r, -hh + r, 180]
 	];
 	let d = "";
 	for (const [cx, cy, start] of corners) {
@@ -596,10 +581,7 @@ function tilePath(g: ArrayLike<number>, ox: number, oy: number) {
 function span(g: ArrayLike<number>, from: number, count: number) {
 	let len = 0;
 	for (let i = from + 1; i < from + count; i++)
-		len += Math.hypot(
-			num(g, 2 * i) - num(g, 2 * i - 2),
-			num(g, 2 * i + 1) - num(g, 2 * i - 1),
-		);
+		len += Math.hypot(num(g, 2 * i) - num(g, 2 * i - 2), num(g, 2 * i + 1) - num(g, 2 * i - 1));
 	return len;
 }
 
@@ -613,7 +595,7 @@ function trace(
 	oy: number,
 	z0: number,
 	z1: number,
-	total: number,
+	total: number
 ) {
 	if (budget <= 0.05) return "";
 	const at = (i: number): Pt => {
@@ -644,7 +626,7 @@ export function sceneShapePath(
 	g: ArrayLike<number>,
 	drawn: number,
 	ox: number,
-	oy: number,
+	oy: number
 ) {
 	if (kind === "tile") return { d: tilePath(g, ox, oy), dash: "none" };
 	if (kind === "body") {
@@ -663,7 +645,7 @@ export function sceneShapePath(
 	if (kind === "stroke")
 		return {
 			d: trace(g, 0, count, draw * span(g, 0, count), ox, oy, z0, z1, count),
-			dash,
+			dash
 		};
 	const first = span(g, 0, M);
 	const budget = draw * (first + span(g, M, M));
@@ -671,6 +653,6 @@ export function sceneShapePath(
 		d:
 			trace(g, 0, M, Math.min(budget, first), ox, oy, z0, z1, 1) +
 			trace(g, M, M, budget - first, ox, oy, z0, z1, 1),
-		dash,
+		dash
 	};
 }

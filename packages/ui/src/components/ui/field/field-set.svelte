@@ -1,18 +1,18 @@
 <script lang="ts">
-import type { HTMLFieldsetAttributes } from "svelte/elements";
-import { cn } from "../../../lib/cn.js";
-import { type FieldSize, field } from "./variants";
+	import type { HTMLFieldsetAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type FieldSize, field } from "./variants";
 
-let {
-	ref = $bindable(null),
-	class: classProp,
-	size = "default",
-	children,
-	...rest
-}: HTMLFieldsetAttributes & {
-	ref?: HTMLFieldSetElement | null;
-	size?: FieldSize;
-} = $props();
+	let {
+		ref = $bindable(null),
+		class: classProp,
+		size = "default",
+		children,
+		...rest
+	}: HTMLFieldsetAttributes & {
+		ref?: HTMLFieldSetElement | null;
+		size?: FieldSize;
+	} = $props();
 </script>
 
 <fieldset

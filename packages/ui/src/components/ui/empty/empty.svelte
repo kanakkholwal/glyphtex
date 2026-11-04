@@ -1,23 +1,23 @@
 <script lang="ts">
-import type { Snippet } from "svelte";
-import type { HTMLAttributes } from "svelte/elements";
-import { cn } from "../../../lib/cn.js";
-import { type EmptyLayout, type EmptySize, type EmptyVariant, empty } from "./variants";
+	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type EmptyLayout, type EmptySize, type EmptyVariant, empty } from "./variants";
 
-let {
-	variant = "default",
-	layout = "vertical",
-	size = "default",
-	class: classProp,
-	children,
-	...rest
-}: {
-	variant?: EmptyVariant;
-	layout?: EmptyLayout;
-	size?: EmptySize;
-	class?: string;
-	children?: Snippet;
-} & Omit<HTMLAttributes<HTMLDivElement>, "class" | "children"> = $props();
+	let {
+		variant = "default",
+		layout = "vertical",
+		size = "default",
+		class: classProp,
+		children,
+		...rest
+	}: {
+		variant?: EmptyVariant;
+		layout?: EmptyLayout;
+		size?: EmptySize;
+		class?: string;
+		children?: Snippet;
+	} & Omit<HTMLAttributes<HTMLDivElement>, "class" | "children"> = $props();
 </script>
 
 <!-- Part names and data-slot values follow shadcn-svelte, so this drops into an existing project. -->

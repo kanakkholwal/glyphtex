@@ -11,18 +11,18 @@ export const searchInput = tv({
 		clear: [
 			"grid size-6 place-items-center rounded-full text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
 			"transition-[opacity,scale,filter] duration-(--duration-fast) ease-(--ease-ui-out) active:scale-96 motion-reduce:transition-none",
-			"data-[on=false]:pointer-events-none data-[on=false]:scale-80 data-[on=false]:opacity-0 data-[on=false]:blur-[2px] [&_svg]:size-3.5",
+			"data-[on=false]:pointer-events-none data-[on=false]:scale-80 data-[on=false]:opacity-0 data-[on=false]:blur-[2px] [&_svg]:size-3.5"
 		],
 		shortcut:
-			"pointer-events-none transition-opacity duration-(--duration-fast) data-[on=false]:opacity-0",
+			"pointer-events-none transition-opacity duration-(--duration-fast) data-[on=false]:opacity-0"
 	},
 	variants: {
 		variant: {
 			default: {},
-			pill: { root: "rounded-full" },
-		},
+			pill: { root: "rounded-full" }
+		}
 	},
-	defaultVariants: { variant: "default" },
+	defaultVariants: { variant: "default" }
 });
 
 export type SearchInputVariant = NonNullable<VariantProps<typeof searchInput>["variant"]>;

@@ -1,17 +1,17 @@
 <script lang="ts">
-import type { HTMLAttributes } from "svelte/elements";
-import { cn } from "../../../lib/cn.js";
-import Separator from "../separator/separator.svelte";
-import { field } from "./variants";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import Separator from "../separator/separator.svelte";
+	import { field } from "./variants";
 
-let {
-	ref = $bindable(null),
-	class: classProp,
-	children,
-	...rest
-}: HTMLAttributes<HTMLDivElement> & { ref?: HTMLDivElement | null } = $props();
+	let {
+		ref = $bindable(null),
+		class: classProp,
+		children,
+		...rest
+	}: HTMLAttributes<HTMLDivElement> & { ref?: HTMLDivElement | null } = $props();
 
-const s = field();
+	const s = field();
 </script>
 
 <div

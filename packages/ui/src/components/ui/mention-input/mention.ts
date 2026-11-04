@@ -35,14 +35,12 @@ export type MentionSuggestion = {
 
 export const EMPTY_MENTIONS: MentionValue = { text: "", mentions: [] };
 const SYMBOL: Record<MentionKind, string> = { person: "@", channel: "#" };
-export const mentionText = (kind: MentionKind, label: string) =>
-	`${SYMBOL[kind]}${label}`;
+export const mentionText = (kind: MentionKind, label: string) => `${SYMBOL[kind]}${label}`;
 
 /** Storage-friendly text: `<@id>` for people and `<#id>` for channels by default. */
 export function serializeMentions(
 	value: MentionValue,
-	format: (mention: Mention) => string = (mention) =>
-		`<${SYMBOL[mention.kind]}${mention.id}>`,
+	format: (mention: Mention) => string = (mention) => `<${SYMBOL[mention.kind]}${mention.id}>`
 ) {
 	let out = "";
 	let at = 0;
@@ -54,11 +52,7 @@ export function serializeMentions(
 }
 
 /** Moves mentions along with an edit and drops any it touched; `hint` is the caret before the edit. */
-export function reconcileMentions(
-	previous: MentionValue,
-	text: string,
-	hint: number,
-): Mention[] {
+export function reconcileMentions(previous: MentionValue, text: string, hint: number): Mention[] {
 	const a = previous.text;
 	let prefix = 0;
 	const maxPrefix = Math.min(a.length, text.length, Math.max(0, hint));
@@ -81,8 +75,7 @@ export function reconcileMentions(
 		})
 		.filter(
 			(mention) =>
-				text.slice(mention.start, mention.end) ===
-				mentionText(mention.kind, mention.label),
+				text.slice(mention.start, mention.end) === mentionText(mention.kind, mention.label)
 		);
 }
 
@@ -91,7 +84,7 @@ export function findTrigger(
 	text: string,
 	caret: number,
 	mentions: Mention[],
-	kinds: Record<MentionKind, boolean>,
+	kinds: Record<MentionKind, boolean>
 ): MentionTrigger | null {
 	for (let index = caret - 1; index >= 0 && index >= caret - 48; index--) {
 		const char = text[index];
@@ -100,8 +93,7 @@ export function findTrigger(
 		const kind: MentionKind = char === "@" ? "person" : "channel";
 		if (!kinds[kind]) return null;
 		if (index > 0 && !/[\s([{"']/.test(text[index - 1] ?? "")) return null;
-		if (mentions.some((mention) => index >= mention.start && index < mention.end))
-			return null;
+		if (mentions.some((mention) => index >= mention.start && index < mention.end)) return null;
 		const query = text.slice(index + 1, caret);
 		const shape = kind === "person" ? /^[^\s@#]*( [^\s@#]*)?$/ : /^[^\s@#]*$/;
 		return shape.test(query) ? { kind, start: index, query } : null;
@@ -123,7 +115,7 @@ export function suggestMentions(
 	trigger: MentionTrigger,
 	people: MentionPerson[],
 	channels: MentionChannel[],
-	limit: number,
+	limit: number
 ): MentionSuggestion[] {
 	const query = trigger.query.toLowerCase();
 	const pool: MentionSuggestion[] =
@@ -133,19 +125,19 @@ export function suggestMentions(
 					id: p.id,
 					label: p.name,
 					detail: p.role,
-					avatar: p.avatar,
+					avatar: p.avatar
 				}))
 			: channels.map((c) => ({
 					kind: "channel",
 					id: c.id,
 					label: c.name,
-					detail: c.description,
+					detail: c.description
 				}));
 	return pool
 		.map((item, order) => ({
 			item,
 			order,
-			rank: score(item.label, item.detail ?? "", query),
+			rank: score(item.label, item.detail ?? "", query)
 		}))
 		.filter((entry) => entry.rank > 0)
 		.sort((a, b) => b.rank - a.rank || a.order - b.order)
@@ -158,7 +150,7 @@ export function insertMention(
 	value: MentionValue,
 	trigger: MentionTrigger,
 	caret: number,
-	pick: MentionSuggestion,
+	pick: MentionSuggestion
 ) {
 	const token = mentionText(pick.kind, pick.label);
 	const text = `${value.text.slice(0, trigger.start)}${token} ${value.text.slice(caret)}`;
@@ -168,15 +160,13 @@ export function insertMention(
 		id: pick.id,
 		label: pick.label,
 		start: trigger.start,
-		end: trigger.start + token.length,
+		end: trigger.start + token.length
 	};
 	const mentions = [
 		...value.mentions
 			.filter((m) => m.end <= trigger.start || m.start >= caret)
-			.map((m) =>
-				m.start >= caret ? { ...m, start: m.start + shift, end: m.end + shift } : m,
-			),
-		mention,
+			.map((m) => (m.start >= caret ? { ...m, start: m.start + shift, end: m.end + shift } : m)),
+		mention
 	].sort((a, b) => a.start - b.start);
 	return { value: { text, mentions }, caret: mention.end + 1, mention };
 }

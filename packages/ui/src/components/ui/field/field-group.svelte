@@ -1,18 +1,18 @@
 <script lang="ts">
-import type { HTMLAttributes } from "svelte/elements";
-import { cn } from "../../../lib/cn.js";
-import { type FieldSize, field } from "./variants";
+	import type { HTMLAttributes } from "svelte/elements";
+	import { cn } from "../../../lib/cn.js";
+	import { type FieldSize, field } from "./variants";
 
-let {
-	ref = $bindable(null),
-	class: classProp,
-	size = "default",
-	children,
-	...rest
-}: HTMLAttributes<HTMLDivElement> & {
-	ref?: HTMLDivElement | null;
-	size?: FieldSize;
-} = $props();
+	let {
+		ref = $bindable(null),
+		class: classProp,
+		size = "default",
+		children,
+		...rest
+	}: HTMLAttributes<HTMLDivElement> & {
+		ref?: HTMLDivElement | null;
+		size?: FieldSize;
+	} = $props();
 </script>
 
 <div
