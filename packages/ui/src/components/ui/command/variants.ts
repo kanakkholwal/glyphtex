@@ -79,7 +79,8 @@ export const commandFrame = tv({
 				footer: "border-border border-t px-3 py-2"
 			},
 			framed: {
-				panel: "rounded-2xl border border-border bg-background p-1 shadow-(--overlay-shadow)",
+				// A card-toned rim, as on the framed dialog: background and popover are both white in light mode.
+				panel: "rounded-2xl border border-border bg-card p-1 shadow-(--overlay-shadow)",
 				header: "pt-1.5 pb-2",
 				body: "rounded-[11px] border border-border bg-popover",
 				inputWrap: "border-border border-b px-3",
@@ -87,9 +88,10 @@ export const commandFrame = tv({
 				count:
 					"block min-w-[2ch] shrink-0 text-right font-mono text-muted-foreground text-xs tabular-nums",
 				list: "py-1.5",
-				groupHeading: "px-4 pt-2 pb-1 font-semibold text-xs uppercase tracking-wide",
+				groupHeading: "px-4 pt-3 pb-1.5 font-medium text-xs uppercase tracking-wider",
 				group:
-					"[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-items]]:px-1.5",
+					"[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1.5 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-items]]:px-1.5",
+				separator: "mx-0 my-1.5",
 				groupItems: "px-1.5",
 				item: [
 					// Icon and label stay together on the left; a CommandShortcut pushes itself right (ml-auto).
