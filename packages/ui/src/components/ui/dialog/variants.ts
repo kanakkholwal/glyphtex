@@ -100,9 +100,10 @@ export const dialogFrame = tv({
 			framed: {
 				panel: "bg-card p-1",
 				footer: "px-2 pt-2 pb-1",
-				body: "rounded-[11px] border border-border bg-popover p-5"
+				body: "flex flex-col gap-4 rounded-[11px] border border-border bg-popover p-5"
 			},
-			default: { panel: "bg-popover p-6", footer: "pt-6", body: "" }
+			// A column with a gap, so header, content and actions never butt up against each other.
+			default: { panel: "flex flex-col gap-4 bg-popover p-6", footer: "pt-2", body: "" }
 		}
 	},
 	defaultVariants: { motion: "zoom", variant: "default" }

@@ -16,6 +16,7 @@
 	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconClock,
+		IconCommand,
 		IconCloud,
 		IconFileImport,
 		IconFileText,
@@ -85,7 +86,10 @@
 >
 	<Command variant="framed">
 		<CommandHeader>
-			<span class="text-foreground px-3 text-sm font-medium">Search</span>
+			<span class="text-foreground flex items-center gap-2 px-3 text-sm font-medium">
+				<IconCommand size={16} class="text-muted-foreground" aria-hidden="true" />
+				Search
+			</span>
 		</CommandHeader>
 		<CommandInput placeholder="Search projects, pages and actions…" />
 		<CommandList>

@@ -652,7 +652,7 @@
 				<Sidebar.Trigger class="size-8 shrink-0" title="Toggle sidebar (Ctrl/⌘ B)" />
 			</div>
 			<button
-				class="border-border bg-background text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-9 items-center gap-2 rounded-lg border px-2.5 text-sm outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+				class="border-border bg-card text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-9 items-center gap-2 rounded-lg border px-2.5 text-sm outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
 				aria-haspopup="dialog"
 				onclick={() => (paletteOpen = true)}
 			>
@@ -731,7 +731,7 @@
 
 		<Sidebar.Footer class="gap-2 p-2 group-data-[collapsible=icon]:hidden">
 			{#if checklist && checklistDone < checklist.items.length}
-				<section class="bg-background rounded-xl p-3 shadow-(--surface-shadow)" aria-labelledby="checklist-title">
+				<section class="border-border bg-card rounded-xl border p-3" aria-labelledby="checklist-title">
 					<div class="flex items-center justify-between gap-2">
 						<h2 id="checklist-title" class="text-foreground text-sm font-medium">Getting started</h2>
 						<button
@@ -755,7 +755,7 @@
 					>
 						<div
 							class="bg-primary h-full rounded-full transition-[width] duration-(--duration-slow) ease-(--ease-out)"
-							style:width={`${Math.max(4, (checklistDone / checklist.items.length) * 100)}%`}
+							style:width={`${(checklistDone / checklist.items.length) * 100}%`}
 						></div>
 					</div>
 					<ul class="mt-2 flex flex-col gap-1">
@@ -779,7 +779,7 @@
 				{@const tight = storagePct >= 80}
 				<!-- Warning past 80%: the browser starts evicting under storage pressure. -->
 				<button
-					class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex flex-col gap-1.5 rounded-lg px-2.5 py-2 text-left outline-none focus-visible:ring-2"
+					class="border-border bg-card hover:bg-accent focus-visible:ring-ring flex flex-col gap-1.5 rounded-xl border p-3 text-left outline-none transition-colors focus-visible:ring-2"
 					onclick={() => onsettings?.()}
 					aria-label="Browser storage details"
 				>
@@ -799,7 +799,7 @@
 					>
 						<span
 							class="block h-full rounded-full {tight ? 'bg-warning' : 'bg-foreground'}"
-							style:width={`${Math.max(storagePct, 2)}%`}
+							style:width={`${storage.used > 0 ? Math.max(storagePct, 1) : 0}%`}
 						></span>
 					</span>
 					{#if tight}
