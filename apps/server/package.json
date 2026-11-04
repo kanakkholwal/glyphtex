@@ -13,7 +13,7 @@
 		"dev:node": "node --env-file-if-exists=.env --watch src/entry/node.ts",
 		"start": "node src/entry/node.ts",
 		"jobs": "node src/entry/node-jobs.ts",
-		"migrate": "node src/db/migrate.ts",
+		"migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
 		"db:generate": "drizzle-kit generate",
 		"deploy": "wrangler deploy",
 		"check": "tsc --noEmit",
