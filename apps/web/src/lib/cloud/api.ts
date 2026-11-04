@@ -1,4 +1,10 @@
 import type {
+	AuditPage,
+	Feature,
+	MemberFeatures,
+	OrgPolicy,
+	OrgStats,
+	OrgView,
 	FileMeta,
 	GrantableRole,
 	ImportResult,
@@ -15,6 +21,12 @@ import { createFetch } from "@better-fetch/fetch";
 import { SERVER_URL } from "./config";
 
 export type {
+	AuditPage,
+	Feature,
+	MemberFeatures,
+	OrgPolicy,
+	OrgStats,
+	OrgView,
 	FileMeta,
 	GrantableRole,
 	Invite,
@@ -92,6 +104,7 @@ const done = async (path: string, init?: Init) => {
 };
 const bytes = async (path: string) => new Uint8Array(await (await call<Blob>(path)).arrayBuffer());
 const p = (id: string) => `/projects/${encodeURIComponent(id)}`;
+const o = (id: string) => `/orgs/${encodeURIComponent(id)}`;
 const file = (id: string, path: string) => `${p(id)}/files/raw?path=${encodeURIComponent(path)}`;
 
 /** `create` sends If-None-Match: *; a version sends If-Match, so stale writes 409. */
@@ -105,15 +118,23 @@ export const cloud = {
 
 	projects: {
 		list: async () => (await json<{ projects: ProjectSummary[] }>("/projects")).projects,
-		create: async (name: string) =>
-			(await json<{ project: ProjectSummary }>("/projects", { method: "POST", body: { name } }))
-				.project,
-		import: (name: string, zip: Uint8Array) =>
-			json<ImportResult>(`/projects/import?name=${encodeURIComponent(name)}`, {
+		/** With `orgId`, the project belongs to that organization. */
+		create: async (name: string, orgId?: string) =>
+			(
+				await json<{ project: ProjectSummary }>("/projects", {
+					method: "POST",
+					body: { name, ...(orgId && { orgId }) }
+				})
+			).project,
+		import: (name: string, zip: Uint8Array, orgId?: string) =>
+			json<ImportResult>(
+				`/projects/import?name=${encodeURIComponent(name)}${orgId ? `&orgId=${encodeURIComponent(orgId)}` : ""}`,
+				{
 				method: "POST",
 				headers: { "content-type": "application/zip" },
 				body: new Blob([zip as BlobPart], { type: "application/zip" })
-			}),
+				}
+			),
 		get: async (id: string) => (await json<{ project: ProjectView }>(p(id))).project,
 		update: (id: string, patch: { name?: string; mainFile?: string }) =>
 			json<{ project: ProjectSummary }>(p(id), { method: "PATCH", body: patch }),
@@ -166,6 +187,29 @@ export const cloud = {
 			json<Joined>("/invites/accept", { method: "POST", body: { token } }),
 		redeemLink: (token: string) =>
 			json<Joined>("/links/redeem", { method: "POST", body: { token } })
+	},
+
+	orgs: {
+		view: (orgId: string) => json<OrgView>(o(orgId)),
+		projects: async (orgId: string) =>
+			(await json<{ projects: ProjectSummary[] }>(`${o(orgId)}/projects`)).projects,
+		updatePolicy: async (orgId: string, patch: Partial<OrgPolicy>) =>
+			(await json<{ policy: OrgPolicy }>(`${o(orgId)}/policy`, { method: "PATCH", body: patch }))
+				.policy,
+		memberFeatures: (orgId: string, userId: string) =>
+			json<MemberFeatures>(`${o(orgId)}/members/${encodeURIComponent(userId)}/features`),
+		/** `enabled: null` drops the override, so the org default applies again. */
+		setMemberFeature: (orgId: string, userId: string, feature: Feature, enabled: boolean | null) =>
+			json<MemberFeatures>(`${o(orgId)}/members/${encodeURIComponent(userId)}/features`, {
+				method: "PUT",
+				body: { feature, enabled }
+			}),
+		stats: async (orgId: string) => (await json<{ stats: OrgStats }>(`${o(orgId)}/stats`)).stats,
+		audit: (orgId: string, before?: string) =>
+			json<AuditPage>(
+				`${o(orgId)}/audit?limit=50${before ? `&before=${encodeURIComponent(before)}` : ""}`
+			),
+		auditCsv: async (orgId: string) => new Uint8Array(await (await call<Blob>(`${o(orgId)}/audit.csv`)).arrayBuffer())
 	},
 
 	account: {

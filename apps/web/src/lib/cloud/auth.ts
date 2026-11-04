@@ -1,12 +1,12 @@
 import { createAuthClient } from "better-auth/client";
-import { magicLinkClient } from "better-auth/client/plugins";
+import { magicLinkClient, organizationClient } from "better-auth/client/plugins";
 import { SERVER_URL } from "./config";
 
 /** Better Auth's own client: sign-in, sign-up, OAuth, magic link, verification, deletion. */
 export const authClient = createAuthClient({
 	baseURL: `${SERVER_URL || "http://localhost"}/api/auth`,
 	fetchOptions: { credentials: "include" },
-	plugins: [magicLinkClient()]
+	plugins: [magicLinkClient(), organizationClient()]
 });
 
 export type CloudUser = NonNullable<
