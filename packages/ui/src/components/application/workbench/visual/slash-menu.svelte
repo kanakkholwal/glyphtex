@@ -181,7 +181,7 @@
 ></div>
 
 <div
-	class="border-border bg-popover fixed z-50 w-72 overflow-hidden rounded-lg border shadow-lg"
+	class="border-border bg-popover fixed z-50 w-72 overflow-hidden rounded-lg border shadow-(--overlay-shadow)"
 	style:left="{Math.min(anchor.left, window.innerWidth - 300)}px"
 	style:top="{Math.max(8, top)}px"
 	role="dialog"
