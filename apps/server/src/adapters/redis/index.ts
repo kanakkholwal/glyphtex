@@ -10,7 +10,21 @@ export const DEAD_KEY = "glyphtex:jobs:dead";
 /** Resolves once connected: with the offline queue off, a command sent earlier fails outright. */
 export async function connectRedis(url: string, timeoutMs = 10_000) {
 	const redis = new Redis(url, { maxRetriesPerRequest: 2, enableOfflineQueue: false });
-	await waitReady(redis, timeoutMs);
+	// ioredis retries forever and emits an error per attempt; report the outage once, not per retry.
+	let reported = false;
+	redis.on("error", (error) => {
+		if (reported) return;
+		reported = true;
+		console.error(`Redis at ${new URL(url).host} is unreachable: ${error.message || error.name}`);
+	});
+	redis.on("ready", () => (reported = false));
+	await waitReady(redis, timeoutMs).catch((error: unknown) => {
+		redis.disconnect();
+		throw new Error(
+			`Can't reach Redis at ${new URL(url).host}. Start it (docker compose up -d redis) or fix REDIS_URL.`,
+			{ cause: error }
+		);
+	});
 	return redis;
 }
 

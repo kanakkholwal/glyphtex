@@ -28,6 +28,19 @@ The button provisions KV, R2, Queues and Hyperdrive and asks for the secrets in 
 3. Set secrets: `wrangler secret put BETTER_AUTH_SECRET` and `RESEND_API_KEY` (plus OAuth secrets).
 4. `DATABASE_URL=... pnpm migrate`, then `pnpm deploy`.
 
+## Local development
+
+```bash
+pnpm --filter @glyphtex/server services     # Postgres, Valkey, S3, Mailpit (ports from .env)
+pnpm --filter @glyphtex/server migrate      # once, and after pulling new migrations
+pnpm --filter @glyphtex/server dev:local    # API at http://api.glyphtex.localhost
+pnpm --filter @glyphtex/server dev:jobs     # emails and file cleanup
+```
+
+Put `POSTGRES_PORT`, `REDIS_PORT`, `S3_PORT` and `MAILPIT_PORT` in `apps/server/.env`: compose reads them, so
+the containers and the API agree. Set `PUBLIC_GLYPHTEX_SERVER_URL=http://api.glyphtex.localhost` in
+`apps/web/.env` to show sign-in in the web app. Emails land in Mailpit.
+
 ## Configuration
 
 Every option is in `.env.example`. Infrastructure is chosen by config:

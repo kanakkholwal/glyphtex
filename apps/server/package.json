@@ -18,7 +18,9 @@
 		"deploy": "wrangler deploy",
 		"check": "tsc --noEmit",
 		"test": "node --test \"test/**/*.test.ts\"",
-		"dev:local": "cross-env PORTLESS_HTTPS=0 portless"
+		"dev:local": "cross-env PORTLESS_HTTPS=0 portless",
+		"services": "docker compose -p glyphtex-it up -d postgres redis s3 s3-init mailpit",
+		"dev:jobs": "node --env-file-if-exists=.env --watch src/entry/node-jobs.ts"
 	},
 	"dependencies": {
 		"@hono/node-server": "^2.1.6",
