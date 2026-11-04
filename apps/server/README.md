@@ -1,0 +1,68 @@
+# GlyphTeX Teams server
+
+Optional server for GlyphTeX: accounts, saved projects, sharing and role-based access.
+LaTeX still compiles in the browser, so the server only stores and syncs files.
+
+## Run it
+
+### Docker (Node)
+
+```bash
+cd apps/server
+export BETTER_AUTH_SECRET=$(openssl rand -base64 48)
+docker compose up -d                 # Postgres, Valkey, RustFS (S3), Mailpit, API, job worker
+```
+
+- API: http://localhost:8787
+- Mail inbox (dev): http://localhost:8025
+- Use RabbitMQ instead of Valkey for jobs: `QUEUE_DRIVER=rabbitmq docker compose --profile rabbitmq up -d`
+
+### Cloudflare Workers
+
+1. Create Hyperdrive (pointing at any Postgres: Neon, Supabase, PlanetScale, self-hosted), a KV namespace, an R2 bucket, and queues `glyphtex-jobs` + `glyphtex-jobs-dead`.
+2. Put their ids in `wrangler.jsonc`.
+3. Set secrets: `wrangler secret put BETTER_AUTH_SECRET` and `RESEND_API_KEY` (plus OAuth secrets).
+4. `DATABASE_URL=... pnpm migrate`, then `pnpm deploy`.
+
+## Configuration
+
+Every option is in `.env.example`. Infrastructure is chosen by config:
+
+| Concern | Workers | Node / Bun |
+|---|---|---|
+| Database | Postgres via Hyperdrive or `DATABASE_URL` | Postgres via `DATABASE_URL` |
+| Cache | KV | Redis / Valkey |
+| Jobs | Cloudflare Queues | Redis / Valkey or RabbitMQ |
+| Files | R2 binding or any S3 | any S3 (AWS, R2, RustFS, MinIO, B2, Tigris) |
+| Mail | Resend | Resend or SMTP |
+| Rate limits | Workers rate limiting | Redis / Valkey |
+
+Sign-in providers turn on when their client id and secret are set: Google, GitHub and GitLab (`GITLAB_ISSUER` for self-hosted GitLab).
+
+## API (all under `/api`, session cookie required)
+
+| | |
+|---|---|
+| `GET /me`, `GET /me/export` | current user; zip of every owned project |
+| `GET/POST /projects`, `POST /projects/import?name=` | list, create, import a zip (Overleaf/Prism exports) |
+| `GET/PATCH/DELETE /projects/:id` | view (with `capabilities`), rename / set main file, delete |
+| `GET /projects/:id/files` | file list with versions |
+| `GET/PUT/DELETE /projects/:id/files/raw?path=` | content; writes need `If-None-Match: *` or `If-Match: "<version>"` |
+| `POST /projects/:id/files/rename` | `{from,to}` with `If-Match` |
+| `/projects/:id/members`, `/invites`, `/links` | sharing (owner only, except leaving) |
+| `POST /invites/accept`, `POST /links/redeem` | `{token}` |
+| `/auth/*` | Better Auth: sign-up/in, magic link, OAuth, verification, password reset, `delete-user` |
+
+Errors are `application/problem+json` with a `code` and a `requestId`.
+
+## Tests
+
+```bash
+pnpm test                                  # unit
+docker compose -p glyphtex-it up -d postgres redis s3 s3-init mailpit   # with the port overrides below
+GLYPHTEX_IT=1 pnpm test                    # + end-to-end and queue contracts
+```
+
+The integration suite expects Postgres on 5433, Valkey on 6380, S3 on 9002 and Mailpit on 8026
+(`POSTGRES_PORT=5433 REDIS_PORT=6380 S3_PORT=9002 MAILPIT_PORT=8026`). Add `--profile rabbitmq`,
+`RABBITMQ_PORT=5673` and `RABBITMQ_URL=amqp://glyphtex:glyphtex@localhost:5673` for RabbitMQ.

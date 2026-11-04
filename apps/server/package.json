@@ -1,0 +1,45 @@
+{
+	"name": "@glyphtex/server",
+	"private": true,
+	"version": "0.0.1",
+	"description": "GlyphTeX Teams server: accounts, project storage and sharing.",
+	"license": "AGPL-3.0-or-later",
+	"type": "module",
+	"engines": {
+		"node": ">=22.18"
+	},
+	"scripts": {
+		"dev": "wrangler dev",
+		"dev:node": "node --env-file-if-exists=.env --watch src/entry/node.ts",
+		"start": "node src/entry/node.ts",
+		"jobs": "node src/entry/node-jobs.ts",
+		"migrate": "node src/db/migrate.ts",
+		"db:generate": "drizzle-kit generate",
+		"deploy": "wrangler deploy",
+		"check": "tsc --noEmit",
+		"test": "node --test \"test/**/*.test.ts\""
+	},
+	"dependencies": {
+		"@hono/node-server": "^2.1.6",
+		"@hono/zod-validator": "^0.9.1",
+		"amqplib": "^2.2.1",
+		"aws4fetch": "^1.0.20",
+		"better-auth": "^1.7.15",
+		"drizzle-orm": "^0.45.4",
+		"fflate": "^0.8.3",
+		"hono": "^4.13.16",
+		"ioredis": "^6.0.0",
+		"nodemailer": "^10.3.1",
+		"postgres": "^4.0.0",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^5.20261103.1",
+		"@types/amqplib": "^0.10.8",
+		"@types/node": "^26.1.1",
+		"@types/nodemailer": "^8.0.2",
+		"drizzle-kit": "^0.31.11",
+		"typescript": "^6.0.3",
+		"wrangler": "^4.157.0"
+	}
+}

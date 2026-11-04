@@ -24,6 +24,9 @@ apps/
                   site + the same editor, compiling in-browser via our own Tectonic WASM engine
                   (crates/tectonic-wasm → packages/tex-engine). NO database, NO auth, NO server
                   user-state — local-first by design.
+  server/         Optional Teams server (AGPL-3.0): accounts (Better Auth), Postgres project
+                  storage, sharing and RBAC. Hono; runs on Workers and on Node/Bun in Docker.
+                  The web app above stays account-free; see apps/server/AGENTS.md.
 packages/
   ui/             @glyphtex/ui: baby-ui components (shadcn-svelte CLI, bits-ui underneath), the design
                   tokens (src/styles/registry.css + src/app.css), the shared rune stores (settings,
@@ -33,8 +36,8 @@ packages/
 Shared frontend: **Svelte 5.56**, **SvelteKit 2.63**, **Vite 8**, **Tailwind 4.3**,
 **@tabler/icons-svelte**, **shadcn-svelte**, **bits-ui**, **pdf.js** (preview). Key backend
 crates: **tauri 2.x**, **gix 0.70** (pure-Rust Git), plus the pinned **Tectonic 0.16.9** sidecar.
-Tests: **`cargo test`** (Rust logic) + **`svelte-check`** (types). There is no JS unit runner yet —
-don't invent imports for one.
+Tests: **`cargo test`** (Rust logic) + **`svelte-check`** (types) + **`node --test`** (web helpers,
+apps/server). No third-party JS test runner; don't invent imports for one.
 
 ### Commands (run from repo root unless noted)
 
@@ -57,6 +60,11 @@ pnpm tauri build                 # full bundle — ALWAYS test this, not just de
 # Web (apps/web/)
 pnpm dev | build | preview       # vite
 pnpm check                       # svelte-check
+
+# Server (apps/server/)
+pnpm dev | dev:node              # wrangler dev | node --watch
+pnpm check | test                # tsc | node --test (unit; GLYPHTEX_IT=1 adds integration)
+pnpm migrate | db:generate       # apply | generate Drizzle migrations
 ```
 
 CI lives in `.github/workflows/` (`ci-desktop.yml`, `release-desktop.yml`, `deploy-web.yml`,
