@@ -39,7 +39,8 @@ pnpm --filter @glyphtex/server dev:jobs     # emails and file cleanup
 
 Put `POSTGRES_PORT`, `REDIS_PORT`, `S3_PORT` and `MAILPIT_PORT` in `apps/server/.env`: compose reads them, so
 the containers and the API agree. Set `PUBLIC_GLYPHTEX_SERVER_URL=http://api.glyphtex.localhost` in
-`apps/web/.env` to show sign-in in the web app. Emails land in Mailpit.
+`apps/web/.env` to show sign-in in the web app. Emails land in Mailpit; set
+`REQUIRE_EMAIL_VERIFICATION=false` to sign up without opening the verification email.
 
 ## Configuration
 

@@ -18,7 +18,7 @@ export async function startIntegration() {
 		BETTER_AUTH_SECRET: "integration-secret-integration-secret-0123",
 		DATABASE_URL:
 			process.env.DATABASE_URL ?? "postgres://glyphtex:glyphtex@localhost:5433/glyphtex",
-		REDIS_URL: process.env.REDIS_URL ?? "redis://localhost:6380",
+		REDIS_URL: process.env.REDIS_URL ?? "redis://localhost:6380/15",
 		BLOB_DRIVER: "s3",
 		S3_ENDPOINT: process.env.S3_ENDPOINT ?? "http://localhost:9002",
 		S3_REGION: "us-east-1",

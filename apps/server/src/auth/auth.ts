@@ -66,12 +66,12 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 		},
 		emailAndPassword: {
 			enabled: true,
-			requireEmailVerification: true,
+			requireEmailVerification: config.requireEmailVerification,
 			minPasswordLength: 10,
 			sendResetPassword: async ({ user, url }) => sendMail(mails.resetPassword(user.email, url))
 		},
 		emailVerification: {
-			sendOnSignUp: true,
+			sendOnSignUp: config.requireEmailVerification,
 			autoSignInAfterVerification: true,
 			sendVerificationEmail: async ({ user, url }) => sendMail(mails.verifyEmail(user.email, url))
 		},
@@ -105,7 +105,7 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 				creatorRole: "owner",
 				invitationExpiresIn: config.limits.inviteTtlHours * 3600,
 				cancelPendingInvitationsOnReInvite: true,
-				requireEmailVerificationOnInvitation: true,
+				requireEmailVerificationOnInvitation: config.requireEmailVerification,
 				membershipLimit: async (_user, org) =>
 					(await orgs.policy(org.id)).seatLimit ?? Number.MAX_SAFE_INTEGER,
 				sendInvitationEmail: async ({ id, email, organization: org, inviter, role }) =>

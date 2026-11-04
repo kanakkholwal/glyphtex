@@ -21,6 +21,11 @@ const schema = z.object({
 	WEB_ORIGINS: list,
 	BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
 	COOKIE_DOMAIN: optional,
+	// Off only for local testing: accounts work without opening the verification email.
+	REQUIRE_EMAIL_VERIFICATION: z
+		.enum(["true", "false"])
+		.default("true")
+		.transform((v) => v === "true"),
 	CLIENT_IP_HEADER: z.string().default("x-forwarded-for"),
 
 	DATABASE_URL: optional,
@@ -75,6 +80,7 @@ export function parseConfig(env: Record<string, unknown>) {
 		webOrigins: [...new Set([new URL(e.APP_URL).origin, ...e.WEB_ORIGINS])],
 		authSecret: e.BETTER_AUTH_SECRET,
 		cookieDomain: e.COOKIE_DOMAIN,
+		requireEmailVerification: e.REQUIRE_EMAIL_VERIFICATION,
 		clientIpHeader: e.CLIENT_IP_HEADER.toLowerCase(),
 		databaseUrl: e.DATABASE_URL,
 		redisUrl: e.REDIS_URL,

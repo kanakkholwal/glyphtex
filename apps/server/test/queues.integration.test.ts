@@ -37,7 +37,7 @@ async function waitFor(check: () => boolean, ms = 15_000) {
 
 describe("redis queue", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () => {
 	test("delivers, retries a failure via the delayed set, then succeeds", async () => {
-		const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6380");
+		const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6380/14");
 		const blocking = redis.duplicate();
 		try {
 			const { sent, mailer } = recordingMailer(1);

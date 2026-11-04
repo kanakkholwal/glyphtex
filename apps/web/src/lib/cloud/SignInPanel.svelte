@@ -60,7 +60,7 @@
 		event.preventDefault();
 		void run(async () => {
 			if (mode === "signup") {
-				await unwrap(
+				const created = await unwrap(
 					authClient.signUp.email({
 						name: name.trim() || email,
 						email,
@@ -68,10 +68,14 @@
 						callbackURL: callbackURL()
 					})
 				);
-				sent = `We sent a verification link to ${email}. Open it to finish signing up.`;
-				return;
+				// No token means the server wants the address verified before the first sign-in.
+				if (!created.token) {
+					sent = `We sent a verification link to ${email}. Open it to finish signing up.`;
+					return;
+				}
+			} else {
+				await unwrap(authClient.signIn.email({ email, password, callbackURL: callbackURL() }));
 			}
-			await unwrap(authClient.signIn.email({ email, password, callbackURL: callbackURL() }));
 			await cloudSession.refresh();
 			onsignedin();
 		});

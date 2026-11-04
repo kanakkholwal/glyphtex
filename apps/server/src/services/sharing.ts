@@ -163,7 +163,8 @@ export function sharingService({ db, adapters, config }: Deps) {
 			const invite = await sharing.findInviteByHash(await hashToken(token));
 			if (!invite) throw errors.notFound("Invite");
 			if (invite.expiresAt < new Date()) throw errors.gone("This invite has expired.");
-			if (!user.emailVerified || user.email.toLowerCase() !== invite.email) {
+			const verified = user.emailVerified || !config.requireEmailVerification;
+			if (!verified || user.email.toLowerCase() !== invite.email) {
 				throw errors.forbidden(
 					`This invite was sent to ${invite.email}. Sign in with that address.`
 				);
