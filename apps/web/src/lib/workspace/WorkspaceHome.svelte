@@ -20,6 +20,8 @@
 	import { cloudEnabled, cloudHref } from "$lib/cloud/config";
 	import { cloudSession } from "$lib/cloud/session.svelte";
 	import { uploadLocalProject } from "$lib/cloud/upload";
+	import CreateOrgDialog from "$lib/cloud/CreateOrgDialog.svelte";
+	import { writeZip } from "$lib/storage/zip";
 	import { onboarding } from "$lib/workspace/onboarding.svelte";
 	import { cloneToProject } from "$lib/git";
 	import SettingsView from "$lib/settings/SettingsView.svelte";
@@ -88,7 +90,29 @@
 		cloud: { role: p.role }
 	});
 
-	const projects = $derived([...remote.map(toCloudCard), ...stored.map(toProjectCard)]);
+	// In an organization the home shows only its projects; browser documents belong to Personal.
+	const activeOrgId = $derived(cloudSession.activeOrgId);
+	const projects = $derived(
+		activeOrgId
+			? remote.map(toCloudCard)
+			: [...remote.map(toCloudCard), ...stored.map(toProjectCard)]
+	);
+
+	let createOrgOpen = $state(false);
+	const workspaces = $derived(
+		cloudEnabled && cloudSession.signedIn
+			? {
+					current: activeOrgId,
+					items: cloudSession.orgs.map((o) => ({ id: o.id, name: o.name })),
+					onswitch: (id: string | null) =>
+						void cloudSession
+							.switchTo(id)
+							.then(refreshRemote)
+							.catch((error: unknown) => report(error, "Could not switch workspace.")),
+					oncreate: () => (createOrgOpen = true)
+				}
+			: undefined
+	);
 
 	const account = $derived(
 		cloudEnabled
@@ -132,7 +156,9 @@
 			return;
 		}
 		try {
-			remote = await cloud.projects.list();
+			remote = cloudSession.activeOrgId
+				? await cloud.orgs.projects(cloudSession.activeOrgId)
+				: await cloud.projects.list();
 		} catch (error) {
 			// The server being down must never hide documents stored in this browser.
 			report(error, "Could not load your cloud projects.");
@@ -266,6 +292,25 @@
 	}
 
 	async function handleCreate(): Promise<string | void> {
+		const orgId = cloudSession.activeOrgId;
+		if (orgId) {
+			try {
+				const encoder = new TextEncoder();
+				const zip = await writeZip(
+					starterFiles().map((f) => ({
+						path: f.path,
+						data: f.data ?? encoder.encode(f.text ?? "")
+					}))
+				);
+				const created = await cloud.projects.import("Untitled", zip, orgId);
+				track("document_created", { source: "blank", location: "workspace" });
+				await refreshRemote();
+				return CLOUD + created.project.id;
+			} catch (error) {
+				report(error, "Could not create the project.");
+				return;
+			}
+		}
 		try {
 			const project = await createProject("Untitled", starterFiles());
 			track("document_created", { source: "blank", location: "workspace" });
@@ -488,6 +533,7 @@
 			onupload={cloudEnabled && cloudSession.signedIn ? upload : undefined}
 			{account}
 			{checklist}
+			{workspaces}
 		/>
 	</div>
 {/if}
@@ -529,6 +575,8 @@
 		</p>
 	</div>
 {/if}
+
+<CreateOrgDialog bind:open={createOrgOpen} oncreated={() => void refreshRemote()} />
 
 {#snippet settingsBody()}
 	<SettingsView />

@@ -43,6 +43,8 @@
 	import {
 		IconArrowsSort,
 		IconClock,
+		IconBuilding,
+		IconCheck,
 		IconCircle,
 		IconCircleCheckFilled,
 		IconDots,
@@ -118,6 +120,7 @@
 		checklist,
 		settingsHref,
 		page,
+		workspaces,
 		onnavigate = (href: string) => (window.location.href = href)
 	}: {
 		/** Drives the About dialog's platform line and the drop hint. */
@@ -169,6 +172,13 @@
 		settingsHref?: string;
 		/** Client-side navigation for menu and palette destinations (web: SvelteKit goto). */
 		onnavigate?: (href: string) => void;
+		/** Personal space plus the user's organizations; absent hides the switcher. */
+		workspaces?: {
+			current: string | null;
+			items: { id: string; name: string }[];
+			onswitch: (id: string | null) => void;
+			oncreate?: () => void;
+		};
 		/** Replaces the project views with a host page (Settings) inside the same shell. */
 		page?: { title: string; description: string; body: Snippet };
 		/** First-run checklist for the rail; the host owns each item's `done`. */
@@ -643,12 +653,53 @@
 	<Sidebar.Root variant="sidebar" collapsible="icon" class="border-transparent">
 		<Sidebar.Header class="gap-2 px-2 pt-3 pb-1">
 			<div class="flex h-9 items-center gap-1 group-data-[collapsible=icon]:justify-center">
-				<a
-					href={platform === 'web' ? '/' : '/workspace'}
-					class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
-				>
-					<Logo size={20} badge viewTransitionName="app-logo" class="text-sm font-semibold" />
-				</a>
+				{#if workspaces}
+					{@const current = workspaces.items.find((w) => w.id === workspaces.current)}
+					<DropdownMenu>
+						<DropdownMenuTrigger>
+							{#snippet child({ props })}
+								<button
+									{...props}
+									class="hover:bg-accent focus-visible:ring-ring data-[state=open]:bg-accent flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-left outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+								>
+									<span
+										class="bg-foreground text-background grid size-5 shrink-0 place-items-center rounded-md text-xs font-semibold"
+										aria-hidden="true">{(current?.name ?? 'Personal').slice(0, 1).toUpperCase()}</span
+									>
+									<span class="text-foreground min-w-0 flex-1 truncate text-sm font-medium"
+										>{current?.name ?? 'Personal'}</span
+									>
+									<IconSelector size={14} class="text-muted-foreground shrink-0" aria-hidden="true" />
+								</button>
+							{/snippet}
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="start" class="min-w-56">
+							<DropdownMenuItem onclick={() => workspaces.onswitch(null)}>
+								<IconUser /> Personal
+								{#if workspaces.current === null}<IconCheck class="ml-auto" />{/if}
+							</DropdownMenuItem>
+							{#each workspaces.items as w (w.id)}
+								<DropdownMenuItem onclick={() => workspaces.onswitch(w.id)}>
+									<IconBuilding /> <span class="truncate">{w.name}</span>
+									{#if workspaces.current === w.id}<IconCheck class="ml-auto" />{/if}
+								</DropdownMenuItem>
+							{/each}
+							{#if workspaces.oncreate}
+								<DropdownMenuSeparator />
+								<DropdownMenuItem onclick={() => workspaces.oncreate?.()}>
+									<IconPlus /> Create organization
+								</DropdownMenuItem>
+							{/if}
+						</DropdownMenuContent>
+					</DropdownMenu>
+				{:else}
+					<a
+						href={platform === 'web' ? '/' : '/workspace'}
+						class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+					>
+						<Logo size={20} badge viewTransitionName="app-logo" class="text-sm font-semibold" />
+					</a>
+				{/if}
 				<Sidebar.Trigger class="size-8 shrink-0" title="Toggle sidebar (Ctrl/⌘ B)" />
 			</div>
 			<button

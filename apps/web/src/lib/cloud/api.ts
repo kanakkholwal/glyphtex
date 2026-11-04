@@ -130,9 +130,9 @@ export const cloud = {
 			json<ImportResult>(
 				`/projects/import?name=${encodeURIComponent(name)}${orgId ? `&orgId=${encodeURIComponent(orgId)}` : ""}`,
 				{
-				method: "POST",
-				headers: { "content-type": "application/zip" },
-				body: new Blob([zip as BlobPart], { type: "application/zip" })
+					method: "POST",
+					headers: { "content-type": "application/zip" },
+					body: new Blob([zip as BlobPart], { type: "application/zip" })
 				}
 			),
 		get: async (id: string) => (await json<{ project: ProjectView }>(p(id))).project,
@@ -209,7 +209,8 @@ export const cloud = {
 			json<AuditPage>(
 				`${o(orgId)}/audit?limit=50${before ? `&before=${encodeURIComponent(before)}` : ""}`
 			),
-		auditCsv: async (orgId: string) => new Uint8Array(await (await call<Blob>(`${o(orgId)}/audit.csv`)).arrayBuffer())
+		// better-fetch hands text/* back as a string, not a Blob.
+		auditCsv: (orgId: string) => call<string>(`${o(orgId)}/audit.csv`)
 	},
 
 	account: {
