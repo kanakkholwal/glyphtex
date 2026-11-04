@@ -92,7 +92,8 @@ export const commandFrame = tv({
 					"[&_[cmdk-group-heading]]:px-4 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-items]]:px-1.5",
 				groupItems: "px-1.5",
 				item: [
-					"justify-between gap-3 rounded-lg px-2.5 py-2 text-muted-foreground",
+					// Icon and label stay together on the left; a CommandShortcut pushes itself right (ml-auto).
+					"justify-start gap-3 rounded-lg px-2.5 py-2 text-muted-foreground",
 					"transition-[color,scale] [transition-duration:var(--duration-instant),var(--duration-slow)] ease-[var(--ease-out-quart)] active:scale-[var(--press-scale-row)] motion-reduce:transition-none",
 					'data-[selected=""]:text-foreground data-[selected=true]:text-foreground'
 				],

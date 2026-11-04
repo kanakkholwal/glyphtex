@@ -85,9 +85,9 @@
 >
 	<Command variant="framed">
 		<CommandHeader>
-			<span class="text-foreground px-2 text-sm font-medium">Search</span>
+			<span class="text-foreground px-3 text-sm font-medium">Search</span>
 		</CommandHeader>
-		<CommandInput placeholder="Search projects, pages and actions…" hint="Esc" />
+		<CommandInput placeholder="Search projects, pages and actions…" />
 		<CommandList>
 			<CommandEmpty>Nothing matches.</CommandEmpty>
 			{#if recentFirst.length > 0}
@@ -141,10 +141,10 @@
 				{/each}
 			</CommandGroup>
 		</CommandList>
-		<CommandFooter>
+		<!-- Esc already shows in the dialog rim, so the footer only teaches moving and opening. -->
+		<CommandFooter class="flex items-center justify-start gap-4">
 			<CommandHint keys={['↑', '↓']}>Move</CommandHint>
 			<CommandHint keys={['↵']}>Open</CommandHint>
-			<CommandHint keys={['Esc']}>Close</CommandHint>
 		</CommandFooter>
 	</Command>
 </CommandDialog>
