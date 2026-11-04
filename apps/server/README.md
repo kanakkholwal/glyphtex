@@ -19,6 +19,10 @@ docker compose up -d                 # Postgres, Valkey, RustFS (S3), Mailpit, A
 
 ### Cloudflare Workers
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/kanakkholwal/glyphtex/tree/main/apps/server)
+
+The button provisions KV, R2, Queues and Hyperdrive and asks for the secrets in `.dev.vars.example`. To do it by hand:
+
 1. Create Hyperdrive (pointing at any Postgres: Neon, Supabase, PlanetScale, self-hosted), a KV namespace, an R2 bucket, and queues `glyphtex-jobs` + `glyphtex-jobs-dead`.
 2. Put their ids in `wrangler.jsonc`.
 3. Set secrets: `wrangler secret put BETTER_AUTH_SECRET` and `RESEND_API_KEY` (plus OAuth secrets).
