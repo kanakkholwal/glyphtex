@@ -1,6 +1,7 @@
 import { waitReady } from "../adapters/redis/index.ts";
 import { redisConsumer, startRabbitConsumer } from "../jobs/consumers.ts";
 import { orgRepository } from "../repositories/orgs.ts";
+import { onShutdown } from "./lifecycle.ts";
 import { buildNodeDeps } from "./node-deps.ts";
 
 const { deps, redis, close } = await buildNodeDeps();
@@ -8,13 +9,15 @@ const { logger } = deps;
 const jobDeps = { db: deps.db, blobs: deps.adapters.blobs, mailer: deps.adapters.mailer, logger };
 
 let running = true;
-const stopped = new Promise<void>((resolve) => {
-	const stop = () => {
-		running = false;
-		resolve();
-	};
-	process.on("SIGTERM", stop);
-	process.on("SIGINT", stop);
+let finished: () => void = () => {};
+const done = new Promise<void>((resolve) => (finished = resolve));
+let stop: () => void = () => {};
+const stopped = new Promise<void>((resolve) => (stop = resolve));
+onShutdown(async (reason) => {
+	logger.info("job worker stopping", { reason });
+	running = false;
+	stop();
+	await done;
 });
 
 logger.info("job worker started", { driver: deps.config.queueDriver ?? "redis" });
@@ -27,8 +30,7 @@ const prune = () =>
 		.catch((error) => logger.error("audit prune failed", { error }));
 void prune();
 const pruner = setInterval(prune, 6 * 3_600_000);
-process.on("SIGTERM", () => clearInterval(pruner));
-process.on("SIGINT", () => clearInterval(pruner));
+pruner.unref();
 
 if (deps.config.queueDriver === "rabbitmq") {
 	const closeRabbit = await startRabbitConsumer(deps.config.rabbitmqUrl as string, jobDeps, logger);
@@ -50,3 +52,4 @@ if (deps.config.queueDriver === "rabbitmq") {
 	blocking.disconnect();
 }
 await close();
+finished();
