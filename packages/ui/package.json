@@ -137,10 +137,6 @@
 			"svelte": "./src/lib/image.ts",
 			"default": "./src/lib/image.ts"
 		},
-		"./showcase-card": {
-			"svelte": "./src/components/ui/showcase-card/index.ts",
-			"default": "./src/components/ui/showcase-card/index.ts"
-		},
 		"./code-block": {
 			"svelte": "./src/components/ui/code-block/index.ts",
 			"default": "./src/components/ui/code-block/index.ts"

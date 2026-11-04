@@ -3,7 +3,10 @@
 		Command,
 		CommandDialog,
 		CommandEmpty,
+		CommandFooter,
 		CommandGroup,
+		CommandHeader,
+		CommandHint,
 		CommandInput,
 		CommandItem,
 		CommandList,
@@ -74,8 +77,16 @@
 	}
 </script>
 
-<CommandDialog bind:open label="Search GlyphTeX" description="Open a project, go somewhere or run an action">
-	<Command>
+<CommandDialog
+	bind:open
+	variant="framed"
+	label="Search GlyphTeX"
+	description="Open a project, go somewhere or run an action"
+>
+	<Command variant="framed">
+		<CommandHeader>
+			<span class="text-foreground px-2 text-sm font-medium">Search</span>
+		</CommandHeader>
 		<CommandInput placeholder="Search projects, pages and actions…" hint="Esc" />
 		<CommandList>
 			<CommandEmpty>Nothing matches.</CommandEmpty>
@@ -130,5 +141,10 @@
 				{/each}
 			</CommandGroup>
 		</CommandList>
+		<CommandFooter>
+			<CommandHint keys={['↑', '↓']}>Move</CommandHint>
+			<CommandHint keys={['↵']}>Open</CommandHint>
+			<CommandHint keys={['Esc']}>Close</CommandHint>
+		</CommandFooter>
 	</Command>
 </CommandDialog>

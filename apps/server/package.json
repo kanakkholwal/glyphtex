@@ -44,5 +44,33 @@
 	},
 	"exports": {
 		"./contract": "./src/contract.ts"
+	},
+	"cloudflare": {
+		"bindings": {
+			"HYPERDRIVE": {
+				"description": "Connection to your Postgres (Neon, Supabase, PlanetScale Postgres or self-hosted)."
+			},
+			"CACHE": {
+				"description": "KV namespace for short-lived cache entries."
+			},
+			"BLOBS": {
+				"description": "R2 bucket for images, PDFs and fonts inside projects."
+			},
+			"JOBS": {
+				"description": "Queue for emails and file cleanup. Failed jobs go to glyphtex-jobs-dead."
+			},
+			"BETTER_AUTH_SECRET": {
+				"description": "At least 32 random characters: openssl rand -base64 48"
+			},
+			"RESEND_API_KEY": {
+				"description": "Resend key for sign-in, verification and invite emails."
+			},
+			"PUBLIC_URL": {
+				"description": "Where this API is reachable, e.g. https://api.example.com"
+			},
+			"APP_URL": {
+				"description": "Where the GlyphTeX web app is, e.g. https://glyphtex.example.com"
+			}
+		}
 	}
 }

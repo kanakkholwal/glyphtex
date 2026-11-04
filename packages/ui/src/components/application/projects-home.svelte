@@ -843,7 +843,7 @@
 				{#if page}
 					<div class="mt-8">{@render page.body()}</div>
 				{:else if scope === 'templates'}
-					<section aria-labelledby="templates-label" class="mt-10 flex flex-col gap-4">
+					<section aria-labelledby="templates-label" class="mt-8 flex flex-col gap-3">
 						{@render sectionLabel('templates-label', 'Templates', templatesLoading ? null : templates.length)}
 						{#if templatesLoading}
 							<div

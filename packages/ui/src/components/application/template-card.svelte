@@ -8,16 +8,6 @@
 	import { IconFileText } from "@tabler/icons-svelte";
 	import type { Snippet } from "svelte";
 	import { TEMPLATE_CATEGORIES, type ProjectTemplate } from "../../lib/project-templates";
-	import {
-		ShowcaseCard,
-		ShowcaseCardAction,
-		ShowcaseCardCopy,
-		ShowcaseCardDescription,
-		ShowcaseCardFooter,
-		ShowcaseCardLink,
-		ShowcaseCardPreview,
-		ShowcaseCardTitle
-	} from "../ui/showcase-card";
 
 	let {
 		template: t,
@@ -32,35 +22,35 @@
 		href?: string;
 		/** Eager-load the image: only for cards in the first viewport. */
 		priority?: boolean;
-		/** The footer control, usually "Use"; it sits above the card link. */
+		/** The trailing control, usually "Use"; it sits above the card link. */
 		action?: Snippet;
 	} = $props();
 
 	const label = $derived(TEMPLATE_CATEGORIES.find((c) => c.id === t.category)?.label ?? t.category);
 	const landscape = $derived(preview ? preview.width > preview.height : false);
 	const licence = $derived(t.license.replace("Creative Commons ", ""));
+	const meta = $derived(
+		[label, t.origin === "overleaf" ? t.author : t.documentClass, licence].filter(Boolean).join(" · ")
+	);
 </script>
 
-<li class="min-w-0">
-	<ShowcaseCard variant="solid" class="h-full">
-		<ShowcaseCardPreview class="aspect-[4/3] bg-card">
-			<span
-				class="absolute top-3 left-3 z-10 rounded-md border border-border bg-background px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
-			>
-				{label}
-			</span>
+<li class="group relative flex min-w-0 flex-col gap-2.5">
+	<div class="bg-muted aspect-[4/3] rounded-xl p-1">
+		<div
+			class="border-border bg-background group-hover:border-border-strong relative h-full overflow-hidden rounded-lg border transition-[border-color] duration-(--duration-fast) ease-(--ease-out)"
+		>
 			{#if preview}
 				<!-- A sheet resting in the frame: portrait pages crop at the bottom, slides sit centred. -->
 				<div
 					class={[
 						"absolute inset-x-0 bottom-0 flex justify-center",
-						landscape ? "top-0 items-center" : "top-10 items-start"
+						landscape ? "top-0 items-center" : "top-5 items-start"
 					]}
 				>
 					<div
 						class={[
-							"overflow-hidden rounded-sm shadow-(--surface-shadow) ring-1 ring-border transition-transform duration-(--duration-base) ease-(--ease-out) group-hover/showcase:-translate-y-1 motion-reduce:transition-none",
-							landscape ? "w-[84%]" : "w-[64%]"
+							"overflow-hidden rounded-sm shadow-(--surface-shadow) ring-1 ring-border transition-transform duration-(--duration-base) ease-(--ease-out) group-hover:-translate-y-0.5 motion-reduce:transition-none",
+							landscape ? "w-[84%]" : "w-[62%]"
 						]}
 					>
 						<Image
@@ -75,24 +65,29 @@
 					</div>
 				</div>
 			{:else}
-				<div class="absolute inset-0 grid place-items-center text-muted-foreground">
+				<div class="text-muted-foreground absolute inset-0 grid place-items-center">
 					<IconFileText class="size-8" aria-hidden="true" />
 				</div>
 			{/if}
-		</ShowcaseCardPreview>
-		{#if href}
-			<ShowcaseCardLink {href} aria-label="{t.title}: template details" />
+		</div>
+	</div>
+	<div class="flex items-start gap-2 px-0.5">
+		<div class="min-w-0 flex-1">
+			<h3 class="text-foreground truncate text-sm font-medium">
+				{#if href}
+					<a
+						{href}
+						class="focus-visible:ring-ring rounded-sm outline-none after:absolute after:inset-0 focus-visible:ring-2"
+						aria-label="{t.title}: template details">{t.title}</a
+					>
+				{:else}
+					{t.title}
+				{/if}
+			</h3>
+			<p class="text-muted-foreground mt-0.5 truncate text-xs">{meta}</p>
+		</div>
+		{#if action}
+			<div class="relative z-10 shrink-0">{@render action()}</div>
 		{/if}
-		<ShowcaseCardFooter>
-			<ShowcaseCardCopy>
-				<ShowcaseCardTitle class="line-clamp-1">{t.title}</ShowcaseCardTitle>
-				<ShowcaseCardDescription class="line-clamp-1">
-					{t.origin === "overleaf" ? `by ${t.author} · ${licence}` : `${t.documentClass} · ${licence}`}
-				</ShowcaseCardDescription>
-			</ShowcaseCardCopy>
-			{#if action}
-				<ShowcaseCardAction>{@render action()}</ShowcaseCardAction>
-			{/if}
-		</ShowcaseCardFooter>
-	</ShowcaseCard>
+	</div>
 </li>
