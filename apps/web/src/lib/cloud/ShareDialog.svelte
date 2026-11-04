@@ -56,7 +56,9 @@
 
 	let { open = $bindable(), document }: Props = $props();
 
-	const canShare = $derived(document.capabilities?.includes("project:share") ?? false);
+	// Sharing acts on the linked server copy; only its owner manages access.
+	const rid = $derived(document.remoteId ?? "");
+	const canShare = $derived(document.role === "owner");
 	const me = $derived(cloudSession.user?.id);
 
 	let members = $state<MembersResponse | undefined>(undefined);
@@ -79,9 +81,9 @@
 		loading = true;
 		try {
 			const [m, i, l] = await Promise.all([
-				cloud.sharing.members(document.id),
-				canShare ? cloud.sharing.invites(document.id) : Promise.resolve([]),
-				canShare ? cloud.sharing.links(document.id) : Promise.resolve([])
+				cloud.sharing.members(rid),
+				canShare ? cloud.sharing.invites(rid) : Promise.resolve([]),
+				canShare ? cloud.sharing.links(rid) : Promise.resolve([])
 			]);
 			members = m;
 			invites = i;
@@ -120,7 +122,7 @@
 		if (!address) return;
 		void act(
 			async () => {
-				await cloud.sharing.invite(document.id, address, inviteRole);
+				await cloud.sharing.invite(rid, address, inviteRole);
 				onboarding.markShared();
 			},
 			"Could not send the invite.",
@@ -130,7 +132,7 @@
 
 	function createLink() {
 		void act(async () => {
-			const link = await cloud.sharing.createLink(document.id, linkRole);
+			const link = await cloud.sharing.createLink(rid, linkRole);
 			freshLink = link.url;
 			onboarding.markShared();
 		}, "Could not create a link.");
@@ -138,7 +140,7 @@
 
 	async function leave() {
 		if (!me) return;
-		await act(() => cloud.sharing.removeMember(document.id, me), "Could not leave the project.");
+		await act(() => cloud.sharing.removeMember(rid, me), "Could not leave the project.");
 		open = false;
 		void goto(resolve("/workspace"));
 	}
@@ -231,7 +233,7 @@
 												disabled={busy}
 												onchange={(r) =>
 													act(
-														() => cloud.sharing.setRole(document.id, m.userId, r),
+														() => cloud.sharing.setRole(rid, m.userId, r),
 														"Could not change the role."
 													)}
 											/>
@@ -254,7 +256,7 @@
 														destructive
 														onclick={() =>
 															act(
-																() => cloud.sharing.removeMember(document.id, m.userId),
+																() => cloud.sharing.removeMember(rid, m.userId),
 																"Could not remove them."
 															)}
 													>
@@ -289,7 +291,7 @@
 								aria-label={`Revoke invite for ${i.email}`}
 								disabled={busy}
 								onclick={() =>
-									act(() => cloud.sharing.revokeInvite(document.id, i.id), "Could not revoke it.")}
+									act(() => cloud.sharing.revokeInvite(rid, i.id), "Could not revoke it.")}
 							>
 								<IconTrash />
 							</Button>
@@ -332,7 +334,7 @@
 									aria-label="Revoke link"
 									disabled={busy}
 									onclick={() =>
-										act(() => cloud.sharing.revokeLink(document.id, l.id), "Could not revoke it.", "Link revoked.")}
+										act(() => cloud.sharing.revokeLink(rid, l.id), "Could not revoke it.", "Link revoked.")}
 								>
 									<IconTrash />
 								</Button>

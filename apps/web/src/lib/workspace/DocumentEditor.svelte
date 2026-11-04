@@ -52,9 +52,8 @@
 	type LoadStatus = "loading" | "ready" | "missing" | "error";
 
 	let project = $state<DocumentMeta | undefined>(undefined);
-	const readOnly = $derived(
-		store.kind === "cloud" && !project?.capabilities?.includes("project:write")
-	);
+	// Viewers and commenters of a shared project can read it here but never push edits back.
+	const readOnly = $derived(project?.role === "viewer" || project?.role === "commenter");
 	let initialFiles = $state<GlyphFile[] | undefined>(undefined);
 	let status = $state<LoadStatus>("loading");
 	let loadError = $state("");
@@ -165,7 +164,7 @@
 	// editor has to re-read rather than keep serving (and later re-saving) stale text.
 	onMount(() =>
 		onWorkingTreeChanged(async (changed) => {
-			if (store.kind !== "local" || changed !== id || !ctrl) return;
+			if (changed !== id || !ctrl) return;
 			try {
 				const loaded = await store.load(id);
 				if (!loaded) return;
@@ -513,9 +512,7 @@
 {#if status === 'missing'}
 	{@render notice(
 		'This document no longer exists',
-		store.kind === 'cloud'
-			? 'It may have been deleted, or you no longer have access to it.'
-			: 'It may have been deleted, or the browser cleared its storage.',
+		'It may have been deleted, or the browser cleared its storage.',
 		false
 	)}
 {:else if status === 'error'}
@@ -572,7 +569,7 @@
 					onpersist={persist}
 					onready={onReady}
 					compileFiles={ready ? runCompile : undefined}
-					statusNote={store.kind === 'cloud' ? 'Engine: on-device · Saved to server' : 'Engine: on-device'}
+					statusNote={project.remoteId ? 'Engine: on-device · Linked to server' : 'Engine: on-device'}
 					headerActions={actions && project ? headerActions : undefined}
 				/>
 			{/key}

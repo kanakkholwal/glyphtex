@@ -7,6 +7,6 @@
 
 <DocumentEditor id={page.params.id ?? ''} store={localStore}>
 	{#snippet actions(meta)}
-		<ShareButton document={meta} kind="local" />
+		<ShareButton document={meta} initiallyOpen={page.url.searchParams.get("share") === "1"} />
 	{/snippet}
 </DocumentEditor>

@@ -16,10 +16,11 @@
 	import type { Project } from "@glyphtex/ui/projects";
 
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
-	import { cloud, type ProjectSummary } from "$lib/cloud/api";
+	import { CloudError, cloud, type ProjectSummary } from "$lib/cloud/api";
 	import { cloudEnabled, cloudHref } from "$lib/cloud/config";
 	import { cloudSession } from "$lib/cloud/session.svelte";
-	import { uploadLocalProject } from "$lib/cloud/upload";
+	import { linkProject } from "$lib/sync/engine";
+	import { sync } from "$lib/sync/sync.svelte";
 	import CreateOrgDialog from "$lib/cloud/CreateOrgDialog.svelte";
 	import { writeZip } from "$lib/storage/zip";
 	import { onboarding } from "$lib/workspace/onboarding.svelte";
@@ -92,10 +93,20 @@
 
 	// In an organization the home shows only its projects; browser documents belong to Personal.
 	const activeOrgId = $derived(cloudSession.activeOrgId);
+	// Server projects already in this browser show as their browser copy, once.
+	const localByRemote = $derived(
+		new Map(stored.filter((p) => p.remote).map((p) => [p.remote?.id as string, p]))
+	);
 	const projects = $derived(
 		activeOrgId
-			? remote.map(toCloudCard)
-			: [...remote.map(toCloudCard), ...stored.map(toProjectCard)]
+			? remote.map((r) => {
+					const local = localByRemote.get(r.id);
+					return local ? toProjectCard(local) : toCloudCard(r);
+				})
+			: [
+					...remote.filter((r) => !localByRemote.has(r.id)).map(toCloudCard),
+					...stored.filter((p) => !p.remote?.orgId).map(toProjectCard)
+				]
 	);
 
 	let createOrgOpen = $state(false);
@@ -167,15 +178,17 @@
 
 	async function upload(id: string): Promise<void> {
 		try {
-			const created = await uploadLocalProject(id);
-			await refreshRemote();
-			toast.success("Saved to the cloud. This browser keeps its own copy too.", {
-				action: { label: "Open", onClick: () => void goto(cloudHref(created)) }
-			});
+			await linkProject(id, cloudSession.activeOrgId);
+			await Promise.all([refresh(), refreshRemote()]);
+			toast.success("Saved to the cloud. It stays in this browser and syncs from here.");
 		} catch (error) {
 			report(error, "Could not upload that document.");
 		}
 	}
+
+	const ignoreGone = (e: unknown) => {
+		if (!(e instanceof CloudError && e.status === 404)) throw e;
+	};
 
 	function report(error: unknown, fallback: string): void {
 		const message = error instanceof Error ? error.message : fallback;
@@ -197,7 +210,9 @@
 	}
 
 	onMount(async () => {
-		void refreshRemote();
+		void refreshRemote()
+			.then(() => sync.linkAll())
+			.then((n) => (n ? Promise.all([refresh(), refreshRemote()]) : undefined));
 		try {
 			await refresh();
 			// Arriving from the public gallery: create the project it asked for, then open it.
@@ -454,7 +469,14 @@
 			}
 			return;
 		}
+		const linked = stored.find((p) => p.id === id)?.remote;
 		try {
+			// A linked copy: owners delete the server copy too, everyone else leaves it.
+			if (linked && cloudSession.signedIn) {
+				const me = cloudSession.user?.id;
+				if (linked.role === "owner") await cloud.projects.remove(linked.id).catch(ignoreGone);
+				else if (me) await cloud.sharing.removeMember(linked.id, me).catch(ignoreGone);
+			}
 			await deleteProject(id);
 			track("document_deleted");
 			await refresh();

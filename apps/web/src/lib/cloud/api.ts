@@ -102,7 +102,13 @@ const json = <T>(path: string, init?: Init) => call<T>(path, init);
 const done = async (path: string, init?: Init) => {
 	await call<unknown>(path, init);
 };
-const bytes = async (path: string) => new Uint8Array(await (await call<Blob>(path)).arrayBuffer());
+/** better-fetch returns text/* bodies as strings; the server only stores valid UTF-8 text. */
+const bytes = async (path: string) => {
+	const body = await call<Blob | string>(path);
+	return typeof body === "string"
+		? new TextEncoder().encode(body)
+		: new Uint8Array(await body.arrayBuffer());
+};
 const p = (id: string) => `/projects/${encodeURIComponent(id)}`;
 const o = (id: string) => `/orgs/${encodeURIComponent(id)}`;
 const file = (id: string, path: string) => `${p(id)}/files/raw?path=${encodeURIComponent(path)}`;

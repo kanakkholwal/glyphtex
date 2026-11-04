@@ -33,6 +33,8 @@
 	import { appUrl, authClient, unwrap } from "$lib/cloud/auth";
 	import { cloudEnabled } from "$lib/cloud/config";
 	import { cloudSession } from "$lib/cloud/session.svelte";
+	import { sync, type SyncMode } from "$lib/sync/sync.svelte";
+	import { ToggleGroup, ToggleGroupItem } from "@glyphtex/ui/toggle-group";
 	import SettingsSection from "./SettingsSection.svelte";
 
 	let exporting = $state(false);
@@ -125,6 +127,32 @@
 				<Button variant="outline" size="sm" onclick={() => cloudSession.signOut()}>
 					<IconLogout /> Sign out
 				</Button>
+			</div>
+		</SettingsSection>
+
+		<SettingsSection
+			title="Sync"
+			description="Documents always live in this browser first. Sync decides when copies go to the server."
+		>
+			<div class="border-border bg-card flex flex-wrap items-center gap-4 rounded-xl border p-4">
+				<div class="min-w-0 flex-1">
+					<p class="text-foreground text-sm font-medium">
+						{sync.mode === "automatic" ? "Automatic" : "Manual"}
+					</p>
+					<p class="text-muted-foreground text-sm">
+						{sync.mode === "automatic"
+							? "Every document is saved to the server and edits sync a moment after you type."
+							: "Nothing leaves this browser until you choose Save to cloud or Sync on a document."}
+					</p>
+				</div>
+				<ToggleGroup
+					type="single"
+					label="Sync mode"
+					bind:value={() => sync.mode, (v) => v && (sync.mode = v as SyncMode)}
+				>
+					<ToggleGroupItem value="manual">Manual</ToggleGroupItem>
+					<ToggleGroupItem value="automatic">Automatic</ToggleGroupItem>
+				</ToggleGroup>
 			</div>
 		</SettingsSection>
 

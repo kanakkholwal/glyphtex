@@ -14,7 +14,10 @@ export function toProjectCard(p: StoredProject): Project {
 		files: p.paths.map((path) => ({ id: path, name: path, content: "" })),
 		createdAt: p.createdAt,
 		updatedAt: p.updatedAt,
-		starred: p.starred
+		starred: p.starred,
+		...(p.remote && {
+			cloud: { role: p.remote.role as "owner" | "editor" | "commenter" | "viewer" }
+		})
 	};
 }
 
