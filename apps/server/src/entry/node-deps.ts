@@ -14,7 +14,7 @@ import { createLogger } from "../lib/logger.ts";
 export async function buildNodeDeps(env: Record<string, unknown> = process.env) {
 	const config = parseConfig(env);
 	const logger = createLogger({ runtime: "node" });
-	const redis = connectRedis(required(config.redisUrl, "REDIS_URL"));
+	const redis = await connectRedis(required(config.redisUrl, "REDIS_URL"));
 	const { db, close: closeDb } = connectDb(required(config.databaseUrl, "DATABASE_URL"));
 	const closers: (() => Promise<unknown>)[] = [closeDb, () => redis.quit()];
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createApp } from "../src/app.ts";
-import { PROJECT_GUARD } from "../src/middleware/index.ts";
+import { PROJECT_GUARD, session } from "../src/middleware/index.ts";
 
 const app = createApp(() => {
 	throw new Error("routes test never handles a request");
@@ -21,9 +21,17 @@ test("every project-scoped route runs a project guard", () => {
 	assert.deepEqual(missing, [], `routes without requireProject(): ${missing.join(", ")}`);
 });
 
-test("only health and auth endpoints skip the session gate", () => {
-	const publicPaths = app.routes
-		.filter((r) => r.method !== "ALL" && !r.path.startsWith("/api/"))
+test("only health, auth and public config skip the session gate", () => {
+	const gate = app.routes.findIndex((r) => r.handler === session);
+	assert.ok(gate > 0, "session middleware is mounted");
+	const before = app.routes
+		.slice(0, gate)
+		.filter((r) => r.method !== "ALL")
 		.map((r) => r.path);
-	assert.deepEqual([...new Set(publicPaths)].sort(), ["/healthz", "/readyz"]);
+	assert.deepEqual([...new Set(before)].sort(), [
+		"/api/auth/*",
+		"/api/public/config",
+		"/healthz",
+		"/readyz"
+	]);
 });

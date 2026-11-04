@@ -5,6 +5,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { strToU8, unzipSync, zipSync } from "fflate";
 import { createApp } from "../src/app.ts";
 import { buildNodeDeps } from "../src/entry/node-deps.ts";
+import { waitReady } from "../src/adapters/redis/index.ts";
 import { redisConsumer } from "../src/jobs/consumers.ts";
 
 const enabled = process.env.GLYPHTEX_IT === "1";
@@ -41,6 +42,7 @@ describe("API end to end", { skip: enabled ? false : "set GLYPHTEX_IT=1" }, () =
 		});
 		app = createApp(() => ({ deps: built.deps }));
 		blocking = built.redis.duplicate();
+		await waitReady(blocking);
 		consumer = redisConsumer(built.redis, blocking, {
 			db: built.deps.db,
 			blobs: built.deps.adapters.blobs,

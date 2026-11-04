@@ -5,6 +5,7 @@ import { accountController } from "./controllers/account.ts";
 import { filesController } from "./controllers/files.ts";
 import { healthController } from "./controllers/health.ts";
 import { projectsController } from "./controllers/projects.ts";
+import { publicController } from "./controllers/public.ts";
 import { projectSharingController, redeemController } from "./controllers/sharing.ts";
 import type { AppEnv, Deps } from "./context.ts";
 import { errors } from "./lib/errors.ts";
@@ -42,7 +43,9 @@ export function createApp(
 	);
 
 	app.route("/", healthController);
+	// Registered before the session gate below, so these answer without one.
 	app.on(["GET", "POST"], "/api/auth/*", (c) => c.var.deps.auth.handler(c.req.raw));
+	app.route("/api/public", publicController);
 
 	app.use("/api/*", session, requireUser, rateLimit("api"));
 	app.route("/api/me", accountController);

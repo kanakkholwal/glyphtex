@@ -34,8 +34,14 @@ function requiredVersion(c: Context<AppEnv>) {
 }
 
 export const filesController = new Hono<AppEnv>()
-	.get("/:projectId/files", requireProject("project:read"), async (c) =>
-		c.json({ files: await fileService(c.var.deps).list(c.var.access) })
+	.get(
+		"/:projectId/files",
+		requireProject("project:read"),
+		validate("query", z.object({ content: z.enum(["text"]).optional() })),
+		async (c) => {
+			const withText = c.req.valid("query").content === "text";
+			return c.json({ files: await fileService(c.var.deps).list(c.var.access, withText) });
+		}
 	)
 	.get(
 		"/:projectId/files/raw",

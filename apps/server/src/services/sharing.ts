@@ -32,6 +32,7 @@ export function sharingService({ db, adapters, config }: Deps) {
 			});
 			return {
 				owner: owner && {
+					role: "owner" as const,
 					userId: owner.id,
 					name: owner.name,
 					email: owner.email,

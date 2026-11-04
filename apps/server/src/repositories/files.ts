@@ -28,6 +28,15 @@ export function fileRepository(db: Db | Tx) {
 				.orderBy(asc(projectFile.path));
 		},
 
+		/** Metadata plus inline text, so a client opens a project in one round trip. */
+		listWithText(projectId: string) {
+			return db
+				.select({ ...META, content: projectFile.content })
+				.from(projectFile)
+				.where(eq(projectFile.projectId, projectId))
+				.orderBy(asc(projectFile.path));
+		},
+
 		listFull(projectId: string) {
 			return db.select().from(projectFile).where(eq(projectFile.projectId, projectId));
 		},

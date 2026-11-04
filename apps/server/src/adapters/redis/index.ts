@@ -7,8 +7,26 @@ export const JOBS_KEY = "glyphtex:jobs";
 export const DELAYED_KEY = "glyphtex:jobs:delayed";
 export const DEAD_KEY = "glyphtex:jobs:dead";
 
-export function connectRedis(url: string) {
-	return new Redis(url, { maxRetriesPerRequest: 2, enableOfflineQueue: false, lazyConnect: false });
+/** Resolves once connected: with the offline queue off, a command sent earlier fails outright. */
+export async function connectRedis(url: string, timeoutMs = 10_000) {
+	const redis = new Redis(url, { maxRetriesPerRequest: 2, enableOfflineQueue: false });
+	await waitReady(redis, timeoutMs);
+	return redis;
+}
+
+export function waitReady(redis: Redis, timeoutMs = 10_000) {
+	if (redis.status === "ready") return Promise.resolve();
+	return new Promise<void>((resolve, reject) => {
+		const timer = setTimeout(() => {
+			redis.off("ready", onReady);
+			reject(new Error(`Redis not ready after ${timeoutMs}ms (${redis.status})`));
+		}, timeoutMs);
+		const onReady = () => {
+			clearTimeout(timer);
+			resolve();
+		};
+		redis.once("ready", onReady);
+	});
 }
 
 export function redisCache(redis: Redis): Cache {

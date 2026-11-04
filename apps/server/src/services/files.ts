@@ -95,7 +95,8 @@ export function fileService(deps: Deps) {
 	return {
 		store,
 
-		list: ({ project }: ProjectAccess) => files.list(project.id),
+		list: ({ project }: ProjectAccess, withText = false) =>
+			withText ? files.listWithText(project.id) : files.list(project.id),
 
 		async read({ project }: ProjectAccess, rawPath: string) {
 			const file = await files.get(project.id, normalizePath(rawPath));

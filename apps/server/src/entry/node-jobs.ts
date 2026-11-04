@@ -1,3 +1,4 @@
+import { waitReady } from "../adapters/redis/index.ts";
 import { redisConsumer, startRabbitConsumer } from "../jobs/consumers.ts";
 import { buildNodeDeps } from "./node-deps.ts";
 
@@ -23,6 +24,7 @@ if (deps.config.queueDriver === "rabbitmq") {
 	await closeRabbit();
 } else {
 	const blocking = redis.duplicate();
+	await waitReady(blocking);
 	const consumer = redisConsumer(redis, blocking, jobDeps);
 	await consumer.recover();
 	const promoter = setInterval(
