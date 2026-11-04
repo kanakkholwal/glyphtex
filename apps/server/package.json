@@ -10,7 +10,7 @@
 	},
 	"scripts": {
 		"dev": "wrangler dev",
-		"dev:node": "node --env-file-if-exists=.env --watch src/entry/node.ts",
+		"dev:node": "node scripts/dev.mjs",
 		"start": "node src/entry/node.ts",
 		"jobs": "node src/entry/node-jobs.ts",
 		"migrate": "node --env-file-if-exists=.env src/db/migrate.ts",
@@ -19,7 +19,7 @@
 		"check": "tsc --noEmit",
 		"test": "node --test \"test/**/*.test.ts\"",
 		"services": "docker compose -p glyphtex-it up -d postgres redis s3 s3-init mailpit",
-		"dev:jobs": "node --env-file-if-exists=.env --watch src/entry/node-jobs.ts"
+		"dev:jobs": "node scripts/dev.mjs src/entry/node-jobs.ts"
 	},
 	"dependencies": {
 		"@hono/node-server": "^2.1.6",

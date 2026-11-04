@@ -33,7 +33,7 @@ The button provisions KV, R2, Queues and Hyperdrive and asks for the secrets in 
 ```bash
 pnpm --filter @glyphtex/server services     # Postgres, Valkey, S3, Mailpit (ports from .env)
 pnpm --filter @glyphtex/server migrate      # once, and after pulling new migrations
-pnpm --filter @glyphtex/server dev:node     # API at http://localhost:8787
+pnpm --filter @glyphtex/server dev:node     # API at http://localhost:8787 (add -- --force to free the port from any process)
 pnpm --filter @glyphtex/server dev:jobs     # emails and file cleanup
 ```
 
