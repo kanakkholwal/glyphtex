@@ -21,7 +21,9 @@ export type WorkerRequest =
 	 */
 	| { id: number; type: "compile"; files: CompileFile[]; entry: string; docId: string }
 	/** Download the named packs and load them into the running engine. */
-	| { id: number; type: "installPacks"; packIds: string[] };
+	| { id: number; type: "installPacks"; packIds: string[] }
+	/** Drop the running engine and boot the deployed one, fetching whatever is newer. */
+	| { id: number; type: "update" };
 
 /**
  * A request before the client stamps it with an id.

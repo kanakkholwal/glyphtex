@@ -67,11 +67,13 @@ async function fetchCached(
 		throw new Error(`Could not download ${name} (${response.status} ${response.statusText}).`);
 	}
 
-	// Under `Content-Encoding` the reader yields decoded bytes while both `total`
-	// and Content-Length describe the encoded size; 0 means unknowable, not zero.
+	// The manifest's size is the file's decoded size and the reader yields decoded bytes, so
+	// it stays exact when the server compresses in transit. Content-Length only describes
+	// the encoded body then, so it is a fallback for a missing manifest size, never a guess.
 	const encoded = response.headers.get("content-encoding");
 	const declared = Number(response.headers.get("content-length"));
-	const expected = encoded ? 0 : Number.isFinite(declared) && declared > 0 ? declared : total;
+	const expected =
+		total > 0 ? total : encoded ? 0 : Number.isFinite(declared) && declared > 0 ? declared : 0;
 
 	// Read incrementally so the dialog can show progress on a large download.
 	const body = response.body;
@@ -135,7 +137,25 @@ function boot(report: Report): Promise<TexEngine> {
 
 		const wasmBytes = manifest.files["tectonic_wasm.wasm"].bytes;
 		const bundleBytes = manifest.files["tectonic-bundle.tar.gz"].bytes;
-		const total = wasmBytes + bundleBytes;
+
+		// Packs are part of the same download, so the bar counts their bytes too: the ones
+		// this engine loads that are not cached yet.
+		packIndex = await loadPackIndex().catch(() => null);
+		const cachedPacks = new Set(
+			(packIndex ? await installedPacks(packIndex) : []).map((p) => p.id)
+		);
+		const wanted = packIndex
+			? [
+					...new Set([
+						...defaultPacks(packIndex),
+						...packIndex.packs.filter((p) => cachedPacks.has(p.id))
+					])
+				]
+			: [];
+		const packBytes = wanted
+			.filter((p) => !cachedPacks.has(p.id))
+			.reduce((sum, p) => sum + p.bytes, 0);
+		const total = wasmBytes + bundleBytes + packBytes;
 
 		// One running count across both files, so the bar never resets between
 		// them; either one being transport-compressed makes the whole thing 0.
@@ -175,15 +195,14 @@ function boot(report: Report): Promise<TexEngine> {
 
 		// The engine filesystem is in-memory, so a rebuilt engine starts at core
 		// only; re-fetching defaults here also reaches pre-packs installs.
-		packIndex = await loadPackIndex().catch(() => null);
 		if (packIndex) {
-			const installed = await installedPacks(packIndex);
-			const have = new Set(installed.map((p) => p.id));
-			const wanted = [...defaultPacks(packIndex), ...packIndex.packs.filter((p) => have.has(p.id))];
-
-			for (const pack of new Set(wanted)) {
+			for (const pack of wanted) {
+				const downloaded = read;
 				try {
-					trackBundle(started, untar(await gunzip(await fetchPack(packIndex, pack.id))));
+					const bytes = await fetchPack(packIndex, pack.id, (n) =>
+						report((read = downloaded + n), settled, `Adding ${pack.label}…`)
+					);
+					trackBundle(started, untar(await gunzip(bytes)));
 				} catch (error) {
 					// One unreachable pack must not take down a working compiler; the
 					// document fails as if it were absent, which the prompt then fixes.
@@ -290,6 +309,16 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
 					// Transfer, not copy: the PDF is megabytes and nothing here rereads it.
 					output ? [output.buffer as ArrayBuffer] : []
 				);
+				break;
+			}
+
+			case "update": {
+				// The running engine holds the old bundle in memory; only a rebuild replaces it.
+				discardEngine();
+				await boot((loaded, total, label) =>
+					post({ id: request.id, type: "progress", loaded, total, label })
+				);
+				post({ id: request.id, type: "installed" });
 				break;
 			}
 

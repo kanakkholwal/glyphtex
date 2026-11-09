@@ -7,32 +7,30 @@
 		DialogDescription
 	} from "@glyphtex/ui/dialog";
 	import { Button } from "@glyphtex/ui/button";
-	import { IconCpu, IconLoader2, IconAlertTriangle, IconWifiOff } from "@tabler/icons-svelte";
+	import { IconCpu, IconAlertTriangle, IconWifiOff } from "@tabler/icons-svelte";
 	import { installEngine, type InstallProgress } from "$lib/compile";
+	import EngineProgress from "./EngineProgress.svelte";
 
-	let { open = $bindable(false), ondone }: { open?: boolean; ondone?: () => void } = $props();
+	let {
+		open = $bindable(false),
+		ondone,
+		update = false,
+		sizeBytes
+	}: {
+		open?: boolean;
+		ondone?: () => void;
+		/** An older compiler is installed: say update, not first-time setup. */
+		update?: boolean;
+		/** Exact download size when known, from the manifest and pack index. */
+		sizeBytes?: number;
+	} = $props();
 
 	let installing = $state(false);
 	let progress = $state<InstallProgress | undefined>(undefined);
 	let error = $state<string | undefined>(undefined);
 
-	// total 0 means the server compressed in transit, so no percentage is knowable.
-	const measurable = $derived(!!progress && progress.total > 0);
-	const pct = $derived(
-		progress && measurable ? Math.min(100, Math.round((progress.loaded / progress.total) * 100)) : 0
-	);
-
-	const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
-
-	/** Rough download size for the pre-install copy; the real one is the engine's. */
-	const totalMB = $derived(measurable && progress ? Math.round(progress.total / 1048576) : 12);
-
-	const sizeLabel = $derived.by(() => {
-		if (!progress || progress.loaded === 0) return "";
-		return measurable
-			? `${mb(progress.loaded)} of ${mb(progress.total)} MB`
-			: `${mb(progress.loaded)} MB`;
-	});
+	/** Exact when the caller knows it, otherwise a rough figure for the pre-install copy. */
+	const totalMB = $derived(Math.round((sizeBytes ?? 0) / 1048576) || 12);
 
 	async function start() {
 		installing = true;
@@ -67,10 +65,17 @@
 			>
 				<IconCpu size={20} />
 			</span>
-			<DialogTitle class="text-base">Set up the LaTeX compiler</DialogTitle>
+			<DialogTitle class="text-base">
+				{update ? "Update the LaTeX compiler" : "Set up the LaTeX compiler"}
+			</DialogTitle>
 			<DialogDescription class="text-md">
-				GlyphTeX compiles LaTeX right in your browser with the same engine as the desktop app. It
-				downloads once (about {totalMB} MB) and stays cached on this device.
+				{#if update}
+					A newer compiler is available (about {totalMB} MB). It replaces the cached one; your
+					documents are not touched.
+				{:else}
+					GlyphTeX compiles LaTeX right in your browser with the same engine as the desktop app. It
+					downloads once (about {totalMB} MB) and stays cached on this device.
+				{/if}
 			</DialogDescription>
 		</DialogHeader>
 
@@ -83,39 +88,7 @@
 		</div>
 
 		{#if installing}
-			<div class="flex flex-col gap-2">
-				<div class="text-xs flex items-center gap-2">
-					<IconLoader2 size={14} class="text-muted-foreground animate-spin" aria-hidden="true" />
-					<span class="text-foreground min-w-0 flex-1 truncate font-medium">
-						{progress?.label ?? 'Preparing…'}
-					</span>
-					<span class="text-muted-foreground shrink-0 tabular-nums">
-						{#if measurable}{pct}%{/if}
-					</span>
-				</div>
-				<div
-					class="bg-muted h-2 overflow-hidden rounded-full"
-					role="progressbar"
-					aria-label="Compiler download"
-					aria-valuemin={0}
-					aria-valuemax={100}
-					aria-valuenow={measurable ? pct : undefined}
-					aria-valuetext={measurable ? `${pct}%, ${sizeLabel}` : sizeLabel || 'Preparing'}
-				>
-					{#if measurable}
-						<div
-							class="bg-primary h-full rounded-full transition-[width] duration-(--duration-base)"
-							style:width="{pct}%"
-						></div>
-					{:else}
-						<!-- Size unknown: a travelling sliver reads as working, not a stalled 0%. -->
-						<div class="bg-primary engine-progress-indeterminate h-full w-1/3 rounded-full"></div>
-					{/if}
-				</div>
-				{#if sizeLabel}
-					<p class="text-muted-foreground text-xs tabular-nums">{sizeLabel}</p>
-				{/if}
-			</div>
+			<EngineProgress {progress} label="Compiler download" />
 		{/if}
 
 		{#if error}
@@ -137,30 +110,8 @@
 			{:else if error}
 				Try again
 			{:else}
-				Download and install
+				{update ? "Download and update" : "Download and install"}
 			{/if}
 		</Button>
 	</DialogContent>
 </Dialog>
-
-<style>
-	.engine-progress-indeterminate {
-		animation: engine-progress-slide 1.4s ease-in-out infinite;
-	}
-
-	@keyframes engine-progress-slide {
-		0% {
-			transform: translateX(-100%);
-		}
-		100% {
-			transform: translateX(300%);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.engine-progress-indeterminate {
-			animation: none;
-			width: 50%;
-		}
-	}
-</style>

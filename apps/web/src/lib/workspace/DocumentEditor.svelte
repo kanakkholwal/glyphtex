@@ -22,6 +22,9 @@
 	import { withOrgLibrary } from "$lib/cloud/library";
 	import { compileFiles, engineReady, installPacks, warmEngine } from "$lib/compile";
 	import EngineInstallDialog from "$lib/EngineInstallDialog.svelte";
+	import EngineUpdateDialog from "$lib/EngineUpdateDialog.svelte";
+	import { engineUpdates } from "$lib/tex/update.svelte";
+	import { checkEngineUpdate } from "$lib/tex/update";
 	import MainFileDialog from "$lib/MainFileDialog.svelte";
 	import EngineNotices from "$lib/EngineNotices.svelte";
 	import { onWorkingTreeChanged } from "$lib/git";
@@ -69,6 +72,8 @@
 
 	let ready = $state(false);
 	let showInstall = $state(false);
+	let installUpdate = $state(false);
+	let installBytes = $state<number | undefined>(undefined);
 	let dragging = $state(false);
 	let fileInput = $state<HTMLInputElement>();
 	let zipInput = $state<HTMLInputElement>();
@@ -129,10 +134,17 @@
 		try {
 			const installed = await engineReady();
 			ready = installed;
-			if (installed) warmEngine();
-			else {
+			if (installed) {
+				warmEngine();
+				// Checks once per page load, then hourly, for a newer compiler or pack.
+				engineUpdates.start();
+			} else {
+				// An older compiler on this device makes it an update, not a first install.
+				const plan = await checkEngineUpdate().catch(() => null);
+				installUpdate = plan !== null;
+				installBytes = plan?.totalBytes;
 				showInstall = true;
-				track("engine_install_prompted", { reason: "not_installed" });
+				track("engine_install_prompted", { reason: plan ? "update" : "not_installed" });
 			}
 		} catch {
 			// Fail open: failing closed strands the user with no dialog and no compiler.
@@ -628,7 +640,13 @@
 		}}
 	/>
 
-	<EngineInstallDialog bind:open={showInstall} ondone={onInstalled} />
+	<EngineInstallDialog
+		bind:open={showInstall}
+		ondone={onInstalled}
+		update={installUpdate}
+		sizeBytes={installBytes}
+	/>
+	<EngineUpdateDialog />
 
 	<MainFileDialog
 		bind:open={

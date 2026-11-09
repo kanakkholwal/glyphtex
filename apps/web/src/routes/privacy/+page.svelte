@@ -86,6 +86,11 @@
 			data: "How many package sets, and whether it succeeded."
 		},
 		{
+			name: "engine_update_applied / engine_update_postponed",
+			when: "A newer LaTeX compiler is offered and you update or choose Later.",
+			data: "Nothing beyond the fact that it happened."
+		},
+		{
 			name: "app_update_applied",
 			when: "You apply a pending update to the editor.",
 			data: "Nothing beyond the fact that it happened."

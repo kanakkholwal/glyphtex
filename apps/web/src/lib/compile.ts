@@ -110,6 +110,17 @@ export async function installEngine(onProgress?: (p: InstallProgress) => void): 
 }
 
 /**
+ * Replace the running compiler with the deployed one, downloading whatever changed.
+ * Documents are untouched; only cached compiler files are replaced.
+ */
+export async function updateEngine(onProgress?: (p: InstallProgress) => void): Promise<void> {
+	if (typeof window === "undefined") throw new Error("Updates run in the browser.");
+	await send({ type: "update" }, onProgress);
+	// A new engine can typeset differently, so no cached result is valid.
+	compileCache.clear();
+}
+
+/**
  * Boot the engine ahead of the first compile. Safe to call repeatedly.
  * Errors are swallowed; a real compile surfaces them properly.
  */

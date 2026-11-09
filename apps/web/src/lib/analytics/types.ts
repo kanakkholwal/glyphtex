@@ -37,6 +37,8 @@ export type WorkspaceEvent =
 	| "engine_install_prompted"
 	| "engine_installed"
 	| "engine_packs_installed"
+	| "engine_update_applied"
+	| "engine_update_postponed"
 	| "compile_finished"
 	| "app_update_applied"
 	| "main_file_chosen"

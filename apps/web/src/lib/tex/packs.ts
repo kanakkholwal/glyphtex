@@ -47,8 +47,40 @@ export async function installedPacks(index: PackIndex): Promise<InstalledPack[]>
 	return found.filter((p): p is InstalledPack => p !== null);
 }
 
-/** Returns the bytes so a caller can load them without a second fetch. */
-export async function fetchPack(index: PackIndex, id: string): Promise<Uint8Array> {
+/** Reads a body while reporting bytes so far; the result is the same as `arrayBuffer()`. */
+async function readBody(
+	response: Response,
+	onBytes?: (loaded: number) => void
+): Promise<Uint8Array<ArrayBuffer>> {
+	if (!onBytes || !response.body) return new Uint8Array(await response.arrayBuffer());
+	const reader = response.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let loaded = 0;
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		chunks.push(value);
+		loaded += value.byteLength;
+		onBytes(loaded);
+	}
+	const bytes = new Uint8Array(loaded);
+	let at = 0;
+	for (const chunk of chunks) {
+		bytes.set(chunk, at);
+		at += chunk.byteLength;
+	}
+	return bytes;
+}
+
+/**
+ * Returns the bytes so a caller can load them without a second fetch.
+ * `onBytes` fires only for a real download, never for a cached pack.
+ */
+export async function fetchPack(
+	index: PackIndex,
+	id: string,
+	onBytes?: (loaded: number) => void
+): Promise<Uint8Array> {
 	const pack = index.packs.find((p) => p.id === id);
 	if (!pack) throw new Error(`Unknown package set "${id}".`);
 
@@ -73,7 +105,7 @@ export async function fetchPack(index: PackIndex, id: string): Promise<Uint8Arra
 		);
 	}
 
-	const bytes = new Uint8Array(await response.arrayBuffer());
+	const bytes = await readBody(response, onBytes);
 	// Best-effort: a quota rejection must not discard a download that worked.
 	await cache?.put(key, new Response(bytes)).catch(() => {});
 	return bytes;
