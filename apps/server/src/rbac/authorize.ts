@@ -21,5 +21,9 @@ export async function authorizeProject(
 	const found = await projects.findWithRole(projectId, userId);
 	if (!found?.role) throw errors.notFound("Project");
 	if (!can(found.role, permission)) throw errors.forbidden();
+	const orgId = found.project.organizationId;
+	if (found.gate && orgId && (await projects.blockedByTwoFactor(orgId, userId))) {
+		throw errors.twoFactorRequired();
+	}
 	return { project: found.project, role: found.role };
 }

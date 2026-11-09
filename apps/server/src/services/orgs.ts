@@ -8,6 +8,7 @@ import {
 	orgCapabilities,
 	resolveFeatures
 } from "../rbac/org.ts";
+import { twoFactorSatisfied } from "../repositories/mfa.ts";
 import { orgRepository } from "../repositories/orgs.ts";
 import { projectRepository } from "../repositories/projects.ts";
 
@@ -26,6 +27,10 @@ export async function authorizeOrg(
 	const role = await orgRepository(deps.db).membership(orgId, userId);
 	if (!role) throw errors.notFound("Organization");
 	if (!canOrg(role, permission)) throw errors.forbidden();
+	const { requireTwoFactor } = await orgRepository(deps.db).policy(orgId);
+	if (requireTwoFactor && !(await twoFactorSatisfied(deps.db, orgId, userId))) {
+		throw errors.twoFactorRequired();
+	}
 	return { orgId, role };
 }
 
@@ -57,6 +62,10 @@ export function orgService(deps: Deps) {
 
 		async updatePolicy({ orgId }: OrgAccess, actorId: string, patch: Partial<Policy>) {
 			const before = await orgs.policy(orgId);
+			if (patch.requireTwoFactor && !(await twoFactorSatisfied(deps.db, orgId, actorId))) {
+				// Otherwise the admin enabling it would lock themselves out of the org.
+				throw errors.conflict("Turn on two-factor authentication for your own account first.");
+			}
 			const next = await orgs.savePolicy(orgId, patch);
 			const changed = (Object.keys(patch) as (keyof Policy)[]).filter((k) => before[k] !== next[k]);
 			if (changed.length) {

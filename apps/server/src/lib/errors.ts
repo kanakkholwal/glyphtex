@@ -26,6 +26,12 @@ export const errors = {
 	unauthorized: () => new AppError(401, "unauthorized", "Sign in to continue."),
 	forbidden: (message = "You don't have permission to do that.") =>
 		new AppError(403, "forbidden", message),
+	twoFactorRequired: () =>
+		new AppError(
+			403,
+			"two_factor_required",
+			"This organization requires two-factor authentication. Turn it on in Settings, then Account."
+		),
 	notFound: (what = "Resource") => new AppError(404, "not_found", `${what} not found.`),
 	conflict: (message: string, detail?: Record<string, unknown>) =>
 		new AppError(409, "conflict", message, detail),

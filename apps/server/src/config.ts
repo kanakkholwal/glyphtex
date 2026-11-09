@@ -26,6 +26,8 @@ const schema = z.object({
 		.enum(["true", "false"])
 		.default("true")
 		.transform((v) => v === "true"),
+	// Keys SCIM bearer credentials; defaults to a value derived from the auth secret.
+	SCIM_CREDENTIAL_SECRET: optional,
 	CLIENT_IP_HEADER: z.string().default("x-forwarded-for"),
 
 	DATABASE_URL: optional,
@@ -81,6 +83,7 @@ export function parseConfig(env: Record<string, unknown>) {
 		authSecret: e.BETTER_AUTH_SECRET,
 		cookieDomain: e.COOKIE_DOMAIN,
 		requireEmailVerification: e.REQUIRE_EMAIL_VERIFICATION,
+		scimSecret: e.SCIM_CREDENTIAL_SECRET ?? `${e.BETTER_AUTH_SECRET}:scim-credentials`,
 		clientIpHeader: e.CLIENT_IP_HEADER.toLowerCase(),
 		databaseUrl: e.DATABASE_URL,
 		redisUrl: e.REDIS_URL,

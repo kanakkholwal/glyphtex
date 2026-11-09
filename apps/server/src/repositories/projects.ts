@@ -8,6 +8,7 @@ import {
 	projectFile,
 	projectMember
 } from "../db/schema.ts";
+import { twoFactorSatisfied } from "./mfa.ts";
 import { DEFAULT_POLICY, type Policy, roleFromOrg } from "../rbac/org.ts";
 import { strongerRole } from "../rbac/permissions.ts";
 
@@ -59,7 +60,13 @@ export function projectRepository(db: Db | Tx) {
 				.where(eq(project.id, projectId))
 				.limit(1);
 			if (!row) return null;
-			return { project: row.project, role: effectiveRole(userId, row) };
+			const gate = Boolean(row.orgRole && row.policy?.requireTwoFactor);
+			return { project: row.project, role: effectiveRole(userId, row), gate };
+		},
+
+		/** True when the org's policy asks for two-factor and this member hasn't met it. */
+		async blockedByTwoFactor(orgId: string, userId: string) {
+			return !(await twoFactorSatisfied(db, orgId, userId));
 		},
 
 		/**

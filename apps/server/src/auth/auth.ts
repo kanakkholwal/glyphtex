@@ -1,8 +1,11 @@
+import { scim } from "@better-auth/scim";
+import { sso } from "@better-auth/sso";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { magicLink } from "better-auth/plugins/magic-link";
 import { organization } from "better-auth/plugins/organization";
+import { twoFactor } from "better-auth/plugins/two-factor";
 import type { Queue } from "../adapters/types.ts";
 import type { Config } from "../config.ts";
 import type { Db } from "../db/client.ts";
@@ -10,10 +13,12 @@ import { schema } from "../db/schema.ts";
 import { mails } from "../mail/templates.ts";
 import { AppError } from "../lib/errors.ts";
 import { orgRepository } from "../repositories/orgs.ts";
+import { scimIdentity, scimProjection } from "./scim.ts";
 import {
 	assertCanDeleteAccount,
 	PURGE_DELAY_SECONDS,
 	prepareAccountDeletion,
+	purgeOrgDirectory,
 	transferOrgProjects
 } from "../services/org-lifecycle.ts";
 
@@ -52,16 +57,34 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 		basePath: "/api/auth",
 		secret: config.authSecret,
 		trustedOrigins: config.webOrigins,
-		database: drizzleAdapter(db, { provider: "pg", schema }),
+		database: drizzleAdapter(db, { provider: "pg", schema, transaction: true }),
 		// No secondaryStorage: Better Auth needs atomic increment/get-and-delete from it, which
 		// KV can't give. Sessions and auth rate limits stay in Postgres, the source of truth.
 		rateLimit: { enabled: true, storage: "database" },
 		hooks: {
 			// Check before the confirmation email goes out, not only when its link is opened.
 			before: createAuthMiddleware(async (ctx) => {
+				if (ctx.path === "/sso/register" && !ctx.body?.organizationId) {
+					// Without an org the provider would be personal, and its domain could capture sign-ins.
+					throw new APIError("BAD_REQUEST", {
+						message: "Single sign-on is set up for an organization."
+					});
+				}
 				if (ctx.path !== "/delete-user") return;
 				const session = await getSessionFromCtx(ctx);
 				if (session) await asAuthError(() => assertCanDeleteAccount(db, session.user.id));
+			}),
+			after: createAuthMiddleware(async (ctx) => {
+				if (ctx.path !== "/sso/register" || !ctx.body?.organizationId) return;
+				const session = await getSessionFromCtx(ctx);
+				await orgs.audit({
+					organizationId: ctx.body.organizationId,
+					actorId: session?.user.id ?? null,
+					action: "sso.provider_added",
+					targetType: "sso_provider",
+					targetId: ctx.body.providerId ?? null,
+					meta: { domain: ctx.body.domain ?? null }
+				});
 			})
 		},
 		emailAndPassword: {
@@ -100,6 +123,18 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 			})
 		},
 		plugins: [
+			twoFactor({ issuer: "GlyphTeX" }),
+			sso({
+				domainVerification: { enabled: true },
+				providersLimit: 5,
+				organizationProvisioning: { defaultRole: "member" }
+			}),
+			scim({
+				connections: [],
+				managedConnections: { credentialHashSecret: config.scimSecret },
+				identity: scimIdentity(),
+				projection: scimProjection(db)
+			}),
 			magicLink({ sendMagicLink: async ({ email, url }) => sendMail(mails.magicLink(email, url)) }),
 			organization({
 				creatorRole: "owner",
@@ -139,6 +174,7 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 					},
 					// Rows cascade with the org; its files are purged once the delete has committed.
 					beforeDeleteOrganization: async ({ organization: org }) => {
+						await purgeOrgDirectory(db, org.id);
 						const keys = await orgs.blobKeys(org.id);
 						if (keys.length) {
 							await queue.enqueue(

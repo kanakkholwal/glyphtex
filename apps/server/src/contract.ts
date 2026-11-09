@@ -98,6 +98,7 @@ export interface OrgPolicy {
 	shareLinks: boolean;
 	externalInvites: boolean;
 	ai: boolean;
+	requireTwoFactor: boolean;
 	seatLimit: number | null;
 }
 
@@ -159,4 +160,31 @@ export interface OrgLibrary {
 		sha256: string;
 		size: number;
 	}[];
+}
+
+export interface SsoProvider {
+	providerId: string;
+	domain: string;
+	issuer: string;
+	domainVerified: boolean;
+	type: "oidc" | "saml";
+}
+
+export interface ScimConnection {
+	connectionId: string;
+	status: string;
+	createdAt: string;
+}
+
+export interface ScimOverview {
+	/** The base URL to paste into the identity provider. */
+	url: string;
+	connections: ScimConnection[];
+}
+
+/** Shown once: only a keyed digest of the token is stored. */
+export interface ScimToken {
+	url: string;
+	connectionId: string;
+	token: string;
 }

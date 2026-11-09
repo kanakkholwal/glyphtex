@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
+import { eq } from "drizzle-orm";
+import { user } from "../src/db/schema.ts";
 import { type Integration, integrationEnabled, startIntegration } from "./support.ts";
 
 type Client = InstanceType<Integration["Client"]>;
@@ -221,6 +223,123 @@ describe("organizations end to end", {
 			(await admin.request(`/api/orgs/${orgId}/templates/${projectId}`, { method: "DELETE" }))
 				.status,
 			204
+		);
+	});
+
+	test("requiring two-factor locks out members who have not enrolled", async () => {
+		const enroll = async (c: Client) =>
+			it.built.deps.db
+				.update(user)
+				.set({ twoFactorEnabled: true })
+				.where(eq(user.id, await c.id()));
+		const code = async (res: Response) => ((await res.json()) as { code?: string }).code;
+
+		const early = await policy(admin, { requireTwoFactor: true });
+		assert.equal(early.status, 409, "an admin without it can't lock themselves out");
+		await enroll(admin);
+		assert.equal((await policy(admin, { requireTwoFactor: true })).status, 200);
+
+		const blockedOrg = await member.request(`/api/orgs/${orgId}`);
+		assert.equal(blockedOrg.status, 403);
+		assert.equal(await code(blockedOrg), "two_factor_required");
+		const blockedProject = await member.request(`/api/projects/${projectId}`);
+		assert.equal(blockedProject.status, 403);
+		assert.equal(await code(blockedProject), "two_factor_required");
+		assert.equal((await outsider.request(`/api/projects/${projectId}`)).status, 404);
+		assert.equal((await admin.request(`/api/orgs/${orgId}`)).status, 200);
+
+		await enroll(member);
+		assert.equal((await member.request(`/api/orgs/${orgId}`)).status, 200);
+		assert.equal((await policy(admin, { requireTwoFactor: false })).status, 200);
+	});
+
+	test("single sign-on is set up per organization by its admins", async () => {
+		const register = (c: Client, body: Record<string, unknown>) =>
+			c.json("/api/auth/sso/register", "POST", {
+				providerId: `idp-${Date.now().toString(36)}`,
+				issuer: "https://idp.example.test",
+				domain: "example.test",
+				oidcConfig: {
+					clientId: "id",
+					clientSecret: "secret",
+					authorizationEndpoint: "https://idp.example.test/auth",
+					tokenEndpoint: "https://idp.example.test/token",
+					jwksEndpoint: "https://idp.example.test/jwks",
+					skipDiscovery: true
+				},
+				...body
+			});
+		assert.equal(
+			(await register(admin, {})).status,
+			400,
+			"a personal provider could capture a domain"
+		);
+		assert.equal((await register(member, { organizationId: orgId })).status, 403);
+		assert.equal((await register(outsider, { organizationId: orgId })).status, 400);
+		assert.equal((await member.request(`/api/orgs/${orgId}/sso`)).status, 403);
+		const list = await admin.request(`/api/orgs/${orgId}/sso`);
+		assert.deepEqual(((await list.json()) as { providers: unknown[] }).providers, []);
+	});
+
+	test("a directory provisions and removes members over SCIM", async () => {
+		assert.equal((await member.json(`/api/orgs/${orgId}/scim`, "POST", {})).status, 403);
+		const created = await admin.json(`/api/orgs/${orgId}/scim`, "POST", { expiresInDays: 30 });
+		assert.equal(created.status, 201, await created.clone().text());
+		const { token, url } = (await created.json()) as { token: string; url: string };
+		assert.match(url, /\/api\/auth\/scim\/v2$/);
+
+		const scim = (path: string, method: string, body?: unknown, bearer = token) =>
+			it.app.request(`/api/auth/scim/v2${path}`, {
+				method,
+				headers: {
+					authorization: `Bearer ${bearer}`,
+					"content-type": "application/scim+json",
+					"x-forwarded-for": "10.9.9.9"
+				},
+				body: body === undefined ? undefined : JSON.stringify(body)
+			});
+		assert.equal((await scim("/Users", "GET", undefined, "bogus")).status, 401);
+
+		const email = `scim-${Date.now().toString(36)}@example.test`;
+		const made = await scim("/Users", "POST", {
+			schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
+			userName: email,
+			externalId: `ext-${email}`,
+			name: { formatted: "Scim Person" },
+			emails: [{ value: email, primary: true }],
+			active: true
+		});
+		assert.equal(made.status, 201, await made.clone().text());
+		const scimUser = (await made.json()) as { id: string };
+
+		const members = async () => {
+			const full = await owner.request(
+				`/api/auth/organization/get-full-organization?organizationId=${orgId}`
+			);
+			return ((await full.json()) as { members: { user: { email: string } }[] }).members.map(
+				(m) => m.user.email
+			);
+		};
+		assert.ok((await members()).includes(email), "provisioned into the org");
+
+		const off = await scim(`/Users/${scimUser.id}`, "PATCH", {
+			schemas: ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+			Operations: [{ op: "replace", path: "active", value: false }]
+		});
+		assert.equal(off.status, 200, await off.clone().text());
+		assert.ok(!(await members()).includes(email), "deprovisioned from the org");
+
+		const list = await admin.request(`/api/orgs/${orgId}/scim`);
+		const { connections } = (await list.json()) as { connections: { connectionId: string }[] };
+		assert.equal(connections.length, 1);
+		const removed = await admin.request(`/api/orgs/${orgId}/scim/${connections[0]?.connectionId}`, {
+			method: "DELETE"
+		});
+		assert.equal(removed.status, 204);
+		assert.equal(
+			(await scim("/Users", "GET")).status,
+			401,
+			"a removed connection's token stops working"
 		);
 	});
 

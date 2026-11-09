@@ -45,7 +45,9 @@ export function createApp(
 
 	app.route("/", healthController);
 	// Registered before the session gate below, so these answer without one.
-	app.on(["GET", "POST"], "/api/auth/*", (c) => c.var.deps.auth.handler(c.req.raw));
+	app.on(["GET", "POST", "PUT", "PATCH", "DELETE"], "/api/auth/*", (c) =>
+		c.var.deps.auth.handler(c.req.raw)
+	);
 	app.route("/api/public", publicController);
 
 	app.use("/api/*", session, requireUser, rateLimit("api"));

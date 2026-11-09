@@ -1,7 +1,16 @@
 import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import type { Queue } from "../adapters/types.ts";
 import type { Db } from "../db/client.ts";
-import { member, project } from "../db/schema.ts";
+import {
+	member,
+	project,
+	scimConnectionBinding,
+	scimGroup,
+	scimIdentityTombstone,
+	scimManagedConnection,
+	scimProjectionGrant,
+	scimUser
+} from "../db/schema.ts";
 import { errors } from "../lib/errors.ts";
 import { orgRepository } from "../repositories/orgs.ts";
 import { projectRepository } from "../repositories/projects.ts";
@@ -32,6 +41,20 @@ export async function transferOrgProjects(db: Db, orgId: string, fromUserId: str
 		.where(and(eq(project.organizationId, orgId), eq(project.ownerId, fromUserId)))
 		.returning({ id: project.id });
 	return moved.length;
+}
+
+/** SCIM rows are keyed by the org id with no foreign key, so deleting the org must clear them. */
+export async function purgeOrgDirectory(db: Db, orgId: string) {
+	for (const table of [
+		scimManagedConnection,
+		scimConnectionBinding,
+		scimIdentityTombstone,
+		scimProjectionGrant,
+		scimUser,
+		scimGroup
+	]) {
+		await db.delete(table).where(eq(table.provisioningDomainId, orgId));
+	}
 }
 
 /** Refuses deletion while the user is the last owner of an org that others still use. */

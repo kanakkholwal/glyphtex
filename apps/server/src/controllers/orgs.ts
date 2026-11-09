@@ -5,6 +5,7 @@ import { FEATURES, MEMBER_ACCESS } from "../db/schema.ts";
 import { normalizePath } from "../lib/paths.ts";
 import { currentUser, requireOrg } from "../middleware/index.ts";
 import { orgContentService } from "../services/org-content.ts";
+import { orgIdentityService } from "../services/org-identity.ts";
 import { orgService } from "../services/orgs.ts";
 import { validate } from "./validation.ts";
 
@@ -14,6 +15,7 @@ const policyPatch = z
 		shareLinks: z.boolean(),
 		externalInvites: z.boolean(),
 		ai: z.boolean(),
+		requireTwoFactor: z.boolean(),
 		seatLimit: z.number().int().positive().max(100_000).nullable()
 	})
 	.partial()
@@ -23,6 +25,7 @@ const templateBody = z.object({
 	title: z.string().trim().min(1).max(120),
 	description: z.string().trim().max(500).default("")
 });
+const scimExpiry = z.object({ expiresInDays: z.number().int().min(1).max(730).default(365) });
 const nameBody = z.object({ name: z.string().trim().min(1).max(200) });
 
 /** Routes under /api/orgs/:orgId; every one is guarded. Membership itself is Better Auth's. */
@@ -159,6 +162,44 @@ export const orgsController = new Hono<AppEnv>()
 			});
 		}
 	)
+	.get("/:orgId/sso", requireOrg("org:manage-policy"), async (c) =>
+		c.json({ providers: await orgIdentityService(c.var.deps).sso(c.var.orgAccess) })
+	)
+	.get("/:orgId/scim", requireOrg("org:manage-policy"), async (c) =>
+		c.json(await orgIdentityService(c.var.deps).scim(c.var.orgAccess))
+	)
+	.post("/:orgId/scim", requireOrg("org:manage-policy"), validate("json", scimExpiry), async (c) =>
+		c.json(
+			await orgIdentityService(c.var.deps).createScim(
+				c.var.orgAccess,
+				currentUser(c).id,
+				c.req.valid("json").expiresInDays
+			),
+			201
+		)
+	)
+	.post(
+		"/:orgId/scim/:connectionId/rotate",
+		requireOrg("org:manage-policy"),
+		validate("json", scimExpiry),
+		async (c) =>
+			c.json(
+				await orgIdentityService(c.var.deps).rotateScim(
+					c.var.orgAccess,
+					currentUser(c).id,
+					c.req.param("connectionId"),
+					c.req.valid("json").expiresInDays
+				)
+			)
+	)
+	.delete("/:orgId/scim/:connectionId", requireOrg("org:manage-policy"), async (c) => {
+		await orgIdentityService(c.var.deps).removeScim(
+			c.var.orgAccess,
+			currentUser(c).id,
+			c.req.param("connectionId")
+		);
+		return c.body(null, 204);
+	})
 	.post("/:orgId/library", requireOrg("org:manage-policy"), async (c) =>
 		c.json(
 			{

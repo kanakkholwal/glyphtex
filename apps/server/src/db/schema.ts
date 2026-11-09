@@ -28,6 +28,7 @@ export const user = pgTable("user", {
 	email: text("email").notNull().unique(),
 	emailVerified: boolean("email_verified").notNull().default(false),
 	image: text("image"),
+	twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
 	createdAt: createdAt(),
 	updatedAt: updatedAt()
 });
@@ -163,6 +164,7 @@ export const orgPolicy = pgTable("org_policy", {
 	shareLinks: boolean("share_links").notNull().default(true),
 	externalInvites: boolean("external_invites").notNull().default(true),
 	ai: boolean("ai").notNull().default(false),
+	requireTwoFactor: boolean("require_two_factor").notNull().default(false),
 	seatLimit: integer("seat_limit"),
 	updatedAt: updatedAt()
 });
@@ -333,6 +335,261 @@ export const orgLibrary = pgTable("org_library", {
 		.references(() => project.id, { onDelete: "cascade" })
 });
 
+// --- Plugin tables: two-factor, SSO and SCIM (field names are the plugins' contract) ---
+
+export const twoFactor = pgTable(
+	"two_factor",
+	{
+		id: text("id").primaryKey(),
+		secret: text("secret").notNull(),
+		backupCodes: text("backup_codes").notNull(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		verified: boolean("verified"),
+		failedVerificationCount: integer("failed_verification_count"),
+		lockedUntil: timestamp("locked_until", { withTimezone: true })
+	},
+	(t) => [index("two_factor_secret_idx").on(t.secret), index("two_factor_user_id_idx").on(t.userId)]
+);
+
+export const ssoProvider = pgTable("sso_provider", {
+	id: text("id").primaryKey(),
+	issuer: text("issuer").notNull(),
+	oidcConfig: text("oidc_config"),
+	samlConfig: text("saml_config"),
+	userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+	providerId: text("provider_id").notNull().unique(),
+	organizationId: text("organization_id").references(() => organization.id, {
+		onDelete: "cascade"
+	}),
+	domain: text("domain").notNull(),
+	domainVerified: boolean("domain_verified")
+});
+
+export const scimManagedConnection = pgTable(
+	"scim_managed_connection",
+	{
+		id: text("id").primaryKey(),
+		creationRequestId: text("creation_request_id").notNull().unique(),
+		connectionId: text("connection_id").notNull().unique(),
+		provisioningDomainId: text("provisioning_domain_id").notNull(),
+		status: text("status").notNull(),
+		revision: integer("revision").notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		createdBy: text("created_by").notNull(),
+		decommissionStartedAt: timestamp("decommission_started_at", { withTimezone: true }),
+		decommissionStartedBy: text("decommission_started_by"),
+		decommissionedAt: timestamp("decommissioned_at", { withTimezone: true }),
+		decommissionedBy: text("decommissioned_by")
+	},
+	(t) => [index("scim_managed_connection_provisioning_domain_id_idx").on(t.provisioningDomainId)]
+);
+
+export const scimManagedCredential = pgTable(
+	"scim_managed_credential",
+	{
+		id: text("id").primaryKey(),
+		connectionRecordId: text("connection_record_id")
+			.notNull()
+			.references(() => scimManagedConnection.id, { onDelete: "cascade" }),
+		credentialId: text("credential_id").notNull().unique(),
+		tokenDigest: text("token_digest").notNull(),
+		hashVersion: text("hash_version").notNull(),
+		activeSlotKey: text("active_slot_key").notNull().unique(),
+		status: text("status").notNull(),
+		serializedScopes: text("serialized_scopes").notNull(),
+		expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		createdBy: text("created_by").notNull(),
+		lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+		revokedAt: timestamp("revoked_at", { withTimezone: true }),
+		revokedBy: text("revoked_by"),
+		decommissionedAt: timestamp("decommissioned_at", { withTimezone: true })
+	},
+	(t) => [index("scim_managed_credential_connection_record_id_idx").on(t.connectionRecordId)]
+);
+
+export const scimManagedConnectionEvent = pgTable(
+	"scim_managed_connection_event",
+	{
+		id: text("id").primaryKey(),
+		connectionRecordId: text("connection_record_id")
+			.notNull()
+			.references(() => scimManagedConnection.id, { onDelete: "cascade" }),
+		eventKey: text("event_key").notNull().unique(),
+		sequence: integer("sequence").notNull(),
+		type: text("type").notNull(),
+		actorId: text("actor_id").notNull(),
+		credentialId: text("credential_id"),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+	},
+	(t) => [index("scim_managed_connection_event_connection_record_id_idx").on(t.connectionRecordId)]
+);
+
+export const scimConnectionBinding = pgTable(
+	"scim_connection_binding",
+	{
+		id: text("id").primaryKey(),
+		connectionId: text("connection_id").notNull(),
+		connectionKey: text("connection_key").notNull().unique(),
+		provisioningDomainId: text("provisioning_domain_id").notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		decommissionedAt: timestamp("decommissioned_at", { withTimezone: true }),
+		decommissionStatus: text("decommission_status").notNull(),
+		decommissionCursorUserId: text("decommission_cursor_user_id"),
+		decommissionReconciledUserCount: integer("decommission_reconciled_user_count").notNull(),
+		decommissionBatchCount: integer("decommission_batch_count").notNull(),
+		decommissionRevision: integer("decommission_revision").notNull(),
+		decommissionCompletedAt: timestamp("decommission_completed_at", { withTimezone: true }),
+		decommissionLeaseId: text("decommission_lease_id"),
+		decommissionLeaseExpiresAt: timestamp("decommission_lease_expires_at", { withTimezone: true })
+	},
+	(t) => [index("scim_connection_binding_connection_id_idx").on(t.connectionId)]
+);
+
+export const scimIdentityTombstone = pgTable(
+	"scim_identity_tombstone",
+	{
+		id: text("id").primaryKey(),
+		connectionId: text("connection_id").notNull(),
+		provisioningDomainId: text("provisioning_domain_id").notNull(),
+		externalId: text("external_id").notNull(),
+		externalIdKey: text("external_id_key").notNull().unique(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		profile: text("profile").notNull(),
+		deletedAt: timestamp("deleted_at", { withTimezone: true }).notNull()
+	},
+	(t) => [
+		index("scim_identity_tombstone_connection_id_idx").on(t.connectionId),
+		index("scim_identity_tombstone_provisioning_domain_id_idx").on(t.provisioningDomainId),
+		index("scim_identity_tombstone_user_id_idx").on(t.userId)
+	]
+);
+
+export const scimSubject = pgTable(
+	"scim_subject",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.unique()
+			.references(() => user.id, { onDelete: "cascade" }),
+		profileSourceId: text("profile_source_id"),
+		revision: integer("revision").notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+	},
+	(t) => [index("scim_subject_profile_source_id_idx").on(t.profileSourceId)]
+);
+
+export const scimUser = pgTable(
+	"scim_user",
+	{
+		id: text("id").primaryKey(),
+		connectionId: text("connection_id").notNull(),
+		provisioningDomainId: text("provisioning_domain_id").notNull(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		connectionUserKey: text("connection_user_key").notNull().unique(),
+		userName: text("user_name").notNull(),
+		userNameKey: text("user_name_key").notNull().unique(),
+		primaryEmail: text("primary_email").notNull(),
+		workEmailValueIndex: text("work_email_value_index").notNull(),
+		emailValueIndex: text("email_value_index").notNull(),
+		displayName: text("display_name").notNull(),
+		formattedName: text("formatted_name").notNull(),
+		givenName: text("given_name"),
+		familyName: text("family_name"),
+		serializedEmails: text("serialized_emails").notNull(),
+		serializedAttributes: text("serialized_attributes"),
+		externalId: text("external_id"),
+		externalIdKey: text("external_id_key").unique(),
+		active: boolean("active").notNull(),
+		orderKey: text("order_key").notNull().unique(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+	},
+	(t) => [
+		index("scim_user_connection_id_idx").on(t.connectionId),
+		index("scim_user_provisioning_domain_id_idx").on(t.provisioningDomainId),
+		index("scim_user_user_id_idx").on(t.userId)
+	]
+);
+
+export const scimProjectionGrant = pgTable(
+	"scim_projection_grant",
+	{
+		id: text("id").primaryKey(),
+		connectionId: text("connection_id").notNull(),
+		provisioningDomainId: text("provisioning_domain_id").notNull(),
+		scimUserId: text("scim_user_id")
+			.notNull()
+			.references(() => scimUser.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		sourceKind: text("source_kind").notNull(),
+		sourceId: text("source_id").notNull(),
+		sourceValue: text("source_value"),
+		role: text("role").notNull(),
+		grantKey: text("grant_key").notNull().unique(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+	},
+	(t) => [
+		index("scim_projection_grant_connection_id_idx").on(t.connectionId),
+		index("scim_projection_grant_provisioning_domain_id_idx").on(t.provisioningDomainId),
+		index("scim_projection_grant_scim_user_id_idx").on(t.scimUserId),
+		index("scim_projection_grant_user_id_idx").on(t.userId)
+	]
+);
+
+export const scimGroup = pgTable(
+	"scim_group",
+	{
+		id: text("id").primaryKey(),
+		connectionId: text("connection_id").notNull(),
+		provisioningDomainId: text("provisioning_domain_id").notNull(),
+		revision: integer("revision").notNull(),
+		displayName: text("display_name").notNull(),
+		displayNameKey: text("display_name_key").notNull().unique(),
+		externalId: text("external_id"),
+		externalIdKey: text("external_id_key").unique(),
+		orderKey: text("order_key").notNull().unique(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+	},
+	(t) => [
+		index("scim_group_connection_id_idx").on(t.connectionId),
+		index("scim_group_provisioning_domain_id_idx").on(t.provisioningDomainId)
+	]
+);
+
+export const scimGroupMember = pgTable(
+	"scim_group_member",
+	{
+		id: text("id").primaryKey(),
+		connectionId: text("connection_id").notNull(),
+		groupId: text("group_id")
+			.notNull()
+			.references(() => scimGroup.id, { onDelete: "cascade" }),
+		scimUserId: text("scim_user_id")
+			.notNull()
+			.references(() => scimUser.id, { onDelete: "cascade" }),
+		membershipKey: text("membership_key").notNull().unique(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+	},
+	(t) => [
+		index("scim_group_member_connection_id_idx").on(t.connectionId),
+		index("scim_group_member_group_id_idx").on(t.groupId),
+		index("scim_group_member_scim_user_id_idx").on(t.scimUserId)
+	]
+);
+
 export const schema = {
 	user,
 	session,
@@ -351,5 +608,17 @@ export const schema = {
 	projectInvite,
 	shareLink,
 	orgTemplate,
-	orgLibrary
+	orgLibrary,
+	twoFactor,
+	ssoProvider,
+	scimManagedConnection,
+	scimManagedCredential,
+	scimManagedConnectionEvent,
+	scimConnectionBinding,
+	scimIdentityTombstone,
+	scimSubject,
+	scimUser,
+	scimProjectionGrant,
+	scimGroup,
+	scimGroupMember
 };

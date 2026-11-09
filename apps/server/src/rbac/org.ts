@@ -40,6 +40,7 @@ export interface Policy {
 	shareLinks: boolean;
 	externalInvites: boolean;
 	ai: boolean;
+	requireTwoFactor: boolean;
 	seatLimit: number | null;
 }
 
@@ -48,6 +49,7 @@ export const DEFAULT_POLICY: Policy = {
 	shareLinks: true,
 	externalInvites: true,
 	ai: false,
+	requireTwoFactor: false,
 	seatLimit: null
 };
 
