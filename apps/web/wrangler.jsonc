@@ -9,7 +9,9 @@
 		"directory": ".svelte-kit/cloudflare"
 	},
 	"vars": {
-		"PUBLIC_GA_ID": "G-X1BF4S5L5L"
+		"PUBLIC_GA_ID": "G-X1BF4S5L5L",
+		// Read at request time. Unset hides sign-in and every other account feature.
+		"PUBLIC_GLYPHTEX_SERVER_URL": "https://glyphtex-api.nexonauts.com"
 	},
 	// Requires `nexonauts.com` to be a zone on the same account as
 	// CLOUDFLARE_ACCOUNT_ID; wrangler then provisions the DNS record and cert.
