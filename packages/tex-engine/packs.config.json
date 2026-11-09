@@ -158,6 +158,13 @@
 			"label": "Math & macro helpers",
 			"description": "bm for bold math symbols, and xargs for commands with several optional arguments.",
 			"packages": ["bm", "xargs"]
+		},
+		{
+			"id": "mnras",
+			"label": "MNRAS journal class",
+			"description": "The Monthly Notices of the Royal Astronomical Society class and its BibTeX style.",
+			"packages": ["mnras"],
+			"include": ["mnras.bst"]
 		}
 	]
 }

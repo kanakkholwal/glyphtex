@@ -263,6 +263,24 @@
 			"optional": false,
 			"bytes": 6963,
 			"hash": "847d04cc99dd4e6d"
+		},
+		{
+			"id": "mnras",
+			"label": "MNRAS journal class",
+			"description": "The Monthly Notices of the Royal Astronomical Society class and its BibTeX style.",
+			"packages": [
+				"mnras"
+			],
+			"requires": [
+				"references",
+				"math-helpers",
+				"review",
+				"writing",
+				"fonts-latinmodern"
+			],
+			"optional": false,
+			"bytes": 29183,
+			"hash": "fbb6faf7d9834e0f"
 		}
 	],
 	"provides": {
@@ -716,6 +734,8 @@
 		"fontspec.cfg": "opentype-fonts",
 		"texgyretermes-regular.otf": "opentype-fonts",
 		"bm.sty": "math-helpers",
-		"xargs.sty": "math-helpers"
+		"xargs.sty": "math-helpers",
+		"mnras.bst": "mnras",
+		"mnras.cls": "mnras"
 	}
 }

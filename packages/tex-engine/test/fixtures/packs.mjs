@@ -282,5 +282,39 @@ Set in TeX Gyre Termes through fontspec.
 Bold symbols: $\bm{\alpha} + \bm{x}^{T}\bm{A}\bm{x}$.
 Defaults: $\pair{c}$, overridden: $\pair[x][y]{z}$.
 \end{document}`
+	},
+	{
+		// The manuscript from #83, declarations unchanged: it needs the class and every package after it.
+		id: "mnras",
+		source: String.raw`\documentclass[fleqn,usenatbib,onecolumn]{mnras}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{soul}
+\usepackage{xargs}
+\title[A short title]{A title for the manuscript}
+\author[A. Author]{A. Author$^{1}$\thanks{E-mail: author@example.org}\\
+$^{1}$Department of Astronomy, Some University, Some City}
+\date{Accepted 2026. Received 2026; in original form 2026}
+\pubyear{2026}
+\begin{document}
+\label{firstpage}
+\pagerange{\pageref{firstpage}--\pageref{lastpage}}
+\maketitle
+\begin{abstract}
+A short abstract with a bold symbol $\bm{x}$.
+\end{abstract}
+\begin{keywords}
+stars: general -- galaxies: general
+\end{keywords}
+\section{Introduction}
+Some text with a citation-free sentence and an equation
+\begin{equation}
+  E = mc^2 .
+\end{equation}
+\bsp
+\label{lastpage}
+\end{document}`
 	}
 ];

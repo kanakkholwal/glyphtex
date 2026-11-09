@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.6
+
+### Added
+
+- `mnras` pack: the Monthly Notices of the RAS class and its BibTeX style, tested with the
+  declarations from #83 (`bm`, `soul`, `xargs`, T1 fonts, `usenatbib`). It requires the
+  `references`, `math-helpers`, `review`, `writing` and `fonts-latinmodern` packs.
+
 ## 0.1.5
 
 ### Added
