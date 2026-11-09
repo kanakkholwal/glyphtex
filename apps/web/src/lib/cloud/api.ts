@@ -17,7 +17,10 @@ import type {
 	ProjectSummary,
 	ProjectView,
 	PublicConfig,
-	ShareLink
+	ScimOverview,
+	ScimToken,
+	ShareLink,
+	SsoProvider
 } from "@glyphtex/server/contract";
 import { createFetch } from "@better-fetch/fetch";
 import { SERVER_URL } from "./config";
@@ -38,7 +41,10 @@ export type {
 	ProjectSummary,
 	ProjectView,
 	PublicConfig,
-	ShareLink
+	ScimOverview,
+	ScimToken,
+	ShareLink,
+	SsoProvider
 };
 
 /** Every server failure, already in plain language; `problem` keeps the raw detail. */
@@ -240,6 +246,18 @@ export const cloud = {
 		library: (orgId: string) => json<OrgLibrary>(`${o(orgId)}/library`),
 		libraryBytes: (orgId: string, path: string) =>
 			bytes(`${o(orgId)}/library/raw?path=${encodeURIComponent(path)}`),
+		ssoProviders: async (orgId: string) =>
+			(await json<{ providers: SsoProvider[] }>(`${o(orgId)}/sso`)).providers,
+		scim: (orgId: string) => json<ScimOverview>(`${o(orgId)}/scim`),
+		createScim: (orgId: string, expiresInDays: number) =>
+			json<ScimToken>(`${o(orgId)}/scim`, { method: "POST", body: { expiresInDays } }),
+		rotateScim: (orgId: string, connectionId: string, expiresInDays: number) =>
+			json<ScimToken>(`${o(orgId)}/scim/${encodeURIComponent(connectionId)}/rotate`, {
+				method: "POST",
+				body: { expiresInDays }
+			}),
+		removeScim: (orgId: string, connectionId: string) =>
+			done(`${o(orgId)}/scim/${encodeURIComponent(connectionId)}`, { method: "DELETE" }),
 		/** Creates the org's "Shared packages" project on first call; returns its id. */
 		ensureLibrary: async (orgId: string) =>
 			(await json<{ projectId: string }>(`${o(orgId)}/library`, { method: "POST" })).projectId

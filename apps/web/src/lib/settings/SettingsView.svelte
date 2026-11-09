@@ -10,18 +10,25 @@
 	import OrgAudit from "./OrgAudit.svelte";
 	import OrgLibrary from "./OrgLibrary.svelte";
 	import OrgMembers from "./OrgMembers.svelte";
+	import OrgSecurity from "./OrgSecurity.svelte";
 	import OrgSettings from "./OrgSettings.svelte";
 	import { activeOrg } from "./org-state.svelte";
 	import StorageSettings from "./StorageSettings.svelte";
 
 	const PERSONAL = ["general", "account", "storage"] as const;
-	const ORG = ["organization", "members", "library", "audit"] as const;
+	const ORG = ["organization", "members", "library", "security", "audit"] as const;
 	type Tab = (typeof PERSONAL)[number] | (typeof ORG)[number];
 
 	const inOrg = $derived(cloudSession.activeOrgId !== null);
-	// Audit is for admins and owners; members still see the organization and member list.
+	// Audit and security are for admins and owners; members still see the organization and member list.
 	const orgTabs = $derived(
-		inOrg ? ORG.filter((t) => t !== "audit" || activeOrg.can("org:read-audit")) : []
+		inOrg
+			? ORG.filter(
+					(t) =>
+						(t !== "audit" || activeOrg.can("org:read-audit")) &&
+						(t !== "security" || activeOrg.can("org:manage-policy"))
+				)
+			: []
 	);
 	const available = $derived<readonly Tab[]>([...PERSONAL, ...orgTabs]);
 
@@ -54,6 +61,7 @@
 			<TabsTrigger value="organization">Organization</TabsTrigger>
 			<TabsTrigger value="members">Members</TabsTrigger>
 			<TabsTrigger value="library">Library</TabsTrigger>
+			{#if orgTabs.includes("security")}<TabsTrigger value="security">Security</TabsTrigger>{/if}
 			{#if orgTabs.includes("audit")}<TabsTrigger value="audit">Audit</TabsTrigger>{/if}
 		{/if}
 	</TabsList>
@@ -68,6 +76,11 @@
 		<TabsContent value="library" class="pt-8">
 			{#key cloudSession.activeOrgId}<OrgLibrary />{/key}
 		</TabsContent>
+		{#if orgTabs.includes("security")}
+			<TabsContent value="security" class="pt-8">
+				{#key cloudSession.activeOrgId}<OrgSecurity />{/key}
+			</TabsContent>
+		{/if}
 		{#if orgTabs.includes("audit")}
 			<TabsContent value="audit" class="pt-8">
 				{#key cloudSession.activeOrgId}<OrgAudit />{/key}

@@ -89,14 +89,23 @@
 		}
 	}
 
-	const toggles: { key: "shareLinks" | "externalInvites" | "ai"; title: string; body: string }[] = [
+	const toggles: {
+		key: "shareLinks" | "externalInvites" | "ai" | "requireTwoFactor";
+		title: string;
+		body: string;
+	}[] = [
 		{ key: "shareLinks", title: "Share links", body: "Anyone with a link can join a project." },
 		{
 			key: "externalInvites",
 			title: "Invite people outside the organization",
 			body: "Project owners can share with any email address."
 		},
-		{ key: "ai", title: "AI features", body: "Off by default. Admins can allow it per member." }
+		{ key: "ai", title: "AI features", body: "Off by default. Admins can allow it per member." },
+		{
+			key: "requireTwoFactor",
+			title: "Require two-factor authentication",
+			body: "Members need an authenticator app, or the organization's SSO, to open its projects."
+		}
 	];
 </script>
 

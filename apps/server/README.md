@@ -74,6 +74,16 @@ Sign-in providers turn on when their client id and secret are set: Google, GitHu
 | `POST /invites/accept`, `POST /links/redeem` | `{token}` |
 | `/auth/*` | Better Auth: sign-up/in, magic link, OAuth, verification, password reset, `delete-user` |
 
+### Enterprise identity
+
+Organization owners and admins manage these under Settings, Security.
+
+- **Single sign-on**: OpenID Connect providers per organization, each domain proven with a DNS TXT record. Members sign in from the SSO tab with their work email. Redirect URL: `<PUBLIC_URL>/api/auth/sso/callback/<provider>`.
+- **SCIM 2.0**: point your identity provider at `<PUBLIC_URL>/api/auth/scim/v2` with the bearer token from Security. Users are added to and removed from the organization; owners are never removed.
+- **Two-factor**: users enrol under Settings, Account. An organization policy can require it; SSO members meet it at their identity provider.
+
+More: `docs/security.md`, `docs/operations.md` (monitoring, backups, restore), `docs/support-and-sla.md`.
+
 Errors are `application/problem+json` with a `code` and a `requestId`.
 
 ## Tests

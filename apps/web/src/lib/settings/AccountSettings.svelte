@@ -36,6 +36,7 @@
 	import { sync, type SyncMode } from "$lib/sync/sync.svelte";
 	import { ToggleGroup, ToggleGroupItem } from "@glyphtex/ui/toggle-group";
 	import SettingsSection from "./SettingsSection.svelte";
+	import TwoFactorSettings from "./TwoFactorSettings.svelte";
 
 	let exporting = $state(false);
 	let deleteOpen = $state(false);
@@ -155,6 +156,8 @@
 				</ToggleGroup>
 			</div>
 		</SettingsSection>
+
+		<TwoFactorSettings />
 
 		<SettingsSection title="Your data" description="Take everything with you at any time.">
 			{#snippet action()}

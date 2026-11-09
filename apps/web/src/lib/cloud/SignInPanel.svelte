@@ -7,6 +7,7 @@
 		IconBrandGithub,
 		IconBrandGitlab,
 		IconBrandGoogle,
+		IconBuilding,
 		IconLoader2,
 		IconMail
 	} from "@tabler/icons-svelte";
@@ -25,7 +26,11 @@
 	let { next, onsignedin }: Props = $props();
 
 	let config = $state<PublicConfig | undefined>(undefined);
-	let mode = $state<"signin" | "signup">("signin");
+	let mode = $state<"signin" | "signup" | "sso">("signin");
+	/** Set once the password was right but the account has an authenticator to confirm. */
+	let challenge = $state(false);
+	let code = $state("");
+	let backup = $state(false);
 	let name = $state("");
 	let email = $state("");
 	let password = $state("");
@@ -74,10 +79,37 @@
 					return;
 				}
 			} else {
-				await unwrap(authClient.signIn.email({ email, password, callbackURL: callbackURL() }));
+				const result = await unwrap(
+					authClient.signIn.email({ email, password, callbackURL: callbackURL() })
+				);
+				if ("twoFactorRedirect" in result && result.twoFactorRedirect) {
+					challenge = true;
+					return;
+				}
 			}
 			await cloudSession.refresh();
 			onsignedin();
+		});
+	}
+
+	function confirmCode(event: SubmitEvent) {
+		event.preventDefault();
+		void run(async () => {
+			const value = code.trim();
+			await unwrap(
+				backup
+					? authClient.twoFactor.verifyBackupCode({ code: value })
+					: authClient.twoFactor.verifyTotp({ code: value, trustDevice: true })
+			);
+			await cloudSession.refresh();
+			onsignedin();
+		});
+	}
+
+	function startSso(event: SubmitEvent) {
+		event.preventDefault();
+		void run(async () => {
+			await unwrap(authClient.signIn.sso({ email, callbackURL: callbackURL() }));
 		});
 	}
 
@@ -118,7 +150,39 @@
 	} as const;
 </script>
 
-{#if sent}
+{#if challenge}
+	<form class="flex flex-col gap-3" onsubmit={confirmCode}>
+		<p class="text-md">
+			{backup
+				? "Enter one of your backup codes."
+				: "Enter the 6-digit code from your authenticator app."}
+		</p>
+		<Input
+			required
+			autocomplete="one-time-code"
+			inputmode={backup ? "text" : "numeric"}
+			aria-label={backup ? "Backup code" : "Authenticator code"}
+			bind:value={code}
+		/>
+		{#if error}<p class="text-destructive-strong text-sm" role="alert">{error}</p>{/if}
+		<Button type="submit" variant="dark" disabled={busy || !code.trim()}>
+			{#if busy}<IconLoader2 class="animate-spin" />{/if} Verify
+		</Button>
+		<Button
+			type="button"
+			variant="ghost"
+			size="sm"
+			class="self-start"
+			onclick={() => {
+				backup = !backup;
+				code = "";
+				error = undefined;
+			}}
+		>
+			{backup ? "Use my authenticator app" : "Use a backup code"}
+		</Button>
+	</form>
+{:else if sent}
 	<div class="flex flex-col gap-3" role="status">
 		<p class="text-md">{sent}</p>
 		<Button variant="ghost" class="self-start" onclick={() => (sent = undefined)}>Back</Button>
@@ -143,8 +207,25 @@
 			<TabsList class="w-full">
 				<TabsTrigger value="signin" class="flex-1">Sign in</TabsTrigger>
 				<TabsTrigger value="signup" class="flex-1">Create account</TabsTrigger>
+				<TabsTrigger value="sso" class="flex-1">SSO</TabsTrigger>
 			</TabsList>
 			<TabsContent value={mode}>
+				{#if mode === "sso"}
+					<form class="flex flex-col gap-3 pt-2" onsubmit={startSso}>
+						<p class="text-muted-foreground text-sm">
+							Use your organization's single sign-on. We find it from your work email.
+						</p>
+						<label class="flex flex-col gap-1 text-xs font-medium">
+							Work email
+							<Input type="email" required autocomplete="email" bind:value={email} />
+						</label>
+						{#if error}<p class="text-destructive-strong text-sm" role="alert">{error}</p>{/if}
+						<Button type="submit" variant="dark" disabled={busy}>
+							{#if busy}<IconLoader2 class="animate-spin" />{:else}<IconBuilding />{/if}
+							Continue with SSO
+						</Button>
+					</form>
+				{:else}
 				<form class="flex flex-col gap-3 pt-2" onsubmit={submit}>
 					{#if mode === "signup"}
 						<label class="flex flex-col gap-1 text-xs font-medium">
@@ -184,6 +265,7 @@
 						</div>
 					{/if}
 				</form>
+				{/if}
 			</TabsContent>
 		</Tabs>
 	</div>
