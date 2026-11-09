@@ -23,6 +23,24 @@ describe("optional features", () => {
 		assert.equal(configNotes(config).length, 3);
 	});
 
+	test("s3 without its credentials falls back to storage off", () => {
+		const half = parseConfig({ ...base, BLOB_DRIVER: "s3", S3_BUCKET: "glyphtex" });
+		assert.equal(half.blobsEnabled, false);
+		assert.equal(half.blobsFellBack, true);
+		assert.match(configNotes(half).join(" "), /S3_\* settings are incomplete/);
+
+		const full = parseConfig({
+			...base,
+			BLOB_DRIVER: "s3",
+			S3_ENDPOINT: "https://storage.example.test",
+			S3_BUCKET: "glyphtex",
+			S3_ACCESS_KEY_ID: "id",
+			S3_SECRET_ACCESS_KEY: "secret"
+		});
+		assert.equal(full.blobsEnabled, true);
+		assert.equal(full.blobsFellBack, false);
+	});
+
 	test("the mail driver is inferred from the credentials present", () => {
 		assert.equal(parseConfig({ ...base, RESEND_API_KEY: "re_x" }).mailDriver, "resend");
 		assert.equal(parseConfig({ ...base, SMTP_URL: "smtp://localhost:1025" }).mailDriver, "smtp");

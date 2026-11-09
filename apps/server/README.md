@@ -60,7 +60,7 @@ Every option is in `.env.example`. Infrastructure is chosen by config:
 
 File storage and mail are off until you configure them, so a first deployment needs neither a bucket nor a mail domain:
 
-- **No `BLOB_DRIVER`**: text files sync as usual. Images and other binary files stay in the browser, a zip import skips them and says which, and the app tells the user once.
+- **No `BLOB_DRIVER`** (or `s3` with incomplete `S3_*` settings, which logs a warning): text files sync as usual. Images and other binary files stay in the browser, a zip import skips them and says which, and the app tells the user once.
 - **No mail driver**: magic links and password resets are hidden, invitations are shared as links, and email verification is not required (the server logs a note at startup).
 - **Cloudflare mail**: set `MAIL_DRIVER=cloudflare` and add `"send_email": [{ "name": "EMAIL" }]` to `wrangler.jsonc`. The sending domain must be on Cloudflare, and sending to anyone (not only verified addresses) needs the Workers Paid plan. It is in beta.
 - **Neon Object Storage** (beta, S3-compatible, free plan 5 GB storage and 5 GB egress per project) works with `BLOB_DRIVER=s3`: use the endpoint, bucket and keys from the Neon console. Deletes there are soft deletes, so do not promise instant erasure of files.

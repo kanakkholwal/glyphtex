@@ -80,6 +80,12 @@ export function parseConfig(env: Record<string, unknown>) {
 	const e = parsed.data;
 	const mailDriver = e.MAIL_DRIVER ?? (e.RESEND_API_KEY ? "resend" : e.SMTP_URL ? "smtp" : "none");
 	const mailEnabled = mailDriver !== "none";
+	// s3 without its credentials (a bucket not created yet) runs with storage off instead of failing to start.
+	const s3Ready = Boolean(
+		e.S3_ENDPOINT && e.S3_BUCKET && e.S3_ACCESS_KEY_ID && e.S3_SECRET_ACCESS_KEY
+	);
+	const blobsFellBack = e.BLOB_DRIVER === "s3" && !s3Ready;
+	const blobDriver = blobsFellBack ? "none" : e.BLOB_DRIVER;
 	return {
 		publicUrl: e.PUBLIC_URL.replace(/\/$/, ""),
 		appUrl: e.APP_URL.replace(/\/$/, ""),
@@ -95,8 +101,9 @@ export function parseConfig(env: Record<string, unknown>) {
 		redisUrl: e.REDIS_URL,
 		rabbitmqUrl: e.RABBITMQ_URL,
 		queueDriver: e.QUEUE_DRIVER,
-		blobDriver: e.BLOB_DRIVER,
-		blobsEnabled: e.BLOB_DRIVER !== "none",
+		blobDriver,
+		blobsEnabled: blobDriver !== "none",
+		blobsFellBack,
 		mailDriver,
 		mailEnabled,
 		s3: {
@@ -139,7 +146,11 @@ export function required<T>(value: T | undefined, name: string): T {
 /** Plain-language notes for the operator, logged once at startup. */
 export function configNotes(config: Config): string[] {
 	const notes: string[] = [];
-	if (!config.blobsEnabled) {
+	if (config.blobsFellBack) {
+		notes.push(
+			"BLOB_DRIVER=s3 but the S3_* settings are incomplete: file storage is off until they are set."
+		);
+	} else if (!config.blobsEnabled) {
 		notes.push(
 			"File storage is off (BLOB_DRIVER unset): text files only, images and fonts are refused."
 		);
