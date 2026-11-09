@@ -54,9 +54,16 @@ Every option is in `.env.example`. Infrastructure is chosen by config:
 | Database | Postgres via Hyperdrive or `DATABASE_URL` | Postgres via `DATABASE_URL` |
 | Cache | KV | Redis / Valkey |
 | Jobs | Cloudflare Queues | Redis / Valkey or RabbitMQ |
-| Files | R2 binding or any S3 | any S3 (AWS, R2, RustFS, MinIO, B2, Tigris) |
-| Mail | Resend | Resend or SMTP |
+| Files (optional) | R2 binding or any S3 | any S3 (Neon, AWS, R2, RustFS, MinIO, B2, Tigris) |
+| Mail (optional) | Cloudflare `send_email` or Resend | Resend or SMTP |
 | Rate limits | Workers rate limiting | Redis / Valkey |
+
+File storage and mail are off until you configure them, so a first deployment needs neither a bucket nor a mail domain:
+
+- **No `BLOB_DRIVER`**: text files sync as usual. Images and other binary files stay in the browser, a zip import skips them and says which, and the app tells the user once.
+- **No mail driver**: magic links and password resets are hidden, invitations are shared as links, and email verification is not required (the server logs a note at startup).
+- **Cloudflare mail**: set `MAIL_DRIVER=cloudflare` and add `"send_email": [{ "name": "EMAIL" }]` to `wrangler.jsonc`. The sending domain must be on Cloudflare, and sending to anyone (not only verified addresses) needs the Workers Paid plan. It is in beta.
+- **Neon Object Storage** (beta, S3-compatible, free plan 5 GB storage and 5 GB egress per project) works with `BLOB_DRIVER=s3`: use the endpoint, bucket and keys from the Neon console. Deletes there are soft deletes, so do not promise instant erasure of files.
 
 Sign-in providers turn on when their client id and secret are set: Google, GitHub and GitLab (`GITLAB_ISSUER` for self-hosted GitLab).
 

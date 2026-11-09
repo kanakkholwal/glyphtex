@@ -12,7 +12,12 @@ import {
 } from "$lib/storage/projects";
 import { writeZip } from "$lib/storage/zip";
 
-export type SyncResult = { pushed: number; pulled: number; conflicts: string[] };
+export type SyncResult = {
+	pushed: number;
+	pulled: number;
+	conflicts: string[];
+	unsynced: string[];
+};
 
 const encoder = new TextEncoder();
 const bytesOf = (f: NewFile) => f.data ?? encoder.encode(f.text ?? "");
@@ -23,6 +28,17 @@ async function sha256Hex(bytes: Uint8Array) {
 }
 
 const canPush = (role: string) => role === "owner" || role === "editor";
+
+let storesFiles: Promise<boolean> | undefined;
+/** Whether the server keeps binary files; unknown counts as yes, so a failed lookup never hides images. */
+const serverStoresFiles = () =>
+	(storesFiles ??= cloud
+		.config()
+		.then((c) => c.features.blobs)
+		.catch(() => {
+			storesFiles = undefined;
+			return true;
+		}));
 
 /** `chapter.tex` -> `chapter (server copy).tex`: where the other side's version lands on a conflict. */
 export function conflictPath(path: string) {
@@ -62,12 +78,15 @@ export async function linkProject(
 	if (result.project.mainFile !== project.entry && files.some((f) => f.path === project.entry)) {
 		await cloud.projects.update(result.project.id, { mainFile: project.entry });
 	}
+	const onServer = await cloud.files.list(result.project.id);
+	const stored = new Set(onServer.map((m) => m.path));
 	const remote: RemoteLink = {
 		id: result.project.id,
 		orgId,
 		role: "owner",
 		syncedAt: Date.now(),
-		base: baseOf(await cloud.files.list(result.project.id))
+		base: baseOf(onServer),
+		unsynced: files.filter((f) => f.data && !stored.has(f.path)).map((f) => f.path)
 	};
 	await setRemote(localId, remote);
 	return remote;
@@ -105,7 +124,7 @@ export async function cloneRemote(remoteId: string, existing?: StoredProject): P
 export async function syncProject(localId: string): Promise<SyncResult> {
 	const project = await getProject(localId);
 	const link = project?.remote;
-	if (!project || !link) return { pushed: 0, pulled: 0, conflicts: [] };
+	if (!project || !link) return { pushed: 0, pulled: 0, conflicts: [], unsynced: [] };
 
 	const view = await cloud.projects.get(link.id).catch((e: unknown) => {
 		if (e instanceof CloudError && e.status === 404) {
@@ -122,6 +141,8 @@ export async function syncProject(localId: string): Promise<SyncResult> {
 	const serverBy = new Map(server.map((f) => [f.path, f]));
 	const base = { ...link.base };
 	const conflicts = new Set(link.conflicts ?? []);
+	const unsynced = new Set(link.unsynced ?? []);
+	const blobsOn = await serverStoresFiles();
 	const localSha = new Map<string, string>();
 	for (const [path, f] of localBy) localSha.set(path, await sha256Hex(bytesOf(f)));
 
@@ -132,6 +153,11 @@ export async function syncProject(localId: string): Promise<SyncResult> {
 	const toDelete: { path: string; version: number }[] = [];
 
 	for (const path of new Set([...localBy.keys(), ...serverBy.keys(), ...Object.keys(base)])) {
+		// Without server file storage an image never leaves this browser, so there is nothing to compare.
+		if (!blobsOn && localBy.get(path)?.data) {
+			unsynced.add(path);
+			continue;
+		}
 		const b = base[path];
 		const s = serverBy.get(path);
 		const lSha = localSha.get(path);
@@ -193,10 +219,15 @@ export async function syncProject(localId: string): Promise<SyncResult> {
 					b ? { version: b.version } : { create: true }
 				);
 				base[path] = { version: meta.version, sha256: meta.sha256 };
+				unsynced.delete(path);
 				pushed++;
 			} catch (e) {
 				// Someone pushed between our read and write; the next sync reconciles it.
 				if (e instanceof CloudError && e.conflict) continue;
+				if (e instanceof CloudError && e.code === "storage_disabled") {
+					unsynced.add(path);
+					continue;
+				}
 				throw e;
 			}
 		}
@@ -221,9 +252,15 @@ export async function syncProject(localId: string): Promise<SyncResult> {
 		orgId: view.organizationId,
 		syncedAt: Date.now(),
 		base,
-		conflicts: [...conflicts]
+		conflicts: [...conflicts],
+		unsynced: [...unsynced].filter((p) => next.has(p))
 	});
-	return { pushed, pulled, conflicts: [...conflicts] };
+	return {
+		pushed,
+		pulled,
+		conflicts: [...conflicts],
+		unsynced: [...unsynced].filter((p) => next.has(p))
+	};
 }
 
 /** Whether the browser copy has edits the server hasn't seen (cheap: no network). */
@@ -232,8 +269,10 @@ export async function hasLocalChanges(localId: string): Promise<boolean> {
 	if (!project?.remote) return false;
 	const files = await readFiles(localId);
 	const base = project.remote.base;
-	if (files.length !== Object.keys(base).length) return true;
-	for (const f of files) {
+	const kept = new Set(project.remote.unsynced ?? []);
+	const tracked = files.filter((f) => !kept.has(f.path));
+	if (tracked.length !== Object.keys(base).length) return true;
+	for (const f of tracked) {
 		if (base[f.path]?.sha256 !== (await sha256Hex(bytesOf(f)))) return true;
 	}
 	return false;

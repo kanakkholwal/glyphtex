@@ -26,6 +26,8 @@
 	let { next, onsignedin }: Props = $props();
 
 	let config = $state<PublicConfig | undefined>(undefined);
+	// Assume mail works until the config says otherwise.
+	const mailOn = $derived(config?.features.mail ?? true);
 	let mode = $state<"signin" | "signup" | "sso">("signin");
 	/** Set once the password was right but the account has an authenticator to confirm. */
 	let challenge = $state(false);
@@ -256,12 +258,14 @@
 					</Button>
 					{#if mode === "signin"}
 						<div class="flex flex-wrap items-center justify-between gap-2">
-							<Button type="button" variant="ghost" size="sm" disabled={busy} onclick={magicLink}>
-								<IconMail /> Email me a sign-in link
-							</Button>
-							<Button type="button" variant="ghost" size="sm" disabled={busy} onclick={resetPassword}>
-								Forgot password?
-							</Button>
+							{#if mailOn}
+								<Button type="button" variant="ghost" size="sm" disabled={busy} onclick={magicLink}>
+									<IconMail /> Email me a sign-in link
+								</Button>
+								<Button type="button" variant="ghost" size="sm" disabled={busy} onclick={resetPassword}>
+									Forgot password?
+								</Button>
+							{/if}
 						</div>
 					{/if}
 				</form>

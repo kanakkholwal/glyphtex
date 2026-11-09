@@ -11,7 +11,7 @@ const MAILPIT = process.env.MAILPIT_URL ?? "http://localhost:8026";
 export const APP_URL = "http://localhost:5173";
 
 /** Real Postgres, Valkey, S3 and Mailpit from compose.yaml, with jobs drained on demand. */
-export async function startIntegration() {
+export async function startIntegration(overrides: Record<string, string> = {}) {
 	const built = await buildNodeDeps({
 		PUBLIC_URL: "http://localhost:8787",
 		APP_URL,
@@ -27,7 +27,8 @@ export async function startIntegration() {
 		S3_SECRET_ACCESS_KEY: "glyphtex-secret",
 		MAIL_DRIVER: "smtp",
 		SMTP_URL: process.env.SMTP_URL ?? "smtp://localhost:1025",
-		API_RATE_LIMIT: "10000"
+		API_RATE_LIMIT: "10000",
+		...overrides
 	});
 	await migrate(built.deps.db, {
 		migrationsFolder: fileURLToPath(new URL("../drizzle", import.meta.url))

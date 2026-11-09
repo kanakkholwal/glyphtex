@@ -1,0 +1,77 @@
+name: Deploy server
+
+# Requires repo secrets CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and DATABASE_URL.
+# DATABASE_URL must be a direct (non-pooled) Postgres URL: Hyperdrive and PgBouncer
+# endpoints are for the running Worker, not for schema changes.
+# Runtime secrets (BETTER_AUTH_SECRET, RESEND_API_KEY, ...) live in Cloudflare, not here.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/server/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-server.yml'
+  workflow_dispatch:
+
+# One run at a time: two migrations racing the same database is never what anyone wants.
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  deploy:
+    name: Migrate, then deploy to CF Workers
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: production
+      url: ${{ vars.SERVER_DEPLOY_URL || 'https://glyphtex-api.nexonauts.com' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter @glyphtex/server check
+
+      - name: Unit tests
+        run: pnpm --filter @glyphtex/server test
+
+      # Before the migration, not after: a build that cannot bundle must not leave the
+      # database ahead of the code that is still running.
+      - name: Bundle for Workers (dry run)
+        run: pnpm --filter @glyphtex/server exec wrangler deploy --dry-run --outdir /tmp/server-bundle
+
+      # Each step only runs if the one before it succeeded, so a failed migration stops
+      # here and nothing is deployed. Migrations are additive and forward-only: the old
+      # Worker keeps serving against the migrated schema until the deploy below lands.
+      - name: Apply database migrations
+        run: pnpm --filter @glyphtex/server migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Deploy via Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/server
+          command: deploy

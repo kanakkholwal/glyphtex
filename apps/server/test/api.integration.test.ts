@@ -254,8 +254,10 @@ describe("API end to end", { skip: integrationEnabled ? false : "set GLYPHTEX_IT
 
 	test("account deletion is a hard delete of the user and everything they own", async () => {
 		const { db } = it.built.deps;
+		// Scoped to alice: the shared test database keeps projects from earlier runs.
+		const aliceId = await alice.id();
 		const imported = await db.query.project.findFirst({
-			where: (p, { eq, and }) => and(eq(p.name, "Imported"))
+			where: (p, { eq, and }) => and(eq(p.name, "Imported"), eq(p.ownerId, aliceId))
 		});
 		const blob = await db.query.projectFile.findFirst({
 			where: (f, { eq, and }) => and(eq(f.projectId, imported?.id ?? ""), eq(f.kind, "binary"))

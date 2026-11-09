@@ -1,3 +1,4 @@
+import { disabledBlobs } from "../adapters/blobs/disabled.ts";
 import { cfQueue, cfRateLimiter, kvCache, r2Blobs } from "../adapters/cloudflare/index.ts";
 import type {
 	ExecutionContext,
@@ -6,14 +7,17 @@ import type {
 	MessageBatch,
 	Queue,
 	R2Bucket,
-	RateLimit
+	RateLimit,
+	SendEmail
 } from "../adapters/cloudflare/bindings.ts";
+import { cloudflareMailer } from "../adapters/mail/cloudflare.ts";
+import { noMailer } from "../adapters/mail/none.ts";
 import { resendMailer } from "../adapters/mail/resend.ts";
 import { s3Blobs } from "../adapters/s3/blobs.ts";
 import type { Adapters } from "../adapters/types.ts";
 import { createApp } from "../app.ts";
 import { createAuth } from "../auth/auth.ts";
-import { type Config, parseConfig, required } from "../config.ts";
+import { type Config, configNotes, parseConfig, required } from "../config.ts";
 import type { Deps } from "../context.ts";
 import { connectDb } from "../db/client.ts";
 import { runJob } from "../jobs/handlers.ts";
@@ -27,6 +31,7 @@ interface Env extends Record<string, unknown> {
 	CACHE: KVNamespace;
 	JOBS: Queue<Job>;
 	BLOBS?: R2Bucket;
+	EMAIL?: SendEmail;
 	API_RATE_LIMITER: RateLimit;
 	SHARE_RATE_LIMITER: RateLimit;
 }
@@ -37,31 +42,48 @@ const logger = createLogger({ runtime: "workers" });
 // because Workers can't share sockets across requests.
 const perEnv = new WeakMap<Env, { config: Config; adapters: Adapters }>();
 
+function buildBlobs(env: Env, config: Config) {
+	switch (config.blobDriver) {
+		case "s3":
+			return s3Blobs({
+				endpoint: required(config.s3.endpoint, "S3_ENDPOINT"),
+				region: config.s3.region,
+				bucket: required(config.s3.bucket, "S3_BUCKET"),
+				accessKeyId: required(config.s3.accessKeyId, "S3_ACCESS_KEY_ID"),
+				secretAccessKey: required(config.s3.secretAccessKey, "S3_SECRET_ACCESS_KEY")
+			});
+		case "r2":
+			return r2Blobs(required(env.BLOBS, "BLOBS (R2 binding)"));
+		default:
+			return disabledBlobs();
+	}
+}
+
+function buildMailer(env: Env, config: Config) {
+	switch (config.mailDriver) {
+		case "cloudflare":
+			return cloudflareMailer(required(env.EMAIL, "EMAIL (send_email binding)"), config.mail.from);
+		case "resend":
+			return resendMailer(required(config.mail.resendApiKey, "RESEND_API_KEY"), config.mail.from);
+		default:
+			return noMailer();
+	}
+}
+
 function envState(env: Env) {
 	let state = perEnv.get(env);
 	if (!state) {
 		const config = parseConfig(env);
-		if (config.mailDriver !== "resend") throw new Error("Workers can only send mail via Resend.");
-		const blobs =
-			config.blobDriver === "s3"
-				? s3Blobs({
-						endpoint: required(config.s3.endpoint, "S3_ENDPOINT"),
-						region: config.s3.region,
-						bucket: required(config.s3.bucket, "S3_BUCKET"),
-						accessKeyId: required(config.s3.accessKeyId, "S3_ACCESS_KEY_ID"),
-						secretAccessKey: required(config.s3.secretAccessKey, "S3_SECRET_ACCESS_KEY")
-					})
-				: r2Blobs(required(env.BLOBS, "BLOBS (R2 binding)"));
+		for (const note of configNotes(config)) logger.warn(note);
+		if (config.mailDriver === "smtp") throw new Error("Workers can't open SMTP connections.");
+		const blobs = buildBlobs(env, config);
 		state = {
 			config,
 			adapters: {
 				cache: kvCache(env.CACHE),
 				queue: cfQueue(env.JOBS),
 				blobs,
-				mailer: resendMailer(
-					required(config.mail.resendApiKey, "RESEND_API_KEY"),
-					config.mail.from
-				),
+				mailer: buildMailer(env, config),
 				rateLimiter: cfRateLimiter({ api: env.API_RATE_LIMITER, share: env.SHARE_RATE_LIMITER })
 			}
 		};

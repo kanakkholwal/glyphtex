@@ -1,3 +1,5 @@
+import { disabledBlobs } from "../adapters/blobs/disabled.ts";
+import { noMailer } from "../adapters/mail/none.ts";
 import { smtpMailer } from "../adapters/mail/smtp.ts";
 import { resendMailer } from "../adapters/mail/resend.ts";
 import { connectRabbit, rabbitQueue } from "../adapters/rabbitmq/queue.ts";
@@ -5,7 +7,7 @@ import { connectRedis, redisCache, redisQueue, redisRateLimiter } from "../adapt
 import { s3Blobs } from "../adapters/s3/blobs.ts";
 import type { Adapters, Mailer } from "../adapters/types.ts";
 import { createAuth } from "../auth/auth.ts";
-import { type Config, parseConfig, required } from "../config.ts";
+import { type Config, configNotes, parseConfig, required } from "../config.ts";
 import type { Deps } from "../context.ts";
 import { connectDb } from "../db/client.ts";
 import { createLogger } from "../lib/logger.ts";
@@ -14,6 +16,7 @@ import { createLogger } from "../lib/logger.ts";
 export async function buildNodeDeps(env: Record<string, unknown> = process.env) {
 	const config = parseConfig(env);
 	const logger = createLogger({ runtime: "node" });
+	for (const note of configNotes(config)) logger.warn(note);
 	const redis = await connectRedis(required(config.redisUrl, "REDIS_URL"));
 	const { db, close: closeDb } = connectDb(required(config.databaseUrl, "DATABASE_URL"));
 	const closers: (() => Promise<unknown>)[] = [closeDb, () => redis.quit()];
@@ -32,17 +35,22 @@ export async function buildNodeDeps(env: Record<string, unknown> = process.env) 
 			"BLOB_DRIVER=r2 needs the Workers runtime; use s3 with R2's S3 endpoint instead."
 		);
 	}
+	if (config.mailDriver === "cloudflare") {
+		throw new Error("MAIL_DRIVER=cloudflare needs the Workers runtime; use smtp or resend here.");
+	}
 
 	const adapters: Adapters = {
 		cache: redisCache(redis),
 		queue,
-		blobs: s3Blobs({
-			endpoint: required(config.s3.endpoint, "S3_ENDPOINT"),
-			region: config.s3.region,
-			bucket: required(config.s3.bucket, "S3_BUCKET"),
-			accessKeyId: required(config.s3.accessKeyId, "S3_ACCESS_KEY_ID"),
-			secretAccessKey: required(config.s3.secretAccessKey, "S3_SECRET_ACCESS_KEY")
-		}),
+		blobs: config.blobsEnabled
+			? s3Blobs({
+					endpoint: required(config.s3.endpoint, "S3_ENDPOINT"),
+					region: config.s3.region,
+					bucket: required(config.s3.bucket, "S3_BUCKET"),
+					accessKeyId: required(config.s3.accessKeyId, "S3_ACCESS_KEY_ID"),
+					secretAccessKey: required(config.s3.secretAccessKey, "S3_SECRET_ACCESS_KEY")
+				})
+			: disabledBlobs(),
 		mailer: buildMailer(config),
 		rateLimiter: redisRateLimiter(redis, {
 			api: { limit: config.limits.apiRequests, windowSeconds: config.limits.apiWindowSeconds },
@@ -62,7 +70,12 @@ export async function buildNodeDeps(env: Record<string, unknown> = process.env) 
 }
 
 function buildMailer(config: Config): Mailer {
-	return config.mailDriver === "smtp"
-		? smtpMailer(required(config.mail.smtpUrl, "SMTP_URL"), config.mail.from)
-		: resendMailer(required(config.mail.resendApiKey, "RESEND_API_KEY"), config.mail.from);
+	switch (config.mailDriver) {
+		case "smtp":
+			return smtpMailer(required(config.mail.smtpUrl, "SMTP_URL"), config.mail.from);
+		case "resend":
+			return resendMailer(required(config.mail.resendApiKey, "RESEND_API_KEY"), config.mail.from);
+		default:
+			return noMailer();
+	}
 }

@@ -35,6 +35,8 @@ export type RemoteLink = {
 	base: Record<string, { version: number; sha256: string }>;
 	/** Paths whose server and browser edits collided; the server copy sits beside them. */
 	conflicts?: string[];
+	/** Binary files the server can't store because file storage is off; the browser keeps them. */
+	unsynced?: string[];
 };
 
 /** One file. Exactly one of `text` / `data` is set: `data` carries images. */

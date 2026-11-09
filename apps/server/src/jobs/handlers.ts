@@ -1,4 +1,5 @@
 import { inArray } from "drizzle-orm";
+import { PermanentMailError } from "../adapters/mail/errors.ts";
 import type { Blobs, Mailer } from "../adapters/types.ts";
 import type { Db } from "../db/client.ts";
 import { projectFile } from "../db/schema.ts";
@@ -16,7 +17,13 @@ export interface JobDeps {
 export async function runJob(job: Job, deps: JobDeps) {
 	switch (job.type) {
 		case "email.send":
-			await deps.mailer.send(job.mail);
+			try {
+				await deps.mailer.send(job.mail);
+			} catch (error) {
+				if (!(error instanceof PermanentMailError)) throw error;
+				// Retrying can't help; keep the reason in the log and let the job end.
+				deps.logger.error("email dropped", { error });
+			}
 			return;
 		case "blobs.delete": {
 			// Only purge keys no row references, so a job that runs before (or without) the

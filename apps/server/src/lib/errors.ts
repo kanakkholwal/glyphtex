@@ -26,6 +26,12 @@ export const errors = {
 	unauthorized: () => new AppError(401, "unauthorized", "Sign in to continue."),
 	forbidden: (message = "You don't have permission to do that.") =>
 		new AppError(403, "forbidden", message),
+	storageDisabled: () =>
+		new AppError(
+			501,
+			"storage_disabled",
+			"This server doesn't store binary files such as images. Text files are saved as usual."
+		),
 	twoFactorRequired: () =>
 		new AppError(
 			403,

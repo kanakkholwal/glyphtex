@@ -1,7 +1,7 @@
 import { strToU8, unzipSync, Zip, ZipDeflate, ZipPassThrough } from "fflate";
 import type { Deps } from "../context.ts";
 import { newId } from "../lib/crypto.ts";
-import { errors } from "../lib/errors.ts";
+import { AppError, errors } from "../lib/errors.ts";
 import { normalizePath } from "../lib/paths.ts";
 import { fileRepository } from "../repositories/files.ts";
 import { projectRepository } from "../repositories/projects.ts";
@@ -90,13 +90,17 @@ export function archiveService(deps: Deps) {
 					skipped.push(raw);
 					return null;
 				}
-				const stored: StoredContent = await files.store(
-					projectId,
-					path,
-					unpacked[raw] as Uint8Array,
-					undefined,
-					true
-				);
+				let stored: StoredContent;
+				try {
+					stored = await files.store(projectId, path, unpacked[raw] as Uint8Array, undefined, true);
+				} catch (error) {
+					// Without file storage the text still imports; images and fonts are reported as skipped.
+					if (error instanceof AppError && error.code === "storage_disabled") {
+						skipped.push(raw);
+						return null;
+					}
+					throw error;
+				}
 				if (stored.blobKey) uploaded.push(stored.blobKey);
 				return { path, ...stored };
 			}).catch(async (error: unknown) => {

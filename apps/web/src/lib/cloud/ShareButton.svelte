@@ -72,9 +72,10 @@
 	async function link() {
 		linking = true;
 		try {
-			await linkProject(document.id, cloudSession.activeOrgId);
+			const remote = await linkProject(document.id, cloudSession.activeOrgId);
 			linkOpen = false;
 			toast.success("Saved to the cloud. Edits now sync from this browser.");
+			if (remote.unsynced?.length) toast.info(keptHere(remote.unsynced.length));
 			// Reload the editor so it picks up the link (role, server id).
 			notifyTreeChanged(document.id);
 			if (thenShare) shareOpen = true;
@@ -85,6 +86,9 @@
 		}
 	}
 
+	const keptHere = (n: number) =>
+		`${n} ${n === 1 ? "file stays" : "files stay"} in this browser: the server doesn't store images or other binary files.`;
+
 	async function syncNow() {
 		try {
 			const r = await sync.run(document.id);
@@ -93,6 +97,7 @@
 					`${r.conflicts.length} ${r.conflicts.length === 1 ? "file was" : "files were"} edited in two places. The server version sits beside yours as "(server copy)".`
 				);
 			} else toast.success(r.pushed || r.pulled ? "Synced." : "Already up to date.");
+			if (r.unsynced.length) toast.info(keptHere(r.unsynced.length));
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : "Sync failed.");
 		}

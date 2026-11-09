@@ -42,6 +42,16 @@ export interface RateLimit {
 	limit(options: { key: string }): Promise<{ success: boolean }>;
 }
 
+export interface SendEmail {
+	send(message: {
+		to: string;
+		from: string | { email: string; name: string };
+		subject: string;
+		text: string;
+		html: string;
+	}): Promise<{ messageId: string }>;
+}
+
 export interface Hyperdrive {
 	connectionString: string;
 }

@@ -77,7 +77,10 @@ export interface ImportResult {
 
 export interface PublicConfig {
 	providers: ("google" | "github" | "gitlab")[];
+	/** True only when the server can send mail. */
 	magicLink: boolean;
+	/** What this server has switched on; the client skips what it can't do. */
+	features: { mail: boolean; blobs: boolean };
 	limits: { textFileBytes: number; binaryFileBytes: number; filesPerProject: number };
 }
 
