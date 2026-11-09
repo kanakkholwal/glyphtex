@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `math-helpers` pack: `bm` (bold math symbols) and `xargs` (commands with several
+  optional arguments), requested in #83. Built against the shipped core with
+  `build-packs.mjs --only math-helpers`, so no existing pack changed.
+
 ## 0.1.4
 
 ### Added

@@ -269,5 +269,18 @@ Price: \euro{}5. Done: \ding{51}. Wrong: \ding{55}. Next: \ding{224}.
 \begin{document}
 Set in TeX Gyre Termes through fontspec.
 \end{document}`
+	},
+	{
+		// Requested in #83 by an MNRAS manuscript, which loads bm and then xargs.
+		id: "math-helpers",
+		source: String.raw`\documentclass{article}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{xargs}
+\newcommandx{\pair}[3][1=a,2=b]{(#1,#2;#3)}
+\begin{document}
+Bold symbols: $\bm{\alpha} + \bm{x}^{T}\bm{A}\bm{x}$.
+Defaults: $\pair{c}$, overridden: $\pair[x][y]{z}$.
+\end{document}`
 	}
 ];
