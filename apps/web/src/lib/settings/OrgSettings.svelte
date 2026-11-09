@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SectionsSkeleton from "$lib/loading/SectionsSkeleton.svelte";
 	import { Button } from "@glyphtex/ui/button";
 	import {
 		Dialog,
@@ -123,6 +124,7 @@
 						oninput={(e) => (name = e.currentTarget.value)}
 						disabled={!canManage}
 						maxlength={80}
+						placeholder="Physics Lab"
 					/>
 				</label>
 				{#if canManage}
@@ -191,6 +193,7 @@
 						value={view.policy.seatLimit === null ? "" : String(view.policy.seatLimit)}
 						disabled={!canManage}
 						aria-label="Seat limit"
+						placeholder="No limit"
 						onchange={(e) => {
 							const n = Number.parseInt(e.currentTarget.value, 10);
 							void setPolicy("seatLimit", Number.isFinite(n) && n > 0 ? n : null);
@@ -247,7 +250,5 @@
 {:else if activeOrg.error}
 	<p class="text-destructive-strong text-sm">{activeOrg.error}</p>
 {:else}
-	<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
-		<IconLoader2 size={14} class="animate-spin" /> Loading…
-	</p>
+	<SectionsSkeleton sections={3} label="Loading organization" />
 {/if}

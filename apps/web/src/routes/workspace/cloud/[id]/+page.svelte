@@ -4,6 +4,7 @@
 	import { page } from "$app/state";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
+	import { Skeleton } from "@glyphtex/ui/skeleton";
 	import { onMount } from "svelte";
 
 	import { cloudSession } from "$lib/cloud/session.svelte";
@@ -38,6 +39,10 @@
 		<p class="text-muted-foreground max-w-sm text-center text-sm">{error}</p>
 		<Button variant="outline" size="sm" href={resolve('/workspace')}>Back to projects</Button>
 	{:else}
-		<p class="text-muted-foreground text-sm" role="status">Getting the latest version…</p>
+		<div class="flex flex-col items-center gap-2" role="status" aria-busy="true">
+			<Skeleton class="h-3.5 w-48" />
+			<Skeleton class="h-3 w-32" />
+			<span class="sr-only">Opening the project</span>
+		</div>
 	{/if}
 </main>

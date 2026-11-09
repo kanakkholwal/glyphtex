@@ -44,11 +44,11 @@
 		<form class="flex flex-col gap-3" onsubmit={submit}>
 			<label class="flex flex-col gap-1 text-xs font-medium">
 				New password
-				<Input type="password" required minlength={10} autocomplete="new-password" bind:value={password} />
+				<Input type="password" required minlength={10} autocomplete="new-password" placeholder="At least 10 characters" bind:value={password} />
 			</label>
 			<label class="flex flex-col gap-1 text-xs font-medium">
 				Repeat it
-				<Input type="password" required minlength={10} autocomplete="new-password" bind:value={confirm} />
+				<Input type="password" required minlength={10} autocomplete="new-password" placeholder="Repeat the new password" bind:value={confirm} />
 			</label>
 			{#if error}<p class="text-destructive-strong text-sm" role="alert">{error}</p>{/if}
 			<Button type="submit" variant="dark" disabled={busy}>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import RowsSkeleton from "$lib/loading/RowsSkeleton.svelte";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { Avatar, AvatarFallback, AvatarImage } from "@glyphtex/ui/avatar";
@@ -28,14 +29,7 @@
 		TableRow
 	} from "@glyphtex/ui/table";
 	import { toast } from "@glyphtex/ui/sonner";
-	import {
-		IconDots,
-		IconLink,
-		IconLoader2,
-		IconLogout,
-		IconMail,
-		IconTrash
-	} from "@tabler/icons-svelte";
+	import { IconDots, IconLink, IconLogout, IconMail, IconTrash } from "@tabler/icons-svelte";
 
 	import type { DocumentMeta } from "$lib/documents/store";
 	import {
@@ -204,9 +198,7 @@
 		<section class="flex flex-col gap-2" aria-labelledby="share-people">
 			<h3 id="share-people" class="sr-only">People with access</h3>
 			{#if loading && !members}
-				<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
-					<IconLoader2 size={14} class="animate-spin" /> Loading…
-				</p>
+				<RowsSkeleton rows={2} avatar label="Loading people with access" />
 			{:else if members}
 				<Table variant="framed" class="table-fixed">
 					<TableHeader>

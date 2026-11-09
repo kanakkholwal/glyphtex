@@ -1,4 +1,5 @@
 <script lang="ts">
+	import RowsSkeleton from "$lib/loading/RowsSkeleton.svelte";
 	import { Button } from "@glyphtex/ui/button";
 	import { toast } from "@glyphtex/ui/sonner";
 	import {
@@ -120,9 +121,7 @@
 </script>
 
 {#if loading}
-	<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
-		<IconLoader2 size={14} class="animate-spin" /> Loading…
-	</p>
+	<RowsSkeleton rows={6} label="Loading the audit log" />
 {:else}
 	<div class="flex flex-col gap-10">
 		<section aria-label="Usage" class="border-border bg-card grid grid-cols-2 gap-px overflow-hidden rounded-xl border sm:grid-cols-5">

@@ -88,6 +88,7 @@
 								required
 								inputmode="numeric"
 								autocomplete="one-time-code"
+								placeholder="123456"
 								bind:value={code}
 							/>
 						</label>
@@ -114,7 +115,13 @@
 			<form class="flex flex-wrap items-end gap-2" onsubmit={disable}>
 				<label class="flex min-w-48 flex-1 flex-col gap-1.5 text-xs font-medium">
 					Password
-					<Input type="password" required autocomplete="current-password" bind:value={password} />
+					<Input
+						type="password"
+						required
+						autocomplete="current-password"
+						placeholder="Your password"
+						bind:value={password}
+					/>
 				</label>
 				<Button type="submit" variant="outline" size="sm" disabled={busy || !password}>
 					Turn off
@@ -124,7 +131,13 @@
 			<form class="flex flex-wrap items-end gap-2" onsubmit={start}>
 				<label class="flex min-w-48 flex-1 flex-col gap-1.5 text-xs font-medium">
 					Password
-					<Input type="password" required autocomplete="current-password" bind:value={password} />
+					<Input
+						type="password"
+						required
+						autocomplete="current-password"
+						placeholder="Your password"
+						bind:value={password}
+					/>
 				</label>
 				<Button type="submit" variant="outline" size="sm" disabled={busy || !password}>
 					{#if busy}<IconLoader2 class="animate-spin" />{/if} Set up

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SectionsSkeleton from "$lib/loading/SectionsSkeleton.svelte";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { Button } from "@glyphtex/ui/button";
@@ -204,7 +205,5 @@
 		</SettingsSection>
 	</div>
 {:else}
-	<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
-		<IconLoader2 size={14} class="animate-spin" /> Loading…
-	</p>
+	<SectionsSkeleton sections={2} label="Loading templates and packages" />
 {/if}

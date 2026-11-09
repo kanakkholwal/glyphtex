@@ -1,9 +1,10 @@
 <script lang="ts">
+	import RowsSkeleton from "$lib/loading/RowsSkeleton.svelte";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import { Button } from "@glyphtex/ui/button";
-	import { IconLoader2 } from "@tabler/icons-svelte";
+	import {} from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 
 	import type { Joined } from "@glyphtex/server/contract";
@@ -63,8 +64,6 @@
 	</CloudPage>
 {:else}
 	<CloudPage title="Opening project">
-		<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
-			<IconLoader2 size={14} class="animate-spin" /> Joining…
-		</p>
+		<RowsSkeleton rows={1} label="Joining" />
 	</CloudPage>
 {/if}

@@ -5,6 +5,8 @@
 	import { toast } from "@glyphtex/ui/sonner";
 	import { IconFileText, IconLoader2 } from "@tabler/icons-svelte";
 
+	import CardsSkeleton from "$lib/loading/CardsSkeleton.svelte";
+
 	import { cloud, type OrgTemplate } from "./api";
 	import { cloudSession } from "./session.svelte";
 
@@ -14,7 +16,8 @@
 
 	let { orgId }: Props = $props();
 
-	let templates = $state.raw<OrgTemplate[]>([]);
+	/** Null until the first answer, so the row shows placeholders instead of popping in. */
+	let templates = $state.raw<OrgTemplate[] | null>(null);
 	let using = $state<string | null>(null);
 	const orgName = $derived(cloudSession.orgs.find((o) => o.id === orgId)?.name ?? "Organization");
 
@@ -26,6 +29,7 @@
 				if (id === orgId) templates = list;
 			})
 			.catch((e: unknown) => {
+				templates = [];
 				// The public gallery still works; say why the org's own row is missing.
 				toast.error(
 					e instanceof Error ? e.message : "Could not load the organization's templates."
@@ -48,7 +52,9 @@
 	}
 </script>
 
-{#if templates.length}
+{#if templates === null}
+	<CardsSkeleton count={3} label="Loading organization templates" />
+{:else if templates.length}
 	<section aria-labelledby="org-templates-label" class="flex flex-col gap-3">
 		<h2
 			id="org-templates-label"

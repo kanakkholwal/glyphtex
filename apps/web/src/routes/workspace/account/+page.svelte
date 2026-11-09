@@ -1,16 +1,22 @@
 <script lang="ts">
+	import SignInSkeleton from "$lib/loading/SignInSkeleton.svelte";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
+	import { browser } from "$app/environment";
 	import { page } from "$app/state";
 	import { Button } from "@glyphtex/ui/button";
-	import { IconArrowLeft, IconLoader2 } from "@tabler/icons-svelte";
+	import { IconArrowLeft } from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 
 	import CloudPage from "$lib/cloud/CloudPage.svelte";
+	import { publicConfig } from "$lib/cloud/public-config";
 	import { cloudEnabled } from "$lib/cloud/config";
 	import { safeNext } from "$lib/cloud/next";
 	import { cloudSession } from "$lib/cloud/session.svelte";
 	import SignInPanel from "$lib/cloud/SignInPanel.svelte";
+
+	// Start the sign-in options request now, in parallel with the session check, so the panel finds it done.
+	if (browser && cloudEnabled) void publicConfig().catch(() => {});
 
 	// Account management lives in Settings; this page only signs people in.
 	const SETTINGS = "/workspace/settings?tab=account";
@@ -50,9 +56,7 @@
 	</CloudPage>
 {:else if cloudSession.status === 'idle' || cloudSession.status === 'loading' || cloudSession.user}
 	<CloudPage title="Account">
-		<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
-			<IconLoader2 size={14} class="animate-spin" /> Checking your session…
-		</p>
+		<SignInSkeleton />
 	</CloudPage>
 {:else}
 	<CloudPage

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import RowsSkeleton from "$lib/loading/RowsSkeleton.svelte";
 	import { Avatar, AvatarFallback, AvatarImage } from "@glyphtex/ui/avatar";
 	import { Button } from "@glyphtex/ui/button";
 	import {
@@ -166,9 +167,7 @@
 	{/snippet}
 
 	{#if loading}
-		<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
-			<IconLoader2 size={14} class="animate-spin" /> Loading…
-		</p>
+		<RowsSkeleton rows={4} avatar label="Loading members" />
 	{:else}
 		<Table variant="framed" class="table-fixed">
 			<TableHeader>

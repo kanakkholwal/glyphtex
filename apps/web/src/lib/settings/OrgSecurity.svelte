@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SectionsSkeleton from "$lib/loading/SectionsSkeleton.svelte";
 	import { Badge } from "@glyphtex/ui/badge";
 	import { Button } from "@glyphtex/ui/button";
 	import { CopyButton } from "@glyphtex/ui/copy-button";
@@ -249,11 +250,17 @@
 						</label>
 						<label class="flex flex-col gap-1.5 text-xs font-medium">
 							Client ID
-							<Input required autocomplete="off" bind:value={clientId} />
+							<Input required autocomplete="off" placeholder="From your identity provider" bind:value={clientId} />
 						</label>
 						<label class="flex flex-col gap-1.5 text-xs font-medium">
 							Client secret
-							<Input required type="password" autocomplete="off" bind:value={clientSecret} />
+							<Input
+								required
+								type="password"
+								autocomplete="off"
+								placeholder="Kept encrypted on the server"
+								bind:value={clientSecret}
+							/>
 						</label>
 						<p class="text-muted-foreground text-xs sm:col-span-2">
 							Register this redirect URL with your provider: <code>{callbackFor(providerId)}</code>
@@ -352,7 +359,5 @@
 		</DialogContent>
 	</Dialog>
 {:else}
-	<p class="text-muted-foreground flex items-center gap-2 text-sm" role="status">
-		<IconLoader2 size={14} class="animate-spin" /> Loading…
-	</p>
+	<SectionsSkeleton sections={2} label="Loading security settings" />
 {/if}

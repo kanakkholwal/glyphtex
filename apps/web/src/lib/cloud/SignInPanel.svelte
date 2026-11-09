@@ -2,19 +2,22 @@
 	import { Button } from "@glyphtex/ui/button";
 	import { Input } from "@glyphtex/ui/input";
 	import { Separator } from "@glyphtex/ui/separator";
+	import { Skeleton } from "@glyphtex/ui/skeleton";
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from "@glyphtex/ui/tabs";
 	import {
 		IconBrandGithub,
 		IconBrandGitlab,
 		IconBrandGoogle,
 		IconBuilding,
+		IconId,
 		IconLoader2,
 		IconMail
 	} from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 
-	import { cloud, type PublicConfig } from "./api";
+	import type { PublicConfig } from "./api";
 	import { appUrl, authClient, unwrap } from "./auth";
+	import { publicConfig } from "./public-config";
 	import { cloudSession } from "./session.svelte";
 
 	interface Props {
@@ -26,6 +29,8 @@
 	let { next, onsignedin }: Props = $props();
 
 	let config = $state<PublicConfig | undefined>(undefined);
+	/** Until the config settles the provider area is a skeleton, so the form doesn't shift when it lands. */
+	let configLoaded = $state(false);
 	// Assume mail works until the config says otherwise.
 	const mailOn = $derived(config?.features.mail ?? true);
 	let mode = $state<"signin" | "signup" | "sso">("signin");
@@ -43,9 +48,11 @@
 
 	onMount(async () => {
 		try {
-			config = await cloud.config();
+			config = await publicConfig();
 		} catch {
 			// Without config we still offer email sign-in, which every server supports.
+		} finally {
+			configLoaded = true;
 		}
 	});
 
@@ -139,7 +146,7 @@
 		});
 	}
 
-	function social(provider: "google" | "github" | "gitlab") {
+	function social(provider: PublicConfig["providers"][number]) {
 		void run(async () => {
 			await unwrap(authClient.signIn.social({ provider, callbackURL: callbackURL() }));
 		});
@@ -148,7 +155,8 @@
 	const PROVIDERS = {
 		google: { label: "Google", icon: IconBrandGoogle },
 		github: { label: "GitHub", icon: IconBrandGithub },
-		gitlab: { label: "GitLab", icon: IconBrandGitlab }
+		gitlab: { label: "GitLab", icon: IconBrandGitlab },
+		orcid: { label: "ORCID", icon: IconId }
 	} as const;
 </script>
 
@@ -162,6 +170,7 @@
 		<Input
 			required
 			autocomplete="one-time-code"
+			placeholder={backup ? "Backup code" : "123456"}
 			inputmode={backup ? "text" : "numeric"}
 			aria-label={backup ? "Backup code" : "Authenticator code"}
 			bind:value={code}
@@ -191,7 +200,13 @@
 	</div>
 {:else}
 	<div class="flex flex-col gap-4">
-		{#if config && config.providers.length > 0}
+		{#if !configLoaded}
+			<div class="flex flex-col gap-2" role="status" aria-busy="true" aria-label="Loading sign-in options">
+				<Skeleton class="h-9 w-full rounded-lg" />
+				<Skeleton class="h-9 w-full rounded-lg" />
+			</div>
+			<Skeleton class="h-3 w-full" />
+		{:else if config && config.providers.length > 0}
 			<div class="flex flex-col gap-2">
 				{#each config.providers as p (p)}
 					{@const Icon = PROVIDERS[p].icon}
@@ -219,7 +234,13 @@
 						</p>
 						<label class="flex flex-col gap-1 text-xs font-medium">
 							Work email
-							<Input type="email" required autocomplete="email" bind:value={email} />
+							<Input
+							type="email"
+							required
+							autocomplete="email"
+							placeholder="you@yourcompany.com"
+							bind:value={email}
+						/>
 						</label>
 						{#if error}<p class="text-destructive-strong text-sm" role="alert">{error}</p>{/if}
 						<Button type="submit" variant="dark" disabled={busy}>
@@ -232,12 +253,18 @@
 					{#if mode === "signup"}
 						<label class="flex flex-col gap-1 text-xs font-medium">
 							Name
-							<Input autocomplete="name" bind:value={name} />
+							<Input autocomplete="name" placeholder="Your name" bind:value={name} />
 						</label>
 					{/if}
 					<label class="flex flex-col gap-1 text-xs font-medium">
 						Email
-						<Input type="email" required autocomplete="email" bind:value={email} />
+						<Input
+							type="email"
+							required
+							autocomplete="email"
+							placeholder="you@example.com"
+							bind:value={email}
+						/>
 					</label>
 					<label class="flex flex-col gap-1 text-xs font-medium">
 						Password
@@ -245,6 +272,7 @@
 							type="password"
 							required
 							minlength={10}
+							placeholder={mode === "signup" ? "At least 10 characters" : "Your password"}
 							autocomplete={mode === "signup" ? "new-password" : "current-password"}
 							bind:value={password}
 						/>
