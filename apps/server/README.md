@@ -65,6 +65,12 @@ File storage and mail are off until you configure them, so a first deployment ne
 - **Cloudflare mail**: set `MAIL_DRIVER=cloudflare` and add `"send_email": [{ "name": "EMAIL" }]` to `wrangler.jsonc`. The sending domain must be on Cloudflare, and sending to anyone (not only verified addresses) needs the Workers Paid plan. It is in beta.
 - **Neon Object Storage** (beta, S3-compatible, free plan 5 GB storage and 5 GB egress per project) works with `BLOB_DRIVER=s3`: use the endpoint, bucket and keys from the Neon console. Deletes there are soft deletes, so do not promise instant erasure of files.
 
+**ORCID** (for researchers who want one identity they control) turns on with `ORCID_CLIENT_ID` and `ORCID_CLIENT_SECRET`:
+
+- Register a public API client at [orcid.org/developer-tools](https://orcid.org/developer-tools) with the redirect URI `<PUBLIC_URL>/api/auth/callback/orcid`. Set `ORCID_SANDBOX=true` to try it on sandbox.orcid.org first.
+- ORCID does not release an email address, so the account is created with `<iD>@orcid.invalid`. No mail can reach it (no password reset or email invitations); share links and SSO work as usual.
+- Only the iD and public name are stored.
+
 Sign-in providers turn on when their client id and secret are set: Google, GitHub and GitLab (`GITLAB_ISSUER` for self-hosted GitLab).
 
 ## API (all under `/api`, session cookie required)

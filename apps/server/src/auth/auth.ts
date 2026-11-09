@@ -1,6 +1,7 @@
 import { scim } from "@better-auth/scim";
 import { sso } from "@better-auth/sso";
 import { betterAuth } from "better-auth";
+import { genericOAuth } from "better-auth/plugins/generic-oauth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { magicLink } from "better-auth/plugins/magic-link";
@@ -13,6 +14,7 @@ import { schema } from "../db/schema.ts";
 import { mails } from "../mail/templates.ts";
 import { AppError } from "../lib/errors.ts";
 import { orgRepository } from "../repositories/orgs.ts";
+import { orcidProvider } from "./orcid.ts";
 import { scimIdentity, scimProjection } from "./scim.ts";
 import {
 	assertCanDeleteAccount,
@@ -49,7 +51,7 @@ const actorOf = (ctx: HookCtx, fallback: string | null) =>
 export function createAuth({ config, db, queue }: AuthDeps) {
 	const sendMail = (mail: ReturnType<(typeof mails)[keyof typeof mails]>) =>
 		queue.enqueue({ type: "email.send", mail });
-	const { google, github, gitlab, gitlabIssuer } = config.oauth;
+	const { google, github, gitlab, gitlabIssuer, orcid, orcidSandbox } = config.oauth;
 	const orgs = orgRepository(db);
 
 	return betterAuth({
@@ -123,6 +125,9 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 			})
 		},
 		plugins: [
+			...(orcid
+				? [genericOAuth({ config: [orcidProvider({ ...orcid, sandbox: orcidSandbox })] })]
+				: []),
 			twoFactor({ issuer: "GlyphTeX" }),
 			sso({
 				domainVerification: { enabled: true },

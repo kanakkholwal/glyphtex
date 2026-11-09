@@ -57,6 +57,13 @@ const schema = z.object({
 	GITLAB_CLIENT_ID: optional,
 	GITLAB_CLIENT_SECRET: optional,
 	GITLAB_ISSUER: optional,
+	ORCID_CLIENT_ID: optional,
+	ORCID_CLIENT_SECRET: optional,
+	// sandbox.orcid.org instead of orcid.org, for trying it out with test records.
+	ORCID_SANDBOX: z
+		.enum(["true", "false"])
+		.default("false")
+		.transform((v) => v === "true"),
 
 	MAX_TEXT_FILE_BYTES: int(2 * 1024 * 1024),
 	MAX_BINARY_FILE_BYTES: int(50 * 1024 * 1024),
@@ -120,7 +127,9 @@ export function parseConfig(env: Record<string, unknown>) {
 			google: pair(e.GOOGLE_CLIENT_ID, e.GOOGLE_CLIENT_SECRET),
 			github: pair(e.GITHUB_CLIENT_ID, e.GITHUB_CLIENT_SECRET),
 			gitlab: pair(e.GITLAB_CLIENT_ID, e.GITLAB_CLIENT_SECRET),
-			gitlabIssuer: e.GITLAB_ISSUER
+			gitlabIssuer: e.GITLAB_ISSUER,
+			orcid: pair(e.ORCID_CLIENT_ID, e.ORCID_CLIENT_SECRET),
+			orcidSandbox: e.ORCID_SANDBOX
 		},
 		limits: {
 			textFileBytes: e.MAX_TEXT_FILE_BYTES,

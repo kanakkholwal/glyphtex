@@ -76,7 +76,7 @@ export interface ImportResult {
 }
 
 export interface PublicConfig {
-	providers: ("google" | "github" | "gitlab")[];
+	providers: ("google" | "github" | "gitlab" | "orcid")[];
 	/** True only when the server can send mail. */
 	magicLink: boolean;
 	/** What this server has switched on; the client skips what it can't do. */
