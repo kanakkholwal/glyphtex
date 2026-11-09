@@ -13,9 +13,20 @@
 	import { IconDatabaseOff, IconLoader2, IconUpload } from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 
+	import type { Project } from "@glyphtex/ui/projects";
+
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
+	import { CloudError, cloud, type ProjectSummary } from "$lib/cloud/api";
+	import { cloudEnabled, cloudHref } from "$lib/cloud/config";
+	import OrgTemplates from "$lib/cloud/OrgTemplates.svelte";
+	import { cloudSession } from "$lib/cloud/session.svelte";
+	import { linkProject } from "$lib/sync/engine";
+	import { sync } from "$lib/sync/sync.svelte";
+	import CreateOrgDialog from "$lib/cloud/CreateOrgDialog.svelte";
+	import { writeZip } from "$lib/storage/zip";
+	import { onboarding } from "$lib/workspace/onboarding.svelte";
 	import { cloneToProject } from "$lib/git";
-	import StoragePanel from "$lib/StoragePanel.svelte";
+	import SettingsView from "$lib/settings/SettingsView.svelte";
 	import { toProjectCard } from "$lib/storage/bridge";
 	import { templatePreview } from "$lib/templates";
 	import {
@@ -36,7 +47,18 @@
 	import { requestPersistence, storageStatus } from "$lib/storage/quota";
 	import { starterFiles } from "$lib/storage/template";
 
-	let { scope = "all" }: { scope?: Scope } = $props();
+	let { scope = "all", settings = false }: { scope?: Scope; settings?: boolean } = $props();
+
+	const settingsHref = resolve("/workspace/settings");
+	const settingsPage = $derived(
+		settings
+			? {
+					title: "Settings",
+					description: "Appearance, your account and what this browser stores.",
+					body: settingsBody
+				}
+			: undefined
+	);
 
 	const scopeHrefs: Record<Scope, string> = {
 		all: resolve("/workspace"),
@@ -55,9 +77,119 @@
 	let stored = $state<StoredProject[]>([]);
 	let loading = $state(true);
 	let failure = $state<string | undefined>(undefined);
-	let storageOpen = $state(false);
 
-	const projects = $derived(stored.map(toProjectCard));
+	// Server projects for the signed-in user. Ids are prefixed so they never collide with
+	// browser ids, and every handler below routes on that prefix.
+	let remote = $state<ProjectSummary[]>([]);
+	const CLOUD = "cloud:";
+	const cloudId = (id: string) => (id.startsWith(CLOUD) ? id.slice(CLOUD.length) : null);
+	const toCloudCard = (p: ProjectSummary): Project => ({
+		id: CLOUD + p.id,
+		name: p.name,
+		files: [],
+		createdAt: Date.parse(p.createdAt),
+		updatedAt: Date.parse(p.updatedAt),
+		cloud: { role: p.role }
+	});
+
+	// In an organization the home shows only its projects; browser documents belong to Personal.
+	const activeOrgId = $derived(cloudSession.activeOrgId);
+	// Server projects already in this browser show as their browser copy, once.
+	const localByRemote = $derived(
+		new Map(stored.filter((p) => p.remote).map((p) => [p.remote?.id as string, p]))
+	);
+	const projects = $derived(
+		activeOrgId
+			? remote.map((r) => {
+					const local = localByRemote.get(r.id);
+					return local ? toProjectCard(local) : toCloudCard(r);
+				})
+			: [
+					...remote.filter((r) => !localByRemote.has(r.id)).map(toCloudCard),
+					...stored.filter((p) => !p.remote?.orgId).map(toProjectCard)
+				]
+	);
+
+	let createOrgOpen = $state(false);
+	const workspaces = $derived(
+		cloudEnabled && cloudSession.signedIn
+			? {
+					current: activeOrgId,
+					items: cloudSession.orgs.map((o) => ({ id: o.id, name: o.name })),
+					onswitch: (id: string | null) =>
+						void cloudSession
+							.switchTo(id)
+							.then(refreshRemote)
+							.catch((error: unknown) => report(error, "Could not switch workspace.")),
+					oncreate: () => (createOrgOpen = true)
+				}
+			: undefined
+	);
+
+	const account = $derived(
+		cloudEnabled
+			? {
+					href: `${resolve("/workspace/account")}?next=${encodeURIComponent("/workspace")}`,
+					name: cloudSession.user?.name || cloudSession.user?.email || "",
+					email: cloudSession.user?.email ?? "",
+					signedIn: cloudSession.signedIn,
+					onsignout: () => cloudSession.signOut().then(refreshRemote)
+				}
+			: undefined
+	);
+
+	const checklist = $derived(
+		onboarding.dismissed || loading
+			? undefined
+			: {
+					items: [
+						{ id: "create", label: "Create a project", done: projects.length > 0 },
+						{ id: "compile", label: "Compile it to PDF", done: onboarding.compiled },
+						...(cloudEnabled
+							? [
+									{
+										id: "signin",
+										label: "Sign in to save to the cloud",
+										done: cloudSession.signedIn
+									},
+									{ id: "share", label: "Share a project", done: onboarding.shared }
+								]
+							: [])
+					],
+					ondismiss: onboarding.dismiss
+				}
+	);
+
+	async function refreshRemote(): Promise<void> {
+		if (!cloudEnabled) return;
+		await cloudSession.ensure();
+		if (!cloudSession.signedIn) {
+			remote = [];
+			return;
+		}
+		try {
+			remote = cloudSession.activeOrgId
+				? await cloud.orgs.projects(cloudSession.activeOrgId)
+				: await cloud.projects.list();
+		} catch (error) {
+			// The server being down must never hide documents stored in this browser.
+			report(error, "Could not load your cloud projects.");
+		}
+	}
+
+	async function upload(id: string): Promise<void> {
+		try {
+			await linkProject(id, cloudSession.activeOrgId);
+			await Promise.all([refresh(), refreshRemote()]);
+			toast.success("Saved to the cloud. It stays in this browser and syncs from here.");
+		} catch (error) {
+			report(error, "Could not upload that document.");
+		}
+	}
+
+	const ignoreGone = (e: unknown) => {
+		if (!(e instanceof CloudError && e.status === 404)) throw e;
+	};
 
 	function report(error: unknown, fallback: string): void {
 		const message = error instanceof Error ? error.message : fallback;
@@ -79,6 +211,9 @@
 	}
 
 	onMount(async () => {
+		void refreshRemote()
+			.then(() => sync.linkAll())
+			.then((n) => (n ? Promise.all([refresh(), refreshRemote()]) : undefined));
 		try {
 			await refresh();
 			// Arriving from the public gallery: create the project it asked for, then open it.
@@ -173,6 +308,25 @@
 	}
 
 	async function handleCreate(): Promise<string | void> {
+		const orgId = cloudSession.activeOrgId;
+		if (orgId) {
+			try {
+				const encoder = new TextEncoder();
+				const zip = await writeZip(
+					starterFiles().map((f) => ({
+						path: f.path,
+						data: f.data ?? encoder.encode(f.text ?? "")
+					}))
+				);
+				const created = await cloud.projects.import("Untitled", zip, orgId);
+				track("document_created", { source: "blank", location: "workspace" });
+				await refreshRemote();
+				return CLOUD + created.project.id;
+			} catch (error) {
+				report(error, "Could not create the project.");
+				return;
+			}
+		}
 		try {
 			const project = await createProject("Untitled", starterFiles());
 			track("document_created", { source: "blank", location: "workspace" });
@@ -229,6 +383,11 @@
 	}
 
 	function open(id: string): void {
+		const remoteId = cloudId(id);
+		if (remoteId) {
+			void goto(cloudHref(remoteId));
+			return;
+		}
 		void goto(resolve(`/workspace/projects/${id}` as `/workspace/projects/${string}`));
 	}
 
@@ -257,6 +416,16 @@
 	}
 
 	async function rename(id: string, name: string): Promise<void> {
+		const remoteId = cloudId(id);
+		if (remoteId) {
+			try {
+				await cloud.projects.update(remoteId, { name: name.trim() || "Untitled" });
+				await refreshRemote();
+			} catch (error) {
+				report(error, "Could not rename the project.");
+			}
+			return;
+		}
 		const ok = await optimistic(
 			id,
 			{ name: name.trim() || "Untitled" },
@@ -287,7 +456,28 @@
 	}
 
 	async function remove(id: string): Promise<void> {
+		const remoteId = cloudId(id);
+		if (remoteId) {
+			const project = remote.find((p) => p.id === remoteId);
+			const me = cloudSession.user?.id;
+			try {
+				// Owners delete for everyone; anyone else just leaves.
+				if (project?.role === "owner") await cloud.projects.remove(remoteId);
+				else if (me) await cloud.sharing.removeMember(remoteId, me);
+				await refreshRemote();
+			} catch (error) {
+				report(error, "Could not remove the project.");
+			}
+			return;
+		}
+		const linked = stored.find((p) => p.id === id)?.remote;
 		try {
+			// A linked copy: owners delete the server copy too, everyone else leaves it.
+			if (linked && cloudSession.signedIn) {
+				const me = cloudSession.user?.id;
+				if (linked.role === "owner") await cloud.projects.remove(linked.id).catch(ignoreGone);
+				else if (me) await cloud.sharing.removeMember(linked.id, me).catch(ignoreGone);
+			}
 			await deleteProject(id);
 			track("document_deleted");
 			await refresh();
@@ -349,6 +539,7 @@
 			{templatesLoading}
 			{templatePreview}
 			onusetemplate={createFromTemplate}
+			templatesLead={activeOrgId ? orgTemplatesLead : undefined}
 			onopen={open}
 			onrename={rename}
 			onduplicate={duplicate}
@@ -356,10 +547,17 @@
 			onstar={star}
 			{storage}
 			helpHref="https://github.com/kanakkholwal/glyphtex#readme"
-			onsettings={() => (storageOpen = true)}
+			onsettings={() => void goto(`${settingsHref}?tab=storage`)}
+			{settingsHref}
+			onnavigate={(href) => void goto(href)}
+			page={settingsPage}
 			onimport={() => zipInput?.click()}
 			onimportfolder={() => folderInput?.click()}
 			onclone={cloneRepo}
+			onupload={cloudEnabled && cloudSession.signedIn ? upload : undefined}
+			{account}
+			{checklist}
+			{workspaces}
 		/>
 	</div>
 {/if}
@@ -402,4 +600,12 @@
 	</div>
 {/if}
 
-<StoragePanel bind:open={storageOpen} />
+<CreateOrgDialog bind:open={createOrgOpen} oncreated={() => void refreshRemote()} />
+
+{#snippet orgTemplatesLead()}
+	{#if activeOrgId}<OrgTemplates orgId={activeOrgId} />{/if}
+{/snippet}
+
+{#snippet settingsBody()}
+	<SettingsView />
+{/snippet}

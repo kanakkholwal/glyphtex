@@ -10,10 +10,16 @@
 
 @source "./";
 
-/* GlyphTeX blue in baby-ui's accent slot: 6.37:1 on white, 8.04:1 dark on #0a0a0a. */
+/* GlyphTeX blue (6.37:1 on white, 8.04:1 dark on #0a0a0a) is --primary. --accent stays baby-ui's
+   neutral hover fill: its components use bg-accent for hover and open states. */
 :root {
-	--accent: #025eb8;
-	--accent-fg: #ffffff;
+	--brand: #025eb8;
+	--brand-fg: #ffffff;
+	--primary: var(--brand);
+	--primary-foreground: var(--brand-fg);
+	--accent-ink: var(--brand);
+	--ring: var(--brand);
+	--accent-foreground: var(--foreground);
 	/* Stays the light brand in dark mode so white text on brand panels keeps its contrast. */
 	--brand-panel: #025eb8;
 
@@ -40,6 +46,8 @@
 	--shadow-xs: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
 	--shadow-sm: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
 	--shadow-md: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px;
+	/* One overlay elevation (menus, popovers, selects, dialogs, toasts): a hairline plus one soft drop. */
+	--overlay-shadow: 0 0 0 0.5px var(--border), 0 12px 32px -8px rgb(0 0 0 / 0.16);
 	--shadow-lg: var(--overlay-shadow);
 	--shadow-xl: var(--overlay-shadow);
 
@@ -65,8 +73,8 @@
 }
 
 .dark {
-	--accent: #59aaf8;
-	--accent-fg: #0a0a0a;
+	--brand: #59aaf8;
+	--brand-fg: #0a0a0a;
 	--canvas: var(--background);
 	--workspace: var(--card);
 	--sidebar: var(--background);
@@ -75,6 +83,7 @@
 	--shadow-xs: rgba(0, 0, 0, 0.5) 0px 1px 2px 0px;
 	--shadow-sm: rgba(0, 0, 0, 0.5) 0px 1px 2px 0px;
 	--shadow-md: rgba(0, 0, 0, 0.55) 0px 4px 6px -1px, rgba(0, 0, 0, 0.5) 0px 2px 4px -2px;
+	--overlay-shadow: 0 0 0 0.5px var(--border), 0 12px 32px -8px rgb(0 0 0 / 0.5);
 }
 
 @theme inline {
@@ -400,13 +409,11 @@
 
 /* The workbench keeps the JetBrains Islands surfaces its syntax theme is built on, so it
    is the one place that does not take the shared ramp. */
-/* The app's main card: re-points --background so everything inside sits on the workspace tone. */
+/* The app's main card sits on baby-ui's own tokens; dark mode separates it from the canvas with a hairline. */
 @utility workspace-card {
-	--background: var(--workspace);
-	--card: var(--workspace);
-	background-color: var(--workspace);
+	background-color: var(--background);
 	@variant dark {
-		--card: #212124;
+		box-shadow: inset 0 0 0 1px var(--border);
 	}
 }
 

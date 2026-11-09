@@ -184,7 +184,7 @@
 	{@const m = menu}
 	<div class="fixed inset-0 z-40" role="presentation" onpointerdown={() => (menu = null)}></div>
 	<div
-		class="border-border bg-popover fixed z-50 w-44 rounded-lg border p-1 shadow-lg"
+		class="border-border bg-popover fixed z-50 w-44 rounded-lg border p-1 shadow-(--overlay-shadow)"
 		style:left="{Math.min(m.x, window.innerWidth - 188)}px"
 		style:top="{m.y}px"
 		role="menu"

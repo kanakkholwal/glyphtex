@@ -137,10 +137,6 @@
 			"svelte": "./src/lib/image.ts",
 			"default": "./src/lib/image.ts"
 		},
-		"./showcase-card": {
-			"svelte": "./src/components/ui/showcase-card/index.ts",
-			"default": "./src/components/ui/showcase-card/index.ts"
-		},
 		"./code-block": {
 			"svelte": "./src/components/ui/code-block/index.ts",
 			"default": "./src/components/ui/code-block/index.ts"
@@ -228,6 +224,38 @@
 		"./table-of-contents": {
 			"svelte": "./src/components/ui/table-of-contents/index.ts",
 			"default": "./src/components/ui/table-of-contents/index.ts"
+		},
+		"./avatar": {
+			"svelte": "./src/components/ui/avatar/index.ts",
+			"default": "./src/components/ui/avatar/index.ts"
+		},
+		"./table": {
+			"svelte": "./src/components/ui/table/index.ts",
+			"default": "./src/components/ui/table/index.ts"
+		},
+		"./empty": {
+			"svelte": "./src/components/ui/empty/index.ts",
+			"default": "./src/components/ui/empty/index.ts"
+		},
+		"./search-input": {
+			"svelte": "./src/components/ui/search-input/index.ts",
+			"default": "./src/components/ui/search-input/index.ts"
+		},
+		"./field": {
+			"svelte": "./src/components/ui/field/index.ts",
+			"default": "./src/components/ui/field/index.ts"
+		},
+		"./user-menu": {
+			"svelte": "./src/components/ui/user-menu/index.ts",
+			"default": "./src/components/ui/user-menu/index.ts"
+		},
+		"./toggle": {
+			"svelte": "./src/components/ui/toggle/index.ts",
+			"default": "./src/components/ui/toggle/index.ts"
+		},
+		"./mention-input": {
+			"svelte": "./src/components/ui/mention-input/index.ts",
+			"default": "./src/components/ui/mention-input/index.ts"
 		}
 	},
 	"peerDependencies": {

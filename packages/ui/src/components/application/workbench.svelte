@@ -67,7 +67,7 @@
 	>
 		Skip to editor
 	</a>
-	<TitleBar {ctrl} saving={props.saving} saveFile={props.saveFile} />
+	<TitleBar {ctrl} saving={props.saving} saveFile={props.saveFile} actions={props.headerActions} />
 
 	<!-- `flex-row-reverse` docks the panel on the right edge (VS Code's "move
        primary side bar right"); the editor column keeps the rest. -->

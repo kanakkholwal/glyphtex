@@ -34,7 +34,8 @@ on:
 
 concurrency:
   group: tex-engine-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer push must not cancel a release half way (npm published, GitHub release not yet).
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   EM_VERSION: 5.0.2
@@ -197,12 +198,30 @@ jobs:
     needs: [api, engine, test]
     if: >-
       startsWith(github.ref, 'refs/tags/tex-engine-v') ||
-      (github.event_name == 'workflow_dispatch' && inputs.publish_crate)
+      (github.event_name == 'workflow_dispatch' && inputs.publish_crate) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag || github.sha }}
+          # The next step diffs against the pre-merge commit.
+          fetch-depth: 0
+
+      # The npm package ships the packs, so most releases touch only that. A crate with
+      # unchanged sources is not republished under a new number just to match.
+      - name: Did the crate change in this push?
+        id: changed
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ]             || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null             || ! git diff --quiet "$BEFORE" HEAD -- crates/glyphtex-tex-api; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::crates/glyphtex-tex-api is unchanged in this push; not publishing the crate."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: dtolnay/rust-toolchain@master
         with:
@@ -212,11 +231,18 @@ jobs:
         with:
           workspaces: crates/glyphtex-tex-api
 
-      - name: Derive version from tag
+      # A tag or a manual run names its version. A merge to main uses the version
+      # committed in packages/tex-engine/package.json, so bumping it is what asks
+      # for a release; an unchanged version finds itself on the registry and skips.
+      - name: Derive version
         id: version
         env:
-          TAG: ${{ inputs.tag || github.ref_name }}
+          TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
         run: |
+          if [ -z "$TAG" ]; then
+            echo "value=$(jq -r .version packages/tex-engine/package.json)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           case "$TAG" in
             tex-engine-v*) ;;
             *) echo "::error::Expected a tex-engine-v* tag, got '$TAG'."; exit 1 ;;
@@ -248,6 +274,10 @@ jobs:
         id: published
         run: |
           v='${{ steps.version.outputs.value }}'
+          if [ '${{ steps.changed.outputs.changed }}' = 'false' ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           # crates.io answers 403 to requests without a User-Agent, which read as "not published".
           code=$(curl -s -o /dev/null -w '%{http_code}' -A 'glyphtex-release (github.com/kanakkholwal/glyphtex)' \
             "https://crates.io/api/v1/crates/glyphtex-tex-api/$v")
@@ -279,7 +309,8 @@ jobs:
     needs: [api, engine, test]
     if: >-
       startsWith(github.ref, 'refs/tags/tex-engine-v') ||
-      (github.event_name == 'workflow_dispatch' && inputs.publish_npm)
+      (github.event_name == 'workflow_dispatch' && inputs.publish_npm) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -304,11 +335,18 @@ jobs:
           cache: pnpm
           package-manager-cache: false # never use caching in release builds
 
-      - name: Derive version from tag
+      # A tag or a manual run names its version. A merge to main uses the version
+      # committed in packages/tex-engine/package.json, so bumping it is what asks
+      # for a release; an unchanged version finds itself on the registry and skips.
+      - name: Derive version
         id: version
         env:
-          TAG: ${{ inputs.tag || github.ref_name }}
+          TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
         run: |
+          if [ -z "$TAG" ]; then
+            echo "value=$(jq -r .version packages/tex-engine/package.json)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           case "$TAG" in
             tex-engine-v*) ;;
             *) echo "::error::Expected a tex-engine-v* tag, got '$TAG'."; exit 1 ;;
@@ -360,15 +398,24 @@ jobs:
         if: steps.published.outputs.skip == 'false'
         run: cd packages/tex-engine && npm publish
 
-      # The GitHub release belongs to the tag; a manual npm-only re-publish must
-      # not try to create one from a branch ref.
+      # A tag push has its release. A merge to main that just published creates the tag
+      # and release itself, so the version in package.json is always tagged. A manual
+      # npm-only re-publish must not try to create one from a branch ref.
       - name: Compress engine for release
-        if: startsWith(github.ref, 'refs/tags/tex-engine-v')
+        if: >-
+          startsWith(github.ref, 'refs/tags/tex-engine-v') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.published.outputs.skip == 'false')
         run: brotli -q 11 -k crates/tectonic-wasm/output/tectonic_wasm.wasm
 
+      # Creating the tag through the release API does not start another workflow run,
+      # so this cannot loop back into the tag-triggered release.
       - uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/tex-engine-v')
+        if: >-
+          startsWith(github.ref, 'refs/tags/tex-engine-v') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.published.outputs.skip == 'false')
         with:
+          tag_name: tex-engine-v${{ steps.version.outputs.value }}
+          target_commitish: ${{ github.sha }}
           files: |
             crates/tectonic-wasm/output/tectonic_wasm.wasm
             crates/tectonic-wasm/output/tectonic_wasm.wasm.br

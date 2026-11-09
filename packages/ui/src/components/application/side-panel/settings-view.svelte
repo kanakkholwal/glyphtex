@@ -72,7 +72,7 @@
 )}
 	<SettingsField size="sm" {label} {description} layout="row">
 		<Select bind:value={() => current, onChange}>
-			<SelectTrigger size="sm" class="min-w-[7.5rem] text-xs" aria-label={label}>
+			<SelectTrigger size="sm" class="w-auto min-w-[7.5rem] shrink-0 text-xs" aria-label={label}>
 				{opts.find((o) => o.value === current)?.label ?? current}
 			</SelectTrigger>
 			<SelectContent>

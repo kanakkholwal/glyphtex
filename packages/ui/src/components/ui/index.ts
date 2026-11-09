@@ -20,7 +20,6 @@ export * as Popover from "./popover";
 export * as RadioGroup from "./radio-group";
 export * as Select from "./select";
 export * as Separator from "./separator";
-export * as ShowcaseCard from "./showcase-card";
 export * as Sheet from "./sheet";
 export * as Shortcut from "./shortcut";
 export * as Sidebar from "./sidebar";

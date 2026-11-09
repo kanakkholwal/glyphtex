@@ -5,7 +5,7 @@ export const TOAST_CLASSES = {
 	toast: [
 		"group/toast pointer-events-auto relative grid w-[calc(100vw-2rem)] max-w-sm grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3",
 		"has-[[data-icon]]:grid-cols-[auto_minmax(0,1fr)_auto]",
-		"rounded-2xl border border-border bg-card/95 p-3 text-foreground shadow-2xl backdrop-blur-xl",
+		"rounded-2xl border border-border bg-card/95 p-3 text-foreground shadow-(--overlay-shadow) backdrop-blur-xl",
 		"[&[data-type=success]_[data-icon]]:bg-success/10 [&[data-type=success]_[data-icon]]:text-success-strong",
 		"[&[data-type=error]_[data-icon]]:bg-destructive/10 [&[data-type=error]_[data-icon]]:text-destructive-strong",
 		"[&[data-type=warning]_[data-icon]]:bg-warning/10 [&[data-type=warning]_[data-icon]]:text-warning-strong",

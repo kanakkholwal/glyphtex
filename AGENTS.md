@@ -24,6 +24,9 @@ apps/
                   site + the same editor, compiling in-browser via our own Tectonic WASM engine
                   (crates/tectonic-wasm → packages/tex-engine). NO database, NO auth, NO server
                   user-state — local-first by design.
+  server/         Optional Teams server (AGPL-3.0): accounts (Better Auth), Postgres project
+                  storage, sharing and RBAC. Hono; runs on Workers and on Node/Bun in Docker.
+                  The web app above stays account-free; see apps/server/AGENTS.md.
 packages/
   ui/             @glyphtex/ui: baby-ui components (shadcn-svelte CLI, bits-ui underneath), the design
                   tokens (src/styles/registry.css + src/app.css), the shared rune stores (settings,
@@ -33,8 +36,8 @@ packages/
 Shared frontend: **Svelte 5.56**, **SvelteKit 2.63**, **Vite 8**, **Tailwind 4.3**,
 **@tabler/icons-svelte**, **shadcn-svelte**, **bits-ui**, **pdf.js** (preview). Key backend
 crates: **tauri 2.x**, **gix 0.70** (pure-Rust Git), plus the pinned **Tectonic 0.16.9** sidecar.
-Tests: **`cargo test`** (Rust logic) + **`svelte-check`** (types). There is no JS unit runner yet —
-don't invent imports for one.
+Tests: **`cargo test`** (Rust logic) + **`svelte-check`** (types) + **`node --test`** (web helpers,
+apps/server). No third-party JS test runner; don't invent imports for one.
 
 ### Commands (run from repo root unless noted)
 
@@ -57,6 +60,11 @@ pnpm tauri build                 # full bundle — ALWAYS test this, not just de
 # Web (apps/web/)
 pnpm dev | build | preview       # vite
 pnpm check                       # svelte-check
+
+# Server (apps/server/)
+pnpm dev | dev:node              # wrangler dev | node --watch
+pnpm check | test                # tsc | node --test (unit; GLYPHTEX_IT=1 adds integration)
+pnpm migrate | db:generate       # apply | generate Drizzle migrations
 ```
 
 CI lives in `.github/workflows/` (`ci-desktop.yml`, `release-desktop.yml`, `deploy-web.yml`,
@@ -98,9 +106,9 @@ re-run that isn't needed is a no-op. npm goes out via trusted publishing (OIDC),
    rule, §4). Frontend: no synchronous heavy work on render; debounce compile-as-you-type.
 9. **Design tokens only, no hardcoded colors.** The spec is root `DESIGN.md` (page rules in
    `.notes/design-contract.md`). Tokens: baby-ui's in `packages/ui/src/styles/registry.css` (CLI-managed),
-   GlyphTeX's layer in `packages/ui/src/app.css`. `bg-primary` is the blue accent (selected, focus, the one
-   primary action); near-black actions are Button `variant="dark"`. `bg-accent` is the brand blue, never a
-   hover fill. Ink is `foreground` or `muted-foreground`. Public pages use the Tailwind scale (xs/sm/base/lg/
+   GlyphTeX's layer in `packages/ui/src/app.css`. `bg-primary` is GlyphTeX blue (selected, focus, the one
+   primary action); near-black actions are Button `variant="dark"`. `bg-accent` is baby-ui's neutral hover
+   fill; never put a brand colour in `--accent`. Ink is `foreground` or `muted-foreground`. Public pages use the Tailwind scale (xs/sm/base/lg/
    2xl/4xl) with `pixel` for display; the workspace keeps 12/13/14 via `data-density="compact"`. No
    `text-[Npx]`, no opacity on text tokens.
    **@tabler/icons-svelte only** (not Lucide, no Iconify layer — import icons

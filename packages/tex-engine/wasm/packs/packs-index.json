@@ -247,6 +247,22 @@
 			"optional": false,
 			"bytes": 106853,
 			"hash": "fdeb3be1b05996c0"
+		},
+		{
+			"id": "math-helpers",
+			"label": "Math & macro helpers",
+			"description": "bm for bold math symbols, and xargs for commands with several optional arguments.",
+			"packages": [
+				"bm",
+				"xargs"
+			],
+			"requires": [
+				"writing",
+				"review"
+			],
+			"optional": false,
+			"bytes": 6963,
+			"hash": "847d04cc99dd4e6d"
 		}
 	],
 	"provides": {
@@ -698,6 +714,8 @@
 		"fontspec.sty": "opentype-fonts",
 		"fontspec-xetex.sty": "opentype-fonts",
 		"fontspec.cfg": "opentype-fonts",
-		"texgyretermes-regular.otf": "opentype-fonts"
+		"texgyretermes-regular.otf": "opentype-fonts",
+		"bm.sty": "math-helpers",
+		"xargs.sty": "math-helpers"
 	}
 }

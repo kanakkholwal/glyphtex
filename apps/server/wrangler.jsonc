@@ -1,0 +1,82 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "glyphtex-server",
+	"main": "src/entry/workers.ts",
+	"compatibility_date": "2026-11-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"observability": {
+		"enabled": true
+	},
+	// Audit log retention (AUDIT_RETENTION_DAYS, default 365).
+	"triggers": {
+		"crons": [
+			"17 3 * * *"
+		]
+	},
+	"vars": {
+		"PUBLIC_URL": "https://glyphtex-api.nexonauts.com",
+		"APP_URL": "https://glyphtex.nexonauts.com",
+		"WEB_ORIGINS": "https://glyphtex.nexonauts.com",
+		"BLOB_DRIVER": "r2",
+		"MAIL_DRIVER": "resend",
+		"QUEUE_DRIVER": "cloudflare",
+		"CLIENT_IP_HEADER": "cf-connecting-ip"
+	},
+	// Secrets (wrangler secret put): BETTER_AUTH_SECRET, RESEND_API_KEY, OAuth client secrets,
+	// and DATABASE_URL only if you skip Hyperdrive.
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "<hyperdrive-config-id>"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "CACHE",
+			"id": "235da6e56fe841e78871b5f951ea0e3b"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "BLOBS",
+			"bucket_name": "glyphtex-blobs"
+		}
+	],
+	"queues": {
+		"producers": [
+			{
+				"binding": "JOBS",
+				"queue": "glyphtex-jobs"
+			}
+		],
+		"consumers": [
+			{
+				"queue": "glyphtex-jobs",
+				"max_batch_size": 10,
+				// Matches MAX_JOB_ATTEMPTS in src/jobs/types.ts.
+				"max_retries": 8,
+				"dead_letter_queue": "glyphtex-jobs-dead"
+			}
+		]
+	},
+	"ratelimits": [
+		{
+			"name": "API_RATE_LIMITER",
+			"namespace_id": "1001",
+			"simple": {
+				"limit": 300,
+				"period": 60
+			}
+		},
+		{
+			"name": "SHARE_RATE_LIMITER",
+			"namespace_id": "1002",
+			"simple": {
+				"limit": 20,
+				"period": 60
+			}
+		}
+	]
+}

@@ -7,7 +7,7 @@ import {
 import { rootFor } from "./fs";
 import { gitProvider } from "./provider";
 
-export { gitProvider, onWorkingTreeChanged } from "./provider";
+export { gitProvider, notifyTreeChanged, onWorkingTreeChanged } from "./provider";
 export { rootFor as gitRootFor, projectIdFrom } from "./fs";
 export {
 	DEFAULT_CORS_PROXY,

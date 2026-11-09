@@ -21,6 +21,22 @@ export type StoredProject = {
 	entryConfirmed?: boolean;
 	/** Other plausible roots, for the prompt. Empty once the choice is settled. */
 	entryCandidates?: string[];
+	/** Set once the document is linked to a GlyphTeX server copy; absent means browser only. */
+	remote?: RemoteLink;
+};
+
+/** What this browser last agreed with the server, per file, so a sync knows who changed what. */
+export type RemoteLink = {
+	id: string;
+	orgId: string | null;
+	/** The viewer's role on the server copy; viewers and commenters never push. */
+	role: string;
+	syncedAt: number;
+	base: Record<string, { version: number; sha256: string }>;
+	/** Paths whose server and browser edits collided; the server copy sits beside them. */
+	conflicts?: string[];
+	/** Binary files the server can't store because file storage is off; the browser keeps them. */
+	unsynced?: string[];
 };
 
 /** One file. Exactly one of `text` / `data` is set: `data` carries images. */
@@ -197,6 +213,13 @@ export const renameProject = (id: string, name: string) =>
 export const setEntry = (id: string, entry: string) =>
 	patch(id, { entry: normalisePath(entry), entryConfirmed: true, entryCandidates: [] });
 export const setFolders = (id: string, folders: string[]) => patch(id, { folders });
+// Sync bookkeeping is not an edit either, so it leaves `updatedAt` alone.
+export const setRemote = (id: string, remote: RemoteLink | undefined) =>
+	patch(id, { remote }, false);
+
+export async function findByRemote(remoteId: string): Promise<StoredProject | undefined> {
+	return (await listProjects()).find((p) => p.remote?.id === remoteId);
+}
 
 export async function deleteProject(id: string): Promise<void> {
 	await tx([PROJECTS, FILES], "readwrite", async (t) => {

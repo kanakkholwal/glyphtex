@@ -152,6 +152,12 @@
 			"label": "OpenType fonts",
 			"description": "fontspec, for choosing OpenType fonts by file name, with TeX Gyre Termes as a ready serif.",
 			"packages": ["fontspec"]
+		},
+		{
+			"id": "math-helpers",
+			"label": "Math & macro helpers",
+			"description": "bm for bold math symbols, and xargs for commands with several optional arguments.",
+			"packages": ["bm", "xargs"]
 		}
 	]
 }

@@ -1,11 +1,9 @@
 <script lang="ts">
-	import { IconSearch, IconX } from "@tabler/icons-svelte";
+	import { IconX } from "@tabler/icons-svelte";
 	import { cn } from "../../lib/cn.js";
 	import type { TemplateFilter, TemplateSource } from "../../lib/project-templates/filter.svelte";
 	import { Button } from "../ui/button";
-	import { Input } from "../ui/input";
-	import { shortcutCap } from "../ui/shortcut";
-	import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+	import { SearchInput } from "../ui/search-input";
 
 	let {
 		filter,
@@ -18,56 +16,46 @@
 		class?: string;
 	} = $props();
 
-	let search = $state<HTMLInputElement | null>(null);
+	const sources: { id: TemplateSource; label: string }[] = [
+		{ id: "all", label: "All" },
+		{ id: "glyphtex", label: "GlyphTeX" },
+		{ id: "overleaf", label: "Community" }
+	];
 
-	function focusSearch(event: KeyboardEvent) {
-		if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
-		if ((event.target as HTMLElement | null)?.closest("input, textarea, [contenteditable]")) return;
-		event.preventDefault();
-		search?.focus();
-	}
+	// Same pill as the workspace's project filters: hairline when idle, muted fill when on.
+	const pill = (on: boolean) =>
+		cn(
+			"flex h-8 shrink-0 scroll-mt-24 items-center gap-1.5 rounded-lg border px-3 text-sm outline-none transition-[background-color,border-color,color] duration-(--duration-fast) ease-(--ease-out) focus-visible:ring-2 focus-visible:ring-ring",
+			on
+				? "border-transparent bg-muted font-medium text-foreground"
+				: "border-border text-muted-foreground hover:bg-foreground/[0.03] hover:text-foreground"
+		);
 </script>
-
-<svelte:window onkeydown={focusSearch} />
 
 <div class={cn("flex flex-col gap-3", className)}>
 	<div class="flex flex-wrap items-center gap-2">
-		<label class="relative min-w-0 flex-1 sm:max-w-sm">
-			<span class="sr-only">Search templates</span>
-			<IconSearch
-				class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-				aria-hidden="true"
-			/>
-			<Input
-				bind:ref={search}
-				bind:value={filter.query}
-				type="search"
-				placeholder="Search thesis, CV, beamer..."
-				spellcheck="false"
-				class="pr-10 pl-9"
-			/>
-			<kbd
-				class={cn(
-					shortcutCap(),
-					"pointer-events-none absolute top-1/2 right-2 hidden -translate-y-1/2 sm:inline-flex"
-				)}
-				aria-hidden="true"
-			>
-				/
-			</kbd>
-		</label>
-		<ToggleGroup
-			type="single"
-			size="lg"
-			label="Filter templates by source"
-			bind:value={() => filter.source, (v) => (filter.source = (v || "all") as TemplateSource)}
-		>
-			<ToggleGroupItem value="all">All</ToggleGroupItem>
-			<ToggleGroupItem value="glyphtex">GlyphTeX</ToggleGroupItem>
-			<ToggleGroupItem value="overleaf">Community</ToggleGroupItem>
-		</ToggleGroup>
+		<SearchInput
+			label="Search templates"
+			placeholder="Search thesis, CV, beamer…"
+			shortcut="/"
+			size="sm"
+			class="w-full sm:w-64"
+			bind:value={filter.query}
+		/>
+		<div class="flex items-center gap-1.5" role="group" aria-label="Filter templates by source">
+			{#each sources as s (s.id)}
+				<button
+					type="button"
+					class={pill(filter.source === s.id)}
+					aria-pressed={filter.source === s.id}
+					onclick={() => (filter.source = s.id)}
+				>
+					{s.label}
+				</button>
+			{/each}
+		</div>
 		<div class="ml-auto flex items-center gap-2">
-			<p class="font-mono text-xs text-muted-foreground tabular-nums" aria-live="polite">
+			<p class="text-muted-foreground text-xs tabular-nums" aria-live="polite">
 				{filter.visible.length}
 				{filter.visible.length === 1 ? "template" : "templates"}
 			</p>
@@ -92,17 +80,10 @@
 				id={anchors ? tab.id : undefined}
 				aria-pressed={on}
 				onclick={() => (filter.category = tab.id)}
-				class={cn(
-					"flex h-8 shrink-0 scroll-mt-24 items-center gap-1.5 rounded-full border px-3 text-sm outline-none transition-colors duration-(--duration-fast) ease-(--ease-out) focus-visible:ring-2 focus-visible:ring-ring",
-					on
-						? "border-transparent bg-primary text-primary-foreground"
-						: "border-border text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
-				)}
+				class={pill(on)}
 			>
 				{tab.label}
-				<span class={cn("font-mono text-xs tabular-nums", !on && "text-muted-foreground")}>
-					{tab.count}
-				</span>
+				<span class="text-muted-foreground text-xs tabular-nums">{tab.count}</span>
 			</button>
 		{/each}
 	</div>

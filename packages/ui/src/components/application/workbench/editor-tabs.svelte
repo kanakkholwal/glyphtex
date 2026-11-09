@@ -374,7 +374,7 @@
 {#if openList}
 	<div class="fixed inset-0 z-40" role="presentation" onpointerdown={() => (openList = null)}></div>
 	<div
-		class="border-border bg-popover glyphtex-tab-menu fixed z-50 max-h-80 w-56 overflow-y-auto rounded-lg border p-1 shadow-lg"
+		class="border-border bg-popover glyphtex-tab-menu fixed z-50 max-h-80 w-56 overflow-y-auto rounded-lg border p-1 shadow-(--overlay-shadow)"
 		style:left="{Math.max(8, openList.x)}px"
 		style:top="{openList.y}px"
 		role="menu"

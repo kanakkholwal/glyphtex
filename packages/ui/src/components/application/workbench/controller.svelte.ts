@@ -1,3 +1,4 @@
+import type { Snippet } from "svelte";
 import type { EngineManager } from "../engine-settings.svelte";
 import type { GitProvider } from "../git-panel.svelte";
 import type { PaletteCommand } from "../command-palette.svelte";
@@ -91,6 +92,8 @@ export type WorkbenchProps = {
 	readFileBytes?: (key: string) => Promise<Uint8Array>;
 	/** Save a file / folder out of the Explorer. Absent hides the menu item. */
 	onDownload?: (req: DownloadRequest) => void;
+	/** Host buttons in the title bar's action cluster (web: Share). */
+	headerActions?: Snippet;
 };
 
 export class WorkbenchController {

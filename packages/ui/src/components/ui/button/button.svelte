@@ -70,10 +70,7 @@ function activate(event: MouseEvent) {
 					stroke-linecap="round"
 				/>
 			</svg>
-			<!-- Mounted only while loading, so crawlers never read "Loading…" as link text. -->
-			{#if loading}
-				{#if iconOnly}<span class="sr-only">{loadingLabel}</span>{:else}{loadingLabel}{/if}
-			{/if}
+			{#if iconOnly}<span class="sr-only">{loadingLabel}</span>{:else}{loadingLabel}{/if}
 		</span>
 	</span>
 {/snippet}

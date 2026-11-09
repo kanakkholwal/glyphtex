@@ -111,7 +111,7 @@
 <div class="fixed inset-0 z-40" role="presentation" onpointerdown={onclose}></div>
 
 <div
-	class="border-border bg-popover fixed z-50 w-80 rounded-lg border p-3 shadow-lg"
+	class="border-border bg-popover fixed z-50 w-80 rounded-lg border p-3 shadow-(--overlay-shadow)"
 	style:left="{Math.max(8, Math.min(rect.left, window.innerWidth - 336))}px"
 	style:top="{Math.max(8, top)}px"
 	role="dialog"

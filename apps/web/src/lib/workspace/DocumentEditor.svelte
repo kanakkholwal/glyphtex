@@ -1,0 +1,646 @@
+<script lang="ts">
+	import { goto } from "$app/navigation";
+	import { resolve } from "$app/paths";
+	import { Button } from "@glyphtex/ui/button";
+	import { Logo } from "@glyphtex/ui/logo";
+	import { IconFileAlert, IconUpload } from "@tabler/icons-svelte";
+
+	import type { PackDefinition } from "glyphtex-engine";
+	import {
+		Workbench,
+		type DownloadRequest,
+		type GlyphFile,
+		type WorkbenchController
+	} from "@glyphtex/ui/application";
+	import { toast } from "@glyphtex/ui/sonner";
+	import { onMount, type Snippet } from "svelte";
+	import { SvelteMap } from "svelte/reactivity";
+
+	import { bucket, track, type DocumentSource } from "$lib/analytics";
+	import { applyUpdate, watchForUpdate } from "$lib/app-update";
+	import { needsBiber } from "$lib/citations";
+	import { withOrgLibrary } from "$lib/cloud/library";
+	import { compileFiles, engineReady, installPacks, warmEngine } from "$lib/compile";
+	import EngineInstallDialog from "$lib/EngineInstallDialog.svelte";
+	import MainFileDialog from "$lib/MainFileDialog.svelte";
+	import EngineNotices from "$lib/EngineNotices.svelte";
+	import { onWorkingTreeChanged } from "$lib/git";
+	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from "$lib/storage/bridge";
+	import {
+		filesFromDataTransfer,
+		importFolder,
+		importLooseFiles,
+		importZipFile,
+		type ImportResult
+	} from "$lib/storage/import";
+	import { CloudError } from "$lib/cloud/api";
+	import type { DocumentMeta, DocumentStore } from "$lib/documents/store";
+	import { createProject } from "$lib/storage/projects";
+	import { onboarding } from "$lib/workspace/onboarding.svelte";
+	import { writeZip } from "$lib/storage/zip";
+
+	interface Props {
+		id: string;
+		store: DocumentStore;
+		/** Extra title-bar buttons (cloud: Share). Receives the loaded document. */
+		actions?: Snippet<[DocumentMeta]>;
+	}
+
+	let { id, store, actions }: Props = $props();
+
+	// One explicit status rather than a set of flags with loading as the fallback:
+	// any combination the flags didn't anticipate used to render as "loading" forever.
+	type LoadStatus = "loading" | "ready" | "missing" | "error";
+
+	let project = $state<DocumentMeta | undefined>(undefined);
+	// Viewers and commenters of a shared project can read it here but never push edits back.
+	const readOnly = $derived(project?.role === "viewer" || project?.role === "commenter");
+	let initialFiles = $state<GlyphFile[] | undefined>(undefined);
+	let status = $state<LoadStatus>("loading");
+	let loadError = $state("");
+	let reloadToken = $state(0);
+	let saving = $state(false);
+
+	// Bytes for binary assets, keyed by path. The editor holds only a placeholder
+	// for these, so they are carried separately through save and compile.
+	let binary = new SvelteMap<string, Uint8Array>();
+	let ctrl = $state<WorkbenchController | undefined>(undefined);
+	let latest: GlyphFile[] = [];
+
+	let ready = $state(false);
+	let showInstall = $state(false);
+	let dragging = $state(false);
+	let fileInput = $state<HTMLInputElement>();
+	let zipInput = $state<HTMLInputElement>();
+	let folderInput = $state<HTMLInputElement>();
+	let accept = $state("");
+
+	let missingPacks = $state<PackDefinition[]>([]);
+	let unsupportedFiles = $state<string[]>([]);
+	let requiresBiber = $state(false);
+	let installingPacks = $state(false);
+	let packError = $state<string | undefined>(undefined);
+	let updateAvailable = $state(false);
+	let mainFileSource = $state("");
+
+	let lastCompiled = $state<{ files: GlyphFile[]; entry: string } | undefined>(undefined);
+
+	// Keyed on `id`, not mounted once: SvelteKit reuses this component when moving
+	// between documents, so a mount-only load would keep showing the previous one.
+	$effect(() => {
+		const wanted = id;
+		void reloadToken;
+		let stale = false;
+
+		void (async () => {
+			status = "loading";
+			loadError = "";
+			try {
+				const loaded = await store.load(wanted);
+				if (stale) return;
+				if (!loaded) {
+					status = "missing";
+					return;
+				}
+				const files = loaded.files;
+				binary = new SvelteMap(binaryMap(files));
+				project = loaded.meta;
+				initialFiles = toGlyphFiles(files);
+				latest = initialFiles;
+				status = "ready";
+				track("document_opened", { files: bucket(files.length) });
+			} catch (error) {
+				if (stale) return;
+				// An Error with an empty message would otherwise read as "no error".
+				loadError = (error instanceof Error && error.message) || "Could not open this document.";
+				status = "error";
+			}
+		})();
+
+		// A slower response for the document we just navigated away from must not
+		// overwrite the one we are now showing.
+		return () => {
+			stale = true;
+		};
+	});
+
+	// The engine is global, not per-document, so this stays a one-time check.
+	onMount(async () => {
+		try {
+			const installed = await engineReady();
+			ready = installed;
+			if (installed) warmEngine();
+			else {
+				showInstall = true;
+				track("engine_install_prompted", { reason: "not_installed" });
+			}
+		} catch {
+			// Fail open: failing closed strands the user with no dialog and no compiler.
+			ready = false;
+			showInstall = true;
+			track("engine_install_prompted", { reason: "check_failed" });
+		}
+	});
+
+	// A long-lived editor tab can outlast a deploy; surface the update as a banner
+	// the user dismisses on their own schedule rather than reloading under them.
+	onMount(() => watchForUpdate(() => (updateAvailable = true)));
+
+	/** The reload discards the in-memory buffer, so auto save being off (or its
+	 *  delay not yet elapsed) would lose the last edits. Save before reloading. */
+	async function saveAndUpdate() {
+		try {
+			await ctrl?.files.saveAll();
+		} catch (error) {
+			// Storage refused. Reloading anyway would lose the very work the notice
+			// promises to keep, so throw and let the card offer the button again.
+			toast.error("Could not save your work, so the update was not applied");
+			throw error;
+		}
+		track("app_update_applied");
+		await applyUpdate();
+	}
+
+	// Pull / clone / discard rewrite storage underneath the open session, so the
+	// editor has to re-read rather than keep serving (and later re-saving) stale text.
+	onMount(() =>
+		onWorkingTreeChanged(async (changed) => {
+			if (changed !== id || !ctrl) return;
+			try {
+				const loaded = await store.load(id);
+				if (!loaded) return;
+				binary = new SvelteMap(binaryMap(loaded.files));
+				latest = toGlyphFiles(loaded.files);
+				await ctrl.files.reloadFrom(latest.map((f) => ({ name: f.name, content: f.content })));
+				project = loaded.meta;
+			} catch (error) {
+				toast.error(error instanceof Error ? error.message : "Could not reload this document.");
+			}
+		})
+	);
+
+	// The workbench owns `mainId`; mirror the stored entry into it once mounted so
+	// the Explorer's "main" badge and the compile entry agree.
+	function onReady(controller: WorkbenchController): void {
+		ctrl = controller;
+		const entry = project?.entry;
+		const match = controller.files.files.find((f) => f.name === entry);
+		if (match) void controller.files.setMain(match.id);
+	}
+
+	// Asked once per project, before the first compile can build the wrong file.
+	// A settled choice or a single candidate never opens this.
+	const needsMainFile = $derived(
+		Boolean(project && !project.entryConfirmed && (project.entryCandidates?.length ?? 0) >= 2)
+	);
+	// Closing without choosing hides the prompt for this document for the rest of the session.
+	let mainFileDismissed = $state<string | undefined>(undefined);
+	const showMainFile = $derived(needsMainFile && mainFileDismissed !== project?.id);
+
+	function chooseMain(path: string): void {
+		if (!project) return;
+		track("main_file_chosen", { candidates: project.entryCandidates?.length ?? 0 });
+		void store
+			.setEntry(project.id, path)
+			.then((next) => {
+				project = { ...project, ...next };
+				const match = ctrl?.files.files.find((f) => f.name === path);
+				if (match) void ctrl?.files.setMain(match.id);
+			})
+			.catch(() => toast.error("Could not set the main file."));
+	}
+
+	// `setMain` is also reachable from the Explorer, so the store is the source of
+	// truth and the stored entry follows it.
+	$effect(() => {
+		const mainId = ctrl?.files.mainId;
+		if (!mainId || !project) return;
+		const name = ctrl?.files.files.find((f) => f.id === mainId)?.name;
+		if (!name || name === project.entry) return;
+		void store
+			.setEntry(project.id, name)
+			.then((next) => (project = { ...project, ...next }))
+			.catch(() => {
+				/* the compile fallback still resolves an entry */
+			});
+	});
+
+	let readOnlyNoticed = false;
+
+	async function persist(files: GlyphFile[]): Promise<void> {
+		if (!project) return;
+		latest = files;
+		if (readOnly) {
+			if (!readOnlyNoticed)
+				toast.info("You can view this project but not edit it, so changes aren't saved.");
+			readOnlyNoticed = true;
+			return;
+		}
+		saving = true;
+		try {
+			await store.save(project.id, toNewFiles(files, binary));
+		} catch (error) {
+			if (error instanceof CloudError && error.conflict) {
+				toast.error(error.message, {
+					duration: Number.POSITIVE_INFINITY,
+					action: { label: "Reload", onClick: () => (reloadToken += 1) }
+				});
+			} else {
+				toast.error(error instanceof Error ? error.message : "Could not save.");
+			}
+			console.error("[GlyphTeX]", error);
+		} finally {
+			saving = false;
+		}
+	}
+
+	async function rename(name: string): Promise<void> {
+		if (!project) return;
+		try {
+			project = { ...project, ...(await store.rename(project.id, name)) };
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Could not rename.");
+		}
+	}
+
+	/** Leave for the documents list, where opening another document belongs. */
+	function openProject(): void {
+		void goto(resolve("/workspace"));
+	}
+
+	// "Open folder" / "Import project" make a NEW document rather than replacing the
+	// open one: on web a document is browser storage, not a folder we can swap.
+	async function importAsNewProject(
+		load: () => Promise<ImportResult>,
+		source: DocumentSource
+	): Promise<void> {
+		try {
+			const { files, name, skipped } = await load();
+			if (files.length === 0) {
+				toast.error("Nothing in there could be imported.");
+				track("document_import_failed", { source, reason: "empty" });
+				return;
+			}
+			const created = await createProject(name, files);
+			track("document_created", { source, files: bucket(files.length) });
+			if (skipped.length > 0) toast.warning(`Skipped ${skipped.length} files.`);
+			void goto(resolve(`/workspace/projects/${created.id}` as `/workspace/projects/${string}`));
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Could not import that.");
+			track("document_import_failed", { source, reason: "error" });
+		}
+	}
+
+	// Resolved with the paths `addFiles` took in, so a caller that needs to know
+	// what arrived (the visual editor's figure card) can use them.
+	let pendingPick: ((paths: string[]) => void) | null = null;
+
+	function settlePick(paths: string[]): void {
+		pendingPick?.(paths);
+		pendingPick = null;
+	}
+
+	function pickFiles(want: string): Promise<string[]> {
+		settlePick([]);
+		accept = want;
+		// Let `accept` land on the input before it opens the picker.
+		queueMicrotask(() => fileInput?.click());
+		return new Promise((resolve) => (pendingPick = resolve));
+	}
+
+	async function addFiles(list: FileList | File[]): Promise<void> {
+		if (!project) return;
+		try {
+			const { files, skipped } = await importLooseFiles(list);
+			if (files.length === 0) {
+				settlePick([]);
+				toast.error(skipped[0] ? `Skipped ${skipped[0]}` : "Nothing to add.");
+				return;
+			}
+			for (const f of files) if (f.data) binary.set(f.path, f.data);
+
+			// Into the live session first, so the tree updates without a reload; the
+			// debounced persist then writes the merged set.
+			ctrl?.files.addFiles(
+				files.map((f) => ({
+					name: f.path,
+					content: f.data
+						? "% Binary file: edited outside GlyphTeX, included as-is.\n"
+						: (f.text ?? "")
+				}))
+			);
+			if (ctrl) await persist(ctrl.files.snapshotFiles());
+			settlePick(files.map((f) => f.path));
+			track("files_added", {
+				files: bucket(files.length),
+				binary: files.filter((f) => f.data).length > 0,
+				skipped: skipped.length
+			});
+			toast.success(`Added ${files.length} file${files.length === 1 ? "" : "s"}.`);
+			if (skipped.length > 0) toast.warning(`Skipped ${skipped.join(", ")}`);
+		} catch (error) {
+			settlePick([]);
+			toast.error(error instanceof Error ? error.message : "Could not add those files.");
+		}
+	}
+
+	function saveBlob(blob: Blob, filename: string): void {
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = filename;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
+	/** Current bytes for a project-relative path: stored image/PDF data, else text. */
+	function bytesOf(path: string, files: GlyphFile[]): Uint8Array {
+		const data = binary.get(path);
+		if (data) return data;
+		const file = files.find((f) => f.name === path);
+		return new TextEncoder().encode(file?.content ?? file?.saved ?? "");
+	}
+
+	async function exportZip(): Promise<void> {
+		if (!project) return;
+		try {
+			const files = ctrl?.files.snapshotFiles() ?? latest;
+			const zip = await writeZip(
+				files.map((f) => ({ path: f.name, data: bytesOf(f.name, files) }))
+			);
+			saveBlob(
+				new Blob([zip as BlobPart], { type: "application/zip" }),
+				`${project.name.replace(/[^\w.-]+/g, "-") || "document"}.zip`
+			);
+			track("document_exported", { kind: "project_zip", files: bucket(files.length) });
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Could not export.");
+		}
+	}
+
+	// Explorer "…" → Download. A single file saves as itself; a folder is zipped
+	// re-rooted at its own name, so unzipping never scatters files into the CWD.
+	async function download(request: DownloadRequest): Promise<void> {
+		const files = ctrl?.files.snapshotFiles() ?? latest;
+		try {
+			if (request.kind === "file") {
+				const path = request.paths[0];
+				if (!path) return;
+				saveBlob(new Blob([bytesOf(path, files) as BlobPart]), request.name);
+				track("document_exported", { kind: "file" });
+				return;
+			}
+			const root = request.root ?? "";
+			const cut = root.lastIndexOf("/") + 1;
+			const zip = await writeZip(
+				request.paths.map((path) => ({ path: path.slice(cut), data: bytesOf(path, files) }))
+			);
+			saveBlob(
+				new Blob([zip as BlobPart], { type: "application/zip" }),
+				`${request.name.replace(/[^\w.-]+/g, "-") || "folder"}.zip`
+			);
+			track("document_exported", { kind: "folder_zip", files: bucket(request.paths.length) });
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Could not download.");
+		}
+	}
+
+	// The asset viewer reads images / PDFs by project-relative path.
+	async function readFileBytes(path: string): Promise<Uint8Array> {
+		const data = binary.get(path);
+		if (!data) throw new Error(`${path} is not stored in this document.`);
+		return data;
+	}
+
+	async function onDrop(event: DragEvent): Promise<void> {
+		event.preventDefault();
+		dragging = false;
+		if (!event.dataTransfer) return;
+		// Reads dropped folders recursively (works in Firefox/Chrome/Safari), so a
+		// whole project directory can be dragged in, not just loose files.
+		const files = await filesFromDataTransfer(event.dataTransfer);
+		if (files.length > 0) void addFiles(files);
+	}
+
+	function onDragOver(event: DragEvent): void {
+		// Only external file drags; the Explorer handles its own internal moves.
+		if (!event.dataTransfer?.types.includes("Files")) return;
+		event.preventDefault();
+		dragging = true;
+	}
+
+	async function runCompile(files: GlyphFile[], entry: string) {
+		const main = entry || project?.entry || "main.tex";
+		lastCompiled = { files, entry: main };
+
+		const source = files.find((f) => f.name === main);
+		mainFileSource = source?.saved ?? source?.content ?? "";
+		requiresBiber = needsBiber(mainFileSource);
+
+		const startedAt = performance.now();
+		const mounted = await withOrgLibrary(toCompileFiles(files, binary), project?.orgId);
+		const outcome = await compileFiles(mounted, main, id);
+		if (outcome.pdf) onboarding.markCompiled();
+		missingPacks = outcome.missingPacks ?? [];
+		unsupportedFiles = outcome.unsupportedFiles ?? [];
+		track("compile_finished", {
+			ok: Boolean(outcome.pdf),
+			duration_ms: Math.round(performance.now() - startedAt),
+			files: bucket(files.length),
+			missing_packs: missingPacks.length,
+			diagnostics: outcome.diagnostics?.length ?? 0,
+			biber: requiresBiber
+		});
+		return outcome;
+	}
+
+	async function addMissingPacks(): Promise<void> {
+		installingPacks = true;
+		packError = undefined;
+		const wanted = missingPacks.length;
+		try {
+			await installPacks(missingPacks.map((p) => p.id));
+			missingPacks = [];
+			track("engine_packs_installed", { packs: wanted, ok: true });
+			if (lastCompiled) await runCompile(lastCompiled.files, lastCompiled.entry);
+		} catch (error) {
+			packError = error instanceof Error ? error.message : String(error);
+			track("engine_packs_installed", { packs: wanted, ok: false });
+		} finally {
+			installingPacks = false;
+		}
+	}
+
+	function onInstalled(): void {
+		ready = true;
+		showInstall = false;
+		track("engine_installed");
+	}
+</script>
+
+<svelte:head>
+	<title>{project ? `${project.name} · GlyphTeX` : 'GlyphTeX'}</title>
+</svelte:head>
+
+{#snippet headerActions()}
+	{#if project}{@render actions?.(project)}{/if}
+{/snippet}
+
+{#snippet notice(title: string, body: string, retry: boolean)}
+	<main id="main" class="bg-canvas flex min-h-dvh items-center justify-center px-4 py-10">
+		<div class="panel-card flex w-full max-w-md flex-col items-center gap-4 p-8 text-center">
+			<span
+				class="border-border bg-background text-muted-foreground grid size-12 place-items-center rounded-xl border"
+				aria-hidden="true"
+			>
+				<IconFileAlert size={24} />
+			</span>
+			<div class="flex flex-col gap-2">
+				<h1 class="text-xl font-medium">{title}</h1>
+				<p class="text-md text-muted-foreground">{body}</p>
+			</div>
+			<div class="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">
+				{#if retry}
+					<Button variant="outline" href={resolve('/workspace')}>Back to documents</Button>
+					<Button variant="dark" onclick={() => (reloadToken += 1)}>Try again</Button>
+				{:else}
+					<Button variant="dark" href={resolve('/workspace')}>Back to documents</Button>
+				{/if}
+			</div>
+		</div>
+	</main>
+{/snippet}
+
+{#if status === 'missing'}
+	{@render notice(
+		'This document no longer exists',
+		'It may have been deleted, or the browser cleared its storage.',
+		false
+	)}
+{:else if status === 'error'}
+	{@render notice('Could not open this document', loadError, true)}
+{:else if status === 'loading'}
+	<div class="flex min-h-dvh flex-col items-center justify-center gap-4">
+		<Logo size="lg" />
+		<p class="text-muted-foreground text-md" role="status">Opening document…</p>
+	</div>
+{:else if project && initialFiles}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="flex h-dvh flex-col"
+		ondragover={onDragOver}
+		ondragleave={() => (dragging = false)}
+		ondrop={onDrop}
+	>
+		<h1 class="sr-only">{project.name}</h1>
+	<EngineNotices
+			{missingPacks}
+			{unsupportedFiles}
+			{requiresBiber}
+			{updateAvailable}
+			installing={installingPacks}
+			error={packError}
+			mainSource={mainFileSource}
+			fileCount={lastCompiled?.files.length}
+			onadd={addMissingPacks}
+			onupdate={saveAndUpdate}
+		/>
+
+		<div class="min-h-0 flex-1">
+			<!-- Remount per document: the Workbench captures `initialFiles` when it is
+			     constructed, so navigating between documents must rebuild it. -->
+			<!-- No `git` provider: source control is desktop-only, which hides the
+			     Changes tab and with it the diff view. -->
+			{#key id}
+				<Workbench
+					platform="web"
+					projectName={project.name}
+					documentId={project.id}
+					{initialFiles}
+					{saving}
+					backHref={resolve('/workspace')}
+					backLabel="Documents"
+					onRenameProject={rename}
+					onAddFiles={pickFiles}
+					onOpenProject={openProject}
+					onOpenFolder={() => folderInput?.click()}
+					onImportProject={() => zipInput?.click()}
+					onExportProject={exportZip}
+					onDownload={download}
+					{readFileBytes}
+					onpersist={persist}
+					onready={onReady}
+					compileFiles={ready ? runCompile : undefined}
+					statusNote={project.remoteId ? 'Engine: on-device · Linked to server' : 'Engine: on-device'}
+					headerActions={actions && project ? headerActions : undefined}
+				/>
+			{/key}
+		</div>
+
+		{#if dragging}
+			<div
+				class="border-primary bg-background/90 pointer-events-none fixed inset-3 z-50 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed"
+				role="status"
+			>
+				<IconUpload size={28} class="text-primary" aria-hidden="true" />
+				<p class="text-base font-medium">Drop files to add them to this document</p>
+			</div>
+		{/if}
+	</div>
+
+	<input
+		bind:this={fileInput}
+		type="file"
+		multiple
+		{accept}
+		class="hidden"
+		onchange={(e) => {
+			const list = e.currentTarget.files;
+			if (list && list.length > 0) void addFiles(list);
+			else settlePick([]);
+			e.currentTarget.value = '';
+		}}
+		oncancel={() => settlePick([])}
+	/>
+
+	<input
+		bind:this={zipInput}
+		type="file"
+		accept=".zip,application/zip"
+		class="hidden"
+		onchange={(e) => {
+			const file = e.currentTarget.files?.[0];
+			if (file) void importAsNewProject(() => importZipFile(file), 'import_zip');
+			e.currentTarget.value = '';
+		}}
+	/>
+
+	<input
+		bind:this={folderInput}
+		type="file"
+		webkitdirectory
+		multiple
+		class="hidden"
+		onchange={(e) => {
+			const picked = Array.from(e.currentTarget.files ?? []);
+			if (picked.length > 0) void importAsNewProject(() => importFolder(picked), 'import_folder');
+			e.currentTarget.value = '';
+		}}
+	/>
+
+	<EngineInstallDialog bind:open={showInstall} ondone={onInstalled} />
+
+	<MainFileDialog
+		bind:open={
+			() => showMainFile,
+			(next) => {
+				if (!next) mainFileDismissed = project?.id;
+			}
+		}
+		candidates={project.entryCandidates ?? []}
+		current={project.entry}
+		onchoose={chooseMain}
+	/>
+{:else}
+	{@render notice('Could not open this document', 'It loaded without any content, which should not happen.', true)}
+{/if}
