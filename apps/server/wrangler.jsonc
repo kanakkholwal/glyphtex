@@ -17,11 +17,15 @@
 		"WEB_ORIGINS": "https://glyphtex.nexonauts.com",
 		"BLOB_DRIVER": "s3",
 		"MAIL_DRIVER": "cloudflare",
+		// Must be an address on a domain onboarded to Cloudflare Email Sending.
+		"MAIL_FROM": "GlyphTeX <no-reply@nexonauts.com>",
 		"QUEUE_DRIVER": "cloudflare",
 		"CLIENT_IP_HEADER": "cf-connecting-ip"
 	},
-	// Secrets (wrangler secret put): BETTER_AUTH_SECRET, RESEND_API_KEY, OAuth client secrets,
-	// and DATABASE_URL only if you skip Hyperdrive.
+	// MAIL_DRIVER=cloudflare sends through this binding.
+	"send_email": [{ "name": "EMAIL" }],
+	// Secrets (wrangler secret put): BETTER_AUTH_SECRET, the S3_* keys when file storage is on,
+	// OAuth client secrets, and DATABASE_URL only if you skip Hyperdrive.
 	"hyperdrive": [
 		{
 			"binding": "HYPERDRIVE",

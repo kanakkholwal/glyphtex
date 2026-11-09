@@ -17,7 +17,14 @@ import { s3Blobs } from "../adapters/s3/blobs.ts";
 import type { Adapters } from "../adapters/types.ts";
 import { createApp } from "../app.ts";
 import { createAuth } from "../auth/auth.ts";
-import { type Config, configNotes, parseConfig, required } from "../config.ts";
+import {
+	type Config,
+	configNotes,
+	parseConfig,
+	required,
+	withoutBlobs,
+	withoutMail
+} from "../config.ts";
 import type { Deps } from "../context.ts";
 import { connectDb } from "../db/client.ts";
 import { runJob } from "../jobs/handlers.ts";
@@ -62,7 +69,7 @@ function buildBlobs(env: Env, config: Config) {
 function buildMailer(env: Env, config: Config) {
 	switch (config.mailDriver) {
 		case "cloudflare":
-			return cloudflareMailer(required(env.EMAIL, "EMAIL (send_email binding)"), config.mail.from);
+			return env.EMAIL ? cloudflareMailer(env.EMAIL, config.mail.from) : noMailer();
 		case "resend":
 			return resendMailer(required(config.mail.resendApiKey, "RESEND_API_KEY"), config.mail.from);
 		default:
@@ -73,7 +80,10 @@ function buildMailer(env: Env, config: Config) {
 function envState(env: Env) {
 	let state = perEnv.get(env);
 	if (!state) {
-		const config = parseConfig(env);
+		let config = parseConfig(env);
+		// A binding missing from wrangler.jsonc must not take the whole API down.
+		if (config.mailDriver === "cloudflare" && !env.EMAIL) config = withoutMail(config);
+		if (config.blobDriver === "r2" && !env.BLOBS) config = withoutBlobs(config);
 		for (const note of configNotes(config)) logger.warn(note);
 		if (config.mailDriver === "smtp") throw new Error("Workers can't open SMTP connections.");
 		const blobs = buildBlobs(env, config);

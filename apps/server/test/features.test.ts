@@ -27,7 +27,7 @@ describe("optional features", () => {
 		const half = parseConfig({ ...base, BLOB_DRIVER: "s3", S3_BUCKET: "glyphtex" });
 		assert.equal(half.blobsEnabled, false);
 		assert.equal(half.blobsFellBack, true);
-		assert.match(configNotes(half).join(" "), /S3_\* settings are incomplete/);
+		assert.match(configNotes(half).join(" "), /not fully configured/);
 
 		const full = parseConfig({
 			...base,

@@ -104,8 +104,10 @@ export function parseConfig(env: Record<string, unknown>) {
 		blobDriver,
 		blobsEnabled: blobDriver !== "none",
 		blobsFellBack,
+		blobDriverRequested: e.BLOB_DRIVER,
 		mailDriver,
 		mailEnabled,
+		mailFellBack: false,
 		s3: {
 			endpoint: e.S3_ENDPOINT,
 			region: e.S3_REGION,
@@ -143,19 +145,39 @@ export function required<T>(value: T | undefined, name: string): T {
 	return value;
 }
 
+/** A bound resource that isn't there (a Workers binding not added yet) switches the feature off instead of failing every request. */
+export function withoutBlobs(config: Config): Config {
+	return { ...config, blobDriver: "none", blobsEnabled: false, blobsFellBack: true };
+}
+
+export function withoutMail(config: Config): Config {
+	return {
+		...config,
+		mailDriver: "none",
+		mailEnabled: false,
+		mailFellBack: true,
+		requireEmailVerification: false,
+		emailVerificationSuspended: config.requireEmailVerification || config.emailVerificationSuspended
+	};
+}
+
 /** Plain-language notes for the operator, logged once at startup. */
 export function configNotes(config: Config): string[] {
 	const notes: string[] = [];
 	if (config.blobsFellBack) {
 		notes.push(
-			"BLOB_DRIVER=s3 but the S3_* settings are incomplete: file storage is off until they are set."
+			`BLOB_DRIVER=${config.blobDriverRequested} is not fully configured (missing S3_* settings or the BLOBS binding): file storage is off until it is.`
 		);
 	} else if (!config.blobsEnabled) {
 		notes.push(
 			"File storage is off (BLOB_DRIVER unset): text files only, images and fonts are refused."
 		);
 	}
-	if (!config.mailEnabled) {
+	if (config.mailFellBack) {
+		notes.push(
+			"MAIL_DRIVER=cloudflare but the EMAIL send_email binding is missing: email is off until it is added."
+		);
+	} else if (!config.mailEnabled) {
 		notes.push("Email is off (MAIL_DRIVER unset): no magic links, resets or invitation emails.");
 	}
 	if (config.emailVerificationSuspended) {
