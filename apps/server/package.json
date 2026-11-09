@@ -44,7 +44,7 @@
 		"@types/nodemailer": "^8.0.2",
 		"drizzle-kit": "^0.31.11",
 		"typescript": "^6.0.3",
-		"wrangler": "^4.157.0"
+		"wrangler": "^4.158.0"
 	},
 	"exports": {
 		"./contract": "./src/contract.ts"
