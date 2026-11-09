@@ -321,6 +321,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag || github.sha }}
+          # The reminder below compares against the last release tag.
+          fetch-depth: 0
 
       - uses: actions/download-artifact@v4
         with:
@@ -381,6 +383,19 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A release and its tag happen only for a new version. If the package itself changed
+      # since the last release but the version did not, say so instead of staying silent.
+      - name: Remind to bump the version
+        if: >-
+          steps.published.outputs.skip == 'true' &&
+          github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          last="tex-engine-v${{ steps.version.outputs.value }}"
+          git rev-parse -q --verify "refs/tags/$last" >/dev/null || exit 0
+          if ! git diff --quiet "$last" HEAD --             packages/tex-engine/src packages/tex-engine/wasm packages/tex-engine/packs.config.json             crates/tectonic-wasm/output crates/glyphtex-tex-api/src; then
+            echo "::warning::The engine package changed since $last but its version was not bumped, so nothing was published or tagged. Bump packages/tex-engine/package.json to release."
           fi
 
       # Trusted publishing needs npm >= 11.5.1; the Node 24 image can ship older.
