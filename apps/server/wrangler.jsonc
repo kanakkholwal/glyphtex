@@ -25,7 +25,7 @@
 	"hyperdrive": [
 		{
 			"binding": "HYPERDRIVE",
-			"id": "<hyperdrive-config-id>"
+			"id": "123e6961f2af4437a1904c295a6b85b5"
 		}
 	],
 	"kv_namespaces": [
