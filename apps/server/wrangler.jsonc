@@ -15,8 +15,8 @@
 		"PUBLIC_URL": "https://glyphtex-api.nexonauts.com",
 		"APP_URL": "https://glyphtex.nexonauts.com",
 		"WEB_ORIGINS": "https://glyphtex.nexonauts.com",
-		"BLOB_DRIVER": "r2",
-		"MAIL_DRIVER": "resend",
+		"BLOB_DRIVER": "s3",
+		"MAIL_DRIVER": "cloudflare",
 		"QUEUE_DRIVER": "cloudflare",
 		"CLIENT_IP_HEADER": "cf-connecting-ip"
 	},
