@@ -10,7 +10,7 @@ export const AUTHOR = {
 	url: `${SITE_URL}/about`,
 	sameAs: [
 		"https://github.com/kanakkholwal",
-		"https://x.com/kanakkholwal",
+		"https://kanakkholwal.eu.org",
 		"https://www.linkedin.com/in/kanak-kholwal"
 	]
 } as const;

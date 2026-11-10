@@ -25,7 +25,8 @@
 			error = "This GlyphTeX has no server configured.";
 			return;
 		}
-		await cloudSession.refresh();
+		// Hydrated from the server render in the workspace layout; this only calls out if that couldn't check.
+		await cloudSession.ensure();
 		if (!cloudSession.signedIn) {
 			phase = "signin";
 			return;

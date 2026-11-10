@@ -5,7 +5,8 @@ import type { PageServerLoad } from "./$types";
 export const load: PageServerLoad = ({ locals, url }) => {
 	const deleted = url.searchParams.get("deleted") === "1";
 	// Signed-in visitors never see the sign-in form, not even for one frame.
-	if (locals.auth.user && !deleted) {
+	const forgot = url.searchParams.get("mode") === "forgot";
+	if (locals.auth.user && !deleted && !forgot) {
 		redirect(303, safeNext(url.searchParams.get("next"), "/workspace/settings?tab=account"));
 	}
 };

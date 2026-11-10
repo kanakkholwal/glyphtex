@@ -1,13 +1,14 @@
 import { browser } from "$app/environment";
-import { authClient, type CloudUser, unwrap } from "./auth";
+import { authClient, unwrap } from "./auth";
 import { cloudEnabled } from "./config";
+import { type SessionOrg, type SessionUser, toSessionUser } from "./session-user";
 
 type Status = "idle" | "loading" | "ready" | "error";
-export type OrgSummary = { id: string; name: string; slug: string; logo?: string | null };
+export type OrgSummary = SessionOrg;
 
 /** The signed-in user and their active org, owned here; components read it and call `refresh`. */
 class CloudSession {
-	user = $state<CloudUser | null>(null);
+	user = $state<SessionUser | null>(null);
 	status = $state<Status>("idle");
 	/** Better Auth keeps the active org on the session; null is the personal space. */
 	activeOrgId = $state<string | null>(null);
@@ -20,6 +21,20 @@ class CloudSession {
 
 	get activeOrg() {
 		return this.orgs.find((o) => o.id === this.activeOrgId) ?? null;
+	}
+
+	/** Adopts what the server already read for this request, so no browser round trip is needed. */
+	hydrate(auth: {
+		checked: boolean;
+		user: SessionUser | null;
+		activeOrgId: string | null;
+		orgs: SessionOrg[];
+	}) {
+		if (!auth.checked) return;
+		this.user = auth.user;
+		this.activeOrgId = auth.activeOrgId;
+		this.orgs = auth.orgs;
+		this.status = "ready";
 	}
 
 	/** First read is shared, so every component mounting at once makes one request. */
@@ -35,7 +50,7 @@ class CloudSession {
 		this.status = "loading";
 		try {
 			const { data } = await authClient.getSession();
-			this.user = data?.user ?? null;
+			this.user = data?.user ? toSessionUser(data.user) : null;
 			const active = (data?.session as { activeOrganizationId?: string | null } | undefined)
 				?.activeOrganizationId;
 			this.activeOrgId = active ?? null;

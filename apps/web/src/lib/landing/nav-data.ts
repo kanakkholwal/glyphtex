@@ -45,6 +45,6 @@ export type Social = { label: string; href: string; external: boolean };
 // Accounts only: "Releases" duplicated the GitHub link two columns over.
 export const footerSocials: Social[] = [
 	{ label: "GitHub", href: REPO_URL, external: true },
-	{ label: "Twitter", href: "https://twitter.com/kanakkholwal", external: true },
+	{ label: "Portfolio", href: "https://kanakkholwal.eu.org", external: true },
 	{ label: "Contact", href: CONTACT_EMAIL, external: true }
 ];

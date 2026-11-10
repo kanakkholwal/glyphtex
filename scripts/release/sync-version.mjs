@@ -7,6 +7,7 @@
 //   - apps/desktop/src-tauri/tauri.conf.json  ("version")
 //   - apps/desktop/src-tauri/Cargo.toml       ([package] version)
 //   - apps/desktop/package.json               ("version")
+//   - apps/web/package.json, packages/ui/package.json (the About dialog reads the latter)
 //
 // Usage (CI):  TAG=v0.1.0 node scripts/release/sync-version.mjs
 
@@ -63,3 +64,8 @@ updateCargoVersion("apps/desktop/src-tauri/Cargo.toml");
 updateJson("apps/desktop/package.json", (j) => {
 	j.version = version;
 });
+for (const rel of ["apps/web/package.json", "packages/ui/package.json"]) {
+	updateJson(rel, (j) => {
+		j.version = version;
+	});
+}

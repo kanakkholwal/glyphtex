@@ -29,8 +29,9 @@
 			error = "This GlyphTeX has no server configured, so it can't open shared projects.";
 			return;
 		}
-		await cloudSession.refresh();
-		if (!cloudSession.signedIn) {
+		// The server already checked (and redirected signed-out visitors); only ask again when it couldn't.
+		if (!page.data.auth?.checked) await cloudSession.refresh();
+		if (page.data.auth?.checked ? !page.data.auth.user : !cloudSession.signedIn) {
 			phase = "signin";
 			return;
 		}

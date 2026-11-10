@@ -1,8 +1,4 @@
-import { redirect } from "@sveltejs/kit";
+import { requireSignedIn } from "$lib/server/guard";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = ({ locals, url }) => {
-	if (locals.auth.checked && !locals.auth.user) {
-		redirect(303, `/workspace/account?next=${encodeURIComponent(url.pathname + url.search)}`);
-	}
-};
+export const load: PageServerLoad = ({ locals, url }) => requireSignedIn(locals.auth, url);

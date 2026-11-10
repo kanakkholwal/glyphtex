@@ -15,6 +15,7 @@
 			"!**/.wrangler",
 			"!**/build",
 			"!**/dist",
+			"!packages/email/src/generated.js",
 			"!**/target",
 			"!**/test/.build",
 			"!**/static",

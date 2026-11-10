@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
+	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
+	import { IconBook, IconHome } from "@tabler/icons-svelte";
 	import type { Snippet } from "svelte";
 
 	interface Props {
@@ -32,9 +34,13 @@
 			<div class="border-border bg-background flex flex-col gap-5 rounded-xl border p-6 shadow-(--surface-shadow)">
 				{@render children()}
 			</div>
-			{#if footer}
-				<div class="flex items-center gap-2 px-4 py-2.5">{@render footer()}</div>
-			{/if}
+			<div class="flex flex-wrap items-center gap-2 px-2 py-2">
+				{#if footer}{@render footer()}{/if}
+				<span class="ml-auto flex items-center gap-1">
+					<Button variant="ghost" size="sm" href={resolve('/')}><IconHome /> Home</Button>
+					<Button variant="ghost" size="sm" href={resolve('/docs')}><IconBook /> Docs</Button>
+				</span>
+			</div>
 		</div>
 	</div>
 </main>

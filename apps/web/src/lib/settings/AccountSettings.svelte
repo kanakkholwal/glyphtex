@@ -35,6 +35,7 @@
 	import { cloudSession } from "$lib/cloud/session.svelte";
 	import { sync, type SyncMode } from "$lib/sync/sync.svelte";
 	import { ToggleGroup, ToggleGroupItem } from "@glyphtex/ui/toggle-group";
+	import PasswordSettings from "./PasswordSettings.svelte";
 	import SettingsSection from "./SettingsSection.svelte";
 	import TwoFactorSettings from "./TwoFactorSettings.svelte";
 
@@ -130,6 +131,8 @@
 				</Button>
 			</div>
 		</SettingsSection>
+
+		<PasswordSettings email={user.email} />
 
 		<SettingsSection
 			title="Sync"

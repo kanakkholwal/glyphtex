@@ -1,7 +1,12 @@
 <script lang="ts" module>
+	import pkg from "../../../package.json";
+
+	/** Stamped from the release tag by scripts/release/sync-version.mjs, like every other manifest. */
+	export const GLYPHTEX_VERSION: string = pkg.version;
 	/** Where GlyphTeX lives: kept here so the About box and any future "Help"
 	 * surface read the same canonical links. */
 	export const GLYPHTEX_REPO = "https://github.com/kanakkholwal/glyphtex";
+	export const GLYPHTEX_AUTHOR_SITE = "https://kanakkholwal.eu.org";
 	export const GLYPHTEX_SITE = "https://glyphtex.nexonauts.com";
 </script>
 
@@ -15,7 +20,7 @@
 	let {
 		open = $bindable(false),
 		platform = 'desktop',
-		version = '0.1.0'
+		version = GLYPHTEX_VERSION
 	}: {
 		open?: boolean;
 		platform?: 'web' | 'desktop';
@@ -66,7 +71,7 @@
 
 			<p class="text-muted-foreground text-xs">
 				Built by <a
-					href="https://x.com/kanakkholwal"
+					href={GLYPHTEX_AUTHOR_SITE}
 					target="_blank"
 					rel="noreferrer noopener"
 					class="underline hover:no-underline">@kanakkholwal</a

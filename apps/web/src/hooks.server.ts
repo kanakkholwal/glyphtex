@@ -8,6 +8,9 @@ import { readSession, UNCHECKED } from "$lib/server/session";
 const LEGACY_HOST = "glyphx.nexonauts.com";
 const CANONICAL_HOST = "glyphtex.nexonauts.com";
 
+// Prerendered public pages stay account-free; only these read the session.
+const AUTH_PATHS = ["/workspace", "/join/", "/invite/"];
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const host = event.request.headers.get("host");
 	if (host === LEGACY_HOST) {
@@ -16,8 +19,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		url.protocol = "https:";
 		return new Response(null, { status: 301, headers: { location: url.toString() } });
 	}
-	// Only the workspace reads it; the public site is prerendered and stays account-free.
-	event.locals.auth = event.url.pathname.startsWith("/workspace")
+	event.locals.auth = AUTH_PATHS.some((p) => event.url.pathname.startsWith(p))
 		? await readSession(SERVER_URL, event.request.headers.get("cookie"), event.fetch)
 		: UNCHECKED;
 	return resolve(event);

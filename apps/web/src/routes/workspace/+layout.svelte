@@ -1,5 +1,13 @@
 <script lang="ts">
-	let { children } = $props();
+	import { browser } from "$app/environment";
+	import { cloudSession } from "$lib/cloud/session.svelte";
+
+	let { data, children } = $props();
+
+	// Browser only: the store is a module singleton, so the server must never write request state into it.
+	$effect.pre(() => {
+		if (browser) cloudSession.hydrate(data.auth);
+	});
 </script>
 
 <svelte:head>

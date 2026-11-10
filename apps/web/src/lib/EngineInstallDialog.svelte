@@ -57,7 +57,7 @@
 	}}
 	dismissOnBackdrop={false}
 >
-	<DialogContent class="gap-5 p-6 sm:max-w-md">
+	<DialogContent class="sm:max-w-md">
 		<DialogHeader class="gap-3">
 			<span
 				class="border-border bg-card text-primary grid size-10 place-items-center rounded-lg border"
@@ -104,7 +104,7 @@
 			</div>
 		{/if}
 
-		<Button variant="default" class="w-full sm:ml-auto sm:w-auto" onclick={start} disabled={installing}>
+		<Button class="w-full sm:ml-auto sm:w-auto" onclick={start} disabled={installing}>
 			{#if installing}
 				Installing…
 			{:else if error}
