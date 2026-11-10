@@ -27,7 +27,10 @@ describe("optional features", () => {
 		const half = parseConfig({ ...base, BLOB_DRIVER: "s3", S3_BUCKET: "glyphtex" });
 		assert.equal(half.blobsEnabled, false);
 		assert.equal(half.blobsFellBack, true);
-		assert.match(configNotes(half).join(" "), /missing S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY/);
+		assert.match(
+			configNotes(half).join(" "),
+			/missing S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY/
+		);
 
 		const full = parseConfig({
 			...base,

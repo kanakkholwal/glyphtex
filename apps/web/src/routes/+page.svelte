@@ -211,8 +211,32 @@
 	</Section>
 
 	<Section
-		id="templates"
+		id="cloud"
 		number={2}
+		title="optional cloud sync."
+		eyebrow="free · self-hostable"
+		description="Local stays the default. Add an account only if you want your projects on more than one device, or want to share them."
+		section="cloud"
+	>
+		{#snippet action()}
+			<Button href={resolve('/developers/self-hosting')} variant="outline" size="sm">
+				Self-hosting guide
+				<IconArrowRight />
+			</Button>
+		{/snippet}
+		<ul class="grid gap-x-10 sm:grid-cols-3">
+			{#each cloudPoints as c (c.title)}
+				<li class="border-t border-dashed border-border py-5">
+					<h3 class="text-sm font-medium text-foreground">{c.title}</h3>
+					<p class="mt-1 text-sm text-pretty text-muted-foreground">{c.body}</p>
+				</li>
+			{/each}
+		</ul>
+	</Section>
+
+	<Section
+		id="templates"
+		number={3}
 		title="templates."
 		description={`${data.counts.templates} starter documents that compile as they are. Pick one and the project opens with it.`}
 		section="templates"
@@ -240,7 +264,7 @@
 
 	<Section
 		id="faq"
-		number={3}
+		number={4}
 		title="questions."
 		description="What people check before moving a thesis across."
 		section="faq"

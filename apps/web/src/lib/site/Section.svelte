@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { viewSection } from "$lib/analytics";
+	import Eyebrow from "./Eyebrow.svelte";
 	import { cn } from "@glyphtex/ui/utils";
 	import type { Snippet } from "svelte";
 
@@ -9,6 +10,7 @@
 		number,
 		title,
 		accent,
+		eyebrow,
 		description,
 		section,
 		index = 0,
@@ -21,6 +23,8 @@
 		title: string;
 		/** Tail of the title, set in muted ink. */
 		accent?: string;
+		/** Brace label above the title row, e.g. `{cloud}`. */
+		eyebrow?: string;
 		description?: string;
 		/** Analytics section name, reported once when the block is read. */
 		section?: string;

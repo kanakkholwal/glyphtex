@@ -16,7 +16,10 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes("node_modules") ? undefined : true
 			},
 
-			adapter: adapter()
+			adapter: adapter(),
+			// Kit's check can't be scoped to one route, so it is off and hooks.server.ts re-applies it to
+			// every path except /open, which partner sites POST to from their own origin.
+			csrf: { trustedOrigins: ["*"] }
 		})
 	],
 

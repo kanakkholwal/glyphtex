@@ -6,6 +6,7 @@ export { default as FilterChips } from "./FilterChips.svelte";
 export { default as PageHero } from "./PageHero.svelte";
 export { default as RailFrame } from "./RailFrame.svelte";
 export { default as RailRow } from "./RailRow.svelte";
+export { default as Eyebrow } from "./Eyebrow.svelte";
 export { default as Section } from "./Section.svelte";
 export { default as SplitSection } from "./SplitSection.svelte";
 export { default as TiltedChip } from "./TiltedChip.svelte";

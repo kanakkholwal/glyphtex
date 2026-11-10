@@ -38,7 +38,7 @@
 	}
 </script>
 
-<CloudPage title="Choose a new password">
+<CloudPage title="Choose a new password" eyebrow="account">
 	{#if !token || linkError}
 		<p class="text-md">
 			{linkError ? "This reset link has expired or was already used." : "This reset link is incomplete."}

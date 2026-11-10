@@ -64,6 +64,7 @@
 {:else}
 	<CloudPage
 		title="Sign in to GlyphTeX"
+		eyebrow="account"
 		description="An account lets you save documents to the server and share them. Documents in this browser keep working without one."
 		footer={back}
 	>
