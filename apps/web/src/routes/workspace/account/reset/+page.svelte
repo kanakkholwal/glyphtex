@@ -11,6 +11,8 @@
 	import CloudPage from "$lib/cloud/CloudPage.svelte";
 
 	const token = $derived(page.url.searchParams.get("token") ?? "");
+	// Better Auth redirects here with ?error=INVALID_TOKEN when the link is expired or used.
+	const linkError = $derived(page.url.searchParams.get("error"));
 	let password = $state("");
 	let confirm = $state("");
 	let busy = $state(false);
@@ -37,9 +39,12 @@
 </script>
 
 <CloudPage title="Choose a new password">
-	{#if !token}
-		<p class="text-md">This reset link is incomplete. Request a new one from the sign-in page.</p>
-		<Button variant="dark" href={resolve('/workspace/account')}>Go to sign in</Button>
+	{#if !token || linkError}
+		<p class="text-md">
+			{linkError ? "This reset link has expired or was already used." : "This reset link is incomplete."}
+			Request a new one.
+		</p>
+		<Button variant="dark" href={`${resolve('/workspace/account')}?mode=forgot`}>Send a new link</Button>
 	{:else}
 		<form class="flex flex-col gap-3" onsubmit={submit}>
 			<label class="flex flex-col gap-1 text-xs font-medium">

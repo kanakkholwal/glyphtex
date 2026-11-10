@@ -6,7 +6,7 @@
 	let {
 		class: classProp,
 		side = "right",
-		variant = "default",
+		variant = "framed",
 		ref = $bindable(null),
 		children,
 		...rest

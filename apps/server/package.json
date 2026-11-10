@@ -24,6 +24,7 @@
 	"dependencies": {
 		"@better-auth/scim": "1.7.18",
 		"@better-auth/sso": "1.7.18",
+		"@glyphtex/email": "workspace:*",
 		"@hono/node-server": "^2.1.6",
 		"@hono/zod-validator": "^0.9.1",
 		"amqplib": "^2.2.1",

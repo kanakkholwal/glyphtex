@@ -15,7 +15,10 @@ import { createLogger } from "../lib/logger.ts";
 /** Composition root for Node/Bun: one set of long-lived connections per process. */
 export async function buildNodeDeps(env: Record<string, unknown> = process.env) {
 	const config = parseConfig(env);
-	const logger = createLogger({ runtime: "node" });
+	const logger = createLogger(
+		{ runtime: "node" },
+		process.env.NODE_ENV === "production" ? "info" : "debug"
+	);
 	for (const note of configNotes(config)) logger.warn(note);
 	const redis = await connectRedis(required(config.redisUrl, "REDIS_URL"));
 	const { db, close: closeDb } = connectDb(required(config.databaseUrl, "DATABASE_URL"));

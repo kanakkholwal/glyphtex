@@ -14,7 +14,12 @@
 		IconMail
 	} from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
+	import { fly } from "svelte/transition";
+	import { prefersReducedMotion } from "svelte/motion";
+	import { goto } from "$app/navigation";
+	import { page } from "$app/state";
 
+	import EmailOnlyForm from "./EmailOnlyForm.svelte";
 	import type { PublicConfig } from "./api";
 	import { appUrl, authClient, unwrap } from "./auth";
 	import { publicConfig } from "./public-config";
@@ -33,13 +38,26 @@
 	let configLoaded = $state(false);
 	// Assume mail works until the config says otherwise.
 	const mailOn = $derived(config?.features.mail ?? true);
-	let mode = $state<"signin" | "signup" | "sso">("signin");
+	type Mode = "signin" | "signup" | "sso" | "forgot" | "magic";
+	const MODES: readonly Mode[] = ["signin", "signup", "sso", "forgot", "magic"];
+	// The mode and email live in the URL, so a view can be linked, reloaded and reached with Back.
+	const mode = $derived.by<Mode>(() => {
+		const value = page.url.searchParams.get("mode");
+		return MODES.find((m) => m === value) ?? "signin";
+	});
+	function setMode(next: string) {
+		const url = new URL(page.url);
+		if (next === "signin") url.searchParams.delete("mode");
+		else url.searchParams.set("mode", next);
+		error = undefined;
+		void goto(url, { replaceState: true, keepFocus: true, noScroll: true });
+	}
 	/** Set once the password was right but the account has an authenticator to confirm. */
 	let challenge = $state(false);
 	let code = $state("");
 	let backup = $state(false);
 	let name = $state("");
-	let email = $state("");
+	let email = $state(page.url.searchParams.get("email") ?? "");
 	let password = $state("");
 	let busy = $state(false);
 	let error = $state<string | undefined>(undefined);
@@ -220,7 +238,34 @@
 			</div>
 		{/if}
 
-		<Tabs bind:value={mode}>
+				{#if mode === "forgot"}
+			<div in:fly={{ y: prefersReducedMotion.current ? 0 : 6, duration: 160 }}>
+				<EmailOnlyForm
+					description="Enter your email and we'll send a link to choose a new password."
+					submitLabel="Send reset link"
+					bind:email
+					{busy}
+					{error}
+					onsubmit={resetPassword}
+					onback={() => setMode("signin")}
+				/>
+			</div>
+		{:else if mode === "magic"}
+			<div in:fly={{ y: prefersReducedMotion.current ? 0 : 6, duration: 160 }}>
+				<EmailOnlyForm
+					description="We'll email you a link that signs you in. No password needed."
+					submitLabel="Email me a sign-in link"
+					bind:email
+					{busy}
+					{error}
+					onsubmit={magicLink}
+					onback={() => setMode("signin")}
+				>
+					{#snippet icon()}<IconMail />{/snippet}
+				</EmailOnlyForm>
+			</div>
+		{:else}
+		<Tabs value={mode} onValueChange={setMode} variant="underline">
 			<TabsList class="w-full">
 				<TabsTrigger value="signin" class="flex-1">Sign in</TabsTrigger>
 				<TabsTrigger value="signup" class="flex-1">Create account</TabsTrigger>
@@ -267,7 +312,18 @@
 						/>
 					</label>
 					<label class="flex flex-col gap-1 text-xs font-medium">
-						Password
+						<span class="flex items-center justify-between">
+							Password
+							{#if mode === "signin" && mailOn}
+								<button
+									type="button"
+									class="text-muted-foreground hover:text-foreground font-normal underline-offset-4 hover:underline"
+									onclick={() => setMode("forgot")}
+								>
+									Forgot password?
+								</button>
+							{/if}
+						</span>
 						<Input
 							type="password"
 							required
@@ -284,21 +340,18 @@
 						{#if busy}<IconLoader2 class="animate-spin" />{/if}
 						{mode === "signup" ? "Create account" : "Sign in"}
 					</Button>
-					{#if mode === "signin"}
-						<div class="flex flex-wrap items-center justify-between gap-2">
-							{#if mailOn}
-								<Button type="button" variant="ghost" size="sm" disabled={busy} onclick={magicLink}>
-									<IconMail /> Email me a sign-in link
-								</Button>
-								<Button type="button" variant="ghost" size="sm" disabled={busy} onclick={resetPassword}>
-									Forgot password?
-								</Button>
-							{/if}
+					{#if mode === "signin" && mailOn}
+						<div class="text-muted-foreground flex items-center gap-3 text-xs">
+							<Separator class="flex-1" /> or <Separator class="flex-1" />
 						</div>
+						<Button type="button" variant="outline" disabled={busy} onclick={() => setMode("magic")}>
+							<IconMail /> Email me a sign-in link
+						</Button>
 					{/if}
 				</form>
 				{/if}
 			</TabsContent>
 		</Tabs>
+		{/if}
 	</div>
 {/if}

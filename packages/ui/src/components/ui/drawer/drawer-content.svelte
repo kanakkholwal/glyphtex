@@ -8,7 +8,7 @@
 		children,
 		class: classProp,
 		handle = true,
-		variant = "default",
+		variant = "framed",
 		...rest
 	}: {
 		children?: Snippet;

@@ -52,7 +52,7 @@ export const sheet = tv({
 		{ variant: "framed", side: "top", class: { body: "rounded-t-none" } },
 		{ variant: "framed", side: "bottom", class: { body: "rounded-b-none" } }
 	],
-	defaultVariants: { variant: "default", side: "right" }
+	defaultVariants: { variant: "framed", side: "right" }
 });
 
 export type SheetVariant = NonNullable<VariantProps<typeof sheet>["variant"]>;

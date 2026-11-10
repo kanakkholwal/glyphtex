@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { log } from "$lib/log";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { Button } from "@glyphtex/ui/button";
@@ -260,7 +261,7 @@
 			} else {
 				toast.error(error instanceof Error ? error.message : "Could not save.");
 			}
-			console.error("[GlyphTeX]", error);
+			log.error("document save failed", error);
 		} finally {
 			saving = false;
 		}

@@ -1,3 +1,4 @@
+import { log } from "$lib/log";
 import type { CompileFile } from "$lib/compile";
 import { cloud, type OrgLibrary } from "./api";
 
@@ -43,7 +44,7 @@ export async function withOrgLibrary(files: CompileFile[], orgId: string | undef
 		return [...files, ...extra];
 	} catch (error) {
 		// Offline or signed out: compile without it; a package it held shows up as missing.
-		console.warn("Couldn't load the organization's shared packages", error);
+		log.warn("org packages unavailable", error);
 		return files;
 	}
 }

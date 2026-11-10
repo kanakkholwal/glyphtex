@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { log } from "$lib/log";
 	import { goto, replaceState } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
@@ -194,7 +195,7 @@
 	function report(error: unknown, fallback: string): void {
 		const message = error instanceof Error ? error.message : fallback;
 		toast.error(message);
-		console.error("[GlyphTeX]", error);
+		log.error("workspace action failed", error);
 	}
 
 	// Whole-origin usage (engine cache included), not just documents: that is the

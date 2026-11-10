@@ -8,7 +8,7 @@
 		open = $bindable(false),
 		motion = "zoom",
 		size = "default",
-		variant = "default",
+		variant = "framed",
 		dismissOnBackdrop = true
 	}: {
 		children?: Snippet;

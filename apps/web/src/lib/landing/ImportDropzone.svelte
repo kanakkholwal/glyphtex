@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { log } from "$lib/log";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
@@ -57,7 +58,7 @@
 			status = "Opening…";
 			await goto(resolve(`/workspace/projects/${project.id}` as `/workspace/projects/${string}`));
 		} catch (cause) {
-			console.error("[GlyphTeX]", cause);
+			log.error("import failed", cause);
 			error = cause instanceof Error ? cause.message : "Could not import that.";
 			track("document_import_failed", { source, reason: "error" });
 		} finally {

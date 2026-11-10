@@ -4,6 +4,7 @@ RUN corepack enable
 WORKDIR /repo
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/server/package.json apps/server/
+COPY packages/email packages/email
 RUN pnpm install --frozen-lockfile --filter @glyphtex/server --prod --ignore-scripts \
 	&& pnpm --filter @glyphtex/server deploy --prod --legacy /out
 

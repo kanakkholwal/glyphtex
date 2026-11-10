@@ -99,7 +99,11 @@ export function onError(error: Error, c: Context<AppEnv>) {
 			{ "content-type": "application/problem+json" }
 		);
 	}
-	(c.get("log") ?? console).error("unhandled error", { error });
+	(c.get("log") ?? console).error("unhandled error", {
+		error,
+		method: c.req.method,
+		path: c.req.path
+	});
 	return c.json(
 		{
 			type: "about:blank",

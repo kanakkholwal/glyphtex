@@ -106,7 +106,7 @@ export const dialogFrame = tv({
 			default: { panel: "flex flex-col gap-4 bg-popover p-6", footer: "pt-2", body: "" }
 		}
 	},
-	defaultVariants: { motion: "zoom", variant: "default" }
+	defaultVariants: { motion: "zoom", variant: "framed" }
 });
 
 export type DialogVariant = NonNullable<VariantProps<typeof dialogFrame>["variant"]>;

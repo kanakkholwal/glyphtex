@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { log } from "$lib/log";
 	import { goto } from "$app/navigation";
 	import { resolve } from "$app/paths";
 	import { track, trackOnce } from "$lib/analytics";
@@ -84,7 +85,7 @@
 			track("document_created", { source: "template", location: "home_demo" });
 			await goto(resolve(`/workspace/projects/${project.id}` as `/workspace/projects/${string}`));
 		} catch (error) {
-			console.error("[GlyphTeX]", error);
+			log.error("demo project create failed", error);
 			opening = false;
 			await goto(resolve("/workspace"));
 		}

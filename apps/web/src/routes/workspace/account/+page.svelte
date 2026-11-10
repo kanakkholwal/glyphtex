@@ -15,6 +15,8 @@
 	import { cloudSession } from "$lib/cloud/session.svelte";
 	import SignInPanel from "$lib/cloud/SignInPanel.svelte";
 
+	let { data } = $props();
+
 	// Start the sign-in options request now, in parallel with the session check, so the panel finds it done.
 	if (browser && cloudEnabled) void publicConfig().catch(() => {});
 
@@ -25,6 +27,7 @@
 
 	onMount(async () => {
 		if (!cloudEnabled || deleted) return;
+		if (data.auth.checked) return;
 		await cloudSession.refresh();
 		if (cloudSession.user) void goto(next, { replaceState: true });
 	});
@@ -54,7 +57,7 @@
 	>
 		<p class="text-muted-foreground text-sm">Documents saved only in this browser are untouched.</p>
 	</CloudPage>
-{:else if cloudSession.status === 'idle' || cloudSession.status === 'loading' || cloudSession.user}
+{:else if !data.auth.checked && (cloudSession.status === 'idle' || cloudSession.status === 'loading' || cloudSession.user)}
 	<CloudPage title="Account">
 		<SignInSkeleton />
 	</CloudPage>

@@ -53,7 +53,7 @@ export const drawerFrame = tv({
 			}
 		}
 	},
-	defaultVariants: { variant: "default" }
+	defaultVariants: { variant: "framed" }
 });
 
 export type DrawerVariant = NonNullable<VariantProps<typeof drawerFrame>["variant"]>;
