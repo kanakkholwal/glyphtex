@@ -73,7 +73,7 @@
 	async function requestDeletion() {
 		deleting = true;
 		try {
-			await unwrap(authClient.deleteUser({ callbackURL: appUrl("/workspace/account?deleted=1") }));
+			await unwrap(authClient.deleteUser({ callbackURL: appUrl("/workspace/sign-in?deleted=1") }));
 			deleteSent = true;
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : "Could not start account deletion.");
@@ -107,7 +107,7 @@
 			<Button
 				variant="dark"
 				size="sm"
-				href={`${resolve('/workspace/account')}?next=${encodeURIComponent('/workspace/settings?tab=account')}`}
+				href={`${resolve('/workspace/sign-in')}?next=${encodeURIComponent('/workspace/settings?tab=account')}`}
 			>
 				Sign in
 			</Button>

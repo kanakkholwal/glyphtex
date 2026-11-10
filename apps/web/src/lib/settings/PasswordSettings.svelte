@@ -15,7 +15,7 @@
 		busy = true;
 		try {
 			await unwrap(
-				authClient.requestPasswordReset({ email, redirectTo: appUrl("/workspace/account/reset") })
+				authClient.requestPasswordReset({ email, redirectTo: appUrl("/workspace/sign-in/reset") })
 			);
 			sent = true;
 			toast.success(`Reset link sent to ${email}.`);

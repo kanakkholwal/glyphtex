@@ -29,7 +29,7 @@
 		try {
 			await unwrap(authClient.resetPassword({ newPassword: password, token }));
 			toast.success("Password changed. Sign in with the new one.");
-			void goto(resolve("/workspace/account"));
+			void goto(resolve("/workspace/sign-in"));
 		} catch (e) {
 			error = e instanceof Error ? e.message : "Could not reset the password.";
 		} finally {
@@ -44,7 +44,7 @@
 			{linkError ? "This reset link has expired or was already used." : "This reset link is incomplete."}
 			Request a new one.
 		</p>
-		<Button variant="dark" href={`${resolve('/workspace/account')}?mode=forgot`}>Send a new link</Button>
+		<Button variant="dark" href={`${resolve('/workspace/sign-in')}?mode=forgot`}>Send a new link</Button>
 	{:else}
 		<form class="flex flex-col gap-3" onsubmit={submit}>
 			<label class="flex flex-col gap-1 text-xs font-medium">

@@ -158,7 +158,7 @@
 		}
 		void run(async () => {
 			await unwrap(
-				authClient.requestPasswordReset({ email, redirectTo: appUrl("/workspace/account/reset") })
+				authClient.requestPasswordReset({ email, redirectTo: appUrl("/workspace/sign-in/reset") })
 			);
 			sent = `If ${email} has an account, a reset link is on its way.`;
 		});

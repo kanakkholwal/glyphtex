@@ -130,7 +130,7 @@
 	const account = $derived(
 		cloudEnabled
 			? {
-					href: `${resolve("/workspace/account")}?next=${encodeURIComponent("/workspace")}`,
+					href: `${resolve("/workspace/sign-in")}?next=${encodeURIComponent("/workspace")}`,
 					name: cloudSession.user?.name || cloudSession.user?.email || "",
 					email: cloudSession.user?.email ?? "",
 					signedIn: cloudSession.signedIn,

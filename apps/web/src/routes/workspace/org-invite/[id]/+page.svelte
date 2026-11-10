@@ -58,7 +58,7 @@
 	}
 
 	const signInHref = $derived(
-		`${resolve("/workspace/account")}?next=${encodeURIComponent(page.url.pathname)}`
+		`${resolve("/workspace/sign-in")}?next=${encodeURIComponent(page.url.pathname)}`
 	);
 </script>
 

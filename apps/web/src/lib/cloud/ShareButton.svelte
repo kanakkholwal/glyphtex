@@ -54,14 +54,16 @@
 		if (initiallyOpen && linked) shareOpen = true;
 	});
 
-	function requireSignIn() {
+	async function requireSignIn() {
+		// A click can beat the first session read; wait for it instead of assuming signed out.
+		await cloudSession.ensure();
 		if (cloudSession.signedIn) return true;
-		void goto(`${resolve("/workspace/account")}?next=${encodeURIComponent(page.url.pathname)}`);
+		void goto(`${resolve("/workspace/sign-in")}?next=${encodeURIComponent(page.url.pathname)}`);
 		return false;
 	}
 
-	function share() {
-		if (!requireSignIn()) return;
+	async function share() {
+		if (!(await requireSignIn())) return;
 		if (linked) shareOpen = true;
 		else {
 			thenShare = true;

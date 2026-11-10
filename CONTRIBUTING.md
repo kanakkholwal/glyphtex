@@ -12,21 +12,19 @@ ideas, docs fixes, and pull requests are all welcome.
 
 ## Project layout
 
-GlyphTeX is a monorepo with a shared UI used by both a web app and a desktop app:
-
 ```
-glyph-mvp/
-├── apps/
-│   ├── web/        The browser editor + marketing site
-│   └── desktop/    The native desktop app (a web UI wrapped in a Tauri shell)
-│       └── src-tauri/   The Rust side of the desktop app
-└── packages/
-    ├── ui/         Shared components and the design system
-    └── design/     Design tokens and assets
+apps/
+  web/        Browser editor and site (SvelteKit on Cloudflare Workers)
+  desktop/    Tauri desktop app (src-tauri/ is the Rust side)
+  server/     Optional Teams server (Hono, Postgres); see apps/server/AGENTS.md
+packages/
+  ui/         Shared components, design tokens, the Workbench
+  email/      Email templates (edit, then `pnpm --filter @glyphtex/email build`)
+  tex-engine/ In-browser Tectonic engine wrapper
+crates/       Rust sources for the WASM engine
 ```
 
-The same editor runs in both places — the web app serves it in the browser, and
-the desktop app runs it locally inside a native window.
+The same editor runs on the web and in the desktop shell. Read [AGENTS.md](AGENTS.md) for the engineering rules (single source of truth, design tokens only, Svelte 5 runes).
 
 ## Prerequisites
 
@@ -56,6 +54,9 @@ pnpm install        # installs everything across the monorepo
 # The browser editor + site  → http://localhost:5173
 pnpm dev:web
 
+# Teams server (optional, needs Postgres; see apps/server/README.md)
+pnpm --filter @glyphtex/server dev
+
 # The desktop app in a native window (needs the Rust prerequisites)
 pnpm dev:desktop
 
@@ -69,6 +70,7 @@ Please run these and make sure they pass:
 
 ```bash
 pnpm check          # type-checking across the project
+pnpm --filter @glyphtex/server test   # if you touched the server
 pnpm lint           # biome: lint + format check
 pnpm lint:fix       # biome: auto-fix and format your changes
 ```
@@ -89,5 +91,4 @@ pnpm --filter @glyphtex/desktop test:rust     # Rust unit tests
 
 ## License
 
-By contributing to GlyphTeX, you agree that your contributions are licensed under
-the project's [GNU General Public License v3.0](LICENSE).
+Contributions are licensed under the license of the part you change: GPL-3.0-or-later by default ([LICENSE](LICENSE)), AGPL-3.0-or-later for `apps/server`, MIT for `packages/tex-engine` and `crates/`.

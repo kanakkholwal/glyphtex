@@ -1,4 +1,6 @@
 import { browser } from "$app/environment";
+import { invalidateAll } from "$app/navigation";
+import { page } from "$app/state";
 import { authClient, unwrap } from "./auth";
 import { cloudEnabled } from "./config";
 import { type SessionOrg, type SessionUser, toSessionUser } from "./session-user";
@@ -6,14 +8,38 @@ import { type SessionOrg, type SessionUser, toSessionUser } from "./session-user
 type Status = "idle" | "loading" | "ready" | "error";
 export type OrgSummary = SessionOrg;
 
-/** The signed-in user and their active org, owned here; components read it and call `refresh`. */
+/**
+ * The signed-in user and their active org. The server render is the owner when it could check
+ * (`page.data.auth`, per request, so SSR and hydration agree); the browser fetch only fills in
+ * when it couldn't. Mutations end in `invalidateAll()` so the owner refreshes.
+ */
 class CloudSession {
-	user = $state<SessionUser | null>(null);
-	status = $state<Status>("idle");
-	/** Better Auth keeps the active org on the session; null is the personal space. */
-	activeOrgId = $state<string | null>(null);
-	orgs = $state<OrgSummary[]>([]);
+	#clientStatus = $state<Status>("idle");
+	#user = $state<SessionUser | null>(null);
+	#activeOrgId = $state<string | null>(null);
+	#orgs = $state<OrgSummary[]>([]);
 	#pending: Promise<void> | null = null;
+
+	get #server() {
+		const auth = page.data.auth;
+		return auth?.checked ? auth : null;
+	}
+
+	get user(): SessionUser | null {
+		return this.#server ? this.#server.user : this.#user;
+	}
+
+	get activeOrgId(): string | null {
+		return this.#server ? this.#server.activeOrgId : this.#activeOrgId;
+	}
+
+	get orgs(): OrgSummary[] {
+		return this.#server ? this.#server.orgs : this.#orgs;
+	}
+
+	get status(): Status {
+		return this.#server ? "ready" : this.#clientStatus;
+	}
 
 	get signedIn() {
 		return this.user !== null;
@@ -21,20 +47,6 @@ class CloudSession {
 
 	get activeOrg() {
 		return this.orgs.find((o) => o.id === this.activeOrgId) ?? null;
-	}
-
-	/** Adopts what the server already read for this request, so no browser round trip is needed. */
-	hydrate(auth: {
-		checked: boolean;
-		user: SessionUser | null;
-		activeOrgId: string | null;
-		orgs: SessionOrg[];
-	}) {
-		if (!auth.checked) return;
-		this.user = auth.user;
-		this.activeOrgId = auth.activeOrgId;
-		this.orgs = auth.orgs;
-		this.status = "ready";
 	}
 
 	/** First read is shared, so every component mounting at once makes one request. */
@@ -47,27 +59,28 @@ class CloudSession {
 
 	async refresh(): Promise<void> {
 		if (!browser || !cloudEnabled) return;
-		this.status = "loading";
+		this.#clientStatus = "loading";
 		try {
 			const { data } = await authClient.getSession();
-			this.user = data?.user ? toSessionUser(data.user) : null;
+			this.#user = data?.user ? toSessionUser(data.user) : null;
 			const active = (data?.session as { activeOrganizationId?: string | null } | undefined)
 				?.activeOrganizationId;
-			this.activeOrgId = active ?? null;
-			this.orgs = this.user ? ((await authClient.organization.list()).data ?? []) : [];
-			this.status = "ready";
+			this.#activeOrgId = active ?? null;
+			this.#orgs = this.#user ? ((await authClient.organization.list()).data ?? []) : [];
+			this.#clientStatus = "ready";
 		} catch {
 			// The server being down must not block local documents; treat as signed out.
-			this.user = null;
-			this.orgs = [];
-			this.activeOrgId = null;
-			this.status = "error";
+			this.#user = null;
+			this.#orgs = [];
+			this.#activeOrgId = null;
+			this.#clientStatus = "error";
 		}
 	}
 
 	async switchTo(orgId: string | null): Promise<void> {
 		await unwrap(authClient.organization.setActive({ organizationId: orgId }));
-		this.activeOrgId = orgId;
+		this.#activeOrgId = orgId;
+		await invalidateAll();
 	}
 
 	async createOrg(name: string): Promise<OrgSummary> {
@@ -87,9 +100,11 @@ class CloudSession {
 
 	async signOut(): Promise<void> {
 		await authClient.signOut();
-		this.user = null;
-		this.orgs = [];
-		this.activeOrgId = null;
+		this.#user = null;
+		this.#orgs = [];
+		this.#activeOrgId = null;
+		// Re-run server loads so the layout's auth snapshot no longer says signed in.
+		await invalidateAll();
 	}
 }
 
