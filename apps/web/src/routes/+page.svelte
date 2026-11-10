@@ -21,6 +21,21 @@
 
 	let { data } = $props();
 
+	const cloudPoints = [
+		{
+			title: "Free, for now",
+			body: "Accounts, saved projects and sharing cost nothing at this stage. The editor never needs them."
+		},
+		{
+			title: "Sync and share",
+			body: "Save a project to the server, open it on another device, invite people by email or with a link."
+		},
+		{
+			title: "Self-host it",
+			body: "Run the server yourself on Cloudflare or Docker, and keep every project on your own infrastructure."
+		}
+	];
+
 	const faqs = [
 		{
 			q: "Can I bring my Overleaf project across?",

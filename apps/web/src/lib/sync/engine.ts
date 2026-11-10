@@ -1,5 +1,7 @@
 import { CloudError, cloud, type FileMeta } from "$lib/cloud/api";
+import { cloudSession } from "$lib/cloud/session.svelte";
 import {
+	activeLink,
 	createProject,
 	getProject,
 	type NewFile,
@@ -72,6 +74,8 @@ export async function linkProject(
 ): Promise<RemoteLink> {
 	const [project, files] = await Promise.all([getProject(localId), readFiles(localId)]);
 	if (!project) throw new Error("That document no longer exists.");
+	const userId = cloudSession.user?.id;
+	if (!userId) throw new Error("Sign in to save this document to the cloud.");
 	if (project.remote) return project.remote;
 	const zip = await writeZip(files.map((f) => ({ path: f.path, data: bytesOf(f) })));
 	const result = await cloud.projects.import(project.name, zip, orgId ?? undefined);
@@ -82,6 +86,7 @@ export async function linkProject(
 	const stored = new Set(onServer.map((m) => m.path));
 	const remote: RemoteLink = {
 		id: result.project.id,
+		userId,
 		orgId,
 		role: "owner",
 		syncedAt: Date.now(),
@@ -94,7 +99,11 @@ export async function linkProject(
 
 /** Opens a server project in this browser: reuses the linked copy, or makes one. */
 export async function cloneRemote(remoteId: string, existing?: StoredProject): Promise<string> {
-	if (existing) {
+	await cloudSession.ensure();
+	const userId = cloudSession.user?.id;
+	if (!userId) throw new Error("Sign in to open this project.");
+	// A copy another account linked is not reused: its unsynced edits would go up under this one.
+	if (existing && activeLink(existing, userId)) {
 		await syncProject(existing.id);
 		return existing.id;
 	}
@@ -109,6 +118,7 @@ export async function cloneRemote(remoteId: string, existing?: StoredProject): P
 	}
 	await setRemote(created.id, {
 		id: remoteId,
+		userId,
 		orgId: view.organizationId,
 		role: view.role,
 		syncedAt: Date.now(),
@@ -122,8 +132,9 @@ export async function cloneRemote(remoteId: string, existing?: StoredProject): P
  * changed, the browser keeps its text and the server version lands beside it as a copy.
  */
 export async function syncProject(localId: string): Promise<SyncResult> {
+	await cloudSession.ensure();
 	const project = await getProject(localId);
-	const link = project?.remote;
+	const link = project ? activeLink(project, cloudSession.user?.id) : undefined;
 	if (!project || !link) return { pushed: 0, pulled: 0, conflicts: [], unsynced: [] };
 
 	const view = await cloud.projects.get(link.id).catch((e: unknown) => {
@@ -248,6 +259,7 @@ export async function syncProject(localId: string): Promise<SyncResult> {
 
 	await setRemote(localId, {
 		...link,
+		userId: cloudSession.user?.id,
 		role,
 		orgId: view.organizationId,
 		syncedAt: Date.now(),

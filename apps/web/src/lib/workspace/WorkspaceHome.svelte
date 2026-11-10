@@ -29,6 +29,7 @@
 	import { cloneToProject } from "$lib/git";
 	import SettingsView from "$lib/settings/SettingsView.svelte";
 	import { toProjectCard } from "$lib/storage/bridge";
+	import { activeLink } from "$lib/storage/projects";
 	import { templatePreview } from "$lib/templates";
 	import {
 		filesFromDataTransfer,
@@ -95,19 +96,27 @@
 
 	// In an organization the home shows only its projects; browser documents belong to Personal.
 	const activeOrgId = $derived(cloudSession.activeOrgId);
+	const userId = $derived(cloudSession.user?.id ?? null);
 	// Server projects already in this browser show as their browser copy, once.
 	const localByRemote = $derived(
-		new Map(stored.filter((p) => p.remote).map((p) => [p.remote?.id as string, p]))
+		new Map(
+			stored.flatMap((p) => {
+				const link = activeLink(p, userId);
+				return link ? [[link.id, p] as const] : [];
+			})
+		)
 	);
 	const projects = $derived(
 		activeOrgId
 			? remote.map((r) => {
 					const local = localByRemote.get(r.id);
-					return local ? toProjectCard(local) : toCloudCard(r);
+					return local ? toProjectCard(local, userId) : toCloudCard(r);
 				})
 			: [
 					...remote.filter((r) => !localByRemote.has(r.id)).map(toCloudCard),
-					...stored.filter((p) => !p.remote?.orgId).map(toProjectCard)
+					...stored
+						.filter((p) => !activeLink(p, userId)?.orgId)
+						.map((p) => toProjectCard(p, userId))
 				]
 	);
 
@@ -471,7 +480,8 @@
 			}
 			return;
 		}
-		const linked = stored.find((p) => p.id === id)?.remote;
+		const found = stored.find((p) => p.id === id);
+		const linked = found && activeLink(found, userId);
 		try {
 			// A linked copy: owners delete the server copy too, everyone else leaves it.
 			if (linked && cloudSession.signedIn) {

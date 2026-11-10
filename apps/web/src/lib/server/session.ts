@@ -10,6 +10,8 @@ export interface SsrAuth {
 	orgs: SessionOrg[];
 }
 
+const SESSION_COOKIE = /(?:^|;\s*)(?:__Secure-)?better-auth\.session_token=/;
+
 export const UNCHECKED: SsrAuth = { checked: false, user: null, activeOrgId: null, orgs: [] };
 
 /** Asks Better Auth who this request belongs to, forwarding the visitor's cookies. */
@@ -18,9 +20,9 @@ export async function readSession(
 	cookie: string | null,
 	fetcher: typeof fetch
 ): Promise<SsrAuth> {
-	// No cookie visible here does not mean signed out: the session cookie may be scoped to the API
-	// origin only. Leave it to the browser rather than wrongly bouncing a signed-in user.
-	if (!serverUrl || !cookie) return UNCHECKED;
+	// Other cookies (analytics, theme) are not proof the session cookie reached us: when it is scoped
+	// to the API host only, a "signed out" answer would be wrong. Leave that to the browser.
+	if (!serverUrl || !cookie || !SESSION_COOKIE.test(cookie)) return UNCHECKED;
 	const fetchOptions = {
 		headers: { cookie },
 		customFetchImpl: fetcher,

@@ -1,13 +1,20 @@
 import type { GlyphFile } from "@glyphtex/ui/application";
 import type { Project } from "@glyphtex/ui/projects";
 import type { CompileFile } from "$lib/compile";
-import { isBinaryPath, type NewFile, type StoredFile, type StoredProject } from "./projects";
+import {
+	activeLink,
+	isBinaryPath,
+	type NewFile,
+	type StoredFile,
+	type StoredProject
+} from "./projects";
 
 /** Placeholder body for a binary file, which the text editor cannot represent. */
 const BINARY_NOTE = "% Binary file: edited outside GlyphTeX, included as-is.\n";
 
 /** Card metadata only: `files` carries paths so counts render without contents. */
-export function toProjectCard(p: StoredProject): Project {
+export function toProjectCard(p: StoredProject, userId: string | null): Project {
+	const link = activeLink(p, userId);
 	return {
 		id: p.id,
 		name: p.name,
@@ -15,8 +22,8 @@ export function toProjectCard(p: StoredProject): Project {
 		createdAt: p.createdAt,
 		updatedAt: p.updatedAt,
 		starred: p.starred,
-		...(p.remote && {
-			cloud: { role: p.remote.role as "owner" | "editor" | "commenter" | "viewer" }
+		...(link && {
+			cloud: { role: link.role as "owner" | "editor" | "commenter" | "viewer" }
 		})
 	};
 }

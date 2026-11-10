@@ -28,6 +28,8 @@ export type StoredProject = {
 /** What this browser last agreed with the server, per file, so a sync knows who changed what. */
 export type RemoteLink = {
 	id: string;
+	/** The account that made the link; absent on links from before accounts were recorded. */
+	userId?: string;
 	orgId: string | null;
 	/** The viewer's role on the server copy; viewers and commenters never push. */
 	role: string;
@@ -38,6 +40,15 @@ export type RemoteLink = {
 	/** Binary files the server can't store because file storage is off; the browser keeps them. */
 	unsynced?: string[];
 };
+
+/** The server link, only while the signed-in account is the one that made it. Otherwise the copy is a plain browser document. */
+export function activeLink(
+	p: StoredProject,
+	userId: string | null | undefined
+): RemoteLink | undefined {
+	if (!p.remote || !userId) return undefined;
+	return !p.remote.userId || p.remote.userId === userId ? p.remote : undefined;
+}
 
 /** One file. Exactly one of `text` / `data` is set: `data` carries images. */
 export type StoredFile = {

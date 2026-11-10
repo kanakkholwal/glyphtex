@@ -15,7 +15,8 @@
 		"PUBLIC_URL": "https://glyphtex-api.nexonauts.com",
 		"APP_URL": "https://glyphtex.nexonauts.com",
 		"WEB_ORIGINS": "https://glyphtex.nexonauts.com,https://glyphx.nexonauts.com",
-		"BLOB_DRIVER": "s3",
+		// The BLOBS R2 binding below needs no keys; use "s3" only with S3_* settings.
+		"BLOB_DRIVER": "r2",
 		"MAIL_DRIVER": "cloudflare",
 		// Must be an address on a domain onboarded to Cloudflare Email Sending.
 		"MAIL_FROM": "GlyphTeX <no-reply@nexonauts.com>",

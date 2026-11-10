@@ -112,6 +112,16 @@ export function parseConfig(env: Record<string, unknown>) {
 		blobsEnabled: blobDriver !== "none",
 		blobsFellBack,
 		blobDriverRequested: e.BLOB_DRIVER,
+		s3Missing: (
+			[
+				["S3_ENDPOINT", e.S3_ENDPOINT],
+				["S3_BUCKET", e.S3_BUCKET],
+				["S3_ACCESS_KEY_ID", e.S3_ACCESS_KEY_ID],
+				["S3_SECRET_ACCESS_KEY", e.S3_SECRET_ACCESS_KEY]
+			] as const
+		)
+			.filter(([, v]) => !v)
+			.map(([k]) => k),
 		mailDriver,
 		mailEnabled,
 		mailFellBack: false,
@@ -175,7 +185,7 @@ export function configNotes(config: Config): string[] {
 	const notes: string[] = [];
 	if (config.blobsFellBack) {
 		notes.push(
-			`BLOB_DRIVER=${config.blobDriverRequested} is not fully configured (missing S3_* settings or the BLOBS binding): file storage is off until it is.`
+			`BLOB_DRIVER=s3 is missing ${config.s3Missing.join(", ")}: file storage is off until set. Dashboard-set plain variables are wiped by \`wrangler deploy\`; put them in wrangler.jsonc vars or use secrets.`
 		);
 	} else if (!config.blobsEnabled) {
 		notes.push(
