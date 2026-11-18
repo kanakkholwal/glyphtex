@@ -46,6 +46,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20261103.1",
+		"@electric-sql/pglite": "^0.5.16",
 		"@types/amqplib": "^0.10.8",
 		"@types/node": "^26.1.1",
 		"@types/nodemailer": "^8.0.2",

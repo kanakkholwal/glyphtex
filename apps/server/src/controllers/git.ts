@@ -11,7 +11,12 @@ const provider = z.enum(GIT_PROVIDERS);
 const repo = z
 	.string()
 	.max(200)
-	.regex(/^[\w.-]+(?:\/[\w.-]+)+$/, "Use the form owner/name.");
+	.regex(/^[\w.-]+(?:\/[\w.-]+)+$/, "Use the form owner/name.")
+	// "." and ".." match the character class but would climb out of the host API path.
+	.refine(
+		(r) => r.split("/").every((part) => part !== "." && part !== ".."),
+		"Invalid repository name."
+	);
 const branch = z
 	.string()
 	.min(1)
