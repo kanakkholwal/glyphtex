@@ -19,6 +19,7 @@ import { bracketMatching, codeFolding, foldGutter, foldKeymap } from "@codemirro
 import { highlightSelectionMatches } from "@codemirror/search";
 import {
 	Compartment,
+	Prec,
 	EditorState,
 	StateEffect,
 	StateField,
@@ -118,6 +119,8 @@ export class CodeEditorController {
 	// History lives in a compartment purely so a document switch can clear it by
 	// reconfiguring; CM6 exposes no other way to reset the undo stack.
 	readonly #history = new Compartment();
+	readonly #collab = new Compartment();
+	#liveActive = false;
 
 	// Last document the undo history belongs to (non-reactive, view-local).
 	#lastDocKey: string | null = null;
@@ -192,8 +195,32 @@ export class CodeEditorController {
 				EditorState.readOnly.of(init.readonly),
 				EditorView.editable.of(!init.readonly)
 			]),
-			this.#history.of(history())
+			this.#history.of(history()),
+			this.#collab.of([])
 		];
+	}
+
+	/** Binds a live session: the editor takes the server's text, then Yjs owns edits and undo. */
+	async attachLive(session: import("../../../lib/editor/live").LiveSession): Promise<void> {
+		await session.synced;
+		const view = this.view;
+		if (!view) return;
+		this.#liveActive = true;
+		const text = session.text.toString();
+		view.dispatch({
+			changes: { from: 0, to: view.state.doc.length, insert: text },
+			effects: [
+				this.#history.reconfigure([]),
+				this.#collab.reconfigure(Prec.highest(session.extension))
+			]
+		});
+	}
+
+	detachLive(): void {
+		this.#liveActive = false;
+		this.view?.dispatch({
+			effects: [this.#collab.reconfigure([]), this.#history.reconfigure(history())]
+		});
 	}
 
 	// --- Live reconfiguration ---
@@ -229,7 +256,7 @@ export class CodeEditorController {
 	 *  edits. Emptying and refilling the compartment discards the stack. */
 	resetHistoryIfDocChanged(key: string): void {
 		const view = this.view;
-		if (!view || key === this.#lastDocKey) return;
+		if (!view || key === this.#lastDocKey || this.#liveActive) return;
 		// First mount has nothing to clear; adopting the key here keeps the initial
 		// value and configuration untouched.
 		if (this.#lastDocKey === null) {

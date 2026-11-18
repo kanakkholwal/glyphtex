@@ -160,6 +160,12 @@
 	): number {
 		return ctrl?.replaceAllMatches(o, replacement) ?? 0;
 	}
+	export function attachLive(session: import('../../lib/editor/live').LiveSession) {
+		return ctrl?.attachLive(session);
+	}
+	export function detachLive() {
+		ctrl?.detachLive();
+	}
 	export function clearSearch() {
 		ctrl?.clearSearch();
 	}

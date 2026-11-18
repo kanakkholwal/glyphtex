@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { Button } from "@glyphtex/ui/button";
+	import { LiveSession } from "../../../lib/editor/live";
+	import { live } from "@glyphtex/ui/live";
 	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconArrowBackUp,
@@ -32,6 +34,32 @@
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 	const files = $derived(ctrl.files);
 	const layout = $derived(ctrl.layout);
+
+	// Live co-editing: one session per active file while the host app has switched it on.
+	$effect(() => {
+		const config = live.config;
+		const file = files.activeFile;
+		const editor = layout.editor;
+		if (!config || !file || !editor || files.activeGenerated) return;
+		const url = config.url(file.name);
+		if (!url) return;
+		const session = new LiveSession(url, config.person, (status) => (live.status = status));
+		let attached = false;
+		void (async () => {
+			// The editor's controller loads lazily; wait for it instead of silently skipping.
+			for (let i = 0; i < 50 && !editor.ready?.(); i++)
+				await new Promise((r) => setTimeout(r, 100));
+			if (editor.ready?.()) {
+				await editor.attachLive?.(session);
+				attached = true;
+			}
+		})();
+		return () => {
+			if (attached) editor.detachLive?.();
+			session.destroy();
+			live.status = "off";
+		};
+	});
 	const search = $derived(ctrl.search);
 
 	// A jump from a visual block queues its span, because switching modes unmounts

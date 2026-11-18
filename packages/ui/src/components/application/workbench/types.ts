@@ -99,6 +99,11 @@ export type EditorApi = {
 	replaceRange: (from: number, to: number, insert: string, opts?: { focus?: boolean }) => void;
 	replaceAllMatches: (o: SearchOptions, replacement: string) => number;
 	clearSearch: () => void;
+	/** Live co-editing; absent on editing surfaces that can't bind a Yjs text. */
+	attachLive?: (
+		session: import("../../../lib/editor/live").LiveSession
+	) => Promise<void> | undefined;
+	detachLive?: () => void;
 };
 
 // --- Command definitions ----------------------------------------------------
