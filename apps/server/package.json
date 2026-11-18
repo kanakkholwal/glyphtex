@@ -19,7 +19,8 @@
 		"check": "tsc --noEmit",
 		"test": "node --test \"test/**/*.test.ts\"",
 		"services": "docker compose -p glyphtex-it up -d postgres redis s3 s3-init mailpit",
-		"dev:jobs": "node scripts/dev.mjs src/entry/node-jobs.ts"
+		"dev:jobs": "node scripts/dev.mjs src/entry/node-jobs.ts",
+		"restore-test": "node scripts/restore-test.mjs"
 	},
 	"dependencies": {
 		"@better-auth/passkey": "1.7.18",

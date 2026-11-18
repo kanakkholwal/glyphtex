@@ -37,7 +37,7 @@ pg_dump --format=custom --file glyphtex-$(date +%F).dump "$DATABASE_URL"
 4. Start the API and the job worker, then check `/readyz`.
 5. Sign in, open a project with an image, and confirm the audit log loads.
 
-Test a restore into a scratch database every quarter. An untested backup is a hope, not a backup.
+Test a restore into a scratch database every quarter. `pnpm --filter @glyphtex/server restore-test` does it with Docker: migrate, dump, restore into a second database, compare row counts. An untested backup is a hope, not a backup.
 
 ## Upgrades
 
