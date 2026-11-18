@@ -104,6 +104,22 @@ export interface VersionSummary {
 	createdByName: string | null;
 }
 
+export type GitHost = "github" | "gitlab" | "bitbucket";
+
+export interface GitRepo {
+	fullName: string;
+	defaultBranch: string;
+	private: boolean;
+}
+
+export interface GitLink {
+	provider: GitHost;
+	repo: string;
+	branch: string;
+	lastCommit: string | null;
+	lastSyncedAt: string | null;
+}
+
 const OFFLINE = "Can't reach the GlyphTeX server. Check your connection and try again.";
 
 const $fetch = createFetch({
@@ -219,6 +235,33 @@ export const cloud = {
 			done(file(id, path), { method: "DELETE", headers: { "if-match": `"${version}"` } })
 	},
 
+	git: {
+		repos: async (provider: GitHost, q?: string) =>
+			(
+				await json<{ repos: GitRepo[] }>(
+					`/git/${provider}/repos${q ? `?q=${encodeURIComponent(q)}` : ""}`
+				)
+			).repos,
+		branches: async (provider: GitHost, repo: string) =>
+			(
+				await json<{ branches: string[] }>(
+					`/git/${provider}/branches?repo=${encodeURIComponent(repo)}`
+				)
+			).branches,
+		link: async (id: string) => (await json<{ link: GitLink | null }>(`${p(id)}/git`)).link,
+		setLink: (id: string, input: { provider: GitHost; repo: string; branch: string }) =>
+			done(`${p(id)}/git`, { method: "PUT", body: input }),
+		unlink: (id: string) => done(`${p(id)}/git`, { method: "DELETE" }),
+		pull: (id: string) =>
+			json<{ pulled: number; conflicts: string[]; skipped: number }>(`${p(id)}/git/pull`, {
+				method: "POST"
+			}),
+		push: (id: string, input: { message: string; mode: "commit" | "pr" }) =>
+			json<{ commit: string; pushed: number; pullRequestUrl?: string }>(`${p(id)}/git/push`, {
+				method: "POST",
+				body: input
+			})
+	},
 	review: {
 		comments: async (id: string, path?: string) =>
 			(

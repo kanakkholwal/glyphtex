@@ -104,3 +104,23 @@ Three settings bound live editing, because Cloudflare bills Durable Object time 
 `/api/public/info` reports them under `limits.live`, and the editor shows them before it cuts anyone off.
 On the Workers Free plan the platform also has a daily duration and request cap; when it is used up the
 editor reports that live editing is unavailable and edits keep syncing normally.
+
+## Git sync (GitHub, GitLab, Bitbucket)
+
+People can link a project to a repository and pull from it or push to it. Connecting uses Better Auth's
+account linking, so there is no separate OAuth code: the same GitHub and GitLab OAuth apps you use for
+sign-in also connect repositories, and Bitbucket adds one more app. Each person connects their own account.
+Repository access (`repo` on GitHub, `api` on GitLab) is requested only when someone connects a host, never
+at sign-in, and tokens are stored encrypted and refreshed by Better Auth.
+
+| Host | Settings | Callback URL |
+| --- | --- | --- |
+| GitHub (an OAuth App) | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | `https://your-api/api/auth/callback/github` |
+| GitLab | `GITLAB_CLIENT_ID`, `GITLAB_CLIENT_SECRET`, `GITLAB_ISSUER` for self-managed | `https://your-api/api/auth/callback/gitlab` |
+| Bitbucket | `BITBUCKET_CLIENT_ID`, `BITBUCKET_CLIENT_SECRET` | `https://your-api/api/auth/oauth2/callback/bitbucket` |
+
+For Bitbucket, give the OAuth consumer the permissions Repositories (read, write) and Pull requests (write).
+Pull reads the repository's text files through the host's API and never overwrites a file changed on both
+sides. Push sends one commit, either as a pull request on a new branch (the default) or straight to the linked
+branch, and refuses if the branch moved since the last pull. Images and other binaries stay in the repository.
+`/api/public/info` lists the hosts that are configured under `gitProviders`.

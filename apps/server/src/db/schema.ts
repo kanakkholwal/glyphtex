@@ -422,6 +422,27 @@ export const projectVersionFile = pgTable(
 	(t) => [primaryKey({ columns: [t.versionId, t.path] })]
 );
 
+// --- Git hosts: a project's link to one repository. Accounts and tokens live in Better Auth. ---
+
+export const GIT_PROVIDERS = ["github", "gitlab", "bitbucket"] as const;
+export type GitProviderName = (typeof GIT_PROVIDERS)[number];
+
+/** Which repository and branch a project syncs with, and what the last sync agreed on. */
+export const projectGitLink = pgTable("project_git_link", {
+	projectId: text("project_id")
+		.primaryKey()
+		.references(() => project.id, { onDelete: "cascade" }),
+	provider: text("provider", { enum: GIT_PROVIDERS }).notNull(),
+	repo: text("repo").notNull(),
+	branch: text("branch").notNull(),
+	lastCommit: text("last_commit"),
+	/** path -> sha256 of the text as of the last sync; how a sync tells who changed what. */
+	base: jsonb("base").$type<Record<string, string>>().notNull().default({}),
+	linkedBy: text("linked_by").references(() => user.id, { onDelete: "set null" }),
+	lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
+	createdAt: createdAt()
+});
+
 // --- Plugin tables: two-factor, SSO and SCIM (field names are the plugins' contract) ---
 
 export const twoFactor = pgTable(
@@ -721,6 +742,7 @@ export const schema = {
 	orgLibrary,
 	twoFactor,
 	passkey,
+	projectGitLink,
 	projectComment,
 	projectSuggestion,
 	projectVersion,

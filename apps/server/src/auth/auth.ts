@@ -15,6 +15,7 @@ import { schema } from "../db/schema.ts";
 import { mails } from "../mail/templates.ts";
 import { AppError } from "../lib/errors.ts";
 import { orgRepository } from "../repositories/orgs.ts";
+import { bitbucketProvider } from "./bitbucket.ts";
 import { orcidProvider } from "./orcid.ts";
 import { scimIdentity, scimProjection } from "./scim.ts";
 import {
@@ -52,7 +53,11 @@ const actorOf = (ctx: HookCtx, fallback: string | null) =>
 export function createAuth({ config, db, queue }: AuthDeps) {
 	const sendMail = (mail: ReturnType<(typeof mails)[keyof typeof mails]>) =>
 		queue.enqueue({ type: "email.send", mail });
-	const { google, github, gitlab, gitlabIssuer, orcid, orcidSandbox } = config.oauth;
+	const { google, github, gitlab, gitlabIssuer, orcid, orcidSandbox, bitbucket } = config.oauth;
+	const extraOAuth = [
+		...(orcid ? [orcidProvider({ ...orcid, sandbox: orcidSandbox })] : []),
+		...(bitbucket ? [bitbucketProvider(bitbucket)] : [])
+	];
 	const orgs = orgRepository(db);
 
 	return betterAuth({
@@ -107,7 +112,14 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 			...(gitlab && { gitlab: { ...gitlab, ...(gitlabIssuer && { issuer: gitlabIssuer }) } })
 		},
 		account: {
-			accountLinking: { enabled: true, trustedProviders: ["google", "github", "gitlab"] }
+			// A repository host may use a different email than the account, so linking is allowed across emails.
+			// Linking is always an explicit action by a signed-in user. Stored tokens are encrypted at rest.
+			accountLinking: {
+				enabled: true,
+				trustedProviders: ["google", "github", "gitlab"],
+				allowDifferentEmails: true
+			},
+			encryptOAuthTokens: true
 		},
 		user: {
 			deleteUser: {
@@ -126,9 +138,7 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 			})
 		},
 		plugins: [
-			...(orcid
-				? [genericOAuth({ config: [orcidProvider({ ...orcid, sandbox: orcidSandbox })] })]
-				: []),
+			...(extraOAuth.length > 0 ? [genericOAuth({ config: extraOAuth })] : []),
 			twoFactor({ issuer: "GlyphTeX" }),
 			// rpID is the web origin's host so one passkey works on the site and every subdomain.
 			passkey({

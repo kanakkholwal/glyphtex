@@ -14,6 +14,7 @@
 	import type { DocumentMeta } from "$lib/documents/store";
 	import { Eyebrow } from "$lib/site";
 	import CommentsTab from "./CommentsTab.svelte";
+	import GitTab from "./GitTab.svelte";
 	import SuggestionsTab from "./SuggestionsTab.svelte";
 	import VersionsTab from "./VersionsTab.svelte";
 
@@ -33,7 +34,7 @@
 		<SheetContent class="flex w-full flex-col gap-4 sm:max-w-md">
 			<SheetHeader>
 				<Eyebrow label="review" />
-				<SheetTitle>Comments, suggestions and versions</SheetTitle>
+				<SheetTitle>Comments, versions and Git</SheetTitle>
 				<SheetDescription>
 					Work with collaborators without touching each other's text.
 				</SheetDescription>
@@ -43,11 +44,13 @@
 					<TabsTrigger value="comments" class="flex-1">Comments</TabsTrigger>
 					<TabsTrigger value="suggestions" class="flex-1">Suggestions</TabsTrigger>
 					<TabsTrigger value="versions" class="flex-1">Versions</TabsTrigger>
+					<TabsTrigger value="git" class="flex-1">Git</TabsTrigger>
 				</TabsList>
 				<div class="min-h-0 flex-1 overflow-y-auto pr-1">
 					<TabsContent value="comments"><CommentsTab {document} /></TabsContent>
 					<TabsContent value="suggestions"><SuggestionsTab {document} /></TabsContent>
 					<TabsContent value="versions"><VersionsTab {document} /></TabsContent>
+					<TabsContent value="git"><GitTab {document} /></TabsContent>
 				</div>
 			</Tabs>
 		</SheetContent>

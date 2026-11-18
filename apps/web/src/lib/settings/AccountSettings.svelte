@@ -38,6 +38,7 @@
 	import PasswordSettings from "./PasswordSettings.svelte";
 	import SettingsSection from "./SettingsSection.svelte";
 	import ServerCapabilities from "./ServerCapabilities.svelte";
+	import GitConnections from "./GitConnections.svelte";
 	import PasskeySettings from "./PasskeySettings.svelte";
 	import TwoFactorSettings from "./TwoFactorSettings.svelte";
 
@@ -163,6 +164,8 @@
 				</ToggleGroup>
 			</div>
 		</SettingsSection>
+
+		<GitConnections />
 
 		<PasskeySettings />
 		<TwoFactorSettings />

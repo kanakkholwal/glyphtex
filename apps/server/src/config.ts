@@ -68,6 +68,9 @@ const schema = z.object({
 		.default("false")
 		.transform((v) => v === "true"),
 
+	// Bitbucket has no built-in Better Auth provider, so it connects through generic OAuth (link only).
+	BITBUCKET_CLIENT_ID: optional,
+	BITBUCKET_CLIENT_SECRET: optional,
 	MAX_TEXT_FILE_BYTES: int(2 * 1024 * 1024),
 	MAX_BINARY_FILE_BYTES: int(50 * 1024 * 1024),
 	// Live co-editing caps. They bound connection time, which Cloudflare bills as Durable Object duration.
@@ -152,6 +155,7 @@ export function parseConfig(env: Record<string, unknown>) {
 			gitlab: pair(e.GITLAB_CLIENT_ID, e.GITLAB_CLIENT_SECRET),
 			gitlabIssuer: e.GITLAB_ISSUER,
 			orcid: pair(e.ORCID_CLIENT_ID, e.ORCID_CLIENT_SECRET),
+			bitbucket: pair(e.BITBUCKET_CLIENT_ID, e.BITBUCKET_CLIENT_SECRET),
 			orcidSandbox: e.ORCID_SANDBOX
 		},
 		limits: {

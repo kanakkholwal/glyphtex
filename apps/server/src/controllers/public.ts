@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { AppEnv } from "../context.ts";
+import { gitProviders } from "../git/index.ts";
 import type { PublicConfig, ServerInfo } from "../contract.ts";
 
 /** What the sign-in screen may offer. No session needed; nothing secret in it. */
@@ -40,6 +41,7 @@ export const publicController = new Hono<AppEnv>()
 				sso: true,
 				scim: true
 			},
+			gitProviders: Object.keys(gitProviders(deps.config)) as ServerInfo["gitProviders"],
 			providers: (["google", "github", "gitlab", "orcid"] as const).filter((p) => oauth[p]),
 			limits: {
 				textFileBytes: limits.textFileBytes,

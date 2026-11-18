@@ -104,6 +104,8 @@ export interface ServerInfo {
 		scim: boolean;
 	};
 	providers: PublicConfig["providers"];
+	/** Git hosts this deployment has OAuth apps for. Empty means Git sync is off. */
+	gitProviders: ("github" | "gitlab" | "bitbucket")[];
 	limits: PublicConfig["limits"] & {
 		/** What live editing enforces; the editor shows these before it cuts anyone off. */
 		live: { maxEditors: number; idleSeconds: number; maxSessionSeconds: number };
