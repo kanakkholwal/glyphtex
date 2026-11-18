@@ -3,31 +3,42 @@ import type { UpgradeWebSocket } from "hono/ws";
 import { z } from "zod";
 import type { AppEnv, Deps } from "../context.ts";
 import { errors } from "../lib/errors.ts";
+import { normalizePath } from "../lib/paths.ts";
 import { requireProject } from "../middleware/index.ts";
 import type { ProjectAccess } from "../rbac/authorize.ts";
 import { can } from "../rbac/permissions.ts";
-import type { Peer, Room } from "../realtime/room.ts";
+import { bytesOf, type Peer, type Room } from "../realtime/room.ts";
 import type { RoomRegistry } from "../realtime/registry.ts";
 
+/** Where rooms live: in this process (Node/Docker) or in a Durable Object (Workers). */
+export type RealtimeHost =
+	| {
+			kind: "node";
+			registry: RoomRegistry;
+			/** Filled once the runtime has created its WebSocket upgrader (it needs the finished app). */
+			upgrader: { current?: UpgradeWebSocket };
+	  }
+	| {
+			kind: "workers";
+			/** The room's Durable Object stub, or null when the ROOMS binding isn't configured. */
+			room(env: unknown, name: string): { fetch(request: Request): Promise<Response> } | null;
+	  };
+
 export interface RealtimeOptions {
-	registry: RoomRegistry;
-	/** Filled once the runtime has created its WebSocket upgrader (it needs the finished app). */
-	upgrader: { current?: UpgradeWebSocket };
+	host: RealtimeHost;
 }
 
-const bytesOf = (data: unknown): Uint8Array | null => {
-	if (data instanceof ArrayBuffer) return new Uint8Array(data);
-	if (ArrayBuffer.isView(data))
-		return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-	return null;
-};
+/** The deployment's answer to "can you host live rooms?", reported as `features.live`. */
+export const realtimeAvailable = (host: RealtimeHost, env: unknown): boolean =>
+	host.kind === "node" ? Boolean(host.upgrader.current) : host.room(env, "probe") !== null;
 
 const pathSchema = z.string().min(1).max(512);
 
 /** Live co-editing of one text file. The upgrade is an ordinary guarded request first. */
 export function realtimeController(options?: RealtimeOptions) {
 	const live: MiddlewareHandler = async (c, next) => {
-		if (!options?.upgrader.current) {
+		const host = options?.host;
+		if (!host || !realtimeAvailable(host, c.env)) {
 			throw errors.notImplemented("Live editing is not available on this deployment.");
 		}
 		// Browsers always send Origin on a WebSocket handshake; cookies alone must not authorise one.
@@ -38,10 +49,23 @@ export function realtimeController(options?: RealtimeOptions) {
 		if (!parsed.success) throw errors.badRequest("Send ?path= with the file to edit.");
 		const access: ProjectAccess = c.get("access");
 		const userId: string = c.get("user").id;
-		const path = parsed.data;
+		const path = normalizePath(parsed.data);
 		const writable = can(access.role, "project:write");
 
-		return options.upgrader.current(() => {
+		if (host.kind === "workers") {
+			const stub = host.room(c.env, `${access.project.id}:${path}`);
+			if (!stub) throw errors.notImplemented("Live editing is not available on this deployment.");
+			// The Durable Object has no public route: it trusts these headers because only this
+			// guarded handler can reach it, and they overwrite anything the client sent.
+			const headers = new Headers(c.req.raw.headers);
+			headers.set("x-room-user", userId);
+			headers.set("x-room-writable", writable ? "1" : "0");
+			headers.set("x-room-project", access.project.id);
+			headers.set("x-room-path", path);
+			return stub.fetch(new Request(c.req.raw, { headers }));
+		}
+
+		return host.upgrader.current?.(() => {
 			let room: Room | undefined;
 			let release: ((peer: Peer) => Promise<void>) | undefined;
 			let peer: Peer | undefined;
@@ -49,7 +73,7 @@ export function realtimeController(options?: RealtimeOptions) {
 			return {
 				async onOpen(_evt, ws) {
 					try {
-						const acquired = await options.registry.acquire(access, userId, path);
+						const acquired = await host.registry.acquire(access, userId, path);
 						peer = { send: (data) => ws.send(new Uint8Array(data)), canWrite: writable, userId };
 						room = acquired.room;
 						release = acquired.release;

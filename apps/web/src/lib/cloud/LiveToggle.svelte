@@ -74,7 +74,7 @@
 		aria-pressed={on}
 		disabled={supported === false}
 		title={supported === false
-			? "This server doesn't support live editing. It needs the Node or Docker deployment."
+			? "This server doesn't have live editing enabled. On Cloudflare it needs the ROOMS Durable Object binding."
 			: undefined}
 	>
 		<IconUsers />

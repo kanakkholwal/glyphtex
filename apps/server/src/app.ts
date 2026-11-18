@@ -7,7 +7,11 @@ import { healthController } from "./controllers/health.ts";
 import { orgsController } from "./controllers/orgs.ts";
 import { projectsController } from "./controllers/projects.ts";
 import { publicController } from "./controllers/public.ts";
-import { type RealtimeOptions, realtimeController } from "./controllers/realtime.ts";
+import {
+	type RealtimeOptions,
+	realtimeAvailable,
+	realtimeController
+} from "./controllers/realtime.ts";
 import { projectSharingController, redeemController } from "./controllers/sharing.ts";
 import type { AppEnv, Deps } from "./context.ts";
 import { errors } from "./lib/errors.ts";
@@ -36,7 +40,7 @@ export function createApp(
 		}
 	});
 	app.use("*", async (c, next) => {
-		c.set("realtime", Boolean(realtime?.upgrader.current));
+		c.set("realtime", realtime ? realtimeAvailable(realtime.host, c.env) : false);
 		await next();
 	});
 	app.use("*", requestContext);

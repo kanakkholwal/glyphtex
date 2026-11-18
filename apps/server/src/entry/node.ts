@@ -8,7 +8,9 @@ import { buildNodeDeps } from "./node-deps.ts";
 
 const { deps, close } = await buildNodeDeps();
 const upgrader: { current?: UpgradeWebSocket } = {};
-const app = createApp(() => ({ deps }), { registry: new RoomRegistry(deps), upgrader });
+const app = createApp(() => ({ deps }), {
+	host: { kind: "node", registry: new RoomRegistry(deps), upgrader }
+});
 const ws = createNodeWebSocket({ app });
 upgrader.current = ws.upgradeWebSocket;
 const port = Number(process.env.PORT ?? 8787);

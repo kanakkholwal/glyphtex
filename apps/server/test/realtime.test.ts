@@ -114,4 +114,20 @@ describe("realtime room", () => {
 		await room.leave(c.peer);
 		assert.deepEqual(saved, []);
 	});
+
+	test("restores a saved state with the same epoch and history", () => {
+		const first = make("seed");
+		const c = client(first);
+		c.doc.getText("content").insert(4, "!");
+		const resumed = new Room({
+			initialText: "ignored",
+			restore: { state: first.snapshot(), epoch: first.epoch },
+			maxChars: 1000,
+			persist: async () => {}
+		});
+		rooms.push(resumed);
+		assert.equal(resumed.text.toString(), "seed!");
+		assert.equal(resumed.epoch, first.epoch);
+		assert.notEqual(make("seed").epoch, first.epoch);
+	});
 });

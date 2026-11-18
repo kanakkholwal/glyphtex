@@ -56,3 +56,27 @@ describe("the Workers entry starts with whatever is configured", () => {
 		assert.equal((await call({ ...base })).status, 200);
 	});
 });
+
+describe("live editing is reported honestly", () => {
+	const info = async (env: Record<string, unknown>) => {
+		const res = await worker.fetch(new Request("https://api.example.test/api/public/info"), env, {
+			waitUntil() {},
+			passThroughOnException() {}
+		} as never);
+		return (await res.json()) as { features: { live: boolean }; runtime: string };
+	};
+
+	test("off without the ROOMS Durable Object binding", async () => {
+		const body = await info({ ...base });
+		assert.equal(body.features.live, false);
+		assert.equal(body.runtime, "workers");
+	});
+
+	test("on with the ROOMS binding", async () => {
+		const rooms = {
+			idFromName: (n: string) => n,
+			get: () => ({ fetch: async () => new Response() })
+		};
+		assert.equal((await info({ ...base, ROOMS: rooms })).features.live, true);
+	});
+});

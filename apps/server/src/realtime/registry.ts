@@ -1,4 +1,5 @@
 import type { Deps } from "../context.ts";
+import { sha256Hex } from "../lib/crypto.ts";
 import { errors } from "../lib/errors.ts";
 import { isTextPath, normalizePath } from "../lib/paths.ts";
 import type { ProjectAccess } from "../rbac/authorize.ts";
@@ -8,9 +9,8 @@ import { Room } from "./room.ts";
 const encoder = new TextEncoder();
 
 /**
- * Decision (architecture): rooms live in this process, so realtime runs on Node/Docker. Workers
- * isolates don't share memory, so the Workers entry leaves it off until a Durable Object hosts
- * the Room (it is transport-agnostic for exactly that reason).
+ * Decision (architecture): on Node/Docker rooms live in this process. Workers isolates don't share
+ * memory, so there a Durable Object per file hosts the same Room (see ProjectRoom in entry/workers.ts).
  */
 export class RoomRegistry {
 	readonly #rooms = new Map<string, Promise<Room>>();
@@ -26,7 +26,7 @@ export class RoomRegistry {
 		const key = `${access.project.id}:${path}`;
 		let pending = this.#rooms.get(key);
 		if (!pending) {
-			pending = this.#open(access, userId, path);
+			pending = buildRoom(this.#deps, access, userId, path);
 			this.#rooms.set(key, pending);
 			pending.catch(() => this.#rooms.delete(key));
 		}
@@ -42,24 +42,44 @@ export class RoomRegistry {
 			}
 		};
 	}
+}
 
-	async #open(access: ProjectAccess, userId: string, path: string) {
-		const { config, logger } = this.#deps;
-		const files = fileService(this.#deps);
-		const { file, text } = await files.read(access, path);
-		if (text === null) throw errors.badRequest("Only text files can be edited live.");
-		void file;
-		return new Room({
-			initialText: text,
-			maxChars: config.limits.textFileBytes,
-			onError: (error) => logger.error("realtime room error", { error, path }),
-			persist: async (settled, writer) => {
-				// Re-read the version each save: a manual sync may have written since the last one.
-				const current = await files.read(access, path);
-				await files.write(access, writer || userId, path, encoder.encode(settled), "text/plain", {
-					version: current.file.version
-				});
-			}
-		});
-	}
+interface BuildHooks {
+	/** Saved state to continue from; used only if the file still holds the text it was saved with. */
+	restore?: { state: Uint8Array; epoch: string; textSha: string };
+	/** Runs after each successful save to the project file (the Durable Object stores its state here). */
+	afterPersist?: (room: Room, textSha: string) => Promise<void>;
+}
+
+/** Loads the file's text into a Room whose saves go back through the normal file service. */
+export async function buildRoom(
+	deps: Deps,
+	access: ProjectAccess,
+	userId: string,
+	path: string,
+	hooks: BuildHooks = {}
+): Promise<Room> {
+	const { config, logger } = deps;
+	const files = fileService(deps);
+	const { text } = await files.read(access, path);
+	if (text === null) throw errors.badRequest("Only text files can be edited live.");
+	// A manual sync may have changed the file since the state was saved; then start over from the file.
+	const unchanged =
+		hooks.restore && (await sha256Hex(encoder.encode(text))) === hooks.restore.textSha;
+	const room: Room = new Room({
+		initialText: text,
+		restore: unchanged ? hooks.restore : undefined,
+		maxChars: config.limits.textFileBytes,
+		onError: (error) => logger.error("realtime room error", { error, path }),
+		persist: async (settled, writer) => {
+			// Re-read the version each save: a manual sync may have written since the last one.
+			const current = await files.read(access, path);
+			const bytes = encoder.encode(settled);
+			await files.write(access, writer || userId, path, bytes, "text/plain", {
+				version: current.file.version
+			});
+			await hooks.afterPersist?.(room, await sha256Hex(bytes));
+		}
+	});
+	return room;
 }

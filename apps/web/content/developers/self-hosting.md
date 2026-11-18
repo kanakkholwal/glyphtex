@@ -84,3 +84,11 @@ Cloudflare the deploy time comes from the Workers version metadata and the commi
 ```bash
 curl https://your-api.example.com/api/public/info
 ```
+
+## Live editing
+
+Live co-editing works out of the box on the Node and Docker server. On Cloudflare it uses a Durable Object
+per file: `wrangler.jsonc` already declares the `ROOMS` binding and the `ProjectRoom` migration, so a normal
+`wrangler deploy` enables it (SQLite-backed, available on the Workers Free plan within its daily limits).
+Remove the binding and the server reports `features.live: false` from `/api/public/info`, and the editor
+disables the button with an explanation.

@@ -60,3 +60,34 @@ export interface ExecutionContext {
 	waitUntil(promise: Promise<unknown>): void;
 	passThroughOnException(): void;
 }
+
+export interface DurableObjectStub {
+	fetch(request: Request): Promise<Response>;
+}
+
+export interface DurableObjectNamespace {
+	idFromName(name: string): unknown;
+	get(id: unknown): DurableObjectStub;
+}
+
+export interface DurableObjectState {
+	storage: {
+		get<T>(key: string): Promise<T | undefined>;
+		put(key: string, value: unknown): Promise<void>;
+	};
+}
+
+export interface WorkersWebSocket {
+	accept(): void;
+	send(data: Uint8Array): void;
+	close(code?: number, reason?: string): void;
+	addEventListener(type: "message", listener: (event: { data: unknown }) => void): void;
+	addEventListener(type: "close" | "error", listener: () => void): void;
+}
+
+/** The Workers-only socket pair: `[0]` goes back to the browser, `[1]` stays in the object. */
+export declare const WorkersWebSocketPair: new () => { 0: WorkersWebSocket; 1: WorkersWebSocket };
+
+/** A 101 response that hands the client end of a socket pair to the browser. */
+export const switchingProtocols = (client: WorkersWebSocket) =>
+	new Response(null, { status: 101, webSocket: client } as ResponseInit);

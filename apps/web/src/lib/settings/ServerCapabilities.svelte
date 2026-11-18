@@ -30,7 +30,7 @@
 					{
 						name: "Live editing",
 						on: config.features.live,
-						off: "Not supported by this deployment. It needs the Node or Docker server; the Cloudflare Workers deployment doesn't host live rooms yet."
+						off: "Not enabled on this deployment. The Node and Docker server has it built in; on Cloudflare it needs the ROOMS Durable Object binding from wrangler.jsonc."
 					}
 				]
 			: []

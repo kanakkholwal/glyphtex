@@ -35,6 +35,9 @@
 			"id": "123e6961f2af4437a1904c295a6b85b5"
 		}
 	],
+	// One object per live file; SQLite-backed so it is available on the Workers Free plan.
+	"durable_objects": { "bindings": [{ "name": "ROOMS", "class_name": "ProjectRoom" }] },
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["ProjectRoom"] }],
 	"kv_namespaces": [
 		{
 			"binding": "CACHE",

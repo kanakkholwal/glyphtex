@@ -8,6 +8,7 @@ import type { Extension } from "@codemirror/state";
 
 const MSG_SYNC = 0;
 const MSG_AWARENESS = 1;
+const MSG_EPOCH = 2;
 const MAX_ATTEMPTS = 4;
 
 export type LiveStatus = "connecting" | "live" | "offline" | "unavailable";
@@ -33,6 +34,7 @@ export class LiveSession {
 	#socket: WebSocket | undefined;
 	#attempts = 0;
 	#wasLive = false;
+	#epoch: string | undefined;
 	#closed = false;
 	#timer: ReturnType<typeof setTimeout> | undefined;
 	#resolveSynced!: () => void;
@@ -117,6 +119,14 @@ export class LiveSession {
 				const sub = syncProtocol.readSyncMessage(decoder, reply, this.doc, this);
 				if (sub === syncProtocol.messageYjsSyncStep2) this.#resolveSynced();
 				if (encoding.length(reply) > 1) socket.send(new Uint8Array(encoding.toUint8Array(reply)));
+			} else if (type === MSG_EPOCH) {
+				const epoch = decoding.readVarString(decoder);
+				// A new epoch means the server started this document over (restart, new room): keeping
+				// our copy would merge with its re-seeded text and duplicate it, so take the server's.
+				if (this.#epoch && this.#epoch !== epoch) {
+					this.doc.transact(() => this.text.delete(0, this.text.length), this);
+				}
+				this.#epoch = epoch;
 			} else if (type === MSG_AWARENESS) {
 				awarenessProtocol.applyAwarenessUpdate(
 					this.awareness,

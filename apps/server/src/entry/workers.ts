@@ -1,6 +1,8 @@
 import { disabledBlobs } from "../adapters/blobs/disabled.ts";
 import { cfQueue, cfRateLimiter, kvCache, r2Blobs } from "../adapters/cloudflare/index.ts";
 import type {
+	DurableObjectNamespace,
+	DurableObjectState,
 	ExecutionContext,
 	Hyperdrive,
 	KVNamespace,
@@ -8,8 +10,10 @@ import type {
 	Queue,
 	R2Bucket,
 	RateLimit,
-	SendEmail
+	SendEmail,
+	WorkersWebSocketPair
 } from "../adapters/cloudflare/bindings.ts";
+import { switchingProtocols } from "../adapters/cloudflare/bindings.ts";
 import { cloudflareMailer } from "../adapters/mail/cloudflare.ts";
 import { noMailer } from "../adapters/mail/none.ts";
 import { resendMailer } from "../adapters/mail/resend.ts";
@@ -33,6 +37,9 @@ import { buildInfo } from "../lib/build.ts";
 import { createLogger } from "../lib/logger.ts";
 import { backoffDelay } from "../lib/resilience.ts";
 import { orgRepository } from "../repositories/orgs.ts";
+import { projectRepository } from "../repositories/projects.ts";
+import { buildRoom } from "../realtime/registry.ts";
+import { bytesOf, type Peer, type Room } from "../realtime/room.ts";
 
 interface Env extends Record<string, unknown> {
 	HYPERDRIVE?: Hyperdrive;
@@ -40,6 +47,8 @@ interface Env extends Record<string, unknown> {
 	JOBS: Queue<Job>;
 	BLOBS?: R2Bucket;
 	EMAIL?: SendEmail;
+	/** One Durable Object per live file. Absent means this deployment has no live editing. */
+	ROOMS?: DurableObjectNamespace;
 	/** Workers version metadata binding: id and upload time of the running version. */
 	CF_VERSION_METADATA?: { id: string; tag: string; timestamp: string };
 	API_RATE_LIMITER: RateLimit;
@@ -111,9 +120,9 @@ function openDb(env: Env, config: Config) {
 	return connectDb(url, { max: 5, viaHyperdrive: !!env.HYPERDRIVE });
 }
 
-const app = createApp(({ env, executionCtx }) => {
-	const { config, adapters } = envState(env as Env);
-	const { db, close } = openDb(env as Env, config);
+function openDeps(env: Env) {
+	const { config, adapters } = envState(env);
+	const { db, close } = openDb(env, config);
 	const auth = createAuth({ config, db, queue: adapters.queue });
 	const deps: Deps = {
 		config,
@@ -121,11 +130,105 @@ const app = createApp(({ env, executionCtx }) => {
 		adapters,
 		auth,
 		logger,
-		build: buildInfo("workers", config, (env as Env).CF_VERSION_METADATA)
+		build: buildInfo("workers", config, env.CF_VERSION_METADATA)
 	};
-	const ctx = executionCtx as ExecutionContext | undefined;
-	return { deps, dispose: () => (ctx ? ctx.waitUntil(close()) : void close()) };
-});
+	return { deps, close };
+}
+
+const app = createApp(
+	({ env, executionCtx }) => {
+		const { deps, close } = openDeps(env as Env);
+		const ctx = executionCtx as ExecutionContext | undefined;
+		return { deps, dispose: () => (ctx ? ctx.waitUntil(close()) : void close()) };
+	},
+	{
+		host: {
+			kind: "workers",
+			room: (env, name) => {
+				const rooms = (env as Env | undefined)?.ROOMS;
+				return rooms ? rooms.get(rooms.idFromName(name)) : null;
+			}
+		}
+	}
+);
+
+/**
+ * Live co-editing room for one project file. Cloudflare guarantees one instance per name, so every
+ * editor of the file reaches the same Yjs document. The guarded Worker route is the only way in and
+ * passes the verified user and role as headers. State is kept in storage so a restart resumes the
+ * same document history; WebSockets stay accepted (no hibernation), which keeps the room in memory.
+ */
+export class ProjectRoom {
+	#room: Promise<Room> | undefined;
+	#close: (() => Promise<void>) | undefined;
+	readonly #ctx: DurableObjectState;
+	readonly #env: Env;
+
+	constructor(ctx: DurableObjectState, env: Env) {
+		this.#ctx = ctx;
+		this.#env = env;
+	}
+
+	async fetch(request: Request): Promise<Response> {
+		if (request.headers.get("upgrade") !== "websocket") {
+			return new Response("Expected a WebSocket", { status: 426 });
+		}
+		const userId = request.headers.get("x-room-user");
+		const projectId = request.headers.get("x-room-project");
+		const path = request.headers.get("x-room-path");
+		if (!userId || !projectId || !path) return new Response("Bad request", { status: 400 });
+		const canWrite = request.headers.get("x-room-writable") === "1";
+
+		const pair = new (
+			globalThis as unknown as { WebSocketPair: typeof WorkersWebSocketPair }
+		).WebSocketPair();
+		const client = pair[0];
+		const server = pair[1];
+		server.accept();
+		let room: Room;
+		try {
+			room = await (this.#room ??= this.#open(projectId, userId, path));
+		} catch (error) {
+			this.#room = undefined;
+			logger.error("live room failed to open", { error, projectId });
+			server.close(1011, "unavailable");
+			return switchingProtocols(client);
+		}
+		const peer: Peer = { send: (data) => server.send(new Uint8Array(data)), canWrite, userId };
+		room.join(peer);
+		server.addEventListener("message", (event) => {
+			const frame = bytesOf(event.data);
+			if (frame) room.receive(peer, frame);
+		});
+		const leave = async () => {
+			if (!(await room.leave(peer))) return;
+			this.#room = undefined;
+			room.destroy();
+			await this.#close?.();
+			this.#close = undefined;
+		};
+		server.addEventListener("close", () => void leave());
+		server.addEventListener("error", () => void leave());
+		return switchingProtocols(client);
+	}
+
+	async #open(projectId: string, userId: string, path: string): Promise<Room> {
+		const { deps, close } = openDeps(this.#env);
+		this.#close = async () => close();
+		const found = await projectRepository(deps.db).findWithRole(projectId, userId);
+		if (!found?.role) throw new Error("project not found for this user");
+		const stored = await this.#ctx.storage.get<{
+			state: Uint8Array;
+			epoch: string;
+			textSha: string;
+		}>("doc");
+		return buildRoom(deps, { project: found.project, role: found.role }, userId, path, {
+			restore: stored,
+			afterPersist: (room, textSha) =>
+				this.#ctx.storage.put("doc", { state: room.snapshot(), epoch: room.epoch, textSha })
+		});
+	}
+}
 
 export default {
 	fetch: app.fetch,
