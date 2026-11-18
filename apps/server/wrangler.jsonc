@@ -25,6 +25,8 @@
 	},
 	// MAIL_DRIVER=cloudflare sends through this binding.
 	"send_email": [{ "name": "EMAIL" }],
+	// Lets /api/public/info report when this version was deployed.
+	"version_metadata": { "binding": "CF_VERSION_METADATA" },
 	// Secrets (wrangler secret put): BETTER_AUTH_SECRET, the S3_* keys when file storage is on,
 	// OAuth client secrets, and DATABASE_URL only if you skip Hyperdrive.
 	"hyperdrive": [

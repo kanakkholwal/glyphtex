@@ -10,6 +10,7 @@ import { createAuth } from "../auth/auth.ts";
 import { type Config, configNotes, parseConfig, required } from "../config.ts";
 import type { Deps } from "../context.ts";
 import { connectDb } from "../db/client.ts";
+import { buildInfo } from "../lib/build.ts";
 import { createLogger } from "../lib/logger.ts";
 
 /** Composition root for Node/Bun: one set of long-lived connections per process. */
@@ -62,7 +63,14 @@ export async function buildNodeDeps(env: Record<string, unknown> = process.env) 
 	};
 
 	const auth = createAuth({ config, db, queue: adapters.queue });
-	const deps: Deps = { config, db, adapters, auth, logger };
+	const deps: Deps = {
+		config,
+		db,
+		adapters,
+		auth,
+		logger,
+		build: buildInfo("node", config)
+	};
 	return {
 		deps,
 		redis,

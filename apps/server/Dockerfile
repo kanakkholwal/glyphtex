@@ -9,7 +9,9 @@ RUN pnpm install --frozen-lockfile --filter @glyphtex/server --prod --ignore-scr
 	&& pnpm --filter @glyphtex/server deploy --prod --legacy /out
 
 FROM node:22-alpine
-ENV NODE_ENV=production PORT=8787
+ARG GIT_COMMIT
+ARG DEPLOYED_AT
+ENV NODE_ENV=production PORT=8787 GIT_COMMIT=$GIT_COMMIT DEPLOYED_AT=$DEPLOYED_AT
 WORKDIR /app
 COPY --from=deps /out/node_modules ./node_modules
 COPY apps/server/package.json ./

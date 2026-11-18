@@ -43,6 +43,7 @@ test("only health, auth and public config skip the session gate", () => {
 	assert.deepEqual([...new Set(before)].sort(), [
 		"/api/auth/*",
 		"/api/public/config",
+		"/api/public/info",
 		"/healthz",
 		"/readyz"
 	]);

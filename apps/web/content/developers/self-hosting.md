@@ -71,3 +71,16 @@ Email and password and magic links work out of the box. Google, GitHub and GitLa
 - **Behind a proxy:** set `CLIENT_IP_HEADER` to the header your proxy writes with the real client address (`cf-connecting-ip` on Cloudflare). Rate limits trust only that header.
 - **Health:** `/healthz` answers when the process is up; `/readyz` checks Postgres and the cache.
 - **Deletion is real:** deleting a project or an account removes its rows and files. Backups are the only place deleted data remains, so keep their retention short and say so in your privacy policy.
+
+## Check what is running
+
+`GET /api/public/info` needs no sign-in and returns the server version, runtime (`node` or `workers`), the
+deploy time and git commit when you provide them, and the features this instance has on (mail, file storage,
+live editing, passkeys, SSO, SCIM, sign-in providers) with its limits. Any frontend can read it to adapt.
+
+Set `GIT_COMMIT` and `DEPLOYED_AT` in your environment or Docker build args to fill the commit and time. On
+Cloudflare the deploy time comes from the Workers version metadata and the commit stays empty unless you set it.
+
+```bash
+curl https://your-api.example.com/api/public/info
+```

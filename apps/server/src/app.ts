@@ -35,6 +35,10 @@ export function createApp(
 			dispose?.();
 		}
 	});
+	app.use("*", async (c, next) => {
+		c.set("realtime", Boolean(realtime?.upgrader.current));
+		await next();
+	});
 	app.use("*", requestContext);
 	app.use("*", secureHeaders());
 	app.use("/api/*", (c, next) =>

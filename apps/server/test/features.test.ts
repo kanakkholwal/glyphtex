@@ -116,3 +116,21 @@ describe("optional features", () => {
 		assert.deepEqual(logged, ["email dropped"]);
 	});
 });
+
+describe("server info", () => {
+	test("reports the deploy details the operator set", async () => {
+		const { buildInfo } = await import("../src/lib/build.ts");
+		const info = buildInfo("node", { gitCommit: "abc123", deploymentTime: "2026-11-18T00:00:00Z" });
+		assert.equal(info.commit, "abc123");
+		assert.equal(info.deployedAt, "2026-11-18T00:00:00Z");
+		assert.equal(info.runtime, "node");
+		assert.ok(info.version);
+	});
+
+	test("falls back to the Workers version time and a null commit", async () => {
+		const { buildInfo } = await import("../src/lib/build.ts");
+		const info = buildInfo("workers", {}, { id: "v1", timestamp: "2026-11-17T10:00:00Z" });
+		assert.equal(info.commit, null);
+		assert.equal(info.deployedAt, "2026-11-17T10:00:00Z");
+	});
+});

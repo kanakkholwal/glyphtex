@@ -29,6 +29,7 @@ import type { Deps } from "../context.ts";
 import { connectDb } from "../db/client.ts";
 import { runJob } from "../jobs/handlers.ts";
 import { type Job, parseJob } from "../jobs/types.ts";
+import { buildInfo } from "../lib/build.ts";
 import { createLogger } from "../lib/logger.ts";
 import { backoffDelay } from "../lib/resilience.ts";
 import { orgRepository } from "../repositories/orgs.ts";
@@ -39,6 +40,8 @@ interface Env extends Record<string, unknown> {
 	JOBS: Queue<Job>;
 	BLOBS?: R2Bucket;
 	EMAIL?: SendEmail;
+	/** Workers version metadata binding: id and upload time of the running version. */
+	CF_VERSION_METADATA?: { id: string; tag: string; timestamp: string };
 	API_RATE_LIMITER: RateLimit;
 	SHARE_RATE_LIMITER: RateLimit;
 }
@@ -112,7 +115,14 @@ const app = createApp(({ env, executionCtx }) => {
 	const { config, adapters } = envState(env as Env);
 	const { db, close } = openDb(env as Env, config);
 	const auth = createAuth({ config, db, queue: adapters.queue });
-	const deps: Deps = { config, db, adapters, auth, logger };
+	const deps: Deps = {
+		config,
+		db,
+		adapters,
+		auth,
+		logger,
+		build: buildInfo("workers", config, (env as Env).CF_VERSION_METADATA)
+	};
 	const ctx = executionCtx as ExecutionContext | undefined;
 	return { deps, dispose: () => (ctx ? ctx.waitUntil(close()) : void close()) };
 });

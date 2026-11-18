@@ -3,9 +3,11 @@
 	import { live } from "@glyphtex/ui/live";
 	import { toast } from "@glyphtex/ui/sonner";
 	import { IconUsers } from "@tabler/icons-svelte";
+	import { onMount } from "svelte";
 
 	import type { DocumentMeta } from "$lib/documents/store";
 	import { SERVER_URL } from "./config";
+	import { publicConfig } from "./public-config";
 	import { cloudSession } from "./session.svelte";
 
 	let { document }: { document: DocumentMeta } = $props();
@@ -16,6 +18,14 @@
 		COLORS[[...id].reduce((n, ch) => n + ch.charCodeAt(0), 0) % COLORS.length] as string;
 
 	const on = $derived(live.config !== null);
+	// Unknown until the server answers; only a definite no disables the button.
+	let supported = $state<boolean | undefined>(undefined);
+	onMount(
+		() =>
+			void publicConfig()
+				.then((c) => (supported = c.features.live))
+				.catch(() => {})
+	);
 	const available = $derived(Boolean(document.remoteId) && cloudSession.signedIn);
 
 	function toggle() {
@@ -57,7 +67,16 @@
 </script>
 
 {#if available}
-	<Button variant={on ? "dark" : "outline"} size="sm" onclick={toggle} aria-pressed={on}>
+	<Button
+		variant={on ? "dark" : "outline"}
+		size="sm"
+		onclick={toggle}
+		aria-pressed={on}
+		disabled={supported === false}
+		title={supported === false
+			? "This server doesn't support live editing. It needs the Node or Docker deployment."
+			: undefined}
+	>
 		<IconUsers />
 		{on ? (status || "Live") : "Edit live"}
 	</Button>

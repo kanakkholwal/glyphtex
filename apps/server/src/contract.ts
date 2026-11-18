@@ -80,8 +80,31 @@ export interface PublicConfig {
 	/** True only when the server can send mail. */
 	magicLink: boolean;
 	/** What this server has switched on; the client skips what it can't do. */
-	features: { mail: boolean; blobs: boolean };
+	features: { mail: boolean; blobs: boolean; live: boolean };
 	limits: { textFileBytes: number; binaryFileBytes: number; filesPerProject: number };
+}
+
+/** What a frontend reads to learn which server it is talking to and what that server can do. */
+export interface ServerInfo {
+	name: "glyphtex-server";
+	version: string;
+	runtime: "node" | "workers";
+	commit: string | null;
+	deployedAt: string | null;
+	startedAt: string;
+	features: {
+		mail: boolean;
+		blobs: boolean;
+		live: boolean;
+		magicLink: boolean;
+		emailVerification: boolean;
+		passkeys: boolean;
+		twoFactor: boolean;
+		sso: boolean;
+		scim: boolean;
+	};
+	providers: PublicConfig["providers"];
+	limits: PublicConfig["limits"];
 }
 
 /** RFC 9457 problem details, plus our `code` and any detail fields. */

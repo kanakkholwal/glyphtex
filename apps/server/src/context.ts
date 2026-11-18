@@ -2,6 +2,7 @@ import type { Adapters } from "./adapters/types.ts";
 import type { Auth, AuthSession, AuthUser } from "./auth/auth.ts";
 import type { Config } from "./config.ts";
 import type { Db } from "./db/client.ts";
+import type { BuildInfo } from "./lib/build.ts";
 import type { Logger } from "./lib/logger.ts";
 import type { ProjectAccess } from "./rbac/authorize.ts";
 import type { OrgAccess } from "./services/orgs.ts";
@@ -13,6 +14,7 @@ export interface Deps {
 	adapters: Adapters;
 	auth: Auth;
 	logger: Logger;
+	build?: BuildInfo;
 }
 
 export interface AppEnv {
@@ -20,6 +22,8 @@ export interface AppEnv {
 		deps: Deps;
 		log: Logger;
 		requestId: string;
+		/** False on runtimes that can't host live rooms (Workers until a Durable Object does). */
+		realtime: boolean;
 		user: AuthUser | null;
 		session: AuthSession | null;
 		access: ProjectAccess;

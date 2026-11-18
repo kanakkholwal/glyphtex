@@ -37,6 +37,7 @@
 	import { ToggleGroup, ToggleGroupItem } from "@glyphtex/ui/toggle-group";
 	import PasswordSettings from "./PasswordSettings.svelte";
 	import SettingsSection from "./SettingsSection.svelte";
+	import ServerCapabilities from "./ServerCapabilities.svelte";
 	import PasskeySettings from "./PasskeySettings.svelte";
 	import TwoFactorSettings from "./TwoFactorSettings.svelte";
 
@@ -132,6 +133,8 @@
 				</Button>
 			</div>
 		</SettingsSection>
+
+		<ServerCapabilities />
 
 		<PasswordSettings email={user.email} />
 

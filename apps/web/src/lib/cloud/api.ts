@@ -17,6 +17,7 @@ import type {
 	ProjectSummary,
 	ProjectView,
 	PublicConfig,
+	ServerInfo,
 	ScimOverview,
 	ScimToken,
 	ShareLink,
@@ -41,6 +42,7 @@ export type {
 	ProjectSummary,
 	ProjectView,
 	PublicConfig,
+	ServerInfo,
 	ScimOverview,
 	ScimToken,
 	ShareLink,
@@ -131,6 +133,7 @@ const preconditionHeaders = (pre: Precondition): Record<string, string> =>
 
 export const cloud = {
 	config: () => json<PublicConfig>("/public/config"),
+	info: () => json<ServerInfo>("/public/info"),
 
 	projects: {
 		list: async () => (await json<{ projects: ProjectSummary[] }>("/projects")).projects,
