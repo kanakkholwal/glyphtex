@@ -70,6 +70,14 @@ const schema = z.object({
 
 	MAX_TEXT_FILE_BYTES: int(2 * 1024 * 1024),
 	MAX_BINARY_FILE_BYTES: int(50 * 1024 * 1024),
+	// Live co-editing caps. They bound connection time, which Cloudflare bills as Durable Object duration.
+	LIVE_MAX_EDITORS: z.coerce.number().int().min(1).max(100).default(10),
+	LIVE_IDLE_SECONDS: z.coerce.number().int().min(30).default(300),
+	LIVE_MAX_SESSION_SECONDS: z.coerce
+		.number()
+		.int()
+		.min(300)
+		.default(4 * 3600),
 	MAX_FILES_PER_PROJECT: int(2000),
 	MAX_IMPORT_BYTES: int(100 * 1024 * 1024),
 	API_RATE_LIMIT: int(300),
@@ -155,6 +163,11 @@ export function parseConfig(env: Record<string, unknown>) {
 			apiWindowSeconds: e.API_RATE_WINDOW_SECONDS,
 			inviteTtlHours: e.INVITE_TTL_HOURS,
 			auditRetentionDays: e.AUDIT_RETENTION_DAYS
+		},
+		live: {
+			maxEditors: e.LIVE_MAX_EDITORS,
+			idleSeconds: e.LIVE_IDLE_SECONDS,
+			maxSessionSeconds: e.LIVE_MAX_SESSION_SECONDS
 		}
 	};
 }

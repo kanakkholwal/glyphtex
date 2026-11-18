@@ -4,6 +4,8 @@ export interface LiveConfig {
 	/** WebSocket URL for one file of the open project, or null when it can't be live. */
 	url(path: string): string | null;
 	person: LivePerson;
+	/** Disconnect after this many seconds without typing or cursor movement. */
+	idleSeconds?: number;
 }
 
 /** Shared switch for live co-editing: the host app sets `config`, the editor reads it. */

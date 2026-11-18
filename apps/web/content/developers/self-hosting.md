@@ -92,3 +92,15 @@ per file: `wrangler.jsonc` already declares the `ROOMS` binding and the `Project
 `wrangler deploy` enables it (SQLite-backed, available on the Workers Free plan within its daily limits).
 Remove the binding and the server reports `features.live: false` from `/api/public/info`, and the editor
 disables the button with an explanation.
+
+Three settings bound live editing, because Cloudflare bills Durable Object time while a connection is open:
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `LIVE_MAX_EDITORS` | 10 | People editing one file at once. The next one is refused with a clear message. |
+| `LIVE_IDLE_SECONDS` | 300 | The editor disconnects after this long without typing or cursor movement. |
+| `LIVE_MAX_SESSION_SECONDS` | 14400 | The server ends any single connection after this long. The user can start a new one. |
+
+`/api/public/info` reports them under `limits.live`, and the editor shows them before it cuts anyone off.
+On the Workers Free plan the platform also has a daily duration and request cap; when it is used up the
+editor reports that live editing is unavailable and edits keep syncing normally.

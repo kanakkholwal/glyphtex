@@ -2,14 +2,14 @@
 	import { IconCheck, IconMinus } from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 
-	import type { PublicConfig } from "$lib/cloud/api";
-	import { publicConfig } from "$lib/cloud/public-config";
+	import { cloud, type ServerInfo } from "$lib/cloud/api";
 	import SettingsSection from "./SettingsSection.svelte";
 
-	let config = $state<PublicConfig | undefined>(undefined);
+	let config = $state<ServerInfo | undefined>(undefined);
 	onMount(
 		() =>
-			void publicConfig()
+			void cloud
+				.info()
 				.then((c) => (config = c))
 				.catch(() => {})
 	);
@@ -30,6 +30,7 @@
 					{
 						name: "Live editing",
 						on: config.features.live,
+						detail: `Up to ${config.limits.live.maxEditors} editors per file. Idle after ${Math.round(config.limits.live.idleSeconds / 60)} minutes, sessions end after ${Math.round((config.limits.live.maxSessionSeconds / 3600) * 10) / 10} hours.`,
 						off: "Not enabled on this deployment. The Node and Docker server has it built in; on Cloudflare it needs the ROOMS Durable Object binding from wrangler.jsonc."
 					}
 				]
@@ -50,6 +51,7 @@
 					<div class="min-w-0">
 						<p class="text-foreground text-sm font-medium">{row.name}: {row.on ? "supported" : "not supported"}</p>
 						{#if !row.on}<p class="text-muted-foreground text-sm">{row.off}</p>{/if}
+						{#if row.on && row.detail}<p class="text-muted-foreground text-sm">{row.detail}</p>{/if}
 					</div>
 				</li>
 			{/each}

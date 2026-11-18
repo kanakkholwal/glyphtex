@@ -44,7 +44,8 @@ export const publicController = new Hono<AppEnv>()
 			limits: {
 				textFileBytes: limits.textFileBytes,
 				binaryFileBytes: limits.binaryFileBytes,
-				filesPerProject: limits.filesPerProject
+				filesPerProject: limits.filesPerProject,
+				live: deps.config.live
 			}
 		} satisfies ServerInfo);
 	});

@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { AppEnv, Deps } from "../context.ts";
 import { errors } from "../lib/errors.ts";
 import { normalizePath } from "../lib/paths.ts";
+import { LIVE_CLOSE } from "../realtime/limits.ts";
 import { requireProject } from "../middleware/index.ts";
 import type { ProjectAccess } from "../rbac/authorize.ts";
 import { can } from "../rbac/permissions.ts";
@@ -70,6 +71,7 @@ export function realtimeController(options?: RealtimeOptions) {
 			let release: ((peer: Peer) => Promise<void>) | undefined;
 			let peer: Peer | undefined;
 			const queued: Uint8Array[] = [];
+			let timer: ReturnType<typeof setTimeout> | undefined;
 			return {
 				async onOpen(_evt, ws) {
 					try {
@@ -77,7 +79,16 @@ export function realtimeController(options?: RealtimeOptions) {
 						peer = { send: (data) => ws.send(new Uint8Array(data)), canWrite: writable, userId };
 						room = acquired.room;
 						release = acquired.release;
-						room.join(peer);
+						if (!room.join(peer)) {
+							peer = undefined;
+							ws.close(LIVE_CLOSE.full, "room_full");
+							return;
+						}
+						// A hard cap on connection time keeps one forgotten tab from holding a room forever.
+						timer = setTimeout(
+							() => ws.close(LIVE_CLOSE.sessionLimit, "session_limit"),
+							deps.config.live.maxSessionSeconds * 1000
+						);
 						for (const frame of queued.splice(0)) room.receive(peer, frame);
 					} catch {
 						ws.close(1011, "unavailable");
@@ -90,6 +101,7 @@ export function realtimeController(options?: RealtimeOptions) {
 					else if (queued.length < 64) queued.push(frame);
 				},
 				async onClose() {
+					clearTimeout(timer);
 					if (peer && release) await release(peer);
 				}
 			};

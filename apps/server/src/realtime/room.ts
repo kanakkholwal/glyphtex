@@ -31,6 +31,8 @@ export interface RoomOptions {
 	persist(text: string, lastWriterId: string): Promise<void>;
 	debounceMs?: number;
 	maxChars: number;
+	/** Most peers that may be connected at once; join() refuses the next one. */
+	maxPeers?: number;
 	onError?(error: unknown): void;
 }
 
@@ -89,7 +91,9 @@ export class Room {
 		return this.#peers.size;
 	}
 
-	join(peer: Peer) {
+	/** Returns false, without adding the peer, when the room is at its peer limit. */
+	join(peer: Peer): boolean {
+		if (this.#peers.size >= (this.#opts.maxPeers ?? Number.POSITIVE_INFINITY)) return false;
 		this.#peers.set(peer, new Set());
 		const epoch = encoding.createEncoder();
 		encoding.writeVarUint(epoch, MSG_EPOCH);
@@ -109,6 +113,7 @@ export class Room {
 			);
 			peer.send(encoding.toUint8Array(message));
 		}
+		return true;
 	}
 
 	/** Handles one binary frame from a peer. Malformed or oversize frames are ignored. */

@@ -43,7 +43,12 @@
 		if (!config || !file || !editor || files.activeGenerated) return;
 		const url = config.url(file.name);
 		if (!url) return;
-		const session = new LiveSession(url, config.person, (status) => (live.status = status));
+		const session = new LiveSession(
+			url,
+			config.person,
+			(status) => (live.status = status),
+			config.idleSeconds
+		);
 		let attached = false;
 		void (async () => {
 			// The editor's controller loads lazily; wait for it instead of silently skipping.

@@ -38,6 +38,7 @@ import { createLogger } from "../lib/logger.ts";
 import { backoffDelay } from "../lib/resilience.ts";
 import { orgRepository } from "../repositories/orgs.ts";
 import { projectRepository } from "../repositories/projects.ts";
+import { LIVE_CLOSE } from "../realtime/limits.ts";
 import { buildRoom } from "../realtime/registry.ts";
 import { bytesOf, type Peer, type Room } from "../realtime/room.ts";
 
@@ -195,12 +196,20 @@ export class ProjectRoom {
 			return switchingProtocols(client);
 		}
 		const peer: Peer = { send: (data) => server.send(new Uint8Array(data)), canWrite, userId };
-		room.join(peer);
+		if (!room.join(peer)) {
+			server.close(LIVE_CLOSE.full, "room_full");
+			return switchingProtocols(client);
+		}
+		const timer = setTimeout(
+			() => server.close(LIVE_CLOSE.sessionLimit, "session_limit"),
+			envState(this.#env).config.live.maxSessionSeconds * 1000
+		);
 		server.addEventListener("message", (event) => {
 			const frame = bytesOf(event.data);
 			if (frame) room.receive(peer, frame);
 		});
 		const leave = async () => {
+			clearTimeout(timer);
 			if (!(await room.leave(peer))) return;
 			this.#room = undefined;
 			room.destroy();

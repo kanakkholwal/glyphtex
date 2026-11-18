@@ -104,7 +104,10 @@ export interface ServerInfo {
 		scim: boolean;
 	};
 	providers: PublicConfig["providers"];
-	limits: PublicConfig["limits"];
+	limits: PublicConfig["limits"] & {
+		/** What live editing enforces; the editor shows these before it cuts anyone off. */
+		live: { maxEditors: number; idleSeconds: number; maxSessionSeconds: number };
+	};
 }
 
 /** RFC 9457 problem details, plus our `code` and any detail fields. */

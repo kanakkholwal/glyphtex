@@ -130,4 +130,20 @@ describe("realtime room", () => {
 		assert.equal(resumed.epoch, first.epoch);
 		assert.notEqual(make("seed").epoch, first.epoch);
 	});
+
+	test("refuses a peer past the room's editor limit", () => {
+		const limited = new Room({
+			initialText: "x",
+			maxChars: 1000,
+			maxPeers: 2,
+			persist: async () => {}
+		});
+		rooms.push(limited);
+		const peer = (): Peer => ({ canWrite: true, userId: "u", send() {} });
+		assert.equal(limited.join(peer()), true);
+		assert.equal(limited.join(peer()), true);
+		const third = peer();
+		assert.equal(limited.join(third), false);
+		assert.equal(limited.size, 2);
+	});
 });

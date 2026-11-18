@@ -70,6 +70,7 @@ export async function buildRoom(
 		initialText: text,
 		restore: unchanged ? hooks.restore : undefined,
 		maxChars: config.limits.textFileBytes,
+		maxPeers: config.live.maxEditors,
 		onError: (error) => logger.error("realtime room error", { error, path }),
 		persist: async (settled, writer) => {
 			// Re-read the version each save: a manual sync may have written since the last one.

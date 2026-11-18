@@ -11,7 +11,22 @@ const MSG_AWARENESS = 1;
 const MSG_EPOCH = 2;
 const MAX_ATTEMPTS = 4;
 
-export type LiveStatus = "connecting" | "live" | "offline" | "unavailable";
+export type LiveStatus =
+	| "connecting"
+	| "live"
+	| "offline"
+	/** The server refuses live rooms (deployment without them, or its daily platform limit is used up). */
+	| "unavailable"
+	/** The file already has the most editors the server allows. */
+	| "full"
+	/** Disconnected after a stretch with no typing or cursor movement, to free the room. */
+	| "idle"
+	/** The server's session time limit ended this connection. */
+	| "session";
+
+/** Close codes sent by the server (see realtime/limits.ts). */
+const CLOSE_FULL = 4001;
+const CLOSE_SESSION = 4003;
 
 export interface LivePerson {
 	name: string;
@@ -36,13 +51,21 @@ export class LiveSession {
 	#wasLive = false;
 	#epoch: string | undefined;
 	#closed = false;
+	#idleTimer: ReturnType<typeof setTimeout> | undefined;
+	readonly #idleSeconds: number | undefined;
 	#timer: ReturnType<typeof setTimeout> | undefined;
 	#resolveSynced!: () => void;
 	readonly #url: string;
 	readonly #onStatus: (status: LiveStatus) => void;
 
-	constructor(url: string, person: LivePerson, onStatus: (status: LiveStatus) => void) {
+	constructor(
+		url: string,
+		person: LivePerson,
+		onStatus: (status: LiveStatus) => void,
+		idleSeconds?: number
+	) {
 		this.#url = url;
+		this.#idleSeconds = idleSeconds;
 		this.#onStatus = onStatus;
 		this.synced = new Promise((resolve) => {
 			this.#resolveSynced = resolve;
@@ -57,6 +80,7 @@ export class LiveSession {
 		});
 		this.doc.on("update", (update: Uint8Array, origin: unknown) => {
 			if (origin === this) return;
+			this.#touch();
 			const message = encoding.createEncoder();
 			encoding.writeVarUint(message, MSG_SYNC);
 			syncProtocol.writeUpdate(message, update);
@@ -64,7 +88,11 @@ export class LiveSession {
 		});
 		this.awareness.on(
 			"update",
-			({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
+			(
+				{ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] },
+				origin: unknown
+			) => {
+				if (origin === "local") this.#touch();
 				const message = encoding.createEncoder();
 				encoding.writeVarUint(message, MSG_AWARENESS);
 				encoding.writeVarUint8Array(
@@ -78,7 +106,19 @@ export class LiveSession {
 				this.#send(encoding.toUint8Array(message));
 			}
 		);
+		this.#touch();
 		this.#connect();
+	}
+
+	/** Typing or moving the cursor restarts the idle clock; when it runs out the connection is released. */
+	#touch() {
+		if (!this.#idleSeconds || this.#closed) return;
+		clearTimeout(this.#idleTimer);
+		this.#idleTimer = setTimeout(() => {
+			this.#closed = true;
+			this.#socket?.close();
+			this.#onStatus("idle");
+		}, this.#idleSeconds * 1000);
 	}
 
 	#send(data: Uint8Array) {
@@ -135,8 +175,14 @@ export class LiveSession {
 				);
 			}
 		};
-		socket.onclose = () => {
+		socket.onclose = (event) => {
 			if (this.#closed) return;
+			if (event.code === CLOSE_FULL || event.code === CLOSE_SESSION) {
+				this.#closed = true;
+				clearTimeout(this.#idleTimer);
+				this.#onStatus(event.code === CLOSE_FULL ? "full" : "session");
+				return;
+			}
 			awarenessProtocol.removeAwarenessStates(
 				this.awareness,
 				[...this.awareness.getStates().keys()].filter((id) => id !== this.doc.clientID),
@@ -156,6 +202,7 @@ export class LiveSession {
 	destroy() {
 		this.#closed = true;
 		clearTimeout(this.#timer);
+		clearTimeout(this.#idleTimer);
 		awarenessProtocol.removeAwarenessStates(this.awareness, [this.doc.clientID], "destroy");
 		this.#socket?.close();
 		this.awareness.destroy();
