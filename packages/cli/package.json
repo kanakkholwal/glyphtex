@@ -1,0 +1,49 @@
+{
+	"name": "glyphtex",
+	"version": "0.1.0",
+	"description": "Compile LaTeX to PDF from the command line. No TeX install, no server. Built for people and for agents.",
+	"license": "MIT",
+	"type": "module",
+	"keywords": [
+		"latex",
+		"tex",
+		"pdf",
+		"xetex",
+		"tectonic",
+		"cli",
+		"compiler",
+		"agents"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kanakkholwal/glyphtex.git",
+		"directory": "packages/cli"
+	},
+	"homepage": "https://glyphtex.nexonauts.com/developers/glyphtex-cli",
+	"bugs": "https://github.com/kanakkholwal/glyphtex/issues",
+	"bin": {
+		"glyphtex": "./bin/glyphtex.mjs"
+	},
+	"files": [
+		"bin",
+		"dist",
+		"README.md"
+	],
+	"engines": {
+		"node": ">=20.6"
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.json",
+		"check": "tsc -p tsconfig.json --noEmit",
+		"pretest": "tsc -p tsconfig.json",
+		"test": "node --test test/*.test.mjs",
+		"prepublishOnly": "pnpm build"
+	},
+	"dependencies": {
+		"glyphtex-engine": "workspace:^"
+	},
+	"devDependencies": {
+		"@types/node": "^22.0.0",
+		"typescript": "^5.9.3"
+	}
+}

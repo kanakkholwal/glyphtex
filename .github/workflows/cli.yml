@@ -1,0 +1,86 @@
+name: cli
+
+# Tests the `glyphtex` command-line package on every OS it supports, and publishes it to npm
+# when main carries a version that is not on the registry yet. Publishing uses npm trusted
+# publishing: the package must name this repo and workflow as a trusted publisher on npmjs.com.
+
+on:
+  push:
+    branches: [main]
+    paths: ["packages/cli/**", "packages/tex-engine/**", ".github/workflows/cli.yml"]
+  pull_request:
+    paths: ["packages/cli/**", "packages/tex-engine/**", ".github/workflows/cli.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: cli-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter glyphtex-engine build
+      - run: pnpm --filter glyphtex check
+      - run: pnpm --filter glyphtex test
+
+  publish:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter glyphtex-engine build
+      - run: pnpm --filter glyphtex build
+
+      - name: Is this version already published?
+        id: published
+        run: |
+          v=$(node -p "require('./packages/cli/package.json').version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if npm view "glyphtex@$v" version >/dev/null 2>&1; then
+            echo "::notice::glyphtex $v is already on npm; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Trusted publishing needs npm >= 11.5.1; pinned to 11.x like the engine package.
+      - name: Ensure npm supports trusted publishing
+        if: steps.published.outputs.skip == 'false'
+        run: npm install -g "npm@^11.5.1"
+
+      # pnpm pack rewrites the workspace dependency on glyphtex-engine to a real version range;
+      # npm then publishes the tarball with no token, exchanging the job's OIDC identity.
+      - name: Publish to npm
+        if: steps.published.outputs.skip == 'false'
+        run: |
+          cd packages/cli
+          pnpm pack --pack-destination "$RUNNER_TEMP"
+          npm publish "$RUNNER_TEMP/glyphtex-${{ steps.published.outputs.version }}.tgz" --access public
