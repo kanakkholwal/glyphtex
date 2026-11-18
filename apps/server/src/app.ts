@@ -7,6 +7,8 @@ import { healthController } from "./controllers/health.ts";
 import { orgsController } from "./controllers/orgs.ts";
 import { projectsController } from "./controllers/projects.ts";
 import { publicController } from "./controllers/public.ts";
+import { reviewController } from "./controllers/review.ts";
+import { versionsController } from "./controllers/versions.ts";
 import {
 	type RealtimeOptions,
 	realtimeAvailable,
@@ -68,6 +70,8 @@ export function createApp(
 	app.route("/api/projects", projectsController);
 	app.route("/api/projects", filesController);
 	app.route("/api/projects", realtimeController(realtime));
+	app.route("/api/projects", reviewController);
+	app.route("/api/projects", versionsController);
 	app.route("/api/projects", projectSharingController);
 	app.route("/api", redeemController);
 	app.route("/api/orgs", orgsController);

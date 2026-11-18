@@ -2,6 +2,7 @@
 	import { Button } from "@glyphtex/ui/button";
 	import { LiveSession } from "../../../lib/editor/live";
 	import { live } from "@glyphtex/ui/live";
+	import { reviewBridge } from "@glyphtex/ui/review";
 	import { settings } from "@glyphtex/ui/settings";
 	import {
 		IconArrowBackUp,
@@ -34,6 +35,16 @@
 	let { ctrl }: { ctrl: WorkbenchController } = $props();
 	const files = $derived(ctrl.files);
 	const layout = $derived(ctrl.layout);
+
+	// Lets the host app's review panel read the selection and apply accepted suggestions.
+	$effect(() => {
+		reviewBridge.editor = layout.editor;
+		reviewBridge.path = files.activeGenerated ? "" : (files.activeFile?.name ?? "");
+		return () => {
+			reviewBridge.editor = undefined;
+			reviewBridge.path = "";
+		};
+	});
 
 	// Live co-editing: one session per active file while the host app has switched it on.
 	$effect(() => {

@@ -216,6 +216,18 @@ export class CodeEditorController {
 		});
 	}
 
+	/** Main selection as offsets into the document, plus its text. */
+	selectionRange(): { from: number; to: number; text: string } {
+		const view = this.view;
+		if (!view) return { from: 0, to: 0, text: "" };
+		const { from, to } = view.state.selection.main;
+		return { from, to, text: view.state.sliceDoc(from, to) };
+	}
+
+	docText(): string {
+		return this.view?.state.doc.toString() ?? "";
+	}
+
 	detachLive(): void {
 		this.#liveActive = false;
 		this.view?.dispatch({

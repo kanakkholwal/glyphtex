@@ -66,6 +66,44 @@ export class CloudError extends Error {
 	}
 }
 
+export interface ReviewComment {
+	id: string;
+	path: string;
+	parentId: string | null;
+	authorId: string;
+	authorName: string;
+	authorImage: string | null;
+	body: string;
+	quote: string | null;
+	anchorFrom: number | null;
+	anchorTo: number | null;
+	resolvedAt: string | null;
+	createdAt: string;
+}
+
+export interface ReviewSuggestion {
+	id: string;
+	path: string;
+	authorId: string;
+	authorName: string;
+	quote: string;
+	replacement: string;
+	anchorFrom: number;
+	anchorTo: number;
+	status: "pending" | "accepted" | "rejected";
+	createdAt: string;
+}
+
+export interface VersionSummary {
+	id: string;
+	name: string | null;
+	kind: "named" | "auto";
+	fileCount: number;
+	bytes: number;
+	createdAt: string;
+	createdByName: string | null;
+}
+
 const OFFLINE = "Can't reach the GlyphTeX server. Check your connection and try again.";
 
 const $fetch = createFetch({
@@ -181,6 +219,75 @@ export const cloud = {
 			done(file(id, path), { method: "DELETE", headers: { "if-match": `"${version}"` } })
 	},
 
+	review: {
+		comments: async (id: string, path?: string) =>
+			(
+				await json<{ comments: ReviewComment[] }>(
+					`${p(id)}/comments${path ? `?path=${encodeURIComponent(path)}` : ""}`
+				)
+			).comments,
+		addComment: (
+			id: string,
+			input: {
+				path: string;
+				body: string;
+				parentId?: string;
+				quote?: string;
+				from?: number;
+				to?: number;
+			}
+		) => json<{ comment: ReviewComment }>(`${p(id)}/comments`, { method: "POST", body: input }),
+		editComment: (id: string, commentId: string, body: string) =>
+			done(`${p(id)}/comments/${encodeURIComponent(commentId)}`, {
+				method: "PATCH",
+				body: { body }
+			}),
+		resolve: (id: string, commentId: string, resolved: boolean) =>
+			done(`${p(id)}/comments/${encodeURIComponent(commentId)}`, {
+				method: "PATCH",
+				body: { resolved }
+			}),
+		removeComment: (id: string, commentId: string) =>
+			done(`${p(id)}/comments/${encodeURIComponent(commentId)}`, { method: "DELETE" }),
+		suggestions: async (id: string, path?: string) =>
+			(
+				await json<{ suggestions: ReviewSuggestion[] }>(
+					`${p(id)}/suggestions?status=pending${path ? `&path=${encodeURIComponent(path)}` : ""}`
+				)
+			).suggestions,
+		suggest: (
+			id: string,
+			input: { path: string; quote: string; replacement: string; from: number; to: number }
+		) =>
+			json<{ suggestion: ReviewSuggestion }>(`${p(id)}/suggestions`, {
+				method: "POST",
+				body: input
+			}),
+		decide: (id: string, suggestionId: string, status: "accepted" | "rejected") =>
+			done(`${p(id)}/suggestions/${encodeURIComponent(suggestionId)}/decision`, {
+				method: "POST",
+				body: { status }
+			}),
+		withdraw: (id: string, suggestionId: string) =>
+			done(`${p(id)}/suggestions/${encodeURIComponent(suggestionId)}`, { method: "DELETE" })
+	},
+	versions: {
+		list: async (id: string) =>
+			(await json<{ versions: VersionSummary[] }>(`${p(id)}/versions`)).versions,
+		create: (id: string, name: string) =>
+			json<{ id: string }>(`${p(id)}/versions`, { method: "POST", body: { name } }),
+		rename: (id: string, versionId: string, name: string) =>
+			done(`${p(id)}/versions/${encodeURIComponent(versionId)}`, {
+				method: "PATCH",
+				body: { name }
+			}),
+		restore: (id: string, versionId: string) =>
+			json<{ restored: number }>(`${p(id)}/versions/${encodeURIComponent(versionId)}/restore`, {
+				method: "POST"
+			}),
+		remove: (id: string, versionId: string) =>
+			done(`${p(id)}/versions/${encodeURIComponent(versionId)}`, { method: "DELETE" })
+	},
 	sharing: {
 		members: (id: string) => json<MembersResponse>(`${p(id)}/members`),
 		setRole: (id: string, userId: string, role: GrantableRole) =>

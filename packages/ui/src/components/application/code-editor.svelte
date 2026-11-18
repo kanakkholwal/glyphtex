@@ -166,6 +166,12 @@
 	export function detachLive() {
 		ctrl?.detachLive();
 	}
+	export function selectionRange() {
+		return ctrl?.selectionRange() ?? { from: 0, to: 0, text: '' };
+	}
+	export function docText() {
+		return ctrl?.docText() ?? '';
+	}
 	export function clearSearch() {
 		ctrl?.clearSearch();
 	}

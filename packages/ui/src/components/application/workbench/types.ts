@@ -104,6 +104,9 @@ export type EditorApi = {
 		session: import("../../../lib/editor/live").LiveSession
 	) => Promise<void> | undefined;
 	detachLive?: () => void;
+	/** Selection offsets and text, for anchoring comments and suggestions. */
+	selectionRange?: () => { from: number; to: number; text: string };
+	docText?: () => string;
 };
 
 // --- Command definitions ----------------------------------------------------

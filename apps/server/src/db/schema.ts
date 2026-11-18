@@ -335,6 +335,93 @@ export const orgLibrary = pgTable("org_library", {
 		.references(() => project.id, { onDelete: "cascade" })
 });
 
+// --- Review: comments, suggestions and version history ---
+
+export const SUGGESTION_STATUS = ["pending", "accepted", "rejected"] as const;
+export const VERSION_KIND = ["named", "auto"] as const;
+
+/** A comment thread anchored to a text range. `quote` lets the editor re-find the range after edits. */
+export const projectComment = pgTable(
+	"project_comment",
+	{
+		id: text("id").primaryKey(),
+		projectId: text("project_id")
+			.notNull()
+			.references(() => project.id, { onDelete: "cascade" }),
+		path: text("path").notNull(),
+		/** Set on replies; null on the thread's first comment. */
+		parentId: text("parent_id"),
+		authorId: text("author_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		body: text("body").notNull(),
+		quote: text("quote"),
+		anchorFrom: integer("anchor_from"),
+		anchorTo: integer("anchor_to"),
+		resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+		resolvedBy: text("resolved_by").references(() => user.id, { onDelete: "set null" }),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(t) => [index("comment_project_path_idx").on(t.projectId, t.path)]
+);
+
+/** A proposed replacement of a text range. Nothing changes until someone with write access accepts it. */
+export const projectSuggestion = pgTable(
+	"project_suggestion",
+	{
+		id: text("id").primaryKey(),
+		projectId: text("project_id")
+			.notNull()
+			.references(() => project.id, { onDelete: "cascade" }),
+		path: text("path").notNull(),
+		authorId: text("author_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		quote: text("quote").notNull(),
+		replacement: text("replacement").notNull(),
+		anchorFrom: integer("anchor_from").notNull(),
+		anchorTo: integer("anchor_to").notNull(),
+		status: text("status", { enum: SUGGESTION_STATUS }).notNull().default("pending"),
+		decidedBy: text("decided_by").references(() => user.id, { onDelete: "set null" }),
+		decidedAt: timestamp("decided_at", { withTimezone: true }),
+		createdAt: createdAt()
+	},
+	(t) => [index("suggestion_project_path_idx").on(t.projectId, t.path, t.status)]
+);
+
+/** A saved copy of a project's text files. Named by people, or automatic before a restore. */
+export const projectVersion = pgTable(
+	"project_version",
+	{
+		id: text("id").primaryKey(),
+		projectId: text("project_id")
+			.notNull()
+			.references(() => project.id, { onDelete: "cascade" }),
+		name: text("name"),
+		kind: text("kind", { enum: VERSION_KIND }).notNull(),
+		createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+		fileCount: integer("file_count").notNull(),
+		bytes: integer("bytes").notNull(),
+		createdAt: createdAt()
+	},
+	(t) => [index("version_project_idx").on(t.projectId, t.createdAt)]
+);
+
+export const projectVersionFile = pgTable(
+	"project_version_file",
+	{
+		versionId: text("version_id")
+			.notNull()
+			.references(() => projectVersion.id, { onDelete: "cascade" }),
+		path: text("path").notNull(),
+		content: text("content").notNull(),
+		sha256: text("sha256").notNull(),
+		size: integer("size").notNull()
+	},
+	(t) => [primaryKey({ columns: [t.versionId, t.path] })]
+);
+
 // --- Plugin tables: two-factor, SSO and SCIM (field names are the plugins' contract) ---
 
 export const twoFactor = pgTable(
@@ -634,6 +721,10 @@ export const schema = {
 	orgLibrary,
 	twoFactor,
 	passkey,
+	projectComment,
+	projectSuggestion,
+	projectVersion,
+	projectVersionFile,
 	ssoProvider,
 	scimManagedConnection,
 	scimManagedCredential,

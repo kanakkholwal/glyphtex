@@ -18,6 +18,10 @@
 			"svelte": "./src/lib/state/settings.svelte.ts",
 			"default": "./src/lib/state/settings.svelte.ts"
 		},
+		"./review": {
+			"svelte": "./src/lib/state/review.svelte.ts",
+			"default": "./src/lib/state/review.svelte.ts"
+		},
 		"./live": {
 			"svelte": "./src/lib/state/live.svelte.ts",
 			"default": "./src/lib/state/live.svelte.ts"
