@@ -1,15 +1,22 @@
 import { serve } from "@hono/node-server";
+import { createNodeWebSocket } from "@hono/node-ws";
+import type { UpgradeWebSocket } from "hono/ws";
 import { createApp } from "../app.ts";
+import { RoomRegistry } from "../realtime/registry.ts";
 import { onShutdown } from "./lifecycle.ts";
 import { buildNodeDeps } from "./node-deps.ts";
 
 const { deps, close } = await buildNodeDeps();
-const app = createApp(() => ({ deps }));
+const upgrader: { current?: UpgradeWebSocket } = {};
+const app = createApp(() => ({ deps }), { registry: new RoomRegistry(deps), upgrader });
+const ws = createNodeWebSocket({ app });
+upgrader.current = ws.upgradeWebSocket;
 const port = Number(process.env.PORT ?? 8787);
 
 const server = serve({ fetch: app.fetch, port }, (info) =>
 	deps.logger.info("server listening", { port: info.port })
 );
+ws.injectWebSocket(server);
 server.on("error", async (error: NodeJS.ErrnoException) => {
 	if (error.code === "EADDRINUSE") {
 		console.error(`Port ${port} is already in use. Stop the other server or set PORT.`);

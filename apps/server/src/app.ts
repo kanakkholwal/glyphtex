@@ -7,6 +7,7 @@ import { healthController } from "./controllers/health.ts";
 import { orgsController } from "./controllers/orgs.ts";
 import { projectsController } from "./controllers/projects.ts";
 import { publicController } from "./controllers/public.ts";
+import { type RealtimeOptions, realtimeController } from "./controllers/realtime.ts";
 import { projectSharingController, redeemController } from "./controllers/sharing.ts";
 import type { AppEnv, Deps } from "./context.ts";
 import { errors } from "./lib/errors.ts";
@@ -17,7 +18,11 @@ import { onError, rateLimit, requestContext, requireUser, session } from "./midd
  * Workers opens a request-scoped DB connection that `dispose` closes after the response.
  */
 export function createApp(
-	resolveDeps: (c: { env: unknown; executionCtx?: unknown }) => { deps: Deps; dispose?: () => void }
+	resolveDeps: (c: { env: unknown; executionCtx?: unknown }) => {
+		deps: Deps;
+		dispose?: () => void;
+	},
+	realtime?: RealtimeOptions
 ) {
 	const app = new Hono<AppEnv>();
 
@@ -54,6 +59,7 @@ export function createApp(
 	app.route("/api/me", accountController);
 	app.route("/api/projects", projectsController);
 	app.route("/api/projects", filesController);
+	app.route("/api/projects", realtimeController(realtime));
 	app.route("/api/projects", projectSharingController);
 	app.route("/api", redeemController);
 	app.route("/api/orgs", orgsController);

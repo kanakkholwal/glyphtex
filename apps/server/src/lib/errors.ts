@@ -48,6 +48,7 @@ export const errors = {
 		new AppError(429, "rate_limited", "Too many requests. Try again shortly.", {
 			retryAfterSeconds
 		}),
+	notImplemented: (message: string) => new AppError(501, "not_implemented", message),
 	unavailable: (service: string) =>
 		new AppError(503, "service_unavailable", `${service} is temporarily unavailable.`)
 };
