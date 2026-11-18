@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { afterNavigate } from "$app/navigation";
+	import ConsentBanner from "$lib/analytics/ConsentBanner.svelte";
 	import { connectWorkbench, initAnalytics, trackPageview } from "$lib/analytics";
 	import { SITE_NAME } from "$lib/seo/site";
 	import { NavProgress } from "@glyphtex/ui/nav-progress";
@@ -15,7 +16,7 @@
 		settings.apply();
 	});
 
-	// No-op unless a backend is configured and the visitor hasn't opted out.
+	// No-op unless a backend is configured and the visitor has said yes.
 	onMount(() => {
 		connectWorkbench();
 		initAnalytics();
@@ -45,4 +46,5 @@
 <!-- baby-ui tooltips need one provider above them; the old primitive made its own. -->
 <TooltipProvider delayDuration={400}>
 	{@render children()}
+	<ConsentBanner />
 </TooltipProvider>

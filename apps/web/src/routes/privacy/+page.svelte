@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { analyticsConfigured, hasOptedOut, setOptedOut } from "$lib/analytics";
+	import { analyticsConfigured, consentChoice, setConsent } from "$lib/analytics";
 	import { CONTACT_EMAIL, REPO_URL } from "$lib/landing/nav-data";
 	import Seo from "$lib/seo/Seo.svelte";
 	import { PageHero, RailFrame, RailRow } from "$lib/site";
@@ -113,6 +113,7 @@
 	const toc = [
 		{ id: "short", label: "The short version" },
 		{ id: "storage", label: "What the editor stores" },
+		{ id: "accounts", label: "Accounts and cloud sync" },
 		{ id: "collected", label: "What the website collects" },
 		{ id: "never", label: "What is never collected" },
 		{ id: "desktop", label: "The desktop app" },
@@ -122,11 +123,11 @@
 
 	// Null until mounted: the choice lives in this browser's storage, which SSR cannot read.
 	let configured = $state<boolean | null>(null);
-	let allowed = $state(true);
+	let allowed = $state(false);
 
 	onMount(() => {
 		configured = analyticsConfigured();
-		allowed = !hasOptedOut();
+		allowed = consentChoice() === "granted";
 	});
 
 	const link =
@@ -185,6 +186,22 @@
 					</p>
 				</section>
 
+				<section class="flex flex-col gap-4" aria-labelledby="accounts">
+					<h2 id="accounts" class={h2}>Accounts and cloud sync (optional)</h2>
+					<p>
+						The editor works without an account. If you sign in, the GlyphTeX server stores what
+						you choose to save: your name and email, the projects and files you upload or sync,
+						who you share them with, and for organizations an audit log. Sync is manual unless you
+						turn automatic sync on.
+					</p>
+					<ul class="list-disc space-y-1 pl-5">
+						<li>Compiling still happens on your device. The server never runs your LaTeX.</li>
+						<li>You can export every project as a zip and delete your account, which removes your projects and files permanently.</li>
+						<li>The hosted server runs on Cloudflare (compute, storage, email) with a Postgres database. If you self-host, none of this reaches us.</li>
+						<li>Organizations can set their own retention and sign-in rules. Data processing terms for organizations are in the <a href={REPO_URL + '/blob/main/apps/server/docs/privacy-and-dpa.md'} class={link} rel="noreferrer noopener" target="_blank">data processing summary</a>.</li>
+					</ul>
+				</section>
+
 				<section class="flex flex-col gap-4" aria-labelledby="collected">
 					<h2 id="collected" class={h2}>What the website collects</h2>
 					<p>
@@ -209,7 +226,7 @@
 								<span class="flex flex-col gap-0.5">
 									<span class="text-sm font-medium text-foreground">Analytics in this browser</span>
 									<span class="text-sm text-muted-foreground" aria-live="polite">
-										{allowed ? "On: events below are sent." : "Off: nothing is sent from this browser."}
+										{allowed ? "On: events below are sent." : "Off (default): nothing is sent from this browser."}
 									</span>
 								</span>
 								<Switch
@@ -217,12 +234,12 @@
 									disabled={configured === null}
 									onCheckedChange={(value) => {
 										allowed = value;
-										setOptedOut(!value);
+										setConsent(value ? "granted" : "denied");
 									}}
 								/>
 							</label>
 							<p class="mt-3 text-xs text-muted-foreground">
-								Saved in this browser only. If site storage is blocked, analytics stay off.
+								Analytics are opt-in and off until you allow them. Saved in this browser only; if site storage is blocked, analytics stay off.
 							</p>
 						{/if}
 					</div>

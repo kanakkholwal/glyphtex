@@ -17,37 +17,43 @@ export type {
 /** Registry. Add a backend here and the rest of the app needs no changes. */
 const providers: AnalyticsProvider[] = [gaProvider];
 
-const OPT_OUT_KEY = "glyphtex.analytics.optOut";
+const CONSENT_KEY = "glyphtex.analytics.consent";
+// Before consent existed, "1" meant the visitor had switched analytics off.
+const LEGACY_OPT_OUT_KEY = "glyphtex.analytics.optOut";
+
+export type ConsentChoice = "granted" | "denied";
 
 const active = () => providers.filter((p) => p.enabled);
 
 /** True when any backend is configured, regardless of the visitor's choice. */
 export const analyticsConfigured = (): boolean => active().length > 0;
 
-export function hasOptedOut(): boolean {
-	if (!browser) return false;
+/** Null means not asked yet. Blocked storage reads as denied: no way to remember a yes. */
+export function consentChoice(): ConsentChoice | null {
+	if (!browser) return null;
 	try {
-		return localStorage.getItem(OPT_OUT_KEY) === "1";
+		if (localStorage.getItem(LEGACY_OPT_OUT_KEY) === "1") return "denied";
+		const v = localStorage.getItem(CONSENT_KEY);
+		return v === "granted" || v === "denied" ? v : null;
 	} catch {
-		// Blocked site storage means we can't record a choice, so assume the
-		// stricter one rather than tracking someone who may have opted out before.
-		return true;
+		return "denied";
 	}
 }
 
-export function setOptedOut(value: boolean): void {
+/** Decision (product): analytics are opt-in; nothing loads or sends until the visitor says yes. */
+export function setConsent(choice: ConsentChoice): void {
 	try {
-		if (value) localStorage.setItem(OPT_OUT_KEY, "1");
-		else localStorage.removeItem(OPT_OUT_KEY);
+		localStorage.setItem(CONSENT_KEY, choice);
+		if (choice === "granted") localStorage.removeItem(LEGACY_OPT_OUT_KEY);
 	} catch {
-		/* nothing to persist to; `hasOptedOut` already fails closed */
+		/* nothing to persist to; consentChoice already reads as denied */
 	}
 	// A backend loaded earlier in this page keeps its own state, so tell it too.
-	for (const p of active()) p.setEnabled?.(!value);
-	if (!value) initAnalytics();
+	for (const p of active()) p.setEnabled?.(choice === "granted");
+	if (choice === "granted") initAnalytics();
 }
 
-const live = () => (browser && !hasOptedOut() ? active() : []);
+const live = () => (browser && consentChoice() === "granted" ? active() : []);
 
 let loaded = false;
 
