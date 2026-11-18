@@ -87,6 +87,23 @@ The cache is `~/.cache/glyphtex` (or `%LOCALAPPDATA%\glyphtex` on Windows). Set 
 externalisation, system fonts (add `.ttf` or `.otf` files to the project) and `xeCJK`. The `--engine native`
 route covers most of these except shell-dependent packages.
 
+## Releasing (maintainers)
+
+The first version is published once from a maintainer machine, because npm trusted publishing can only be set
+up for a package that already exists:
+
+```console
+npm login
+pnpm --filter glyphtex-engine build
+cd packages/cli
+pnpm test
+pnpm publish --access public --no-git-checks
+```
+
+Then on npmjs.com open the package, Settings, Trusted Publisher, and add GitHub repo
+`kanakkholwal/glyphtex` with workflow `cli.yml`. After that, bump `version` in `package.json` and merge to
+`main`: the workflow tests on Linux, Windows and macOS, publishes, and creates the `cli-v<version>` release.
+
 ## Licence
 
 MIT.

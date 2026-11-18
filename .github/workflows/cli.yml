@@ -45,8 +45,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write
+      contents: write # the release and its tag
+      id-token: write # npm trusted publishing
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -64,7 +64,12 @@ jobs:
         run: |
           v=$(node -p "require('./packages/cli/package.json').version")
           echo "version=$v" >> "$GITHUB_OUTPUT"
-          if npm view "glyphtex@$v" version >/dev/null 2>&1; then
+          # Trusted publishing can only be configured for a package that exists, so the very first
+          # version is published once from a maintainer machine (see packages/cli/README.md).
+          if ! npm view glyphtex name >/dev/null 2>&1; then
+            echo "::notice::glyphtex is not on npm yet. Publish 0.1.0 locally once, then add this workflow as a trusted publisher."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif npm view "glyphtex@$v" version >/dev/null 2>&1; then
             echo "::notice::glyphtex $v is already on npm; skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
@@ -84,3 +89,24 @@ jobs:
           cd packages/cli
           pnpm pack --pack-destination "$RUNNER_TEMP"
           npm publish "$RUNNER_TEMP/glyphtex-${{ steps.published.outputs.version }}.tgz" --access public
+
+      # The tag is created here, from the commit that was published, so package.json and the tag
+      # never disagree. Creating it through the release API does not start another run.
+      - uses: softprops/action-gh-release@v2
+        if: steps.published.outputs.skip == 'false'
+        with:
+          tag_name: cli-v${{ steps.published.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: glyphtex ${{ steps.published.outputs.version }}
+          generate_release_notes: true
+
+      # A change that was not released stays visible: bump packages/cli/package.json to ship it.
+      - name: Remind to bump the version
+        if: steps.published.outputs.skip == 'true'
+        run: |
+          last="cli-v${{ steps.published.outputs.version }}"
+          git fetch --tags --quiet
+          git rev-parse -q --verify "refs/tags/$last" >/dev/null || exit 0
+          if ! git diff --quiet "$last" HEAD -- packages/cli/src packages/cli/bin packages/cli/package.json; then
+            echo "::warning::The CLI changed since $last but its version was not bumped, so nothing was published."
+          fi
