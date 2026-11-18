@@ -30,7 +30,9 @@ class FakeSocket {
 		this.onclose?.({ code });
 	}
 	receive(bytes) {
-		this.onmessage?.({ data: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) });
+		this.onmessage?.({
+			data: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+		});
 	}
 }
 
@@ -57,7 +59,12 @@ afterEach(() => {
 
 function start(idleSeconds) {
 	const statuses = [];
-	const session = new LiveSession("wss://api.test/live", person, (s) => statuses.push(s), idleSeconds);
+	const session = new LiveSession(
+		"wss://api.test/live",
+		person,
+		(s) => statuses.push(s),
+		idleSeconds
+	);
 	sessions.push(session);
 	return { session, statuses };
 }
