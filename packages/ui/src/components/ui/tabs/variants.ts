@@ -20,10 +20,10 @@ export const tabsFrame = tv({
 			segment: {
 				list: "gap-0.5 bg-card p-0.5",
 				trigger: "aria-selected:text-foreground",
-				indicator: "top-0.5 bottom-0.5 border border-border bg-background shadow-sm"
+				indicator: "top-0.5 bottom-0.5 bg-background shadow-surface"
 			},
 			underline: {
-				list: "gap-1 border-border border-b",
+				list: "gap-1 border-border/60 border-b",
 				trigger: "rounded-md aria-selected:text-foreground",
 				indicator: "-bottom-px h-0.5 rounded-full bg-primary"
 			},
@@ -38,7 +38,7 @@ export const tabsFrame = tv({
 				indicator: "inset-y-0 border border-border"
 			},
 			enclosed: {
-				list: "gap-1 border-border border-b",
+				list: "gap-1 border-border/60 border-b",
 				trigger: "aria-selected:text-foreground",
 				indicator: "-bottom-px top-0 border border-border border-b-background bg-background"
 			}

@@ -43,7 +43,7 @@ export const slider = tv({
 			// An inset fill under a thin pill handle; vertical fills from the bottom with the pill laid flat.
 			track: {
 				control:
-					"overflow-hidden rounded-lg bg-muted has-focus-visible:ring-4 has-focus-visible:ring-foreground/30 has-focus-visible:ring-inset",
+					"overflow-hidden rounded-lg bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-inset",
 				track: "absolute inset-0 size-full rounded-none bg-transparent",
 				range: [
 					"rounded-none bg-foreground/15 after:absolute after:bg-inherit",
@@ -62,7 +62,7 @@ export const slider = tv({
 			// The track variant with its label and value inside; the handle parts around the text.
 			inline: {
 				control:
-					"overflow-hidden rounded-lg bg-muted has-focus-visible:ring-4 has-focus-visible:ring-foreground/30 has-focus-visible:ring-inset",
+					"overflow-hidden rounded-lg bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring has-focus-visible:ring-inset",
 				track: "absolute inset-0 h-full rounded-none bg-transparent",
 				range:
 					"rounded-none rounded-l-lg bg-foreground/15 after:absolute after:inset-y-0 after:left-full after:w-1.5 after:rounded-r-lg after:bg-inherit",

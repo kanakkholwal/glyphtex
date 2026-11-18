@@ -19,7 +19,7 @@ export const button = tv({
 			default: "bg-primary text-primary-foreground hover:bg-(--primary-hover)",
 			default_soft: "border-primary/10 bg-primary/8 text-primary hover:bg-primary/15",
 			secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-			outline: "border-input bg-background hover:bg-accent hover:text-accent-foreground",
+			outline: "border-border bg-background hover:bg-accent hover:text-accent-foreground",
 			ghost: "hover:bg-accent hover:text-accent-foreground",
 			link: "text-primary underline-offset-4 hover:underline active:scale-100",
 			destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",

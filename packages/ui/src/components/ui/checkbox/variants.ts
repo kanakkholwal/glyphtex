@@ -28,7 +28,7 @@ export const checkbox = tv({
 			default: {},
 			circle: {},
 			card: {
-				root: "relative w-full rounded-xl border border-border bg-card px-3.5 py-3 transition-[border-color,scale] duration-(--duration-press) ease-(--ease-ui-out) active:scale-(--press-scale-lg) motion-reduce:transition-none hover:border-border-strong has-data-[state=checked]:border-primary",
+				root: "relative w-full rounded-xl border border-transparent bg-card px-3.5 py-3 transition-[border-color,scale] duration-(--duration-press) ease-(--ease-ui-out) active:scale-(--press-scale-lg) motion-reduce:transition-none hover:border-border-strong has-data-[state=checked]:border-primary",
 				label: "after:absolute after:inset-0 after:rounded-[inherit]"
 			}
 		},

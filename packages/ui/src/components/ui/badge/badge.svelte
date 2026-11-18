@@ -28,6 +28,6 @@
 	class={cn(badge({ variant, size }), classProp)}
 	{...rest}
 >
-	{#if dot}<span class="size-1.5 shrink-0 rounded-full bg-current"></span>{/if}
+	{#if dot}<span data-slot="badge-dot" class="shrink-0 rounded-full bg-current"></span>{/if}
 	{@render children?.()}
 </span>
