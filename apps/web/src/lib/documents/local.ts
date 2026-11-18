@@ -53,9 +53,9 @@ export const localStore: DocumentStore = {
 		await cloudSession.ensure();
 		const found0 = await getProject(id);
 		const linked = found0 && linkOf(found0);
-		// Pull before opening, in both sync modes, so a shared project shows the latest edits.
-		// Offline or a server error still opens the browser copy.
-		if (linked) await sync.run(id).catch(() => {});
+		// Decision (product): sync only runs when the user turned automatic on or pressed Sync; manual
+		// never talks to the server on open. Offline or a server error still opens the browser copy.
+		if (linked && sync.automatic) await sync.run(id).catch(() => {});
 		const [found, files] = await Promise.all([getProject(id), readFiles(id)]);
 		if (!found) return undefined;
 		return {
