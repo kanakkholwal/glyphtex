@@ -37,6 +37,7 @@
 	import { ToggleGroup, ToggleGroupItem } from "@glyphtex/ui/toggle-group";
 	import PasswordSettings from "./PasswordSettings.svelte";
 	import SettingsSection from "./SettingsSection.svelte";
+	import PasskeySettings from "./PasskeySettings.svelte";
 	import TwoFactorSettings from "./TwoFactorSettings.svelte";
 
 	let exporting = $state(false);
@@ -160,6 +161,7 @@
 			</div>
 		</SettingsSection>
 
+		<PasskeySettings />
 		<TwoFactorSettings />
 
 		<SettingsSection title="Your data" description="Take everything with you at any time.">

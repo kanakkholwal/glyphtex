@@ -1,3 +1,4 @@
+import { passkey } from "@better-auth/passkey";
 import { scim } from "@better-auth/scim";
 import { sso } from "@better-auth/sso";
 import { betterAuth } from "better-auth";
@@ -129,6 +130,12 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 				? [genericOAuth({ config: [orcidProvider({ ...orcid, sandbox: orcidSandbox })] })]
 				: []),
 			twoFactor({ issuer: "GlyphTeX" }),
+			// rpID is the web origin's host so one passkey works on the site and every subdomain.
+			passkey({
+				rpID: new URL(config.appUrl).hostname,
+				rpName: "GlyphTeX",
+				origin: config.webOrigins
+			}),
 			sso({
 				domainVerification: { enabled: true },
 				providersLimit: 5,

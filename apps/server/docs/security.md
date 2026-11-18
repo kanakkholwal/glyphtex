@@ -19,6 +19,7 @@ reviewer at an organization evaluating a self-hosted deployment.
 - Single sign-on per organization over OpenID Connect (SAML is available through the API).
   A provider can only be registered by an organization owner or admin and only signs in users after
   its email domain is proven with a DNS TXT record.
+- Passkeys (WebAuthn): users can register a fingerprint, face or security key and sign in with it.
 - Two-factor (TOTP with backup codes). An organization can require it; members signing in through the
   organization's own SSO meet the requirement at their identity provider.
 - Sessions are HTTP-only cookies. Auth endpoints are rate limited per client address.

@@ -1,3 +1,4 @@
+import { passkeyClient } from "@better-auth/passkey/client";
 import { ssoClient } from "@better-auth/sso/client";
 import { createAuthClient } from "better-auth/client";
 import { magicLinkClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
@@ -9,6 +10,7 @@ export const authClient = createAuthClient({
 	fetchOptions: { credentials: "include" },
 	plugins: [
 		magicLinkClient(),
+		passkeyClient(),
 		organizationClient(),
 		twoFactorClient(),
 		ssoClient({ domainVerification: { enabled: true } })

@@ -9,6 +9,7 @@
 		IconBrandGitlab,
 		IconBrandGoogle,
 		IconBuilding,
+		IconFingerprint,
 		IconId,
 		IconLoader2,
 		IconMail
@@ -161,6 +162,14 @@
 				authClient.requestPasswordReset({ email, redirectTo: appUrl("/workspace/sign-in/reset") })
 			);
 			sent = `If ${email} has an account, a reset link is on its way.`;
+		});
+	}
+
+	function passkeySignIn() {
+		void run(async () => {
+			await unwrap(authClient.signIn.passkey());
+			await cloudSession.refresh();
+			onsignedin();
 		});
 	}
 
@@ -346,6 +355,11 @@
 						</div>
 						<Button type="button" variant="outline" disabled={busy} onclick={() => setMode("magic")}>
 							<IconMail /> Email me a sign-in link
+						</Button>
+					{/if}
+					{#if mode === "signin"}
+						<Button type="button" variant="outline" disabled={busy} onclick={passkeySignIn}>
+							<IconFingerprint /> Sign in with a passkey
 						</Button>
 					{/if}
 				</form>
