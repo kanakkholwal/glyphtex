@@ -36,7 +36,7 @@
 		"build": "tsc -p tsconfig.json",
 		"check": "tsc -p tsconfig.json --noEmit",
 		"pretest": "tsc -p tsconfig.json",
-		"test": "node --test test/*.test.mjs",
+		"test": "node scripts/test.mjs",
 		"prepublishOnly": "pnpm build"
 	},
 	"dependencies": {
