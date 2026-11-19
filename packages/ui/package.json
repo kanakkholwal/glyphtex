@@ -178,6 +178,10 @@
 			"svelte": "./src/components/ui/panel-section/index.ts",
 			"default": "./src/components/ui/panel-section/index.ts"
 		},
+		"./navigation-menu": {
+			"svelte": "./src/components/ui/navigation-menu/index.ts",
+			"default": "./src/components/ui/navigation-menu/index.ts"
+		},
 		"./popover": {
 			"svelte": "./src/components/ui/popover/index.ts",
 			"default": "./src/components/ui/popover/index.ts"
@@ -285,12 +289,13 @@
 		"@fontsource-variable/geist-mono": "^5.2.8",
 		"@fontsource-variable/geist-pixel": "^5.3.1",
 		"@fontsource-variable/jetbrains-mono": "^5.2.8",
+		"@fontsource-variable/rethink-sans": "^5.3.0",
 		"@lezer/highlight": "^1.2.3",
 		"@tabler/icons-svelte": "^3.44.0",
 		"@unified-latex/unified-latex-types": "^1.8.4",
 		"@unified-latex/unified-latex-util-parse": "^1.8.4",
 		"@unpic/svelte": "^1.0.1",
-		"bits-ui": "^2.19.5",
+		"bits-ui": "^2.21.0",
 		"clsx": "^2.1.1",
 		"lib0": "^0.2.120",
 		"mode-watcher": "^1.1.0",

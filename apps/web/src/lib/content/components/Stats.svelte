@@ -28,7 +28,7 @@
 		{#each parsed as stat (stat.label)}
 			<div class="flex flex-col border-t border-dashed border-border py-4">
 				<dt class="order-2 mt-1 text-sm text-muted-foreground">{stat.label}</dt>
-				<dd class="pixel order-1 text-2xl text-foreground tabular-nums">{stat.value}</dd>
+				<dd class="display order-1 text-3xl text-foreground tabular-nums">{stat.value}</dd>
 			</div>
 		{/each}
 	</dl>

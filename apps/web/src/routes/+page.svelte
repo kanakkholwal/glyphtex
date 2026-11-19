@@ -1,40 +1,28 @@
 <script lang="ts">
 	import { resolve } from "$app/paths";
 	import { track, trackOnce, viewSection } from "$lib/analytics";
+	import Block from "$lib/landing/Block.svelte";
+	import DotArt from "$lib/landing/DotArt.svelte";
+	import DotField from "$lib/landing/DotField.svelte";
+	import { art } from "$lib/landing/art";
 	import ImportDropzone from "$lib/landing/ImportDropzone.svelte";
+	import TemplateCard from "$lib/landing/TemplateCard.svelte";
 	import LiveEditor from "$lib/landing/LiveEditor.svelte";
 	import { CONTACT_EMAIL, REPO_URL } from "$lib/landing/nav-data";
 	import { faqLd, organisationLd, serialise, softwareLd, websiteLd } from "$lib/seo/jsonld";
 	import Seo from "$lib/seo/Seo.svelte";
-	import { FaqList, RailFrame, Section, Well } from "$lib/site";
+	import { FaqList, RailFrame, Well } from "$lib/site";
 	import { Button } from "@glyphtex/ui/button";
 	import {
-		IconAlertTriangle,
 		IconArrowRight,
+		IconArrowUpRight,
 		IconBrandGithub,
-		IconFileZip,
-		IconGitBranch,
-		IconLock,
-		IconMail,
-		IconWifiOff
+		IconCheck,
+		IconMail
 	} from "@tabler/icons-svelte";
+	import { Image } from "@glyphtex/ui/image";
 
 	let { data } = $props();
-
-	const cloudPoints = [
-		{
-			title: "Write together",
-			body: "Live co-editing with cursors, comments and suggested edits, on any server that has it switched on."
-		},
-		{
-			title: "History and Git",
-			body: "Named versions with restore, and sync with GitHub, GitLab or Bitbucket from a cloud project."
-		},
-		{
-			title: "Self-host it",
-			body: "Run the server on Cloudflare or Docker with organisations, SSO and SCIM, and keep every project in-house."
-		}
-	];
 
 	const faqs = [
 		{
@@ -63,41 +51,55 @@
 		}
 	];
 
-	const reasons: { icon: typeof IconLock; title: string; body: string }[] = [
+	const benefits = [
 		{
-			icon: IconLock,
-			title: "Your drafts stay yours",
-			body: "Projects live in your browser on your own device. Nothing is uploaded or stored by us."
+			title: "Drafts stay on your device",
+			body: "Projects live in your browser. We never receive a word of them."
 		},
 		{
-			icon: IconWifiOff,
-			title: "Compiles with the network off",
-			body: "Download the engine once, then write and build on a plane or a train."
+			title: "Builds without a connection",
+			body: "Download the engine once, then compile on a plane, a train or campus wifi that never works."
 		},
 		{
-			icon: IconGitBranch,
-			title: "Open a Git repository",
-			body: "Clone a repository from GitHub, GitLab or another Git host into a new project, from the browser."
+			title: "Clone from GitHub or GitLab",
+			body: "Paste a repository URL and it opens as a project, right in the browser."
 		},
 		{
-			icon: IconAlertTriangle,
-			title: "Errors point at the line",
-			body: "The log is read for you, so each problem links to the file and line that caused it."
-		},
-		{
-			icon: IconFileZip,
-			title: "Bring your Overleaf project",
-			body: "Drop the exported .zip and keep writing. The source stays plain .tex and .bib."
-		},
-		{
-			icon: IconBrandGithub,
-			title: "Built in the open",
-			body: "GPLv3. Read the code, report a bug, send a fix."
+			title: "Files you can take anywhere",
+			body: "A project is a folder of .tex, .bib and images. Any TeX install can build it."
 		}
 	];
 
-	// Floors to a round number so the "+" is true; the exact count moves as data is added.
-	const floorTo = (n: number, step: number) => Math.floor(n / step) * step;
+	const audiences = [
+		{
+			who: "Students and researchers",
+			line: "Write a thesis or paper without signing up for anything. Start blank, from a template, or from your Overleaf export.",
+			art: art.page,
+			href: "/workspace",
+			cta: "Open the editor"
+		},
+		{
+			who: "Labs and co-authors",
+			line: "Edit together with live cursors, leave comments, suggest changes and keep named versions. Sync with GitHub or GitLab when you want to.",
+			art: art.people,
+			href: "/compare/overleaf",
+			cta: "Compare with Overleaf"
+		},
+		{
+			who: "Departments and universities",
+			line: "Run the optional server on your own infrastructure with SAML or OIDC single sign-on, SCIM provisioning, sharing policy and an audit log, so student work stays on campus.",
+			art: art.campus,
+			href: "/for/universities",
+			cta: "See the admin controls"
+		}
+	];
+
+	const switching = [
+		"Export your project from Overleaf and drop the .zip here. It compiles in the tab.",
+		"Your source stays plain .tex and .bib, so leaving is as easy as arriving.",
+		"Comments, version history and Git come along once you add a server."
+	];
+
 	const institutionMailto = `${CONTACT_EMAIL}?subject=${encodeURIComponent("GlyphTeX for our department")}`;
 	const resolveAny = resolve as (route: string) => string;
 </script>
@@ -114,40 +116,43 @@
 	]}
 />
 
-{#snippet stat(value: string, label: string)}
-	<div class="flex items-baseline gap-1.5">
-		<dd class="text-foreground tabular-nums">{value}</dd>
-		<dt>{label}</dt>
-	</div>
-{/snippet}
-
 <RailFrame>
 	<section
 		id="top"
 		aria-labelledby="hero-title"
-		class="px-5 pt-14 pb-12 sm:px-6 lg:px-10 lg:pt-20"
+		class="relative flex flex-col items-center overflow-hidden px-5 pt-16 pb-14 text-center sm:px-6 lg:px-10 lg:pt-24"
 		{@attach viewSection('hero')}
 	>
-		<p class="rise font-mono text-xs text-muted-foreground">Free and open source · GPLv3</p>
+		<DotField seed={7} cols={16} rows={26} class="absolute top-6 left-0 hidden w-44 xl:block" />
+		<DotField seed={21} cols={16} rows={26} flip class="absolute top-32 right-0 hidden w-44 xl:block" />
+		<a
+			href={resolve('/compare/overleaf')}
+			class="rise relative inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-(--duration-fast) hover:text-foreground"
+			onclick={() => track('cta_clicked', { target: 'compare', location: 'hero_badge' })}
+		>
+			Live co-editing, comments and Git sync are here
+			<IconArrowRight class="size-3.5" aria-hidden="true" />
+		</a>
 		<h1
 			id="hero-title"
-			class="rise pixel mt-4 max-w-3xl text-4xl text-balance text-foreground sm:text-6xl"
+			class="rise display relative mt-5 max-w-3xl text-5xl text-foreground sm:text-6xl"
 			style:--i={1}
 		>
-			Write LaTeX on your machine.
+			Write LaTeX <span class="text-accent-ink">on your machine.</span>
 		</h1>
 		<p
-			class="rise mt-5 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg"
+			class="rise relative mt-6 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg"
 			style:--i={2}
 		>
-			An open source alternative to Overleaf that compiles in this tab. Projects stay on your
-			device and work offline. Add live co-editing, Git and SSO on a server you control.
+			Your document compiles right in the tab: offline if you like, no account, no upload. Bring
+			your Overleaf project and carry on.
 		</p>
-		<div class="rise mt-8 flex flex-wrap items-center gap-2" style:--i={3}>
+		<div class="rise relative mt-8 flex flex-wrap items-center justify-center gap-2" style:--i={3}>
 			<Button
 				href={resolve('/workspace')}
-				variant="default"
+				variant="dark"
 				size="lg"
+				class="rounded-full px-5"
 				onclick={() => track('cta_clicked', { target: 'workspace', location: 'hero' })}
 			>
 				Open the editor
@@ -157,131 +162,154 @@
 				href={resolve('/templates')}
 				variant="outline"
 				size="lg"
+				class="rounded-full px-5"
 				onclick={() => track('cta_clicked', { target: 'templates', location: 'hero' })}
 			>
 				Start from a template
 			</Button>
-			<Button
-				href={resolve('/compare/overleaf')}
-				variant="ghost"
-				size="lg"
-				onclick={() => track('cta_clicked', { target: 'compare', location: 'hero' })}
-			>
-				GlyphTeX vs Overleaf
-			</Button>
 		</div>
-		<dl
-			class="rise mt-8 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-muted-foreground"
-			style:--i={4}
-		>
-			{@render stat(`${floorTo(data.counts.commands, 50)}+`, 'commands documented')}
-			{@render stat(String(data.counts.packages), 'packages completed')}
-			{@render stat(String(data.counts.templates), 'templates')}
-			{@render stat(String(data.counts.guides), 'guides')}
-		</dl>
+		<p class="rise relative mt-4 text-xs text-muted-foreground" style:--i={4}>
+			Free and open source, GPLv3.
+		</p>
 
-		<div id="try" class="rise mt-12 flex scroll-mt-20 flex-col gap-3" style:--i={5}>
+		<div class="rise relative mt-14 w-full max-w-5xl text-left" style:--i={5}>
+			<Well>
+				<Image
+					src="/img/product-editor.png"
+					alt="The GlyphTeX editor with an IEEE paper's LaTeX source on the left and the compiled PDF on the right"
+					width={1440}
+					height={900}
+					layout="fullWidth"
+					priority
+					class="block h-auto w-full"
+				/>
+			</Well>
+		</div>
+	</section>
+
+	<Block
+		id="import"
+		title="Drop in"
+		accent="what you have."
+		description="An Overleaf export, a folder or a few .tex files. It compiles in your tab, and nothing gets uploaded."
+		section="import"
+	>
+		<ImportDropzone />
+	</Block>
+
+	<Block
+		id="why"
+		title="Your computer"
+		accent="does the work."
+		description="The compiler runs in your browser, so builds never queue behind anyone and your drafts never leave your machine."
+		section="features"
+	>
+		<div id="try" class="mx-auto max-w-5xl scroll-mt-24">
 			<Well>
 				<LiveEditor />
 				{#snippet footer()}
 					<p class="text-xs text-muted-foreground">
-						Not a screenshot: the workspace editor, completing {data.counts.packages} packages.
+						Try it: this is the workspace editor, completing {data.counts.packages} packages.
 					</p>
 				{/snippet}
 			</Well>
-			<ImportDropzone />
 		</div>
-	</section>
+		<dl class="mx-auto mt-14 grid max-w-5xl gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+			{#each benefits as b (b.title)}
+				<div class="border-t border-border pt-5">
+					<dt class="text-base font-medium text-foreground">{b.title}</dt>
+					<dd class="mt-2 text-sm text-pretty text-muted-foreground">{b.body}</dd>
+				</div>
+			{/each}
+		</dl>
+	</Block>
 
-	<Section
-		id="why"
-		number={1}
-		title="why local."
-		description="What changes when the compiler runs on your computer instead of a server."
-		section="features"
+	<Block
+		id="audiences"
+		title="Alone, with co-authors,"
+		accent="or across a campus."
+		description="Start solo. Add co-authors and admin controls when you need them."
+		section="audiences"
 	>
-		<ul class="grid gap-x-10 sm:grid-cols-2">
-			{#each reasons as r (r.title)}
-				<li class="flex gap-4 border-t border-dashed border-border py-5">
-					<span
-						class="grid size-9 shrink-0 place-items-center rounded-lg bg-card text-muted-foreground"
-						aria-hidden="true"
-					>
-						<r.icon class="size-4.5" />
-					</span>
-					<div class="min-w-0">
-						<h3 class="text-sm font-medium text-foreground">{r.title}</h3>
-						<p class="mt-1 text-sm text-pretty text-muted-foreground">{r.body}</p>
-					</div>
+		<ul class="grid gap-3 lg:grid-cols-3">
+			{#each audiences as a (a.who)}
+				<li class="min-w-0">
+					<Well class="h-full" bodyClass="flex h-full flex-col p-6">
+						<DotArt rows={[...a.art]} class="mb-6 h-24 w-auto self-start" />
+						<h3 class="text-xl font-medium text-foreground">{a.who}</h3>
+						<p class="mt-3 text-sm text-pretty text-muted-foreground">{a.line}</p>
+						<div class="mt-auto pt-8">
+							<Button
+								href={resolveAny(a.href)}
+								variant="outline"
+								size="sm"
+								class="rounded-full text-accent-ink"
+								onclick={() => track('cta_clicked', { target: a.href, location: 'audiences' })}
+							>
+								{a.cta}
+								<IconArrowUpRight />
+							</Button>
+						</div>
+					</Well>
 				</li>
 			{/each}
 		</ul>
-	</Section>
+	</Block>
 
-	<Section
-		id="cloud"
-		number={2}
-		title="teams, when you want them."
-		eyebrow="collaboration · self-hostable"
-		description="Local stays the default. Add an account only to share, write together or sync across devices. It is free at this stage."
-		section="cloud"
-	>
-		{#snippet action()}
-			<Button href={resolve('/developers/self-hosting')} variant="outline" size="sm">
-				Self-hosting guide
-				<IconArrowRight />
-			</Button>
-		{/snippet}
-		<ul class="grid gap-x-10 sm:grid-cols-3">
-			{#each cloudPoints as c (c.title)}
-				<li class="border-t border-dashed border-border py-5">
-					<h3 class="text-sm font-medium text-foreground">{c.title}</h3>
-					<p class="mt-1 text-sm text-pretty text-muted-foreground">{c.body}</p>
-				</li>
-			{/each}
-		</ul>
-	</Section>
-
-	<Section
+	<Block
 		id="templates"
-		number={3}
-		title="templates."
-		description={`${data.counts.templates} starter documents that compile as they are. Pick one and the project opens with it.`}
+		title="Start from"
+		accent="a template."
+		description={`${data.counts.templates} starting points, from IEEE papers to CVs. Each one compiles before you change a word.`}
 		section="templates"
 	>
 		{#snippet action()}
-			<Button href={resolve('/templates')} variant="outline" size="sm">
+			<Button href={resolve('/templates')} variant="dark" class="rounded-full px-5">
 				Browse all
 				<IconArrowRight />
 			</Button>
 		{/snippet}
-		<ul class="group/list grid gap-x-10 sm:grid-cols-2">
-			{#each data.templateCategories as c (c.id)}
-				<li>
-					<a
-						href={resolveAny(`/templates#${c.id}`)}
-						class="flex items-center justify-between gap-4 border-t border-dashed border-border py-3 text-sm transition-opacity duration-(--duration-fast) group-hover/list:opacity-50 hover:opacity-100! focus-visible:opacity-100!"
-					>
-						<span class="font-medium text-foreground">{c.label}</span>
-						<span class="font-mono text-xs text-muted-foreground tabular-nums">{c.count}</span>
-					</a>
+		<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			{#each data.featured as t (t.id)}
+				<li class="min-w-0">
+					<TemplateCard template={t} location="home" />
 				</li>
 			{/each}
 		</ul>
-	</Section>
+	</Block>
 
-	<Section
-		id="faq"
-		number={4}
-		title="questions."
-		description="What people check before moving a thesis across."
-		section="faq"
-	>
+	<Block id="switch" title="Coming from" accent="Overleaf?" section="switch">
+		<Well bodyClass="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+			<ul class="flex flex-col gap-3">
+				{#each switching as s (s)}
+					<li class="flex gap-3 text-base text-foreground">
+						<IconCheck class="mt-1 size-4 shrink-0 text-accent-ink" aria-hidden="true" />
+						{s}
+					</li>
+				{/each}
+			</ul>
+			<div class="flex flex-wrap gap-2">
+				<Button
+					href={resolve('/compare/overleaf')}
+					variant="dark"
+					size="lg"
+					class="rounded-full px-5"
+					onclick={() => track('cta_clicked', { target: 'compare', location: 'switch' })}
+				>
+					Compare side by side
+					<IconArrowRight />
+				</Button>
+			</div>
+		</Well>
+	</Block>
+
+	<Block id="faq" title="What people ask" accent="before they move." section="faq">
 		{#snippet action()}
 			<Button
 				href={resolve('/errors')}
 				variant="ghost"
 				size="sm"
+				class="rounded-full"
 				onclick={() => track('cta_clicked', { target: 'errors', location: 'faq' })}
 			>
 				Fix a LaTeX error
@@ -292,20 +320,22 @@
 			items={faqs}
 			onopen={(i) => trackOnce(`faq:${i}`, 'faq_expanded', { question: i + 1 })}
 		/>
-	</Section>
+	</Block>
 
-	<Section id="start" title="start writing." section="final_cta">
-		<Well bodyClass="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+	<section id="start" aria-label="Start writing" class="px-5 pb-20 sm:px-6 lg:px-10" {@attach viewSection('final_cta')}>
+		<Well bodyClass="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
 			<div>
-				<p class="text-lg font-medium text-foreground">Your next paper, written locally.</p>
-				<p class="mt-1 text-sm text-muted-foreground">
-					Free for you and free for the lab. No account either way.
+				<p class="display text-3xl text-foreground sm:text-4xl">Start your next paper here.</p>
+				<p class="mt-3 max-w-md text-sm text-muted-foreground">
+					Free for you, free for your lab.
 				</p>
 			</div>
 			<div class="flex flex-wrap gap-2">
 				<Button
 					href={resolve('/workspace')}
 					variant="dark"
+					size="lg"
+					class="rounded-full px-5"
 					onclick={() => track('cta_clicked', { target: 'workspace', location: 'final_cta' })}
 				>
 					Open the editor
@@ -313,6 +343,8 @@
 				<Button
 					href={institutionMailto}
 					variant="outline"
+					size="lg"
+					class="rounded-full px-5"
 					onclick={() => track('cta_clicked', { target: 'institution', location: 'final_cta' })}
 				>
 					<IconMail />
@@ -323,6 +355,8 @@
 					target="_blank"
 					rel="noopener noreferrer"
 					variant="ghost"
+					size="lg"
+					class="rounded-full"
 					onclick={() => track('outbound_clicked', { destination: 'github', location: 'final_cta' })}
 				>
 					<IconBrandGithub />
@@ -330,5 +364,5 @@
 				</Button>
 			</div>
 		</Well>
-	</Section>
+	</section>
 </RailFrame>

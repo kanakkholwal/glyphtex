@@ -132,7 +132,7 @@
 
 	const link =
 		"rounded-sm font-medium text-primary underline underline-offset-4 outline-none hover:decoration-2 focus-visible:ring-2 focus-visible:ring-ring";
-	const h2 = "pixel scroll-mt-20 text-2xl text-foreground";
+	const h2 = "display scroll-mt-20 text-3xl text-foreground";
 	const code = "rounded-sm bg-muted px-1 font-mono text-sm text-foreground";
 </script>
 

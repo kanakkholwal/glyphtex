@@ -55,7 +55,10 @@
 		},
 		{
 			feature: "Organisation controls",
-			glyph: { mark: "yes", text: "Organisations, roles, SSO and SCIM on your own server" },
+			glyph: {
+				mark: "yes",
+				text: "SAML and OIDC single sign-on, SCIM, roles, sharing policy and an audit log with CSV export, on a server you run"
+			},
 			overleaf: { mark: "yes", text: "Institutional plans" }
 		},
 		{

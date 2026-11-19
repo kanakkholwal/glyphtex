@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { cn } from "@glyphtex/ui/utils";
-	import Eyebrow from "./Eyebrow.svelte";
 	import type { IconCheck } from "@tabler/icons-svelte";
 	import type { Snippet } from "svelte";
 
@@ -13,7 +12,7 @@
 		aside,
 		class: className
 	}: {
-		/** Mono eyebrow above the title. */
+		/** Accepted for older call sites; no longer rendered. */
 		badge?: string;
 		/** Accepted for older call sites; the eyebrow has no glyph. */
 		badgeIcon?: typeof IconCheck;
@@ -29,17 +28,14 @@
 
 <div
 	class={cn(
-		'grid grid-cols-1 gap-10 pt-4 pb-2 sm:pt-8 sm:pb-4',
+		'grid grid-cols-1 gap-10 pt-8 pb-4 sm:pt-16 sm:pb-8',
 		aside && 'lg:grid-cols-2 lg:items-center',
 		className
 	)}
 >
 	<div class="flex flex-col">
-		{#if badge}
-			<Eyebrow label={badge} class="rise mb-4" />
-		{/if}
-		<h1 class="rise pixel text-4xl text-balance text-foreground sm:text-5xl" style:--i={1}>
-			{title}{#if accent}{' '}<span class="text-muted-foreground">{accent}</span>{/if}
+		<h1 class="rise display text-4xl text-foreground sm:text-6xl" style:--i={1}>
+			{title}{#if accent}{' '}<span class="text-accent-ink">{accent}</span>{/if}
 		</h1>
 		{#if lede}
 			<p

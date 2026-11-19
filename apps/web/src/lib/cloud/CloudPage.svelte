@@ -2,13 +2,13 @@
 	import { resolve } from "$app/paths";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
-	import { Eyebrow } from "$lib/site";
+	import DotField from "$lib/landing/DotField.svelte";
 	import { IconBook, IconHome } from "@tabler/icons-svelte";
 	import type { Snippet } from "svelte";
 
 	interface Props {
 		title: string;
-		/** Brace label above the title, e.g. `{account}`. */
+		/** Accepted for older call sites; no longer rendered. */
 		eyebrow?: string;
 		description?: string;
 		children: Snippet;
@@ -16,7 +16,7 @@
 		footer?: Snippet;
 	}
 
-	let { title, eyebrow, description, children, footer }: Props = $props();
+	let { title, description, children, footer }: Props = $props();
 </script>
 
 <svelte:head>
@@ -24,15 +24,19 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<main id="main" class="bg-canvas flex min-h-dvh flex-col items-center px-4 py-10 sm:py-16">
-	<div class="flex w-full max-w-lg flex-col gap-6">
+<main
+	id="main"
+	class="font-public bg-canvas relative flex min-h-dvh flex-col items-center overflow-hidden px-4 py-10 sm:py-16"
+>
+	<DotField seed={11} cols={16} rows={26} class="absolute top-10 left-0 hidden w-44 xl:block" />
+	<DotField seed={29} cols={16} rows={26} flip class="absolute right-0 bottom-10 hidden w-44 xl:block" />
+	<div class="relative flex w-full max-w-lg flex-col gap-6">
 		<a href={resolve('/workspace')} class="self-start" aria-label="GlyphTeX projects">
 			<Logo size={20} badge class="text-sm font-semibold" />
 		</a>
 		<header class="flex flex-col gap-1">
-			{#if eyebrow}<Eyebrow label={eyebrow} />{/if}
-			<h1 class="pixel text-foreground text-2xl md:text-4xl">{title}</h1>
-			{#if description}<p class="text-muted-foreground text-sm">{description}</p>{/if}
+			<h1 class="display text-foreground text-4xl">{title}</h1>
+			{#if description}<p class="text-muted-foreground text-base">{description}</p>{/if}
 		</header>
 		<div class="bg-muted rounded-2xl p-1">
 			<div class="border-border bg-background flex flex-col gap-5 rounded-xl border p-6 shadow-(--surface-shadow)">

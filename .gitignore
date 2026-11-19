@@ -2,6 +2,7 @@
 node_modules/
 .pnpm-store/
 .notes/
+.local/
 # Build output
 .svelte-kit/
 build/

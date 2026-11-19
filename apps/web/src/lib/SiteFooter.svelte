@@ -2,6 +2,7 @@
 	import { resolve } from "$app/paths";
 	import { track } from "$lib/analytics";
 	import { footerCols, footerSocials } from "$lib/landing/nav-data";
+	import RollText from "$lib/site/RollText.svelte";
 	import { Button } from "@glyphtex/ui/button";
 	import { Logo } from "@glyphtex/ui/logo";
 	import { IconBrandGithub, IconWorld, IconMail } from "@tabler/icons-svelte";
@@ -21,9 +22,9 @@
 	}
 </script>
 
-<footer class="border-t border-dashed border-border px-5 py-12 sm:px-6 lg:px-10">
-	<div class="grid gap-10 md:grid-cols-6">
-		<div class="flex flex-col items-start gap-4 md:col-span-2">
+<footer class="border-t border-border px-5 py-14 sm:px-6 lg:px-10">
+	<div class="grid gap-12 lg:grid-cols-[3fr_9fr]">
+		<div class="flex flex-col items-start gap-4">
 			<a
 				href={home}
 				class="flex w-fit items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -32,8 +33,8 @@
 				<Logo size={24} badge class="text-base" />
 			</a>
 			<p class="max-w-xs text-sm text-pretty text-muted-foreground">
-				A LaTeX editor that compiles on your machine. Plain .tex projects that open in any LaTeX
-				tool, no account.
+				A free, open source LaTeX editor that compiles in your browser. Your projects are plain .tex
+				files that open in any LaTeX tool.
 			</p>
 			<div class="-ml-2 flex gap-0.5">
 				{#each footerSocials as social (social.label)}
@@ -58,10 +59,10 @@
 			</div>
 		</div>
 
-		<div class="grid grid-cols-2 gap-8 sm:grid-cols-4 md:col-span-4">
+		<div class="grid grid-cols-2 gap-8 sm:grid-cols-3 xl:grid-cols-5">
 			{#each footerCols as col (col.title)}
 				<nav class="flex flex-col gap-2" aria-label={col.title}>
-					<h2 class="font-mono text-xs text-muted-foreground">{col.title.toLowerCase()}</h2>
+					<h2 class="text-sm font-medium text-foreground">{col.title}</h2>
 					<ul class="flex flex-col">
 						{#each col.links as link (link.label)}
 							<li>
@@ -75,9 +76,9 @@
 											destination: link.label.toLowerCase(),
 											location: 'footer'
 										})}
-									class="inline-flex min-h-8 items-center rounded-sm text-sm text-foreground outline-none transition-colors duration-(--duration-fast) hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+									class="group/roll inline-flex min-h-8 items-center rounded-sm text-sm text-muted-foreground outline-none transition-colors duration-(--duration-fast) hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
 								>
-									{link.label}
+										<RollText text={link.label} />
 								</a>
 							</li>
 						{/each}
@@ -88,7 +89,7 @@
 	</div>
 
 	<div
-		class="mt-10 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-dashed border-border pt-5 font-mono text-xs text-muted-foreground"
+		class="mt-10 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-border pt-5 text-xs text-muted-foreground"
 	>
 		<p>© {year} GlyphTeX · GPLv3</p>
 		<p>Compiles on your device. Accounts are optional.</p>

@@ -82,7 +82,7 @@
 					{#if dateLabel}<span aria-hidden="true">·</span><time datetime={data.meta.date}>{dateLabel}</time>{/if}
 					<span aria-hidden="true">·</span><span>{data.readingMinutes} min read</span>
 				</p>
-				<h1 class="pixel mt-4 text-4xl text-balance text-foreground">{data.meta.title}</h1>
+				<h1 class="display mt-4 text-4xl sm:text-5xl text-balance text-foreground">{data.meta.title}</h1>
 				<p class="mt-4 text-base text-pretty text-muted-foreground sm:text-lg">
 					{data.meta.description}
 				</p>

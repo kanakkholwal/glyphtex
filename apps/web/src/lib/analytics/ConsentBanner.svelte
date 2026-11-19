@@ -28,7 +28,7 @@
 		class="border-border bg-background fixed bottom-4 left-4 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 rounded-xl border p-4 shadow-(--surface-shadow)"
 		in:fly={{ y: prefersReducedMotion.current ? 0 : 12, duration: 180 }}
 	>
-		<p class="pixel text-accent-ink text-sm lowercase"><span aria-hidden="true">{"{"}</span>analytics<span aria-hidden="true">{"}"}</span></p>
+		<p class="text-sm font-medium text-foreground">Analytics</p>
 		<p class="text-muted-foreground text-sm text-pretty">
 			Allow anonymous usage analytics (Google Analytics)? Nothing is sent unless you say yes, and your
 			documents are never included.

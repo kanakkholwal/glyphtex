@@ -182,7 +182,7 @@
 						{#each stats as stat (stat.label)}
 							<div class="flex flex-col gap-1">
 								<dt class="order-2 text-xs text-muted-foreground">{stat.label}</dt>
-								<dd class="pixel order-1 text-2xl text-foreground tabular-nums">{stat.value}</dd>
+								<dd class="display order-1 text-3xl text-foreground tabular-nums">{stat.value}</dd>
 							</div>
 						{/each}
 					</dl>

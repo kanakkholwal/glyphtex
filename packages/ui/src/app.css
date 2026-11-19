@@ -1,5 +1,6 @@
 @import "@fontsource-variable/geist/index.css";
 @import "@fontsource-variable/geist-pixel/index.css";
+@import "@fontsource-variable/rethink-sans/index.css";
 @import "@fontsource-variable/jetbrains-mono/index.css";
 /* Only for the "Geist Mono" editor font setting; UI mono is JetBrains Mono. */
 @import "@fontsource-variable/geist-mono/index.css";
@@ -60,6 +61,9 @@
 	--font-body: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 	--font-heading: var(--font-body);
 	--font-pixel: "Geist Pixel Variable", "Geist Variable", ui-sans-serif, sans-serif;
+	/* The public site (landing, docs, blog) sets its own face; the workspace keeps Geist. */
+	--font-public: "Rethink Sans Variable", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+	--duration-roll: 450ms;
 	--font-mono:
 		"JetBrains Mono Variable", ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
 
@@ -317,6 +321,24 @@
 	transition: --elsh var(--duration-slow) var(--ease-out);
 }
 
+@utility font-public {
+	font-family: var(--font-public);
+
+	/* Public pages use pill buttons; the workspace keeps the control ladder. */
+	& [data-slot="button"]:not([data-slot="button"][class*="size-"]) {
+		border-radius: 9999px;
+	}
+}
+
+/* Public display type: regular-weight Rethink Sans, tight tracking. Replaces the pixel face on the landing. */
+@utility display {
+	font-family: var(--font-public);
+	font-weight: 400;
+	letter-spacing: -0.035em;
+	line-height: 1.06;
+	text-wrap: balance;
+}
+
 /* Hairline hatching for the side rails of the public shell. */
 @utility hatch {
 	background-image: repeating-linear-gradient(-45deg, var(--border) 0 1px, transparent 1px 7px);
@@ -485,5 +507,70 @@
 	.backdrop-blur-lg,
 	.backdrop-blur-xl {
 		backdrop-filter: none;
+	}
+}
+
+/* baby-ui navigation-menu motion, copied from the registry. The registry.css here predates it, and
+   the newer one leaks dark values into light mode, so the rules live in this layer for now. */
+@keyframes nav-menu-from-start {
+	from {
+		opacity: 0;
+		translate: -13rem 0;
+	}
+}
+@keyframes nav-menu-from-end {
+	from {
+		opacity: 0;
+		translate: 13rem 0;
+	}
+}
+@keyframes nav-menu-to-start {
+	to {
+		opacity: 0;
+		translate: -13rem 0;
+	}
+}
+@keyframes nav-menu-to-end {
+	to {
+		opacity: 0;
+		translate: 13rem 0;
+	}
+}
+@keyframes nav-menu-viewport-in {
+	from {
+		opacity: 0;
+		scale: var(--popover-enter-scale);
+		translate: 0 -4px;
+	}
+}
+@keyframes nav-menu-viewport-out {
+	to {
+		opacity: 0;
+		scale: var(--popover-exit-scale);
+		translate: 0 -4px;
+	}
+}
+.nav-menu-content[data-motion="from-start"] {
+	animation: nav-menu-from-start var(--duration-overlay) var(--ease-ui-out);
+}
+.nav-menu-content[data-motion="from-end"] {
+	animation: nav-menu-from-end var(--duration-overlay) var(--ease-ui-out);
+}
+.nav-menu-content[data-motion="to-start"] {
+	animation: nav-menu-to-start var(--duration-overlay) var(--ease-ui-out) forwards;
+}
+.nav-menu-content[data-motion="to-end"] {
+	animation: nav-menu-to-end var(--duration-overlay) var(--ease-ui-out) forwards;
+}
+.nav-menu-viewport[data-state="open"] {
+	animation: nav-menu-viewport-in var(--duration-dropdown) var(--ease-smooth);
+}
+.nav-menu-viewport[data-state="closed"] {
+	animation: nav-menu-viewport-out var(--duration-exit) var(--ease-smooth) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+	.nav-menu-content,
+	.nav-menu-viewport {
+		animation: none;
 	}
 }

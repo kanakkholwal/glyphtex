@@ -33,7 +33,7 @@
 <div class="flex w-full max-w-2xl flex-col gap-10">
 	<div class="flex flex-col items-start">
 		<p class="rise mb-4 font-mono text-xs text-muted-foreground tabular-nums">Error {status}</p>
-		<h1 class="rise pixel text-4xl text-balance text-foreground sm:text-5xl" style:--i={1}>
+		<h1 class="rise display text-4xl text-foreground sm:text-5xl" style:--i={1}>
 			{#if notFound}
 				This page has <span class="text-muted-foreground">moved on.</span>
 			{:else}

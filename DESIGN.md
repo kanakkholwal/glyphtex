@@ -51,10 +51,18 @@ restore its one-line re-export of `cn` from `./utils`. Add the package export in
 - The workspace keeps 12/13/14 density: `/workspace` sets `data-density="compact"` and `app.css` swaps
   `text-sm` to 13px through `:root:has(...)`, which also reaches portalled menus.
 
+## Landing direction (from 2026-11-20)
+
+Modelled on context.dev's structure, not its brand: an open column with no side rails, a centered hero with pill
+CTAs and a real product screenshot (`static/img/product-editor.png`), left-aligned two-tone section titles
+(`display` utility: Geist 400, -0.035em, tail in `text-accent-ink`) from `Block`, framed `Well` cards with pill tags,
+pill chips for secondary links. Landing only for now; other public pages still use `Section` and the pixel face
+until they are moved over. No invented stats.
+
 ## Layout (public pages)
 
-- `RailFrame`: a 76rem column with dashed side borders, hatched rails from `xl`, a sticky dashed top bar
-  (links, ⌘K search, GitHub, theme, "Open the editor") and the footer. Pages never render these themselves.
+- `RailFrame`: an open 76rem column (no side borders or rails), a sticky top bar (brand, centered links from `lg`,
+  ⌘K search, GitHub, theme, "Open the editor" pill) and the footer. Pages never render these themselves.
 - First row: `RailRow divider={false}` + `PageHero` (mono eyebrow, pixel h1, lede, actions, optional aside).
 - Then `Section` (number, pixel title, description, action, dashed rule) or `SplitSection` (sticky title column).
 - Lists are rows separated by `border-dashed`; link lists dim their siblings on hover. Grouped content sits in

@@ -30,7 +30,7 @@
 	aria-label={label}
 	class={cn(
 		'flex scroll-mt-20 flex-col px-5 py-10 sm:px-6 lg:px-10',
-		divider && 'border-t border-dashed border-border',
+		divider && 'border-t border-border',
 		className
 	)}
 	{@attach section ? viewSection(section) : noop}
