@@ -1,0 +1,62 @@
+name: Uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  WEB_URL: ${{ vars.WEB_DEPLOY_URL || 'https://glyphtex.nexonauts.com' }}
+  API_URL: ${{ vars.SERVER_URL || 'https://glyphtex-api.nexonauts.com' }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check endpoints
+        id: check
+        run: |
+          failed=""
+          probe() {
+            code=$(curl -s -o /dev/null -m 15 -w '%{http_code}' "$2" || true)
+            echo "$1 $2 -> $code"
+            if [ "$code" != "200" ]; then failed="$failed\n- $1: $2 returned $code"; fi
+          }
+          probe "web" "$WEB_URL/"
+          probe "engine" "$WEB_URL/engine/manifest.json"
+          probe "api live" "$API_URL/healthz"
+          probe "api ready" "$API_URL/readyz"
+          probe "api info" "$API_URL/api/public/info"
+          {
+            echo "failed<<EOF"
+            printf "%b\n" "$failed"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the incident issue
+        if: steps.check.outputs.failed != '' && steps.check.outputs.failed != '\n'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FAILED: ${{ steps.check.outputs.failed }}
+        run: |
+          existing=$(gh issue list --label incident --state open --json number -q '.[0].number')
+          body="Checked $(date -u +%Y-%m-%dT%H:%MZ), run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          $FAILED"
+          if [ -z "$existing" ]; then
+            gh issue create --title "Incident: a GlyphTeX endpoint is failing" --label incident --body "$body"
+          else
+            gh issue comment "$existing" --body "$body"
+          fi
+
+      - name: Close the incident when healthy
+        if: steps.check.outputs.failed == '' || steps.check.outputs.failed == '\n'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list --label incident --state open --json number -q '.[].number'); do
+            gh issue close "$n" --comment "All endpoints healthy again at $(date -u +%Y-%m-%dT%H:%MZ)."
+          done
