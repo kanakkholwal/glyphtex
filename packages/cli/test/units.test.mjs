@@ -6,7 +6,7 @@ import { describe, test } from "node:test";
 import { deflateRawSync } from "node:zlib";
 
 import { formatOptions, parseArgs } from "../dist/args.js";
-import { readFromZip } from "../dist/extract.js";
+import { readFromTar, readFromZip } from "../dist/extract.js";
 import { parseTectonicOutput, targetTriple } from "../dist/native.js";
 import { looksLikeRoot, resolveProject, usedPackages, UsageError } from "../dist/project.js";
 import { detectColor, formatBytes, formatDuration, renderBar } from "../dist/ui.js";
@@ -222,5 +222,67 @@ describe("zip reading", () => {
 	test("a missing entry is null and garbage is an error", () => {
 		assert.equal(readFromZip(zip("a.txt", "x", 0), "b.txt"), null);
 		assert.throws(() => readFromZip(new Uint8Array(100), "x"), /not a valid .zip/);
+	});
+});
+
+describe("tar reading", () => {
+	const octal = (n, width) => n.toString(8).padStart(width - 1, "0");
+
+	function header({ name, stored, type, realSize, chunks = [] }) {
+		const h = Buffer.alloc(512);
+		h.write(name, 0);
+		h.write(octal(stored, 12), 124);
+		h.write(type, 156);
+		h.write("ustar ", 257);
+		if (type === "S") {
+			chunks.forEach(([start, length], i) => {
+				h.write(octal(start, 12), 386 + i * 24);
+				h.write(octal(length, 12), 386 + i * 24 + 12);
+			});
+			h.write(octal(realSize, 12), 483);
+		}
+		return h;
+	}
+	const pad = (data) => Buffer.concat([data, Buffer.alloc((512 - (data.length % 512)) % 512)]);
+	const end = Buffer.alloc(1024);
+
+	test("reads a regular file by name, from inside a folder", () => {
+		const body = Buffer.from("regular file bytes");
+		const tar = Buffer.concat([
+			header({ name: "release/tool", stored: body.length, type: "0" }),
+			pad(body),
+			end
+		]);
+		assert.equal(
+			Buffer.from(readFromTar(new Uint8Array(tar), "tool") ?? []).toString(),
+			"regular file bytes"
+		);
+	});
+
+	test("rebuilds a GNU sparse file with its holes, as Tectonic's Linux release stores its binary", () => {
+		// Real size 10: "AB" at 0, a hole, "CD" at 8. Only the four stored bytes are in the archive.
+		const tar = Buffer.concat([
+			header({
+				name: "tectonic",
+				stored: 4,
+				type: "S",
+				realSize: 10,
+				chunks: [
+					[0, 2],
+					[8, 2]
+				]
+			}),
+			pad(Buffer.from("ABCD")),
+			end
+		]);
+		const out = Buffer.from(readFromTar(new Uint8Array(tar), "tectonic") ?? []);
+		assert.equal(out.length, 10);
+		assert.deepEqual([...out], [65, 66, 0, 0, 0, 0, 0, 0, 67, 68]);
+	});
+
+	test("skips other entries and returns null for a name that is not there", () => {
+		const body = Buffer.from("x");
+		const tar = Buffer.concat([header({ name: "a", stored: 1, type: "0" }), pad(body), end]);
+		assert.equal(readFromTar(new Uint8Array(tar), "missing"), null);
 	});
 });
