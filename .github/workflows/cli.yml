@@ -40,8 +40,33 @@ jobs:
       - run: pnpm --filter glyphtex check
       - run: pnpm --filter glyphtex test
 
+  # The native engine downloads Tectonic and fetches TeX packages, so it is checked on every OS
+  # separately: this is the only place the Linux and macOS download and unpack paths run.
+  native:
+    name: native engine (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter glyphtex-engine build
+      - run: pnpm --filter glyphtex build
+      - run: node packages/cli/bin/glyphtex.mjs engine install
+      - run: node packages/cli/bin/glyphtex.mjs doctor
+      - name: Build with the native engine
+        run: node packages/cli/bin/glyphtex.mjs build packages/cli/test/fixtures/resume --engine native --json
+
   publish:
-    needs: test
+    needs: [test, native]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
