@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.7
+
+### Added
+
+- `template-helpers` pack, closing #85, #86, #87 and #88: `fullpage`, `makecell`, `subfiles` (with
+  `subfiles.cls` and the `import` package it needs) and `algorithmic` (the classic pseudocode syntax from
+  the `algorithms` package, which pairs with the existing `algorithm` float). It requires the `algorithms`
+  and `figures` packs.
+
+### Changed
+
+- `scripts/build-packs.mjs` accepts `--texmf <folder>`: a plain folder of TeX files (for example unzipped
+  CTAN or TeX Live package archives) searched before `kpsewhich`, so packs can be built on a machine with no
+  TeX Live installed. Existing packs are untouched; only the new one is added to the index.
+
 ## 0.1.6
 
 ### Added

@@ -10,7 +10,9 @@
 // the core bundle already loaded, so a pack only ever contains what core does
 // not already provide.
 //
-// See PACKS.md for the design. Requires TeX Live on PATH (use WSL on Windows).
+// See PACKS.md for the design. Needs TeX Live on PATH (use WSL on Windows), or `--texmf <dir>`:
+// a plain folder of TeX files (unzipped CTAN `*.tds.zip` archives work) searched before kpsewhich,
+// so packs can be built on a machine with no TeX Live at all.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
@@ -43,11 +45,40 @@ if (!bundleDir || !existsSync(bundleDir)) {
 	console.error("from it, so without it every pack would duplicate the whole of core.");
 	process.exit(1);
 }
+const texmfAt = argv.indexOf("--texmf");
+const texmfDir = texmfAt === -1 ? null : resolve(argv[texmfAt + 1] ?? "");
+if (texmfDir && !existsSync(texmfDir)) {
+	console.error(`--texmf folder ${texmfDir} does not exist.`);
+	process.exit(1);
+}
+let haveKpsewhich = true;
 try {
 	execFileSync("kpsewhich", ["--version"], { stdio: "ignore" });
 } catch {
-	console.error("kpsewhich not found — a TeX Live installation is required (use WSL on Windows).");
-	process.exit(1);
+	haveKpsewhich = false;
+	if (!texmfDir) {
+		console.error(
+			"kpsewhich not found — a TeX Live installation is required (use WSL on Windows),"
+		);
+		console.error("or pass --texmf <folder of TeX files> to build from plain files.");
+		process.exit(1);
+	}
+}
+
+if (texmfDir) process.env.GLYPHTEX_TEXMF = texmfDir;
+
+/** basename -> path for every file under --texmf; first one wins, so the folder's layout cannot matter. */
+const texmfFiles = new Map();
+if (texmfDir) {
+	const walkTexmf = (dir) => {
+		for (const entry of readdirSync(dir, { withFileTypes: true })) {
+			const full = join(dir, entry.name);
+			if (entry.isDirectory()) walkTexmf(full);
+			else if (!texmfFiles.has(entry.name)) texmfFiles.set(entry.name, full);
+		}
+	};
+	walkTexmf(texmfDir);
+	console.log(`--texmf: ${texmfFiles.size} files from ${texmfDir}`);
 }
 
 const config = JSON.parse(readFileSync(resolve(pkgRoot, "packs.config.json"), "utf8"));
@@ -75,12 +106,14 @@ if (only) {
 const lookup = new Map();
 function kpse(name) {
 	if (lookup.has(name)) return lookup.get(name);
-	let path = null;
-	try {
-		const found = execFileSync("kpsewhich", [name], { encoding: "utf8" }).trim();
-		if (found && existsSync(found)) path = found;
-	} catch {
-		/* TeX probes speculatively; most of these never exist */
+	let path = texmfFiles.get(name) ?? null;
+	if (!path && haveKpsewhich) {
+		try {
+			const found = execFileSync("kpsewhich", [name], { encoding: "utf8" }).trim();
+			if (found && existsSync(found)) path = found;
+		} catch {
+			/* TeX probes speculatively; most of these never exist */
+		}
 	}
 	lookup.set(name, path);
 	return path;

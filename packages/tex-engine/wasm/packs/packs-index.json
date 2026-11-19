@@ -265,6 +265,24 @@
 			"hash": "847d04cc99dd4e6d"
 		},
 		{
+			"id": "template-helpers",
+			"label": "Template helpers",
+			"description": "Small packages journal and thesis templates assume: fullpage margins, makecell table cells, subfiles for multi-file documents, and the classic algorithmic pseudocode.",
+			"packages": [
+				"fullpage",
+				"makecell",
+				"subfiles",
+				"algorithms"
+			],
+			"requires": [
+				"algorithms",
+				"figures"
+			],
+			"optional": false,
+			"bytes": 10843,
+			"hash": "4588406509bdbc2e"
+		},
+		{
 			"id": "mnras",
 			"label": "MNRAS journal class",
 			"description": "The Monthly Notices of the Royal Astronomical Society class and its BibTeX style.",
@@ -736,6 +754,12 @@
 		"bm.sty": "math-helpers",
 		"xargs.sty": "math-helpers",
 		"mnras.bst": "mnras",
-		"mnras.cls": "mnras"
+		"mnras.cls": "mnras",
+		"subfiles.cls": "template-helpers",
+		"fullpage.sty": "template-helpers",
+		"makecell.sty": "template-helpers",
+		"algorithmic.sty": "template-helpers",
+		"subfiles.sty": "template-helpers",
+		"import.sty": "template-helpers"
 	}
 }

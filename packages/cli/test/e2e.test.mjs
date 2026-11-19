@@ -101,6 +101,18 @@ describe("glyphtex build", () => {
 	});
 });
 
+describe("template helper packages", () => {
+	test("fullpage, makecell, subfiles and algorithmic build, and a subfile builds on its own", async () => {
+		const dir = await scratch("helpers");
+		const main = JSON.parse(run(["build", join(dir, "main.tex"), "--json"]).stdout);
+		assert.equal(main.ok, true, JSON.stringify(main.diagnostics));
+		assert.ok(main.packsLoaded.includes("template-helpers"));
+		assert.deepEqual(main.missingFiles, []);
+		const sub = JSON.parse(run(["build", join(dir, "sub.tex"), "--json"]).stdout);
+		assert.equal(sub.ok, true, JSON.stringify(sub.diagnostics));
+	});
+});
+
 describe("usage errors", () => {
 	test("unknown option, missing path and bad engine exit 2", async () => {
 		assert.equal(run(["build", "--nope"]).status, 2);

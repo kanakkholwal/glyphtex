@@ -316,5 +316,37 @@ Some text with a citation-free sentence and an equation
 \bsp
 \label{lastpage}
 \end{document}`
+	},
+	{
+		id: "template-helpers",
+		source: String.raw`\documentclass{article}
+\usepackage{fullpage}
+\usepackage{makecell}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{subfiles}
+\begin{document}
+\begin{tabular}{|c|c|}
+\hline
+\thead{Name} & \makecell{two\\lines} \\
+\hline
+\end{tabular}
+\begin{algorithm}
+\caption{Count}
+\begin{algorithmic}[1]
+\STATE $n \gets 0$
+\WHILE{$n < 3$}
+  \STATE $n \gets n + 1$
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+\subfile{chapter}
+\end{document}`,
+		files: {
+			"chapter.tex": String.raw`\documentclass[main.tex]{subfiles}
+\begin{document}
+A chapter in its own file.
+\end{document}`
+		}
 	}
 ];
