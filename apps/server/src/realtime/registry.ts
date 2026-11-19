@@ -20,6 +20,11 @@ export class RoomRegistry {
 		this.#deps = deps;
 	}
 
+	/** Live rooms held in memory; a room is dropped once its last editor leaves and it is saved. */
+	get roomCount() {
+		return this.#rooms.size;
+	}
+
 	async acquire(access: ProjectAccess, userId: string, rawPath: string) {
 		const path = normalizePath(rawPath);
 		if (!isTextPath(path)) throw errors.badRequest("Only text files can be edited live.");
