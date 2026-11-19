@@ -22,6 +22,9 @@
 	--accent-foreground: var(--foreground);
 	/* Stays the light brand in dark mode so white text on brand panels keeps its contrast. */
 	--brand-panel: #025eb8;
+	/* Form control edges need 3:1 on the page (WCAG 1.4.11): 3.45:1 on white. Hairlines keep --border. */
+	--input: #8a8a8a;
+	--border-strong: #6b6b6b;
 
 	/* Legacy roles, mapped onto baby-ui until the pages and workbench stop using them. */
 	--canvas: var(--muted);
@@ -75,6 +78,8 @@
 .dark {
 	--brand: #59aaf8;
 	--brand-fg: #0a0a0a;
+	--input: #6b6b6b;
+	--border-strong: #8a8a8a;
 	--canvas: var(--background);
 	--workspace: var(--card);
 	--sidebar: var(--background);

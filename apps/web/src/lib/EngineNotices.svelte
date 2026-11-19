@@ -234,7 +234,7 @@
 	<DialogContent class="gap-5 p-6 sm:max-w-xl">
 		<DialogHeader>
 			<DialogTitle class="text-base">Request package support</DialogTitle>
-			<DialogDescription class="text-md">
+			<DialogDescription class="text-sm">
 				This is the whole report. Only the class and package declarations were copied from your
 				document: no prose, data or file names.
 			</DialogDescription>

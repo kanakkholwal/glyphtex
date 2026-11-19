@@ -189,7 +189,7 @@
 
 {#if challenge}
 	<form class="flex flex-col gap-3" onsubmit={confirmCode}>
-		<p class="text-md">
+		<p class="text-sm">
 			{backup
 				? "Enter one of your backup codes."
 				: "Enter the 6-digit code from your authenticator app."}
@@ -222,7 +222,7 @@
 	</form>
 {:else if sent}
 	<div class="flex flex-col gap-3" role="status">
-		<p class="text-md">{sent}</p>
+		<p class="text-sm">{sent}</p>
 		<Button variant="ghost" class="self-start" onclick={() => (sent = undefined)}>Back</Button>
 	</div>
 {:else}

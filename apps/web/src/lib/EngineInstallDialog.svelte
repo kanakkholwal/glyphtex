@@ -68,7 +68,7 @@
 			<DialogTitle class="text-base">
 				{update ? "Update the LaTeX compiler" : "Set up the LaTeX compiler"}
 			</DialogTitle>
-			<DialogDescription class="text-md">
+			<DialogDescription class="text-sm">
 				{#if update}
 					A newer compiler is available (about {totalMB} MB). It replaces the cached one; your
 					documents are not touched.

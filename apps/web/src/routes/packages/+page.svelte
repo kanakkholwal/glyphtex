@@ -217,7 +217,7 @@
 			<Input
 				bind:value={query}
 				type="search"
-				placeholder="exam, fontspec, tikz..."
+				placeholder="exam, fontspec, tikz…"
 				spellcheck="false"
 				class="pl-9"
 			/>

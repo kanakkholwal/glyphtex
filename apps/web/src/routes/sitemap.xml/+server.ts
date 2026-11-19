@@ -15,6 +15,8 @@ const STATIC: { path: string; priority: string; freq: string }[] = [
 	{ path: "/templates", priority: "0.9", freq: "weekly" },
 	{ path: "/packages", priority: "0.7", freq: "monthly" },
 	{ path: "/developers", priority: "0.8", freq: "monthly" },
+	{ path: "/compare/overleaf", priority: "0.9", freq: "monthly" },
+	{ path: "/for/universities", priority: "0.8", freq: "monthly" },
 	{ path: "/engine", priority: "0.6", freq: "monthly" },
 	{ path: "/download", priority: "0.6", freq: "monthly" },
 	{ path: "/about", priority: "0.5", freq: "monthly" },

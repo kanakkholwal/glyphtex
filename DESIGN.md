@@ -46,8 +46,7 @@ restore its one-line re-export of `cn` from `./utils`. Add the package export in
   titles, `text-4xl`/`5xl` page titles, `6xl` home hero only. No `text-[Npx]`.
 - Brace eyebrow: a lowercase label in curly braces above a heading, `{account}`, set in the `pixel` face
   in `text-accent-ink` (`Eyebrow` in `$lib/site`; optional `eyebrow` on `Section` and `CloudPage`). In use on
-  `/open`, sign-in and reset, and the home page cloud section. TODO: roll it out to `PageHero` and the other
-  public pages (blog, docs, developers, about) in place of the plain mono eyebrow.
+  `/open`, sign-in and reset, the home page cloud section and every `PageHero` (its `badge` prop).
 - Section titles are lowercase with a full stop (`why local.`); a two-part title sets its tail in muted ink.
 - The workspace keeps 12/13/14 density: `/workspace` sets `data-density="compact"` and `app.css` swaps
   `text-sm` to 13px through `:root:has(...)`, which also reaches portalled menus.

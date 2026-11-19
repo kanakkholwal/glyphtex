@@ -65,7 +65,7 @@
 				<IconRefresh size={20} />
 			</span>
 			<DialogTitle class="text-base">A compiler update is available</DialogTitle>
-			<DialogDescription class="text-md">
+			<DialogDescription class="text-sm">
 				A newer LaTeX compiler is ready ({plan ? size(plan.totalBytes) : ""}). Your documents are not
 				touched; only the cached compiler is replaced.
 			</DialogDescription>

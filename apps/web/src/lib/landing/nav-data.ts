@@ -14,6 +14,8 @@ const ERRORS: NavLink = { label: "Fix a LaTeX error", href: "/errors" };
 const DOWNLOAD: NavLink = { label: "Desktop app", href: "/download" };
 const WORKSPACE: NavLink = { label: "Browser workspace", href: "/workspace" };
 const TEMPLATES: NavLink = { label: "Templates", href: "/templates" };
+const COMPARE: NavLink = { label: "GlyphTeX vs Overleaf", href: "/compare/overleaf" };
+const UNIVERSITIES: NavLink = { label: "For universities", href: "/for/universities" };
 const PRIVACY: NavLink = { label: "Privacy", href: "/privacy" };
 const BLOG: NavLink = { label: "Blog", href: "/blog" };
 const DOCS: NavLink = { label: "Docs", href: "/docs" };
@@ -24,7 +26,7 @@ const PACKAGES: NavLink = { label: "LaTeX packages", href: "/packages" };
 export const navLinks: NavLink[] = [TEMPLATES, DOCS, { label: "Errors", href: "/errors" }, BLOG];
 
 export const footerCols: { title: string; links: NavLink[] }[] = [
-	{ title: "Product", links: [TRY, WHY, TEMPLATES, FAQ] },
+	{ title: "Product", links: [TRY, WHY, COMPARE, UNIVERSITIES, TEMPLATES, FAQ] },
 	{ title: "Learn", links: [DOCS, ERRORS, PACKAGES, BLOG] },
 	{ title: "Developers", links: [DEVELOPERS, ENGINE] },
 	{ title: "Get started", links: [WORKSPACE, TEMPLATES, DOWNLOAD] },

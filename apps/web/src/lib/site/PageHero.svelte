@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from "@glyphtex/ui/utils";
+	import Eyebrow from "./Eyebrow.svelte";
 	import type { IconCheck } from "@tabler/icons-svelte";
 	import type { Snippet } from "svelte";
 
@@ -35,7 +36,7 @@
 >
 	<div class="flex flex-col">
 		{#if badge}
-			<p class="rise mb-4 font-mono text-xs text-muted-foreground">{badge}</p>
+			<Eyebrow label={badge} class="rise mb-4" />
 		{/if}
 		<h1 class="rise pixel text-4xl text-balance text-foreground sm:text-5xl" style:--i={1}>
 			{title}{#if accent}{' '}<span class="text-muted-foreground">{accent}</span>{/if}

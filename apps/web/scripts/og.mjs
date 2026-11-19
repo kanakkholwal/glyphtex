@@ -81,6 +81,20 @@ const PAGES = [
 			"A WebAssembly TeX compiler on npm, and a Rust crate for TeX logs and the engine's types."
 	},
 	{
+		path: "/compare/overleaf",
+		eyebrow: "Compare",
+		title: "GlyphTeX or Overleaf,",
+		tail: "side by side.",
+		description: "An honest comparison: what each does well, and where GlyphTeX is still behind."
+	},
+	{
+		path: "/for/universities",
+		eyebrow: "For universities",
+		title: "LaTeX for a department,",
+		tail: "on your terms.",
+		description: "Self-hosted sharing, SSO and SCIM, with student work kept on their own devices."
+	},
+	{
 		path: "/about",
 		eyebrow: "About",
 		title: "Kanak Kholwal",

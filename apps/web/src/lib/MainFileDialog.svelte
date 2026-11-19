@@ -43,7 +43,7 @@
 				<IconFileText size={20} />
 			</span>
 			<DialogTitle class="text-base">Which file is the main document?</DialogTitle>
-			<DialogDescription class="text-md">
+			<DialogDescription class="text-sm">
 				More than one file here could compile on its own. Pick the one that builds the whole
 				document. You can change it later from the file list.
 			</DialogDescription>
@@ -61,9 +61,9 @@
 						value={path}
 						checked={selected === path}
 						onchange={() => (selected = path)}
-						class="accent-primary size-4 shrink-0 outline-none"
+						class="accent-primary size-4 shrink-0"
 					/>
-					<span class="text-md min-w-0 flex-1 truncate font-mono">{path}</span>
+					<span class="min-w-0 text-sm flex-1 truncate font-mono">{path}</span>
 				</label>
 			{/each}
 		</fieldset>

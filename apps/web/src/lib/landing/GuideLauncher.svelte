@@ -75,7 +75,7 @@
 					type="search"
 					size="xl"
 					bind:value={query}
-					placeholder="Undefined control sequence, bibliography, thesis..."
+					placeholder="Undefined control sequence, bibliography, thesis…"
 					class="pl-10"
 				/>
 			</label>

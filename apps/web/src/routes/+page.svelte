@@ -23,16 +23,16 @@
 
 	const cloudPoints = [
 		{
-			title: "Free, for now",
-			body: "Accounts, saved projects and sharing cost nothing at this stage. The editor never needs them."
+			title: "Write together",
+			body: "Live co-editing with cursors, comments and suggested edits, on any server that has it switched on."
 		},
 		{
-			title: "Sync and share",
-			body: "Save a project to the server, open it on another device, invite people by email or with a link."
+			title: "History and Git",
+			body: "Named versions with restore, and sync with GitHub, GitLab or Bitbucket from a cloud project."
 		},
 		{
 			title: "Self-host it",
-			body: "Run the server yourself on Cloudflare or Docker, and keep every project on your own infrastructure."
+			body: "Run the server on Cloudflare or Docker with organisations, SSO and SCIM, and keep every project in-house."
 		}
 	];
 
@@ -55,11 +55,11 @@
 		},
 		{
 			q: "How do co-authors work on the same paper?",
-			a: "Share the project, not a login: export it as a .zip, or keep it in a Git repository and clone it into the browser workspace. There is no live co-editing, and committing and pushing are only in the desktop app, which is an early prototype."
+			a: "Save the project to a server with live editing switched on, invite them by email or link, and edit together with cursors, comments and suggested edits. Without a server, share a .zip or a Git repository. The offline editor on its own is single author."
 		},
 		{
 			q: "Can a whole department use it?",
-			a: "Yes, for free. There are no seats, no licence server and no accounts to create, and it runs on managed machines without admin rights."
+			a: "Yes, for free. There are no seats or licence keys. For shared projects, organisations and SSO, run the optional server on your own infrastructure."
 		}
 	];
 
@@ -140,8 +140,8 @@
 			class="rise mt-5 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg"
 			style:--i={2}
 		>
-			A LaTeX editor that compiles in this tab. Projects stay on your device, work offline and are
-			never uploaded. No account.
+			An open source alternative to Overleaf that compiles in this tab. Projects stay on your
+			device and work offline. Add live co-editing, Git and SSO on a server you control.
 		</p>
 		<div class="rise mt-8 flex flex-wrap items-center gap-2" style:--i={3}>
 			<Button
@@ -160,6 +160,14 @@
 				onclick={() => track('cta_clicked', { target: 'templates', location: 'hero' })}
 			>
 				Start from a template
+			</Button>
+			<Button
+				href={resolve('/compare/overleaf')}
+				variant="ghost"
+				size="lg"
+				onclick={() => track('cta_clicked', { target: 'compare', location: 'hero' })}
+			>
+				GlyphTeX vs Overleaf
 			</Button>
 		</div>
 		<dl
@@ -213,9 +221,9 @@
 	<Section
 		id="cloud"
 		number={2}
-		title="optional cloud sync."
-		eyebrow="free · self-hostable"
-		description="Local stays the default. Add an account only if you want your projects on more than one device, or want to share them."
+		title="teams, when you want them."
+		eyebrow="collaboration · self-hostable"
+		description="Local stays the default. Add an account only to share, write together or sync across devices. It is free at this stage."
 		section="cloud"
 	>
 		{#snippet action()}

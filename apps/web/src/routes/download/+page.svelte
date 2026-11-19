@@ -253,7 +253,7 @@
 			</p>
 			<p class="font-mono text-xs text-muted-foreground" aria-live="polite">
 				{#if status === 'loading'}
-					Checking GitHub for the latest build...
+					Checking GitHub for the latest build…
 				{:else if status === 'ready'}
 					Latest build: <span class="text-foreground">{version}</span>{#if releasedOn}, released {releasedOn}{/if}.
 				{:else if status === 'empty'}

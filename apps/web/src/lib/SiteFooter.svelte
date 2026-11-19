@@ -91,6 +91,6 @@
 		class="mt-10 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 border-t border-dashed border-border pt-5 font-mono text-xs text-muted-foreground"
 	>
 		<p>© {year} GlyphTeX · GPLv3</p>
-		<p>Runs on your device. No account.</p>
+		<p>Compiles on your device. Accounts are optional.</p>
 	</div>
 </footer>
