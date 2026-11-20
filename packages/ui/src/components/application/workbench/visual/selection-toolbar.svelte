@@ -98,7 +98,7 @@
 </script>
 
 <div
-	class="border-border bg-popover fixed z-50 flex items-center rounded-md border p-0.5 shadow-md"
+	class="bg-popover fixed z-50 flex items-center rounded-md p-0.5 shadow-md"
 	style:left="{left}px"
 	style:top="{top}px"
 	style:width="{WIDTH}px"
@@ -163,7 +163,7 @@
 
 	{#if more}
 		<div
-			class="border-border bg-popover absolute top-full right-0 z-50 mt-1 w-52 rounded-lg border p-1 shadow-(--overlay-shadow)"
+			class="bg-popover absolute top-full right-0 z-50 mt-1 w-52 rounded-lg p-1 shadow-(--overlay-shadow)"
 			role="menu"
 			aria-label="More formatting"
 		>

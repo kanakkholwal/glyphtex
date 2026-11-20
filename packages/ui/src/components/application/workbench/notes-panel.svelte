@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from "@glyphtex/ui/button";
 	import { Checkbox } from "@glyphtex/ui/checkbox";
+	import { Input } from "../../ui/input";
 	import { IconNotes, IconPlus, IconTrash, IconX } from "@tabler/icons-svelte";
 
 	import { relativeTime, stripTags, type NoteFilter, type NotesStore } from "./notes.svelte";
@@ -24,16 +25,16 @@
 		{ id: "done", label: "Done", count: notes.doneCount }
 	]);
 
-	let field = $state<HTMLInputElement>();
+	let field = $state<HTMLInputElement | null>(null);
 </script>
 
 <svelte:element
 	this={chromeless ? 'div' : 'aside'}
-	class="flex h-full min-h-0 flex-col {chromeless ? '' : 'border-border bg-card border-l'}"
+	class="flex h-full min-h-0 flex-col {chromeless ? '' : 'bg-card'}"
 	aria-label={chromeless ? undefined : 'Notes'}
 >
 	{#if !chromeless}
-		<div class="border-border flex h-9 shrink-0 items-center gap-2 border-b px-2 pl-3">
+		<div class="flex h-10 shrink-0 items-center gap-2 px-2 pl-3">
 			<span class="text-foreground text-xs font-medium">Notes</span>
 			{#if notes.openCount}
 				<span class="text-muted-foreground text-xs tabular-nums">{notes.openCount} open</span>
@@ -73,10 +74,11 @@
 			field?.focus();
 		}}
 	>
-		<input
-			bind:this={field}
+		<Input
+			bind:ref={field}
 			bind:value={notes.draft}
-			class="border-border bg-background focus-visible:ring-ring/40 h-8 min-w-0 flex-1 rounded-md border px-2.5 text-sm outline-none focus-visible:ring-2"
+			size="sm"
+			class="flex-1"
 			placeholder="Add a note or #tag"
 			aria-label="New note"
 		/>

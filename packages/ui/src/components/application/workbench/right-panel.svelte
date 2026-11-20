@@ -51,7 +51,7 @@
 		style:width={`${WIDTH_PX}px`}
 		aria-label={title}
 	>
-		<header class="border-border flex h-9 shrink-0 items-center gap-2 border-b px-2 pl-3">
+		<header class="flex h-10 shrink-0 items-center gap-2 px-2 pl-3">
 			<h2 class="text-foreground truncate text-xs font-medium">{title}</h2>
 			{#if layout.rightPanel === 'notes' && notes.openCount}
 				<span class="text-muted-foreground text-xs tabular-nums">{notes.openCount} open</span>

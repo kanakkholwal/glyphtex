@@ -62,7 +62,7 @@
 </script>
 
 <div
-	class="text-foreground border-border flex h-10 shrink-0 items-center justify-between gap-1 border-b px-1.5 text-xs font-medium"
+	class="text-foreground flex h-10 shrink-0 items-center justify-between gap-1 px-1.5 text-xs font-medium"
 >
 	<!-- The tabs are the heading. A vertical icon rail used to own this choice and
 	     cost 48px of every window for three buttons. -->

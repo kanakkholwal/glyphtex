@@ -18,7 +18,7 @@
 	<!-- On the seam it controls, where the panel re-emerges, following it when docked right. -->
 	<div class="flex shrink-0 items-center {layout.sidebarRight ? 'pr-1.5 pl-0.5' : 'pr-0.5 pl-1.5'}">
 		{#if layout.sidebarRight}
-			<span class="bg-border/60 mr-1 h-4 w-px shrink-0" aria-hidden="true"></span>
+			<span class="bg-foreground/10 mr-1 h-4 w-px shrink-0" aria-hidden="true"></span>
 		{/if}
 		<Tooltip delayDuration={400}>
 			<TooltipTrigger>
@@ -43,16 +43,16 @@
 			</TooltipContent>
 		</Tooltip>
 		{#if !layout.sidebarRight}
-			<span class="bg-border/60 ml-1 h-4 w-px shrink-0" aria-hidden="true"></span>
+			<span class="bg-foreground/10 ml-1 h-4 w-px shrink-0" aria-hidden="true"></span>
 		{/if}
 	</div>
 {/snippet}
 
 <!-- Plain toolbar rail; in Visual it goes translucent so the prose page reads through. -->
 <div
-	class="ease-(--ease-out) flex h-9 shrink-0 items-stretch border-b transition-colors duration-(--duration-base) motion-reduce:transition-none {quiet
-		? 'glyphtex-tab-rail--quiet border-border/50'
-		: 'border-border bg-background'}"
+	class="ease-(--ease-out) flex h-10 shrink-0 items-stretch transition-colors duration-(--duration-base) motion-reduce:transition-none {quiet
+		? 'glyphtex-tab-rail--quiet'
+		: 'bg-tint'}"
 >
 	{#if !layout.sidebarRight}{@render sidebarToggle()}{/if}
 	<EditorTabs {files} onnew={() => files.newFile()} />
