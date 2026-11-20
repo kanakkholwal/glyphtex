@@ -544,7 +544,10 @@ function blockFor(
 				label: spec.label,
 				title,
 				numbered: spec.numbered ?? false,
-				body: spec.role === "bibliography" ? [] : buildBlocks(body.slice(start), source, extra),
+				body:
+					spec.role === "bibliography"
+						? []
+						: guardFidelity(buildBlocks(body.slice(start), source, extra), source),
 				entries: spec.role === "bibliography" ? bibEntries(envBody(text)) : undefined,
 				span,
 				fidelity: "source"

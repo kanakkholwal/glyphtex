@@ -274,20 +274,63 @@
 
 	/** Patched but never re-parsed: the DOM already shows the result, so the spans
 	 *  after the edit are shifted by hand instead. */
-	function commitInline(index: number, patch: Patch) {
-		if (!tex || !doc) return false;
+	function commitInline(key: string, patch: Patch) {
+		const found = resolve(key);
+		if (!tex || !doc || !found) return false;
 		const next = tex.applyPatch(files.source, patch);
 		if (next === files.source) return false;
 
 		const delta = tex.patchDelta(patch);
-		write(next, `block:${index}`);
-		doc.blocks[index].span.to += delta;
-		for (let i = index + 1; i < doc.blocks.length; i++) {
-			doc.blocks[i].span.from += delta;
-			doc.blocks[i].span.to += delta;
-		}
+		write(next, `block:${key}`);
+		shiftSpans(doc.blocks, found.block, delta);
 		doc.bodySpan.to += delta;
 		return true;
+	}
+
+	/** Blocks are addressed by key: "3" is top level, "3.1" the second block inside block 3. */
+	function resolve(key: string): { block: Block; siblings: Block[]; at: number } | null {
+		let siblings: Block[] = doc?.blocks ?? [];
+		let block: Block | undefined;
+		let at = -1;
+		for (const part of key.split('.')) {
+			at = Number(part);
+			block = siblings[at];
+			if (!block) return null;
+			if (part !== key.split('.').at(-1)) {
+				if (block.kind !== 'container') return null;
+				siblings = block.body;
+			}
+		}
+		return block ? { block, siblings, at } : null;
+	}
+
+	const parentKey = (key: string) => key.split('.').slice(0, -1).join('.');
+	const siblingKey = (key: string, offset: number) => {
+		const parent = parentKey(key);
+		const at = Number(key.split('.').at(-1)) + offset;
+		return parent ? `${parent}.${at}` : `${at}`;
+	};
+	const isNested = (key: string) => key.includes('.');
+
+	/** After an in-place edit: the block grows by `delta`, containers around it grow, and
+	 *  everything after it, at any depth, moves. */
+	function shiftSpans(blocks: Block[], edited: Block, delta: number) {
+		const end = edited.span.to;
+		const start = edited.span.from;
+		const move = (list: Block[], whole: boolean) => {
+			for (const b of list) {
+				if (b === edited) b.span.to += delta;
+				else if (whole || b.span.from >= end) {
+					b.span.from += delta;
+					b.span.to += delta;
+					if (b.kind === 'container') move(b.body, true);
+				} else if (b.span.from <= start && b.span.to >= end) {
+					b.span.to += delta;
+					if (b.kind === 'container') move(b.body, false);
+				}
+			}
+		};
+		move(blocks, false);
 	}
 
 	/** A change to the block structure: re-parse, then hand the caret somewhere. */
@@ -308,11 +351,11 @@
 	const isBlank = (runs: Inline[]) => !tex || tex.printInlines(runs).trim() === '';
 
 	// --- Prose blocks -----------------------------------------------------------
-	function onInlineInput(index: number, next: Inline[]) {
-		const block = doc?.blocks[index];
+	function onInlineInput(key: string, next: Inline[]) {
+		const block = resolve(key)?.block;
 		if (!tex || !block) return;
 		const patch = tex.setInlines(files.source, block, next);
-		if (!patch || !commitInline(index, patch)) return;
+		if (!patch || !commitInline(key, patch)) return;
 		if (block.kind === 'heading') block.title = next;
 		else if (block.kind === 'paragraph' || block.kind === 'quote') block.content = next;
 	}
@@ -323,12 +366,32 @@
 		focusOn('draft');
 	}
 
-	function onSplit(index: number, left: Inline[], right: Inline[]) {
-		const block = doc?.blocks[index];
+	function onSplit(key: string, left: Inline[], right: Inline[]) {
+		const found = resolve(key);
+		const block = found?.block;
 		if (!tex || !block) return;
+		const index = Number(key.split('.')[0]);
+
+		if (isNested(key)) {
+			// Enter at the end leaves the container, like leaving a quote; mid-text splits in place.
+			if (isBlank(right)) {
+				onInlineInput(key, left);
+				openDraft(index);
+				return;
+			}
+			if (isBlank(left)) return;
+			commitStructural(
+				{
+					...block.span,
+					insert: `${tex.printBlock(withInlines(block, left), files.source)}\n\n${tex.printInlines(right)}`
+				},
+				{ key: siblingKey(key, 1), caret: 'start' }
+			);
+			return;
+		}
 
 		if (isBlank(right)) {
-			onInlineInput(index, left);
+			onInlineInput(String(index), left);
 			openDraft(index);
 			return;
 		}
@@ -347,10 +410,33 @@
 		);
 	}
 
-	function onMergeBack(index: number, rest: Inline[]) {
-		const block = doc?.blocks[index];
+	function onMergeBack(key: string, rest: Inline[]) {
+		const found = resolve(key);
+		const block = found?.block;
+		if (!tex || !block || !found) return;
+		const index = Number(key.split('.')[0]);
+
+		if (isNested(key)) {
+			const above = found.siblings[found.at - 1];
+			// The first block of a container has nothing to fold into.
+			if (!above) return;
+			if (isBlank(rest)) {
+				commitStructural(tex.deleteBlock(files.source, block), {
+					key: siblingKey(key, -1),
+					caret: 'end'
+				});
+				return;
+			}
+			if (block.kind !== 'paragraph' || above.kind !== 'paragraph') return;
+			const joined = tex.mergeIntoPrevious(files.source, above, { ...block, content: rest });
+			if (!joined) return;
+			commitStructural(joined, {
+				key: siblingKey(key, -1),
+				caret: tex.printInlines(above.content).length
+			});
+			return;
+		}
 		const previous = doc?.blocks[index - 1];
-		if (!tex || !block) return;
 
 		if (!previous) {
 			// Nothing above to merge into; an empty first block just goes away.
@@ -419,12 +505,12 @@
 	}
 
 	// --- Lists ------------------------------------------------------------------
-	function listAt(index: number): ListBlock | null {
-		const block = doc?.blocks[index];
+	function listAt(key: string): ListBlock | null {
+		const block = resolve(key)?.block;
 		return block?.kind === 'list' ? block : null;
 	}
 
-	function onItemInput(index: number, item: number, next: Inline[]) {
+	function onItemInput(index: string, item: number, next: Inline[]) {
 		const block = listAt(index);
 		if (!tex || !block) return;
 		if (commitInline(index, tex.setListItem(files.source, block, item, next))) {
@@ -432,7 +518,7 @@
 		}
 	}
 
-	function onItemSplit(index: number, item: number, left: Inline[], right: Inline[]) {
+	function onItemSplit(index: string, item: number, left: Inline[], right: Inline[]) {
 		const block = listAt(index);
 		if (!tex || !block) return;
 		const items = block.items.map((entry, i) => (i === item ? { ...entry, content: left } : entry));
@@ -446,7 +532,8 @@
 					: tex.deleteBlock(files.source, block),
 				{ key: null }
 			);
-			openDraft(items.length ? index : index - 1);
+			const top = Number(index.split('.')[0]);
+			openDraft(items.length || isNested(index) ? top : top - 1);
 			return;
 		}
 		items.splice(item + 1, 0, { content: right });
@@ -456,7 +543,7 @@
 		});
 	}
 
-	function onItemMergeBack(index: number, item: number, rest: Inline[]) {
+	function onItemMergeBack(index: string, item: number, rest: Inline[]) {
 		const block = listAt(index);
 		if (!tex || !block) return;
 
@@ -469,7 +556,9 @@
 				: '';
 			const insert = [paragraph, tail].filter(Boolean).join('\n\n');
 			if (!insert) {
-				commitStructural(tex.deleteBlock(files.source, block), { key: `${index - 1}` });
+				commitStructural(tex.deleteBlock(files.source, block), {
+					key: isNested(index) ? null : siblingKey(index, -1)
+				});
 				return;
 			}
 			commitStructural(
@@ -833,12 +922,12 @@
 	}
 
 	/** Several pasted paragraphs replace the block with one block each. */
-	function onPasteBlocks(index: number, paragraphs: string[]) {
-		const block = doc?.blocks[index];
+	function onPasteBlocks(key: string, paragraphs: string[]) {
+		const block = resolve(key)?.block;
 		if (!tex || !block || !paragraphs.length) return;
 		const existing = tex.printBlock(block, files.source);
 		const insert = [existing, ...paragraphs.map((p) => tex!.escapeText(p))].join('\n\n');
-		commitStructural({ ...block.span, insert }, { key: `${index + paragraphs.length}` });
+		commitStructural({ ...block.span, insert }, { key: siblingKey(key, paragraphs.length) });
 	}
 
 	// --- Atoms ------------------------------------------------------------------
@@ -917,15 +1006,18 @@
 	}
 
 	/** Every editable spot in document order, so the arrow keys can walk them. */
-	const editableKeys = $derived(
-		(doc?.blocks ?? []).flatMap((block, i) =>
-			block.kind === 'list'
-				? block.items.map((_, j) => `${i}:${j}`)
-				: block.kind === 'heading' || block.kind === 'paragraph' || block.kind === 'quote'
-					? [`${i}`]
-					: []
-		)
-	);
+	const editableKeys = $derived.by(() => {
+		const walk = (blocks: Block[], prefix: string): string[] =>
+			blocks.flatMap((block, i) => {
+				const key = `${prefix}${i}`;
+				if (block.kind === 'container') return walk(block.body, `${key}.`);
+				if (block.kind === 'list') return block.items.map((_, j) => `${key}:${j}`);
+				return block.kind === 'heading' || block.kind === 'paragraph' || block.kind === 'quote'
+					? [key]
+					: [];
+			});
+		return walk(doc?.blocks ?? [], '');
+	});
 
 	function moveFocus(from: string, direction: -1 | 1) {
 		const at = editableKeys.indexOf(from);
@@ -991,7 +1083,7 @@
 	{/if}
 {/snippet}
 
-{#snippet nested(block: Block)}
+{#snippet nested(block: Block, key: string)}
 	{#if block.kind === 'math'}
 		{@render displayMath(block.source)}
 	{:else if block.kind === 'code'}
@@ -1002,24 +1094,26 @@
 			{block.environment}{block.caption ? `: ${block.caption}` : ''}
 		</p>
 	{:else if block.kind === 'container'}
-		{@render containerView(block)}
+		{@render containerView(block, key)}
 	{:else if block.kind === 'raw'}
 		<p class="text-muted-foreground mt-3 font-mono text-xs">{block.label}</p>
+	{:else if (block.kind === 'paragraph' || block.kind === 'heading' || block.kind === 'quote' || block.kind === 'list') && block.fidelity === 'native'}
+		{@render prose(block, key)}
 	{:else}
 		{@render readonlyProse(block)}
 	{/if}
 {/snippet}
 
-{#snippet containerView(block: Extract<Block, { kind: 'container' }>)}
+{#snippet containerView(block: Extract<Block, { kind: 'container' }>, key: string)}
 	{#if block.role === 'abstract'}
 		<div class="mx-auto mt-6 max-w-[88%]">
 			<p class="text-center text-sm font-semibold">{block.title ?? block.label}</p>
-			{#each block.body as inner, k (k)}{@render nested(inner)}{/each}
+			{#each block.body as inner, k (k)}{@render nested(inner, `${key}.${k}`)}{/each}
 		</div>
 	{:else if block.role === 'proof'}
 		<div class="mt-4">
 			<p class="leading-[1.6]"><em>{block.title ?? block.label}.</em></p>
-			{#each block.body as inner, k (k)}{@render nested(inner)}{/each}
+			{#each block.body as inner, k (k)}{@render nested(inner, `${key}.${k}`)}{/each}
 			<p class="text-muted-foreground text-right" aria-hidden="true">&#8718;</p>
 		</div>
 	{:else if block.role === 'theorem'}
@@ -1029,7 +1123,7 @@
 				{#if block.title}<span class="text-muted-foreground">({block.title})</span>{/if}
 			</p>
 			<div class={PLAIN_STATEMENTS.has(block.environment) ? 'italic' : ''}>
-				{#each block.body as inner, k (k)}{@render nested(inner)}{/each}
+				{#each block.body as inner, k (k)}{@render nested(inner, `${key}.${k}`)}{/each}
 			</div>
 		</div>
 	{:else if block.role === 'bibliography'}
@@ -1051,7 +1145,7 @@
 					? 'text-right'
 					: ''}
 		>
-			{#each block.body as inner, k (k)}{@render nested(inner)}{/each}
+			{#each block.body as inner, k (k)}{@render nested(inner, `${key}.${k}`)}{/each}
 		</div>
 	{/if}
 {/snippet}
@@ -1091,8 +1185,8 @@
 	</div>
 {/snippet}
 
-{#snippet prose(block: Block, index: number)}
-	{@const key = `${index}`}
+{#snippet prose(block: Block, key: string)}
+	{@const index = Number(key.split('.')[0])}
 	{#if block.fidelity !== 'native' && EDITABLE_KINDS.includes(block.kind)}
 		{@render lockedProse(block)}
 	{:else if block.kind === 'heading'}
@@ -1105,14 +1199,14 @@
 				HEADING_CLASS[6]}"
 			focusToken={tokenFor(key)}
 			{caretAt}
-			oninput={(next) => onInlineInput(index, next)}
-			onsplit={(left, right) => onSplit(index, left, right)}
-			onmergeback={(rest) => onMergeBack(index, rest)}
+			oninput={(next) => onInlineInput(key, next)}
+			onsplit={(left, right) => onSplit(key, left, right)}
+			onmergeback={(rest) => onMergeBack(key, rest)}
 			onconvert={(template, rest) => onConvert(index, template, rest)}
 			onslash={(rect, empty) => openSlash(rect, empty, { kind: 'convert', index })}
 			onmove={(direction) => moveFocus(key, direction)}
 			onatom={(el) => openAtom(index, el)}
-			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
+			onpasteblocks={(paragraphs) => onPasteBlocks(key, paragraphs)}
 		/>
 	{:else if block.kind === 'paragraph'}
 		<BlockEditor
@@ -1123,14 +1217,14 @@
 			class="text-foreground relative mt-4 leading-[1.6]"
 			focusToken={tokenFor(key)}
 			{caretAt}
-			oninput={(next) => onInlineInput(index, next)}
-			onsplit={(left, right) => onSplit(index, left, right)}
-			onmergeback={(rest) => onMergeBack(index, rest)}
+			oninput={(next) => onInlineInput(key, next)}
+			onsplit={(left, right) => onSplit(key, left, right)}
+			onmergeback={(rest) => onMergeBack(key, rest)}
 			onconvert={(template, rest) => onConvert(index, template, rest)}
 			onslash={(rect, empty) => openSlash(rect, empty, { kind: 'convert', index })}
 			onmove={(direction) => moveFocus(key, direction)}
 			onatom={(el) => openAtom(index, el)}
-			onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
+			onpasteblocks={(paragraphs) => onPasteBlocks(key, paragraphs)}
 		/>
 	{:else if block.kind === 'quote'}
 		<blockquote class="group/box border-border text-muted-foreground relative mt-4 border-l-2 pl-4">
@@ -1151,12 +1245,12 @@
 				class="relative leading-[1.6]"
 				focusToken={tokenFor(key)}
 				{caretAt}
-				oninput={(next) => onInlineInput(index, next)}
-				onsplit={(left, right) => onSplit(index, left, right)}
-				onmergeback={(rest) => onMergeBack(index, rest)}
+				oninput={(next) => onInlineInput(key, next)}
+				onsplit={(left, right) => onSplit(key, left, right)}
+				onmergeback={(rest) => onMergeBack(key, rest)}
 				onmove={(direction) => moveFocus(key, direction)}
 				onatom={(el) => openAtom(index, el)}
-				onpasteblocks={(paragraphs) => onPasteBlocks(index, paragraphs)}
+				onpasteblocks={(paragraphs) => onPasteBlocks(key, paragraphs)}
 			/>
 		</blockquote>
 	{:else if block.kind === 'list'}
@@ -1165,7 +1259,7 @@
 			class="mt-4 space-y-1.5 {block.ordered ? 'list-decimal pl-6' : 'pl-1'}"
 		>
 			{#each block.items as item, j (j)}
-				{@const itemKey = `${index}:${j}`}
+				{@const itemKey = `${key}:${j}`}
 				<li class="text-foreground leading-[1.6] {block.ordered ? '' : 'flex gap-2.5'}">
 					{#if !block.ordered && !block.description}
 						<span class="text-muted-foreground mt-[0.7em] size-1.5 shrink-0 rounded-full bg-current"></span>
@@ -1180,9 +1274,9 @@
 							class="relative block"
 							focusToken={tokenFor(itemKey)}
 							{caretAt}
-							oninput={(next) => onItemInput(index, j, next)}
-							onsplit={(left, right) => onItemSplit(index, j, left, right)}
-							onmergeback={(rest) => onItemMergeBack(index, j, rest)}
+							oninput={(next) => onItemInput(key, j, next)}
+							onsplit={(left, right) => onItemSplit(key, j, left, right)}
+							onmergeback={(rest) => onItemMergeBack(key, j, rest)}
 							onmove={(direction) => moveFocus(itemKey, direction)}
 							onatom={(el) => openAtom(index, el, j)}
 						/>
@@ -1261,12 +1355,12 @@
 			{tex}
 			source={files.source}
 			onpatch={applyBlockPatch}
-			onlocalpatch={(patch) => patch && commitInline(index, patch)}
+			onlocalpatch={(patch) => patch && commitInline(String(index), patch)}
 			onatom={(element) => openAtom(index, element)}
 			onopensource={() => openInSource(block)}
 		/>
 	{:else if block.kind === 'container'}
-		{@render containerView(block)}
+		{@render containerView(block, key)}
 	{:else}
 		<div class="bg-tint mt-4 rounded-lg px-3 py-2">
 			<div class="text-muted-foreground flex items-center gap-2 text-xs">
@@ -1369,6 +1463,7 @@
 					     the click-to-open-source wrapper that would swallow them. -->
 					{@const editable =
 						block.kind === 'float' ||
+						block.kind === 'container' ||
 						(EDITABLE_KINDS.includes(block.kind) && block.fidelity === 'native')}
 					<div class="group/block relative scroll-mt-16" data-block-wrapper data-block-index={i}>
 						<!-- Focus-within like the gutter beside it, so the two can never
@@ -1415,7 +1510,7 @@
 						</div>
 
 						{#if editable}
-							{@render prose(block, i)}
+							{@render prose(block, String(i))}
 						{:else}
 							<!-- Not modelled for block editing: open the real source instead of
 							     pretending it can be typed into. -->
@@ -1431,7 +1526,7 @@
 									}
 								}}
 							>
-								{@render prose(block, i)}
+								{@render prose(block, String(i))}
 							</div>
 						{/if}
 					</div>
