@@ -114,7 +114,7 @@
 	<div class="flex flex-col gap-10">
 		<SettingsSection title="Organization" description="Shown to members in the workspace switcher.">
 			<form
-				class="border-border bg-card flex flex-wrap items-end gap-3 rounded-xl border p-4"
+				class="bg-tint flex flex-wrap items-end gap-3 rounded-xl p-4"
 				onsubmit={rename}
 			>
 				<label class="flex min-w-0 flex-1 flex-col gap-1.5 text-xs font-medium">
@@ -139,7 +139,7 @@
 			title="Project access"
 			description="What members get on projects that belong to the organization. Admins always manage them."
 		>
-			<div class="border-border bg-card flex flex-wrap items-center gap-4 rounded-xl border p-4">
+			<div class="bg-tint flex flex-wrap items-center gap-4 rounded-xl p-4">
 				<div class="min-w-0 flex-1">
 					<p class="text-foreground text-sm font-medium">Default member access</p>
 					<p class="text-muted-foreground text-sm">
@@ -166,7 +166,7 @@
 		</SettingsSection>
 
 		<SettingsSection title="Policies" description="Members can be given exceptions on the Members tab.">
-			<ul class="border-border bg-card divide-border flex flex-col divide-y rounded-xl border">
+			<ul class="bg-tint divide-border flex flex-col divide-y rounded-xl">
 				{#each toggles as t (t.key)}
 					<li class="flex items-center gap-4 p-4">
 						<div class="min-w-0 flex-1">
@@ -209,7 +209,7 @@
 				? "Deletes the organization, every project in it and all their files, for everyone."
 				: "You lose access to the organization's projects. Your personal projects are untouched."}
 		>
-			<div class="border-border bg-card flex items-center gap-4 rounded-xl border p-4">
+			<div class="bg-tint flex items-center gap-4 rounded-xl p-4">
 				<p class="text-muted-foreground min-w-0 flex-1 text-sm">This cannot be undone.</p>
 				<Button variant="destructive" size="sm" onclick={() => (confirmOpen = true)}>
 					{#if isOwner}<IconTrash /> Delete{:else}<IconLogout /> Leave{/if}

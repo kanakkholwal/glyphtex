@@ -297,6 +297,11 @@
 	}
 
 	async function onDrop(event: DragEvent): Promise<void> {
+		// The Import tab's own drop zone already took this drop.
+		if (event.defaultPrevented) {
+			dragging = false;
+			return;
+		}
 		event.preventDefault();
 		dragging = false;
 		if (!event.dataTransfer) return;
@@ -317,7 +322,7 @@
 		dragging = true;
 	}
 
-	async function handleCreate(): Promise<string | void> {
+	async function handleCreate(name?: string): Promise<string | void> {
 		const orgId = cloudSession.activeOrgId;
 		if (orgId) {
 			try {
@@ -328,7 +333,7 @@
 						data: f.data ?? encoder.encode(f.text ?? "")
 					}))
 				);
-				const created = await cloud.projects.import("Untitled", zip, orgId);
+				const created = await cloud.projects.import(name ?? "Untitled", zip, orgId);
 				track("document_created", { source: "blank", location: "workspace" });
 				await refreshRemote();
 				return CLOUD + created.project.id;
@@ -338,7 +343,7 @@
 			}
 		}
 		try {
-			const project = await createProject("Untitled", starterFiles());
+			const project = await createProject(name ?? "Untitled", starterFiles());
 			track("document_created", { source: "blank", location: "workspace" });
 			await refresh();
 			void requestPersistence();
@@ -353,14 +358,18 @@
 	let templatesLoading = $state(false);
 	let catalogRequested = false;
 
-	$effect(() => {
-		if (scope !== "templates" || catalogRequested) return;
+	function ensureCatalog(): void {
+		if (catalogRequested) return;
 		catalogRequested = true;
 		templatesLoading = true;
 		loadTemplateCatalog()
 			.then((list) => (templates = list))
 			.catch((error) => report(error, "Could not load the templates."))
 			.finally(() => (templatesLoading = false));
+	}
+
+	$effect(() => {
+		if (scope === "templates") ensureCatalog();
 	});
 
 	async function createFromTemplate(id: string): Promise<string | void> {
@@ -550,6 +559,9 @@
 			{templatesLoading}
 			{templatePreview}
 			onusetemplate={createFromTemplate}
+			onrequesttemplates={ensureCatalog}
+			{importing}
+			{dragging}
 			templatesLead={activeOrgId ? orgTemplatesLead : undefined}
 			onopen={open}
 			onrename={rename}
@@ -564,6 +576,7 @@
 			page={settingsPage}
 			onimport={() => zipInput?.click()}
 			onimportfolder={() => folderInput?.click()}
+			onimportzip={(file) => void runImport(() => importZipFile(file), "import_zip")}
 			onclone={cloneRepo}
 			onupload={cloudEnabled && cloudSession.signedIn ? upload : undefined}
 			{account}

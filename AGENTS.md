@@ -126,6 +126,15 @@ re-run that isn't needed is a no-op. npm goes out via trusted publishing (OIDC),
 
 ---
 
+### Components: registry first, custom last
+
+- Before writing UI, search the baby-ui registry (`mcp__baby-ui__search_components`, or baby-ui.nexonauts.com/components): base components, blocks (hero, feature, FAQ, CTA, footer, mega navbar, page header, comparison table, stats), advanced and animated parts. Use them through their props and variants.
+- Build custom only when nothing fits, and write the gap to `.local/baby-ui-gaps.md` so it can be sent upstream as feedback. When touching code that hand-builds something the registry covers (tabs, progress, spinner, skeleton, collapsible, file upload, radio cards), replace it.
+- Fix looks at the component variant or the CSS variable in `packages/ui/src/app.css`, never with a per-call-site class override.
+- Motion is part of done: content swaps ease (`@glyphtex/ui/auto-height`), state changes use the base transition rule, nothing snaps. The workspace must meet this.
+
+---
+
 ## 3. State: single source of truth & defined data flow
 
 State bugs come from the *same fact living in two places* and drifting. The rule: **each piece of

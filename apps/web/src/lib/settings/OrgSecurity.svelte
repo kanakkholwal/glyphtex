@@ -173,7 +173,7 @@
 			title="Single sign-on"
 			description="Members sign in with your identity provider. Each domain is proven with a DNS record before it can sign anyone in."
 		>
-			<ul class="border-border bg-card divide-border flex flex-col divide-y rounded-xl border">
+			<ul class="bg-tint divide-border flex flex-col divide-y rounded-xl">
 				{#each providers as p (p.providerId)}
 					<li class="flex flex-col gap-3 p-4">
 						<div class="flex items-center gap-3">
@@ -306,7 +306,7 @@
 					<Button variant="ghost" size="sm" class="self-start" onclick={() => (fresh = null)}>Done</Button>
 				</div>
 			{/if}
-			<ul class="border-border bg-card divide-border flex flex-col divide-y rounded-xl border">
+			<ul class="bg-tint divide-border flex flex-col divide-y rounded-xl">
 				{#each scim.connections as c (c.connectionId)}
 					<li class="flex items-center gap-3 p-4">
 						<IconKey size={16} class="text-muted-foreground shrink-0" aria-hidden="true" />

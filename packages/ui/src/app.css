@@ -23,9 +23,17 @@
 	--accent-foreground: var(--foreground);
 	/* Stays the light brand in dark mode so white text on brand panels keeps its contrast. */
 	--brand-panel: #025eb8;
-	/* Form control edges need 3:1 on the page (WCAG 1.4.11): 3.45:1 on white. Hairlines keep --border. */
-	--input: #8a8a8a;
-	--border-strong: #6b6b6b;
+	/* Workspace depth without borders: a tinted container and a raised surface that sits in it. */
+	--tint: oklch(96.6% 0.003 265);
+	--tint-hover: oklch(94.4% 0.004 265);
+	--raised: oklch(100% 0 0);
+	/* Cards on the sidebar, which sits one step off the page tone. */
+	--well: oklch(100% 0 0);
+	--well-hover: oklch(98.4% 0.002 265);
+	/* Fields are a tinted fill with a soft hairline; the high-contrast blocks below restore strong edges. */
+	--field: var(--tint);
+	--input: oklch(90% 0.003 265);
+	--border-strong: oklch(80% 0.004 265);
 
 	/* Legacy roles, mapped onto baby-ui until the pages and workbench stop using them. */
 	--canvas: var(--muted);
@@ -82,8 +90,15 @@
 .dark {
 	--brand: #59aaf8;
 	--brand-fg: #0a0a0a;
-	--input: #6b6b6b;
-	--border-strong: #8a8a8a;
+	/* The getting-started card is the reference: every raised surface shares its tone. */
+	--well: oklch(21.5% 0.004 265);
+	--well-hover: oklch(25% 0.005 265);
+	--raised: var(--well);
+	--tint: oklch(19% 0.004 265);
+	--tint-hover: oklch(22.5% 0.005 265);
+	--field: var(--tint);
+	--input: oklch(31% 0.005 265);
+	--border-strong: oklch(41% 0.006 265);
 	--canvas: var(--background);
 	--workspace: var(--card);
 	--sidebar: var(--background);
@@ -97,6 +112,11 @@
 
 @theme inline {
 	--color-canvas: var(--canvas);
+	--color-tint: var(--tint);
+	--color-tint-hover: var(--tint-hover);
+	--color-raised: var(--raised);
+	--color-well: var(--well);
+	--color-well-hover: var(--well-hover);
 	--color-placeholder: var(--placeholder);
 	--color-primary-active: var(--primary-active);
 	--color-brand-panel: var(--brand-panel);
@@ -512,6 +532,39 @@
 
 /* baby-ui navigation-menu motion, copied from the registry. The registry.css here predates it, and
    the newer one leaks dark values into light mode, so the rules live in this layer for now. */
+@layer base {
+	/* State changes ease by default, so hover, focus, selection and press never snap. A component's
+	   own transition utility wins over this base rule. */
+	a,
+	button,
+	summary,
+	input,
+	textarea,
+	select,
+	[role="tab"],
+	[role="radio"],
+	[role="menuitem"] {
+		transition-property:
+			color, background-color, border-color, box-shadow, opacity, scale, translate;
+		transition-duration: var(--duration-fast);
+		transition-timing-function: var(--ease-out);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		a,
+		button,
+		summary,
+		input,
+		textarea,
+		select,
+		[role="tab"],
+		[role="radio"],
+		[role="menuitem"] {
+			transition-duration: 0ms;
+		}
+	}
+}
+
 @keyframes nav-menu-from-start {
 	from {
 		opacity: 0;
@@ -571,6 +624,122 @@
 @media (prefers-reduced-motion: reduce) {
 	.nav-menu-content,
 	.nav-menu-viewport {
+		animation: none;
+	}
+}
+
+/* baby-ui progress styles, from the registry item's own css. registry.css predates the component,
+   so without these the fill scales from its centre and the indeterminate sweep never moves. */
+.progress-fill {
+	transform-origin: left center;
+	transition: transform var(--duration-spring-snappy) var(--ease-spring-snappy);
+}
+.progress-ring {
+	transition:
+		stroke-dasharray var(--duration-spring-snappy) var(--ease-spring-snappy),
+		transform var(--duration-spring-snappy) var(--ease-spring-snappy);
+}
+.progress-gloss {
+	background-image: linear-gradient(
+		90deg,
+		transparent 0%,
+		color-mix(in oklab, currentColor 40%, transparent) 16%,
+		color-mix(in oklab, currentColor 80%, transparent) 50%,
+		color-mix(in oklab, currentColor 40%, transparent) 84%,
+		transparent 100%
+	);
+	animation:
+		progress-gloss-move 1.55s cubic-bezier(0.24, 0.04, 0.2, 1) infinite,
+		progress-gloss-fade 1.55s cubic-bezier(0.24, 0.04, 0.2, 1) infinite,
+		progress-gloss-scale 1.55s cubic-bezier(0.24, 0.04, 0.2, 1) infinite;
+}
+.progress-spin {
+	animation: spinner 1.15s linear infinite;
+}
+@keyframes progress-gloss-move {
+	from {
+		translate: -44% 0;
+	}
+	to {
+		translate: 238% 0;
+	}
+}
+@keyframes progress-gloss-fade {
+	0%,
+	100% {
+		opacity: 0;
+	}
+	14%,
+	84% {
+		opacity: 0.92;
+	}
+}
+@keyframes progress-gloss-scale {
+	0% {
+		scale: 0.94 1;
+	}
+	50% {
+		scale: 1 1;
+	}
+	100% {
+		scale: 0.96 1;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.progress-gloss,
+	.progress-spin {
+		animation: none;
+	}
+}
+
+/* Decorative dot fields breathe: each solid or ring dot fades between two opacities on its own beat. */
+.dot-twinkle {
+	opacity: 0.7;
+	animation: dot-twinkle 5s ease-in-out infinite;
+}
+@keyframes dot-twinkle {
+	0%,
+	100% {
+		opacity: 0.25;
+	}
+	50% {
+		opacity: 0.85;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.dot-twinkle {
+		animation: none;
+	}
+}
+
+/* baby-ui loading-screen motion, from the registry item's own css (registry.css predates it). */
+.loading-screen-breathe {
+	animation: loading-screen-breathe 1.6s ease-in-out infinite;
+}
+.loading-screen-dot {
+	animation: loading-screen-dot 1.2s ease-in-out infinite;
+}
+@keyframes loading-screen-breathe {
+	50% {
+		opacity: 0.55;
+		transform: scale(0.94);
+	}
+}
+@keyframes loading-screen-dot {
+	0%,
+	80%,
+	100% {
+		opacity: 0.25;
+		transform: translateY(0);
+	}
+	40% {
+		opacity: 1;
+		transform: translateY(-3px);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.loading-screen-breathe,
+	.loading-screen-dot {
 		animation: none;
 	}
 }

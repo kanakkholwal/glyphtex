@@ -19,7 +19,11 @@ export const searchInput = tv({
 	variants: {
 		variant: {
 			default: {},
-			pill: { root: "rounded-full" }
+			pill: { root: "rounded-full" },
+			// Borderless and tonal, like a select trigger, for toolbars on tinted surfaces.
+			soft: {
+				root: "border-transparent bg-foreground/[0.05] hover:border-transparent hover:bg-foreground/[0.08] has-[:focus-visible]:border-transparent has-[:focus-visible]:bg-foreground/[0.08]"
+			}
 		}
 	},
 	defaultVariants: { variant: "default" }

@@ -87,7 +87,7 @@
 </script>
 
 {#if !cloudEnabled}
-	<Empty class="border-border rounded-xl border">
+	<Empty class="bg-tint rounded-xl">
 		<EmptyHeader>
 			<EmptyMedia variant="icon"><IconCloudOff /></EmptyMedia>
 			<EmptyTitle>No server connected</EmptyTitle>
@@ -97,7 +97,7 @@
 		</EmptyHeader>
 	</Empty>
 {:else if !cloudSession.user}
-	<Empty class="border-border rounded-xl border">
+	<Empty class="bg-tint rounded-xl">
 		<EmptyHeader>
 			<EmptyMedia variant="icon"><IconLogin /></EmptyMedia>
 			<EmptyTitle>You're not signed in</EmptyTitle>
@@ -120,7 +120,7 @@
 	{@const user = cloudSession.user}
 	<div class="flex flex-col gap-10">
 		<SettingsSection title="Profile" description="How collaborators see you on shared projects.">
-			<div class="border-border bg-background flex flex-wrap items-center gap-4 rounded-xl border p-4">
+			<div class="bg-tint flex flex-wrap items-center gap-4 rounded-xl p-4">
 				<Avatar size="lg">
 					{#if user.image}<AvatarImage src={user.image} alt="" />{/if}
 					<AvatarFallback>{initials(user.name || user.email)}</AvatarFallback>
@@ -143,7 +143,7 @@
 			title="Sync"
 			description="Documents always live in this browser first. Sync decides when copies go to the server."
 		>
-			<div class="border-border bg-card flex flex-wrap items-center gap-4 rounded-xl border p-4">
+			<div class="bg-tint flex flex-wrap items-center gap-4 rounded-xl p-4">
 				<div class="min-w-0 flex-1">
 					<p class="text-foreground text-sm font-medium">
 						{sync.mode === "automatic" ? "Automatic" : "Manual"}
@@ -177,14 +177,14 @@
 					Export all
 				</Button>
 			{/snippet}
-			<p class="border-border bg-background text-muted-foreground rounded-xl border p-4 text-sm">
+			<p class="bg-tint text-muted-foreground rounded-xl p-4 text-sm">
 				One zip with a folder for every cloud project you own, text and images included.
 			</p>
 		</SettingsSection>
 
 		<SettingsSection title="Delete account" description="There is no recycle bin and no grace period.">
 			<div
-				class="border-border bg-background flex flex-wrap items-center gap-4 rounded-xl border p-4"
+				class="bg-tint flex flex-wrap items-center gap-4 rounded-xl p-4"
 			>
 				<p class="text-muted-foreground min-w-0 flex-1 text-sm">
 					Permanently deletes your account, every project you own and all their files. Projects

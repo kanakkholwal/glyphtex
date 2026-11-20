@@ -124,9 +124,9 @@
 	<RowsSkeleton rows={6} label="Loading the audit log" />
 {:else}
 	<div class="flex flex-col gap-10">
-		<section aria-label="Usage" class="border-border bg-card grid grid-cols-2 gap-px overflow-hidden rounded-xl border sm:grid-cols-5">
+		<section aria-label="Usage" class="bg-tint grid grid-cols-2 gap-px overflow-hidden rounded-xl sm:grid-cols-5">
 			{#each tiles as t (t.label)}
-				<div class="bg-background flex flex-col gap-1 p-4">
+				<div class="bg-raised flex flex-col gap-1 p-4">
 					<span class="text-muted-foreground text-xs">{t.label}</span>
 					<span class="text-foreground text-2xl font-semibold tabular-nums">{t.value}</span>
 				</div>
@@ -140,7 +140,7 @@
 				</Button>
 			{/snippet}
 			{#if events.length === 0}
-				<p class="border-border bg-card text-muted-foreground rounded-xl border p-4 text-sm">
+				<p class="bg-tint text-muted-foreground rounded-xl p-4 text-sm">
 					Nothing recorded yet.
 				</p>
 			{:else}

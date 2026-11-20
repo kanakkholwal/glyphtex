@@ -77,11 +77,11 @@
 		description="Connect GitHub, GitLab or Bitbucket to sync a project with a repository. Each person connects their own account."
 	>
 		{#if offered.length === 0}
-			<p class="border-border bg-background text-muted-foreground rounded-xl border p-4 text-sm">
+			<p class="bg-tint text-muted-foreground rounded-xl p-4 text-sm">
 				Git sync isn't set up on this server. An admin adds an OAuth app for a host in the server settings.
 			</p>
 		{:else}
-			<ul class="border-border bg-background divide-border divide-y rounded-xl border">
+			<ul class="bg-tint divide-border divide-y rounded-xl">
 				{#each offered as host (host)}
 					{@const Icon = HOSTS[host].icon}
 					<li class="flex items-center gap-3 p-4">

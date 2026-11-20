@@ -30,7 +30,14 @@
 	import * as Sidebar from '@glyphtex/ui/sidebar';
 	import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@glyphtex/ui/empty';
 	import { SearchInput } from '@glyphtex/ui/search-input';
-	import { settings } from '@glyphtex/ui/settings';
+	import { Input } from '@glyphtex/ui/input';
+	import { Tabs, TabsContent, TabsList, TabsTrigger } from '@glyphtex/ui/tabs';
+	import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@glyphtex/ui/collapsible';
+	import { Progress } from '../ui/progress';
+	import { Spinner } from '@glyphtex/ui/spinner';
+	import { Skeleton } from '@glyphtex/ui/skeleton';
+	import { FileUpload, FileUploadDropzone, FileUploadError } from '../ui/file-upload';
+	import { autoHeight } from '../../lib/auto-height';
 	import {
 		Table,
 		TableBody,
@@ -40,6 +47,7 @@
 		TableRow
 	} from '@glyphtex/ui/table';
 	import { UserMenu, type UserMenuItem } from '@glyphtex/ui/user-menu';
+	import { ThemeToggle as AppThemeToggle } from '../ui/app-theme-toggle';
 	import {
 		IconArrowsSort,
 		IconClock,
@@ -98,6 +106,7 @@
 		onopenfolder,
 		onimport,
 		onimportfolder,
+		onimportzip,
 		onclone,
 		onopen,
 		onrename,
@@ -116,6 +125,9 @@
 		templatePreview,
 		templatesLead,
 		onusetemplate,
+		onrequesttemplates,
+		importing = false,
+		dragging = false,
 		onupload,
 		account,
 		checklist,
@@ -128,13 +140,15 @@
 		platform?: 'web' | 'desktop';
 		projects?: Project[];
 		/** Create a project. Return the new id to have the home open it; no id means the host navigates. */
-		oncreate?: () => string | void | Promise<string | void>;
+		oncreate?: (name?: string) => string | void | Promise<string | void>;
 		/** Open an existing project folder from disk (desktop). */
 		onopenfolder?: () => void;
 		/** Import a .zip project. */
 		onimport?: () => void;
 		/** Import a folder from disk, copying it into the project store. */
 		onimportfolder?: () => void;
+		/** A .zip dropped or picked in the Import tab. */
+		onimportzip?: (file: File) => void;
 		/** Clone a Git repository by URL. */
 		onclone?: (url: string) => void | Promise<void>;
 		onopen?: (id: string) => void;
@@ -167,6 +181,12 @@
 		templatesLead?: Snippet;
 		/** Create a project from a template. Return the new id to have the home open it. */
 		onusetemplate?: (id: string) => string | void | Promise<string | void>;
+		/** The Template tab opened: load the catalog now if the host has not. */
+		onrequesttemplates?: () => void;
+		/** An import is running: the Import tab shows progress. */
+		importing?: boolean;
+		/** Files are being dragged over the page: the Import tab shows the drop target. */
+		dragging?: boolean;
 		/** Copy a browser-only project to the server. Absent hides the action. */
 		onupload?: (id: string) => void;
 		/** Signed-in identity or a sign-in link for the rail menu; absent when the host has no accounts. */
@@ -211,8 +231,54 @@
 	}
 
 	let cloning = $state(false);
+	type StartTab = 'blank' | 'template' | 'import' | 'clone';
+	let startTab = $state<StartTab>('blank');
 	let cloneUrl = $state('');
 	let cloneBusy = $state(false);
+
+	let checklistOpen = $state<boolean | undefined>(undefined);
+	let blankName = $state('');
+	let creating = $state(false);
+	let templateQuery = $state('');
+
+	async function submitBlank() {
+		if (creating) return;
+		creating = true;
+		try {
+			const id = await oncreate?.(blankName.trim() || undefined);
+			if (typeof id === 'string') onopen?.(id);
+		} finally {
+			creating = false;
+		}
+	}
+
+	function selectStartTab(next: StartTab) {
+		startTab = next;
+		if (next === 'template') onrequesttemplates?.();
+	}
+
+	const startTemplates = $derived.by(() => {
+		const q = templateQuery.trim().toLowerCase();
+		const list = q
+			? templates.filter((t) => t.title.toLowerCase().includes(q) || t.category.toLowerCase().includes(q))
+			: templates;
+		return list.slice(0, 6);
+	});
+
+	// What the clone box understands: an https URL with an owner and a repository.
+	const cloneTarget = $derived.by(() => {
+		const raw = cloneUrl.trim();
+		if (!raw) return null;
+		try {
+			const url = new URL(raw);
+			const parts = url.pathname.split('/').filter(Boolean);
+			const repo = (parts[1] ?? '').replace(/\.git$/i, '');
+			const valid = url.protocol === 'https:' && parts.length >= 2 && repo.length > 0;
+			return { valid, host: url.host, owner: parts[0] ?? '', repo };
+		} catch {
+			return { valid: false, host: '', owner: '', repo: '' };
+		}
+	});
 
 	async function submitClone() {
 		const url = cloneUrl.trim();
@@ -281,8 +347,8 @@
 	// Active rail row: the base fill, medium weight and a blue icon, so it reads without colour.
 	// Active scope is a raised pill on the canvas, read by fill and weight rather than colour.
 	const railRow =
-		'h-8 rounded-lg px-2.5 text-sm hover:bg-foreground/[0.04] data-active:bg-foreground/[0.06] data-active:font-medium';
-	const groupLabel = 'text-muted-foreground h-7 px-2.5 text-xs';
+		'h-8 rounded-lg px-2.5 text-sm transition-colors duration-(--duration-fast) hover:bg-foreground/[0.05] data-active:bg-well data-active:font-medium data-active:shadow-(--surface-shadow)';
+	const groupLabel = 'bg-well text-muted-foreground shadow-(--surface-shadow) mx-2 mb-1 h-6 w-fit rounded-md px-2 text-xs';
 
 
 	const templateFilter = new TemplateFilter(() => templates);
@@ -470,7 +536,7 @@
 
 {#snippet projectIcon(p: Project)}
 	<span
-		class="bg-muted text-muted-foreground group-hover:text-foreground grid size-10 shrink-0 place-items-center rounded-lg transition-colors duration-(--duration-fast)"
+		class="bg-raised text-muted-foreground group-hover:text-foreground grid size-10 shrink-0 place-items-center rounded-lg transition-colors duration-(--duration-fast)"
 		style:view-transition-name={projectViewTransitionName(p.id)}
 		style:view-transition-class="morph-surface"
 		aria-hidden="true"
@@ -548,16 +614,16 @@
 {#snippet aboutIcon()}<IconInfoCircle />{/snippet}
 
 {#snippet sectionLabel(id: string, label: string, count: number | null)}
-	<h2 {id} class="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+	<h2 {id} class="text-muted-foreground text-sm font-medium">
 		{label}{#if count !== null}<span class="ml-1.5 tabular-nums">{count}</span>{/if}
 	</h2>
 {/snippet}
 
 {#snippet pill(active: boolean, label: string, onclick: () => void)}
 	<button
-		class="focus-visible:ring-ring h-8 rounded-lg border px-3 text-sm outline-none transition-[background-color,border-color,color] duration-(--duration-fast) ease-(--ease-out) focus-visible:ring-2 {active
-			? 'bg-muted text-foreground border-transparent font-medium'
-			: 'border-border text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]'}"
+		class="focus-visible:ring-ring h-8 rounded-lg px-3 text-sm outline-none transition-[background-color,color] duration-(--duration-fast) ease-(--ease-out) focus-visible:ring-2 {active
+			? 'bg-tint text-foreground font-medium'
+			: 'text-muted-foreground hover:text-foreground hover:bg-tint'}"
 		aria-pressed={active}
 		{onclick}
 	>
@@ -595,6 +661,245 @@
 {/snippet}
 {#snippet cloneAction()}
 	<Button variant="outline" size="sm" onclick={() => (cloning = true)}>Clone</Button>
+{/snippet}
+
+{#snippet scopeLink(item: (typeof scopes)[number])}
+	{@const Icon = item.icon}
+	{@const href = scopeHrefs?.[item.id]}
+	{#if href}
+		{@const count =
+			item.id === 'all'
+				? projects.length
+				: item.id === 'recent'
+					? recent.length
+					: item.id === 'starred'
+						? starred.length
+						: templates.length}
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton isActive={activeScope === item.id} class={railRow} tooltipContent={item.label}>
+				{#snippet child({ props })}
+					<a {href} {...props} aria-current={activeScope === item.id ? 'page' : undefined}>
+						<Icon /><span>{item.label}</span>
+						{#if count > 0 && !loading}
+							<span class="text-muted-foreground ml-auto text-xs tabular-nums group-data-[collapsible=icon]:hidden">{count}</span>
+						{/if}
+					</a>
+				{/snippet}
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
+	{/if}
+{/snippet}
+
+{#snippet startCard()}
+	{@const tabs = [
+		{ id: 'blank', label: 'Blank' },
+		...(onusetemplate && scopeHrefs?.templates ? [{ id: 'template', label: 'Template' }] : []),
+		...(onimport || onimportfolder || onopenfolder ? [{ id: 'import', label: 'Import' }] : []),
+		...(onclone ? [{ id: 'clone', label: 'Clone' }] : [])
+	] as { id: StartTab; label: string }[]}
+	<section aria-labelledby="start-title" class="bg-tint mx-auto w-full max-w-4xl rounded-2xl p-1">
+		<div class="bg-raised rounded-xl p-5 shadow-(--surface-shadow)">
+			<h2 id="start-title" class="sr-only">Start a project</h2>
+			<Tabs variant="soft" bind:value={() => startTab, (v) => selectStartTab(v as StartTab)}>
+				<TabsList aria-label="Start from">
+					{#each tabs as t (t.id)}
+						<TabsTrigger value={t.id}>{t.label}</TabsTrigger>
+					{/each}
+				</TabsList>
+
+				<div class="mt-5" {@attach autoHeight()}>
+					<div class="flow-root">
+						<TabsContent value="blank" class="data-[state=active]:rise">
+							<form
+								class="flex flex-col gap-2 sm:flex-row"
+								onsubmit={(e) => {
+									e.preventDefault();
+									void submitBlank();
+								}}
+							>
+								<label class="sr-only" for="blank-name">Project name</label>
+								<Input id="blank-name" bind:value={blankName} placeholder="Untitled" disabled={creating} class="min-w-0 flex-1" />
+								<Button type="submit" variant="dark" loading={creating} loadingLabel="Creating…">
+									<IconPlus /> Create project
+								</Button>
+							</form>
+							<p class="text-muted-foreground mt-3 text-xs">
+								Starts from a minimal article with a sections folder. You can rename it any time.
+							</p>
+						</TabsContent>
+
+						{#if tabs.some((t) => t.id === 'template')}
+							<TabsContent value="template" class="data-[state=active]:rise">
+								<div class="flex flex-col gap-4">
+									<SearchInput
+										label="Search templates"
+										placeholder="Search theses, papers, CVs, slides…"
+										variant="soft"
+										size="sm"
+										class="w-full sm:w-80"
+										bind:value={templateQuery}
+									/>
+									{#if templatesLoading || (templates.length === 0 && !templateQuery)}
+										<div
+											class="grid grid-cols-2 gap-3 sm:grid-cols-3"
+											aria-busy="true"
+											aria-label="Loading templates"
+											role="status"
+										>
+											{#each { length: 6 } as _, i (i)}
+												<div class="flex flex-col gap-2">
+													<Skeleton class="aspect-[4/3] w-full rounded-xl" />
+													<Skeleton class="h-3 w-3/5" />
+												</div>
+											{/each}
+										</div>
+									{:else if startTemplates.length === 0}
+										<p class="text-muted-foreground text-sm">
+											No templates match “{templateQuery.trim()}”.
+											<button class="text-foreground underline underline-offset-4" onclick={() => (templateQuery = '')}>
+												Clear the search
+											</button>
+										</p>
+									{:else}
+										<ul class="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-3" aria-label="Templates">
+											{#each startTemplates as t, i (t.id)}
+												<TemplateCard template={t} preview={templatePreview?.(t.id) ?? null} priority={i < 3}>
+													{#snippet action()}
+														<Button
+															variant="outline"
+															size="sm"
+															loading={usingTemplate === t.id}
+															loadingLabel="Creating…"
+															disabled={usingTemplate !== null && usingTemplate !== t.id}
+															aria-label={`Use the ${t.title} template`}
+															onclick={() => useTemplate(t.id)}
+														>
+															Use
+														</Button>
+													{/snippet}
+												</TemplateCard>
+											{/each}
+										</ul>
+									{/if}
+									{#if scopeHrefs?.templates}
+										<a
+											href={scopeHrefs.templates}
+											class="text-foreground hover:text-muted-foreground w-fit text-sm underline underline-offset-4"
+										>
+											Browse all {templates.length || ''} templates
+										</a>
+									{/if}
+								</div>
+							</TabsContent>
+						{/if}
+
+						{#if tabs.some((t) => t.id === 'import')}
+							<TabsContent value="import" class="data-[state=active]:rise">
+								{#if importing}
+									<div class="bg-tint flex items-center gap-3 rounded-xl p-6" role="status" aria-live="polite">
+										<Spinner label="Importing" />
+										<div>
+											<p class="text-foreground text-sm font-medium">Importing your project…</p>
+											<p class="text-muted-foreground text-xs">Reading files and skipping build output.</p>
+										</div>
+									</div>
+								{:else}
+									<div class="flex flex-col gap-3">
+										{#if onimportzip}
+											<FileUpload
+												files={[]}
+												accept=".zip"
+												maxFiles={1}
+												onFilesAdded={(added) => added[0] && onimportzip?.(added[0])}
+											>
+												<FileUploadDropzone />
+												<FileUploadError />
+											</FileUpload>
+										{:else if onimport}
+											<Button variant="dark" size="sm" class="w-fit" onclick={() => onimport?.()}>
+												<IconFileImport /> Choose a .zip
+											</Button>
+										{/if}
+										<div class="flex flex-wrap items-center gap-3">
+											{#if onimportfolder || onopenfolder}
+												<Button variant="outline" size="sm" onclick={() => (onimportfolder ? onimportfolder() : onopenfolder?.())}>
+													<IconFolderOpen /> {onimportfolder ? 'Choose a folder' : 'Open a folder'}
+												</Button>
+											{/if}
+											<p class="text-muted-foreground text-xs">
+												Overleaf and Prism exports work. Build output and .gitignore’d files are skipped.
+												{dragging ? 'Drop to import.' : ''}
+											</p>
+										</div>
+									</div>
+								{/if}
+							</TabsContent>
+						{/if}
+
+						{#if tabs.some((t) => t.id === 'clone')}
+							<TabsContent value="clone" class="data-[state=active]:rise">
+								{#if cloneBusy}
+									<div class="bg-tint flex flex-col gap-4 rounded-xl p-6" role="status" aria-live="polite">
+										<div class="flex items-center gap-3">
+											<Spinner label="Cloning" />
+											<div class="min-w-0">
+												<p class="text-foreground truncate text-sm font-medium">
+													Cloning {cloneTarget?.owner}/{cloneTarget?.repo}…
+												</p>
+												<p class="text-muted-foreground text-xs">
+													Fetching from {cloneTarget?.host}. Large repositories take a little while. Everything is stored in this browser.
+												</p>
+											</div>
+										</div>
+										<Progress indeterminate size="sm" label="Cloning repository" />
+									</div>
+								{:else}
+									<form
+										class="flex flex-col gap-2 sm:flex-row"
+										onsubmit={(e) => {
+											e.preventDefault();
+											if (cloneTarget?.valid) void submitClone();
+										}}
+									>
+										<label class="sr-only" for="start-clone-url">Repository URL</label>
+										<Input
+											id="start-clone-url"
+											bind:value={cloneUrl}
+											placeholder="https://github.com/owner/repo.git"
+											spellcheck="false"
+											aria-invalid={cloneTarget && !cloneTarget.valid ? true : undefined}
+											class="min-w-0 flex-1"
+										/>
+										<Button type="submit" variant="dark" disabled={!cloneTarget?.valid}>
+											<IconGitBranch /> Clone
+										</Button>
+									</form>
+									{#if cloneTarget && !cloneTarget.valid}
+										<p class="text-destructive-strong mt-3 text-xs">
+											Use an https:// repository URL, like https://github.com/owner/repo.git
+										</p>
+									{:else if cloneTarget?.valid}
+										<p class="text-muted-foreground mt-3 text-xs">
+											Will clone {cloneTarget.owner}/{cloneTarget.repo} from {cloneTarget.host} into a new project.
+										</p>
+									{:else}
+										<p class="text-muted-foreground mt-3 text-xs">
+											Public repositories over HTTPS. GitHub, GitLab and Bitbucket work.
+										</p>
+									{/if}
+								{/if}
+							</TabsContent>
+						{/if}
+					</div>
+				</div>
+			</Tabs>
+		</div>
+		<p class="text-muted-foreground px-3 pt-2 pb-1 text-xs">
+			{platform === 'web'
+				? 'You can also drop a folder or .zip anywhere on this page.'
+				: 'Projects are folders on this computer.'}
+		</p>
+	</section>
 {/snippet}
 
 {#snippet cloneForm()}
@@ -656,14 +961,22 @@
 	<Sidebar.Root variant="sidebar" collapsible="icon" class="border-transparent">
 		<Sidebar.Header class="gap-2 px-2 pt-3 pb-1">
 			<div class="flex h-9 items-center gap-1 group-data-[collapsible=icon]:justify-center">
-				{#if workspaces}
+				<a
+					href={platform === 'web' ? '/' : '/workspace'}
+					class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+				>
+					<Logo size={20} badge viewTransitionName="app-logo" class="text-sm font-semibold" />
+				</a>
+				<Sidebar.Trigger class="size-8 shrink-0" title="Toggle sidebar (Ctrl/⌘ B)" />
+			</div>
+			{#if workspaces}
 					{@const current = workspaces.items.find((w) => w.id === workspaces.current)}
 					<DropdownMenu>
 						<DropdownMenuTrigger>
 							{#snippet child({ props })}
 								<button
 									{...props}
-									class="hover:bg-accent focus-visible:ring-ring data-[state=open]:bg-accent flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 text-left outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+									class="bg-well hover:bg-well-hover data-[state=open]:bg-well-hover focus-visible:ring-ring flex h-9 w-full min-w-0 items-center gap-2 rounded-lg px-2 text-left shadow-(--surface-shadow) outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
 								>
 									<span
 										class="bg-foreground text-background grid size-5 shrink-0 place-items-center rounded-md text-xs font-semibold"
@@ -695,18 +1008,9 @@
 							{/if}
 						</DropdownMenuContent>
 					</DropdownMenu>
-				{:else}
-					<a
-						href={platform === 'web' ? '/' : '/workspace'}
-						class="hover:bg-foreground/[0.04] focus-visible:ring-ring flex h-9 min-w-0 flex-1 items-center gap-2 rounded-lg px-2 outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
-					>
-						<Logo size={20} badge viewTransitionName="app-logo" class="text-sm font-semibold" />
-					</a>
-				{/if}
-				<Sidebar.Trigger class="size-8 shrink-0" title="Toggle sidebar (Ctrl/⌘ B)" />
-			</div>
+			{/if}
 			<button
-				class="border-border bg-card text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-9 items-center gap-2 rounded-lg border px-2.5 text-sm outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
+				class="bg-well hover:bg-well-hover text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-9 items-center gap-2 rounded-lg px-2.5 text-sm shadow-(--surface-shadow) outline-none transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:hidden"
 				aria-haspopup="dialog"
 				onclick={() => (paletteOpen = true)}
 			>
@@ -716,65 +1020,45 @@
 			</button>
 		</Sidebar.Header>
 
-		<Sidebar.Content class="gap-3 pt-1">
+		<Sidebar.Content class="gap-4 pt-2">
 			<Sidebar.Group class="px-2 py-0">
+				<Sidebar.GroupLabel class={groupLabel}>Library</Sidebar.GroupLabel>
 				<Sidebar.GroupContent>
 					<Sidebar.Menu aria-label="Project scopes" class="gap-0.5">
-						{#each scopes as item (item.id)}
-							{@const Icon = item.icon}
-							{@const href = scopeHrefs?.[item.id]}
-							{#if href}
-								{@const count =
-									item.id === 'all'
-										? projects.length
-										: item.id === 'recent'
-											? recent.length
-											: item.id === 'starred'
-												? starred.length
-												: templates.length}
-								<Sidebar.MenuItem>
-									<Sidebar.MenuButton isActive={activeScope === item.id} class={railRow} tooltipContent={item.label}>
-										{#snippet child({ props })}
-											<a {href} {...props} aria-current={activeScope === item.id ? 'page' : undefined}>
-												<Icon /><span>{item.label}</span>
-												{#if count > 0 && !loading}
-													<span
-														class="text-muted-foreground ml-auto text-xs tabular-nums group-data-[collapsible=icon]:hidden"
-														>{count}</span
-													>
-												{/if}
-											</a>
-										{/snippet}
-									</Sidebar.MenuButton>
-								</Sidebar.MenuItem>
-							{/if}
+						{#each scopes.filter((i) => i.id !== 'templates') as item (item.id)}
+							{@render scopeLink(item)}
 						{/each}
-						{#if settingsHref}
-							<Sidebar.MenuItem>
-								<Sidebar.MenuButton isActive={Boolean(page)} class={railRow} tooltipContent="Settings">
-									{#snippet child({ props })}
-										<a href={settingsHref} {...props} aria-current={page ? 'page' : undefined}>
-											<IconSettings /><span>Settings</span>
-										</a>
-									{/snippet}
-								</Sidebar.MenuButton>
-							</Sidebar.MenuItem>
-						{/if}
 					</Sidebar.Menu>
 				</Sidebar.GroupContent>
 			</Sidebar.Group>
 
+			{#if scopeHrefs?.templates}
+				<Sidebar.Group class="px-2 py-0">
+					<Sidebar.GroupLabel class={groupLabel}>Explore</Sidebar.GroupLabel>
+					<Sidebar.GroupContent>
+						<Sidebar.Menu aria-label="Explore" class="gap-0.5">
+							{#each scopes.filter((i) => i.id === 'templates') as item (item.id)}
+								{@render scopeLink(item)}
+							{/each}
+						</Sidebar.Menu>
+					</Sidebar.GroupContent>
+				</Sidebar.Group>
+			{/if}
+
 			{#if latest.length > 0}
 				<Sidebar.Group class="px-2 py-0 group-data-[collapsible=icon]:hidden">
-					<Sidebar.GroupLabel class={groupLabel}>Recent</Sidebar.GroupLabel>
+					<Sidebar.GroupLabel class={groupLabel}>Jump back in</Sidebar.GroupLabel>
 					<Sidebar.GroupContent>
 						<Sidebar.Menu aria-label="Recent projects" class="gap-0.5">
 							{#each latest as p (p.id)}
-								<Sidebar.MenuItem>
-									<Sidebar.MenuButton class={railRow} onclick={() => onopen?.(p.id)}>
+								<Sidebar.MenuItem class="group">
+									<Sidebar.MenuButton class="{railRow} pr-9" onclick={() => onopen?.(p.id)}>
 										{#if p.root}<IconFolder />{:else if p.cloud}<IconCloud />{:else}<IconFileText />{/if}
 										<span class="truncate">{p.name}</span>
 									</Sidebar.MenuButton>
+									<div class="absolute top-1/2 right-1 -translate-y-1/2 group-data-[collapsible=icon]:hidden">
+										{@render projectActions(p)}
+									</div>
 								</Sidebar.MenuItem>
 							{/each}
 						</Sidebar.Menu>
@@ -785,47 +1069,46 @@
 
 		<Sidebar.Footer class="gap-2 p-2 group-data-[collapsible=icon]:hidden">
 			{#if checklist && checklistDone < checklist.items.length}
-				<section class="border-border bg-card rounded-xl border p-3" aria-labelledby="checklist-title">
-					<div class="flex items-center justify-between gap-2">
-						<h2 id="checklist-title" class="text-foreground text-sm font-medium">Getting started</h2>
-						<button
-							class="text-muted-foreground hover:text-foreground hover:bg-foreground/[0.06] focus-visible:ring-ring grid size-6 place-items-center rounded-md outline-none focus-visible:ring-2"
-							aria-label="Hide getting started"
-							onclick={() => checklist?.ondismiss()}
-						>
-							<IconX size={14} />
-						</button>
-					</div>
-					<p class="text-muted-foreground mt-0.5 text-xs tabular-nums">
-						{checklistDone} of {checklist.items.length} done
-					</p>
-					<div
-						class="bg-muted mt-2 h-1 overflow-hidden rounded-full"
-						role="progressbar"
-						aria-label="Getting started progress"
-						aria-valuemin={0}
-						aria-valuemax={checklist.items.length}
-						aria-valuenow={checklistDone}
-					>
-						<div
-							class="bg-primary h-full rounded-full transition-[width] duration-(--duration-slow) ease-(--ease-out)"
-							style:width={`${(checklistDone / checklist.items.length) * 100}%`}
-						></div>
-					</div>
-					<ul class="mt-2 flex flex-col gap-1">
-						{#each checklist.items as item (item.id)}
-							<li class="flex items-center gap-2 text-xs">
-								{#if item.done}
-									<IconCircleCheckFilled size={15} class="text-foreground shrink-0" aria-hidden="true" />
-									<span class="text-muted-foreground line-through">{item.label}</span>
-								{:else}
-									<IconCircle size={15} class="text-muted-foreground shrink-0" aria-hidden="true" />
-									<span class="text-foreground">{item.label}</span>
-								{/if}
-								<span class="sr-only">{item.done ? '(done)' : '(to do)'}</span>
-							</li>
-						{/each}
-					</ul>
+				{@const open = checklistOpen ?? checklistDone === 0}
+				{@const next = checklist.items.find((i) => !i.done)}
+				<section class="bg-well rounded-xl p-3 shadow-(--surface-shadow)" aria-labelledby="checklist-title">
+					<Collapsible bind:open={() => open, (v) => (checklistOpen = v)}>
+						<div class="flex items-center justify-between gap-1">
+							<CollapsibleTrigger class="min-w-0 flex-1">
+								<h2 id="checklist-title" class="text-foreground text-sm font-medium">Getting started</h2>
+								<span class="text-muted-foreground text-xs tabular-nums">{checklistDone}/{checklist.items.length}</span>
+							</CollapsibleTrigger>
+							<Button variant="ghost" size="icon-xs" aria-label="Hide getting started" onclick={() => checklist?.ondismiss()}>
+								<IconX />
+							</Button>
+						</div>
+						<Progress
+							value={checklistDone}
+							max={checklist.items.length}
+							size="sm"
+							label="Getting started progress"
+							class="mt-2"
+						/>
+						{#if !open && next}
+							<p class="text-muted-foreground mt-2 truncate text-xs">Next: {next.label}</p>
+						{/if}
+						<CollapsibleContent>
+							<ul class="mt-3 flex flex-col gap-1.5">
+								{#each checklist.items as item (item.id)}
+									<li class="flex items-center gap-2 text-xs">
+										{#if item.done}
+											<IconCircleCheckFilled size={15} class="text-foreground shrink-0" aria-hidden="true" />
+											<span class="text-muted-foreground line-through">{item.label}</span>
+										{:else}
+											<IconCircle size={15} class="text-muted-foreground shrink-0" aria-hidden="true" />
+											<span class="text-foreground">{item.label}</span>
+										{/if}
+										<span class="sr-only">{item.done ? '(done)' : '(to do)'}</span>
+									</li>
+								{/each}
+							</ul>
+						</CollapsibleContent>
+					</Collapsible>
 				</section>
 			{/if}
 
@@ -833,7 +1116,7 @@
 				{@const tight = storagePct >= 80}
 				<!-- Warning past 80%: the browser starts evicting under storage pressure. -->
 				<button
-					class="border-border bg-card hover:bg-accent focus-visible:ring-ring flex flex-col gap-1.5 rounded-xl border p-3 text-left outline-none transition-colors focus-visible:ring-2"
+					class="hover:bg-foreground/[0.05] focus-visible:ring-ring flex flex-col gap-1.5 rounded-lg px-2.5 py-2 text-left outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2"
 					onclick={() => onsettings?.()}
 					aria-label="Browser storage details"
 				>
@@ -843,34 +1126,43 @@
 							{formatBytes(storage.used)} / {formatBytes(storage.total)}
 						</span>
 					</span>
-					<span
-						class="bg-muted h-1 w-full overflow-hidden rounded-full"
-						role="progressbar"
-						aria-label="Local storage used"
-						aria-valuemin={0}
-						aria-valuemax={100}
-						aria-valuenow={Math.round(storagePct)}
-					>
-						<span
-							class="block h-full rounded-full {tight ? 'bg-warning' : 'bg-foreground'}"
-							style:width={`${storage.used > 0 ? Math.max(storagePct, 1) : 0}%`}
-						></span>
-					</span>
+					<Progress
+						value={Math.round(storagePct)}
+						size="sm"
+						tone={tight ? 'destructive' : 'default'}
+						label="Local storage used"
+					/>
 					{#if tight}
 						<span class="text-warning-strong text-xs font-medium">Nearly full. The browser may clear it.</span>
 					{/if}
 				</button>
 			{/if}
 
-			<div class="[&_[data-slot=user-menu-trigger]]:w-full">
-				<UserMenu
-					user={menuUser}
-					items={menuItems}
-					showName
-					align="start"
-					bind:theme={() => settings.appearance, (v) => (settings.appearance = v)}
-					onSignOut={account?.signedIn ? account.onsignout : undefined}
-				/>
+			{#if settingsHref}
+				<Sidebar.Menu aria-label="Settings" class="gap-0.5">
+					<Sidebar.MenuItem>
+						<Sidebar.MenuButton isActive={Boolean(page)} class={railRow} tooltipContent="Settings">
+							{#snippet child({ props })}
+								<a href={settingsHref} {...props} aria-current={page ? 'page' : undefined}>
+									<IconSettings /><span>Settings</span>
+								</a>
+							{/snippet}
+						</Sidebar.MenuButton>
+					</Sidebar.MenuItem>
+				</Sidebar.Menu>
+			{/if}
+
+			<div class="flex items-center gap-1">
+				<div class="min-w-0 flex-1 [&_[data-slot=user-menu-trigger]]:w-full">
+					<UserMenu
+						user={menuUser}
+						items={menuItems}
+						showName
+						align="start"
+						onSignOut={account?.signedIn ? account.onsignout : undefined}
+					/>
+				</div>
+				<AppThemeToggle size="icon" class="text-muted-foreground shrink-0" />
 			</div>
 		</Sidebar.Footer>
 
@@ -889,9 +1181,9 @@
 			</div>
 
 			<div class="mx-auto w-full max-w-6xl px-5 pt-6 pb-20 sm:px-8 md:pt-12 lg:px-12">
-				<header class="flex flex-col gap-1">
-					<h1 class="pixel text-foreground text-2xl md:text-4xl">{page?.title ?? pageTitle}</h1>
-					<p class="text-muted-foreground text-sm">{page?.description ?? pageDescription}</p>
+				<header class="flex flex-col items-center gap-2 text-center">
+					<h1 class="text-foreground text-3xl font-normal tracking-tight md:text-4xl">{page?.title ?? pageTitle}</h1>
+					<p class="text-muted-foreground max-w-xl text-sm">{page?.description ?? pageDescription}</p>
 				</header>
 
 				{#if page}
@@ -969,55 +1261,19 @@
 						{/if}
 					</section>
 				{:else if scope === 'all' && !loading && projects.length === 0}
-					<section
-						aria-labelledby="start-title"
-						class="border-border bg-background mt-10 max-w-2xl rounded-2xl border p-6 shadow-(--surface-shadow)"
-					>
-						<h2 id="start-title" class="text-foreground text-base font-medium">Start your first project</h2>
-						<p class="text-muted-foreground mt-0.5 text-sm">
-							{platform === 'web'
-								? 'Pick a starting point. You can also drop a folder or .zip anywhere on this page.'
-								: 'Pick a starting point. Projects are folders on this computer.'}
-						</p>
-						<ul class="divide-border mt-3 flex flex-col divide-y">
-							{@render startRow(IconFileText, 'Blank project', 'A minimal article with a sections folder.', newAction)}
-							{#if onusetemplate && scopeHrefs?.templates}
-								{@render startRow(
-									IconTemplate,
-									'From a template',
-									'Theses, papers, CVs and slides ready to fill in.',
-									templateAction
-								)}
-							{/if}
-							{#if onimport}
-								{@render startRow(
-									IconFileImport,
-									'Import a .zip',
-									'An Overleaf or Prism export, or any LaTeX project archive.',
-									importAction
-								)}
-							{/if}
-							{#if onimportfolder || onopenfolder}
-								{@render startRow(
-									IconFolderOpen,
-									onimportfolder ? 'Import a folder' : 'Open a folder',
-									'Keeps the folder structure as it is.',
-									folderAction
-								)}
-							{/if}
-							{#if onclone}
-								{@render startRow(IconGitBranch, 'Clone a repository', 'Any public Git URL over HTTPS.', cloneAction)}
-							{/if}
-						</ul>
-						{#if onclone && cloning}{@render cloneForm()}{/if}
-					</section>
+					<div class="mt-10">{@render startCard()}</div>
 				{:else}
-					<section aria-labelledby="projects-label" class="mt-8 flex flex-col gap-3">
-						{@render sectionLabel(
-							'projects-label',
-							pageTitle,
-							loading ? null : query.trim() || location !== 'all' ? filtered.length : scoped.length
-						)}
+					{#if scope === 'all'}<div class="mt-10">{@render startCard()}</div>{/if}
+					<section aria-labelledby="projects-label" class="mx-auto mt-12 flex w-full max-w-4xl flex-col gap-3">
+						{#if scope !== 'all'}
+							{@render sectionLabel(
+								'projects-label',
+								pageTitle,
+								loading ? null : query.trim() || location !== 'all' ? filtered.length : scoped.length
+							)}
+						{:else}
+							<h2 id="projects-label" class="sr-only">{pageTitle}</h2>
+						{/if}
 
 						<div class="flex flex-wrap items-center gap-2">
 							<SearchInput
@@ -1026,6 +1282,7 @@
 								placeholder="Search projects…"
 								shortcut="/"
 								size="sm"
+								variant="soft"
 								class="w-full sm:w-64"
 								bind:value={query}
 							/>
@@ -1040,7 +1297,7 @@
 								<DropdownMenu>
 									<DropdownMenuTrigger>
 										{#snippet child({ props })}
-											<Button {...props} variant="outline" size="icon-sm" aria-label="Sort projects" title="Sort">
+											<Button {...props} variant="secondary" size="icon-sm" aria-label="Sort projects" title="Sort">
 												<IconArrowsSort />
 											</Button>
 										{/snippet}
@@ -1054,12 +1311,12 @@
 									</DropdownMenuContent>
 								</DropdownMenu>
 
-								<div class="border-border flex h-8 items-center rounded-lg border p-0.5" role="group" aria-label="View mode">
+								<div class="bg-tint flex h-8 items-center rounded-lg p-0.5" role="group" aria-label="View mode">
 									{#each [{ id: 'grid', label: 'Grid view', icon: IconLayoutGrid }, { id: 'list', label: 'List view', icon: IconLayoutList }] as const as mode (mode.id)}
 										<button
 											class="focus-visible:ring-ring grid size-7 place-items-center rounded-md outline-none transition-colors duration-(--duration-fast) focus-visible:ring-2 focus-visible:ring-inset {view ===
 											mode.id
-												? 'bg-muted text-foreground'
+												? 'bg-raised text-foreground shadow-(--surface-shadow)'
 												: 'text-muted-foreground hover:text-foreground'}"
 											aria-label={mode.label}
 											aria-pressed={view === mode.id}
@@ -1071,7 +1328,7 @@
 									{/each}
 								</div>
 
-								{#if onimport || onimportfolder || onopenfolder || onclone}
+								{#if scope !== 'all' && (onimport || onimportfolder || onopenfolder || onclone)}
 									<DropdownMenu>
 										<DropdownMenuTrigger>
 											{#snippet child({ props })}
@@ -1094,9 +1351,11 @@
 										</DropdownMenuContent>
 									</DropdownMenu>
 								{/if}
-								<Button variant="dark" size="sm" onclick={handleCreate}>
-									<IconPlus /> New project
-								</Button>
+								{#if scope !== 'all'}
+									<Button variant="dark" size="sm" onclick={handleCreate}>
+										<IconPlus /> New project
+									</Button>
+								{/if}
 							</div>
 						</div>
 
@@ -1110,17 +1369,17 @@
 								role="status"
 							>
 								{#each { length: 6 } as _, i (i)}
-									<div class="border-border flex animate-pulse items-center gap-3 rounded-xl border p-3">
-										<div class="bg-muted size-10 rounded-lg"></div>
+									<div class="bg-tint flex items-center gap-3 rounded-xl p-3">
+										<Skeleton class="size-10 rounded-lg" />
 										<div class="flex flex-1 flex-col gap-1.5">
-											<div class="bg-muted h-3 w-3/5 rounded-full"></div>
-											<div class="bg-muted h-2.5 w-2/5 rounded-full"></div>
+											<Skeleton class="h-3 w-3/5" />
+											<Skeleton class="h-2.5 w-2/5" />
 										</div>
 									</div>
 								{/each}
 							</div>
 						{:else if filtered.length === 0}
-							<Empty class="border-border rounded-xl border">
+							<Empty class="bg-tint rounded-xl">
 								<EmptyHeader>
 									<EmptyMedia variant="icon">
 										{#if query.trim()}<IconSearch />{:else if scope === 'starred'}<IconStar />{:else}<IconClock />{/if}
@@ -1188,7 +1447,7 @@
 							<ul class="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3" aria-label="Projects">
 								{#each filtered as p (p.id)}
 									<li
-										class="group border-border bg-background hover:border-border-strong relative flex items-center gap-3 rounded-xl border p-3 transition-[border-color] duration-(--duration-fast) ease-(--ease-out)"
+										class="group bg-tint hover:bg-tint-hover relative flex items-center gap-3 rounded-xl p-3 transition-colors duration-(--duration-fast) ease-(--ease-out)"
 									>
 										{@render projectIcon(p)}
 										<div class="min-w-0 flex-1">

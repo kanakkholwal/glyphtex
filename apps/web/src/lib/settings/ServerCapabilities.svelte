@@ -40,7 +40,7 @@
 
 {#if config}
 	<SettingsSection title="This server" description="What the GlyphTeX server you're connected to supports.">
-		<ul class="border-border bg-background divide-border divide-y rounded-xl border">
+		<ul class="bg-tint divide-border divide-y rounded-xl">
 			{#each rows as row (row.name)}
 				<li class="flex items-start gap-3 p-4">
 					{#if row.on}

@@ -28,7 +28,7 @@
 </script>
 
 <SettingsSection title="Password" description="Set or change the password you sign in with.">
-	<div class="border-border bg-background flex flex-wrap items-center gap-4 rounded-xl border p-4">
+	<div class="bg-tint flex flex-wrap items-center gap-4 rounded-xl p-4">
 		<p class="text-muted-foreground min-w-0 flex-1 text-sm">
 			{sent ? `Check ${email} for the link.` : `We'll email a link to ${email} to choose a new password.`}
 		</p>

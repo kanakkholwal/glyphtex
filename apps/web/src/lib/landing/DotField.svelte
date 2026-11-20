@@ -25,7 +25,13 @@
 
 	const dots = $derived.by(() => {
 		const rand = rng(seed);
-		const out: { x: number; y: number; kind: "fill" | "ring" | "faint" }[] = [];
+		const out: {
+			x: number;
+			y: number;
+			kind: "fill" | "ring" | "faint";
+			delay: number;
+			length: number;
+		}[] = [];
 		for (let r = 0; r < rows; r++) {
 			for (let c = 0; c < cols; c++) {
 				const along = (c / cols + r / rows) / 2;
@@ -34,9 +40,11 @@
 				if (band > reach) continue;
 				const roll = rand();
 				const x = flip ? (cols - 1 - c) * STEP : c * STEP;
-				if (roll < 0.08) out.push({ x, y: r * STEP, kind: "fill" });
-				else if (roll < 0.22) out.push({ x, y: r * STEP, kind: "ring" });
-				else if (roll < 0.6) out.push({ x, y: r * STEP, kind: "faint" });
+				if (roll < 0.08)
+					out.push({ x, y: r * STEP, kind: "fill", delay: rand() * 6, length: 4 + rand() * 4 });
+				else if (roll < 0.22)
+					out.push({ x, y: r * STEP, kind: "ring", delay: rand() * 6, length: 5 + rand() * 4 });
+				else if (roll < 0.6) out.push({ x, y: r * STEP, kind: "faint", delay: 0, length: 0 });
 			}
 		}
 		return out;
@@ -50,9 +58,9 @@
 >
 	{#each dots as d (d.x + '-' + d.y)}
 		{#if d.kind === 'fill'}
-			<circle cx={d.x + 4} cy={d.y + 4} r="2.6" fill="currentColor" opacity="0.7" />
+			<circle cx={d.x + 4} cy={d.y + 4} r="2.6" fill="currentColor" class="dot-twinkle" style:animation-delay="{d.delay}s" style:animation-duration="{d.length}s" />
 		{:else if d.kind === 'ring'}
-			<circle cx={d.x + 4} cy={d.y + 4} r="2.4" fill="none" stroke="currentColor" stroke-width="1" opacity="0.45" />
+			<circle cx={d.x + 4} cy={d.y + 4} r="2.4" fill="none" stroke="currentColor" stroke-width="1" class="dot-twinkle" style:animation-delay="{d.delay}s" style:animation-duration="{d.length}s" />
 		{:else}
 			<circle cx={d.x + 4} cy={d.y + 4} r="1.6" fill="currentColor" opacity="0.18" />
 		{/if}

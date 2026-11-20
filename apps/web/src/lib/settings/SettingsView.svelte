@@ -52,8 +52,8 @@
 	});
 </script>
 
-<Tabs variant="soft" bind:value={() => tab, select}>
-	<TabsList aria-label="Settings sections">
+<Tabs variant="soft" class="mx-auto w-full max-w-3xl" bind:value={() => tab, select}>
+	<TabsList aria-label="Settings sections" class="mx-auto">
 		<TabsTrigger value="general">General</TabsTrigger>
 		<TabsTrigger value="account">Account</TabsTrigger>
 		<TabsTrigger value="storage">Storage</TabsTrigger>

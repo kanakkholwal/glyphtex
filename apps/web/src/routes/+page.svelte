@@ -120,34 +120,35 @@
 	<section
 		id="top"
 		aria-labelledby="hero-title"
-		class="relative flex flex-col items-center overflow-hidden px-5 pt-16 pb-14 text-center sm:px-6 lg:px-10 lg:pt-24"
+		class="relative flex flex-col items-center overflow-hidden px-5 pt-20 pb-20 text-center sm:px-6 lg:px-10 lg:pt-32"
 		{@attach viewSection('hero')}
 	>
 		<DotField seed={7} cols={16} rows={26} class="absolute top-6 left-0 hidden w-44 xl:block" />
 		<DotField seed={21} cols={16} rows={26} flip class="absolute top-32 right-0 hidden w-44 xl:block" />
 		<a
 			href={resolve('/compare/overleaf')}
-			class="rise relative inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-(--duration-fast) hover:text-foreground"
+			class="rise bg-tint hover:bg-tint-hover relative inline-flex items-center gap-2 rounded-full py-1 pr-3 pl-1 text-sm text-muted-foreground transition-colors duration-(--duration-fast) hover:text-foreground"
 			onclick={() => track('cta_clicked', { target: 'compare', location: 'hero_badge' })}
 		>
-			Live co-editing, comments and Git sync are here
+			<span class="bg-raised text-foreground rounded-full px-2 py-0.5 text-xs font-medium shadow-(--surface-shadow)">New</span>
+			Live co-editing, comments and Git sync
 			<IconArrowRight class="size-3.5" aria-hidden="true" />
 		</a>
 		<h1
 			id="hero-title"
-			class="rise display relative mt-5 max-w-3xl text-5xl text-foreground sm:text-6xl"
+			class="rise display relative mt-6 max-w-4xl text-5xl text-foreground sm:text-6xl"
 			style:--i={1}
 		>
 			Write LaTeX <span class="text-accent-ink">on your machine.</span>
 		</h1>
 		<p
-			class="rise relative mt-6 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg"
+			class="rise relative mt-7 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg"
 			style:--i={2}
 		>
 			Your document compiles right in the tab: offline if you like, no account, no upload. Bring
 			your Overleaf project and carry on.
 		</p>
-		<div class="rise relative mt-8 flex flex-wrap items-center justify-center gap-2" style:--i={3}>
+		<div class="rise relative mt-10 flex flex-wrap items-center justify-center gap-2" style:--i={3}>
 			<Button
 				href={resolve('/workspace')}
 				variant="dark"
@@ -160,7 +161,7 @@
 			</Button>
 			<Button
 				href={resolve('/templates')}
-				variant="outline"
+				variant="secondary"
 				size="lg"
 				class="rounded-full px-5"
 				onclick={() => track('cta_clicked', { target: 'templates', location: 'hero' })}
@@ -168,11 +169,11 @@
 				Start from a template
 			</Button>
 		</div>
-		<p class="rise relative mt-4 text-xs text-muted-foreground" style:--i={4}>
+		<p class="rise relative mt-5 text-xs text-muted-foreground" style:--i={4}>
 			Free and open source, GPLv3.
 		</p>
 
-		<div class="rise relative mt-14 w-full max-w-5xl text-left" style:--i={5}>
+		<div class="rise relative mt-20 w-full max-w-5xl text-left" style:--i={5}>
 			<Well>
 				<Image
 					src="/img/product-editor.png"
@@ -241,7 +242,7 @@
 						<div class="mt-auto pt-8">
 							<Button
 								href={resolveAny(a.href)}
-								variant="outline"
+								variant="secondary"
 								size="sm"
 								class="rounded-full text-accent-ink"
 								onclick={() => track('cta_clicked', { target: a.href, location: 'audiences' })}
@@ -342,7 +343,7 @@
 				</Button>
 				<Button
 					href={institutionMailto}
-					variant="outline"
+					variant="secondary"
 					size="lg"
 					class="rounded-full px-5"
 					onclick={() => track('cta_clicked', { target: 'institution', location: 'final_cta' })}

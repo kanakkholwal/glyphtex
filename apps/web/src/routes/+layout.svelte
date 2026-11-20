@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { afterNavigate } from "$app/navigation";
+	import { afterNavigate, onNavigate } from "$app/navigation";
 	import ConsentBanner from "$lib/analytics/ConsentBanner.svelte";
 	import { connectWorkbench, initAnalytics, trackPageview } from "$lib/analytics";
 	import { SITE_NAME } from "$lib/seo/site";
@@ -24,6 +24,18 @@
 		if (!boot) return;
 		boot.dataset.done = "";
 		setTimeout(() => boot.remove(), 200);
+	});
+
+	// Pages cross-fade through the View Transitions API where it exists; reduced motion skips it.
+	onNavigate((navigation) => {
+		if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches)
+			return;
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
+		});
 	});
 
 	// Every view is reported here, including the first: backends are configured

@@ -27,6 +27,7 @@
 	import { engineUpdates } from "$lib/tex/update.svelte";
 	import { checkEngineUpdate } from "$lib/tex/update";
 	import MainFileDialog from "$lib/MainFileDialog.svelte";
+	import EditorLoading from "$lib/workspace/EditorLoading.svelte";
 	import EngineNotices from "$lib/EngineNotices.svelte";
 	import { onWorkingTreeChanged } from "$lib/git";
 	import { binaryMap, toCompileFiles, toGlyphFiles, toNewFiles } from "$lib/storage/bridge";
@@ -533,10 +534,7 @@
 {:else if status === 'error'}
 	{@render notice('Could not open this document', loadError, true)}
 {:else if status === 'loading'}
-	<div class="flex min-h-dvh flex-col items-center justify-center gap-4">
-		<Logo size="lg" />
-		<p class="text-muted-foreground text-md" role="status">Opening document…</p>
-	</div>
+	<EditorLoading onretry={() => reloadToken++} />
 {:else if project && initialFiles}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div

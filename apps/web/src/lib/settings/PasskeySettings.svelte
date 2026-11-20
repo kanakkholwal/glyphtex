@@ -49,7 +49,7 @@
 	title="Passkeys"
 	description="Sign in with your fingerprint, face or a security key instead of a password."
 >
-	<div class="border-border bg-background flex flex-col gap-3 rounded-xl border p-4">
+	<div class="bg-tint flex flex-col gap-3 rounded-xl p-4">
 		{#if loaded && keys.length === 0}
 			<p class="text-muted-foreground text-sm">No passkeys yet.</p>
 		{/if}

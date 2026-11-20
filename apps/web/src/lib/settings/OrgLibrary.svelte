@@ -122,7 +122,7 @@
 			title="Templates"
 			description="Organization projects members can start from. They appear first on the Templates page."
 		>
-			<ul class="border-border bg-card divide-border flex flex-col divide-y rounded-xl border">
+			<ul class="bg-tint divide-border flex flex-col divide-y rounded-xl">
 				{#each templates as t (t.projectId)}
 					<li class="flex items-center gap-4 p-4">
 						<div class="min-w-0 flex-1">
@@ -187,7 +187,7 @@
 					</Button>
 				{/if}
 			{/snippet}
-			<ul class="border-border bg-card divide-border flex flex-col divide-y rounded-xl border">
+			<ul class="bg-tint divide-border flex flex-col divide-y rounded-xl">
 				{#each library.files as f (f.path)}
 					<li class="flex items-center gap-3 px-4 py-3">
 						<IconPackage size={16} class="text-muted-foreground shrink-0" aria-hidden="true" />

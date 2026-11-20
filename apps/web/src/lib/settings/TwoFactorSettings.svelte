@@ -69,7 +69,7 @@
 	title="Two-factor authentication"
 	description="Ask for a code from an authenticator app when you sign in with a password."
 >
-	<div class="border-border bg-card flex flex-col gap-4 rounded-xl border p-4">
+	<div class="bg-tint flex flex-col gap-4 rounded-xl p-4">
 		{#if setup}
 			<div class="flex flex-col gap-4 sm:flex-row">
 				<!-- Generated locally from the otpauth URI; nothing is sent to a QR service. -->

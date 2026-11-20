@@ -68,7 +68,7 @@
 
 <div class="flex flex-col gap-10">
 	<section
-		class="border-border bg-background flex flex-col rounded-xl border"
+		class="bg-tint flex flex-col rounded-xl"
 		aria-labelledby="usage-title"
 	>
 		<div class="flex flex-col gap-4 p-5">

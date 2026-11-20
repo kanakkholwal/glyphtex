@@ -34,14 +34,14 @@
 
 <!-- One card owns the header and the body, so every settings page shares one rhythm. -->
 <section
-	class="bg-card border-border overflow-hidden rounded-2xl border"
+	class="bg-tint rounded-2xl p-1"
 	data-slot="settings-section"
 >
 	{#if label || description || action}
-		<header class="border-border flex items-center justify-between gap-3 border-b px-5 py-3.5">
+		<header class="flex items-center justify-between gap-3 px-4 py-3">
 			<div class="min-w-0">
 				{#if label}
-					<h3 class="text-foreground text-sm font-semibold tracking-tight">{label}</h3>
+					<h3 class="text-foreground text-sm font-medium">{label}</h3>
 				{/if}
 				{#if description}
 					<p class="text-muted-foreground mt-0.5 text-xs leading-relaxed">{description}</p>
@@ -50,7 +50,14 @@
 			{#if action}<div class="shrink-0">{@render action()}</div>{/if}
 		</header>
 	{/if}
-	<div class={cn(divided && 'divide-border divide-y', padded && 'p-5', className)}>
+	<div
+		class={cn(
+			'bg-raised overflow-hidden rounded-xl shadow-(--surface-shadow)',
+			divided && 'divide-border divide-y',
+			padded && 'p-5',
+			className
+		)}
+	>
 		{@render children()}
 	</div>
 </section>

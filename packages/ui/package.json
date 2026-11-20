@@ -190,6 +190,14 @@
 			"svelte": "./src/components/ui/theme.ts",
 			"default": "./src/components/ui/theme.ts"
 		},
+		"./auto-height": {
+			"svelte": "./src/lib/auto-height.ts",
+			"default": "./src/lib/auto-height.ts"
+		},
+		"./loading-screen": {
+			"svelte": "./src/components/blocks/loading-screen/index.ts",
+			"default": "./src/components/blocks/loading-screen/index.ts"
+		},
 		"./utils": {
 			"svelte": "./src/lib/utils.ts",
 			"default": "./src/lib/utils.ts"

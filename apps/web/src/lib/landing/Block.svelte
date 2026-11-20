@@ -32,12 +32,12 @@
 	{id}
 	aria-labelledby="{id}-title"
 	class={cn(
-		'scroll-mt-20 px-5 py-16 sm:px-6 lg:px-10 lg:py-24',
+		'scroll-mt-20 px-5 py-20 sm:px-6 lg:px-10 lg:py-32',
 		className
 	)}
 	{@attach section ? viewSection(section) : noop}
 >
-	<div class="mb-10 flex flex-wrap items-end justify-between gap-6 lg:mb-14">
+	<div class="mb-12 flex flex-wrap items-end justify-between gap-6 lg:mb-16">
 		<div class="max-w-2xl">
 			<h2 id="{id}-title" class="display text-4xl text-foreground sm:text-5xl">
 				{title}{#if accent}{' '}<span class="text-accent-ink">{accent}</span>{/if}

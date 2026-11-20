@@ -35,9 +35,9 @@
 </script>
 
 <li class="group relative flex min-w-0 flex-col gap-2.5">
-	<div class="bg-muted aspect-[4/3] rounded-xl p-1">
+	<div class="bg-tint group-hover:bg-tint-hover aspect-[4/3] rounded-xl p-1 transition-colors duration-(--duration-fast) ease-(--ease-out)">
 		<div
-			class="border-border bg-background group-hover:border-border-strong relative h-full overflow-hidden rounded-lg border transition-[border-color] duration-(--duration-fast) ease-(--ease-out)"
+			class="bg-raised relative h-full overflow-hidden rounded-lg shadow-(--surface-shadow)"
 		>
 			{#if preview}
 				<!-- A sheet resting in the frame: portrait pages crop at the bottom, slides sit centred. -->
@@ -49,7 +49,7 @@
 				>
 					<div
 						class={[
-							"overflow-hidden rounded-sm shadow-(--surface-shadow) ring-1 ring-border transition-transform duration-(--duration-base) ease-(--ease-out) group-hover:-translate-y-0.5 motion-reduce:transition-none",
+							"overflow-hidden rounded-sm shadow-(--surface-shadow) ring-1 ring-border",
 							landscape ? "w-[84%]" : "w-[62%]"
 						]}
 					>

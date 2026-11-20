@@ -5,6 +5,8 @@ import { authClient, unwrap } from "./auth";
 import { cloudEnabled } from "./config";
 import { type SessionOrg, type SessionUser, toSessionUser } from "./session-user";
 
+const ENSURE_TIMEOUT_MS = 2500;
+
 type Status = "idle" | "loading" | "ready" | "error";
 export type OrgSummary = SessionOrg;
 
@@ -54,7 +56,12 @@ class CloudSession {
 		if (!browser || !cloudEnabled) return Promise.resolve();
 		if (this.status === "ready") return Promise.resolve();
 		this.#pending ??= this.refresh().finally(() => (this.#pending = null));
-		return this.#pending;
+		// An unreachable server must not hold up local documents: stop waiting after a moment and
+		// treat the visitor as signed out until the request settles.
+		return Promise.race([
+			this.#pending,
+			new Promise<void>((done) => setTimeout(done, ENSURE_TIMEOUT_MS))
+		]);
 	}
 
 	async refresh(): Promise<void> {
