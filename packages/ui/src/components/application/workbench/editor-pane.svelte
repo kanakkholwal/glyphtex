@@ -190,7 +190,7 @@
 			{/if}
 		</div>
 	{:else if files.activeEditable}
-		<div class="border-border bg-card flex h-10 shrink-0 items-center gap-0.5 border-b px-1.5">
+		<div class="bg-tint flex h-10 shrink-0 items-center gap-0.5 px-2">
 			<Button
 				variant="ghost"
 				size="icon-sm"
@@ -211,7 +211,7 @@
 			>
 				<IconArrowForwardUp />
 			</Button>
-			<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
+			<span class="bg-foreground/10 mx-1.5 h-4 w-px shrink-0" aria-hidden="true"></span>
 			<Button
 				variant={search.showFind ? 'secondary' : 'ghost'}
 				size="icon-sm"
@@ -224,7 +224,7 @@
 			</Button>
 
 			{#if files.activeHasToolbar}
-				<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
+				<span class="bg-foreground/10 mx-1.5 h-4 w-px shrink-0" aria-hidden="true"></span>
 				<!-- Scrolls, not wraps; the mask fades the cut edge, and a plain wheel scrolls
 				     it since there is no scrollbar. -->
 				<div
@@ -242,7 +242,7 @@
 						focusEditor={() => layout.editor?.focusEditor()}
 					/>
 				</div>
-				<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
+				<span class="bg-foreground/10 mx-1.5 h-4 w-px shrink-0" aria-hidden="true"></span>
 			{:else}
 				<div class="flex-1"></div>
 			{/if}

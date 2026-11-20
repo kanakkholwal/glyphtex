@@ -2,7 +2,7 @@ import { tv, type VariantProps } from "tailwind-variants";
 
 export const anchoredSurface = tv({
 	slots: {
-		surface: "border border-border bg-popover text-foreground shadow-(--overlay-shadow)",
+		surface: "bg-popover text-foreground shadow-(--overlay-shadow)",
 		content: ""
 	},
 	variants: {

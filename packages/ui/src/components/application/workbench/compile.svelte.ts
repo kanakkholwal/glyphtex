@@ -186,7 +186,7 @@ export class CompileStore {
 			toast.info(`No PDF location for line ${this.#layout.cursor.line}.`);
 			return;
 		}
-		if (this.#layout.viewMode === "editor") this.#layout.viewMode = "split";
+		this.#layout.showPreview();
 		this.pdfView?.revealLocation(loc);
 	}
 
@@ -209,7 +209,7 @@ export class CompileStore {
 		if (!this.canCompile) {
 			this.compileError = NOT_READY;
 			this.compileStatus = "error";
-			if (manual && this.#layout.viewMode === "editor") this.#layout.viewMode = "split";
+			if (manual) this.#layout.showPreview();
 			return;
 		}
 		// A manual compile commits the current edits first, so it always reflects
@@ -220,7 +220,7 @@ export class CompileStore {
 			this.#pendingRecompile = true;
 			return;
 		}
-		if (manual && this.#layout.viewMode === "editor") this.#layout.viewMode = "split";
+		if (manual) this.#layout.showPreview();
 		this.compiling = true;
 		try {
 			do {

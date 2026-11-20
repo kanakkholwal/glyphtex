@@ -7,6 +7,7 @@
 		DropdownMenuSeparator,
 		DropdownMenuTrigger
 	} from "@glyphtex/ui/dropdown-menu";
+	import { Input } from "../../ui/input";
 	import { Logo } from "@glyphtex/ui/logo";
 	import { settings } from "@glyphtex/ui/settings";
 	import { Spinner } from "@glyphtex/ui/spinner";
@@ -47,7 +48,7 @@
 
 <section class="bg-muted/40 flex min-h-0 min-w-0 flex-1 flex-col">
 	<div
-		class="text-muted-foreground border-border bg-card flex h-9 shrink-0 items-center gap-0.5 overflow-x-auto border-b px-1.5 text-xs"
+		class="text-muted-foreground bg-tint flex h-10 shrink-0 items-center gap-0.5 overflow-x-auto px-2 text-xs"
 	>
 		<Button
 			variant="ghost"
@@ -70,7 +71,7 @@
 				<IconSearch />
 			</Button>
 
-			<span class="bg-border/60 mx-1 h-5 w-px shrink-0"></span>
+			<span class="bg-foreground/10 mx-1.5 h-4 w-px shrink-0"></span>
 
 			<!-- Zoom -->
 			<Button
@@ -117,7 +118,7 @@
 				<IconPlus />
 			</Button>
 
-			<span class="bg-border/60 mx-1 h-5 w-px shrink-0"></span>
+			<span class="bg-foreground/10 mx-1.5 h-4 w-px shrink-0"></span>
 
 			<!-- Page -->
 			<Button
@@ -132,8 +133,9 @@
 			</Button>
 			<label class="flex shrink-0 items-center gap-1">
 				<span class="sr-only">Page</span>
-				<input
-					class="border-border bg-background focus:ring-ring/50 h-6 w-9 rounded border text-center tabular-nums outline-none focus:ring-2"
+				<Input
+					size="xs"
+					class="w-10 px-1 text-center tabular-nums"
 					type="text"
 					inputmode="numeric"
 					value={compile.pdfPage}

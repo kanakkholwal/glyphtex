@@ -52,10 +52,22 @@ export class LayoutStore {
 		this.#activeView.current = value;
 	}
 
+	// Narrow screens (under 768px) show one pane at a time and open the sidebar as a drawer.
+	#compact = $state(false);
+	#mobileNavOpen = $state(false);
+
+	get compact(): boolean {
+		return this.#compact;
+	}
+
 	get panelCollapsed(): boolean {
-		return this.#panelCollapsed.current;
+		return this.#compact ? !this.#mobileNavOpen : this.#panelCollapsed.current;
 	}
 	set panelCollapsed(value: boolean) {
+		if (this.#compact) {
+			this.#mobileNavOpen = !value;
+			return;
+		}
 		if (value === this.#panelCollapsed.current) return;
 		this.#panelCollapsed.current = value;
 		emit("panel_toggled", { panel: "side", open: !value, view: this.activeView });
@@ -71,13 +83,26 @@ export class LayoutStore {
 		emit("editor_mode_changed", { mode: value });
 	}
 
+	/** Split needs room: on a compact screen it reads as source only. */
 	get viewMode(): ViewMode {
-		return this.#viewMode.current;
+		const stored = this.#viewMode.current;
+		return this.#compact && stored === "split" ? "editor" : stored;
 	}
 	set viewMode(value: ViewMode) {
-		if (value === this.#viewMode.current) return;
-		this.#viewMode.current = value;
-		emit("view_changed", { view: value });
+		const next = this.#compact && value === "split" ? "editor" : value;
+		if (next === this.viewMode) return;
+		this.#viewMode.current = next;
+		emit("view_changed", { view: next });
+	}
+
+	/** Make the PDF visible after a compile or a jump to it: beside the source, or instead of it. */
+	showPreview(): void {
+		if (this.viewMode === "editor") this.viewMode = this.#compact ? "preview" : "split";
+	}
+
+	/** Make the source visible after a jump to a problem or a find. */
+	showEditor(): void {
+		if (this.viewMode === "preview") this.viewMode = this.#compact ? "editor" : "split";
 	}
 
 	// Editor handle (bound from CodeEditor), shared with search + compile.
@@ -226,6 +251,24 @@ export class LayoutStore {
 	readonly diffLanguage = $derived(
 		this.diffTarget ? editorLanguage(classifyFile(this.diffTarget.path)) : "plain"
 	);
+
+	/** Tracks the compact breakpoint and, once per session, starts tablets with the sidebar closed. */
+	observeViewport(): (() => void) | void {
+		if (typeof window === "undefined") return;
+		const query = window.matchMedia("(max-width: 767px)");
+		const apply = () => {
+			this.#compact = query.matches;
+			if (!query.matches) this.#mobileNavOpen = false;
+		};
+		apply();
+		const key = "glyphtex:layout:tablet-default";
+		if (window.innerWidth < 1024 && !query.matches && !sessionStorage.getItem(key)) {
+			sessionStorage.setItem(key, "1");
+			this.#panelCollapsed.current = true;
+		}
+		query.addEventListener("change", apply);
+		return () => query.removeEventListener("change", apply);
+	}
 
 	/** Observe the shell width so the sidebar cap tracks the window. Called from
 	 *  the component inside a `$effect`; returns its cleanup. */

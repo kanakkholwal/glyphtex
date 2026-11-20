@@ -154,6 +154,11 @@
 		overflow: clip;
 	}
 
+	/* Dark theme: invert the page bitmap and rotate hue back so colours stay recognisable. Images invert too. */
+	:global(.dark .glyphtex-pdf-container .pdfViewer .page .canvasWrapper) {
+		filter: invert(0.92) hue-rotate(180deg);
+	}
+
 	/* Selection tint via our brand token (not a hardcoded colour). */
 	:global(.glyphtex-pdf-container .textLayer :selection) {
 		background: color-mix(in srgb, var(--color-primary) 30%, transparent);

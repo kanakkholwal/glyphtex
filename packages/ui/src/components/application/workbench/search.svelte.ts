@@ -223,7 +223,7 @@ export class SearchStore {
 	}
 
 	openFind(): void {
-		if (this.#layout.viewMode === "preview") this.#layout.viewMode = "split";
+		this.#layout.showEditor();
 		this.showFind = true;
 		// Seed from the current selection so "find this word" is one keystroke.
 		const sel = this.#layout.editor?.selectedText?.() ?? "";

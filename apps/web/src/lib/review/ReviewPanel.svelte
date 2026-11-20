@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Button } from "@glyphtex/ui/button";
 	import {
 		Sheet,
 		SheetContent,
@@ -8,7 +7,6 @@
 		SheetTitle
 	} from "@glyphtex/ui/sheet";
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from "@glyphtex/ui/tabs";
-	import { IconMessage } from "@tabler/icons-svelte";
 
 	import { cloudSession } from "$lib/cloud/session.svelte";
 	import type { DocumentMeta } from "$lib/documents/store";
@@ -18,18 +16,13 @@
 	import SuggestionsTab from "./SuggestionsTab.svelte";
 	import VersionsTab from "./VersionsTab.svelte";
 
-	let { document }: { document: DocumentMeta } = $props();
-
-	let open = $state(false);
+	// No trigger of its own: the Collaborate menu opens it.
+	let { document, open = $bindable(false) }: { document: DocumentMeta; open?: boolean } = $props();
 	let tab = $state("comments");
 	const available = $derived(Boolean(document.remoteId) && cloudSession.signedIn);
 </script>
 
 {#if available}
-	<Button variant="outline" size="sm" onclick={() => (open = true)}>
-		<IconMessage /> Review
-	</Button>
-
 	<Sheet bind:open>
 		<SheetContent class="flex w-full flex-col gap-4 sm:max-w-md">
 			<SheetHeader>

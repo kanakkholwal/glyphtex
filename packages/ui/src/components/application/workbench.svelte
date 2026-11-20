@@ -6,6 +6,7 @@
 <script lang="ts">
 	import { IconCurrentLocation } from '@tabler/icons-svelte';
 	import { settings } from '@glyphtex/ui/settings';
+	import { Sheet, SheetContent, SheetTitle } from '@glyphtex/ui/sheet';
 	import { Toaster } from '@glyphtex/ui/sonner';
 	import { onDestroy, onMount } from 'svelte';
 
@@ -35,6 +36,7 @@
 	$effect(() => ctrl.armAutoSave());
 	$effect(() => files.persistTabs());
 	$effect(() => layout.observeShell());
+	$effect(() => layout.observeViewport());
 	$effect(() => ctrl.clearSearchHighlight());
 	$effect(() => compile.armAutoCompile());
 	$effect(() => files.watchHead());
@@ -51,38 +53,7 @@
 		'duration-(--duration-slow) ease-(--ease-out) motion-reduce:transition-none';
 </script>
 
-<svelte:window
-	onpointermove={(e) => layout.onPointerMove(e)}
-	onpointerup={() => layout.stopResize()}
-	onkeydown={(e) => ctrl.onKeydown(e)}
-	onblur={() => ctrl.onWindowBlur()}
-/>
-
-<div
-	class="workbench-surface bg-canvas text-foreground flex h-full min-h-0 flex-col overflow-hidden"
->
-	<a
-		href="#main"
-		class="bg-background text-foreground ring-ring sr-only z-50 rounded-md px-3 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-2"
-	>
-		Skip to editor
-	</a>
-	<TitleBar {ctrl} saving={props.saving} saveFile={props.saveFile} actions={props.headerActions} />
-
-	<!-- `flex-row-reverse` docks the panel on the right edge (VS Code's "move
-       primary side bar right"); the editor column keeps the rest. -->
-	<div
-		bind:this={layout.shellEl}
-		class="flex min-h-0 flex-1 px-1.5 pb-1.5 {layout.sidebarRight ? 'flex-row-reverse' : ''}"
-	>
-		<!-- Collapses by width, not unmounting, so panel state survives a toggle. -->
-		<div
-			class="shrink-0 overflow-hidden rounded-xl {PANEL_EASE} {layout.resizingSidebar
-				? 'transition-none'
-				: 'transition-[width]'} {layout.panelCollapsed ? 'pointer-events-none' : ''}"
-			style:width={layout.panelCollapsed ? '0px' : `${layout.sidebarWidth}px`}
-			aria-hidden={layout.panelCollapsed}
-		>
+{#snippet sidePanel(width: number)}
 			<SidePanel
 				view={layout.activeView}
 				files={files.files}
@@ -101,7 +72,7 @@
 				gitRoot={files.scmRoot}
 				onopendiff={(path, staged) => layout.openDiff(path, staged)}
 				activeDiffPath={layout.diffTarget?.path ?? null}
-				widthPx={layout.sidebarWidth}
+				widthPx={width}
 				onopen={(id) => files.openFile(id)}
 				onnew={() => files.newFile()}
 				onnewfolder={() => files.newFolder()}
@@ -153,9 +124,47 @@
 				onreplacecurrent={(r) => search.replaceHit(r)}
 				onreplaceall={(r) => ctrl.replaceAllInProject(r)}
 			/>
-		</div>
+{/snippet}
 
-		{#if !layout.panelCollapsed}
+<svelte:window
+	onpointermove={(e) => layout.onPointerMove(e)}
+	onpointerup={() => layout.stopResize()}
+	onkeydown={(e) => ctrl.onKeydown(e)}
+	onblur={() => ctrl.onWindowBlur()}
+/>
+
+<div
+	class="workbench-surface bg-canvas text-foreground flex h-full min-h-0 flex-col overflow-hidden"
+>
+	<a
+		href="#main"
+		class="bg-background text-foreground ring-ring sr-only z-50 rounded-md px-3 py-2 text-sm font-medium focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-2"
+	>
+		Skip to editor
+	</a>
+	<TitleBar {ctrl} saving={props.saving} saveFile={props.saveFile} actions={props.headerActions} />
+
+	<!-- `flex-row-reverse` docks the panel on the right edge (VS Code's "move
+       primary side bar right"); the editor column keeps the rest. -->
+	<div
+		bind:this={layout.shellEl}
+		class="flex min-h-0 flex-1 px-1.5 pb-1.5 {layout.sidebarRight ? 'flex-row-reverse' : ''}"
+	>
+		<!-- Collapses by width, not unmounting, so panel state survives a toggle. Compact screens open the
+		     same panel as a drawer instead. -->
+		{#if !layout.compact}
+		<div
+			class="shrink-0 overflow-hidden rounded-xl {PANEL_EASE} {layout.resizingSidebar
+				? 'transition-none'
+				: 'transition-[width]'} {layout.panelCollapsed ? 'pointer-events-none' : ''}"
+			style:width={layout.panelCollapsed ? '0px' : `${layout.sidebarWidth}px`}
+			aria-hidden={layout.panelCollapsed}
+		>
+			{@render sidePanel(layout.sidebarWidth)}
+		</div>
+		{/if}
+
+		{#if !layout.compact && !layout.panelCollapsed}
 			<div
 				class="group relative z-10 flex w-1.5 shrink-0 cursor-col-resize touch-none items-center justify-center"
 				role="separator"
@@ -282,6 +291,15 @@
 		</main>
 	</div>
 </div>
+
+{#if layout.compact}
+	<Sheet bind:open={() => !layout.panelCollapsed, (open) => (layout.panelCollapsed = !open)}>
+		<SheetContent side="left" class="w-[min(22rem,90vw)] gap-0 p-0">
+			<SheetTitle class="sr-only">Project files</SheetTitle>
+			{@render sidePanel(352)}
+		</SheetContent>
+	</Sheet>
+{/if}
 
 <CommandPalette
 	bind:open={layout.paletteOpen}

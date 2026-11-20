@@ -119,7 +119,8 @@
 </script>
 
 {#if cloudEnabled}
-	{#if linked}
+	<!-- Automatic sync is quiet: the button only shows for manual sync or when something needs a look. -->
+	{#if linked && (!sync.automatic || syncState === "syncing" || syncState === "error" || conflicts)}
 		<Tooltip delayDuration={300}>
 			<TooltipTrigger>
 				{#snippet child({ props })}

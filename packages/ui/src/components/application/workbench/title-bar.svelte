@@ -19,6 +19,7 @@
 		IconLink,
 		IconLoader2,
 		IconPencil,
+		IconPlayerPlayFilled,
 		IconSearch
 	} from "@tabler/icons-svelte";
 
@@ -202,16 +203,35 @@
 
 	<div class="min-w-2 flex-1"></div>
 
-	{#if ctrl.docMode === 'latex'}
-		<div class="mr-1 hidden shrink-0 items-center gap-0.5 md:flex">
-			{#if compile.canCompile}
-				<CompileControl {ctrl} />
-			{/if}
+	{#if ctrl.docMode === 'latex' && compile.canCompile}
+		<div class="hidden shrink-0 items-center md:flex">
+			<CompileControl {ctrl} />
 		</div>
-		<span class="bg-border mr-1 hidden h-4 w-px shrink-0 md:block" aria-hidden="true"></span>
+		<!-- Below `md` the split button gives way to one icon that carries the status as a dot. -->
+		<Button
+			variant="dark"
+			size="icon-sm"
+			class="relative shrink-0 md:hidden"
+			aria-label={compile.compiling ? 'Compiling' : 'Compile'}
+			title="Compile ({shortcutLabel('compile')})"
+			disabled={compile.compiling}
+			onclick={() => compile.runCompile(true)}
+		>
+			{#if compile.compiling}
+				<IconLoader2 class="animate-spin" />
+			{:else}
+				<IconPlayerPlayFilled />
+			{/if}
+			{#if compile.compileStatus === 'error' && !compile.compiling}
+				<span class="bg-destructive ring-background absolute -top-0.5 -right-0.5 size-2 rounded-full ring-2" aria-hidden="true"></span>
+			{:else if compile.compileStatus === 'success' && !compile.compiling}
+				<span class="bg-success ring-background absolute -top-0.5 -right-0.5 size-2 rounded-full ring-2" aria-hidden="true"></span>
+			{/if}
+		</Button>
+		<span class="bg-border mx-1.5 hidden h-4 w-px shrink-0 md:block" aria-hidden="true"></span>
 	{/if}
 
-	<div class="flex shrink-0 items-center gap-0.5">
+	<div class="flex shrink-0 items-center gap-1">
 		{@render actions?.()}
 		<Tooltip delayDuration={400}>
 			<TooltipTrigger>

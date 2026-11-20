@@ -57,7 +57,7 @@
 	function goToProblem(line: number | null | undefined): void {
 		if (line == null) return;
 		layout.docMode = "latex";
-		if (layout.viewMode === "preview") layout.viewMode = "split";
+		layout.showEditor();
 		layout.editor?.goToLine(line);
 	}
 </script>

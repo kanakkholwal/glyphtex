@@ -61,7 +61,7 @@ export const commandFrame = tv({
 		 */
 		variant: {
 			default: {
-				panel: "rounded-xl border border-border bg-popover shadow-(--overlay-shadow)",
+				panel: "rounded-xl bg-popover shadow-(--overlay-shadow)",
 				body: "rounded-xl bg-popover p-1",
 				inputWrap: "mx-1 mt-1 h-8 rounded-lg bg-foreground/[0.04] px-2",
 				inputIcon: "opacity-50",
@@ -80,7 +80,7 @@ export const commandFrame = tv({
 			},
 			framed: {
 				// A card-toned rim, as on the framed dialog: background and popover are both white in light mode.
-				panel: "rounded-2xl border border-border bg-card p-1 shadow-(--overlay-shadow)",
+				panel: "rounded-2xl bg-card p-1 shadow-(--overlay-shadow)",
 				header: "pt-1.5 pb-2",
 				body: "rounded-[11px] border border-border bg-popover",
 				inputWrap: "border-border border-b px-3",
@@ -106,7 +106,7 @@ export const commandFrame = tv({
 			launcher: {
 				popup: "w-[min(42rem,calc(100vw-2rem))]",
 				// The card-toned shell separates the white input, tray and result islands in light mode.
-				panel: "rounded-3xl border border-border bg-card p-3 shadow-(--overlay-shadow)",
+				panel: "rounded-3xl bg-card p-3 shadow-(--overlay-shadow)",
 				body: "gap-3",
 				bar: "flex-wrap sm:flex-nowrap",
 				inputWrap: "h-11 min-w-48 flex-1 rounded-full border border-border bg-background px-4",
@@ -133,7 +133,7 @@ export const commandFrame = tv({
 			},
 			spotlight: {
 				popup: "w-[min(46rem,calc(100vw-2rem))]",
-				panel: "rounded-2xl border border-border bg-popover p-2 shadow-(--overlay-shadow)",
+				panel: "rounded-2xl bg-popover p-2 shadow-(--overlay-shadow)",
 				filters: "gap-1 self-start px-1 pt-1",
 				pill: "rounded-full bg-foreground/[0.08]",
 				filter:

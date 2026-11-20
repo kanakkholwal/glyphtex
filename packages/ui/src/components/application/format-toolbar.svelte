@@ -216,7 +216,7 @@
 <div class="flex items-center gap-0.5" role="toolbar" aria-label="Formatting">
 	{#each clusters as cluster, ci (ci)}
 		{#if ci > 0}
-			<span class="bg-border/60 mx-1 h-5 w-px shrink-0" aria-hidden="true"></span>
+			<span class="bg-foreground/10 mx-1.5 h-4 w-px shrink-0" aria-hidden="true"></span>
 		{/if}
 		{#if cluster.kind === 'group'}
 			<div class="flex shrink-0 items-center gap-0.5">
