@@ -14,7 +14,7 @@
 		type WorkbenchController
 	} from "@glyphtex/ui/application";
 	import { toast } from "@glyphtex/ui/sonner";
-	import { onMount, type Snippet } from "svelte";
+	import { onMount, type Snippet, untrack } from "svelte";
 	import { SvelteMap } from "svelte/reactivity";
 
 	import { bucket, track, type DocumentSource } from "$lib/analytics";
@@ -103,7 +103,8 @@
 			status = "loading";
 			loadError = "";
 			try {
-				const loaded = await store.load(wanted);
+				// untrack: opening must depend on the document id only, not on session state read inside load.
+				const loaded = await untrack(() => store.load(wanted));
 				if (stale) return;
 				if (!loaded) {
 					status = "missing";

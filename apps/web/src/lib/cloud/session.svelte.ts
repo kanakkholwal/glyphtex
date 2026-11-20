@@ -6,6 +6,7 @@ import { cloudEnabled } from "./config";
 import { type SessionOrg, type SessionUser, toSessionUser } from "./session-user";
 
 const ENSURE_TIMEOUT_MS = 2500;
+const RETRY_AFTER_MS = 15_000;
 
 type Status = "idle" | "loading" | "ready" | "error";
 export type OrgSummary = SessionOrg;
@@ -21,6 +22,7 @@ class CloudSession {
 	#activeOrgId = $state<string | null>(null);
 	#orgs = $state<OrgSummary[]>([]);
 	#pending: Promise<void> | null = null;
+	#failedAt = 0;
 
 	get #server() {
 		const auth = page.data.auth;
@@ -55,6 +57,10 @@ class CloudSession {
 	ensure(): Promise<void> {
 		if (!browser || !cloudEnabled) return Promise.resolve();
 		if (this.status === "ready") return Promise.resolve();
+		// After a failed read, wait before asking again: callers that re-run on this status would loop
+		// forever against an unreachable server.
+		if (this.status === "error" && Date.now() - this.#failedAt < RETRY_AFTER_MS)
+			return Promise.resolve();
 		this.#pending ??= this.refresh().finally(() => (this.#pending = null));
 		// An unreachable server must not hold up local documents: stop waiting after a moment and
 		// treat the visitor as signed out until the request settles.
@@ -81,6 +87,7 @@ class CloudSession {
 			this.#orgs = [];
 			this.#activeOrgId = null;
 			this.#clientStatus = "error";
+			this.#failedAt = Date.now();
 		}
 	}
 
