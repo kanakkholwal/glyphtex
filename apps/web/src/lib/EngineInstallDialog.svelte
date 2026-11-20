@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { Alert, AlertDescription, AlertTitle } from "@glyphtex/ui/alert";
 	import {
 		Dialog,
 		DialogContent,
+		DialogDescription,
+		DialogFooter,
 		DialogHeader,
-		DialogTitle,
-		DialogDescription
+		DialogTitle
 	} from "@glyphtex/ui/dialog";
 	import { Button } from "@glyphtex/ui/button";
 	import { IconCpu, IconAlertTriangle, IconWifiOff } from "@tabler/icons-svelte";
@@ -58,60 +60,56 @@
 	dismissOnBackdrop={false}
 >
 	<DialogContent class="sm:max-w-md">
-		<DialogHeader class="gap-3">
-			<span
-				class="border-border bg-card text-primary grid size-10 place-items-center rounded-lg border"
-				aria-hidden="true"
-			>
-				<IconCpu size={20} />
-			</span>
-			<DialogTitle class="text-base">
-				{update ? "Update the LaTeX compiler" : "Set up the LaTeX compiler"}
-			</DialogTitle>
-			<DialogDescription class="text-sm">
-				{#if update}
-					A newer compiler is available (about {totalMB} MB). It replaces the cached one; your
-					documents are not touched.
-				{:else}
-					GlyphTeX compiles LaTeX right in your browser with the same engine as the desktop app. It
-					downloads once (about {totalMB} MB) and stays cached on this device.
-				{/if}
-			</DialogDescription>
-		</DialogHeader>
+		<div class="flex flex-col gap-5">
+			<DialogHeader class="gap-3">
+				<span class="bg-tint text-primary grid size-10 place-items-center rounded-lg" aria-hidden="true">
+					<IconCpu size={20} />
+				</span>
+				<DialogTitle class="text-base">
+					{update ? "Update the LaTeX compiler" : "Set up the LaTeX compiler"}
+				</DialogTitle>
+				<DialogDescription class="text-sm">
+					{#if update}
+						A newer compiler is available (about {totalMB} MB). It replaces the cached one; your
+						documents are not touched.
+					{:else}
+						GlyphTeX compiles LaTeX right in your browser with the same engine as the desktop app. It
+						downloads once (about {totalMB} MB) and stays cached on this device.
+					{/if}
+				</DialogDescription>
+			</DialogHeader>
 
-		<div class="border-border bg-muted flex items-start gap-3 rounded-xl border p-3">
-			<IconWifiOff size={16} class="text-muted-foreground mt-0.5 shrink-0" aria-hidden="true" />
-			<p class="text-muted-foreground text-xs min-w-0 flex-1">
-				After this, compiling works <span class="text-foreground font-medium">fully offline</span>.
-				Your documents never leave your device.
-			</p>
+			<Alert variant="info">
+				<IconWifiOff aria-hidden="true" />
+				<AlertTitle>Works offline afterwards</AlertTitle>
+				<AlertDescription>
+					After this, compiling works fully offline. Your documents never leave your device.
+				</AlertDescription>
+			</Alert>
+
+			{#if installing}
+				<EngineProgress {progress} label="Compiler download" />
+			{/if}
+
+			{#if error}
+				<Alert variant="destructive">
+					<IconAlertTriangle aria-hidden="true" />
+					<AlertTitle>Download failed</AlertTitle>
+					<AlertDescription>{error}</AlertDescription>
+				</Alert>
+			{/if}
 		</div>
 
-		{#if installing}
-			<EngineProgress {progress} label="Compiler download" />
-		{/if}
-
-		{#if error}
-			<div
-				class="border-destructive/30 bg-destructive/5 flex items-start gap-2 rounded-xl border p-3"
-				role="alert"
-			>
-				<IconAlertTriangle size={16} class="text-destructive-strong mt-0.5 shrink-0" aria-hidden="true" />
-				<p class="text-foreground text-xs min-w-0 flex-1">
-					<span class="font-medium">Download failed.</span>
-					{error}
-				</p>
-			</div>
-		{/if}
-
-		<Button class="w-full sm:ml-auto sm:w-auto" onclick={start} disabled={installing}>
-			{#if installing}
-				Installing…
-			{:else if error}
-				Try again
-			{:else}
-				{update ? "Download and update" : "Download and install"}
-			{/if}
-		</Button>
+		<DialogFooter>
+			<Button onclick={start} disabled={installing}>
+				{#if installing}
+					Installing…
+				{:else if error}
+					Try again
+				{:else}
+					{update ? "Download and update" : "Download and install"}
+				{/if}
+			</Button>
+		</DialogFooter>
 	</DialogContent>
 </Dialog>

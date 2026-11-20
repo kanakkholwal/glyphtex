@@ -198,6 +198,10 @@
 			"svelte": "./src/components/blocks/loading-screen/index.ts",
 			"default": "./src/components/blocks/loading-screen/index.ts"
 		},
+		"./alert": {
+			"svelte": "./src/components/ui/alert/index.ts",
+			"default": "./src/components/ui/alert/index.ts"
+		},
 		"./utils": {
 			"svelte": "./src/lib/utils.ts",
 			"default": "./src/lib/utils.ts"

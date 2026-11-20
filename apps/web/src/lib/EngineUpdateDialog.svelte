@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { Button } from "@glyphtex/ui/button";
+	import { Alert, AlertDescription, AlertTitle } from "@glyphtex/ui/alert";
 	import {
 		Dialog,
 		DialogContent,
 		DialogDescription,
+		DialogFooter,
 		DialogHeader,
 		DialogTitle
 	} from "@glyphtex/ui/dialog";
@@ -56,12 +58,10 @@
 	}
 	dismissOnBackdrop={!installing}
 >
-	<DialogContent class="gap-5 p-6 sm:max-w-md">
+	<DialogContent class="sm:max-w-md">
+		<div class="flex flex-col gap-5">
 		<DialogHeader class="gap-3">
-			<span
-				class="border-border bg-card text-primary grid size-10 place-items-center rounded-lg border"
-				aria-hidden="true"
-			>
+			<span class="bg-tint text-primary grid size-10 place-items-center rounded-lg" aria-hidden="true">
 				<IconRefresh size={20} />
 			</span>
 			<DialogTitle class="text-base">A compiler update is available</DialogTitle>
@@ -73,7 +73,7 @@
 
 		{#if plan}
 			<ul
-				class="border-border bg-muted divide-border flex flex-col divide-y rounded-xl border text-xs"
+				class="bg-tint divide-border flex flex-col divide-y rounded-xl text-xs"
 			>
 				{#if plan.coreChanged}
 					<li class="flex items-center gap-3 px-3 py-2">
@@ -95,27 +95,19 @@
 		{/if}
 
 		{#if error}
-			<div
-				class="border-destructive/30 bg-destructive/5 flex items-start gap-2 rounded-xl border p-3"
-				role="alert"
-			>
-				<IconAlertTriangle
-					size={16}
-					class="text-destructive-strong mt-0.5 shrink-0"
-					aria-hidden="true"
-				/>
-				<p class="text-foreground min-w-0 flex-1 text-xs">
-					<span class="font-medium">The update failed.</span>
-					{error}
-				</p>
-			</div>
+			<Alert variant="destructive">
+				<IconAlertTriangle aria-hidden="true" />
+				<AlertTitle>The update failed</AlertTitle>
+				<AlertDescription>{error}</AlertDescription>
+			</Alert>
 		{/if}
+		</div>
 
-		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+		<DialogFooter>
 			<Button variant="ghost" onclick={later} disabled={installing}>Later</Button>
 			<Button variant="dark" onclick={start} disabled={installing}>
 				{installing ? "Updating…" : error ? "Try again" : "Update now"}
 			</Button>
-		</div>
+		</DialogFooter>
 	</DialogContent>
 </Dialog>

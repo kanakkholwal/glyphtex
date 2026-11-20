@@ -200,7 +200,7 @@
 		ctrl = controller;
 		const entry = project?.entry;
 		const match = controller.files.files.find((f) => f.name === entry);
-		if (match) void controller.files.setMain(match.id);
+		if (match) void controller.files.setMain(match.id, { silent: true });
 	}
 
 	// Asked once per project, before the first compile can build the wrong file.
@@ -220,7 +220,7 @@
 			.then((next) => {
 				project = { ...project, ...next };
 				const match = ctrl?.files.files.find((f) => f.name === path);
-				if (match) void ctrl?.files.setMain(match.id);
+				if (match) void ctrl?.files.setMain(match.id, { silent: true });
 			})
 			.catch(() => toast.error("Could not set the main file."));
 	}

@@ -1184,14 +1184,17 @@ export class FileStore {
 	}
 
 	/** Mark a file as the compile target and remember it in the `.glyx` manifest. */
-	async setMain(id: string): Promise<void> {
+	async setMain(id: string, options: { silent?: boolean } = {}): Promise<void> {
 		const changed = this.mainId !== id;
 		this.mainId = id;
 		if (changed) emit("main_file_set");
 		await this.writeManifest();
-		toast.success(
-			`${baseName(this.files.find((f) => f.id === id)?.name ?? "")} is now the main file`
-		);
+		// Only a real change the user made is news; restoring the stored entry on open is not.
+		if (changed && !options.silent) {
+			toast.success(
+				`${baseName(this.files.find((f) => f.id === id)?.name ?? "")} is now the main file`
+			);
+		}
 	}
 
 	// The `.glyx` manifest (project root, named after the folder) records the main
