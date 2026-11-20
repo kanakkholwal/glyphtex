@@ -11,6 +11,7 @@
 	import type { Block, Inline, ListBlock, MarkKind, Patch, TexDoc } from '@glyphtex/ui/tex-doc';
 	import { Button } from '@glyphtex/ui/button';
 	import {
+		IconAdjustments,
 		IconAlertTriangle,
 		IconCode,
 		IconGripVertical,
@@ -27,6 +28,7 @@
 	import BlockMenu, { type BlockAction } from './visual/block-menu.svelte';
 	import FloatCard from './visual/float-card.svelte';
 	import { inlinesToHtml } from './visual/inline-dom';
+	import { loadMath, renderMath } from './visual/math.svelte';
 	import SelectionToolbar from './visual/selection-toolbar.svelte';
 	import SlashMenu, { type InsertPick } from './visual/slash-menu.svelte';
 
@@ -43,6 +45,7 @@
 
 	type TexDocModule = typeof import('@glyphtex/ui/tex-doc');
 	let tex = $state<TexDocModule>();
+	void loadMath();
 	let doc = $state<TexDoc>();
 	let parseError = $state<string>();
 
@@ -687,7 +690,18 @@
 	const PROSE_KINDS = ['heading', 'paragraph', 'quote'];
 	/** Kinds with an editable projection, when their fidelity allows it. */
 	const EDITABLE_KINDS = [...PROSE_KINDS, 'list'];
-	const QUOTE_ENVIRONMENTS = ['quote', 'quotation', 'verse'];
+	/** amsthm's "plain" style sets these in italics; definitions and remarks stay upright. */
+	const PLAIN_STATEMENTS = new Set([
+		'theorem',
+		'lemma',
+		'proposition',
+		'corollary',
+		'conjecture',
+		'claim',
+		'fact',
+		'observation'
+	]);
+	const QUOTE_ENVIRONMENTS =['quote', 'quotation', 'verse'];
 	/** Where a `\usepackage` a control needs would go. */
 	const preambleEnd = $derived(doc?.preamble.span.to ?? 0);
 	/** The block whose menu is open, so its gutter stays put under the popover. */
@@ -962,6 +976,88 @@
 		>
 			LaTeX
 		</span>
+		{@render readonlyProse(block)}
+	</div>
+{/snippet}
+
+<!-- Blocks inside a container: shown as they read, opened as source to change. -->
+<!-- Typeset when the renderer is ready, the source until then or when it does not parse. -->
+{#snippet displayMath(source: string)}
+	{@const typeset = renderMath(source, true)}
+	{#if typeset}
+		<div class="glyphtex-math my-3 overflow-x-auto text-center text-[1.05em]">{@html typeset}</div>
+	{:else}
+		<pre class="text-muted-foreground my-3 overflow-x-auto text-center font-mono text-sm whitespace-pre-wrap">{source.trim()}</pre>
+	{/if}
+{/snippet}
+
+{#snippet nested(block: Block)}
+	{#if block.kind === 'math'}
+		{@render displayMath(block.source)}
+	{:else if block.kind === 'code'}
+		<pre
+			class="bg-muted text-foreground mt-3 overflow-x-auto rounded-lg px-4 py-3 font-mono text-xs whitespace-pre-wrap">{block.source.trim()}</pre>
+	{:else if block.kind === 'float'}
+		<p class="text-muted-foreground mt-3 text-sm">
+			{block.environment}{block.caption ? `: ${block.caption}` : ''}
+		</p>
+	{:else if block.kind === 'container'}
+		{@render containerView(block)}
+	{:else if block.kind === 'raw'}
+		<p class="text-muted-foreground mt-3 font-mono text-xs">{block.label}</p>
+	{:else}
+		{@render readonlyProse(block)}
+	{/if}
+{/snippet}
+
+{#snippet containerView(block: Extract<Block, { kind: 'container' }>)}
+	{#if block.role === 'abstract'}
+		<div class="mx-auto mt-6 max-w-[88%]">
+			<p class="text-center text-sm font-semibold">{block.title ?? block.label}</p>
+			{#each block.body as inner, k (k)}{@render nested(inner)}{/each}
+		</div>
+	{:else if block.role === 'proof'}
+		<div class="mt-4">
+			<p class="leading-[1.6]"><em>{block.title ?? block.label}.</em></p>
+			{#each block.body as inner, k (k)}{@render nested(inner)}{/each}
+			<p class="text-muted-foreground text-right" aria-hidden="true">&#8718;</p>
+		</div>
+	{:else if block.role === 'theorem'}
+		<div class="bg-tint mt-5 rounded-lg px-4 py-3">
+			<p class="leading-[1.6]">
+				<strong class="font-semibold">{block.label}.</strong>
+				{#if block.title}<span class="text-muted-foreground">({block.title})</span>{/if}
+			</p>
+			<div class={PLAIN_STATEMENTS.has(block.environment) ? 'italic' : ''}>
+				{#each block.body as inner, k (k)}{@render nested(inner)}{/each}
+			</div>
+		</div>
+	{:else if block.role === 'bibliography'}
+		<div class="mt-6">
+			<p class="text-sm font-semibold">{block.label}</p>
+			<ol class="mt-2 space-y-1.5 text-sm">
+				{#each block.entries ?? [] as entry (entry.key)}
+					<li class="leading-[1.5]">
+						<span class="text-primary mr-1.5">[{entry.key}]</span>{entry.text}
+					</li>
+				{/each}
+			</ol>
+		</div>
+	{:else}
+		<div
+			class={block.environment === 'center'
+				? 'text-center'
+				: block.environment === 'flushright'
+					? 'text-right'
+					: ''}
+		>
+			{#each block.body as inner, k (k)}{@render nested(inner)}{/each}
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet readonlyProse(block: Block)}
+	<div>
 		{#if block.kind === 'heading'}
 			<BlockEditor
 				readonly
@@ -1096,25 +1192,17 @@
 		</svelte:element>
 	{:else if block.kind === 'math'}
 		{@const numbered = !!block.environment && !block.environment.endsWith('*')}
-		<div class="group/box border-border bg-muted mt-5 overflow-hidden rounded-lg border">
-			<div
-				class="text-muted-foreground border-border flex items-center gap-2 border-b px-3 py-1.5 text-xs font-medium"
-			>
-				<IconMathFunction size={14} />
-				{block.environment ?? 'display maths'}
-				<div class="ml-auto">
-					{@render boxControls([
-						{
-							label: 'Numbered',
-							active: numbered,
-							run: () =>
-								applyBlockPatch([tex?.setMathNumbered(files.source, block, !numbered) ?? null])
-						}
-					])}
-				</div>
+		<div class="group/box relative mt-4">
+			{@render displayMath(block.source)}
+			<div class="absolute top-0 right-0 opacity-0 transition-opacity group-hover/box:opacity-100 group-focus-within/box:opacity-100">
+				{@render boxControls([
+					{
+						label: 'Numbered',
+						active: numbered,
+						run: () => applyBlockPatch([tex?.setMathNumbered(files.source, block, !numbered) ?? null])
+					}
+				])}
 			</div>
-			<pre
-				class="text-foreground overflow-x-auto px-4 py-3.5 text-center text-sm whitespace-pre-wrap">{block.source.trim()}</pre>
 		</div>
 	{:else if block.kind === 'code'}
 		{@const listing = block.environment.startsWith('lst')}
@@ -1177,13 +1265,17 @@
 			onatom={(element) => openAtom(index, element)}
 			onopensource={() => openInSource(block)}
 		/>
+	{:else if block.kind === 'container'}
+		{@render containerView(block)}
 	{:else}
-		<div class="border-border bg-muted/40 mt-4 rounded-lg border border-dashed px-3 py-2">
+		<div class="bg-tint mt-4 rounded-lg px-3 py-2">
 			<div class="text-muted-foreground flex items-center gap-2 text-xs">
 				<IconAlertTriangle size={13} class="shrink-0" />
 				<span class="font-medium">{block.label}</span>
-				<span class="text-muted-foreground">kept exactly as written</span>
+				<span>not shown here, kept as written</span>
 			</div>
+			<pre
+				class="text-muted-foreground mt-1 line-clamp-3 font-mono text-xs whitespace-pre-wrap">{block.source.trim()}</pre>
 		</div>
 	{/if}
 {/snippet}
@@ -1251,25 +1343,16 @@
 			{#if doc.preamble.packages.length || doc.preamble.documentClass}
 				<!-- The preamble is summarised, never block-edited: macro definitions
 				     and package options have no faithful block representation. -->
-				<details class="border-border bg-muted mb-6 rounded-lg border px-3.5 py-2.5">
-					<summary class="text-muted-foreground cursor-pointer text-xs font-medium">
-						Document setup
-						{#if doc.preamble.documentClass}<span class="text-muted-foreground"
-								>· {doc.preamble.documentClass}</span
-							>{/if}
-					</summary>
-					<div class="text-muted-foreground mt-2 space-y-1 text-xs">
-						{#if doc.preamble.packages.length}
-							<p><span class="text-muted-foreground">Packages:</span> {doc.preamble.packages.join(', ')}</p>
-						{/if}
-						{#if doc.preamble.macros.length}
-							<p>
-								<span class="text-muted-foreground">Defines:</span>
-								{doc.preamble.macros.map((m) => `\\${m}`).join(', ')}
-							</p>
-						{/if}
-					</div>
-				</details>
+				<button
+					type="button"
+					class="bg-tint hover:bg-tint-hover text-muted-foreground ease-(--ease-out) mb-6 flex w-full items-center gap-2 rounded-lg px-3.5 py-2.5 text-left text-xs font-medium transition-colors duration-(--duration-fast)"
+					onclick={() => layout.toggleRightPanel('setup')}
+				>
+					<IconAdjustments size={14} />
+					Document setup
+					{#if doc.preamble.documentClass}<span>· {doc.preamble.documentClass}</span>{/if}
+					<span class="ml-auto tabular-nums">{doc.preamble.packages.length} packages</span>
+				</button>
 			{/if}
 
 			<article

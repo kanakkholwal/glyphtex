@@ -59,6 +59,8 @@ export { SECTION_COMMANDS } from "./types";
 export type {
 	Block,
 	CodeBlock,
+	ContainerBlock,
+	ContainerRole,
 	Fidelity,
 	FloatBlock,
 	HeadingBlock,

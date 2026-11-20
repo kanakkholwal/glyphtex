@@ -5,6 +5,7 @@
 	import SettingsView from "../side-panel/settings-view.svelte";
 	import type { WorkbenchController } from "./controller.svelte";
 	import NotesPanel from "./notes-panel.svelte";
+	import SetupPanel from "./setup-panel.svelte";
 
 	/** Notes and Settings share one docked column on the right edge, in both
 	 *  editors. Two rail entries and two layout columns became one of each. */
@@ -15,7 +16,13 @@
 	const notes = $derived(ctrl.notes);
 
 	const open = $derived(layout.rightPanel !== "none");
-	const title = $derived(layout.rightPanel === "notes" ? "Notes" : "Settings");
+	const title = $derived(
+		layout.rightPanel === "notes"
+			? "Notes"
+			: layout.rightPanel === "setup"
+				? "Document setup"
+				: "Settings"
+	);
 
 	let shellStatus = $state<"idle" | "busy" | "done">("idle");
 	const canRegisterShell = $derived(Boolean(files.project?.registerShellIntegration));
@@ -87,6 +94,10 @@
 					{shellStatus}
 					onaddshell={addShellIntegration}
 				/>
+			</div>
+		{:else if layout.rightPanel === 'setup'}
+			<div class="min-h-0 flex-1 overflow-y-auto px-1.5 pb-3 text-sm">
+				<SetupPanel {ctrl} />
 			</div>
 		{:else}
 			<NotesPanel {notes} chromeless />

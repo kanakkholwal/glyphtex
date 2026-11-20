@@ -138,7 +138,7 @@
 					class="w-10 px-1 text-center tabular-nums"
 					type="text"
 					inputmode="numeric"
-					value={compile.pdfPage}
+					value={String(compile.pdfPage)}
 					onchange={jump}
 					onkeydown={(e) => {
 						if (e.key === 'Enter') e.currentTarget.blur();

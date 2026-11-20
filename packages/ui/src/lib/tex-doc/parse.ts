@@ -1,14 +1,19 @@
 import { parseMinimal } from "@unified-latex/unified-latex-util-parse";
 
 import { printBlock } from "./print";
+import type { ContainerSpec } from "./registry/types";
 import {
-	SECTION_COMMANDS,
-	type Block,
-	type Inline,
-	type MarkKind,
-	type Span,
-	type TexDoc
-} from "./types";
+	containerOf,
+	isCite,
+	isCodeEnv,
+	isFloatEnv,
+	isMathEnv,
+	isQuoteEnv,
+	isRef,
+	listShape,
+	markOf
+} from "./registry";
+import { SECTION_COMMANDS, type Block, type Inline, type Span, type TexDoc } from "./types";
 
 /**
  * LaTeX source → editable blocks.
@@ -32,45 +37,6 @@ type Node = {
 const SECTION_LEVEL: Record<string, number> = Object.fromEntries(
 	SECTION_COMMANDS.map((name, level) => [name, level])
 );
-
-const LIST_ENVS = new Set(["itemize", "enumerate", "description"]);
-const MATH_ENVS = new Set([
-	"equation",
-	"equation*",
-	"align",
-	"align*",
-	"gather",
-	"gather*",
-	"multline",
-	"multline*",
-	"displaymath",
-	"eqnarray",
-	"eqnarray*",
-	"flalign",
-	"flalign*"
-]);
-const CODE_ENVS = new Set(["verbatim", "verbatim*", "lstlisting", "minted", "Verbatim", "alltt"]);
-const FLOAT_ENVS = new Set(["figure", "figure*", "table", "table*", "wrapfigure"]);
-const QUOTE_ENVS = new Set(["quote", "quotation", "verse"]);
-
-const INLINE_MARKS: Record<string, MarkKind> = {
-	textbf: "bold",
-	bfseries: "bold",
-	textit: "italic",
-	emph: "emph",
-	texttt: "code",
-	textsc: "smallcaps",
-	underline: "underline",
-	uline: "underline",
-	sout: "strike",
-	st: "strike",
-	textsf: "sans",
-	textsuperscript: "superscript",
-	textsubscript: "subscript"
-};
-
-const CITE = /^(no)?cite[a-zA-Z]*$/;
-const REF = /^(eq|auto|page|name|c|C|v)?ref$/;
 
 function offsetOf(node: Node | undefined, end = false): number | null {
 	const pos = end ? node?.position?.end : node?.position?.start;
@@ -222,7 +188,7 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 			const next = nodes[i + 1];
 			const arg = next?.type === "group" ? next : null;
 
-			const mark = INLINE_MARKS[name];
+			const mark = markOf(name);
 			if (mark && arg) {
 				out.push({
 					kind: "mark",
@@ -233,7 +199,7 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 				i++;
 				continue;
 			}
-			if (CITE.test(name) && arg) {
+			if (isCite(name) && arg) {
 				const raw = literal(children(arg), source);
 				out.push({
 					kind: "cite",
@@ -247,7 +213,7 @@ function parseInlines(nodes: Node[], source: string): Inline[] {
 				i++;
 				continue;
 			}
-			if (REF.test(name) && arg) {
+			if (isRef(name) && arg) {
 				out.push({
 					kind: "ref",
 					command: name,
@@ -419,7 +385,67 @@ function envBody(text: string): string {
 		.replace(/\r?\n?[ \t]*\\end\s*\{[^}]*\}[ \t]*$/, "");
 }
 
-function blockFor(node: Node, source: string, span: Span): Block | null {
+/** `\newtheorem{name}{Label}` in the preamble: statements the document defined itself. */
+function userTheorems(source: string): Map<string, ContainerSpec> {
+	const out = new Map<string, ContainerSpec>();
+	const re = /\\newtheorem\s*(\*?)\s*\{([^}]+)\}\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}/g;
+	let m: RegExpExecArray | null;
+	while ((m = re.exec(source)))
+		out.set(m[2].trim(), { role: "theorem", label: m[3].trim() || m[2].trim(), numbered: !m[1] });
+	return out;
+}
+
+/** The blocks of a run of nodes: headings, environments and paragraphs, in order. */
+function buildBlocks(nodes: Node[], source: string, extra: Map<string, ContainerSpec>): Block[] {
+	const blocks: Block[] = [];
+	let inlineRun: Node[] = [];
+	const flushParagraphs = () => {
+		if (inlineRun.length) blocks.push(...paragraphs(inlineRun, source));
+		inlineRun = [];
+	};
+
+	for (let i = 0; i < nodes.length; i++) {
+		const node = nodes[i];
+
+		const heading = headingAt(nodes, i, source);
+		if (heading) {
+			flushParagraphs();
+			blocks.push(heading.block);
+			i = heading.next;
+			continue;
+		}
+
+		const span = spanOf(node);
+		const block = span ? blockFor(node, source, span, extra) : null;
+		if (block) {
+			flushParagraphs();
+			blocks.push(block);
+			continue;
+		}
+		inlineRun.push(node);
+	}
+	flushParagraphs();
+	return foldLabels(blocks);
+}
+
+/** `\bibitem{key} text …` entries of a `thebibliography` body. */
+function bibEntries(text: string): { key: string; text: string }[] {
+	return text
+		.split(/\\bibitem\b/)
+		.slice(1)
+		.map((part) => {
+			const m = /^\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}([\s\S]*)$/.exec(part);
+			return { key: m?.[1].trim() ?? "", text: (m?.[2] ?? part).replace(/\s+/g, " ").trim() };
+		})
+		.filter((e) => e.key);
+}
+
+function blockFor(
+	node: Node,
+	source: string,
+	span: Span,
+	extra: Map<string, ContainerSpec> = new Map()
+): Block | null {
 	// A verbatim environment is its own node type too, and its body arrives as one
 	// raw string, which is the point: nothing inside it is LaTeX.
 	if (node.type === "verbatim") {
@@ -447,18 +473,19 @@ function blockFor(node: Node, source: string, span: Span): Block | null {
 	if (node.type === "environment") {
 		const name = envName(node);
 		const body = children(node);
-		if (LIST_ENVS.has(name)) {
+		const list = listShape(name);
+		if (list) {
 			return {
 				kind: "list",
 				environment: name,
-				ordered: name === "enumerate",
-				description: name === "description",
-				items: listItems(body, source, name === "description"),
+				ordered: list.ordered,
+				description: list.description,
+				items: listItems(body, source, list.description),
 				span,
 				fidelity: "native"
 			};
 		}
-		if (MATH_ENVS.has(name)) {
+		if (isMathEnv(name)) {
 			return {
 				kind: "math",
 				source: literal(body, source),
@@ -467,7 +494,7 @@ function blockFor(node: Node, source: string, span: Span): Block | null {
 				fidelity: "source"
 			};
 		}
-		if (CODE_ENVS.has(name)) {
+		if (isCodeEnv(name)) {
 			// Sliced from the source, not from the child nodes: a listing's body is
 			// not LaTeX, so it has no nodes to read positions off.
 			return {
@@ -478,7 +505,7 @@ function blockFor(node: Node, source: string, span: Span): Block | null {
 				fidelity: "source"
 			};
 		}
-		if (QUOTE_ENVS.has(name)) {
+		if (isQuoteEnv(name)) {
 			return {
 				kind: "quote",
 				environment: name,
@@ -487,7 +514,7 @@ function blockFor(node: Node, source: string, span: Span): Block | null {
 				fidelity: "native"
 			};
 		}
-		if (FLOAT_ENVS.has(name)) {
+		if (isFloatEnv(name)) {
 			const text = source.slice(span.from, span.to);
 			const captionAt = commandArg(text, "caption");
 			return {
@@ -496,6 +523,29 @@ function blockFor(node: Node, source: string, span: Span): Block | null {
 				caption: captionAt ? text.slice(captionAt.from, captionAt.to) : null,
 				label: /\\label\s*\{([^}]*)\}/.exec(text)?.[1] ?? null,
 				graphic: /\\includegraphics(?:\[[^\]]*\])?\s*\{([^}]*)\}/.exec(text)?.[1] ?? null,
+				span,
+				fidelity: "source"
+			};
+		}
+		const spec = containerOf(name) ?? extra.get(name);
+		if (spec) {
+			const text = source.slice(span.from, span.to);
+			const title = /^\\begin\s*\{[^}]*\}\s*\[([^\]]*)\]/.exec(text)?.[1]?.trim() || null;
+			// The option's own nodes ("[", text, "]") lead the children; the body starts after them.
+			let start = 0;
+			if (title) {
+				const close = body.findIndex((n) => n.type === "string" && n.content === "]");
+				if (close >= 0) start = close + 1;
+			}
+			return {
+				kind: "container",
+				environment: name,
+				role: spec.role,
+				label: spec.label,
+				title,
+				numbered: spec.numbered ?? false,
+				body: spec.role === "bibliography" ? [] : buildBlocks(body.slice(start), source, extra),
+				entries: spec.role === "bibliography" ? bibEntries(envBody(text)) : undefined,
 				span,
 				fidelity: "source"
 			};
@@ -667,38 +717,11 @@ export function parseTexDoc(source: string): TexDoc {
 				}
 			: { from: 0, to: source.length };
 
-	const blocks: Block[] = [];
-	let inlineRun: Node[] = [];
-	const flushParagraphs = () => {
-		if (inlineRun.length) blocks.push(...paragraphs(inlineRun, source));
-		inlineRun = [];
-	};
-
-	for (let i = 0; i < bodyNodes.length; i++) {
-		const node = bodyNodes[i];
-
-		const heading = headingAt(bodyNodes, i, source);
-		if (heading) {
-			flushParagraphs();
-			blocks.push(heading.block);
-			i = heading.next;
-			continue;
-		}
-
-		const span = spanOf(node);
-		const block = span ? blockFor(node, source, span) : null;
-		if (block) {
-			flushParagraphs();
-			blocks.push(block);
-			continue;
-		}
-		inlineRun.push(node);
-	}
-	flushParagraphs();
+	const blocks = buildBlocks(bodyNodes, source, userTheorems(source));
 
 	return {
 		preamble: scanPreamble(source, documentEnv ? (offsetOf(documentEnv) ?? 0) : 0),
-		blocks: guardFidelity(foldLabels(blocks), source),
+		blocks: guardFidelity(blocks, source),
 		bodySpan,
 		fragment: !documentEnv
 	};

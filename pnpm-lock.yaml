@@ -420,6 +420,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      katex:
+        specifier: ^0.19.1
+        version: 0.19.1
       lib0:
         specifier: ^0.2.120
         version: 0.2.120
@@ -466,6 +469,9 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.20(tailwindcss@4.3.1)
+      '@types/katex':
+        specifier: ^0.16.8
+        version: 0.16.8
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
@@ -477,7 +483,7 @@ importers:
         version: 5.56.7(@typescript-eslint/types@8.61.0)
       svelte-check:
         specifier: ^4.6.0
-        version: 4.6.0(picomatch@4.0.7)(svelte@5.56.7(@typescript-eslint/types@8.61.0))(typescript@6.0.3)
+        version: 4.6.0(picomatch@4.0.4)(svelte@5.56.7(@typescript-eslint/types@8.61.0))(typescript@6.0.3)
       tailwindcss:
         specifier: ^4.2.1
         version: 4.3.1
@@ -3010,6 +3016,9 @@ packages:
   '@types/hast@3.0.5':
     resolution: {integrity: sha512-rp/ezSWaD1m44dPKICGhiskI13nVr7qTloFwDa/IYkhhf5nzwP+zIQcIJh3WIFSBOy/H1PzB40jPjMDksN4F+g==}
 
+  '@types/katex@0.16.8':
+    resolution: {integrity: sha512-trgaNyfU+Xh2Tc+ABIb44a5AYUpicB3uwirOioeOkNPPbmgRNtcWyDeeFRzjPZENO9Vq8gvVqfhaaXWLlevVwg==}
+
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
 
@@ -3331,6 +3340,10 @@ packages:
   commander@14.0.3:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
     engines: {node: '>=20'}
+
+  commander@15.1.0:
+    resolution: {integrity: sha512-cgnQ88TRrWcC7pVq46RzJVRMktu3W2RcbnoidnfBsl1bmDCBwJS/udcIZpKoCrbAYYaCqsz1yZCVIgbIaU3ddQ==}
+    engines: {node: '>=22.12.0'}
 
   commander@7.2.0:
     resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
@@ -4029,6 +4042,10 @@ packages:
 
   katex@0.16.47:
     resolution: {integrity: sha512-Eeo8Ys1doU1z+x8AZsPpQu+p/QcZBI5PeOo7QGQdy2x2m0MU/hYagBbGOmXwr5KVbEfVuWv9LpnQWeehogurjg==}
+    hasBin: true
+
+  katex@0.19.1:
+    resolution: {integrity: sha512-jG8uKntjSEcm2EpQOh0XturpPuuC9r3Sq5HLHdsFdWZT27E672SF19QEi+of0/YeOy15lDgRhKvr5614uRrEfA==}
     hasBin: true
 
   khroma@2.1.0:
@@ -7326,6 +7343,8 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
 
+  '@types/katex@0.16.8': {}
+
   '@types/mdast@4.0.4':
     dependencies:
       '@types/unist': 3.0.3
@@ -7710,6 +7729,8 @@ snapshots:
   comma-separated-tokens@2.0.3: {}
 
   commander@14.0.3: {}
+
+  commander@15.1.0: {}
 
   commander@7.2.0: {}
 
@@ -8484,6 +8505,10 @@ snapshots:
   katex@0.16.47:
     dependencies:
       commander: 8.3.0
+
+  katex@0.19.1:
+    dependencies:
+      commander: 15.1.0
 
   khroma@2.1.0: {}
 
@@ -9495,6 +9520,19 @@ snapshots:
 
   supports-color@10.2.2: {}
 
+  svelte-check@4.6.0(picomatch@4.0.4)(svelte@5.56.7(@typescript-eslint/types@8.61.0))(typescript@6.0.3):
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      '@sveltejs/load-config': 0.1.1
+      chokidar: 4.0.3
+      fdir: 6.5.0(picomatch@4.0.4)
+      picocolors: 1.1.1
+      sade: 1.8.1
+      svelte: 5.56.7(@typescript-eslint/types@8.61.0)
+      typescript: 6.0.3
+    transitivePeerDependencies:
+      - picomatch
+
   svelte-check@4.6.0(picomatch@4.0.7)(svelte@5.56.7(@typescript-eslint/types@8.61.0))(typescript@6.0.3):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -9655,7 +9693,7 @@ snapshots:
 
   tsx@4.23.15:
     dependencies:
-      esbuild: 0.28.1
+      esbuild: 0.28.2
     optionalDependencies:
       fsevents: 2.3.3
 

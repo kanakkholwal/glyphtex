@@ -157,7 +157,7 @@ export const BUILD_HISTORY_LIMIT = 24;
 export type DockTab = "problems" | "logs" | "stats" | "history";
 
 /** What the right-edge column is showing. */
-export type RightPanel = "none" | "notes" | "settings";
+export type RightPanel = "none" | "notes" | "settings" | "setup";
 
 // --- Explorer move / folder conflict prompts --------------------------------
 export type ConflictAction = "replace" | "rename" | "skip" | "merge";

@@ -129,6 +129,29 @@ export type FloatBlock = {
 	graphic: string | null;
 } & BlockBase;
 
+/** How a container is drawn; the registry assigns one per environment. */
+export type ContainerRole = "abstract" | "theorem" | "proof" | "wrapper" | "bibliography";
+
+/**
+ * An environment that wraps blocks: an abstract, a theorem, a proof, `center`, the
+ * bibliography. The body is parsed into blocks so it reads as written rather than as a
+ * placeholder; editing opens the source until nested block editing lands.
+ */
+export type ContainerBlock = {
+	kind: "container";
+	environment: string;
+	role: ContainerRole;
+	/** What to call it: "Theorem", "Lemma", or the abstract's own heading. */
+	label: string;
+	/** `egin{theorem}[Name]`. */
+	title: string | null;
+	/** True when the label gets a counter ("Theorem 1."). */
+	numbered: boolean;
+	body: Block[];
+	/** `ibitem`s of a bibliography, since their body is not paragraphs. */
+	entries?: { key: string; text: string }[];
+} & BlockBase;
+
 /** Anything unmodelled. Never rewritten, never reformatted. */
 export type RawBlock = {
 	kind: "raw";
@@ -145,6 +168,7 @@ export type Block =
 	| CodeBlock
 	| QuoteBlock
 	| FloatBlock
+	| ContainerBlock
 	| RawBlock;
 
 /** The parsed document: a preamble summary plus the body's blocks. */

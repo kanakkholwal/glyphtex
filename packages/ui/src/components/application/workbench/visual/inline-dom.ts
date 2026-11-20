@@ -1,3 +1,4 @@
+import { renderMath } from "./math.svelte";
 import type { Inline, MarkKind } from "@glyphtex/ui/tex-doc";
 
 // Bridges inline runs and a contenteditable. Non-typeable runs (math, refs, macros) are
@@ -34,7 +35,7 @@ const MARK_CLASS: Record<MarkKind, string> = {
 };
 
 const ATOM_CLASS: Record<string, string> = {
-	math: "text-primary bg-primary/5 rounded px-1 py-0.5 text-[0.85em] font-mono",
+	math: "text-foreground",
 	cite: "text-primary",
 	ref: "text-primary",
 	label: "text-muted-foreground text-[0.75em]",
@@ -58,12 +59,14 @@ function atom(
 	command: string,
 	shown: string,
 	title: string,
-	extra = ""
+	extra = "",
+	/** Already-safe markup shown in place of `shown`, such as rendered maths. */
+	html?: string
 ): string {
 	return (
 		`<span class="glyphtex-atom ${ATOM_CLASS[kind] ?? ""}" contenteditable="false"` +
 		` data-atom="${kind}" data-src="${esc(src)}" data-cmd="${esc(command)}"${extra}` +
-		` title="${esc(title)}">${esc(shown)}</span>`
+		` title="${esc(title)}">${html ?? esc(shown)}</span>`
 	);
 }
 
@@ -87,7 +90,9 @@ export function inlinesToHtml(runs: Inline[]): string {
 					run.source,
 					run.paren ? "paren" : "",
 					run.source,
-					`Math: ${run.paren ? `\\(${run.source}\\)` : `$${run.source}$`}`
+					`Math: ${run.paren ? `\\(${run.source}\\)` : `$${run.source}$`}`,
+					"",
+					renderMath(run.source) ?? undefined
 				);
 				break;
 			case "cite": {

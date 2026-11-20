@@ -31,6 +31,7 @@
 		IconLayoutColumns,
 		IconLayoutRows,
 		IconMoon,
+		IconAdjustments,
 		IconNotes,
 		IconSettings,
 		IconSun,
@@ -186,6 +187,9 @@
 		</DropdownMenuCheckboxItem>
 		<DropdownMenuItem onSelect={() => layout.toggleRightPanel('notes')}>
 			<IconNotes class="text-muted-foreground" /> Notes
+		</DropdownMenuItem>
+		<DropdownMenuItem onSelect={() => layout.toggleRightPanel('setup')}>
+			<IconAdjustments class="text-muted-foreground" /> Document setup
 		</DropdownMenuItem>
 		<DropdownMenuItem onSelect={() => layout.toggleRightPanel('settings')}>
 			<IconSettings class="text-muted-foreground" /> Settings

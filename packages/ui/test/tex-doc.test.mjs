@@ -200,3 +200,42 @@ describe("preamble", () => {
 		assert.equal(doc.blocks[0].kind, "heading");
 	});
 });
+
+describe("containers", () => {
+	const parse = (body, pre = "") =>
+		parseTexDoc(`\\documentclass{article}\n${pre}\\begin{document}\n${body}\n\\end{document}\n`);
+
+	test("a theorem keeps its name and parses its body", () => {
+		const [block] = parse(
+			"\\begin{theorem}[Banach]\nEvery $T$ has a fixed point.\n\\end{theorem}"
+		).blocks;
+		assert.equal(block.kind, "container");
+		assert.equal(block.role, "theorem");
+		assert.equal(block.title, "Banach");
+		assert.equal(block.body[0].kind, "paragraph");
+	});
+
+	test("\\newtheorem in the preamble defines a statement", () => {
+		const [block] = parse(
+			"\\begin{claimx}\nText.\n\\end{claimx}",
+			"\\newtheorem{claimx}{Claim X}\n"
+		).blocks;
+		assert.equal(block.kind, "container");
+		assert.equal(block.label, "Claim X");
+	});
+
+	test("a bibliography lists its entries", () => {
+		const [block] = parse(
+			"\\begin{thebibliography}{9}\n\\bibitem{a} Author. Title.\n\\bibitem{b} Other.\n\\end{thebibliography}"
+		).blocks;
+		assert.deepEqual(
+			block.entries.map((e) => e.key),
+			["a", "b"]
+		);
+	});
+
+	test("an unknown environment stays raw", () => {
+		const [block] = parse("\\begin{mystery}\nx\n\\end{mystery}").blocks;
+		assert.equal(block.kind, "raw");
+	});
+});
