@@ -17,7 +17,7 @@
 
 <div class="px-5 py-4">
 	<SettingsField {label} {description} layout="row">
-		<Select type="single" {value} onValueChange={(v) => onchange(v as T)}>
+		<Select type="single" bind:value={() => value, (v) => onchange(v as T)}>
 			<SelectTrigger class="min-w-36 text-body data-[size=default]:h-10" aria-label={label}>
 				{current}
 			</SelectTrigger>

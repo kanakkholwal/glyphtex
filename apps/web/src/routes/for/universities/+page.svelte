@@ -193,6 +193,14 @@
 					<IconMail />
 					Talk to us about a pilot
 				</Button>
+				<Button
+					href={`${resolve('/workspace/sign-in')}?mode=signup&intent=team`}
+					variant="outline"
+					size="lg"
+					onclick={() => track('cta_clicked', { target: 'team_signup', location: 'universities_hero' })}
+				>
+					Create a team workspace
+				</Button>
 				<Button href={resolve('/developers/self-hosting')} variant="outline" size="lg">
 					Self-hosting guide
 					<IconArrowRight />

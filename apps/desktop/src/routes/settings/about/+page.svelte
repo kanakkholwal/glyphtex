@@ -66,10 +66,10 @@
 	<div class="flex flex-col gap-3 px-5 py-4">
 		<SettingsField label="Status" description={updateLine} layout="row">
 			{#if updater.status === 'update-available'}
-				<Button variant="primary" onclick={() => updater.download()}>Download</Button>
+				<Button variant="default" onclick={() => updater.download()}>Download</Button>
 			{:else if updater.status === 'ready'}
 				<Button
-					variant="primary"
+					variant="default"
 					disabled={updater.installing}
 					onclick={() => updater.installAndRelaunch()}
 				>

@@ -28,6 +28,17 @@ export const requireUser = createMiddleware<AppEnv>(async (c, next) => {
 	await next();
 });
 
+// Decision (product): an unverified address can write and keep its own projects, but cannot share, invite or
+// create organizations until it is verified. Only enforced when the server can actually send the mail.
+export const requireVerifiedForWrites = createMiddleware<AppEnv>(async (c, next) => {
+	const { user } = c.var;
+	const guarded = c.req.method !== "GET" && c.req.method !== "HEAD";
+	if (guarded && user && !user.emailVerified && c.var.deps.config.requireEmailVerification) {
+		throw errors.emailUnverified("Verify your email address to share projects and invite people.");
+	}
+	await next();
+});
+
 export function currentUser(c: Context<AppEnv>) {
 	const user = c.var.user;
 	if (!user) throw errors.unauthorized();

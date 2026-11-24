@@ -48,14 +48,14 @@
 
 		<div class="mt-8 flex flex-wrap items-center gap-3">
 			{#if notFound}
-				<Button variant="primary" size="lg" onclick={home}>
+				<Button variant="default" size="lg" onclick={home}>
 					<IconFolders /> Projects
 				</Button>
 				<Button variant="outline" size="lg" onclick={goBack}>
 					<IconArrowLeft /> Go back
 				</Button>
 			{:else}
-				<Button variant="primary" size="lg" onclick={() => location.reload()}>
+				<Button variant="default" size="lg" onclick={() => location.reload()}>
 					<IconRefresh /> Try again
 				</Button>
 				<Button variant="outline" size="lg" onclick={home}>

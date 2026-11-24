@@ -8,6 +8,7 @@
 	import { IconArrowLeft } from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
 
+	import AuthShell from "$lib/cloud/AuthShell.svelte";
 	import CloudPage from "$lib/cloud/CloudPage.svelte";
 	import { publicConfig } from "$lib/cloud/public-config";
 	import { cloudEnabled } from "$lib/cloud/config";
@@ -20,9 +21,36 @@
 	// Start the sign-in options request now, in parallel with the session check, so the panel finds it done.
 	if (browser && cloudEnabled) void publicConfig().catch(() => {});
 
-	// Account management lives in Settings; this page only signs people in.
-	const SETTINGS = "/workspace/settings?tab=account";
-	const next = $derived(safeNext(page.url.searchParams.get("next"), SETTINGS));
+	const mode = $derived(page.url.searchParams.get("mode") ?? "signin");
+	// A team sign-up carries its intent into the welcome flow, which asks for the organization next.
+	const intent = $derived(page.url.searchParams.get("intent") === "team" ? "team" : null);
+	const fallback = $derived(
+		mode === "signup" ? `/workspace/welcome${intent ? "?intent=team" : ""}` : "/workspace"
+	);
+	const next = $derived(safeNext(page.url.searchParams.get("next"), fallback));
+
+	const COPY: Record<string, { title: string; description: string }> = {
+		signin: {
+			title: "Welcome back",
+			description: "Sign in to open your saved documents and shared projects."
+		},
+		signup: {
+			title: "Create your account",
+			description: "Save documents to the server, share them and work together. Free to start."
+		},
+		sso: { title: "Single sign-on", description: "Use your organization's identity provider." },
+		forgot: { title: "Reset your password", description: "We will email you a link." },
+		magic: { title: "Email sign-in", description: "A one-time link, no password." }
+	};
+	const copy = $derived(
+		mode === "signup" && intent
+			? {
+					title: "Set up your team",
+					description:
+						"Start with your own account. Next you create the organization and invite your people."
+				}
+			: (COPY[mode] ?? COPY.signin)
+	);
 	const deleted = $derived(page.url.searchParams.get("deleted") === "1");
 
 	onMount(async () => {
@@ -34,7 +62,7 @@
 </script>
 
 {#snippet back()}
-	<Button variant="ghost" size="sm" href={resolve('/workspace')}>
+	<Button variant="ghost" size="sm" class="-ml-2.5" href={resolve('/workspace')}>
 		<IconArrowLeft /> Back to projects
 	</Button>
 {/snippet}
@@ -62,12 +90,7 @@
 		<SignInSkeleton />
 	</CloudPage>
 {:else}
-	<CloudPage
-		title="Sign in to GlyphTeX"
-		eyebrow="account"
-		description="An account lets you save documents to the server and share them. Documents in this browser keep working without one."
-		footer={back}
-	>
+	<AuthShell title={copy.title} description={copy.description} footer={back}>
 		<SignInPanel {next} onsignedin={() => void goto(next, { invalidateAll: true })} />
-	</CloudPage>
+	</AuthShell>
 {/if}

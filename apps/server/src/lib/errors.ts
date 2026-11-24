@@ -26,6 +26,9 @@ export const errors = {
 	unauthorized: () => new AppError(401, "unauthorized", "Sign in to continue."),
 	forbidden: (message = "You don't have permission to do that.") =>
 		new AppError(403, "forbidden", message),
+	/** The client reads this code to send the person to the verify-email screen. */
+	emailUnverified: (message = "Verify your email address to use this.") =>
+		new AppError(403, "email_unverified", message),
 	storageDisabled: () =>
 		new AppError(
 			501,

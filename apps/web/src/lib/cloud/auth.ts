@@ -1,7 +1,12 @@
 import { passkeyClient } from "@better-auth/passkey/client";
 import { ssoClient } from "@better-auth/sso/client";
 import { createAuthClient } from "better-auth/client";
-import { magicLinkClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
+import {
+	adminClient,
+	magicLinkClient,
+	organizationClient,
+	twoFactorClient
+} from "better-auth/client/plugins";
 import { SERVER_URL } from "./config";
 
 /** Better Auth's own client: sign-in, sign-up, OAuth, magic link, verification, deletion. */
@@ -11,6 +16,7 @@ export const authClient = createAuthClient({
 	plugins: [
 		magicLinkClient(),
 		passkeyClient(),
+		adminClient(),
 		organizationClient(),
 		twoFactorClient(),
 		ssoClient({ domainVerification: { enabled: true } })

@@ -759,3 +759,31 @@
 		animation: none;
 	}
 }
+
+/* Input OTP: caret blink and digit entrance (registry item input-otp). */
+.otp-caret {
+	animation: otp-caret-blink 1.1s steps(1, end) infinite;
+}
+.otp-value {
+	display: inline-block;
+	transform-origin: bottom center;
+	animation: otp-value-in 280ms var(--ease-smooth) both;
+	animation-delay: var(--otp-delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+	.otp-caret {
+		animation: none;
+	}
+}
+@keyframes otp-caret-blink {
+	50% {
+		opacity: 0;
+	}
+}
+@keyframes otp-value-in {
+	from {
+		transform: translateY(5px) scale(0.75);
+		opacity: 0;
+		filter: blur(3px);
+	}
+}

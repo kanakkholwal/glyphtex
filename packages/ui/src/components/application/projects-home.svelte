@@ -66,6 +66,7 @@
 		IconCopy,
 		IconLogin,
 		IconLogout,
+		IconShieldLock,
 		IconUserCircle,
 		IconExternalLink,
 		IconFileImport,
@@ -132,6 +133,7 @@
 		account,
 		checklist,
 		settingsHref,
+		adminHref,
 		page,
 		workspaces,
 		onnavigate = (href: string) => (window.location.href = href)
@@ -193,6 +195,8 @@
 		account?: { href: string; name: string; email: string; signedIn: boolean; onsignout?: () => unknown };
 		/** Adds a Settings destination to the rail. */
 		settingsHref?: string;
+		/** Set for instance admins: adds the Instance admin entry to the account menu. */
+		adminHref?: string;
 		/** Client-side navigation for menu and palette destinations (web: SvelteKit goto). */
 		onnavigate?: (href: string) => void;
 		/** Personal space plus the user's organizations; absent hides the switcher. */
@@ -434,6 +438,9 @@
 			: onsettings
 				? [{ label: platform === 'web' ? 'Storage' : 'Settings', icon: settingsIcon, onSelect: () => onsettings?.() }]
 				: []),
+		...(adminHref
+			? [{ label: 'Instance admin', icon: adminIcon, onSelect: () => onnavigate(adminHref) }]
+			: []),
 		...(helpHref ? [{ label: 'Help and docs', icon: helpIcon, onSelect: () => window.open(helpHref, '_blank') }] : []),
 		{ label: 'About GlyphTeX', icon: aboutIcon, onSelect: () => (aboutOpen = true) }
 	]);
@@ -610,6 +617,7 @@
 
 {#snippet loginIcon()}<IconLogin />{/snippet}
 {#snippet settingsIcon()}<IconSettings />{/snippet}
+{#snippet adminIcon()}<IconShieldLock />{/snippet}
 {#snippet helpIcon()}<IconHelpCircle />{/snippet}
 {#snippet aboutIcon()}<IconInfoCircle />{/snippet}
 

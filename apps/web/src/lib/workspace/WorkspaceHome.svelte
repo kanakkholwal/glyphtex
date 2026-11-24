@@ -572,6 +572,7 @@
 			helpHref="https://github.com/kanakkholwal/glyphtex#readme"
 			onsettings={() => void goto(`${settingsHref}?tab=storage`)}
 			{settingsHref}
+			adminHref={cloudSession.user?.role === "admin" ? resolve("/workspace/admin") : undefined}
 			onnavigate={(href) => void goto(href)}
 			page={settingsPage}
 			onimport={() => zipInput?.click()}

@@ -4,7 +4,7 @@
 	import SettingsSwitch from "$lib/settings-switch.svelte";
 	import { Badge } from "@glyphtex/ui/badge";
 	import { SettingsSection } from "@glyphtex/ui/settings-section";
-	import { SliderControl } from "@glyphtex/ui/slider-control";
+	import { Slider } from "@glyphtex/ui/slider";
 	import {
 		AUTO_SAVE_LABELS,
 		EDITOR_FONT_LABELS,
@@ -35,14 +35,15 @@
 		onchange={(v) => (settings.font = v)}
 	/>
 	<div class="px-5 py-4">
-		<SliderControl
+		<Slider
+			variant="inline"
 			label="Font size"
 			value={settings.fontSize}
 			min={8}
 			max={80}
 			step={2}
-			unit="px"
-			onchange={(v) => (settings.fontSize = v)}
+			formatValue={(v) => `${v}px`}
+			onValueChange={(v) => (settings.fontSize = v as number)}
 		/>
 	</div>
 	<SettingsSwitch

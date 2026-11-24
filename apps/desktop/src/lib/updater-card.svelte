@@ -87,12 +87,12 @@
 				<div class="flex items-center justify-end gap-2 border-t border-border px-4 py-3">
 					{#if updater.status === 'update-available'}
 						<Button variant="outline" onclick={() => updater.dismiss()}>Later</Button>
-						<Button variant="primary" onclick={() => updater.download()}>
+						<Button variant="default" onclick={() => updater.download()}>
 							<IconDownload /> Download
 						</Button>
 					{:else if updater.status === 'ready'}
 						<Button
-							variant="primary"
+							variant="default"
 							disabled={updater.installing}
 							onclick={() => updater.installAndRelaunch()}
 						>

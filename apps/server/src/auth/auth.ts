@@ -5,6 +5,7 @@ import { betterAuth } from "better-auth";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
+import { admin } from "better-auth/plugins/admin";
 import { magicLink } from "better-auth/plugins/magic-link";
 import { organization } from "better-auth/plugins/organization";
 import { twoFactor } from "better-auth/plugins/two-factor";
@@ -78,6 +79,19 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 						message: "Single sign-on is set up for an organization."
 					});
 				}
+				// Organizations and invitations are for verified addresses, when the server can verify them.
+				if (
+					config.requireEmailVerification &&
+					(ctx.path === "/organization/create" || ctx.path === "/organization/invite-member")
+				) {
+					const who = await getSessionFromCtx(ctx);
+					if (who && !who.user.emailVerified) {
+						throw new APIError("FORBIDDEN", {
+							message: "Verify your email address to create organizations and invite people.",
+							code: "EMAIL_UNVERIFIED"
+						});
+					}
+				}
 				if (ctx.path !== "/delete-user") return;
 				const session = await getSessionFromCtx(ctx);
 				if (session) await asAuthError(() => assertCanDeleteAccount(db, session.user.id));
@@ -137,7 +151,21 @@ export function createAuth({ config, db, queue }: AuthDeps) {
 				crossSubDomainCookies: { enabled: true, domain: config.cookieDomain }
 			})
 		},
+		databaseHooks: {
+			user: {
+				// An address listed in ADMIN_EMAILS signs up as an instance admin.
+				create: {
+					before: async (created) => ({
+						data: {
+							...created,
+							role: config.adminEmails.includes(created.email.toLowerCase()) ? "admin" : "user"
+						}
+					})
+				}
+			}
+		},
 		plugins: [
+			admin({ defaultRole: "user", adminRoles: ["admin"] }),
 			...(extraOAuth.length > 0 ? [genericOAuth({ config: extraOAuth })] : []),
 			twoFactor({ issuer: "GlyphTeX" }),
 			// rpID is the web origin's host so one passkey works on the site and every subdomain.

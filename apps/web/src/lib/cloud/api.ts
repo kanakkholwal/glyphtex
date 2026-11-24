@@ -1,4 +1,9 @@
 import type {
+	AdminAuditRow,
+	AdminHealth,
+	AdminOrg,
+	AdminOverview,
+	AdminSignupDay,
 	AuditPage,
 	Feature,
 	MemberFeatures,
@@ -27,6 +32,11 @@ import { createFetch } from "@better-fetch/fetch";
 import { SERVER_URL } from "./config";
 
 export type {
+	AdminAuditRow,
+	AdminHealth,
+	AdminOrg,
+	AdminOverview,
+	AdminSignupDay,
 	AuditPage,
 	Feature,
 	MemberFeatures,
@@ -186,6 +196,19 @@ const preconditionHeaders = (pre: Precondition): Record<string, string> =>
 	"create" in pre ? { "if-none-match": "*" } : { "if-match": `"${pre.version}"` };
 
 export const cloud = {
+	/** Instance admin only: anyone else gets a 404, which callers treat as "not an admin". */
+	admin: {
+		overview: () => json<AdminOverview>("/admin/overview"),
+		signups: (days = 30) => json<AdminSignupDay[]>(`/admin/signups?days=${days}`),
+		organizations: () => json<AdminOrg[]>("/admin/organizations"),
+		audit: () => json<AdminAuditRow[]>("/admin/audit"),
+		health: () => json<AdminHealth>("/admin/health"),
+		updateOrganization: (id: string, patch: { name?: string; slug?: string }) =>
+			json<{ id: string; name: string; slug: string }>(
+				`/admin/organizations/${encodeURIComponent(id)}`,
+				{ method: "PATCH", body: patch }
+			)
+	},
 	config: () => json<PublicConfig>("/public/config"),
 	info: () => json<ServerInfo>("/public/info"),
 

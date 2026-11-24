@@ -219,3 +219,55 @@ export interface ScimToken {
 	connectionId: string;
 	token: string;
 }
+
+// --- Instance admin (/api/admin) ---
+
+export interface AdminOverview {
+	users: {
+		total: number;
+		verified: number;
+		banned: number;
+		admins: number;
+		twoFactor: number;
+		new7: number;
+		new30: number;
+		active7: number;
+		active30: number;
+		sessions: number;
+	};
+	organizations: { total: number; members: number; pendingInvites: number; ssoProviders: number };
+	projects: { total: number; inOrgs: number };
+	storage: { files: number; bytes: number; binaryBytes: number };
+}
+
+export interface AdminSignupDay {
+	day: string;
+	count: number;
+}
+
+export interface AdminOrg {
+	id: string;
+	name: string;
+	slug: string;
+	createdAt: string;
+	members: number;
+	projects: number;
+	bytes: number;
+	sso: boolean;
+}
+
+export interface AdminAuditRow {
+	id: string;
+	action: string;
+	targetType: string;
+	createdAt: string;
+	organization: string;
+	actor: string | null;
+}
+
+export interface AdminHealth {
+	checks: Record<"database" | "cache", { ok: boolean; ms: number; error?: string }>;
+	drivers: { queue: string; blobs: string; mail: string };
+	build: { version: string; runtime: string; commit: string | null; deployedAt: string | null };
+	emailVerificationRequired: boolean;
+}

@@ -99,7 +99,7 @@
 
 <svelte:head><link rel="icon" href="/favicon.ico" /></svelte:head>
 
-<NavProgress color="var(--primary)" />
+<NavProgress />
 
 {@render children()}
 

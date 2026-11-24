@@ -2,7 +2,12 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AppEnv } from "../context.ts";
 import { GRANTABLE_ROLES } from "../db/schema.ts";
-import { currentUser, rateLimit, requireProject } from "../middleware/index.ts";
+import {
+	currentUser,
+	rateLimit,
+	requireProject,
+	requireVerifiedForWrites
+} from "../middleware/index.ts";
 import { can } from "../rbac/permissions.ts";
 import { sharingService } from "../services/sharing.ts";
 import { validate } from "./validation.ts";
@@ -12,6 +17,7 @@ const token = z.object({ token: z.string().min(20).max(200) });
 
 /** Routes under /api/projects/:projectId; every one is guarded. */
 export const projectSharingController = new Hono<AppEnv>()
+	.use("*", requireVerifiedForWrites)
 	.get("/:projectId/members", requireProject("project:read"), async (c) =>
 		c.json(await sharingService(c.var.deps).members(c.var.access))
 	)

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
+import { adminController } from "./controllers/admin.ts";
 import { accountController } from "./controllers/account.ts";
 import { filesController } from "./controllers/files.ts";
 import { healthController } from "./controllers/health.ts";
@@ -78,6 +79,7 @@ export function createApp(
 	app.route("/api/projects", projectSharingController);
 	app.route("/api", redeemController);
 	app.route("/api/orgs", orgsController);
+	app.route("/api/admin", adminController);
 
 	app.notFound((c) => onError(errors.notFound("Route"), c));
 	app.onError(onError);

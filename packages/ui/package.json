@@ -281,6 +281,50 @@
 		"./mention-input": {
 			"svelte": "./src/components/ui/mention-input/index.ts",
 			"default": "./src/components/ui/mention-input/index.ts"
+		},
+		"./data-table": {
+			"svelte": "./src/components/ui/data-table/index.ts",
+			"default": "./src/components/ui/data-table/index.ts"
+		},
+		"./stat-card": {
+			"svelte": "./src/components/blocks/stat-card/index.ts",
+			"default": "./src/components/blocks/stat-card/index.ts"
+		},
+		"./chart": {
+			"svelte": "./src/components/charts/chart/index.ts",
+			"default": "./src/components/charts/chart/index.ts"
+		},
+		"./area-chart": {
+			"svelte": "./src/components/charts/area-chart/index.ts",
+			"default": "./src/components/charts/area-chart/index.ts"
+		},
+		"./bar-chart": {
+			"svelte": "./src/components/charts/bar-chart/index.ts",
+			"default": "./src/components/charts/bar-chart/index.ts"
+		},
+		"./line-chart": {
+			"svelte": "./src/components/charts/line-chart/index.ts",
+			"default": "./src/components/charts/line-chart/index.ts"
+		},
+		"./input-otp": {
+			"svelte": "./src/components/ui/input-otp/index.ts",
+			"default": "./src/components/ui/input-otp/index.ts"
+		},
+		"./password-input": {
+			"svelte": "./src/components/ui/password-input/index.ts",
+			"default": "./src/components/ui/password-input/index.ts"
+		},
+		"./auth-form": {
+			"svelte": "./src/components/blocks/auth-form/index.ts",
+			"default": "./src/components/blocks/auth-form/index.ts"
+		},
+		"./letter-morph": {
+			"svelte": "./src/components/text/letter-morph/index.ts",
+			"default": "./src/components/text/letter-morph/index.ts"
+		},
+		"./progress": {
+			"svelte": "./src/components/ui/progress/index.ts",
+			"default": "./src/components/ui/progress/index.ts"
 		}
 	},
 	"peerDependencies": {
@@ -304,11 +348,17 @@
 		"@fontsource-variable/rethink-sans": "^5.3.0",
 		"@lezer/highlight": "^1.2.3",
 		"@tabler/icons-svelte": "^3.44.0",
+		"@tanstack/store": "^0.11.3",
+		"@tanstack/table-core": "^9.3.1",
+		"@tanstack/virtual-core": "^3.19.13",
 		"@unified-latex/unified-latex-types": "^1.8.4",
 		"@unified-latex/unified-latex-util-parse": "^1.8.4",
 		"@unpic/svelte": "^1.0.1",
 		"bits-ui": "^2.21.0",
 		"clsx": "^2.1.1",
+		"d3-array": "^3.2.5",
+		"d3-scale": "^4.0.3",
+		"d3-shape": "^3.2.1",
 		"katex": "^0.19.1",
 		"lib0": "^0.2.120",
 		"mode-watcher": "^1.1.0",
@@ -327,6 +377,9 @@
 		"@sveltejs/package": "^2.5.8",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/typography": "^0.5.19",
+		"@types/d3-array": "^3.2.2",
+		"@types/d3-scale": "^4.0.9",
+		"@types/d3-shape": "^3.2.0",
 		"@types/katex": "^0.16.8",
 		"esbuild": "^0.28.1",
 		"shadcn-svelte": "^1.7.0",

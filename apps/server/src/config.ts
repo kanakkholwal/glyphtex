@@ -32,6 +32,8 @@ const schema = z.object({
 	// Keys SCIM bearer credentials; defaults to a value derived from the auth secret.
 	SCIM_CREDENTIAL_SECRET: optional,
 	CLIENT_IP_HEADER: z.string().default("x-forwarded-for"),
+	// Emails that run this instance. Matched on a verified address, and never stored as a role by hand.
+	ADMIN_EMAILS: list,
 
 	DATABASE_URL: optional,
 	REDIS_URL: optional,
@@ -120,6 +122,7 @@ export function parseConfig(env: Record<string, unknown>) {
 		emailVerificationSuspended: e.REQUIRE_EMAIL_VERIFICATION && !mailEnabled,
 		scimSecret: e.SCIM_CREDENTIAL_SECRET ?? `${e.BETTER_AUTH_SECRET}:scim-credentials`,
 		clientIpHeader: e.CLIENT_IP_HEADER.toLowerCase(),
+		adminEmails: e.ADMIN_EMAILS.map((email) => email.toLowerCase()),
 		databaseUrl: e.DATABASE_URL,
 		redisUrl: e.REDIS_URL,
 		rabbitmqUrl: e.RABBITMQ_URL,

@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { Button } from "@glyphtex/ui/button";
+	import { Field, FieldError, FieldLabel } from "@glyphtex/ui/field";
 	import { Input } from "@glyphtex/ui/input";
+	import { InputOTP, InputOTPGroup, InputOTPSlot } from "@glyphtex/ui/input-otp";
+	import { PasswordInput, passwordRules } from "@glyphtex/ui/password-input";
 	import { Separator } from "@glyphtex/ui/separator";
 	import { Skeleton } from "@glyphtex/ui/skeleton";
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from "@glyphtex/ui/tabs";
 	import {
 		IconBrandGithub,
 		IconBrandGitlab,
@@ -15,8 +17,8 @@
 		IconMail
 	} from "@tabler/icons-svelte";
 	import { onMount } from "svelte";
-	import { fly } from "svelte/transition";
 	import { prefersReducedMotion } from "svelte/motion";
+	import { fly } from "svelte/transition";
 	import { goto } from "$app/navigation";
 	import { page } from "$app/state";
 
@@ -46,10 +48,10 @@
 		const value = page.url.searchParams.get("mode");
 		return MODES.find((m) => m === value) ?? "signin";
 	});
-	function setMode(next: string) {
+	function setMode(target: Mode) {
 		const url = new URL(page.url);
-		if (next === "signin") url.searchParams.delete("mode");
-		else url.searchParams.set("mode", next);
+		if (target === "signin") url.searchParams.delete("mode");
+		else url.searchParams.set("mode", target);
 		error = undefined;
 		void goto(url, { replaceState: true, keepFocus: true, noScroll: true });
 	}
@@ -120,8 +122,8 @@
 		});
 	}
 
-	function confirmCode(event: SubmitEvent) {
-		event.preventDefault();
+	function confirmCode(event?: SubmitEvent) {
+		event?.preventDefault();
 		void run(async () => {
 			const value = code.trim();
 			await unwrap(
@@ -185,24 +187,43 @@
 		gitlab: { label: "GitLab", icon: IconBrandGitlab },
 		orcid: { label: "ORCID", icon: IconId }
 	} as const;
+
+	// The server enforces length only, so the meter checks length only; more rules would promise what is not required.
+	const rules = passwordRules(10).slice(0, 1);
+	const enter = () => ({ y: prefersReducedMotion.current ? 0 : 6, duration: 160 });
 </script>
 
+{#snippet failure()}
+	{#if error}<FieldError role="alert">{error}</FieldError>{/if}
+{/snippet}
+
 {#if challenge}
-	<form class="flex flex-col gap-3" onsubmit={confirmCode}>
-		<p class="text-sm">
-			{backup
-				? "Enter one of your backup codes."
-				: "Enter the 6-digit code from your authenticator app."}
-		</p>
-		<Input
-			required
-			autocomplete="one-time-code"
-			placeholder={backup ? "Backup code" : "123456"}
-			inputmode={backup ? "text" : "numeric"}
-			aria-label={backup ? "Backup code" : "Authenticator code"}
-			bind:value={code}
-		/>
-		{#if error}<p class="text-destructive-strong text-sm" role="alert">{error}</p>{/if}
+	<form class="flex flex-col gap-4" onsubmit={confirmCode} in:fly={enter()}>
+		{#if backup}
+			<Field>
+				<FieldLabel for="backup-code">Backup code</FieldLabel>
+				<Input id="backup-code" required autocomplete="one-time-code" bind:value={code} />
+			</Field>
+		{:else}
+			<Field>
+				<FieldLabel for="totp">6-digit code from your authenticator app</FieldLabel>
+				<InputOTP
+					id="totp"
+					maxlength={6}
+					bind:value={code}
+					invalid={error !== undefined}
+					autocomplete="one-time-code"
+					onComplete={() => confirmCode()}
+				>
+					{#snippet children({ cells })}
+						<InputOTPGroup>
+							{#each cells as cell, i (i)}<InputOTPSlot {cell} />{/each}
+						</InputOTPGroup>
+					{/snippet}
+				</InputOTP>
+			</Field>
+		{/if}
+		{@render failure()}
 		<Button type="submit" variant="dark" disabled={busy || !code.trim()}>
 			{#if busy}<IconLoader2 class="animate-spin" />{/if} Verify
 		</Button>
@@ -221,151 +242,151 @@
 		</Button>
 	</form>
 {:else if sent}
-	<div class="flex flex-col gap-3" role="status">
-		<p class="text-sm">{sent}</p>
+	<div class="flex flex-col gap-4" role="status" in:fly={enter()}>
+		<p class="text-base text-pretty">{sent}</p>
+		<p class="text-muted-foreground text-sm">The link works once and expires after an hour.</p>
 		<Button variant="ghost" class="self-start" onclick={() => (sent = undefined)}>Back</Button>
 	</div>
+{:else if mode === "forgot"}
+	<div in:fly={enter()}>
+		<EmailOnlyForm
+			description="Enter your email and we'll send a link to choose a new password."
+			submitLabel="Send reset link"
+			bind:email
+			{busy}
+			{error}
+			onsubmit={resetPassword}
+			onback={() => setMode("signin")}
+		/>
+	</div>
+{:else if mode === "magic"}
+	<div in:fly={enter()}>
+		<EmailOnlyForm
+			description="We'll email you a link that signs you in. No password needed."
+			submitLabel="Email me a sign-in link"
+			bind:email
+			{busy}
+			{error}
+			onsubmit={magicLink}
+			onback={() => setMode("signin")}
+		>
+			{#snippet icon()}<IconMail />{/snippet}
+		</EmailOnlyForm>
+	</div>
+{:else if mode === "sso"}
+	<form class="flex flex-col gap-4" onsubmit={startSso} in:fly={enter()}>
+		<Field>
+			<FieldLabel for="sso-email">Work email</FieldLabel>
+			<Input
+				id="sso-email"
+				type="email"
+				required
+				autocomplete="email"
+				placeholder="you@yourcompany.com"
+				bind:value={email}
+			/>
+			<p class="text-muted-foreground text-xs">We find your organization's sign-in from the domain.</p>
+		</Field>
+		{@render failure()}
+		<Button type="submit" variant="dark" disabled={busy}>
+			{#if busy}<IconLoader2 class="animate-spin" />{:else}<IconBuilding />{/if}
+			Continue with single sign-on
+		</Button>
+		<Button type="button" variant="ghost" size="sm" class="self-start" onclick={() => setMode("signin")}>
+			Back to sign in
+		</Button>
+	</form>
 {:else}
-	<div class="flex flex-col gap-4">
+	<div class="flex flex-col gap-6" in:fly={enter()}>
 		{#if !configLoaded}
-			<div class="flex flex-col gap-2" role="status" aria-busy="true" aria-label="Loading sign-in options">
-				<Skeleton class="h-9 w-full rounded-lg" />
-				<Skeleton class="h-9 w-full rounded-lg" />
+			<div class="grid grid-cols-2 gap-2" role="status" aria-busy="true" aria-label="Loading sign-in options">
+				<Skeleton class="h-10 rounded-lg" />
+				<Skeleton class="h-10 rounded-lg" />
 			</div>
-			<Skeleton class="h-3 w-full" />
 		{:else if config && config.providers.length > 0}
-			<div class="flex flex-col gap-2">
+			<div class="grid gap-2 {config.providers.length > 1 ? 'grid-cols-2' : ''}">
 				{#each config.providers as p (p)}
 					{@const Icon = PROVIDERS[p].icon}
 					<Button variant="outline" disabled={busy} onclick={() => social(p)}>
-						<Icon /> Continue with {PROVIDERS[p].label}
+						<Icon /> {PROVIDERS[p].label}
 					</Button>
 				{/each}
 			</div>
+		{/if}
+		{#if mode === "signin"}
+			<Button type="button" variant="outline" disabled={busy} onclick={passkeySignIn}>
+				<IconFingerprint /> Use a passkey
+			</Button>
+		{/if}
+		{#if configLoaded && ((config && config.providers.length > 0) || mode === "signin")}
 			<div class="text-muted-foreground flex items-center gap-3 text-xs">
-				<Separator class="flex-1" /> or <Separator class="flex-1" />
+				<Separator class="flex-1" /> or with email <Separator class="flex-1" />
 			</div>
 		{/if}
 
-				{#if mode === "forgot"}
-			<div in:fly={{ y: prefersReducedMotion.current ? 0 : 6, duration: 160 }}>
-				<EmailOnlyForm
-					description="Enter your email and we'll send a link to choose a new password."
-					submitLabel="Send reset link"
-					bind:email
-					{busy}
-					{error}
-					onsubmit={resetPassword}
-					onback={() => setMode("signin")}
-				/>
-			</div>
-		{:else if mode === "magic"}
-			<div in:fly={{ y: prefersReducedMotion.current ? 0 : 6, duration: 160 }}>
-				<EmailOnlyForm
-					description="We'll email you a link that signs you in. No password needed."
-					submitLabel="Email me a sign-in link"
-					bind:email
-					{busy}
-					{error}
-					onsubmit={magicLink}
-					onback={() => setMode("signin")}
-				>
-					{#snippet icon()}<IconMail />{/snippet}
-				</EmailOnlyForm>
-			</div>
-		{:else}
-		<Tabs value={mode} onValueChange={setMode} variant="underline">
-			<TabsList class="w-full">
-				<TabsTrigger value="signin" class="flex-1">Sign in</TabsTrigger>
-				<TabsTrigger value="signup" class="flex-1">Create account</TabsTrigger>
-				<TabsTrigger value="sso" class="flex-1">SSO</TabsTrigger>
-			</TabsList>
-			<TabsContent value={mode}>
-				{#if mode === "sso"}
-					<form class="flex flex-col gap-3 pt-2" onsubmit={startSso}>
-						<p class="text-muted-foreground text-sm">
-							Use your organization's single sign-on. We find it from your work email.
-						</p>
-						<label class="flex flex-col gap-1 text-xs font-medium">
-							Work email
-							<Input
-							type="email"
-							required
-							autocomplete="email"
-							placeholder="you@yourcompany.com"
-							bind:value={email}
-						/>
-						</label>
-						{#if error}<p class="text-destructive-strong text-sm" role="alert">{error}</p>{/if}
-						<Button type="submit" variant="dark" disabled={busy}>
-							{#if busy}<IconLoader2 class="animate-spin" />{:else}<IconBuilding />{/if}
-							Continue with SSO
-						</Button>
-					</form>
-				{:else}
-				<form class="flex flex-col gap-3 pt-2" onsubmit={submit}>
-					{#if mode === "signup"}
-						<label class="flex flex-col gap-1 text-xs font-medium">
-							Name
-							<Input autocomplete="name" placeholder="Your name" bind:value={name} />
-						</label>
-					{/if}
-					<label class="flex flex-col gap-1 text-xs font-medium">
-						Email
-						<Input
-							type="email"
-							required
-							autocomplete="email"
-							placeholder="you@example.com"
-							bind:value={email}
-						/>
-					</label>
-					<label class="flex flex-col gap-1 text-xs font-medium">
-						<span class="flex items-center justify-between">
-							Password
-							{#if mode === "signin" && mailOn}
-								<button
-									type="button"
-									class="text-muted-foreground hover:text-foreground font-normal underline-offset-4 hover:underline"
-									onclick={() => setMode("forgot")}
-								>
-									Forgot password?
-								</button>
-							{/if}
-						</span>
-						<Input
-							type="password"
-							required
-							minlength={10}
-							placeholder={mode === "signup" ? "At least 10 characters" : "Your password"}
-							autocomplete={mode === "signup" ? "new-password" : "current-password"}
-							bind:value={password}
-						/>
-					</label>
-					{#if error}
-						<p class="text-destructive-strong text-sm" role="alert">{error}</p>
-					{/if}
-					<Button type="submit" variant="dark" disabled={busy}>
-						{#if busy}<IconLoader2 class="animate-spin" />{/if}
-						{mode === "signup" ? "Create account" : "Sign in"}
-					</Button>
+		<form class="flex flex-col gap-4" onsubmit={submit}>
+			{#if mode === "signup"}
+				<Field>
+					<FieldLabel for="name">Name</FieldLabel>
+					<Input id="name" autocomplete="name" placeholder="Your name" bind:value={name} />
+				</Field>
+			{/if}
+			<Field>
+				<FieldLabel for="email">Email</FieldLabel>
+				<Input id="email" type="email" required autocomplete="email" placeholder="you@example.com" bind:value={email} />
+			</Field>
+			<Field>
+				<div class="flex items-center justify-between">
+					<FieldLabel for="password">Password</FieldLabel>
 					{#if mode === "signin" && mailOn}
-						<div class="text-muted-foreground flex items-center gap-3 text-xs">
-							<Separator class="flex-1" /> or <Separator class="flex-1" />
-						</div>
-						<Button type="button" variant="outline" disabled={busy} onclick={() => setMode("magic")}>
-							<IconMail /> Email me a sign-in link
-						</Button>
+						<button
+							type="button"
+							class="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+							onclick={() => setMode("forgot")}
+						>
+							Forgot password?
+						</button>
 					{/if}
-					{#if mode === "signin"}
-						<Button type="button" variant="outline" disabled={busy} onclick={passkeySignIn}>
-							<IconFingerprint /> Sign in with a passkey
-						</Button>
-					{/if}
-				</form>
-				{/if}
-			</TabsContent>
-		</Tabs>
-		{/if}
+				</div>
+				<PasswordInput
+					id="password"
+					label="Password"
+					required
+					minlength={10}
+					bind:value={password}
+					rules={mode === "signup" ? rules : undefined}
+					placeholder={mode === "signup" ? "At least 10 characters" : "Your password"}
+					autocomplete={mode === "signup" ? "new-password" : "current-password"}
+				/>
+			</Field>
+			{@render failure()}
+			<Button type="submit" variant="dark" disabled={busy}>
+				{#if busy}<IconLoader2 class="animate-spin" />{/if}
+				{mode === "signup" ? "Create account" : "Sign in"}
+			</Button>
+			{#if mode === "signup"}
+				<p class="text-muted-foreground text-xs text-pretty">
+					By creating an account you agree to the <a class="underline underline-offset-4" href="/privacy">privacy policy</a>.
+				</p>
+			{/if}
+		</form>
+
+		<div class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+			{#if mode === "signin"}
+				<span>New to GlyphTeX? <button type="button" class="text-foreground underline underline-offset-4" onclick={() => setMode("signup")}>Create an account</button></span>
+			{:else}
+				<span>Have an account? <button type="button" class="text-foreground underline underline-offset-4" onclick={() => setMode("signin")}>Sign in</button></span>
+			{/if}
+		</div>
+		<div class="-ml-2.5 flex flex-wrap gap-2">
+			{#if mailOn}
+				<Button type="button" variant="ghost" size="sm" disabled={busy} onclick={() => setMode("magic")}>
+					<IconMail /> Email me a link
+				</Button>
+			{/if}
+			<Button type="button" variant="ghost" size="sm" disabled={busy} onclick={() => setMode("sso")}>
+				<IconBuilding /> Single sign-on
+			</Button>
+		</div>
 	</div>
 {/if}
